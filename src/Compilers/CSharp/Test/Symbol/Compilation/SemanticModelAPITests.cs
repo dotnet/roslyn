@@ -634,7 +634,7 @@ partial class PC
             // the declaration one is what one can get from GetMembers()
             Assert.Same(pMethodSym, pmSym01);
 
-            // with decl|impl point to each nother
+            // with decl|impl point to each other
             Assert.Null(pmSym01.PartialDefinitionPart);
             Assert.Same(pmSym02, pmSym01.PartialImplementationPart);
 

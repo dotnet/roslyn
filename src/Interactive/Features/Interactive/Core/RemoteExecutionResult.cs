@@ -12,28 +12,28 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// New value of source search paths after execution, or null if not changed since the last execution.
         /// </summary>
-        public readonly string[] NewSourcePaths;
+        public readonly string[] ChangedSourcePaths;
 
         /// <summary>
         /// New value of reference search paths after execution, or null if not changed since the last execution.
         /// </summary>
-        public readonly string[] NewReferencePaths;
+        public readonly string[] ChangedReferencePaths;
 
         /// <summary>
         /// New value of working directory in the remote process after execution, or null if not changed since the last execution.
         /// </summary>
-        public readonly string NewWorkingDirectory;
+        public readonly string ChangedWorkingDirectory;
 
         public RemoteExecutionResult(
             bool success,
-            string[] newSourcePaths = null,
-            string[] newReferencePaths = null,
-            string newWorkingDirectory = null)
+            string[] changedSourcePaths = null,
+            string[] changedReferencePaths = null,
+            string changedWorkingDirectory = null)
         {
             this.Success = success;
-            this.NewSourcePaths = newSourcePaths;
-            this.NewReferencePaths = newReferencePaths;
-            this.NewWorkingDirectory = newWorkingDirectory;
+            this.ChangedSourcePaths = changedSourcePaths;
+            this.ChangedReferencePaths = changedReferencePaths;
+            this.ChangedWorkingDirectory = changedWorkingDirectory;
         }
     }
 }

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class AttributeNamedParameterCompletionProvider : AbstractCompletionProvider
+    internal partial class AttributeNamedParameterCompletionProvider : CompletionListProvider
     {
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";
@@ -28,13 +27,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        protected override async Task<bool> IsExclusiveAsync(Document document, int caretPosition, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = syntaxTree.FindTokenOnLeftOfPosition(caretPosition, cancellationToken)
-                                  .GetPreviousTokenIfTouchingWord(caretPosition);
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
 
-            return IsAfterNameColonArgument(token) || IsAfterNameEqualsArgument(token);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxTree.IsInNonUserCode(position, cancellationToken))
+            {
+                return;
+            }
+
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            if (!token.IsKind(SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+            {
+                return;
+            }
+
+            var attributeArgumentList = token.Parent as AttributeArgumentListSyntax;
+            var attributeSyntax = token.Parent.Parent as AttributeSyntax;
+            if (attributeSyntax == null || attributeArgumentList == null)
+            {
+                return;
+            }
+
+            if (IsAfterNameColonArgument(token) || IsAfterNameEqualsArgument(token))
+            {
+                context.MakeExclusive(true);
+            }
+
+            // We actually want to collect two sets of named parameters to present the user.  The
+            // normal named parameters that come from the attribute constructors.  These will be
+            // presented like "foo:".  And also the named parameters that come from the writable
+            // fields/properties in the attribute.  These will be presented like "bar =".  
+
+            var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
+
+            var workspace = document.Project.Solution.Workspace;
+            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
+            var nameColonItems = await GetNameColonItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
+            var nameEqualsItems = await GetNameEqualsItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
+
+            context.AddItems(nameEqualsItems);
+
+            // If we're after a name= parameter, then we only want to show name= parameters.
+            // Otherwise, show name: parameters too.
+            if (!IsAfterNameEqualsArgument(token))
+            {
+                context.AddItems(nameColonItems);
+            }
         }
 
         private bool IsAfterNameColonArgument(SyntaxToken token)
@@ -89,51 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
-        {
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxTree.IsInNonUserCode(position, cancellationToken))
-            {
-                return null;
-            }
-
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            token = token.GetPreviousTokenIfTouchingWord(position);
-
-            if (token.Kind() != SyntaxKind.OpenParenToken && token.Kind() != SyntaxKind.CommaToken)
-            {
-                return null;
-            }
-
-            var attributeArgumentList = token.Parent as AttributeArgumentListSyntax;
-            var attributeSyntax = token.Parent.Parent as AttributeSyntax;
-            if (attributeSyntax == null || attributeArgumentList == null)
-            {
-                return null;
-            }
-
-            // We actually want to collect two sets of named parameters to present the user.  The
-            // normal named parameters that come from the attribute constructors.  These will be
-            // presented like "foo:".  And also the named parameters that come from the writable
-            // fields/properties in the attribute.  These will be presented like "bar =".  
-
-            var existingNamedParameters = GetExistingNamedParameters(attributeArgumentList, position);
-
-            var workspace = document.Project.Solution.Workspace;
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
-            var nameColonItems = await GetNameColonItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
-            var nameEqualsItems = await GetNameEqualsItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
-
-            // If we're after a name= parameter, then we only want to show name= parameters.
-            if (IsAfterNameEqualsArgument(token))
-            {
-                return nameEqualsItems;
-            }
-
-            return nameColonItems.Concat(nameEqualsItems);
-        }
-
         private async Task<IEnumerable<CompletionItem>> GetNameEqualsItemsAsync(Workspace workspace, SemanticModel semanticModel,
             int position, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters,
             CancellationToken cancellationToken)
@@ -142,17 +141,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var unspecifiedNamedParameters = attributeNamedParameters.Where(p => !existingNamedParameters.Contains(p.Name));
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return
-            from p in attributeNamedParameters
-            where !existingNamedParameters.Contains(p.Name)
-            select new CompletionItem(
-                this,
-                p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
-                CompletionUtilities.GetTextChangeSpan(text, position),
-                CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
-                p.GetGlyph(),
-                sortText: p.Name,
-                rules: ItemRules.Instance);
+            return from p in attributeNamedParameters
+                   where !existingNamedParameters.Contains(p.Name)
+                   select new CompletionItem(
+                       this,
+                       p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
+                       CompletionUtilities.GetTextChangeSpan(text, position),
+                       CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
+                       p.GetGlyph(),
+                       sortText: p.Name,
+                       rules: ItemRules.Instance);
         }
 
         private async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
@@ -163,18 +161,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return
-            from pl in parameterLists
-            from p in pl
-            where !existingNamedParameters.Contains(p.Name)
-            select new CompletionItem(
-                this,
-                p.Name.ToIdentifierToken().ToString() + ColonString,
-                CompletionUtilities.GetTextChangeSpan(text, position),
-                CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
-                p.GetGlyph(),
-                sortText: p.Name,
-                rules: ItemRules.Instance);
+            return from pl in parameterLists
+                   from p in pl
+                   where !existingNamedParameters.Contains(p.Name)
+                   select new CompletionItem(
+                       this,
+                       p.Name.ToIdentifierToken().ToString() + ColonString,
+                       CompletionUtilities.GetTextChangeSpan(text, position),
+                       CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
+                       p.GetGlyph(),
+                       sortText: p.Name,
+                       rules: ItemRules.Instance);
         }
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)

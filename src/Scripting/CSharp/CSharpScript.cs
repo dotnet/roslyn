@@ -31,9 +31,10 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="code">The source code of the script.</param>
         /// <param name="options">The script options.</param>
         /// <param name="globalsType">Type of global object.</param>
-        public static Script<object> Create(string code, ScriptOptions options = null, Type globalsType = null)
+        /// <param name="assemblyLoader">Custom  assembly loader.</param>
+        public static Script<object> Create(string code, ScriptOptions options = null, Type globalsType = null, InteractiveAssemblyLoader assemblyLoader = null)
         {
-            return Create<object>(code, options, globalsType);
+            return Create<object>(code, options, globalsType, assemblyLoader);
         }
 
         /// <summary>
@@ -45,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="globalsType">Type of global object, <paramref name="globals"/>.GetType() is used if not specified.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <typeparam name="T">The return type of the submission</typeparam>
+        /// <exception cref="CompilationErrorException">Specified code has errors.</exception>
         public static Task<ScriptState<T>> RunAsync<T>(string code, ScriptOptions options = null, object globals = null, Type globalsType = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return Create<T>(code, options, globalsType ?? globals?.GetType()).RunAsync(globals, cancellationToken);
@@ -58,6 +60,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="globals">An object instance whose members can be accessed by the script as global variables.</param>
         /// <param name="globalsType">Type of global object, <paramref name="globals"/>.GetType() is used if not specified.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
+        /// <exception cref="CompilationErrorException">Specified code has errors.</exception>
         public static Task<ScriptState<object>> RunAsync(string code, ScriptOptions options = null, object globals = null, Type globalsType = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return RunAsync<object>(code, options, globals, globalsType, cancellationToken);
@@ -73,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <typeparam name="T">The return type of the submission</typeparam>
         /// <return>Returns the value returned by running the script.</return>
+        /// <exception cref="CompilationErrorException">Specified code has errors.</exception>
         public static Task<T> EvaluateAsync<T>(string code, ScriptOptions options = null, object globals = null, Type globalsType = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return RunAsync<T>(code, options, globals, globalsType, cancellationToken).GetEvaluationResultAsync();
@@ -87,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
         /// <param name="globalsType">Type of global object, <paramref name="globals"/>.GetType() is used if not specified.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <return>Returns the value returned by running the script.</return>
+        /// <exception cref="CompilationErrorException">Specified code has errors.</exception>
         public static Task<object> EvaluateAsync(string code, ScriptOptions options = null, object globals = null, Type globalsType = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return EvaluateAsync<object>(code, options, globals, globalsType, cancellationToken);

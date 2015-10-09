@@ -187,54 +187,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var diagnostics = DiagnosticBag.GetInstance();
-                var resolvedFilePath = resolver.ResolveReference(path, baseFilePath: tree.FilePath);
-                if (resolvedFilePath == null)
+                string resolvedFilePath = null;
+                if (resolver == null)
                 {
                     diagnostics.Add(
                         messageProvider.CreateDiagnostic(
-                            (int)ErrorCode.ERR_NoSourceFile,
-                            fileToken.GetLocation(),
-                            path,
-                            CSharpResources.CouldNotFindFile));
-                }
-                else if (!loadedSyntaxTreeMapBuilder.ContainsKey(resolvedFilePath))
-                {
-                    try
-                    {
-                        var code = resolver.ReadText(resolvedFilePath);
-                        var loadedTree = SyntaxFactory.ParseSyntaxTree(
-                            code,
-                            tree.Options, // Use ParseOptions propagated from "external" tree.
-                            resolvedFilePath);
-
-                        // All #load'ed trees should have unique path information.
-                        loadedSyntaxTreeMapBuilder.Add(loadedTree.FilePath, loadedTree);
-
-                        AppendAllSyntaxTrees(
-                            treesBuilder,
-                            loadedTree,
-                            scriptClassName,
-                            resolver,
-                            messageProvider,
-                            isSubmission,
-                            ordinalMapBuilder,
-                            loadDirectiveMapBuilder,
-                            loadedSyntaxTreeMapBuilder,
-                            declMapBuilder,
-                            ref declTable);
-                    }
-                    catch (Exception e)
-                    {
-                        diagnostics.Add(
-                            CommonCompiler.ToFileReadDiagnostics(messageProvider, e, resolvedFilePath),
-                            fileToken.GetLocation());
-                    }
+                            (int)ErrorCode.ERR_SourceFileReferencesNotSupported,
+                            directive.Location));
                 }
                 else
                 {
-                    // The path resolved, but we've seen this file before,
-                    // so don't attempt to load it again.
-                    Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+                    resolvedFilePath = resolver.ResolveReference(path, baseFilePath: tree.FilePath);
+                    if (resolvedFilePath == null)
+                    {
+                        diagnostics.Add(
+                            messageProvider.CreateDiagnostic(
+                                (int)ErrorCode.ERR_NoSourceFile,
+                                fileToken.GetLocation(),
+                                path,
+                                CSharpResources.CouldNotFindFile));
+                    }
+                    else if (!loadedSyntaxTreeMapBuilder.ContainsKey(resolvedFilePath))
+                    {
+                        try
+                        {
+                            var code = resolver.ReadText(resolvedFilePath);
+                            var loadedTree = SyntaxFactory.ParseSyntaxTree(
+                                code,
+                                tree.Options, // Use ParseOptions propagated from "external" tree.
+                                resolvedFilePath);
+
+                            // All #load'ed trees should have unique path information.
+                            loadedSyntaxTreeMapBuilder.Add(loadedTree.FilePath, loadedTree);
+
+                            AppendAllSyntaxTrees(
+                                treesBuilder,
+                                loadedTree,
+                                scriptClassName,
+                                resolver,
+                                messageProvider,
+                                isSubmission,
+                                ordinalMapBuilder,
+                                loadDirectiveMapBuilder,
+                                loadedSyntaxTreeMapBuilder,
+                                declMapBuilder,
+                                ref declTable);
+                        }
+                        catch (Exception e)
+                        {
+                            diagnostics.Add(
+                                CommonCompiler.ToFileReadDiagnostics(messageProvider, e, resolvedFilePath),
+                                fileToken.GetLocation());
+                        }
+                    }
+                    else
+                    {
+                        // The path resolved, but we've seen this file before,
+                        // so don't attempt to load it again.
+                        Debug.Assert(diagnostics.IsEmptyWithoutResolution);
+                    }
                 }
 
                 if (loadDirectives == null)

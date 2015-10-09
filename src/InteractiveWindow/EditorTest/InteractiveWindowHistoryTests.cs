@@ -161,6 +161,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
+        [Fact]
         public void CheckHistoryNextNotCircular()
         {
             //submit, submit, down, up, down, down
@@ -187,6 +188,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             //Next should again do nothing as it is the last item, bufer should have the same value
             _operations.HistoryNext();
             AssertCurrentSubmission(inputString2);
+
+            //This is to make sure the window doesn't crash
+            ExecuteInput();
+            AssertCurrentSubmission(empty);
         }
 
         [Fact]

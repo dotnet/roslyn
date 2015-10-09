@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -106,7 +103,7 @@ static void M12() { }
 ";
             foreach (var options in new[] { TestOptions.Script, TestOptions.Interactive })
             {
-                var comp = CreateCompilationWithMscorlib(text, parseOptions: options);
+                var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
                 var script = comp.ScriptClass;
                 var m1 = script.GetMembers("M1").Single() as MethodSymbol;
                 Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);

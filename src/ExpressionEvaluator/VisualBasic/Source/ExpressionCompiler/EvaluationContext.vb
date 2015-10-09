@@ -590,7 +590,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Sub GetConstants(
             builder As ArrayBuilder(Of LocalSymbol),
             method As MethodSymbol,
-            scopes As IEnumerable(Of ISymUnmanagedScope),
+            scopes As ArrayBuilder(Of ISymUnmanagedScope),
             metadataDecoder As MetadataDecoder)
 
             For Each scope In scopes
@@ -603,6 +603,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(Not info.IsByRef)
                     Debug.Assert(Not info.IsPinned)
                     Dim type As TypeSymbol = info.Type
+                    If type.IsErrorType() Then
+                        Continue For
+                    End If
 
                     Dim constantValue = PdbHelpers.GetConstantValue(type.GetEnumUnderlyingTypeOrSelf(), rawValue)
 

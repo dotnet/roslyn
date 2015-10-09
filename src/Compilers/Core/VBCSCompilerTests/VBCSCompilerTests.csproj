@@ -18,17 +18,9 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\CSharp\csc2\csc2.csproj">
-      <Project>{c545216d-8cba-4460-810d-d3dc7eff8373}</Project>
-      <Name>csc2</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
       <Name>csc</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.csproj">
-      <Project>{21446697-e359-41d9-b39d-40ada2b20823}</Project>
-      <Name>vbc2</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
       <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
@@ -124,6 +116,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

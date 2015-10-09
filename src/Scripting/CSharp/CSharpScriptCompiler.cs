@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
-using System.Globalization;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
     internal sealed class CSharpScriptCompiler : ScriptCompiler
     {
         public static readonly ScriptCompiler Instance = new CSharpScriptCompiler();
+
         private static readonly CSharpParseOptions s_defaultInteractive = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Interactive);
         private static readonly CSharpParseOptions s_defaultScript = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Script);
 
@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
 
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 
+        public override StringComparer IdentifierComparer => StringComparer.Ordinal;
+
+        public override bool IsCompleteSubmission(SyntaxTree tree) => SyntaxFactory.IsCompleteSubmission(tree);
+
+        public override SyntaxTree ParseSubmission(SourceText text, CancellationToken cancellationToken) =>
+            SyntaxFactory.ParseSyntaxTree(text, s_defaultInteractive, cancellationToken: cancellationToken);
+
         public override Compilation CreateSubmission(Script script)
         {
             Compilation previousSubmission = null;
@@ -28,7 +35,11 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                 previousSubmission = script.Previous.GetCompilation();
             }
 
-            var references = script.GetReferencesForCompilation();
+            var diagnostics = DiagnosticBag.GetInstance();
+            var references = script.GetReferencesForCompilation(MessageProvider.Instance, diagnostics);
+
+            // TODO: report diagnostics
+            diagnostics.Free();
 
             var parseOptions = script.Options.IsInteractive ? s_defaultInteractive : s_defaultScript;
             var tree = SyntaxFactory.ParseSyntaxTree(script.Code, parseOptions, script.Options.Path);
@@ -51,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     platform: Platform.AnyCpu,
                     warningLevel: 4,
                     xmlReferenceResolver: null, // don't support XML file references in interactive (permissions & doc comment includes)
-                    sourceReferenceResolver: LoadDirectiveResolver.Default,
-                    metadataReferenceResolver: script.Options.ReferenceResolver,
+                    sourceReferenceResolver: SourceFileResolver.Default,
+                    metadataReferenceResolver: script.Options.MetadataResolver,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
                 ),
                 previousSubmission,
@@ -61,26 +72,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             );
 
             return compilation;
-        }
-
-        private class LoadDirectiveResolver : SourceFileResolver
-        {
-            public static new LoadDirectiveResolver Default { get; } = new LoadDirectiveResolver();
-
-            private LoadDirectiveResolver()
-                : base(ImmutableArray<string>.Empty, baseDirectory: null)
-            {
-            }
-
-            public override SourceText ReadText(string resolvedPath)
-            {
-                string unused;
-                return CommonCompiler.ReadFileContentHelper(
-                    resolvedPath,
-                    encoding: null,
-                    checksumAlgorithm: SourceHashAlgorithm.Sha1, // TODO: Should we be fetching the checksum algorithm from somewhere?
-                    normalizedFilePath: out unused);
-            }
         }
     }
 }

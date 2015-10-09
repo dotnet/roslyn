@@ -1,10 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,11 +10,10 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class SpeculativeTCompletionProvider : AbstractCompletionProvider
+    internal class SpeculativeTCompletionProvider : CompletionListProvider
     {
         private TextSpan GetTextChangeSpan(SourceText text, int position)
         {
@@ -28,21 +25,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
-            return await document.GetUnionResultsFromDocumentAndLinks(
-               UnionCompletionItemComparer.Instance,
-               async (doc, ct) => await GetSpeculativeTCompletions(doc, position, ct).ConfigureAwait(false),
-               cancellationToken).ConfigureAwait(false);
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
+
+            var showSpeculativeT = await document.IsValidContextForDocumentOrLinkedDocumentsAsync(
+                (doc, ct) => ShouldShowSpeculativeTCompletionItemAsync(doc, position, ct),
+                cancellationToken).ConfigureAwait(false);
+
+            if (showSpeculativeT)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var filterSpan = this.GetTextChangeSpan(text, position);
+
+                const string T = "T";
+                context.AddItem(new CompletionItem(this, T, filterSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
+            }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetSpeculativeTCompletions(Document document, int position, CancellationToken cancellationToken)
+        private async Task<bool> ShouldShowSpeculativeTCompletionItemAsync(Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxTree.IsInNonUserCode(position, cancellationToken) ||
                 syntaxTree.IsPreProcessorDirectiveContext(position, cancellationToken))
             {
-                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+                return false;
             }
 
             // If we're in a generic type argument context, use the start of the generic type name
@@ -81,15 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 syntaxTree.IsGlobalStatementContext(testPosition, cancellationToken) ||
                 syntaxTree.IsDelegateReturnTypeContext(testPosition, syntaxTree.FindTokenOnLeftOfPosition(testPosition, cancellationToken), cancellationToken))
             {
-                var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var textChangeSpan = this.GetTextChangeSpan(text, position);
-
-                const string T = "T";
-                return SpecializedCollections.SingletonEnumerable(
-                    new CompletionItem(this, T, textChangeSpan, descriptionFactory: null, glyph: Glyph.TypeParameter));
+                return true;
             }
 
-            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            return false;
         }
     }
 }

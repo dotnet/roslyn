@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BuildLocals(_statements);
         }
 
+        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+        {
+            return BuildLocalFunctions(_statements);
+        }
+
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             ArrayBuilder<LabelSymbol> labels = null;
@@ -35,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
         {
             if (node.Kind() == SyntaxKind.Block)
             {
@@ -52,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        {
+            return this.LocalFunctions;
         }
     }
 }

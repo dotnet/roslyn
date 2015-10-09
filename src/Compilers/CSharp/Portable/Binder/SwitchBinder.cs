@@ -101,6 +101,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+        protected override ImmutableArray<LocalFunctionSymbol> BuildLocalFunctions()
+        {
+            var builder = ArrayBuilder<LocalFunctionSymbol>.GetInstance();
+
+            foreach (var section in _switchSyntax.Sections)
+            {
+                builder.AddRange(BuildLocalFunctions(section.Statements));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
+
         internal override GeneratedLabelSymbol BreakLabel
         {
             get
@@ -288,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Bind switch section
             ImmutableArray<BoundSwitchSection> boundSwitchSections = BindSwitchSections(node.Sections, originalBinder, diagnostics);
 
-            return new BoundSwitchStatement(node, boundSwitchExpression, constantTargetOpt, Locals, boundSwitchSections, this.BreakLabel, null);
+            return new BoundSwitchStatement(node, boundSwitchExpression, constantTargetOpt, Locals, LocalFunctions, boundSwitchSections, this.BreakLabel, null);
         }
 
         // Bind the switch expression and set the switch governing type

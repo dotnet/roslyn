@@ -1227,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         ''' </summary>
         Friend Shadows Function GetMetadataReference(assemblySymbol As AssemblySymbol) As MetadataReference
-            Return Me.GetBoundReferenceManager().ReferencedAssembliesMap.Where(Function(kvp) kvp.Value.Symbol Is assemblySymbol).Select(Function(kvp) kvp.Key).FirstOrDefault()
+            Return Me.GetBoundReferenceManager().GetMetadataReference(assemblySymbol)
         End Function
 
         Public Overrides ReadOnly Property ReferencedAssemblyNames As IEnumerable(Of AssemblyIdentity)
@@ -1987,7 +1987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Friend Function GetDiagnosticsForTree(stage As CompilationStage,
+        Friend Function GetDiagnosticsForSyntaxTree(stage As CompilationStage,
                                               tree As SyntaxTree,
                                               filterSpanWithinTree As TextSpan?,
                                               includeEarlierStages As Boolean,
@@ -2006,7 +2006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(syntaxDiagnostics)
             End If
 
-            ' Add declaring errors errors
+            ' Add declaring errors
             If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
                 Dim declarationDiags = DirectCast(SourceModule, SourceModuleSymbol).GetDeclarationErrorsInTree(tree, filterSpanWithinTree, AddressOf FilterDiagnosticsByLocation, cancellationToken)
                 Dim filteredDiags = FilterDiagnosticsByLocation(declarationDiags, tree, filterSpanWithinTree)
@@ -2074,10 +2074,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
         Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
             Dim hasError As Boolean = False
+            Dim reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics
 
             For Each diagnostic As Diagnostic In incoming
                 Dim filtered = Me._options.FilterDiagnostic(diagnostic)
-                If filtered Is Nothing Then
+                If filtered Is Nothing OrElse
+                    (Not reportSuppressedDiagnostics AndAlso filtered.IsSuppressed) Then
                     Continue For
                 End If
 
@@ -2637,15 +2639,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Me.ObjectType
             End Get
         End Property
-
-        Protected Overrides Function CommonGetMetadataReference(_assemblySymbol As IAssemblySymbol) As MetadataReference
-            Dim symbol = TryCast(_assemblySymbol, AssemblySymbol)
-            If symbol IsNot Nothing Then
-                Return Me.GetMetadataReference(symbol)
-            Else
-                Return Nothing
-            End If
-        End Function
 
         Protected Overrides Function CommonGetEntryPoint(cancellationToken As CancellationToken) As IMethodSymbol
             Return Me.GetEntryPoint(cancellationToken)

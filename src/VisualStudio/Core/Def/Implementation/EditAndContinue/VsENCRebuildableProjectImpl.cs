@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 }
             }
 
-            _notifications.SendNotification(message, "Edit and Continue", NotificationSeverity.Error);
+            _notifications.SendNotification(message, title: FeaturesResources.EditAndContinue, severity: NotificationSeverity.Error);
         }
 
         /// <summary>
@@ -1118,7 +1118,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         /// <summary>
         /// Called when changes are being applied.
         /// </summary>
-        public int GetCurrentExceptionSpanPosition(uint id, VsTextSpan[] ptsNewPosition)
+        /// <param name="exceptionRegionId">
+        /// The value of <see cref="ShellInterop.ENC_EXCEPTION_SPAN.id"/>. 
+        /// Set by <see cref="GetExceptionSpans(uint, ShellInterop.ENC_EXCEPTION_SPAN[], ref uint)"/> to the index into <see cref="_exceptionRegions"/>. 
+        /// </param>
+        /// <param name="ptsNewPosition">Output value holder.</param>
+        public int GetCurrentExceptionSpanPosition(uint exceptionRegionId, VsTextSpan[] ptsNewPosition)
         {
             try
             {
@@ -1129,7 +1134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(!_encService.EditSession.StoppedAtException);
                     Debug.Assert(ptsNewPosition.Length == 1);
 
-                    var exceptionRegion = _exceptionRegions[(int)id];
+                    var exceptionRegion = _exceptionRegions[(int)exceptionRegionId];
 
                     var session = _encService.EditSession;
                     var asid = _activeStatementIds[exceptionRegion.ActiveStatementId];
@@ -1142,7 +1147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(!analysis.HasChangesAndErrors);
                     Debug.Assert(!regions.IsDefault);
 
-                    // Absence of rude edits guarantees that the exception regions around AS hasn't semantically changed.
+                    // Absence of rude edits guarantees that the exception regions around AS haven't semantically changed.
                     // Only their spans might have changed.
                     ptsNewPosition[0] = regions[asid.Ordinal][exceptionRegion.Ordinal].ToVsTextSpan();
                 }

@@ -1,52 +1,50 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class LoadDirectiveTests : CSharpTestBase
     {
         [Fact]
-        void EmptyFile()
+        public void EmptyFile()
         {
             var code = "#load \"\"";
-            var compilation = CreateCompilation(code);
-                
+            var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
+            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Interactive);
+
             Assert.Single(compilation.SyntaxTrees);
-            compilation.GetDiagnostics().Verify(
+            compilation.VerifyDiagnostics(
                 // error CS1504: Source file '' could not be opened -- Could not find file.
                 Diagnostic(ErrorCode.ERR_NoSourceFile, "\"\"").WithArguments("", CSharpResources.CouldNotFindFile).WithLocation(1, 7));
         }
 
         [Fact]
-        void MissingFile()
+        public void MissingFile()
         {
             var code = "#load \"missing\"";
-            var compilation = CreateCompilation(code);
-                
+            var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
+            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Interactive);
+
             Assert.Single(compilation.SyntaxTrees);
-            compilation.GetDiagnostics().Verify(
+            compilation.VerifyDiagnostics(
                 // error CS1504: Source file 'missing' could not be opened -- Could not find file.
                 Diagnostic(ErrorCode.ERR_NoSourceFile, "\"missing\"").WithArguments("missing", CSharpResources.CouldNotFindFile).WithLocation(1, 7));
         }
 
         [Fact]
-        void FileWithErrors()
+        public void FileWithErrors()
         {
             var code = "#load \"a.csx\"";
             var resolver = CreateResolver(
                 Script("a.csx", @"
                     #load ""b.csx""
                     asdf();"));
-            var compilation = CreateCompilation(code, resolver);
+            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Equal(2, compilation.SyntaxTrees.Length);
             compilation.GetParseDiagnostics().Verify(
@@ -62,13 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "asdf").WithArguments("asdf").WithLocation(3, 21));
         }
 
-        private static CSharpCompilation CreateCompilation(string code, SourceReferenceResolver sourceReferenceResolver = null)
+        [Fact]
+        public void NoSourceReferenceResolver()
         {
-            var options = new CSharpCompilationOptions(
-                OutputKind.DynamicallyLinkedLibrary,
-                sourceReferenceResolver: sourceReferenceResolver ?? TestSourceReferenceResolver.Default);
-            var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Interactive);
-            return CreateCompilationWithMscorlib(code, options: options, parseOptions: parseOptions);
+            var code = "#load \"test\"";
+            var compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
+
+            Assert.Single(compilation.SyntaxTrees);
+            compilation.VerifyDiagnostics(
+                // (1,1): error CS8099: Source file references are not supported.
+                // #load "test"
+                Diagnostic(ErrorCode.ERR_SourceFileReferencesNotSupported, @"#load ""test""").WithLocation(1, 1));
         }
 
         private static SourceReferenceResolver CreateResolver(params KeyValuePair<string, string>[] scripts)
@@ -78,56 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 sources.Add(script.Key, script.Value);
             }
-            return new TestSourceReferenceResolver(sources);
+            return TestSourceReferenceResolver.Create(sources);
         }
 
         private static KeyValuePair<string, string> Script(string path, string source)
         {
             return new KeyValuePair<string, string>(path, source);
-        }
-
-        private class TestSourceReferenceResolver : SourceReferenceResolver
-        {
-            private readonly IDictionary<string, string> _sources;
-
-            public static TestSourceReferenceResolver Default { get; } = new TestSourceReferenceResolver();
-
-            public TestSourceReferenceResolver(IDictionary<string, string> sources = null)
-            {
-                _sources = sources;
-            }
-
-            public override string NormalizePath(string path, string baseFilePath)
-            {
-                return path;
-            }
-
-            public override string ResolveReference(string path, string baseFilePath)
-            {
-                return ((_sources != null) && _sources.ContainsKey(path)) ? path : null;
-            }
-
-            public override Stream OpenRead(string resolvedPath)
-            {
-                if (_sources != null)
-                {
-                    return new MemoryStream(Encoding.UTF8.GetBytes(_sources[resolvedPath]));
-                }
-                else
-                {
-                    throw new IOException();
-                }
-            }
-
-            public override bool Equals(object other)
-            {
-                return this.Equals(other);
-            }
-
-            public override int GetHashCode()
-            {
-                return this.GetHashCode();
-            }
         }
     }
 }

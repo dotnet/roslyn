@@ -770,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Else
                     ' if either method, or event are not shared, host method is instance ctor
                     Dim instanceCtors = Me.ContainingType.InstanceConstructors
-                    Debug.Assert(Not instanceCtors.IsEmpty, "bind nontype members should have ensured at least one ctor for us")
+                    Debug.Assert(Not instanceCtors.IsEmpty, "bind non-type members should have ensured at least one ctor for us")
 
                     ' any instance ctor will do for our purposes here. 
                     ' We will only use "Me" and that does not need to be from a particular ctor.
@@ -778,7 +778,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Debug.Assert(hookupMethod IsNot Nothing, "bind nontype members should have ensured appropriate host method for handles injection")
+            Debug.Assert(hookupMethod IsNot Nothing, "bind non-type members should have ensured appropriate host method for handles injection")
             ' No use site errors, since method is from source (or synthesized)
 
             If Not hookupMethod.IsShared Then

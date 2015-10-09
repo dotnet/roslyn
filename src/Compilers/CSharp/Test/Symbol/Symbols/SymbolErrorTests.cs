@@ -1838,6 +1838,9 @@ class B : A
     // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
     //     public static virtual object Q { get; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("B.Q").WithLocation(8, 34),
+    // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5.  Please use language version 6 or greater.
+    //     public static virtual object Q { get; }
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
     // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),
@@ -15624,8 +15627,8 @@ namespace N1
                 Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
             };
 
-            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Script)).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Interactive)).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Interactive) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

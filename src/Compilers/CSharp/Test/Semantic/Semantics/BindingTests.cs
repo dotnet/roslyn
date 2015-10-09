@@ -2692,5 +2692,40 @@ class A
             Assert.Equal("void NS.A.B<System.String>.M1<System.String>()", m1Symbol.Symbol.ToTestDisplayString());
             Assert.Equal(CandidateReason.None, m1Symbol.CandidateReason);
         }
+
+        [Fact, WorkItem(5170, "https://github.com/dotnet/roslyn/issues/5170")]
+        public void TypeOfBinderParameter() 
+        {
+            var sourceText = @"
+using System.Linq;
+using System.Text;
+
+public static class LazyToStringExtension
+{
+    public static string LazyToString<T>(this T obj) where T : class
+    {
+        StringBuilder sb = new StringBuilder();
+        typeof(T)
+            .GetProperties(System.Reflection.BindingFlags.Public)
+            .Select(x => x.GetValue(obj))
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(sourceText, new[] { SystemCoreRef },  options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (12,42): error CS1002: ; expected
+                //             .Select(x => x.GetValue(obj))
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(12, 42),
+                // (12,28): error CS1501: No overload for method 'GetValue' takes 1 arguments
+                //             .Select(x => x.GetValue(obj))
+                Diagnostic(ErrorCode.ERR_BadArgCount, "GetValue").WithArguments("GetValue", "1").WithLocation(12, 28),
+                // (7,26): error CS0161: 'LazyToStringExtension.LazyToString<T>(T)': not all code paths return a value
+                //     public static string LazyToString<T>(this T obj) where T : class
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "LazyToString").WithArguments("LazyToStringExtension.LazyToString<T>(T)").WithLocation(7, 26));
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+            var param = node.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            Assert.Equal("System.Reflection.PropertyInfo x", model.GetDeclaredSymbol(param).ToTestDisplayString());
+        }
     }
 }

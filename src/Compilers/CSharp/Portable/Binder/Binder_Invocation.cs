@@ -259,6 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundMethodGroup methodGroup = (BoundMethodGroup)expression;
                 BoundExpression receiver = methodGroup.ReceiverOpt;
 
+                if ((methodGroup.LookupSymbolOpt as MethodSymbol)?.MethodKind == MethodKind.LocalFunction)
+                {
+                    diagnostics.Add(ErrorCode.ERR_DynamicLocalFunctionParameter, node.Location, methodGroup.Syntax);
+                }
+
                 // receiver is null if we are calling a static method declared on an outer class via its simple name:
                 if (receiver != null)
                 {

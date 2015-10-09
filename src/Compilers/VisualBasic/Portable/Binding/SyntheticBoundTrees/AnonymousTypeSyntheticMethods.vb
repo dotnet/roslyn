@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' 'Nothing' Literal to be reused 
                 Dim nothingLiteral = New BoundLiteral(syntax, ConstantValue.Nothing, objectType).MakeCompilerGenerated()
 
-                ' Build conbined condition for all fields
+                ' Build combined condition for all fields
                 Dim combinedFieldCheck = BuildConditionsForFields(boundMeReference, boundValReference, nothingLiteral,
                                                                   localMyFieldBoxed, localOtherFieldBoxed, booleanType)
 

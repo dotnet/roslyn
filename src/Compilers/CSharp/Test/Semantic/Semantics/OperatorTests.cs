@@ -6550,9 +6550,13 @@ class P
 
         private sealed class EmptyRewriter : BoundTreeRewriter
         {
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw new NotImplementedException();
+            }
         }
 
-        private sealed class FindCompoundAssignmentWalker : BoundTreeWalker
+        private sealed class FindCompoundAssignmentWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             internal BoundCompoundAssignmentOperator FirstNode;
 

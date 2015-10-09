@@ -40,21 +40,21 @@ namespace Microsoft.CodeAnalysis.GenerateType
             private static string FormatDisplayText(
                 State state,
                 bool inNewFile,
-                string destination)
+                bool isNested)
             {
                 var finalName = GetTypeName(state);
 
                 if (inNewFile)
                 {
-                    return string.Format(FeaturesResources.GenerateForInNewFile,
+                    return string.Format(FeaturesResources.Generate_0_1_in_new_file,
                         state.IsStruct ? "struct" : state.IsInterface ? "interface" : "class",
-                        state.Name, destination);
+                        state.Name);
                 }
                 else
                 {
-                    return string.Format(FeaturesResources.GenerateForIn,
+                    return string.Format(isNested ? FeaturesResources.Generate_nested_0_1 : FeaturesResources.Generate_0_1,
                         state.IsStruct ? "struct" : state.IsInterface ? "interface" : "class",
-                        state.Name, destination);
+                        state.Name);
                 }
             }
 
@@ -74,11 +74,11 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     if (_intoNamespace)
                     {
                         var namespaceToGenerateIn = string.IsNullOrEmpty(_state.NamespaceToGenerateInOpt) ? FeaturesResources.GlobalNamespace : _state.NamespaceToGenerateInOpt;
-                        return FormatDisplayText(_state, _inNewFile, namespaceToGenerateIn);
+                        return FormatDisplayText(_state, _inNewFile, isNested: false);
                     }
                     else
                     {
-                        return FormatDisplayText(_state, inNewFile: false, destination: _state.TypeToGenerateInOpt.Name);
+                        return FormatDisplayText(_state, inNewFile: false, isNested: true);
                     }
                 }
             }

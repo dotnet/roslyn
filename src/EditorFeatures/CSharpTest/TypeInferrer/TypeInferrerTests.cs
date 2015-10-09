@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             var typeInference = document.GetLanguageService<ITypeInferenceService>();
 
             var inferredType = useNodeStartPosition
-                ? typeInference.InferType(document.GetSemanticModelForSpanAsync(new TextSpan(node.SpanStart, 0), CancellationToken.None).Result, node.SpanStart, objectAsDefault: true, cancellationToken: CancellationToken.None)
-                : typeInference.InferType(document.GetSemanticModelForSpanAsync(node.Span, CancellationToken.None).Result, node, objectAsDefault: true, cancellationToken: CancellationToken.None);
+                ? typeInference.InferType(document.GetSemanticModelForSpanAsync(new TextSpan(node?.SpanStart ?? textSpan.Start, 0), CancellationToken.None).Result, node?.SpanStart ?? textSpan.Start, objectAsDefault: true, cancellationToken: CancellationToken.None)
+                : typeInference.InferType(document.GetSemanticModelForSpanAsync(node?.Span ?? textSpan, CancellationToken.None).Result, node, objectAsDefault: true, cancellationToken: CancellationToken.None);
             var typeSyntax = inferredType.GenerateTypeSyntax();
             Assert.Equal(expectedType, typeSyntax.ToString());
         }
@@ -1682,6 +1682,80 @@ public class C
     }
 }";
             Test(text, "System.Object");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
+        public void TestSelectLambda()
+        {
+            var text =
+    @"using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<string> args)
+    {
+        args = args.Select(a =>[||])
+    }
+}";
+            Test(text, "System.Object", testPosition: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(5126, "https://github.com/dotnet/roslyn/issues/5126")]
+        public void TestSelectLambda2()
+        {
+            var text =
+    @"using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(IEnumerable<string> args)
+    {
+        args = args.Select(a =>[|b|])
+    }
+}";
+            Test(text, "System.Object", testPosition: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
+        public void TestReturnInAsyncLambda1()
+        {
+            var text =
+    @"using System;
+using System.IO;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async void M()
+    {
+        Func<Task<int>> t2 = async () => { return [|a|]; };
+    }
+}";
+            Test(text, "System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(4486, "https://github.com/dotnet/roslyn/issues/4486")]
+        public void TestReturnInAsyncLambda2()
+        {
+            var text =
+    @"using System;
+using System.IO;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async void M()
+    {
+        Func<Task<int>> t2 = async delegate () { return [|a|]; };
+    }
+}";
+            Test(text, "System.Int32");
         }
     }
 }

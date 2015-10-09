@@ -1,6 +1,8 @@
-{
-  "dependencies": { },
+﻿{
+  "dependencies": {
+    "Microsoft.DiaSymReader": "1.0.6"
+  },
   "frameworks": {
-    ".NETPortable,Version=v4.5,Profile=Profile7": { }
+    ".NETPortable,Version=v4.5,Profile=Profile7": {}
   }
 }

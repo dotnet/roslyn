@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (method.IsAsync && compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType))
             {
                 // we don't analyze synthesized void methods.
-                if (method.IsImplicitlyDeclared || Analyze(compilation, method, block, diagnostics))
+                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
                 {
                     block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax);
                 }
             }
-            else if (!method.IsScriptInitializer && Analyze(compilation, method, block, diagnostics))
+            else if (Analyze(compilation, method, block, diagnostics))
             {
                 // If the method is a lambda expression being converted to a non-void delegate type
                 // and the end point is reachable then suppress the error here; a special error
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)
                 : BoundReturnStatement.Synthesized(syntax, null);
 
-            // Implicitly added return for async method does not need sequence points since lowering would add one.
+                // Implicitly added return for async method does not need sequence points since lowering would add one.
             if (syntax.IsKind(SyntaxKind.Block) && !method.IsAsync)
             {
                 var blockSyntax = (BlockSyntax)syntax;
@@ -86,10 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (body.Kind)
             {
                 case BoundKind.Block:
-                    return body.Update(body.Locals, body.Statements.Add(ret));
+                    var block = (BoundBlock)body;
+                    return block.Update(block.Locals, block.LocalFunctions, block.Statements.Add(ret));
 
                 default:
-                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(ret, body));
+                    return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(ret, body));
             }
         }
 

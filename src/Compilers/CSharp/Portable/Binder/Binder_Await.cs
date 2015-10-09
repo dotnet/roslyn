@@ -125,7 +125,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Field:
                         if (containingMemberOrLambda.ContainingType.IsScriptClass)
                         {
-                            return false;
+                            if (((FieldSymbol)containingMemberOrLambda).IsStatic)
+                            {
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitInStaticVariableInitializer);
+                            }
+                            else
+                            {
+                                return false;
+                            }
                         }
                         break;
                     case SymbolKind.Method:

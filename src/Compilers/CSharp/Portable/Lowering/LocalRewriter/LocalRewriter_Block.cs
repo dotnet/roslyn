@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.WasCompilerGenerated || !this.GenerateDebugInfo || node.Syntax.Kind() == SyntaxKind.ArrowExpressionClause)
             {
-                return node.Update(node.Locals, VisitList(node.Statements));
+                return node.Update(node.Locals, node.LocalFunctions, VisitList(node.Statements));
             }
 
             BlockSyntax syntax = node.Syntax as BlockSyntax;
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundSequencePointWithSpan(syntax, null, cBspan));
             }
 
-            return new BoundBlock(node.Syntax, node.Locals, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, node.Locals, node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
             return (node.WasCompilerGenerated || !this.GenerateDebugInfo)
-                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
+                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
                 : AddSequencePoint(node);
         }
     }

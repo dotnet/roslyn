@@ -82,6 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private _seenOnErrorOrResume As Boolean
 
+        Protected _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException As Boolean = False ' By default, just let the original exception to bubble up.
+
         Friend Sub New(info As FlowAnalysisInfo, suppressConstExpressionsSupport As Boolean, Optional trackStructsWithIntrinsicTypedFields As Boolean = False)
             MyBase.New(info, suppressConstExpressionsSupport)
             Me.initiallyAssignedVariables = Nothing
@@ -187,16 +189,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overloads Shared Sub Analyze(info As FlowAnalysisInfo, diagnostics As DiagnosticBag, suppressConstExpressionsSupport As Boolean)
             Dim walker = New DataFlowPass(info, suppressConstExpressionsSupport)
+
+            If diagnostics IsNot Nothing Then
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = True
+            End If
+
             Try
                 Dim result As Boolean = walker.Analyze()
                 Debug.Assert(result)
                 If diagnostics IsNot Nothing Then
                     diagnostics.AddRange(walker.diagnostics)
                 End If
+
+            Catch ex As CancelledByStackGuardException When diagnostics IsNot Nothing
+                ex.AddAnError(diagnostics)
             Finally
                 walker.Free()
             End Try
         End Sub
+
+        Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+            Return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException
+        End Function
 
         Protected Overrides Sub Free()
             Me._alreadyReported = BitVector.Null
@@ -1005,7 +1019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Note that data flow API should never report compiler generated variables 
         ''' as well as those should not generate any diagnostics (like being unassigned, etc...).
         ''' 
-        ''' But when the analysis is used for iterators or anync captures it should process 
+        ''' But when the analysis is used for iterators or async captures it should process 
         ''' compiler generated locals as well...
         ''' </summary>
         Protected Overridable ReadOnly Property ProcessCompilerGeneratedLocals As Boolean

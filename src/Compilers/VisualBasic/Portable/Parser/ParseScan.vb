@@ -346,6 +346,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If Not NextLineStartsWithStatementTerminator() Then
                     _hadImplicitLineContinuation = True
 
+                    If PrevToken.GetTrailingTrivia().ContainsCommentTrivia() Then
+                        _hadLineContinuationComment = True
+                    End If
+
                     GetNextToken(state)
                     Return True
                 End If

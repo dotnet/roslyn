@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
         {
             this.ExternalSyntaxTrees = externalSyntaxTrees;
             this.ScriptClassName = scriptClassName ?? "";
-            this.Resolver = resolver; // TODO: What if SourceReferenceResolver is null?
+            this.Resolver = resolver;
             this.MessageProvider = messageProvider;
             this.IsSubmission = isSubmission;
         }

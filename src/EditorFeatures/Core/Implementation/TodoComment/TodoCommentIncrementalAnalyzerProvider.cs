@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -30,16 +32,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                new TodoCommentIncrementalAnalyzer(w, w.Services.GetService<IOptionService>(), this, _todoCommentTokens));
         }
 
-        internal void RaiseTaskListUpdated(object id, Workspace workspace, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
+        internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
             var handler = this.TodoListUpdated;
             if (handler != null)
             {
-                handler(this, new TodoListEventArgs(Tuple.Create(this, id), workspace, projectId, documentId, items));
+                handler(this, new TodoItemsUpdatedArgs(Tuple.Create(this, id), workspace, solution, projectId, documentId, items));
             }
         }
 
-        public event EventHandler<TodoListEventArgs> TodoListUpdated;
+        public event EventHandler<TodoItemsUpdatedArgs> TodoListUpdated;
 
         public ImmutableArray<TodoItem> GetTodoItems(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -56,6 +58,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             }
 
             return analyzer.GetTodoItems(workspace, document.Id, cancellationToken);
+        }
+
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken)
+        {
+            var analyzer = TryGetAnalyzer(workspace);
+            if (analyzer == null)
+            {
+                return ImmutableArray<UpdatedEventArgs>.Empty;
+            }
+
+            return analyzer.GetTodoItemsUpdatedEventArgs(workspace, cancellationToken);
         }
 
         private TodoCommentIncrementalAnalyzer TryGetAnalyzer(Workspace workspace)

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TypeMap _typeMap;
         private readonly Dictionary<ParameterSymbol, BoundExpression> _parameterMap = new Dictionary<ParameterSymbol, BoundExpression>();
         private readonly bool _ignoreAccessibility;
+        private int _recursionDepth;
 
         private NamedTypeSymbol _ExpressionType;
         private NamedTypeSymbol ExpressionType
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DiagnosticBag Diagnostics { get { return _bound.Diagnostics; } }
 
-        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, CSharpSyntaxNode node, int recursionDepth, DiagnosticBag diagnostics)
         {
             _bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);
             _ignoreAccessibility = compilationState.ModuleBuilderOpt.IgnoreAccessibility;
@@ -102,13 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _IEnumerableType = _bound.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
 
             _typeMap = typeMap;
+            _recursionDepth = recursionDepth;
         }
 
-        internal static BoundNode RewriteLambda(BoundLambda node, TypeCompilationState compilationState, TypeMap typeMap, DiagnosticBag diagnostics)
+        internal static BoundNode RewriteLambda(BoundLambda node, TypeCompilationState compilationState, TypeMap typeMap, int recursionDepth, DiagnosticBag diagnostics)
         {
             try
             {
-                var r = new ExpressionLambdaRewriter(compilationState, typeMap, node.Syntax, diagnostics);
+                var r = new ExpressionLambdaRewriter(compilationState, typeMap, node.Syntax, recursionDepth, diagnostics);
                 var result = r.VisitLambdaInternal(node);
                 if (node.Type != result.Type)
                 {
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _bound.Convert(ExpressionType, result);
         }
 
-        private BoundExpression VisitInternal(BoundExpression node)
+        private BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             switch (node.Kind)
             {
@@ -235,6 +237,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Constant(node);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind);
+            }
+        }
+
+        private BoundExpression VisitInternal(BoundExpression node)
+        {
+            BoundExpression result;
+            _recursionDepth++;
+#if DEBUG
+            int saveRecursionDepth = _recursionDepth;
+#endif
+
+            if (_recursionDepth > 1)
+            {
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                result = VisitExpressionWithoutStackGuard(node);
+            }
+            else
+            {
+                result = VisitExpressionWithStackGuard(node);
+            }
+
+#if DEBUG
+            Debug.Assert(saveRecursionDepth == _recursionDepth);
+#endif
+            _recursionDepth--;
+            return result;
+        }
+
+        private BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        {
+            try
+            {
+                return VisitExpressionWithoutStackGuard(node);
+            }
+            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            {
+                throw new BoundTreeVisitor.CancelledByStackGuardException(ex, node);
             }
         }
 
@@ -374,15 +414,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 right = _bound.Default(left.Type);
             }
 
-            var loweredLeft = Visit(left);
-            var loweredRight = Visit(right);
 
             // Enums are handled as per their promoted underlying type
             switch (opKind.OperandTypes())
             {
-                case BinaryOperatorKind.Enum:
                 case BinaryOperatorKind.EnumAndUnderlying:
                 case BinaryOperatorKind.UnderlyingAndEnum:
+                case BinaryOperatorKind.Enum:
                     {
                         var enumOperand = (opKind.OperandTypes() == BinaryOperatorKind.UnderlyingAndEnum) ? right : left;
                         var promotedType = PromotedType(enumOperand.Type.StrippedType().GetEnumUnderlyingType());
@@ -391,18 +429,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                             promotedType = _nullableType.Construct(promotedType);
                         }
 
-                        loweredLeft = PromoteEnumOperand(left, loweredLeft, promotedType, isChecked);
-                        loweredRight = PromoteEnumOperand(right, loweredRight, promotedType, isChecked);
+                        var loweredLeft = VisitAndPromoteEnumOperand(left, promotedType, isChecked);
+                        var loweredRight = VisitAndPromoteEnumOperand(right, promotedType, isChecked);
 
                         var result = MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
                         return Demote(result, type, isChecked);
                     }
                 default:
-                    return MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
+                    {
+                        var loweredLeft = Visit(left);
+                        var loweredRight = Visit(right);
+                        return MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
+                    }
             }
         }
 
-        private BoundExpression PromoteEnumOperand(BoundExpression operand, BoundExpression loweredOperand, TypeSymbol promotedType, bool isChecked)
+        private static BoundExpression DemoteEnumOperand(BoundExpression operand)
+        {
+            if (operand.Kind == BoundKind.Conversion)
+            {
+                var conversion = (BoundConversion)operand;
+                if (!conversion.ConversionKind.IsUserDefinedConversion() &&
+                    conversion.ConversionKind.IsImplicitConversion() && 
+                    conversion.Type.StrippedType().IsEnumType())
+                {
+                    operand = conversion.Operand;
+                }
+            }
+
+            return operand;
+        }
+
+        private BoundExpression VisitAndPromoteEnumOperand(BoundExpression operand, TypeSymbol promotedType, bool isChecked)
         {
             var literal = operand as BoundLiteral;
             if (literal != null)
@@ -412,6 +470,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // COMPAT: if we have an operand converted to enum, we should unconvert it first
+                //         Otherwise we will have an extra conversion in the tree: op -> enum -> underlying
+                //         where native compiler would just directly convert to underlying
+                var demotedOperand = DemoteEnumOperand(operand);
+                var loweredOperand = Visit(demotedOperand);
                 return Convert(loweredOperand, operand.Type, promotedType, isChecked, false);
             }
         }
@@ -935,7 +998,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             //         the implementation of the getter must make observable mutations to the instance.
             //
             //         At this point it seems more appropriate to continue adding these casts.
-            if (node.ReceiverOpt?.Type.IsTypeParameter() == true)
+            if (node.ReceiverOpt?.Type.IsTypeParameter() == true &&
+                !node.ReceiverOpt.Type.IsReferenceType)
             {
                 receiver = this.Convert(receiver, getMethod.ReceiverType, isChecked: false);
             }

@@ -1916,7 +1916,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     {
                         var objectCreation = (ObjectCreationExpressionSyntax)token.Parent.Parent;
                         var type = semanticModelOpt.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol as ITypeSymbol;
-                        if (type != null && !type.CanSupportCollectionInitializer())
+                        var containingSymbol = semanticModelOpt.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+                        if (type != null && !type.CanSupportCollectionInitializer(containingSymbol))
                         {
                             return false;
                         }
@@ -2174,9 +2175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression))
             {
                 var invocationExpression = (InvocationExpressionSyntax)token.Parent.Parent;
-                if (!invocationExpression.IsParentKind(SyntaxKind.ConditionalAccessExpression) &&
-                    !invocationExpression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) &&
-                    !invocationExpression.IsParentKind(SyntaxKind.PointerMemberAccessExpression) &&
+                if (!invocationExpression.IsRightSideOfDotOrArrowOrColonColon() &&
                     invocationExpression.Expression.IsKind(SyntaxKind.IdentifierName) &&
                     ((IdentifierNameSyntax)invocationExpression.Expression).Identifier.IsKindOrHasMatchingText(SyntaxKind.NameOfKeyword))
                 {

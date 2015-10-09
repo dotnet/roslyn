@@ -261,7 +261,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloc.0
@@ -404,7 +404,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloc.0
@@ -465,38 +465,38 @@ End Class
   .maxstack  2
   .locals init (S2 V_0) //x
   .try
-{
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "S2"
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.s   23
-  IL_000c:  stfld      "S2.Field As Integer"
-  IL_0011:  ldloca.s   V_0
-  IL_0013:  ldc.i4.s   42
-  IL_0015:  call       "Sub S2.set_AProperty(Integer)"
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
-  IL_001d:  ldfld      "S2.Field As Integer"
-  IL_0022:  stfld      "S2.Field2 As Integer"
-  IL_0027:  ldloc.0
-  IL_0028:  ldfld      "S2.Field As Integer"
-  IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0032:  ldloca.s   V_0
-  IL_0034:  call       "Function S2.get_AProperty() As Integer"
-  IL_0039:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_003e:  ldloc.0
-  IL_003f:  ldfld      "S2.Field2 As Integer"
-  IL_0044:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0049:  leave.s    IL_0061
-}
+  {
+    IL_0000:  ldloca.s   V_0
+    IL_0002:  initobj    "S2"
+    IL_0008:  ldloca.s   V_0
+    IL_000a:  ldc.i4.s   23
+    IL_000c:  stfld      "S2.Field As Integer"
+    IL_0011:  ldloca.s   V_0
+    IL_0013:  ldc.i4.s   42
+    IL_0015:  call       "Sub S2.set_AProperty(Integer)"
+    IL_001a:  ldloca.s   V_0
+    IL_001c:  ldloc.0
+    IL_001d:  ldfld      "S2.Field As Integer"
+    IL_0022:  stfld      "S2.Field2 As Integer"
+    IL_0027:  ldloc.0
+    IL_0028:  ldfld      "S2.Field As Integer"
+    IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0032:  ldloca.s   V_0
+    IL_0034:  call       "Function S2.get_AProperty() As Integer"
+    IL_0039:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_003e:  ldloc.0
+    IL_003f:  ldfld      "S2.Field2 As Integer"
+    IL_0044:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0049:  leave.s    IL_0061
+  }
   catch System.Exception
-{
-  IL_004b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0050:  ldstr      "failed"
-  IL_0055:  call       "Sub System.Console.WriteLine(String)"
-  IL_005a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_005f:  leave.s    IL_0061
-}
+  {
+    IL_004b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0050:  ldstr      "failed"
+    IL_0055:  call       "Sub System.Console.WriteLine(String)"
+    IL_005a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_005f:  leave.s    IL_0061
+  }
   IL_0061:  ret
 }
 ]]>)
@@ -552,7 +552,7 @@ End Class
   // Code size      147 (0x93)
   .maxstack  2
   .locals init (S2 V_0, //x
-  S2 V_1) //y
+                S2 V_1) //y
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  call       "Sub S2..ctor(Integer)"
@@ -563,7 +563,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloca.s   V_1
@@ -648,7 +648,7 @@ End Class
   // Code size      147 (0x93)
   .maxstack  2
   .locals init (S2 V_0, //x
-  S2 V_1) //y
+                S2 V_1) //y
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "S2"
   IL_0008:  ldloca.s   V_0
@@ -658,7 +658,7 @@ End Class
   IL_0013:  ldc.i4.s   42
   IL_0015:  call       "Sub S2.set_AProperty(Integer)"
   IL_001a:  ldloca.s   V_0
-  IL_001c:  dup
+  IL_001c:  ldloc.0
   IL_001d:  ldfld      "S2.Field As Integer"
   IL_0022:  stfld      "S2.Field2 As Integer"
   IL_0027:  ldloca.s   V_1

@@ -403,15 +403,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Computing fix all occurrences code fix....
-        /// </summary>
-        internal static string ComputingFixAllOccurrences {
-            get {
-                return ResourceManager.GetString("ComputingFixAllOccurrences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Computing Rename information....
         /// </summary>
         internal static string ComputingRenameInformation {
@@ -616,15 +607,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string FindReferences {
             get {
                 return ResourceManager.GetString("FindReferences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Fix all occurrences.
-        /// </summary>
-        internal static string FixAllOccurrences {
-            get {
-                return ResourceManager.GetString("FixAllOccurrences", resourceCulture);
             }
         }
         
@@ -1025,33 +1007,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to found 1 reference in 1 file.
-        /// </summary>
-        internal static string FoundReferenceInFile {
-            get {
-                return ResourceManager.GetString("FoundReferenceInFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to found {0} references in 1 file.
-        /// </summary>
-        internal static string FoundReferencesInFile {
-            get {
-                return ResourceManager.GetString("FoundReferencesInFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to found {0} references in {1} files.
-        /// </summary>
-        internal static string FoundReferencesInMultipleFiles {
-            get {
-                return ResourceManager.GetString("FoundReferencesInMultipleFiles", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to from metadata.
         /// </summary>
         internal static string FromMetadata {
@@ -1075,6 +1030,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string GoToDefinition {
             get {
                 return ResourceManager.GetString("GoToDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Locating implementations....
+        /// </summary>
+        internal static string GoToImplementationMessage {
+            get {
+                return ResourceManager.GetString("GoToImplementationMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go To Implementation.
+        /// </summary>
+        internal static string GoToImplementationTitle {
+            get {
+                return ResourceManager.GetString("GoToImplementationTitle", resourceCulture);
             }
         }
         
@@ -1165,6 +1138,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string InlineRenameFixup {
             get {
                 return ResourceManager.GetString("InlineRenameFixup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modify any highlighted location to begin renaming..
+        /// </summary>
+        internal static string InlineRenameInstructions {
+            get {
+                return ResourceManager.GetString("InlineRenameInstructions", resourceCulture);
             }
         }
         
@@ -1273,6 +1255,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string NavigationBars {
             get {
                 return ResourceManager.GetString("NavigationBars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New name: {0}.
+        /// </summary>
+        internal static string NewName1 {
+            get {
+                return ResourceManager.GetString("NewName1", resourceCulture);
             }
         }
         
@@ -1529,7 +1520,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Rename &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Rename: &apos;{0}&apos;.
         /// </summary>
         internal static string Rename1 {
             get {
@@ -1619,6 +1610,33 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename will update 1 reference in 1 file..
+        /// </summary>
+        internal static string RenameWillUpdateReferenceInFile {
+            get {
+                return ResourceManager.GetString("RenameWillUpdateReferenceInFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename will update {0} references in 1 file..
+        /// </summary>
+        internal static string RenameWillUpdateReferencesInFile {
+            get {
+                return ResourceManager.GetString("RenameWillUpdateReferencesInFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rename will update {0} references in {1} files..
+        /// </summary>
+        internal static string RenameWillUpdateReferencesInMultipleFiles {
+            get {
+                return ResourceManager.GetString("RenameWillUpdateReferencesInMultipleFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Renaming anonymous type members is not yet supported..
         /// </summary>
         internal static string RenamingAnonymousTypeMemberNotSupported {
@@ -1696,6 +1714,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string SymbolCannotBeNamespace {
             get {
                 return ResourceManager.GetString("SymbolCannotBeNamespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The symbol has no implementations..
+        /// </summary>
+        internal static string SymbolHasNoImplementations {
+            get {
+                return ResourceManager.GetString("SymbolHasNoImplementations", resourceCulture);
             }
         }
         

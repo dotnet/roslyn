@@ -112,9 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInterpolatedStrings = MessageBase + 12702,
         IDS_OperationCausedStackOverflow = MessageBase + 12703,
         IDS_AwaitInCatchAndFinally = MessageBase + 12704,
-
-        IDS_FeatureBinaryLiteral = MessageBase + 12705,
-        IDS_FeatureDigitSeparator = MessageBase + 12706,
+        IDS_FeatureReadonlyAutoImplementedProperties = MessageBase + 12705,
+        IDS_FeatureBinaryLiteral = MessageBase + 12706,
+        IDS_FeatureDigitSeparator = MessageBase + 12707,
+        IDS_FeatureLocalFunctions = MessageBase + 12708,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -162,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "binaryLiterals";
                 case MessageID.IDS_FeatureDigitSeparator:
                     return "digitSeparators";
+                case MessageID.IDS_FeatureLocalFunctions:
+                    return "localFunctions";
                 case MessageID.IDS_FeaturePatternMatching:
                     return "patterns";
                 default:
@@ -187,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUsingStatic:
                 case MessageID.IDS_FeatureInterpolatedStrings:
                 case MessageID.IDS_AwaitInCatchAndFinally:
+                case MessageID.IDS_FeatureReadonlyAutoImplementedProperties:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

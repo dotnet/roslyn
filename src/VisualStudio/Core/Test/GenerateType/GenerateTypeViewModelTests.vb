@@ -585,7 +585,7 @@ class Program
 
             Dim viewModel = GetViewModel(workspaceXml, LanguageNames.CSharp)
 
-            Dim expectedDocuments = {"Test1.cs", "Test2.cs", "Test3.cs"}
+            Dim expectedDocuments = {"Test1.cs", "Test2.cs", "AssemblyInfo.cs", "Test3.cs"}
             Assert.Equal(expectedDocuments, viewModel.DocumentList.Select(Function(d) d.Document.Name).ToArray())
         End Sub
 

@@ -3,7 +3,7 @@ set ROSLYN_ROOT=%~dp0..\..\..
 set PERF_DIR=%~dp0
 set PERFTOOLS_NAME=Microsoft.DotNet.PerfTools
 set PERFTOOLS_VERSION=0.0.1-prerelease-00050
-set NUGET_EXE=%ROSLYN_ROOT%\.nuget\nuget.exe
+set NUGET_EXE=%ROSLYN_ROOT%\nuget.exe
 %NUGET_EXE% install %PERFTOOLS_NAME% -PreRelease -Version %PERFTOOLS_VERSION% -OutputDirectory %ROSLYN_ROOT%\packages -Source https://www.myget.org/F/dotnet-buildtools/api/v2
 set PERFTOOLS_DIR=%ROSLYN_ROOT%\packages\Microsoft.DotNet.PerfTools.%PERFTOOLS_VERSION%\tools
 set ROSLYN_DIR=%ROSLYN_ROOT%\Binaries\Release

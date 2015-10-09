@@ -167,7 +167,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Sub
 
         <Fact>
@@ -304,7 +304,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Sub
 
         <Fact>
@@ -441,7 +441,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Sub
     End Class
 End Namespace

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
@@ -479,7 +480,7 @@ namespace Microsoft.CodeAnalysis
             byte[] customDebugInfo,
             int methodToken,
             int methodVersion,
-            string firstLocalName,
+            ArrayBuilder<ISymUnmanagedScope> scopes,
             out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
             out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
         {
@@ -495,30 +496,20 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<int, ImmutableArray<bool>>.Builder localBuilder = null;
             ImmutableDictionary<string, ImmutableArray<bool>>.Builder constantBuilder = null;
 
-            foreach (DynamicLocalBucket bucket in DecodeDynamicLocalsRecord(record))
+            var buckets = RemoveAmbiguousLocals(DecodeDynamicLocalsRecord(record), scopes);
+            foreach (var bucket in buckets)
             {
-                int flagCount = bucket.FlagCount;
-                ulong flags = bucket.Flags;
-                ArrayBuilder<bool> dynamicBuilder = ArrayBuilder<bool>.GetInstance(flagCount);
-                for (int i = 0; i < flagCount; i++)
-                {
-                    dynamicBuilder.Add((flags & (1u << i)) != 0);
-                }
-
                 var slot = bucket.SlotId;
-                var name = bucket.Name;
-
-                // All constants have slot 0, but none of them can have the same name
-                // as the local that is actually in slot 0 (if there is one).
-                if (slot == 0 && (firstLocalName == null || firstLocalName != name))
+                var flags = GetFlags(bucket);
+                if (slot < 0)
                 {
                     constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
-                    constantBuilder.Add(name, dynamicBuilder.ToImmutableAndFree());
+                    constantBuilder.Add(bucket.Name, flags);
                 }
                 else
                 {
                     localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
-                    localBuilder.Add(slot, dynamicBuilder.ToImmutableAndFree());
+                    localBuilder.Add(slot, flags);
                 }
             }
 
@@ -531,6 +522,83 @@ namespace Microsoft.CodeAnalysis
             {
                 dynamicLocalConstantMap = constantBuilder.ToImmutable();
             }
+        }
+
+        /// <summary>
+        /// If there dynamic locals or constants with SlotId == 0, check all locals and
+        /// constants with SlotId == 0 for duplicate names and discard duplicates since we
+        /// cannot determine which local or constant the dynamic info is associated with.
+        /// </summary>
+        private static ImmutableArray<DynamicLocalBucket> RemoveAmbiguousLocals(
+            ImmutableArray<DynamicLocalBucket> locals,
+            ArrayBuilder<ISymUnmanagedScope> scopes)
+        {
+            var localsAndConstants = PooledDictionary<string, object>.GetInstance();
+            var firstLocal = GetFirstLocal(scopes);
+            if (firstLocal != null)
+            {
+                localsAndConstants.Add(firstLocal.GetName(), firstLocal);
+            }
+            foreach (var scope in scopes)
+            {
+                foreach (var constant in scope.GetConstants())
+                {
+                    var name = constant.GetName();
+                    localsAndConstants[name] = localsAndConstants.ContainsKey(name) ? null : constant;
+                }
+            }
+            var builder = ArrayBuilder<DynamicLocalBucket>.GetInstance();
+            foreach (var local in locals)
+            {
+                int slot = local.SlotId;
+                var name = local.Name;
+                if (slot == 0)
+                {
+                    object localOrConstant;
+                    localsAndConstants.TryGetValue(name, out localOrConstant);
+                    if (localOrConstant == null)
+                    {
+                        // Duplicate.
+                        continue;
+                    }
+                    if (localOrConstant != firstLocal)
+                    {
+                        // Constant.
+                        slot = -1;
+                    }
+                }
+                builder.Add(new DynamicLocalBucket(local.FlagCount, local.Flags, slot, name));
+            }
+            var result = builder.ToImmutableAndFree();
+            localsAndConstants.Free();
+            return result;
+        }
+
+        private static ISymUnmanagedVariable GetFirstLocal(ArrayBuilder<ISymUnmanagedScope> scopes)
+        {
+            foreach (var scope in scopes)
+            {
+                foreach (var local in scope.GetLocals())
+                {
+                    if (local.GetSlot() == 0)
+                    {
+                        return local;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static ImmutableArray<bool> GetFlags(DynamicLocalBucket bucket)
+        {
+            int flagCount = bucket.FlagCount;
+            ulong flags = bucket.Flags;
+            var builder = ArrayBuilder<bool>.GetInstance(flagCount);
+            for (int i = 0; i < flagCount; i++)
+            {
+                builder.Add((flags & (1u << i)) != 0);
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private static void CheckVersion(byte globalVersion, int methodToken)

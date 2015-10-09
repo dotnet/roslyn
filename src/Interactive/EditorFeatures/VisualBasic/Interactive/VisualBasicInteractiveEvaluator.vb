@@ -55,11 +55,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
             End Get
         End Property
 
-        Protected Overrides Function GetSubmissionCompilationOptions(name As String, metadataReferenceResolver As MetadataReferenceResolver) As CompilationOptions
-            Return New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                                            scriptClassName:=name,
-                                            metadataReferenceResolver:=metadataReferenceResolver,
-                                            assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
+        Protected Overrides Function GetSubmissionCompilationOptions(name As String, metadataReferenceResolver As MetadataReferenceResolver, sourceReferenceResolver As SourceReferenceResolver) As CompilationOptions
+            Return New VisualBasicCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                scriptClassName:=name,
+                metadataReferenceResolver:=metadataReferenceResolver,
+                sourceReferenceResolver:=sourceReferenceResolver,
+                assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default)
         End Function
 
         Public Overrides Function CanExecuteCode(text As String) As Boolean

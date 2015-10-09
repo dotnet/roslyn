@@ -737,10 +737,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="assemblySymbol">The target symbol.</param>
         public MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            return CommonGetMetadataReference(assemblySymbol);
+            return GetBoundReferenceManager().GetMetadataReference(assemblySymbol);
         }
-
-        protected abstract MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol);
 
         /// <summary>
         /// Assembly identities of all assemblies directly referenced by this compilation.
@@ -1477,7 +1475,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             return Emit(
-                peStream, 
+                peStream,
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
@@ -1509,7 +1507,7 @@ namespace Microsoft.CodeAnalysis
         /// are the same method (Main). A non-executable program has no entry point. Runtimes that implement a custom loader may specify debug entry-point
         /// to force the debugger to skip over complex custom loader logic executing at the beginning of the .exe and thus improve debugging experience.
         /// 
-        /// Unlike ordinary entry-point whcih is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
+        /// Unlike ordinary entry-point which is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
         /// method other than having a method body (extern, interface, or abstract methods are not allowed).
         /// </param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
@@ -1802,7 +1800,7 @@ namespace Microsoft.CodeAnalysis
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
-        internal bool IsEmitDeterministic => this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+        internal bool IsEmitDeterministic => this.Options.Deterministic;
 
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,

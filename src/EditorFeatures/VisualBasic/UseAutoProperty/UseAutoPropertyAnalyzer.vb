@@ -1,4 +1,6 @@
-﻿Imports System.Collections.Concurrent
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Collections.Concurrent
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -6,8 +8,9 @@ Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
-    <Export>
-    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    ' https://github.com/dotnet/roslyn/issues/5408
+    '<Export>
+    '<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class UseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
 
@@ -45,27 +48,50 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         End Function
 
         Protected Overrides Function GetGetterExpression(getMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
+            ' Getter has to be of the form:
+            '
+            '     Get
+            '         Return field
+            '     End Get
+            ' or
+            '     Get
+            '         Return Me.field
+            '     End Get
             Dim accessor = TryCast(TryCast(getMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
-            Dim firstStatement = accessor?.Statements.SingleOrDefault()
-            If firstStatement?.Kind() = SyntaxKind.ReturnStatement Then
-                Dim expr = DirectCast(firstStatement, ReturnStatementSyntax).Expression
-                Return If(CheckExpressionSyntactically(expr), expr, Nothing)
+            Dim statements = accessor?.Statements
+            If statements?.Count = 1 Then
+                Dim statement = statements.Value(0)
+                If statement.Kind() = SyntaxKind.ReturnStatement Then
+                    Dim expr = DirectCast(statement, ReturnStatementSyntax).Expression
+                    Return If(CheckExpressionSyntactically(expr), expr, Nothing)
+                End If
             End If
 
             Return Nothing
         End Function
 
         Protected Overrides Function GetSetterExpression(setMethod As IMethodSymbol, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+            ' Setter has to be of the form:
+            '
+            '     Set(value)
+            '         field = value
+            '     End Set
+            ' or
+            '     Set(value)
+            '         Me.field = value
+            '     End Set
             Dim setAccessor = TryCast(TryCast(setMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)?.Parent, AccessorBlockSyntax)
-
-            Dim firstStatement = setAccessor?.Statements.SingleOrDefault()
-            If firstStatement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
-                Dim assignmentStatement = DirectCast(firstStatement, AssignmentStatementSyntax)
-                If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
-                    Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
-                    Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
-                    If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
-                        Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
+            Dim statements = setAccessor?.Statements
+            If statements?.Count = 1 Then
+                Dim statement = statements.Value(0)
+                If statement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
+                    Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
+                    If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
+                        Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
+                        Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
+                        If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
+                            Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
+                        End If
                     End If
                 End If
             End If
@@ -90,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             ' (in accessibility terms) in a way the user would not want.
             Dim containingType = field.ContainingType
             For Each ref In containingType.DeclaringSyntaxReferences
-                Dim containingNode = ref.GetSyntax(cancellationToken)
+                Dim containingNode = ref.GetSyntax(cancellationToken)?.Parent
                 If containingNode IsNot Nothing Then
                     Dim semanticModel = compilation.GetSemanticModel(containingNode.SyntaxTree)
                     If IsWrittenOutsideOfConstructorOrProperty(field, propertyDeclaration, containingNode, semanticModel, cancellationToken) Then

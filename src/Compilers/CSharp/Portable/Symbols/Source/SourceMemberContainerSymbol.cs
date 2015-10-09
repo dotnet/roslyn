@@ -2707,6 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.ExplicitInterfaceImplementation:
                         //CS0541 is handled in SourcePropertySymbol
                         case MethodKind.Ordinary:
+                        case MethodKind.LocalFunction:
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:
                         case MethodKind.EventAdd:
@@ -2827,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scriptInitializer = new SynthesizedInteractiveInitializerMethod(this, diagnostics);
                 members.Add(scriptInitializer);
-                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(this, scriptInitializer.ReturnType, diagnostics);
+                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics);
                 members.Add(scriptEntryPoint);
             }
         }

@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         Protected Sub TestAddUnresolvedMetadataReference(xmlDefinition As XElement,
                                                          expectedProjectToReceiveReference As String,
-                                                         expectedAssemblyIdentity As AssemblyIdentity,
+                                                         expectedAssemblyIdentity As String,
                                                          Optional index As Integer = 0)
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(xmlDefinition)
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 Dim postOp = operations.OfType(Of TestAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.Operation).FirstOrDefault()
                 Assert.NotEqual(Nothing, postOp)
-                Assert.Equal(expectedAssemblyIdentity, postOp.AssemblyIdentity)
+                Assert.Equal(expectedAssemblyIdentity, postOp.AssemblyIdentity.GetDisplayName())
                 Assert.Equal(expectedProjectToReceiveReference, workspace.CurrentSolution.GetProject(postOp.ProjectId).Name)
             End Using
         End Sub

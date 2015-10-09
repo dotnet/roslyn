@@ -77,6 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static Option<bool> NewLinesForBracesInMethods { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInMethods", defaultValue: true);
 
+        public static Option<bool> NewLinesForBracesInProperties { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInProperties", defaultValue: true);
+
+        public static Option<bool> NewLinesForBracesInAccessors { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAccessors", defaultValue: true);
+
         public static Option<bool> NewLinesForBracesInAnonymousMethods { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInAnonymousMethods", defaultValue: true);
 
         public static Option<bool> NewLinesForBracesInControlBlocks { get; } = new Option<bool>(NewLineFormattingFeatureName, "NewLinesForBracesInControlBlocks", defaultValue: true);

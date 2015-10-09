@@ -66,10 +66,6 @@
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -84,6 +80,7 @@
     <Compile Include="HistoryTests.cs" />
     <Compile Include="InteractiveWindowHistoryTests.cs" />
     <Compile Include="InteractiveWindowTests.cs" />
+    <Compile Include="TestClipboard.cs" />
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />
     <Compile Include="TestSmartIndent.cs" />
@@ -98,6 +95,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

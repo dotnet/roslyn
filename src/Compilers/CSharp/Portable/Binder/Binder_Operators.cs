@@ -623,8 +623,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression left = BindValue(node.Left, diagnostics, BindValueKind.RValue);
-            BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
+            Debug.Assert(node.Kind() == SyntaxKind.LogicalOrExpression || node.Kind() == SyntaxKind.LogicalAndExpression);
+
+            // Do not blow the stack due to a deep recursion on the left. 
+
+            BinaryExpressionSyntax binary = node;
+            ExpressionSyntax child;
+
+            while (true)
+            {
+                child = binary.Left;
+                var childAsBinary = child as BinaryExpressionSyntax;
+
+                if (childAsBinary == null || 
+                    (childAsBinary.Kind() != SyntaxKind.LogicalOrExpression && childAsBinary.Kind() != SyntaxKind.LogicalAndExpression))
+                {
+                    break;
+                }
+
+                binary = childAsBinary;
+            }
+
+            BoundExpression left = BindValue(child, diagnostics, BindValueKind.RValue);
+
+            do
+            {
+                binary = (BinaryExpressionSyntax)child.Parent;
+                BoundExpression right = BindValue(binary.Right, diagnostics, BindValueKind.RValue);
+
+                left = BindConditionalLogicalOperator(binary, left, right, diagnostics);
+                child = binary;
+            }
+            while ((object)child != node);
+
+            return left;
+        }
+
+        private BoundExpression BindConditionalLogicalOperator(BinaryExpressionSyntax node, BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
+        {
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);

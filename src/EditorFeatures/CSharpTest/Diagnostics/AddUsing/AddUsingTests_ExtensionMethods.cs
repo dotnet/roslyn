@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|1|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -94,7 +94,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , 2 , [|3|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , 2 , 3 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -104,7 +104,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , [|2|] , 3 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { 1 , 2 , 3 } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -114,7 +114,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , [|{ 4 , 5 , 6 }|] , { 7 , 8 , 9 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { 4 , 5 , 6 } , { 7 , 8 , 9 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -124,7 +124,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { 4 , 5 , 6 } , [|{ 7 , 8 , 9 }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { 4 , 5 , 6 } , { 7 , 8 , 9 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -134,7 +134,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , [|{ '7' , '8' , '9' }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -144,7 +144,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , [|{ ""Four"" , ""Five"" , ""Six"" }|] , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -154,7 +154,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -164,7 +164,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|""This""|] } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { ""This"" } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -174,7 +174,7 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
 @"using System ; using System . Collections ; using Ext ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
-null, 0, true, true, null, false, null);
+parseOptions: null);
         }
 
         [WorkItem(269)]
@@ -184,7 +184,145 @@ null, 0, true, true, null, false, null);
             Test(
 @"using System ; using System . Collections ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { [|{ 1 , 2 , 3 }|] , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
 @"using System ; using System . Collections ; using Ext2 ; class X : IEnumerable { public IEnumerator GetEnumerator ( ) { new X { { 1 , 2 , 3 } , { ""Four"" , ""Five"" , ""Six"" } , { '7' , '8' , '9' } } ; return null ; } } namespace Ext { static class Extensions { public static void Add ( this X x , int i ) { } } } namespace Ext2 { static class Extensions { public static void Add ( this X x , object [ ] i ) { } } } ",
-null, 1, true, true, null, false, null);
+index: 1,
+parseOptions: null);
+        }
+
+        [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void InExtensionMethodUnderConditionalAccessExpression()
+        {
+            var initialText =
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
+        <Document FilePath = ""Program"">
+namespace Sample
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string myString = ""Sample"";
+            var other = myString?[|.StringExtension()|].Substring(0);
+        }
+    }
+}
+       </Document>
+       <Document FilePath = ""Extensions"">
+namespace Sample.Extensions
+{
+    public static class StringExtensions
+    {
+        public static string StringExtension(this string s)
+        {
+            return ""Ok"";
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expectedText =
+@"using Sample.Extensions;
+namespace Sample
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string myString = ""Sample"";
+            var other = myString?.StringExtension().Substring(0);
+        }
+    }
+}";
+            Test(initialText, expectedText);
+        }
+
+        [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void InExtensionMethodUnderMultipleConditionalAccessExpressions()
+        {
+            var initialText =
+  @"<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
+        <Document FilePath = ""Program"">
+public class C
+{
+    public T F&lt;T&gt;(T x)
+    {
+        return F(new C())?.F(new C())?[|.Extn()|];
+    }
+}
+       </Document>
+       <Document FilePath = ""Extensions"">
+namespace Sample.Extensions
+{
+    public static class Extensions
+    {
+        public static C Extn(this C obj)
+        {
+            return obj.F(new C());
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expectedText =
+@"using Sample.Extensions;
+public class C
+{
+    public T F<T>(T x)
+    {
+        return F(new C())?.F(new C())?.Extn();
+    }
+}";
+            Test(initialText, expectedText);
+        }
+
+        [WorkItem(3818, "https://github.com/dotnet/roslyn/issues/3818")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void InExtensionMethodUnderMultipleConditionalAccessExpressions2()
+        {
+            var initialText =
+  @"<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
+        <Document FilePath = ""Program"">
+public class C
+{
+    public T F&lt;T&gt;(T x)
+    {
+        return F(new C())?.F(new C())[|.Extn()|]?.F(newC());
+    }
+}
+       </Document>
+       <Document FilePath = ""Extensions"">
+namespace Sample.Extensions
+{
+    public static class Extensions
+    {
+        public static C Extn(this C obj)
+        {
+            return obj.F(new C());
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>";
+
+            var expectedText =
+@"using Sample.Extensions;
+public class C
+{
+    public T F<T>(T x)
+    {
+        return F(new C())?.F(new C()).Extn()?.F(newC());
+    }
+}";
+            Test(initialText, expectedText);
         }
     }
 }

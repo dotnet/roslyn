@@ -1021,7 +1021,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf (flags And SourceParameterFlags.Optional) <> SourceParameterFlags.Optional AndAlso
                         Not reportedError Then
 
-                        ' If one of the previous parameters is optional then then report an error if this one isn't optional.
+                        ' If one of the previous parameters is optional then report an error if this one isn't optional.
                         ReportDiagnostic(diagBag, paramSyntax.Identifier.Identifier, ERRID.ERR_ExpectedOptional)
                         reportedError = True
 
@@ -1395,7 +1395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(operandType IsNot Nothing)
 
             If conversionType.IsObjectType Then
-                ' Nothing constants of reference type can always be cobnverted to System.Object
+                ' Nothing constants of reference type can always be converted to System.Object
                 If operandType.IsReferenceType AndAlso nestedConstValue.IsNothing Then
                     Return nestedConstValue
                 End If

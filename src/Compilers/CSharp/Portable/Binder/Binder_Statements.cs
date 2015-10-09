@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LocalDeclarationStatement:
                     result = BindDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
+                case SyntaxKind.LocalFunctionStatement:
+                    result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
+                    break;
                 case SyntaxKind.ExpressionStatement:
                     result = BindExpressionStatement((ExpressionStatementSyntax)node, diagnostics);
                     break;
@@ -197,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundBody = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundFixedStatement(node,
-                                           GetDeclaredLocalsForScope(node),
+                                           GetDeclaredLocalsForScope(),
                                            boundMultipleDeclarations,
                                            boundBody);
         }
@@ -401,7 +404,86 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpressionStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            // already defined symbol in containing block
+            var localSymbol = this.LookupLocalFunction(node.Identifier);
+
+            var hasErrors = false;
+
+            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
+            // This occurs through the semantic model.  In that case concoct a plausible result.
+            if (localSymbol == null)
+            {
+                localSymbol = new LocalFunctionSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node);
+            }
+            else
+            {
+                hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            }
+
+            var binder = this.GetBinder(node);
+
+            // Binder could be null in error scenarios (as above)
+            BoundBlock block;
+            if (binder != null)
+            {
+                if (node.Body != null)
+                {
+                    block = binder.BindBlock(node.Body, diagnostics);
+                }
+                else if (node.ExpressionBody != null)
+                {
+                    block = binder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+        }
+                else
+                {
+                    block = null;
+                    hasErrors = true;
+                    // TODO: add a message for this?
+                    diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
+                }
+
+                if (block != null)
+                {
+                    localSymbol.ComputeReturnType(block, returnNullIfUnknown: false, isIterator: false);
+
+                    // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
+                    // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
+                    // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
+                    // It's a bit of code duplication, but refactoring would make things worse.
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
+                    if (endIsReachable)
+                    {
+                        if (ImplicitReturnIsOkay(localSymbol))
+                        {
+                            block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol, node.Body);
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                block = null;
+                hasErrors = true;
+            }
+
+            localSymbol.GrabDiagnostics(diagnostics);
+
+            return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
+        }
+
+        private bool ImplicitReturnIsOkay(MethodSymbol method)
+        {
+            return method.ReturnsVoid || method.IsIterator ||
+                (method.IsAsync && method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType);
+        }
+
+        public BoundExpressionStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
         {
             return BindExpressionStatement(node, node.Expression, node.AllowsAnyExpression, diagnostics);
         }
@@ -2009,7 +2091,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocal(nameToken);
         }
 
-        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        protected virtual LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
+        {
+            return Next.LookupLocalFunction(nameToken);
+        }
+
+        internal BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             return this.GetBinder(node).BindBlock(node, diagnostics);
         }
@@ -2029,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsDirectlyInIterator)
             {
-                var method = ContainingMemberOrLambda as SourceMethodSymbol;
+                var method = ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
                     method.IteratorElementType = GetIteratorElementType(null, diagnostics);
@@ -2040,7 +2127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundBlock(node, GetDeclaredLocalsForScope(node), boundStatements.ToImmutableAndFree());
+            return new BoundBlock(
+                node,
+                GetDeclaredLocalsForScope(),
+                GetDeclaredLocalFunctionsForScope(),
+                boundStatements.ToImmutableAndFree());
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false)
@@ -2773,6 +2864,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual TypeSymbol GetCurrentReturnType()
         {
+            // Local functions usually report an error when their return type is used recursively. (symbol.ReturnType creates an error type named "var")
+            // We actually want to return null here instead of an error type + diagnostic (for return type inference)
+            var containingLocalFunction = this.ContainingMemberOrLambda as LocalFunctionSymbol;
+            if (containingLocalFunction != null)
+            {
+                return containingLocalFunction.ReturnTypeNoForce;
+            }
+
             return (this.ContainingMemberOrLambda as MethodSymbol)?.ReturnType;
         }
 
@@ -3173,7 +3272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Need to attach the tree for when we generate sequence points.
-            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
+            return new BoundBlock(node, locals, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
         }
 
         /// <summary>
@@ -3200,6 +3299,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Next.Locals;
+            }
+        }
+
+        internal virtual ImmutableArray<LocalFunctionSymbol> LocalFunctions
+        {
+            get
+            {
+                return this.Next.LocalFunctions;
             }
         }
 

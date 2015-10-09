@@ -208,7 +208,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
 
             if (expressionType is IErrorTypeSymbol)
             {
-                expressionType = (expressionType as IErrorTypeSymbol).CandidateSymbols.FirstOrDefault().GetSymbolType();
+                // If `expression` is a QualifiedNameSyntax then GetTypeInfo().Type won't have any CandidateSymbols, so
+                // we should then fall back to getting the actual symbol for the expression.
+                expressionType = (expressionType as IErrorTypeSymbol).CandidateSymbols.FirstOrDefault().GetSymbolType()
+                    ?? semanticModel.GetSymbolInfo(expression).GetAnySymbol().GetSymbolType();
             }
 
             indexers = semanticModel.LookupSymbols(position, expressionType, WellKnownMemberNames.Indexer).OfType<IPropertySymbol>();

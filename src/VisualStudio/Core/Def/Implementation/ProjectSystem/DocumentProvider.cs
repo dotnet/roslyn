@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly Dictionary<string, DocumentId> _documentIdHints = new Dictionary<string, DocumentId>(StringComparer.OrdinalIgnoreCase);
 
         private readonly IVisualStudioHostProjectContainer _projectContainer;
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly IVsTextManager _textManager;
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
@@ -54,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _projectContainer = projectContainer;
             this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            _textBufferFactoryService = componentModel.GetService<ITextBufferFactoryService>();
             this.EditorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
             _textUndoHistoryRegistry = componentModel.GetService<ITextUndoHistoryRegistry>();
@@ -135,7 +133,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 documentKey,
                 itemId,
                 sourceCodeKind,
-                _textBufferFactoryService,
                 _textUndoHistoryRegistry,
                 _fileChangeService,
                 openTextBuffer,

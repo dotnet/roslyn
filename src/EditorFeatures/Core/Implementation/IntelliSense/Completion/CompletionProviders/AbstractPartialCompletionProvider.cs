@@ -39,18 +39,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         protected abstract Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract bool IsPartial(IMethodSymbol m);
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var cancellationToken = context.CancellationToken;
+
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             DeclarationModifiers modifiers;
             SyntaxToken token;
             if (!IsPartialCompletionContext(tree, position, cancellationToken, out modifiers, out token))
             {
-                return null;
+                return;
             }
 
-            return await CreatePartialItemsAsync(document, position, modifiers, token, cancellationToken).ConfigureAwait(false);
+            var items = await CreatePartialItemsAsync(document, position, modifiers, token, cancellationToken).ConfigureAwait(false);
+
+            if (items?.Any() == true)
+            {
+                context.MakeExclusive(true);
+                context.AddItems(items);
+            }
         }
 
         protected override ISymbol GenerateMember(ISymbol member, INamedTypeSymbol containingType, Document document, MemberInsertionCompletionItem item, CancellationToken cancellationToken)

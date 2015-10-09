@@ -2280,7 +2280,7 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
             builder.Free();
         }
 
-        private class NonMoveableVariableVisitor : BoundTreeWalker
+        private class NonMoveableVariableVisitor : BoundTreeWalkerWithStackGuard
         {
             private readonly Binder _binder;
             private readonly ArrayBuilder<string> _builder;
@@ -2324,6 +2324,11 @@ Yes, Parameter 'x' is a non-moveable variable with underlying symbol 'x'
                 }
 
                 return base.Visit(node);
+            }
+
+            protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+            {
+                return false;
             }
         }
 
@@ -7587,7 +7592,7 @@ unsafe class C
             var text = @"
 unsafe int* p = stackalloc int[1];
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (4,14): error CS1525: Invalid expression term 'stackalloc'
                 //     int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
@@ -8452,7 +8457,7 @@ namespace ConsoleApplication30
 }";
 
             // Only compile this as its intentionally writing outside of fixed buffer boundaries and 
-            // this doesnt warn but causes flakiness when executed.
+            // this doesn't warn but causes flakiness when executed.
             var comp3 = CompileAndVerify(s3,
                 options: TestOptions.UnsafeReleaseDll,
                 additionalRefs: new MetadataReference[] { MetadataReference.CreateFromImage(comp1.EmitToArray()) }).Compilation;
