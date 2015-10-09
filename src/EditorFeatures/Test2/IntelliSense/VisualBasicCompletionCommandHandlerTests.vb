@@ -1488,6 +1488,7 @@ End Class
                                 End Module
                               </document>)
 
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertNoCompletionSession()
                 state.SendTypeChars("{")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
@@ -1506,6 +1507,7 @@ End Class
                                 End Module
                               </document>)
 
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertNoCompletionSession()
                 state.SendTypeChars("<")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)

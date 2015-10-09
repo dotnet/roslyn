@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
@@ -18,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
     public partial class PreviewTests
     {
         [WpfFact]
-        public void TestExceptionInComputePreview()
+        public async Task TestExceptionInComputePreview()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
             {
-                GetPreview(workspace, new ErrorCases.ExceptionInCodeAction());
+                await GetPreview(workspace, new ErrorCases.ExceptionInCodeAction()).ConfigureAwait(true);
             }
         }
 
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             }
         }
 
-        private void GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private async Task GetPreview(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             List<CodeAction> refactorings = new List<CodeAction>();
             ICodeActionEditHandlerService editHandler;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, refactorings.First(), provider);
-            suggestedAction.GetPreviewAsync(CancellationToken.None).PumpingWaitResult();
+            await suggestedAction.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }
