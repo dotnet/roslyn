@@ -37,22 +37,12 @@
           "ref/dotnet/System.Collections.dll": {}
         }
       },
-      "System.Collections.Immutable/1.1.37": {
-        "dependencies": {
-          "System.Collections": "[4.0.0, )",
-          "System.Diagnostics.Debug": "[4.0.0, )",
-          "System.Globalization": "[4.0.0, )",
-          "System.Linq": "[4.0.0, )",
-          "System.Resources.ResourceManager": "[4.0.0, )",
-          "System.Runtime": "[4.0.0, )",
-          "System.Runtime.Extensions": "[4.0.0, )",
-          "System.Threading": "[4.0.0, )"
-        },
+      "System.Collections.Immutable/1.1.36": {
         "compile": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Collections.Immutable.dll": {}
+          "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
         }
       },
       "System.Console/4.0.0-beta-23123": {
@@ -449,17 +439,16 @@
         "System.Collections.nuspec"
       ]
     },
-    "System.Collections.Immutable/1.1.37": {
-      "sha512": "fTpqwZYBzoklTT+XjTRK8KxvmrGkYHzBiylCcKyQcxiOM8k+QvhNBxRvFHDWzy4OEP5f8/9n+xQ9mEgEXY+muA==",
+    "System.Collections.Immutable/1.1.36": {
+      "sha512": "MOlivTIeAIQPPMUPWIIoMCvZczjFRLYUWSYwqi1szu8QPyeIbsaPeI+hpXe1DzTxNwnRnmfYaoToi6kXIfSPNg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/dotnet/System.Collections.Immutable.dll",
-        "lib/dotnet/System.Collections.Immutable.xml",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
-        "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
+        "License-Stable.rtf",
+        "package/services/metadata/core-properties/c8b7b781850445db852bd2d848380ca6.psmdcp",
         "System.Collections.Immutable.nuspec"
       ]
     },
