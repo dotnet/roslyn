@@ -3672,20 +3672,38 @@ System.Console.WriteLine(x);";
 
         /// <summary>
         /// await should be disallowed in static field initializer
-        /// since the static initialization of the class should
-        /// complete before other members are used.
+        /// since the static initialization of the class must be
+        /// handled synchronously in the .cctor.
         /// </summary>
-        [Fact(Skip = "Not handled")]
-        public void AwaitInStaticInitializer()
+        [WorkItem(5787)]
+        [Fact]
+        public void AwaitInScriptStaticInitializer()
+        {
+            var source =
+@"static int x = 1 +
+    await System.Threading.Tasks.Task.FromResult(1);
+int y = x +
+    await System.Threading.Tasks.Task.FromResult(2);";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (2,5): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
+                //     await System.Threading.Tasks.Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_BadAwaitInStaticVariableInitializer, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(2, 5));
+        }
+
+        [WorkItem(5787)]
+        [Fact]
+        public void AwaitInInteractiveStaticInitializer()
         {
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source =
-@"static int x = await System.Threading.Tasks.Task.FromResult(1);";
+@"static int x = await System.Threading.Tasks.Task.FromResult(1);
+int y = await System.Threading.Tasks.Task.FromResult(2);";
             var compilation = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Interactive), references);
             compilation.VerifyDiagnostics(
-                // (1,16): error CS1992: The 'await' operator can only be used when contained within a method or lambda expression marked with the 'async' modifier
+                // (1,16): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
                 // static int x = await System.Threading.Tasks.Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsync, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(1, 16));
+                Diagnostic(ErrorCode.ERR_BadAwaitInStaticVariableInitializer, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(1, 16));
         }
 
         [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]

@@ -867,7 +867,7 @@ public class E : bar::C { }
                     t2 = Parse($"#r \"{p3}\"", options: TestOptions.Script),
                     t3 = Parse("#r \"Lib\"", options: TestOptions.Script),
                 },
-                references: new MetadataReference[] { MscorlibRef, r1, r2 },
+                references: new MetadataReference[] { MscorlibRef_v4_0_30316_17626, r1, r2 },
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                     new TestMetadataReferenceResolver(
                         assemblyNames: new Dictionary<string, PortableExecutableReference> { { "Lib", r3 } },
@@ -879,7 +879,7 @@ public class E : bar::C { }
 
             var refs = compilation.ExternalReferences;
             Assert.Equal(3, refs.Length);
-            Assert.Equal(MscorlibRef, refs[0]);
+            Assert.Equal(MscorlibRef_v4_0_30316_17626, refs[0]);
             Assert.Equal(r1, refs[1]);
             Assert.Equal(r2, refs[2]);
 

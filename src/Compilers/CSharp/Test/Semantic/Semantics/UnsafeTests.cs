@@ -7592,7 +7592,7 @@ unsafe class C
             var text = @"
 unsafe int* p = stackalloc int[1];
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (4,14): error CS1525: Invalid expression term 'stackalloc'
                 //     int* p = stackalloc int[1];
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"));
