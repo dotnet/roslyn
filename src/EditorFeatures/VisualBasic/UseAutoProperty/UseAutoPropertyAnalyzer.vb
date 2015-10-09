@@ -36,15 +36,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         End Function
 
         Private Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
-            If expression?.Kind() = SyntaxKind.SimpleMemberAccessExpression Then
+            If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
                 Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
                     memberAccessExpression.Name.Kind() = SyntaxKind.IdentifierName
-            ElseIf expression.Kind() = SyntaxKind.IdentifierName
-                Return True
             End If
 
-            Return False
+            Return expression.IsKind(SyntaxKind.IdentifierName)
         End Function
 
         Protected Overrides Function GetGetterExpression(getMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
@@ -84,7 +82,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Dim statements = setAccessor?.Statements
             If statements?.Count = 1 Then
                 Dim statement = statements.Value(0)
-                If statement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
+                If statement.IsKind(SyntaxKind.SimpleAssignmentStatement) Then
+                    'If statement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
                     Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
                         Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)

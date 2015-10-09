@@ -67,18 +67,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         private bool CheckExpressionSyntactically(ExpressionSyntax expression)
         {
-            if (expression?.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 var memberAccessExpression = (MemberAccessExpressionSyntax)expression;
                 return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
                     memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
             }
-            else if (expression.Kind() == SyntaxKind.IdentifierName)
-            {
-                return true;
-            }
 
-            return false;
+            return expression.IsKind(SyntaxKind.IdentifierName);
         }
 
         protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)
@@ -113,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             if (statements?.Count == 1)
             {
                 var statement = statements.Value[0];
-                if (statement?.Kind() == SyntaxKind.ExpressionStatement)
+                if (statement.IsKind(SyntaxKind.ExpressionStatement))
                 {
                     var expressionStatement = (ExpressionStatementSyntax)statement;
                     if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
