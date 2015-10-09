@@ -61,25 +61,23 @@ REM Kill any instances of VBCSCompiler.exe to release locked files;
 REM otherwise future CI runs may fail while trying to delete those files.
 taskkill /F /IM vbcscompiler.exe
 
-if defined Perf (
-
-  if DEFINED JenkinsCIPerfCredentials (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials%
-    ) else (
-    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure'
-    )
-
-)
-
 REM Verify that our project.lock.json files didn't change as a result of 
 REM restore.  If they do then the commit changed the dependencies without 
 REM updating the lock files.
-REM git diff --exit-code --quiet
-REM if ERRORLEVEL 1 (
-REM    echo Commit changed dependencies without updating project.lock.json
-REM    git diff --exit-code
-REM    exit /b 1
-REM )
+git diff --exit-code --quiet
+if ERRORLEVEL 1 (
+    echo Commit changed dependencies without updating project.lock.json
+    git diff --exit-code
+    exit /b 1
+)
+
+if defined Perf (
+  if DEFINED JenkinsCIPerfCredentials (
+    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% %JenkinsCIPerfCredentials%
+  ) else (
+    powershell .\ciperf.ps1 -BinariesDirectory %RoslynRoot%Binaries\%BuildConfiguration% -StorageAccountName roslynscratch -StorageContainer drops -SCRAMScope 'Roslyn\Azure'
+  )
+)
 
 REM It is okay and expected for taskkill to fail (it's a cleanup routine).  Ensure
 REM caller sees successful exit.

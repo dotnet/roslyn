@@ -305,6 +305,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Performance-Fixture", "src\Test\Performance\Fixture\Performance-Fixture.csproj", "{308CEBD4-418A-4C3B-97A5-24723B288157}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerPerformanceTest", "src\Compilers\VisualBasic\Test\Performance\BasicCompilerPerformanceTest.vbproj", "{0835A7FB-C472-4F7D-A500-F9FD072CFF21}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsiCore", "src\Interactive\CsiCore\CsiCore.csproj", "{D1B051A4-F2A1-4E97-9747-C41D13E475FD}"
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "VbiCore", "src\Interactive\VbiCore\VbiCore.vbproj", "{1EEFB4B6-A6CC-4869-AF05-A43C8B82A8FD}"
