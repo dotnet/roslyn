@@ -59,7 +59,7 @@ done
 restore_nuget()
 {
 
-    local package_name="nuget.18.zip"
+    local package_name="nuget.19.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
