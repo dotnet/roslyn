@@ -6276,5 +6276,82 @@ class C
                 localSignatureToken: localSignatureToken);
             Assert.Same(previous, context);
         }
+
+        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
+        [Fact]
+        public void SelectAnonymousType()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    static void M(List<int> list)
+    {
+        var useLinq = list.Last();
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "C.M");
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("from x in list from y in list where x > 0 select new { x, y };", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size      140 (0x8c)
+  .maxstack  4
+  .locals init (int V_0, //useLinq
+                <>x.<>c__DisplayClass0_0 V_1) //CS$<>8__locals0
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""System.Collections.Generic.List<int> <>x.<>c__DisplayClass0_0.list""
+  IL_000d:  ldloc.1
+  IL_000e:  ldfld      ""System.Collections.Generic.List<int> <>x.<>c__DisplayClass0_0.list""
+  IL_0013:  ldloc.1
+  IL_0014:  ldftn      ""System.Collections.Generic.IEnumerable<int> <>x.<>c__DisplayClass0_0.<<>m0>b__0(int)""
+  IL_001a:  newobj     ""System.Func<int, System.Collections.Generic.IEnumerable<int>>..ctor(object, System.IntPtr)""
+  IL_001f:  ldsfld     ""System.Func<int, int, <anonymous type: int x, int y>> <>x.<>c.<>9__0_1""
+  IL_0024:  dup
+  IL_0025:  brtrue.s   IL_003e
+  IL_0027:  pop
+  IL_0028:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_002d:  ldftn      ""<anonymous type: int x, int y> <>x.<>c.<<>m0>b__0_1(int, int)""
+  IL_0033:  newobj     ""System.Func<int, int, <anonymous type: int x, int y>>..ctor(object, System.IntPtr)""
+  IL_0038:  dup
+  IL_0039:  stsfld     ""System.Func<int, int, <anonymous type: int x, int y>> <>x.<>c.<>9__0_1""
+  IL_003e:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>> System.Linq.Enumerable.SelectMany<int, int, <anonymous type: int x, int y>>(System.Collections.Generic.IEnumerable<int>, System.Func<int, System.Collections.Generic.IEnumerable<int>>, System.Func<int, int, <anonymous type: int x, int y>>)""
+  IL_0043:  ldsfld     ""System.Func<<anonymous type: int x, int y>, bool> <>x.<>c.<>9__0_2""
+  IL_0048:  dup
+  IL_0049:  brtrue.s   IL_0062
+  IL_004b:  pop
+  IL_004c:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_0051:  ldftn      ""bool <>x.<>c.<<>m0>b__0_2(<anonymous type: int x, int y>)""
+  IL_0057:  newobj     ""System.Func<<anonymous type: int x, int y>, bool>..ctor(object, System.IntPtr)""
+  IL_005c:  dup
+  IL_005d:  stsfld     ""System.Func<<anonymous type: int x, int y>, bool> <>x.<>c.<>9__0_2""
+  IL_0062:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>> System.Linq.Enumerable.Where<<anonymous type: int x, int y>>(System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>>, System.Func<<anonymous type: int x, int y>, bool>)""
+  IL_0067:  ldsfld     ""System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>> <>x.<>c.<>9__0_3""
+  IL_006c:  dup
+  IL_006d:  brtrue.s   IL_0086
+  IL_006f:  pop
+  IL_0070:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_0075:  ldftn      ""<anonymous type: int x, int y> <>x.<>c.<<>m0>b__0_3(<anonymous type: int x, int y>)""
+  IL_007b:  newobj     ""System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>>..ctor(object, System.IntPtr)""
+  IL_0080:  dup
+  IL_0081:  stsfld     ""System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>> <>x.<>c.<>9__0_3""
+  IL_0086:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>> System.Linq.Enumerable.Select<<anonymous type: int x, int y>, <anonymous type: int x, int y>>(System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>>, System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>>)""
+  IL_008b:  ret
+}");
+        }
     }
 }
