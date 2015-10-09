@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _namespaceScopeBuilder As NamespaceScopeBuilder
         Private ReadOnly _moduleBeingBuiltOpt As PEModuleBuilder ' Nothing if compiling for diagnostics
         Private ReadOnly _filterOpt As Predicate(Of Symbol)      ' If not Nothing, limit analysis to specific symbols
+        Private ReadOnly _semanticModelOpt As SemanticModel      ' If not Nothing, limit analysis to specific symbols
         Private ReadOnly _debugDocumentProvider As DebugDocumentProvider
 
         ' GetDiagnostics only needs to Bind. If we need to go further, _doEmitPhase needs to be set. 
@@ -83,6 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                        hasDeclarationErrors As Boolean,
                        diagnostics As DiagnosticBag,
                        filter As Predicate(Of Symbol),
+                       semanticModelOpt As SemanticModel,
                        cancellationToken As CancellationToken)
 
             _compilation = compilation
@@ -93,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _doEmitPhase = doEmitPhase
             _emittingPdb = emittingPdb
             _filterOpt = filter
+            _semanticModelOpt = semanticModelOpt
 
             If emittingPdb Then
                 _debugDocumentProvider = Function(path As String, basePath As String) moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, AddressOf CreateDebugDocumentForFile)
@@ -140,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Sub GetCompileDiagnostics(compilation As VisualBasicCompilation,
                                                 root As NamespaceSymbol,
-                                                tree As SyntaxTree,
+                                                semanticModelOpt As SemanticModel,
                                                 filterSpanWithinTree As TextSpan?,
                                                 hasDeclarationErrors As Boolean,
                                                 diagnostics As DiagnosticBag,
@@ -148,6 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 cancellationToken As CancellationToken)
 
             Dim filter As Predicate(Of Symbol) = Nothing
+            Dim tree = semanticModelOpt?.SyntaxTree
 
             If tree IsNot Nothing Then
                 filter = Function(sym) IsDefinedOrImplementedInSourceTree(sym, tree, filterSpanWithinTree)
@@ -160,6 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               hasDeclarationErrors:=hasDeclarationErrors,
                                               diagnostics:=diagnostics,
                                               filter:=filter,
+                                              semanticModelOpt:=semanticModelOpt,
                                               cancellationToken:=cancellationToken)
 
             root.Accept(compiler)
@@ -214,6 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               hasDeclarationErrors:=hasDeclarationErrors,
                                               diagnostics:=diagnostics,
                                               filter:=filter,
+                                              semanticModelOpt:=Nothing,
                                               cancellationToken:=cancellationToken)
 
             compilation.SourceModule.GlobalNamespace.Accept(compiler)
@@ -1186,7 +1192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim lazySemanticModel = New Lazy(Of SemanticModel)(
                             Function()
                                 Dim syntax = block.Syntax
-                                Dim semanticModel = CType(compilation.GetSemanticModel(syntax.SyntaxTree), SyntaxTreeSemanticModel)
+                                Dim semanticModel = CType(If(_semanticModelOpt, compilation.GetSemanticModel(syntax.SyntaxTree)), SyntaxTreeSemanticModel)
                                 Dim memberModel = CType(semanticModel.GetMemberSemanticModel(syntax), MethodBodySemanticModel)
                                 If memberModel IsNot Nothing Then
                                     memberModel.CacheBoundNodes(block, syntax)

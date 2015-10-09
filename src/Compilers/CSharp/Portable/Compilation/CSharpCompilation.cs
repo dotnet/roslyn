@@ -1997,6 +1997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
+                semanticModelOpt: null,
                 cancellationToken: cancellationToken);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken);
@@ -2028,9 +2029,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
+        private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SemanticModel semanticModel, TextSpan? span, CancellationToken cancellationToken)
         {
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
+            var tree = semanticModel.SyntaxTree;
 
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
@@ -2039,6 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
+                semanticModelOpt: semanticModel,
                 cancellationToken: cancellationToken);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken, tree, span);
@@ -2155,15 +2158,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableArray<Diagnostic> GetDiagnosticsForSyntaxTree(
+        internal ImmutableArray<Diagnostic> GetDiagnosticsForSemanticModel(
             CompilationStage stage,
-            SyntaxTree syntaxTree,
+            SemanticModel semanticModel,
             TextSpan? filterSpanWithinTree,
             bool includeEarlierStages,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var syntaxTree = semanticModel.SyntaxTree;
             var builder = DiagnosticBag.GetInstance();
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
@@ -2192,7 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //initializers which can result in 'field is never initialized' warnings for fields in partial 
                 //types when the field is in a different source file than the one for which we're getting diagnostics. 
                 //For that reason the bag must be also filtered by tree.
-                IEnumerable<Diagnostic> methodBodyDiagnostics = GetDiagnosticsForMethodBodiesInTree(syntaxTree, filterSpanWithinTree, cancellationToken);
+                IEnumerable<Diagnostic> methodBodyDiagnostics = GetDiagnosticsForMethodBodiesInTree(semanticModel, filterSpanWithinTree, cancellationToken);
 
                 // TODO: Enable the below commented assert and remove the filtering code in the next line.
                 //       GetDiagnosticsForMethodBodiesInTree seems to be returning diagnostics with locations that don't satisfy the filter tree/span, this must be fixed.
@@ -2361,6 +2365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasDeclarationErrors,
                     diagnostics: methodBodyDiagnosticBag,
                     filterOpt: filterOpt,
+                    semanticModelOpt: null,
                     cancellationToken: cancellationToken);
 
                 SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag);

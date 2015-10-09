@@ -1987,11 +1987,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Function
 
-        Friend Function GetDiagnosticsForSyntaxTree(stage As CompilationStage,
-                                              tree As SyntaxTree,
+        Friend Function GetDiagnosticsForSemanticModel(stage As CompilationStage,
+                                              semanticModel As SemanticModel,
                                               filterSpanWithinTree As TextSpan?,
                                               includeEarlierStages As Boolean,
                                               Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
+            Dim tree = semanticModel.SyntaxTree
             If Not SyntaxTrees.Contains(tree) Then
                 Throw New ArgumentException("Cannot GetDiagnosticsForSyntax for a tree that is not part of the compilation", NameOf(tree))
             End If
@@ -2017,7 +2018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Add method body declaring errors.
             If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
                 Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
-                GetDiagnosticsForMethodBodiesInTree(tree, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
+                GetDiagnosticsForMethodBodiesInTree(semanticModel, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
 
                 ' This diagnostics can include diagnostics for initializers that do not belong to the tree.
                 ' Let's filter them out.
@@ -2043,12 +2044,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ' Get diagnostics by compiling all method bodies in the given tree.
-        Private Sub GetDiagnosticsForMethodBodiesInTree(tree As SyntaxTree, filterSpanWithinTree As TextSpan?, hasDeclarationErrors As Boolean, diagnostics As DiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
+        Private Sub GetDiagnosticsForMethodBodiesInTree(semanticModel As SemanticModel, filterSpanWithinTree As TextSpan?, hasDeclarationErrors As Boolean, diagnostics As DiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
             Dim sourceMod = DirectCast(SourceModule, SourceModuleSymbol)
+            Dim tree = semanticModel.SyntaxTree
 
             MethodCompiler.GetCompileDiagnostics(Me,
                                                  SourceModule.GlobalNamespace,
-                                                 tree,
+                                                 semanticModel,
                                                  filterSpanWithinTree,
                                                  hasDeclarationErrors,
                                                  diagnostics,

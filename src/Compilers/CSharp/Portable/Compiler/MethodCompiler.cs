@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _hasDeclarationErrors;
         private readonly PEModuleBuilder _moduleBeingBuiltOpt; // Null if compiling for diagnostics
         private readonly Predicate<Symbol> _filterOpt;         // If not null, limit analysis to specific symbols
+        private readonly SemanticModel _semanticModelOpt;         // Non-null if computing method body diagnostics for a specific semantic model.
         private readonly DebugDocumentProvider _debugDocumentProvider;
 
         //
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Internal for testing only.
         internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool hasDeclarationErrors,
-            DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, CancellationToken cancellationToken)
+            DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, SemanticModel semanticModelOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
             Debug.Assert(diagnostics != null);
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cancellationToken = cancellationToken;
             _diagnostics = diagnostics;
             _filterOpt = filterOpt;
+            _semanticModelOpt = semanticModelOpt;
 
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
@@ -102,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasDeclarationErrors,
             DiagnosticBag diagnostics,
             Predicate<Symbol> filterOpt,
+            SemanticModel semanticModelOpt,
             CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
@@ -125,6 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasDeclarationErrors,
                 diagnostics,
                 filterOpt,
+                semanticModelOpt,
                 cancellationToken);
 
             if (compilation.Options.ConcurrentBuild)
@@ -930,7 +934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lazySemanticModel = body == null ? null : new Lazy<SemanticModel>(() =>
                     {
                         var syntax = body.Syntax;
-                        var semanticModel = (CSharpSemanticModel)_compilation.GetSemanticModel(syntax.SyntaxTree);
+                        var semanticModel = (CSharpSemanticModel)(_semanticModelOpt ?? _compilation.GetSemanticModel(syntax.SyntaxTree));
                         var memberModel = semanticModel.GetMemberModel(syntax);
                         if (memberModel != null)
                         {
