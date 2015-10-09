@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -7,7 +8,6 @@ using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
-using System;
 
 namespace Roslyn.Test.Utilities
 {
@@ -59,13 +59,10 @@ namespace Roslyn.Test.Utilities
                             sta).ConfigureAwait(false);
                     } while (true);
                 }
-                catch (Exception ex)
-                {
-                    Debug.Assert(false, ex.Message);
-                    throw;
-                }
                 finally
                 {
+                    sta.DrainQueued();
+
                     ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = null;
 
                     // Cleanup the synchronization context even if the test is failing exceptionally

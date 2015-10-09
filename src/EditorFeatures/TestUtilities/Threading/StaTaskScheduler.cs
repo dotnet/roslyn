@@ -128,5 +128,15 @@ namespace Roslyn.Test.Utilities
 
             return _tasks.Count > 0;
         }
+
+        public void DrainQueued()
+        {
+            bool more;
+            do
+            {
+                Task task;
+                more = _tasks.TryTake(out task);
+            } while (more);
+        }
     }
 }

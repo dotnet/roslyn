@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                         }
 
                         // wait taggers
-                        await waiter.CreateWaitTask().ConfigureAwait(true)
+                        await waiter.CreateWaitTask().ConfigureAwait(true);
 
                         // check left buffer
                         var leftSnapshot = leftBuffer.CurrentSnapshot;

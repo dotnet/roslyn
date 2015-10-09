@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.VisualStudio.Text.Projection
 
@@ -7,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class VisualBasicCompletionCommandHandlerTests_Projections
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestSimpleWithJustSubjectBuffer()
+        Public Async Function TestSimpleWithJustSubjectBuffer() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
 Option Strict Off
@@ -32,16 +33,18 @@ End Namespace
 ]]></Document>)
 
                 state.SendTypeChars(".")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertCompletionSession()
                 state.SendTypeChars("Curr")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestAfterDot()
+        Public Async Function TestAfterDot() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
 {|S2:
@@ -69,15 +72,17 @@ End Class
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(".", view, buffer)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertCompletionSession()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="Console")
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Sub TestInObjectCreationExpression()
+        Public Async Function TestInObjectCreationExpression() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
 {|S2:
@@ -105,11 +110,13 @@ End Class
                 Dim buffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertCompletionSession()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Str", view, buffer)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="String", isHardSelected:=True)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

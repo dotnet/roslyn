@@ -226,11 +226,11 @@ class Program
             }
         }
 
-        private static Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(params string[] content)
+        private static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(params string[] content)
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(content))
             {
-                return GetErrorSpans(workspace);
+                return await GetErrorSpans(workspace).ConfigureAwait(true);
             }
         }
     }

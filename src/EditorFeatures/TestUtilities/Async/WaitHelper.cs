@@ -100,15 +100,16 @@ namespace Roslyn.Test.Utilities
         public static async Task PumpingWaitAllAsync(this IEnumerable<Task> tasks)
         {
             var smallTimeout = TimeSpan.FromMilliseconds(10);
-            var taskArray = tasks.ToArray();
             var done = false;
             while (!done)
             {
                 done = await tasks.WhenAll(smallTimeout).ConfigureAwait(true);
+                /*
                 if (!done)
                 {
                     WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle);
                 }
+                */
             }
 
             foreach (var task in tasks)

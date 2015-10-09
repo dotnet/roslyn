@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Text
@@ -54,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544957)>
-        Public Sub ProjectionBuffersWork()
+        Public Async Function ProjectionBuffersWork() As Task
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -76,13 +77,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Dim controllerFactory = workspace.GetService(Of INavigationBarControllerFactoryService)()
                 Dim controller = controllerFactory.CreateController(mockPresenter, subjectDocument.TextBuffer)
 
-                workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                    .Select(Function(waiter) waiter.CreateWaitTask()) _
-                    .PumpingWaitAll()
+                Dim tasks = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
+                    .Select(Function(waiter) waiter.CreateWaitTask())
+                Await tasks.PumpingWaitAllAsync().ConfigureAwait(True)
 
                 Assert.True(presentItemsCalled)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub TestNavigationBarInCSharpLinkedFiles()
@@ -284,7 +285,7 @@ End Class
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
-        Public Sub TestNavigationBarRefreshesAfterProjectRename()
+        Public Async Function TestNavigationBarRefreshesAfterProjectRename() As Task
             Using workspace = TestWorkspaceFactory.CreateWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBProj">
@@ -321,12 +322,13 @@ End Class
                 workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.Workspace).Single().Value.CreateWaitTask().PumpingWait()
                 workspace.ExportProvider.GetExports(Of IAsynchronousOperationWaiter, FeatureMetadata)().Where(Function(l) l.Metadata.FeatureName = FeatureAttribute.NavigationBar).Single().Value.CreateWaitTask().PumpingWait()
 
-                workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                    .Select(Function(waiter) waiter.CreateWaitTask()) _
-                    .PumpingWaitAll()
+                Dim tasks = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
+                    .Select(Function(waiter) waiter.CreateWaitTask())
+
+                Await tasks.PumpingWaitAllAsync().ConfigureAwait(True)
 
                 Assert.Equal("VBProj2", projectName)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

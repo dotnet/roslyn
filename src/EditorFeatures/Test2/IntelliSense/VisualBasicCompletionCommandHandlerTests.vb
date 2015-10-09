@@ -388,7 +388,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="xunit"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation() As Task
             ' Simulate a very slow completion provider.
             Dim e = New ManualResetEvent(False)
@@ -1289,6 +1289,7 @@ End Module|}          </Document>)
                 Dim editorOperations = state.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(view)
                 editorOperations.Backspace()
                 editorOperations.InsertText("b")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="bbb")
 
                 ' prepare to remap our subject buffer
