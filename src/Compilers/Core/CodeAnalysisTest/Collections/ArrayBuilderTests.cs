@@ -41,5 +41,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             builder = new ArrayBuilder<int> { 1, 2, 3, 2, 4, 5, 1 };
             AssertEx.Equal(new byte[] { 1, 2, 3, 4, 5 }, builder.SelectDistinct(n => (byte)n));
         }
+
+        [Fact]
+        public void AddRange()
+        {
+            var builder = new ArrayBuilder<int>();
+
+            builder.AddRange(new int[0], 0, 0);
+            AssertEx.Equal(new int[0], builder.ToArray());
+
+            builder.AddRange(new[] { 1, 2, 3 }, 0, 3);
+            AssertEx.Equal(new[] { 1, 2, 3 }, builder.ToArray());
+
+            builder.AddRange(new[] { 1, 2, 3 }, 2, 0);
+            AssertEx.Equal(new[] { 1, 2, 3 }, builder.ToArray());
+
+            builder.AddRange(new[] { 1, 2, 3 }, 1, 1);
+            AssertEx.Equal(new[] { 1, 2, 3, 2 }, builder.ToArray());
+
+            builder.AddRange(new[] { 1, 2, 3 }, 1, 2);
+            AssertEx.Equal(new[] { 1, 2, 3, 2, 2, 3 }, builder.ToArray());
+
+            builder.AddRange(new[] { 1, 2, 3 }, 2, 1);
+            AssertEx.Equal(new[] { 1, 2, 3, 2, 2, 3, 3 }, builder.ToArray());
+        }
     }
 }

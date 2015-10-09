@@ -3682,7 +3682,7 @@ class C
 }
 var o = new object();
 o.F();";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
         }
 

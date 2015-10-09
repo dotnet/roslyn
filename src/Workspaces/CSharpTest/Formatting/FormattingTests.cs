@@ -1250,8 +1250,7 @@ class foo{int x = 0;}", false, changingOptions);
             AssertFormat(@"class Class5
 {
     delegate void Del(int x);
-    public int Age
-    { get { int age = 0; return age; } }
+    public int Age { get { int age = 0; return age; } }
     public int Age2
     {
         get { int age2 = 0; return age2; }
@@ -1278,8 +1277,7 @@ class foo{int x = 0;}", false, changingOptions);
         Del d = delegate (int k)
         { Console.WriteLine(); Console.WriteLine(); };
     }
-    void foo()
-    { int y = 0; int z = 0; }
+    void foo() { int y = 0; int z = 0; }
 }
 class foo
 {
@@ -6518,6 +6516,45 @@ class Program
         return 42; 
     }
 }", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(111079, "devdiv.visualstudio.com")]
+        public void TestThrowInIfOnSingleLine()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        if (true) throw new Exception(
+            ""message"");
+    }
+}
+";
+
+            AssertFormat(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
+        public void SingleLinePropertiesPreservedWithLeaveStatementsAndMembersOnSingleLineFalse()
+        {
+            var changedOptionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.WrappingPreserveSingleLine, true },
+                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false},
+            };
+
+            AssertFormat(@"
+class C
+{
+    string Name { get; set; }
+}", @"
+class C
+{
+    string  Name    {    get    ;   set     ;    }
+}", changedOptionSet: changedOptionSet);
         }
     }
 }

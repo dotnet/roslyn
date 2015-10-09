@@ -545,6 +545,7 @@ End Class"
             Dim compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.Select(Function(m) m.MetadataBlock).ToImmutableArray(),
                 "args.Where(Function(a) a.Length > 0)",
+                ImmutableArray(Of [Alias]).Empty,
                 Function(_1, _2) context, ' ignore new blocks and just keep using the same failed context...
                 Function(assemblyIdentity As AssemblyIdentity, ByRef uSize As UInteger)
                     retryCount += 1

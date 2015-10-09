@@ -2959,7 +2959,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <remarks>
         ''' The binding of the loop body and the next variables cannot happen before the local type inference has
-        ''' completed, which happens in the specialized binding functions for for each and for loops. Otherwise we would
+        ''' completed, which happens in the specialized binding functions for foreach and for loops. Otherwise we would
         ''' loose the diagnostics from the type inference.
         ''' </remarks>
         ''' <param name="loopBody">The loop body.</param>
@@ -3401,7 +3401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' for multidimensional arrays make additional check that array element is castable to iteration variable type
                 ' we need to do this because multidimensional arrays only implement nongeneric IEnumerable 
                 ' so the cast from Current --> control variable will statically succeed (since Current returns object)
-                ' We however can know the element type and may know that under no condition the cst will work at run time
+                ' We however can know the element type and may know that under no condition the cast will work at run time
                 ' So we will check that here.
                 If collection.Type.IsArrayType Then
                     Dim elementType = DirectCast(collection.Type, ArrayTypeSymbol).ElementType

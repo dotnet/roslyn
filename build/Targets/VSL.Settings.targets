@@ -9,6 +9,8 @@
                                  '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' and
                                  '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
@@ -92,13 +94,13 @@
 
     <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.1.0</RoslynSemanticVersion>
     <SystemReflectionMetadataAssemblyVersion Condition="'$(SystemReflectionMetadataAssemblyVersion)' == ''">1.1.0</SystemReflectionMetadataAssemblyVersion>
-    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.36</SystemCollectionsImmutableAssemblyVersion>
+    <SystemCollectionsImmutableAssemblyVersion Condition="'$(SystemCollectionsImmutableAssemblyVersion)' == ''">1.1.37</SystemCollectionsImmutableAssemblyVersion>
     <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
     <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
     <MicrosoftCodeAnalysisAnalyzersAssemblyVersion Condition="'$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)' == ''">1.0.0</MicrosoftCodeAnalysisAnalyzersAssemblyVersion>
-    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00014</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00015</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.1.0-alpha2</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.2.0-rc</MicrosoftDiaSymReaderNativeVersion>
     <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
     <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
     <MicrosoftCodeAnalysisAnalyzersVersion>$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)</MicrosoftCodeAnalysisAnalyzersVersion>
@@ -152,9 +154,9 @@
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
-    <CscToolExe>csc.cmd</CscToolExe>
+    <CscToolExe>csc.exe</CscToolExe>
     <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
-    <VbcToolExe>vbc.cmd</VbcToolExe>
+    <VbcToolExe>vbc.exe</VbcToolExe>
   </PropertyGroup>
 
   <!-- Common project settings -->

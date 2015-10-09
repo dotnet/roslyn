@@ -15627,8 +15627,8 @@ namespace N1
                 Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
             };
 
-            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Script)).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Interactive)).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Interactive) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

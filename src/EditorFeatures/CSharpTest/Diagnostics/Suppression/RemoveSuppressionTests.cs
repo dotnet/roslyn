@@ -213,6 +213,39 @@ class Class
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            public void TestRemoveLocalAttributeSuppression2()
+            {
+                Test(
+        $@"
+using System;
+
+class Class1
+{{
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(""InfoDiagnostic"", ""InfoDiagnostic:InfoDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]           
+    [|class Class2|]
+    {{
+        int Method()
+        {{
+            int x = 0;
+        }}
+    }}
+}}",
+        @"
+using System;
+
+class Class1
+{
+    class Class2
+    {
+        int Method()
+        {
+            int x = 0;
+        }
+    }
+}");
+            }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             public void TestRemoveGlobalAttributeSuppression()
             {
                 Test(

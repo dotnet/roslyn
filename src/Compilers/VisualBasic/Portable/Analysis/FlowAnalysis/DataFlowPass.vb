@@ -1019,7 +1019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Note that data flow API should never report compiler generated variables 
         ''' as well as those should not generate any diagnostics (like being unassigned, etc...).
         ''' 
-        ''' But when the analysis is used for iterators or anync captures it should process 
+        ''' But when the analysis is used for iterators or async captures it should process 
         ''' compiler generated locals as well...
         ''' </summary>
         Protected Overridable ReadOnly Property ProcessCompilerGeneratedLocals As Boolean

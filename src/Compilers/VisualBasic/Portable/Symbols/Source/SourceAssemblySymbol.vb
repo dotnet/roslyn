@@ -1162,8 +1162,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             emitExtensionAttribute = ThreeState.True
                         End If
                     End If
-
                 End If
+
+                Debug.Assert(_lazyEmitExtensionAttribute = ThreeState.Unknown OrElse
+                             _lazyEmitExtensionAttribute = emitExtensionAttribute)
+
+                _lazyEmitExtensionAttribute = emitExtensionAttribute
 
                 'strong name key settings are not validated when building netmodules.
                 'They are validated when the netmodule is added to an assembly.
@@ -1196,13 +1200,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ReportDiagnosticsForSynthesizedAttributes(DeclaringCompilation, diagnostics)
-
                 ReportDiagnosticsForAddedModules(diagnostics)
 
-                Dim vbDiagnostics = diagnostics.ToReadOnlyAndFree(Of Diagnostic)()
-                If ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, vbDiagnostics) Then
-                    _lazyEmitExtensionAttribute = emitExtensionAttribute
-                End If
+                ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, diagnostics.ToReadOnlyAndFree(Of Diagnostic)())
             End If
 
             Return _lazyAssemblyLevelDeclarationErrors

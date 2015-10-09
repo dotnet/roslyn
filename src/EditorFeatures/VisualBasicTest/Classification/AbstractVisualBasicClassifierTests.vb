@@ -87,7 +87,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Dim length = code.Length
             Dim span = New TextSpan(start, length)
             Test(code, allCode, span, expected)
+        End Sub
 
+        Protected Sub Test(
+            code As String,
+            span As TextSpan,
+            ParamArray expected As Tuple(Of String, String)())
+            Test(code, code, span, expected)
         End Sub
 
         Protected Sub Test(

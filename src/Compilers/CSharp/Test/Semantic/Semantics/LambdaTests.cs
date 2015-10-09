@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class LambdaTests : CompilingTestBase
     {
         [Fact, WorkItem(608181, "DevDiv")]
         public void BadInvocationInLambda()
@@ -1319,6 +1319,82 @@ class Program
                 // (9,45): error CS0832: An expression tree may not contain an assignment operator
                 //         Expression<Func<int, int>> x = y => y = y;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
+        }
+
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
+        public void ReturnInferenceCache_Dynamic_vs_Object_01()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        IEnumerable<dynamic> dynX = null;
+
+        // CS1061 'object' does not contain a definition for 'Text'...
+        // tooltip on 'var' shows IColumn instead of IEnumerable<dynamic>
+        var result = dynX.Select(_ => _.Text);
+    }
+
+    public static IColumn Select<TResult>(this IColumn source, Func<object, TResult> selector)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static IEnumerable<S> Select<T, S>(this IEnumerable<T> source, Func<T, S> selector)
+    {
+        System.Console.WriteLine(""Select<T, S>"");
+        return null;
+    }
+}
+
+public interface IColumn { }
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
+        }
+
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
+        public void ReturnInferenceCache_Dynamic_vs_Object_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        IEnumerable<dynamic> dynX = null;
+
+        // CS1061 'object' does not contain a definition for 'Text'...
+        // tooltip on 'var' shows IColumn instead of IEnumerable<dynamic>
+        var result = dynX.Select(_ => _.Text);
+    }
+
+    public static IEnumerable<S> Select<T, S>(this IEnumerable<T> source, Func<T, S> selector)
+    {
+        System.Console.WriteLine(""Select<T, S>"");
+        return null;
+    }
+
+    public static IColumn Select<TResult>(this IColumn source, Func<object, TResult> selector)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public interface IColumn { }
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
     }
 }

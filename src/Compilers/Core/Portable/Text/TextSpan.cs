@@ -172,6 +172,9 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Creates a new <see cref="TextSpan"/> from <paramref name="start" /> and <paramref
         /// name="end"/> positions as opposed to a position and length.
+        /// 
+        /// The returned TextSpan contains the range with <paramref name="start"/> inclusive, 
+        /// and <paramref name="end"/> exclusive.
         /// </summary>
         public static TextSpan FromBounds(int start, int end)
         {

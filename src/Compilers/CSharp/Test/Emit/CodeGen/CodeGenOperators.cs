@@ -4728,7 +4728,7 @@ class Test
         {
             var builder = new System.Text.StringBuilder();
             int i;
-            for (i = 0; i < 4096; i++)
+            for (i = 0; i < 8192; i++)
             {
                 builder.Append("a[");
                 builder.Append(i);

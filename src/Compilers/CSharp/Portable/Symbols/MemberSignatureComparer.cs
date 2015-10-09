@@ -243,7 +243,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,     // valid invoke is never generic
             considerCallingConvention: false,   // valid invoke is never static
             considerRefOutDifference: true,
-            considerCustomModifiers: true);
+            considerCustomModifiers: true,
+            ignoreDynamic: false);
 
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;
@@ -266,6 +267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Consider custom modifiers on/in parameters and return types (if return is considered).
         private readonly bool _considerCustomModifiers;
 
+        // Ignore Object vs. Dynamic difference 
+        private readonly bool _ignoreDynamic;
+
         private MemberSignatureComparer(
             bool considerName,
             bool considerExplicitlyImplementedInterfaces,
@@ -273,7 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool considerTypeConstraints,
             bool considerCallingConvention,
             bool considerRefOutDifference,
-            bool considerCustomModifiers)
+            bool considerCustomModifiers,
+            bool ignoreDynamic = true)
         {
             Debug.Assert(!considerExplicitlyImplementedInterfaces || considerName, "Doesn't make sense to consider interfaces separately from name.");
 
@@ -284,6 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _considerCallingConvention = considerCallingConvention;
             _considerRefOutDifference = considerRefOutDifference;
             _considerCustomModifiers = considerCustomModifiers;
+            _ignoreDynamic = ignoreDynamic;
         }
 
         #region IEqualityComparer<Symbol> Members
@@ -328,12 +334,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap1 = GetTypeMap(member1);
             var typeMap2 = GetTypeMap(member2);
 
-            if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _considerCustomModifiers))
+            if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2, _considerCustomModifiers, _ignoreDynamic))
             {
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, _considerRefOutDifference, _considerCustomModifiers))
+            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, 
+                                                                           _considerRefOutDifference, _considerCustomModifiers, _ignoreDynamic))
             {
                 return false;
             }
@@ -426,10 +433,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool HaveSameReturnTypes(MethodSymbol member1, MethodSymbol member2, bool considerCustomModifiers)
         {
-            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), considerCustomModifiers);
+            return HaveSameReturnTypes(member1, GetTypeMap(member1), member2, GetTypeMap(member2), considerCustomModifiers, ignoreDynamic: true);
         }
 
-        private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, bool considerCustomModifiers)
+        private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, bool considerCustomModifiers, bool ignoreDynamic)
         {
             TypeSymbol unsubstitutedReturnType1;
             ImmutableArray<CustomModifier> returnTypeCustomModifiers1;
@@ -463,8 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // the runtime compares custom modifiers using (effectively) SequenceEqual
             return considerCustomModifiers ?
-                returnType1.Equals(returnType2, ignoreDynamic: true) :
-                returnType1.Type.Equals(returnType2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
+                returnType1.Equals(returnType2, ignoreDynamic: ignoreDynamic) :
+                returnType1.Type.Equals(returnType2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: ignoreDynamic);
         }
 
         private static TypeMap GetTypeMap(Symbol member)
@@ -588,7 +595,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static bool HaveSameParameterTypes(ImmutableArray<ParameterSymbol> params1, TypeMap typeMap1, ImmutableArray<ParameterSymbol> params2, TypeMap typeMap2, bool considerRefOutDifference, bool considerCustomModifiers)
+        private static bool HaveSameParameterTypes(ImmutableArray<ParameterSymbol> params1, TypeMap typeMap1, ImmutableArray<ParameterSymbol> params2, TypeMap typeMap2, 
+                                                   bool considerRefOutDifference, bool considerCustomModifiers, bool ignoreDynamic)
         {
             Debug.Assert(params1.Length == params2.Length);
 
@@ -605,12 +613,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // the runtime compares custom modifiers using (effectively) SequenceEqual
                 if (considerCustomModifiers)
                 {
-                    if (!type1.Equals(type2, ignoreDynamic: true) || (param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef))
+                    if (!type1.Equals(type2, ignoreDynamic: ignoreDynamic) || (param1.CountOfCustomModifiersPrecedingByRef != param2.CountOfCustomModifiersPrecedingByRef))
                     {
                         return false;
                     }
                 }
-                else if (!type1.Type.Equals(type2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+                else if (!type1.Type.Equals(type2.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: ignoreDynamic))
                 {
                     return false;
                 }

@@ -313,6 +313,25 @@ public partial class C { }
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(3623, "https://github.com/dotnet/roslyn/issues/3623")>
+        Public Sub RenameTypeInLinkedFiles()
+            Dim workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                            <Document FilePath="C.cs"><![CDATA[
+public class [|$$C|] { }
+]]></Document>
+                        </Project>
+                        <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                            <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
+                        </Project>
+                    </Workspace>)
+
+            VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsCSharp()
             Dim workspace = CreateWorkspaceWithWaiter(
@@ -1353,5 +1372,36 @@ End Module
                 VerifyTagsAreCorrect(workspace, "qp")
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(2445, "https://github.com/dotnet/roslyn/issues/2445")>
+        Public Sub InvalidExpansionTarget()
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+                                int x;
+                                x = 2;
+                                void [|$$M|]() { }
+                            </Document>
+                        </Project>
+                    </Workspace>)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+                Dim textBuffer = workspace.Documents.Single().TextBuffer
+
+                textBuffer.Delete(New Span(caretPosition, 1))
+                textBuffer.Insert(caretPosition, "x")
+
+                session.Commit()
+
+                VerifyTagsAreCorrect(workspace, "x")
+            End Using
+        End Sub
+
     End Class
 End Namespace

@@ -983,6 +983,20 @@ namespace ConsoleApplication1
                     expected: Diagnostic(CSharpGenericNameAnalyzer.DiagnosticId, @"Nullable<int>").WithLocation(9, 17));
         }
 
+        [Fact, WorkItem(4745, "https://github.com/dotnet/roslyn/issues/4745")]
+        public void TestNamespaceDeclarationAnalyzer()
+        {
+            var source = @"
+namespace Foo.Bar.FooBar { }
+";
+            var analyzers = new DiagnosticAnalyzer[] { new CSharpNamespaceDeclarationAnalyzer() };
+
+            // Verify, no duplicate diagnostics on qualified name.
+            CreateCompilationWithMscorlib45(source)
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    expected: Diagnostic(CSharpNamespaceDeclarationAnalyzer.DiagnosticId, @"namespace Foo.Bar.FooBar { }").WithLocation(2, 1));
+        }
+
         [Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")]
         public void TestAnalyzerWithNoActions()
         {
@@ -1098,6 +1112,26 @@ class MyClass
             var enabledByDefault = false;
 
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: specificOption, specificOptions: specificOptions, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
+        }
+
+        [Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")]
+        public void TestObjectCreationInCodeBlockAnalyzer()
+        {
+            string source = @"
+class C { }
+class D
+{
+    public C x = new C();
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new CSharpCodeBlockObjectCreationAnalyzer() };
+
+            // Verify, code block action diagnostics.
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
+                    expected: new[] {
+                        Diagnostic(CSharpCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, "new C()").WithLocation(5, 18)
+                    });
         }
     }
 }
