@@ -14,7 +14,7 @@
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
     <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
-    <XunitVersion>1.9.2</XunitVersion>
+    <XunitVersion>2.1.0-beta4-build3109</XunitVersion>
   </PropertyGroup>
 
   <Target Name="Build">
@@ -68,7 +68,7 @@
       <TestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)" />
     </ItemGroup>
 
-    <Exec Command="$(OutputDirectory)\RunTests.exe $(NuGetPackageRoot)\xunit.runners\2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runner.console.2.1.0-beta4-build3109\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 
