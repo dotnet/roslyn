@@ -206,20 +206,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 EnvDTE.CodeElement codeElement;
                 if (_codeElementTable.TryGetValue(nodeKey, out codeElement))
                 {
-                    var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
-                    if (element.IsValidNode())
+                    if (codeElement != null)
                     {
-                        if (codeElement is T)
+                        var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
+                        if (element.IsValidNode())
                         {
-                            return (T)codeElement;
-                        }
+                            if (codeElement is T)
+                            {
+                                return (T)codeElement;
+                            }
 
-                        throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
+                            throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
+                        }
                     }
-                    else
-                    {
-                        _codeElementTable.Remove(nodeKey);
-                    }
+
+                    _codeElementTable.Remove(nodeKey);
                 }
             }
 
