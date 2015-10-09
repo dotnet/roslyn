@@ -274,6 +274,27 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case VSConstants.VSStd2KCmdID.EOL_EXT:
                         _window.Operations.End(true);
                         return VSConstants.S_OK;
+                    case VSConstants.VSStd2KCmdID.CUTLINE:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.CutLine();
+                                return VSConstants.S_OK;
+                            }
+                        }
+                        break;
+                    case VSConstants.VSStd2KCmdID.DELETELINE:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.DeleteLine();
+                                return VSConstants.S_OK;
+                            }
+                        }
+                        break;
+
                 }
             }
             else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
@@ -294,11 +315,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         return VSConstants.S_OK;
 
                     case VSConstants.VSStd97CmdID.Copy:
-                        var operations = _window.Operations as IInteractiveWindowOperations2;
-                        if (operations != null)
                         {
-                            operations.Copy();
-                            return VSConstants.S_OK;
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.Copy();
+                                return VSConstants.S_OK;
+                            }
                         }
                         break;
 

@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''          T1.M1 -> { T1,  T1..ctor, Attr1, Attr1..ctor, ... }
         ''' 
         ''' we cannot just check if T1.M1 exists in the collection of referenced symbols and not 
-        ''' add dependant symbols if it does; the reason is that T1.M1 may be added by a concurrent 
+        ''' add dependent symbols if it does; the reason is that T1.M1 may be added by a concurrent 
         ''' thread, but its dependencies may not be added by that thread yet. So we need to 
         ''' calculate all dependencies and try add all the symbols together.
         ''' 

@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return VisitExpression(expressionNode)
             Else
 #If DEBUG Then
-                Debug.Assert(node Is Nothing OrElse Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
+                Debug.Assert(node Is Nothing OrElse Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewriting the same node several times.")
 #End If
                 Dim result = MyBase.Visit(node)
 #If DEBUG Then
@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function VisitExpression(node As BoundExpression) As BoundExpression
 #If DEBUG Then
-            Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
+            Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewriting the same node several times.")
             Dim originalNode = node
 #End If
 

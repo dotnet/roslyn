@@ -217,18 +217,18 @@ namespace Microsoft.Cci
 
             foreach (ILocalDefinition local in methodBody.LocalVariables)
             {
+                Debug.Assert(local.SlotIndex >= 0);
                 if (local.IsDynamic)
                 {
                     dynamicLocals.Add(local);
                 }
             }
 
-            int dynamicVariableCount = dynamicLocals.Count;
-
             foreach (var currentScope in methodBody.LocalScopes)
             {
                 foreach (var localConstant in currentScope.Constants)
                 {
+                    Debug.Assert(localConstant.SlotIndex < 0);
                     if (localConstant.IsDynamic)
                     {
                         dynamicLocals.Add(localConstant);
@@ -238,7 +238,9 @@ namespace Microsoft.Cci
 
             Debug.Assert(dynamicLocals.Any()); // There must be at least one dynamic local if this point is reached
 
-            const int blobSize = 200;//DynamicAttribute - 64, DynamicAttributeLength - 4, SlotIndex -4, IdentifierName - 128
+            const int dynamicAttributeSize = 64;
+            const int identifierSize = 64;
+            const int blobSize = dynamicAttributeSize + 4 + 4 + identifierSize * 2;//DynamicAttribute: 64, DynamicAttributeLength: 4, SlotIndex: 4, IdentifierName: 128
             var cmw = new BlobBuilder();
             cmw.WriteByte(CDI.CdiVersion);
             cmw.WriteByte(CDI.CdiKindDynamicLocals);
@@ -247,19 +249,18 @@ namespace Microsoft.Cci
             cmw.WriteUInt32(4 + 4 + 4 + (uint)dynamicLocals.Count * blobSize);//Size of the Dynamic Block
             cmw.WriteUInt32((uint)dynamicLocals.Count);
 
-            int localIndex = 0;
             foreach (ILocalDefinition local in dynamicLocals)
             {
-                if (local.Name.Length > 63)//Ignore and push empty information
+                if (local.Name.Length >= identifierSize)//Ignore and push empty information
                 {
                     cmw.WriteBytes(0, blobSize);
                     continue;
                 }
 
                 var dynamicTransformFlags = local.DynamicTransformFlags;
-                if (!dynamicTransformFlags.IsDefault && dynamicTransformFlags.Length <= 64)
+                if (!dynamicTransformFlags.IsDefault && dynamicTransformFlags.Length <= dynamicAttributeSize)
                 {
-                    byte[] flag = new byte[64];
+                    byte[] flag = new byte[dynamicAttributeSize];
                     for (int k = 0; k < dynamicTransformFlags.Length; k++)
                     {
                         if ((bool)dynamicTransformFlags[k].Value)
@@ -272,25 +273,15 @@ namespace Microsoft.Cci
                 }
                 else
                 {
-                    cmw.WriteBytes(0, 68); //Empty flag array and size.
+                    cmw.WriteBytes(0, dynamicAttributeSize + 4); //Empty flag array and size.
                 }
 
-                if (localIndex < dynamicVariableCount)
-                {
-                    // Dynamic variable
-                    cmw.WriteUInt32((uint)local.SlotIndex);
-                }
-                else
-                {
-                    // Dynamic constant
-                    cmw.WriteUInt32(0);
-                }
+                var localIndex = local.SlotIndex;
+                cmw.WriteUInt32((localIndex < 0) ? 0u : (uint)localIndex);
 
-                char[] localName = new char[64];
+                char[] localName = new char[identifierSize];
                 local.Name.CopyTo(0, localName, 0, local.Name.Length);
                 cmw.WriteUTF16(localName);
-
-                localIndex++;
             }
 
             dynamicLocals.Free();

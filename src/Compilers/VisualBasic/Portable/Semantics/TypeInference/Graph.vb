@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     current.AlgorithmData = New GraphAlgorithmData(Of TGraphNode)()
                 Next
 
-                ' Step 3: Walk the nodes and place each tree in the forrest in a separate node.
+                ' Step 3: Walk the nodes and place each tree in the forest in a separate node.
                 For Each current As TGraphNode In orderedList
                     If current.AlgorithmData.Color = DFSColor.None Then
                         Dim sccNode As New StronglyConnectedComponent(Of TGraphNode)(sccGraph)

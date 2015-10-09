@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     public static class LanguageNames
     {
         /// <summary>
-        /// The common name used from the C# language.
+        /// The common name used for the C# language.
         /// </summary>
         public const string CSharp = "C#";
 

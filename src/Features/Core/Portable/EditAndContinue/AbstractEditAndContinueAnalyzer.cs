@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
 
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
-        internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, SyntaxNode newStatement);
+        internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
         internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isLeaf);
         internal abstract void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span);
         internal abstract void ReportInsertedMemberSymbolRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol newSymbol);
@@ -999,15 +999,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 newExceptionRegions[ordinal] = ImmutableArray.Create<LinePositionSpan>();
 
                 TextSpan newSpan;
-                SyntaxNode newStatementSyntax;
+                SyntaxNode newStatementSyntaxOpt;
                 Match<SyntaxNode> match;
 
                 if (oldEnclosingLambdaBody == null)
                 {
                     match = bodyMatch;
 
-                    hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldBody, newBody, out newStatementSyntax) ||
-                                  match.TryGetNewNode(oldStatementSyntax, out newStatementSyntax);
+                    hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldBody, newBody, out newStatementSyntaxOpt) ||
+                                  match.TryGetNewNode(oldStatementSyntax, out newStatementSyntaxOpt);
                 }
                 else
                 {
@@ -1017,52 +1017,34 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     if (match != null)
                     {
-                        hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldEnclosingLambdaBody, newEnclosingLambdaBody, out newStatementSyntax) ||
-                                      match.TryGetNewNode(oldStatementSyntax, out newStatementSyntax);
+                        hasMatching = TryMatchActiveStatement(oldStatementSyntax, statementPart, oldEnclosingLambdaBody, newEnclosingLambdaBody, out newStatementSyntaxOpt) ||
+                                      match.TryGetNewNode(oldStatementSyntax, out newStatementSyntaxOpt);
                     }
                     else
                     {
                         // Lambda match is null if lambdas can't be matched, 
                         // in such case we won't have active statement matched either.
                         hasMatching = false;
-                        newStatementSyntax = null;
+                        newStatementSyntaxOpt = null;
                     }
                 }
 
                 if (hasMatching)
                 {
-                    Debug.Assert(newStatementSyntax != null);
+                    Debug.Assert(newStatementSyntaxOpt != null);
 
                     // The matching node doesn't produce sequence points.
                     // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
-                    newSpan = FindClosestActiveSpan(newStatementSyntax, statementPart);
+                    newSpan = FindClosestActiveSpan(newStatementSyntaxOpt, statementPart);
 
-                    if ((!isLeaf || isPartiallyExecuted) && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntax, statementPart))
+                    if ((!isLeaf || isPartiallyExecuted) && !AreEquivalentActiveStatements(oldStatementSyntax, newStatementSyntaxOpt, statementPart))
                     {
                         // rude edit: internal active statement changed
                         diagnostics.Add(new RudeEditDiagnostic(isLeaf ? RudeEditKind.PartiallyExecutedActiveStatementUpdate : RudeEditKind.ActiveStatementUpdate, newSpan));
                     }
 
-                    // exception handling around the statement:
-
-                    var oldAncestors = GetExceptionHandlingAncestors(oldStatementSyntax, isLeaf);
-                    var newAncestors = GetExceptionHandlingAncestors(newStatementSyntax, isLeaf);
-
-                    if (oldAncestors.Count > 0 || newAncestors.Count > 0)
-                    {
-                        var edits = match.GetSequenceEdits(oldAncestors, newAncestors);
-                        ReportEnclosingExceptionHandlingRudeEdits(diagnostics, edits, oldStatementSyntax, newStatementSyntax);
-
-                        // Exception regions are not needed in presence of errors.
-                        if (diagnostics.Count == 0)
-                        {
-                            Debug.Assert(oldAncestors.Count == newAncestors.Count);
-                            newExceptionRegions[ordinal] = GetExceptionRegions(newAncestors, newText);
-                        }
-                    }
-
                     // other statements around active statement:
-                    ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldStatementSyntax, newStatementSyntax, isLeaf);
+                    ReportOtherRudeEditsAroundActiveStatement(diagnostics, match, oldStatementSyntax, newStatementSyntaxOpt, isLeaf);
                 }
                 else if (match == null)
                 {
@@ -1088,6 +1070,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
 
+                // exception handling around the statement:
+                CalculateExceptionRegionsAroundActiveStatement(
+                    bodyMatch,
+                    oldStatementSyntax,
+                    newStatementSyntaxOpt,
+                    newSpan,
+                    ordinal,
+                    newText,
+                    isLeaf,
+                    newExceptionRegions,
+                    diagnostics);
+
                 Debug.Assert(newActiveStatements[ordinal] == default(LinePositionSpan) && newSpan != default(TextSpan));
                 newActiveStatements[ordinal] = newText.Lines.GetLinePositionSpan(newSpan);
 
@@ -1096,6 +1090,44 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (activeNodes[i].TrackedSpanOpt.HasValue && activeNodes[i].TrackedSpanOpt.Value != newSpan)
                 {
                     updatedTrackingSpans.Add(KeyValuePair.Create(new ActiveStatementId(documentId, ordinal), newSpan));
+                }
+            }
+        }
+
+        private void CalculateExceptionRegionsAroundActiveStatement(
+            Match<SyntaxNode> bodyMatch,
+            SyntaxNode oldStatementSyntax,
+            SyntaxNode newStatementSyntaxOpt,
+            TextSpan newStatementSyntaxSpan,
+            int ordinal,
+            SourceText newText,
+            bool isLeaf,
+            ImmutableArray<LinePositionSpan>[] newExceptionRegions,
+            List<RudeEditDiagnostic> diagnostics)
+        {
+            if (newStatementSyntaxOpt == null && bodyMatch.NewRoot.Span.Contains(newStatementSyntaxSpan.Start))
+            {
+                newStatementSyntaxOpt = bodyMatch.NewRoot.FindToken(newStatementSyntaxSpan.Start).Parent;
+            }
+
+            if (newStatementSyntaxOpt == null)
+            {
+                return;
+            }
+
+            var oldAncestors = GetExceptionHandlingAncestors(oldStatementSyntax, isLeaf);
+            var newAncestors = GetExceptionHandlingAncestors(newStatementSyntaxOpt, isLeaf);
+
+            if (oldAncestors.Count > 0 || newAncestors.Count > 0)
+            {
+                var edits = bodyMatch.GetSequenceEdits(oldAncestors, newAncestors);
+                ReportEnclosingExceptionHandlingRudeEdits(diagnostics, edits, oldStatementSyntax, newStatementSyntaxSpan);
+
+                // Exception regions are not needed in presence of errors.
+                if (diagnostics.Count == 0)
+                {
+                    Debug.Assert(oldAncestors.Count == newAncestors.Count);
+                    newExceptionRegions[ordinal] = GetExceptionRegions(newAncestors, newText);
                 }
             }
         }
@@ -1601,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         #region Rude Edits around Active Statement 
 
-        protected void AddRudeDiagnostic(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, SyntaxNode newActiveStatement)
+        protected void AddRudeDiagnostic(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode, TextSpan newActiveStatementSpan)
         {
             if (oldNode == null)
             {
@@ -1609,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
             else if (newNode == null)
             {
-                AddRudeDeleteAroundActiveStatement(diagnostics, oldNode, newActiveStatement);
+                AddRudeDeleteAroundActiveStatement(diagnostics, oldNode, newActiveStatementSpan);
             }
             else
             {
@@ -1635,11 +1667,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 new[] { GetStatementDisplayName(newNode, EditKind.Insert) }));
         }
 
-        protected void AddRudeDeleteAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newActiveStatement)
+        protected void AddRudeDeleteAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, TextSpan newActiveStatementSpan)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.DeleteAroundActiveStatement,
-                newActiveStatement.Span,
+                newActiveStatementSpan,
                 oldNode,
                 new[] { GetStatementDisplayName(oldNode, EditKind.Delete) }));
         }

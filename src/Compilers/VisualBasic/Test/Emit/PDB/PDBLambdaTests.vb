@@ -340,7 +340,7 @@ End Class
                     source,
                     TestOptions.DebugDll)
 
-            ' Check two distinct lambda offets for m1 and m2
+            ' Check two distinct lambda offsets for m1 and m2
             compilation.VerifyPdb(
 <symbols>
     <files>

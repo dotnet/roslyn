@@ -3448,6 +3448,135 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub TryFinally_DeleteStatement_Inner()
+            Dim src1 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        Try
+            <AS:1>Console.WriteLine(1)</AS:1>
+        <ER:1.0>Finally
+            Console.WriteLine(2)
+        End Try</ER:1.0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        <AS:1>Try</AS:1>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+        End Sub
+
+        <Fact>
+        Public Sub TryFinally_DeleteStatement_Leaf()
+            Dim src1 = "
+Class C
+    Sub Main()
+        <ER:0.0>Try
+            Console.WriteLine(0)
+        Finally
+            <AS:0>Console.WriteLine(1)</AS:0>
+        End Try</ER:0.0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+        Try
+            Console.WriteLine(0)
+        <AS:0>Finally</AS:0>
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Finally", VBFeaturesResources.FinallyClause))
+        End Sub
+
+        <Fact>
+        Public Sub Try_DeleteStatement_Inner()
+            Dim src1 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        Try
+            <AS:1>Console.WriteLine(1)</AS:1>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        <AS:1>Try</AS:1>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+        End Sub
+
+        <Fact>
+        Public Sub Try_DeleteStatement_Leaf()
+            Dim src1 = "
+Class C
+    Sub Main()
+
+        Try
+            <AS:0>Console.WriteLine(1)</AS:0>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+
+        <AS:0>Try</AS:0>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <Fact>
         Public Sub Catch_Add_Inner()
             Dim src1 = "
 Class C
