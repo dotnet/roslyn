@@ -14,30 +14,18 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        /// <summary>
-        /// Stores the source information for an <see cref="IAsyncToken"/> value.  Helpful when 
-        /// tracking down tokens which aren't properly disposed.
-        /// </summary>
-        private struct TokenSourceInfo
-        {
-            internal IAsyncToken Token { get; set; }
-            internal string FilePath { get; set; }
-            internal int LineNumber { get; set; }
-
-            public override string ToString() => $"{Path.GetFileName(FilePath)} {LineNumber}";
-        }
-
         private readonly object _gate = new object();
-        private readonly List<TokenSourceInfo> _tokenList = new List<TokenSourceInfo>();
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
-
+        private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
         private bool _trackActiveTokens;
-        private HashSet<DiagnosticAsyncToken> _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
 
         public AsynchronousOperationListener()
         {
-            _trackActiveTokens = Debugger.IsAttached;
+            TrackActiveTokens = Debugger.IsAttached;
+
+            // TODO: debugging only
+            TrackActiveTokens = true;
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -47,21 +35,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 IAsyncToken asyncToken;
                 if (_trackActiveTokens)
                 {
-                    var token = new DiagnosticAsyncToken(this, name, tag);
-                    _activeDiagnosticTokens.Add(token);
+                    var token = new DiagnosticAsyncToken(this, name, tag, filePath, lineNumber);
+                    _diagnosticTokenList.Add(token);
                     asyncToken = token;
                 }
                 else
                 {
                     asyncToken = new AsyncToken(this);
                 }
-
-                _tokenList.Add(new TokenSourceInfo()
-                {
-                    Token = asyncToken,
-                    FilePath = filePath,
-                    LineNumber = lineNumber
-                });
 
                 return asyncToken;
             }
@@ -90,34 +71,23 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     _pendingTasks.Clear();
                 }
 
-                int i = 0;
-                bool removed = false;
-                while (i < _tokenList.Count)
-                {
-                    if (_tokenList[i].Token == token)
-                    {
-                        _tokenList.RemoveAt(i);
-                        removed = true;
-                        break;
-                    }
-
-                    i++;
-                }
-
-                if (!removed)
-                {
-                    Debug.Assert(false, "Hit the error");
-                    throw new InvalidOperationException();
-                }
-
                 if (_trackActiveTokens)
                 {
-                    var diagnosticAsyncToken = token as DiagnosticAsyncToken;
-
-                    if (diagnosticAsyncToken != null)
+                    int i = 0;
+                    bool removed = false;
+                    while (i < _diagnosticTokenList.Count)
                     {
-                        _activeDiagnosticTokens.Remove(diagnosticAsyncToken);
+                        if (_diagnosticTokenList[i] == token)
+                        {
+                            _diagnosticTokenList.RemoveAt(i);
+                            removed = true;
+                            break;
+                        }
+
+                        i++;
                     }
+
+                    Debug.Assert(removed, "IAsyncToken and Listener mismatch");
                 }
             }
         }
@@ -143,11 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public bool TrackActiveTokens
         {
-            get
-            {
-                return _trackActiveTokens;
-            }
-
+            get { return _trackActiveTokens; }
             set
             {
                 lock (_gate)
@@ -158,15 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _trackActiveTokens = value;
-
-                    if (_trackActiveTokens)
-                    {
-                        _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
-                    }
-                    else
-                    {
-                        _activeDiagnosticTokens = null;
-                    }
+                    _diagnosticTokenList = _trackActiveTokens ? new List<DiagnosticAsyncToken>() : null;
                 }
             }
         }
@@ -185,12 +143,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             {
                 lock (_gate)
                 {
-                    if (_activeDiagnosticTokens == null)
+                    if (_diagnosticTokenList == null)
                     {
                         return ImmutableArray<DiagnosticAsyncToken>.Empty;
                     }
 
-                    return _activeDiagnosticTokens.ToImmutableArray();
+                    return _diagnosticTokenList.ToImmutableArray();
                 }
             }
         }
