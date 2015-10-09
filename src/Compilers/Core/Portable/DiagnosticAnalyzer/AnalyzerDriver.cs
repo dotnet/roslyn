@@ -727,10 +727,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // might want to ask the compiler for all the diagnostics in the source file, for example
             // to get information about unnecessary usings.
 
-            var semanticModel = analysisStateOpt != null ?
-                GetOrCreateCachedSemanticModel(completedEvent.CompilationUnit, completedEvent.Compilation, cancellationToken) :
-                completedEvent.SemanticModel;
-
+            var semanticModel = completedEvent.SemanticModel;
             if (!analysisScope.ShouldAnalyze(semanticModel.SyntaxTree))
             {
                 return;
@@ -1208,9 +1205,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteCodeBlockActions);
 
             var symbol = symbolEvent.Symbol;
-            SemanticModel semanticModel = analysisStateOpt != null ?
-                GetOrCreateCachedSemanticModel(decl.SyntaxTree, symbolEvent.Compilation, cancellationToken) :
-                symbolEvent.SemanticModel(decl);
+            SemanticModel semanticModel = symbolEvent.SemanticModel(decl);
 
             var cacheAnalysisData = analysisScope.Analyzers.Length < analyzers.Length &&
                 (!analysisScope.FilterSpanOpt.HasValue || analysisScope.FilterSpanOpt.Value.Length >= decl.SyntaxTree.GetRoot(cancellationToken).Span.Length);

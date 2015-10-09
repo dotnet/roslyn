@@ -38,12 +38,20 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         public sealed override void Initialize(AnalysisContext context)
         {
-            context.RegisterSymbolAction(AnalyzeProperty, SymbolKind.Property);
+            context.RegisterSymbolAction(AnalyzerPropertiesInType, SymbolKind.NamedType);
         }
 
-        private void AnalyzeProperty(SymbolAnalysisContext symbolContext)
+        private void AnalyzerPropertiesInType(SymbolAnalysisContext symbolContext)
         {
-            var property = (IPropertySymbol)symbolContext.Symbol;
+            var namedType = (INamedTypeSymbol)symbolContext.Symbol;
+            foreach (var property in namedType.GetMembers().OfType<IPropertySymbol>())
+            {
+                AnalyzeProperty(property, symbolContext);
+            }
+        }
+
+        private void AnalyzeProperty(IPropertySymbol property, SymbolAnalysisContext symbolContext)
+        {
             if (property.IsIndexer)
             {
                 return;
