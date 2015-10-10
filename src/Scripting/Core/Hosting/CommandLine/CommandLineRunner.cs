@@ -340,8 +340,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private static bool IsHelpCommand(string text)
         {
             const string helpCommand = "#help";
-            return text != null &&
-                   text.TrimStart().TrimEnd() == helpCommand;
+            Debug.Assert(text != null);
+            return text.Trim() == helpCommand;
         }
 
         private void DisplayHelpText()
