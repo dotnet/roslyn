@@ -1,0 +1,2374 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {
+    "DNXCore,Version=v5.0": {
+      "Microsoft.NETCore.Platforms/1.0.1-beta-23321": {},
+      "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23321": {
+        "dependencies": {
+          "Microsoft.NETCore.Windows.ApiSets": "[1.0.1-beta-23321, )",
+          "System.Collections": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Diagnostics.Contracts": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Diagnostics.Debug": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Diagnostics.StackTrace": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Diagnostics.Tools": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Diagnostics.Tracing": "[4.0.21-beta-23321, 4.0.21-beta-23321]",
+          "System.Globalization": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Globalization.Calendars": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.IO": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.ObjectModel": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Private.Uri": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Reflection": "[4.1.0-beta-23321, 4.1.0-beta-23321]",
+          "System.Reflection.Extensions": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Reflection.Primitives": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Resources.ResourceManager": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Runtime": "[4.0.21-beta-23321, 4.0.21-beta-23321]",
+          "System.Runtime.Extensions": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Runtime.Handles": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Runtime.InteropServices": "[4.0.21-beta-23321, 4.0.21-beta-23321]",
+          "System.Text.Encoding": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Text.Encoding.Extensions": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Threading": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Threading.Tasks": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Threading.Timer": "[4.0.1-beta-23321, 4.0.1-beta-23321]"
+        }
+      },
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23321": {},
+      "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {},
+      "System.Collections/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.21-beta-23321, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Collections.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Collections.dll": {}
+        }
+      },
+      "System.Diagnostics.Contracts/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Contracts.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.Contracts.dll": {}
+        }
+      },
+      "System.Diagnostics.Debug/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Debug.dll": {}
+        }
+      },
+      "System.Diagnostics.StackTrace/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.StackTrace.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.StackTrace.dll": {}
+        }
+      },
+      "System.Diagnostics.Tools/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Tools.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.Tools.dll": {}
+        }
+      },
+      "System.Diagnostics.Tracing/4.0.21-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Tracing.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.Tracing.dll": {}
+        }
+      },
+      "System.Globalization/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Globalization.dll": {}
+        }
+      },
+      "System.Globalization.Calendars/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Globalization": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.Calendars.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Globalization.Calendars.dll": {}
+        }
+      },
+      "System.IO/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.20, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Threading.Tasks": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.IO.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.IO.dll": {}
+        }
+      },
+      "System.Linq/4.0.0": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Linq.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Linq.dll": {}
+        }
+      },
+      "System.Linq.Expressions/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.IO": "[4.0.10, )",
+          "System.Linq": "[4.0.0, )",
+          "System.ObjectModel": "[4.0.10, )",
+          "System.Reflection": "[4.0.10, )",
+          "System.Reflection.Emit": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Reflection.TypeExtensions": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Linq.Expressions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+        }
+      },
+      "System.ObjectModel/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.ObjectModel.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.ObjectModel.dll": {}
+        }
+      },
+      "System.Private.Uri/4.0.1-beta-23321": {
+        "compile": {
+          "ref/dnxcore50/_._": {}
+        }
+      },
+      "System.Reflection/4.1.0-beta-23321": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.dll": {}
+        }
+      },
+      "System.Reflection.Emit/4.0.0": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Emit.ILGeneration": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Emit.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Emit.dll": {}
+        }
+      },
+      "System.Reflection.Emit.ILGeneration/4.0.0": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Emit.ILGeneration.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Emit.ILGeneration.dll": {}
+        }
+      },
+      "System.Reflection.Extensions/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Extensions.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Primitives.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Primitives.dll": {}
+        }
+      },
+      "System.Reflection.TypeExtensions/4.0.0": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.TypeExtensions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.TypeExtensions.dll": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Globalization": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Resources.ResourceManager.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Resources.ResourceManager.dll": {}
+        }
+      },
+      "System.Runtime/4.0.21-beta-23321": {
+        "dependencies": {
+          "System.Private.Uri": "[4.0.1-beta-23321, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.dll": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.20, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Extensions.dll": {}
+        }
+      },
+      "System.Runtime.Handles/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Handles.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.Handles.dll": {}
+        }
+      },
+      "System.Runtime.InteropServices/4.0.21-beta-23321": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Handles": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.InteropServices.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
+        }
+      },
+      "System.Text.Encoding/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Text.Encoding.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Text.Encoding.dll": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Text.Encoding.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Text.Encoding.Extensions.dll": {}
+        }
+      },
+      "System.Threading/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Threading.Tasks": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.dll": {}
+        }
+      },
+      "System.Threading.Tasks/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.Tasks.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Threading.Tasks.dll": {}
+        }
+      },
+      "System.Threading.Timer/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.Timer.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Threading.Timer.dll": {}
+        }
+      }
+    },
+    "DNXCore,Version=v5.0/win7-x64": {
+      "Microsoft.NETCore.Platforms/1.0.1-beta-23321": {},
+      "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23321": {
+        "dependencies": {
+          "Microsoft.NETCore.Windows.ApiSets": "[1.0.1-beta-23321, )",
+          "System.Collections": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Diagnostics.Contracts": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Diagnostics.Debug": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Diagnostics.StackTrace": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Diagnostics.Tools": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Diagnostics.Tracing": "[4.0.21-beta-23321, 4.0.21-beta-23321]",
+          "System.Globalization": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Globalization.Calendars": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.IO": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.ObjectModel": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Private.Uri": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Reflection": "[4.1.0-beta-23321, 4.1.0-beta-23321]",
+          "System.Reflection.Extensions": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Reflection.Primitives": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Resources.ResourceManager": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Runtime": "[4.0.21-beta-23321, 4.0.21-beta-23321]",
+          "System.Runtime.Extensions": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Runtime.Handles": "[4.0.1-beta-23321, 4.0.1-beta-23321]",
+          "System.Runtime.InteropServices": "[4.0.21-beta-23321, 4.0.21-beta-23321]",
+          "System.Text.Encoding": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Text.Encoding.Extensions": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Threading": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Threading.Tasks": "[4.0.11-beta-23321, 4.0.11-beta-23321]",
+          "System.Threading.Timer": "[4.0.1-beta-23321, 4.0.1-beta-23321]"
+        }
+      },
+      "Microsoft.NETCore.TestHost/1.0.0-beta-23321": {},
+      "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {},
+      "runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23321": {
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "runtimes/win7-x64/lib/dotnet/mscorlib.ni.dll": {}
+        },
+        "native": {
+          "runtimes/win7-x64/native/clretwrc.dll": {},
+          "runtimes/win7-x64/native/coreclr.dll": {},
+          "runtimes/win7-x64/native/dbgshim.dll": {},
+          "runtimes/win7-x64/native/mscordaccore.dll": {},
+          "runtimes/win7-x64/native/mscordbi.dll": {},
+          "runtimes/win7-x64/native/mscorrc.debug.dll": {},
+          "runtimes/win7-x64/native/mscorrc.dll": {}
+        }
+      },
+      "runtime.win7-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+        "native": {
+          "runtimes/win7-x64/native/CoreRun.exe": {}
+        }
+      },
+      "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {
+        "native": {
+          "runtimes/win7-x64/native/API-MS-Win-Base-Util-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-com-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-comm-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-com-private-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-console-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-console-l2-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-datetime-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-datetime-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-debug-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-debug-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-delayload-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-errorhandling-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-errorhandling-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-fibers-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-fibers-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-file-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-file-l1-2-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-file-l1-2-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-file-l2-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-file-l2-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-handle-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-heap-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-heap-obsolete-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-interlocked-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-io-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-io-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-kernel32-legacy-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-kernel32-legacy-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-kernel32-legacy-l1-1-2.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-1.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-2.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-libraryloader-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-libraryloader-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-localization-l1-2-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-localization-l1-2-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-localization-l2-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-localization-obsolete-l1-2-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-2.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-3.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-namedpipe-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-namedpipe-l1-2-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-normalization-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-PrivateProfile-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-privateprofile-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-processenvironment-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-processenvironment-l1-2-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-processsecurity-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-processthreads-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-processthreads-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-processthreads-l1-1-2.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-ProcessTopology-Obsolete-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-profile-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-psapi-ansi-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-psapi-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-psapi-obsolete-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-realtime-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-registry-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-registry-l2-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-rtlsupport-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-shlwapi-legacy-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-shlwapi-obsolete-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-string-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Core-String-L2-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-synch-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-synch-l1-2-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-2.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-3.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-threadpool-l1-2-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-threadpool-legacy-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-threadpool-private-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-timezone-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-url-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-util-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-version-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-winrt-error-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-winrt-error-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-winrt-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-winrt-registration-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-winrt-robuffer-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-winrt-roparameterizediid-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-winrt-string-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-wow64-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-xstate-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-core-xstate-l2-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-devices-config-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-devices-config-L1-1-1.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Eventing-ClassicProvider-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Eventing-Consumer-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Eventing-Controller-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Eventing-Legacy-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Eventing-Provider-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-EventLog-Legacy-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-ro-typeresolution-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-security-base-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-security-cpwl-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-security-cryptoapi-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-security-lsalookup-l2-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-security-lsalookup-l2-1-1.dll": {},
+          "runtimes/win7-x64/native/API-MS-Win-Security-LsaPolicy-L1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-security-provider-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-security-sddl-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-service-core-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-service-core-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-service-management-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-service-management-l2-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-service-private-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-service-private-l1-1-1.dll": {},
+          "runtimes/win7-x64/native/api-ms-win-service-winsvc-l1-1-0.dll": {},
+          "runtimes/win7-x64/native/ext-ms-win-advapi32-encryptedfile-l1-1-0.dll": {}
+        }
+      },
+      "runtime.win7.System.Diagnostics.Debug/4.0.11-beta-23321": {
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "runtimes/win7/lib/dotnet/System.Diagnostics.Debug.dll": {}
+        }
+      },
+      "runtime.win7.System.Private.Uri/4.0.1-beta-23321": {
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "runtimes/win7/lib/dotnet/System.Private.Uri.dll": {}
+        }
+      },
+      "runtime.win7.System.Runtime.Extensions/4.0.11-beta-23321": {
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.Extensions.dll": {}
+        }
+      },
+      "runtime.win7.System.Threading/4.0.11-beta-23321": {
+        "compile": {
+          "ref/dotnet/_._": {}
+        },
+        "runtime": {
+          "runtimes/win7/lib/dotnet/System.Threading.dll": {}
+        }
+      },
+      "System.Collections/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.21-beta-23321, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Collections.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Collections.dll": {}
+        }
+      },
+      "System.Diagnostics.Contracts/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Contracts.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.Contracts.dll": {}
+        }
+      },
+      "System.Diagnostics.Debug/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Debug.dll": {}
+        }
+      },
+      "System.Diagnostics.StackTrace/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.StackTrace.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.StackTrace.dll": {}
+        }
+      },
+      "System.Diagnostics.Tools/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Tools.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.Tools.dll": {}
+        }
+      },
+      "System.Diagnostics.Tracing/4.0.21-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Tracing.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Diagnostics.Tracing.dll": {}
+        }
+      },
+      "System.Globalization/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Globalization.dll": {}
+        }
+      },
+      "System.Globalization.Calendars/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Globalization": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.Calendars.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Globalization.Calendars.dll": {}
+        }
+      },
+      "System.IO/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.20, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Threading.Tasks": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.IO.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.IO.dll": {}
+        }
+      },
+      "System.Linq/4.0.0": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Linq.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Linq.dll": {}
+        }
+      },
+      "System.Linq.Expressions/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Globalization": "[4.0.10, )",
+          "System.IO": "[4.0.10, )",
+          "System.Linq": "[4.0.0, )",
+          "System.ObjectModel": "[4.0.10, )",
+          "System.Reflection": "[4.0.10, )",
+          "System.Reflection.Emit": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Reflection.TypeExtensions": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Linq.Expressions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Linq.Expressions.dll": {}
+        }
+      },
+      "System.ObjectModel/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Collections": "[4.0.10, )",
+          "System.Diagnostics.Debug": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Threading": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.ObjectModel.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.ObjectModel.dll": {}
+        }
+      },
+      "System.Private.Uri/4.0.1-beta-23321": {
+        "compile": {
+          "ref/dnxcore50/_._": {}
+        }
+      },
+      "System.Reflection/4.1.0-beta-23321": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.dll": {}
+        }
+      },
+      "System.Reflection.Emit/4.0.0": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Emit.ILGeneration": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Emit.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Emit.dll": {}
+        }
+      },
+      "System.Reflection.Emit.ILGeneration/4.0.0": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Emit.ILGeneration.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Emit.ILGeneration.dll": {}
+        }
+      },
+      "System.Reflection.Emit.Lightweight/4.0.0": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Emit.ILGeneration": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Emit.Lightweight.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Emit.Lightweight.dll": {}
+        }
+      },
+      "System.Reflection.Extensions/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Extensions.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.Primitives.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.Primitives.dll": {}
+        }
+      },
+      "System.Reflection.TypeExtensions/4.0.0": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Reflection.TypeExtensions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Reflection.TypeExtensions.dll": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Globalization": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Resources.ResourceManager.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Resources.ResourceManager.dll": {}
+        }
+      },
+      "System.Runtime/4.0.21-beta-23321": {
+        "dependencies": {
+          "System.Private.Uri": "[4.0.1-beta-23321, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.dll": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.20, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Extensions.dll": {}
+        }
+      },
+      "System.Runtime.Handles/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Handles.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.Handles.dll": {}
+        }
+      },
+      "System.Runtime.InteropServices/4.0.21-beta-23321": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Handles": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.InteropServices.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Runtime.InteropServices.dll": {}
+        }
+      },
+      "System.Text.Encoding/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Text.Encoding.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Text.Encoding.dll": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Text.Encoding.Extensions.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Text.Encoding.Extensions.dll": {}
+        }
+      },
+      "System.Threading/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )",
+          "System.Threading.Tasks": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.dll": {}
+        }
+      },
+      "System.Threading.Tasks/4.0.11-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.Tasks.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Threading.Tasks.dll": {}
+        }
+      },
+      "System.Threading.Timer/4.0.1-beta-23321": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Threading.Timer.dll": {}
+        },
+        "runtime": {
+          "lib/DNXCore50/System.Threading.Timer.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.NETCore.Platforms/1.0.1-beta-23321": {
+      "sha512": "lKmkPSHwJJofKodv616I5e9B3IjapVIZd1F/XAMWnNAaRSc8PMBvVwnQ2fTgH9xIFnXoTAYLjoTrynF/1RoxkA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.NETCore.Platforms.nuspec",
+        "package/services/metadata/core-properties/a896c08c81124cdab52a9d4c4c8ae1d9.psmdcp",
+        "runtime.json"
+      ]
+    },
+    "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23321": {
+      "sha512": "zKcosHNyizG5bd6etmmGl7TPQ1JZ7+NCULxAmXacspM/+cJiQorNNuAiaJf8nEbLhdq36OhLrgRzhzlx576yrQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.NETCore.Runtime.CoreCLR.nuspec",
+        "package/services/metadata/core-properties/00010a5e797f475fab17d46bb28d34fa.psmdcp",
+        "runtime.json"
+      ]
+    },
+    "Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+      "sha512": "DrGjBXZWFWnsOEJiVsqgEu3DFumzjouK9CaZdR8YC1eb9AIWcElJ2OkMT5bji3cEUFKtxXaYoK6BI4kGCZg0nw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.NETCore.TestHost.nuspec",
+        "package/services/metadata/core-properties/3382e022023547b5943fc63a7000aa68.psmdcp",
+        "runtime.json"
+      ]
+    },
+    "Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {
+      "sha512": "KAkWVwJ1cIzjw8ZLVxxVDUz/EYxoNNrYRYLD6JhFOkP5B8e+/AcKP2t8ainf2792ifWCy/Wv7w4G9YG1HkDcvA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "Microsoft.NETCore.Windows.ApiSets.nuspec",
+        "package/services/metadata/core-properties/a44f497e174744bd87ee88a376ab34cf.psmdcp",
+        "runtime.json"
+      ]
+    },
+    "runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23321": {
+      "sha512": "Pk2hUQvi2iXY6pZtXI+U0YQqq3ojZaGrb0pBtYkcbRu9WgvzPmXTy0Ye2+h0v0THc1sQd4ySKR7IZomDK1yfGA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/09538cc4484247bf90cdf0b934cdc771.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR.nuspec",
+        "runtimes/win7-x64/lib/dotnet/mscorlib.ni.dll",
+        "runtimes/win7-x64/native/clretwrc.dll",
+        "runtimes/win7-x64/native/coreclr.dll",
+        "runtimes/win7-x64/native/dbgshim.dll",
+        "runtimes/win7-x64/native/mscordaccore.dll",
+        "runtimes/win7-x64/native/mscordbi.dll",
+        "runtimes/win7-x64/native/mscorrc.debug.dll",
+        "runtimes/win7-x64/native/mscorrc.dll",
+        "tools/crossgen.exe",
+        "tools/sos.dll"
+      ]
+    },
+    "runtime.win7-x64.Microsoft.NETCore.TestHost/1.0.0-beta-23321": {
+      "sha512": "LGX+uhGoeB1smwtM9/08gxcAv3wz3fiHnnGFxlzlaIxKgBBKFSM9bwoqscMGdWrFeeg6JIPVu/OAkSzkB73YVA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/5481fc04851d44ac9d777297a45c288c.psmdcp",
+        "runtime.win7-x64.Microsoft.NETCore.TestHost.nuspec",
+        "runtimes/win7-x64/native/CoreRun.exe"
+      ]
+    },
+    "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets/1.0.1-beta-23321": {
+      "sha512": "A1/dGg9TpjOgGKkvS1nkaI68CKwiyUjzIKxZJBIhcCg9CZ/b1VoKmbTBYli+GpWd+ERzsX6soh1qi29k+Tfh8g==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/1927df1a54284e1e810bbe1163926010.psmdcp",
+        "runtime.win7-x64.Microsoft.NETCore.Windows.ApiSets.nuspec",
+        "runtimes/win10-x64/native/_._",
+        "runtimes/win7-x64/native/API-MS-Win-Base-Util-L1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-com-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-comm-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-com-private-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-console-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-console-l2-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-datetime-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-datetime-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-debug-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-debug-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-delayload-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-errorhandling-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-errorhandling-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-fibers-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-fibers-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-file-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-file-l1-2-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-file-l1-2-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-file-l2-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-file-l2-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-handle-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-heap-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-heap-obsolete-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-interlocked-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-io-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-io-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-kernel32-legacy-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-kernel32-legacy-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-kernel32-legacy-l1-1-2.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-1.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-2.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-libraryloader-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-libraryloader-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-localization-l1-2-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-localization-l1-2-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-localization-l2-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-localization-obsolete-l1-2-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-2.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-memory-l1-1-3.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-namedpipe-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-namedpipe-l1-2-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-normalization-l1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Core-PrivateProfile-L1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-privateprofile-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-processenvironment-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-processenvironment-l1-2-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-processsecurity-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-processthreads-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-processthreads-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-processthreads-l1-1-2.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Core-ProcessTopology-Obsolete-L1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-profile-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-psapi-ansi-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-psapi-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-psapi-obsolete-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-realtime-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-registry-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-registry-l2-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-rtlsupport-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-shlwapi-legacy-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-shlwapi-obsolete-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-shutdown-l1-1-1.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Core-StringAnsi-L1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-string-l1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Core-String-L2-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-stringloader-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-string-obsolete-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-synch-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-synch-l1-2-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-2.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-sysinfo-l1-2-3.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-threadpool-l1-2-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-threadpool-legacy-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-threadpool-private-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-timezone-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-url-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-util-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-version-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-winrt-error-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-winrt-error-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-winrt-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-winrt-registration-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-winrt-robuffer-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-winrt-roparameterizediid-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-winrt-string-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-wow64-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-xstate-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-core-xstate-l2-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-devices-config-L1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-devices-config-L1-1-1.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Eventing-ClassicProvider-L1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Eventing-Consumer-L1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Eventing-Controller-L1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Eventing-Legacy-L1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Eventing-Provider-L1-1-0.dll",
+        "runtimes/win7-x64/native/API-MS-Win-EventLog-Legacy-L1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-ro-typeresolution-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-security-base-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-security-cpwl-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-security-cryptoapi-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-security-lsalookup-l2-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-security-lsalookup-l2-1-1.dll",
+        "runtimes/win7-x64/native/API-MS-Win-Security-LsaPolicy-L1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-security-provider-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-security-sddl-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-service-core-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-service-core-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-service-management-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-service-management-l2-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-service-private-l1-1-0.dll",
+        "runtimes/win7-x64/native/api-ms-win-service-private-l1-1-1.dll",
+        "runtimes/win7-x64/native/api-ms-win-service-winsvc-l1-1-0.dll",
+        "runtimes/win7-x64/native/ext-ms-win-advapi32-encryptedfile-l1-1-0.dll",
+        "runtimes/win81-x64/native/api-ms-win-core-kernel32-legacy-l1-1-2.dll",
+        "runtimes/win81-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-2.dll",
+        "runtimes/win81-x64/native/api-ms-win-core-memory-l1-1-3.dll",
+        "runtimes/win81-x64/native/api-ms-win-core-namedpipe-l1-2-1.dll",
+        "runtimes/win81-x64/native/api-ms-win-core-string-obsolete-l1-1-1.dll",
+        "runtimes/win81-x64/native/api-ms-win-core-sysinfo-l1-2-2.dll",
+        "runtimes/win81-x64/native/api-ms-win-core-sysinfo-l1-2-3.dll",
+        "runtimes/win81-x64/native/api-ms-win-security-cpwl-l1-1-0.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-file-l1-2-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-file-l2-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-kernel32-legacy-l1-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-kernel32-legacy-l1-1-2.dll",
+        "runtimes/win8-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-1.dll",
+        "runtimes/win8-x64/native/API-MS-Win-Core-Kernel32-Private-L1-1-2.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-localization-l1-2-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-localization-obsolete-l1-2-0.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-memory-l1-1-2.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-memory-l1-1-3.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-namedpipe-l1-2-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-privateprofile-l1-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-processthreads-l1-1-2.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-shutdown-l1-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-stringloader-l1-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-string-obsolete-l1-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-sysinfo-l1-2-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-sysinfo-l1-2-2.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-sysinfo-l1-2-3.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-winrt-error-l1-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-core-xstate-l2-1-0.dll",
+        "runtimes/win8-x64/native/API-MS-Win-devices-config-L1-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-security-cpwl-l1-1-0.dll",
+        "runtimes/win8-x64/native/api-ms-win-security-cryptoapi-l1-1-0.dll",
+        "runtimes/win8-x64/native/api-ms-win-security-lsalookup-l2-1-1.dll",
+        "runtimes/win8-x64/native/api-ms-win-service-private-l1-1-1.dll"
+      ]
+    },
+    "runtime.win7.System.Diagnostics.Debug/4.0.11-beta-23321": {
+      "sha512": "6hIunPrq23p51PBBtGDeyK8/+bM0eycsM8l5UDr1uKTccHe/xeaO1Cy19m4CqJMaSp6nKmhZHw0O0OgUOPaUdw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/f16c0f762ed84e2cbc7c7af7705153c8.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.win7.System.Diagnostics.Debug.nuspec",
+        "runtimes/win7/lib/dotnet/de/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/es/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/fr/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/it/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/ja/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/ko/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/ru/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/System.Diagnostics.Debug.dll",
+        "runtimes/win7/lib/dotnet/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/zh-hans/System.Diagnostics.Debug.xml",
+        "runtimes/win7/lib/dotnet/zh-hant/System.Diagnostics.Debug.xml"
+      ]
+    },
+    "runtime.win7.System.Private.Uri/4.0.1-beta-23321": {
+      "sha512": "WfIDK5opKq/WZLTWFrtv85nOP7pOB+w5pPUHGeD6IxKop1avsk00Le/yu3oU4YEhp3b88isVLvDC1CaEeg90Rg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/70f1c36b41174679b9a1462b84124f6f.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.win7.System.Private.Uri.nuspec",
+        "runtimes/win7/lib/dotnet/System.Private.Uri.dll"
+      ]
+    },
+    "runtime.win7.System.Runtime.Extensions/4.0.11-beta-23321": {
+      "sha512": "jMQn6PkMslU56xyId0aeJ0u+GhRFd8KCensMIC1eIgLDNb4RviMVCcro3off7jSNGjn26/7jCBgzxlca9DT1og==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/es/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/fr/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/it/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/ja/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/ko/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/ru/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/System.Runtime.Extensions.dll",
+        "lib/DNXCore50/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/zh-hans/System.Runtime.Extensions.xml",
+        "lib/DNXCore50/zh-hant/System.Runtime.Extensions.xml",
+        "lib/netcore50/de/System.Runtime.Extensions.xml",
+        "lib/netcore50/es/System.Runtime.Extensions.xml",
+        "lib/netcore50/fr/System.Runtime.Extensions.xml",
+        "lib/netcore50/it/System.Runtime.Extensions.xml",
+        "lib/netcore50/ja/System.Runtime.Extensions.xml",
+        "lib/netcore50/ko/System.Runtime.Extensions.xml",
+        "lib/netcore50/ru/System.Runtime.Extensions.xml",
+        "lib/netcore50/System.Runtime.Extensions.dll",
+        "lib/netcore50/System.Runtime.Extensions.xml",
+        "lib/netcore50/zh-hans/System.Runtime.Extensions.xml",
+        "lib/netcore50/zh-hant/System.Runtime.Extensions.xml",
+        "package/services/metadata/core-properties/5fe9fdfb2e8c42af98299ffeba9362f2.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.win7.System.Runtime.Extensions.nuspec",
+        "runtimes/win8-aot/lib/netcore50/de/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Extensions.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Runtime.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Runtime.Extensions.xml"
+      ]
+    },
+    "runtime.win7.System.Threading/4.0.11-beta-23321": {
+      "sha512": "9S9vqzTsHTp59g7TSJEBUbG7fgZoSM9i1bbP7QWzksILC+ga7Uw8cgg6G/TSgYoCDc8m0gylokUJRFevDyQJbg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/fbfb81aeaff0453488443fc63880a207.psmdcp",
+        "ref/dotnet/_._",
+        "runtime.win7.System.Threading.nuspec",
+        "runtimes/win7/lib/dotnet/de/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/es/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/fr/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/it/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/ja/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/ko/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/ru/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/System.Threading.dll",
+        "runtimes/win7/lib/dotnet/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/zh-hans/System.Threading.xml",
+        "runtimes/win7/lib/dotnet/zh-hant/System.Threading.xml"
+      ]
+    },
+    "System.Collections/4.0.11-beta-23321": {
+      "sha512": "ShjDeJqXRSn2uiTsLq5xDpI9bQcp3petLDf9VlbGxla6BmPb/jiEQa7ljbYMdAuPH70epGItEPW6wS6ql0bXUQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Collections.xml",
+        "lib/DNXCore50/es/System.Collections.xml",
+        "lib/DNXCore50/fr/System.Collections.xml",
+        "lib/DNXCore50/it/System.Collections.xml",
+        "lib/DNXCore50/ja/System.Collections.xml",
+        "lib/DNXCore50/ko/System.Collections.xml",
+        "lib/DNXCore50/ru/System.Collections.xml",
+        "lib/DNXCore50/System.Collections.dll",
+        "lib/DNXCore50/System.Collections.xml",
+        "lib/DNXCore50/zh-hans/System.Collections.xml",
+        "lib/DNXCore50/zh-hant/System.Collections.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/de/System.Collections.xml",
+        "lib/netcore50/es/System.Collections.xml",
+        "lib/netcore50/fr/System.Collections.xml",
+        "lib/netcore50/it/System.Collections.xml",
+        "lib/netcore50/ja/System.Collections.xml",
+        "lib/netcore50/ko/System.Collections.xml",
+        "lib/netcore50/ru/System.Collections.xml",
+        "lib/netcore50/System.Collections.dll",
+        "lib/netcore50/System.Collections.xml",
+        "lib/netcore50/zh-hans/System.Collections.xml",
+        "lib/netcore50/zh-hant/System.Collections.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/f833fc65fe5247d2b8974961da40e893.psmdcp",
+        "ref/dotnet/System.Collections.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Collections.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Collections.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Collections.xml",
+        "System.Collections.nuspec"
+      ]
+    },
+    "System.Diagnostics.Contracts/4.0.1-beta-23321": {
+      "sha512": "uQBLdUyCPp0fwVdlmDb002cVwqDfgdwZOKyAMCQFIaYVvgrDc5LVhBdUC5DbTnD9yoNmKaudN4wphEUZc7UmKw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Diagnostics.Contracts.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Diagnostics.Contracts.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/aa4cbb3734984eeabf9662196665c772.psmdcp",
+        "ref/dotnet/System.Diagnostics.Contracts.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Diagnostics.Contracts.dll",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Contracts.dll",
+        "System.Diagnostics.Contracts.nuspec"
+      ]
+    },
+    "System.Diagnostics.Debug/4.0.11-beta-23321": {
+      "sha512": "4R6FjkoZEnCFNFG7RX7bgugxyLt7K4AMoeM9pobL31WRK7G3l/8AjAArAIxStTP0mYOQBDfnuzEy7A6GtPPVrQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/d09b3b4ae77f4521a143a18383509727.psmdcp",
+        "ref/dotnet/System.Diagnostics.Debug.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Debug.dll",
+        "System.Diagnostics.Debug.nuspec"
+      ]
+    },
+    "System.Diagnostics.StackTrace/4.0.1-beta-23321": {
+      "sha512": "Z6ISAYpE/EFWjHKlKHIwaYKmJdQfTNGFg/It2XXZnVC0iK9wU6n3nCJEQQPtNGCsUFOuS1lR4IcZ1DJg2zOcDw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/es/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/fr/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/it/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/ja/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/ko/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/ru/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/System.Diagnostics.StackTrace.dll",
+        "lib/DNXCore50/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/zh-hans/System.Diagnostics.StackTrace.xml",
+        "lib/DNXCore50/zh-hant/System.Diagnostics.StackTrace.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/de/System.Diagnostics.StackTrace.xml",
+        "lib/net46/es/System.Diagnostics.StackTrace.xml",
+        "lib/net46/fr/System.Diagnostics.StackTrace.xml",
+        "lib/net46/it/System.Diagnostics.StackTrace.xml",
+        "lib/net46/ja/System.Diagnostics.StackTrace.xml",
+        "lib/net46/ko/System.Diagnostics.StackTrace.xml",
+        "lib/net46/ru/System.Diagnostics.StackTrace.xml",
+        "lib/net46/System.Diagnostics.StackTrace.dll",
+        "lib/net46/System.Diagnostics.StackTrace.xml",
+        "lib/net46/zh-hans/System.Diagnostics.StackTrace.xml",
+        "lib/net46/zh-hant/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/de/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/es/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/fr/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/it/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/ja/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/ko/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/ru/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/System.Diagnostics.StackTrace.dll",
+        "lib/netcore50/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/zh-hans/System.Diagnostics.StackTrace.xml",
+        "lib/netcore50/zh-hant/System.Diagnostics.StackTrace.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/fbc1a675ca0e44bf800a7de202099cfa.psmdcp",
+        "ref/dotnet/System.Diagnostics.StackTrace.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/de/System.Diagnostics.StackTrace.xml",
+        "ref/net46/es/System.Diagnostics.StackTrace.xml",
+        "ref/net46/fr/System.Diagnostics.StackTrace.xml",
+        "ref/net46/it/System.Diagnostics.StackTrace.xml",
+        "ref/net46/ja/System.Diagnostics.StackTrace.xml",
+        "ref/net46/ko/System.Diagnostics.StackTrace.xml",
+        "ref/net46/ru/System.Diagnostics.StackTrace.xml",
+        "ref/net46/System.Diagnostics.StackTrace.dll",
+        "ref/net46/System.Diagnostics.StackTrace.xml",
+        "ref/net46/zh-hans/System.Diagnostics.StackTrace.xml",
+        "ref/net46/zh-hant/System.Diagnostics.StackTrace.xml",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.StackTrace.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Diagnostics.StackTrace.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Diagnostics.StackTrace.xml",
+        "System.Diagnostics.StackTrace.nuspec"
+      ]
+    },
+    "System.Diagnostics.Tools/4.0.1-beta-23321": {
+      "sha512": "xoM7gy0T1QBgDeMvoMkOdCKlWvgQofBFVaFkMNfCKNC57L/ri4zZG5bDmhnkO9LXkjQ+rfbBBU/nwRpXGNBXMg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/es/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/fr/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/it/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/ja/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/ko/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/ru/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/System.Diagnostics.Tools.dll",
+        "lib/DNXCore50/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/zh-hans/System.Diagnostics.Tools.xml",
+        "lib/DNXCore50/zh-hant/System.Diagnostics.Tools.xml",
+        "lib/net45/_._",
+        "lib/netcore50/de/System.Diagnostics.Tools.xml",
+        "lib/netcore50/es/System.Diagnostics.Tools.xml",
+        "lib/netcore50/fr/System.Diagnostics.Tools.xml",
+        "lib/netcore50/it/System.Diagnostics.Tools.xml",
+        "lib/netcore50/ja/System.Diagnostics.Tools.xml",
+        "lib/netcore50/ko/System.Diagnostics.Tools.xml",
+        "lib/netcore50/ru/System.Diagnostics.Tools.xml",
+        "lib/netcore50/System.Diagnostics.Tools.dll",
+        "lib/netcore50/System.Diagnostics.Tools.xml",
+        "lib/netcore50/zh-hans/System.Diagnostics.Tools.xml",
+        "lib/netcore50/zh-hant/System.Diagnostics.Tools.xml",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/96b131cbd7b7440b802f9771a0027282.psmdcp",
+        "ref/dotnet/System.Diagnostics.Tools.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Diagnostics.Tools.dll",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tools.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Diagnostics.Tools.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Diagnostics.Tools.xml",
+        "System.Diagnostics.Tools.nuspec"
+      ]
+    },
+    "System.Diagnostics.Tracing/4.0.21-beta-23321": {
+      "sha512": "OiIKj+DaWak1aN8M61SWIUniknrOV5WWhJy5pP1kwcFQ4JkCDWe+yTIXn2EfQdvzAfkLBNqr8u5wa1fVK9OwLg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Diagnostics.Tracing.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/System.Diagnostics.Tracing.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/0cf13c4ba4f740cba9eb61b4514f6bbd.psmdcp",
+        "ref/dotnet/System.Diagnostics.Tracing.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tracing.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Diagnostics.Tracing.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Diagnostics.Tracing.xml",
+        "System.Diagnostics.Tracing.nuspec"
+      ]
+    },
+    "System.Globalization/4.0.11-beta-23321": {
+      "sha512": "x2xt0ZWdRlG2HdyTCE2Nw5rVvCVAB/VUwQdD51MN/ymGIQpqgrijiMCaqY3NA2sCFdViTuJOwBOaOjd02PKquQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Globalization.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/System.Globalization.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/fbfb4b8becac4cf6b73f30cb91af51e0.psmdcp",
+        "ref/dotnet/System.Globalization.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Globalization.dll",
+        "System.Globalization.nuspec"
+      ]
+    },
+    "System.Globalization.Calendars/4.0.1-beta-23321": {
+      "sha512": "nPrmcTQHZGygVw8njyFVXDMNyHDyA5YLrfnBR8Do0vR02OmWAkfLA8jETZIiroIBHfynPda56GVVyUxHjXDhoQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Globalization.Calendars.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.Globalization.Calendars.dll",
+        "lib/netcore50/System.Globalization.Calendars.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/2a5ed4057ec745739a290228c7436f53.psmdcp",
+        "ref/dotnet/System.Globalization.Calendars.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/System.Globalization.Calendars.dll",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Globalization.Calendars.dll",
+        "System.Globalization.Calendars.nuspec"
+      ]
+    },
+    "System.IO/4.0.11-beta-23321": {
+      "sha512": "HozIN1RtKBRBNLePHGKUkvaLDs3d2ytO7jYD0PJEjfprB5tEapX69hEH8MpWu8a2JtuWH4n8Sqb2MJ4I0whQ6Q==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.IO.xml",
+        "lib/DNXCore50/es/System.IO.xml",
+        "lib/DNXCore50/fr/System.IO.xml",
+        "lib/DNXCore50/it/System.IO.xml",
+        "lib/DNXCore50/ja/System.IO.xml",
+        "lib/DNXCore50/ko/System.IO.xml",
+        "lib/DNXCore50/ru/System.IO.xml",
+        "lib/DNXCore50/System.IO.dll",
+        "lib/DNXCore50/System.IO.xml",
+        "lib/DNXCore50/zh-hans/System.IO.xml",
+        "lib/DNXCore50/zh-hant/System.IO.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/de/System.IO.xml",
+        "lib/netcore50/es/System.IO.xml",
+        "lib/netcore50/fr/System.IO.xml",
+        "lib/netcore50/it/System.IO.xml",
+        "lib/netcore50/ja/System.IO.xml",
+        "lib/netcore50/ko/System.IO.xml",
+        "lib/netcore50/ru/System.IO.xml",
+        "lib/netcore50/System.IO.dll",
+        "lib/netcore50/System.IO.xml",
+        "lib/netcore50/zh-hans/System.IO.xml",
+        "lib/netcore50/zh-hant/System.IO.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/56ba00f750f24a5da2376c4023582747.psmdcp",
+        "ref/dotnet/System.IO.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/System.IO.dll",
+        "runtimes/win8-aot/lib/netcore50/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.IO.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.IO.xml",
+        "System.IO.nuspec"
+      ]
+    },
+    "System.Linq/4.0.0": {
+      "sha512": "r6Hlc+ytE6m/9UBr+nNRRdoJEWjoeQiT3L3lXYFDHoXk3VYsRBCDNXrawcexw7KPLaH0zamQLiAb6avhZ50cGg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/System.Linq.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Linq.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/6fcde56ce4094f6a8fff4b28267da532.psmdcp",
+        "ref/dotnet/de/System.Linq.xml",
+        "ref/dotnet/es/System.Linq.xml",
+        "ref/dotnet/fr/System.Linq.xml",
+        "ref/dotnet/it/System.Linq.xml",
+        "ref/dotnet/ja/System.Linq.xml",
+        "ref/dotnet/ko/System.Linq.xml",
+        "ref/dotnet/ru/System.Linq.xml",
+        "ref/dotnet/System.Linq.dll",
+        "ref/dotnet/System.Linq.xml",
+        "ref/dotnet/zh-hans/System.Linq.xml",
+        "ref/dotnet/zh-hant/System.Linq.xml",
+        "ref/net45/_._",
+        "ref/netcore50/System.Linq.dll",
+        "ref/netcore50/System.Linq.xml",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "System.Linq.nuspec"
+      ]
+    },
+    "System.Linq.Expressions/4.0.11-beta-23321": {
+      "sha512": "YyZsspTpLAYNd6i+FQXescxtYXb5E2KbXYo8zWB0jQ1ZSft5btECntWU77eAiyj6A1MY+3CWzO6Zu3Sj83EEVg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Linq.Expressions.xml",
+        "lib/DNXCore50/es/System.Linq.Expressions.xml",
+        "lib/DNXCore50/fr/System.Linq.Expressions.xml",
+        "lib/DNXCore50/it/System.Linq.Expressions.xml",
+        "lib/DNXCore50/ja/System.Linq.Expressions.xml",
+        "lib/DNXCore50/ko/System.Linq.Expressions.xml",
+        "lib/DNXCore50/ru/System.Linq.Expressions.xml",
+        "lib/DNXCore50/System.Linq.Expressions.dll",
+        "lib/DNXCore50/System.Linq.Expressions.xml",
+        "lib/DNXCore50/zh-hans/System.Linq.Expressions.xml",
+        "lib/DNXCore50/zh-hant/System.Linq.Expressions.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/de/System.Linq.Expressions.xml",
+        "lib/netcore50/es/System.Linq.Expressions.xml",
+        "lib/netcore50/fr/System.Linq.Expressions.xml",
+        "lib/netcore50/it/System.Linq.Expressions.xml",
+        "lib/netcore50/ja/System.Linq.Expressions.xml",
+        "lib/netcore50/ko/System.Linq.Expressions.xml",
+        "lib/netcore50/ru/System.Linq.Expressions.xml",
+        "lib/netcore50/System.Linq.Expressions.dll",
+        "lib/netcore50/System.Linq.Expressions.xml",
+        "lib/netcore50/zh-hans/System.Linq.Expressions.xml",
+        "lib/netcore50/zh-hant/System.Linq.Expressions.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/23d8096eaf0a447bb480355301955aa4.psmdcp",
+        "ref/dotnet/System.Linq.Expressions.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "runtimes/win8-aot/lib/netcore50/de/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Linq.Expressions.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Linq.Expressions.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Linq.Expressions.xml",
+        "System.Linq.Expressions.nuspec"
+      ]
+    },
+    "System.ObjectModel/4.0.11-beta-23321": {
+      "sha512": "EzC3uRo6wziGKAOLxgeXSc3vL7g/hE2xbjyM4bB6kJWYKqKyIX7Vie4pq/lYiY4ioXtwXgLz+leNszROISMnDQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/de/System.ObjectModel.xml",
+        "lib/dotnet/es/System.ObjectModel.xml",
+        "lib/dotnet/fr/System.ObjectModel.xml",
+        "lib/dotnet/it/System.ObjectModel.xml",
+        "lib/dotnet/ja/System.ObjectModel.xml",
+        "lib/dotnet/ko/System.ObjectModel.xml",
+        "lib/dotnet/ru/System.ObjectModel.xml",
+        "lib/dotnet/System.ObjectModel.dll",
+        "lib/dotnet/System.ObjectModel.xml",
+        "lib/dotnet/zh-hans/System.ObjectModel.xml",
+        "lib/dotnet/zh-hant/System.ObjectModel.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/23e34926ef6542f29940c58292841cfd.psmdcp",
+        "ref/dotnet/System.ObjectModel.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "System.ObjectModel.nuspec"
+      ]
+    },
+    "System.Private.Uri/4.0.1-beta-23321": {
+      "sha512": "aYzUbfsIO9LHpGeBJFbuBRzbg8NhSxCWWAjJNdyKV6SrgawsuCsec+MOWsx+H4JR8NOE2CG5C3oDVj4eI9Pgtw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "package/services/metadata/core-properties/2b2f854d867f4735aacb6bd366df1127.psmdcp",
+        "ref/dnxcore50/_._",
+        "ref/netcore50/_._",
+        "runtime.json",
+        "runtimes/win8-aot/lib/netcore50/System.Private.Uri.dll",
+        "System.Private.Uri.nuspec"
+      ]
+    },
+    "System.Reflection/4.1.0-beta-23321": {
+      "sha512": "BJmxSgtH9BJ6cbLcF2xodAf3NT9igbAKfUr/XmwcOL7/T4GOTYONIj3k/vy8CTIIgn/zcxQODG3Hjf5jh5iRBg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/System.Reflection.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/01c08beb33b54545a71b58b9083cabb6.psmdcp",
+        "ref/dotnet/System.Reflection.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.dll",
+        "System.Reflection.nuspec"
+      ]
+    },
+    "System.Reflection.Emit/4.0.0": {
+      "sha512": "CqnQz5LbNbiSxN10cv3Ehnw3j1UZOBCxnE0OO0q/keGQ5ENjyFM6rIG4gm/i0dX6EjdpYkAgKcI/mhZZCaBq4A==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.Emit.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Emit.dll",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/f6dc998f8a6b43d7b08f33375407a384.psmdcp",
+        "ref/dotnet/de/System.Reflection.Emit.xml",
+        "ref/dotnet/es/System.Reflection.Emit.xml",
+        "ref/dotnet/fr/System.Reflection.Emit.xml",
+        "ref/dotnet/it/System.Reflection.Emit.xml",
+        "ref/dotnet/ja/System.Reflection.Emit.xml",
+        "ref/dotnet/ko/System.Reflection.Emit.xml",
+        "ref/dotnet/ru/System.Reflection.Emit.xml",
+        "ref/dotnet/System.Reflection.Emit.dll",
+        "ref/dotnet/System.Reflection.Emit.xml",
+        "ref/dotnet/zh-hans/System.Reflection.Emit.xml",
+        "ref/dotnet/zh-hant/System.Reflection.Emit.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/net45/_._",
+        "ref/xamarinmac20/_._",
+        "System.Reflection.Emit.nuspec"
+      ]
+    },
+    "System.Reflection.Emit.ILGeneration/4.0.0": {
+      "sha512": "02okuusJ0GZiHZSD2IOLIN41GIn6qOr7i5+86C98BPuhlwWqVABwebiGNvhDiXP1f9a6CxEigC7foQD42klcDg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.Emit.ILGeneration.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Emit.ILGeneration.dll",
+        "lib/wp80/_._",
+        "package/services/metadata/core-properties/d044dd882ed2456486ddb05f1dd0420f.psmdcp",
+        "ref/dotnet/de/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/es/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/fr/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/it/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/ja/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/ko/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/ru/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/System.Reflection.Emit.ILGeneration.dll",
+        "ref/dotnet/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/zh-hans/System.Reflection.Emit.ILGeneration.xml",
+        "ref/dotnet/zh-hant/System.Reflection.Emit.ILGeneration.xml",
+        "ref/net45/_._",
+        "ref/wp80/_._",
+        "System.Reflection.Emit.ILGeneration.nuspec"
+      ]
+    },
+    "System.Reflection.Emit.Lightweight/4.0.0": {
+      "sha512": "DJZhHiOdkN08xJgsJfDjkuOreLLmMcU8qkEEqEHqyhkPUZMMQs0lE8R+6+68BAFWgcdzxtNu0YmIOtEug8j00w==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.Emit.Lightweight.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Emit.Lightweight.dll",
+        "lib/wp80/_._",
+        "package/services/metadata/core-properties/52abced289cd46eebf8599b9b4c1c67b.psmdcp",
+        "ref/dotnet/de/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/es/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/fr/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/it/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/ja/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/ko/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/ru/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/System.Reflection.Emit.Lightweight.dll",
+        "ref/dotnet/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/zh-hans/System.Reflection.Emit.Lightweight.xml",
+        "ref/dotnet/zh-hant/System.Reflection.Emit.Lightweight.xml",
+        "ref/net45/_._",
+        "ref/wp80/_._",
+        "System.Reflection.Emit.Lightweight.nuspec"
+      ]
+    },
+    "System.Reflection.Extensions/4.0.1-beta-23321": {
+      "sha512": "0ZYEtazFr/3jf31RFBqeGrphKcLEvZbtiQLxrHbqOxlGYB4TScf5/AXTAX7Dxxj8OESosgigfzofry8SYEfXYg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.Extensions.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Extensions.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/7126a90e098846608d931321e1efd181.psmdcp",
+        "ref/dotnet/System.Reflection.Extensions.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Reflection.Extensions.dll",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Reflection.Extensions.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Reflection.Extensions.xml",
+        "System.Reflection.Extensions.nuspec"
+      ]
+    },
+    "System.Reflection.Primitives/4.0.1-beta-23321": {
+      "sha512": "BNg1/j5QPmRovdYXRFbtuoxX444casrq/f0wJY4Cy3FPRn7JeQs028oNfr8vN66xk1P+p3NBP//7FtopwAGN+g==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.Primitives.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Reflection.Primitives.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/071daab6331442f48da7f5599bcf079e.psmdcp",
+        "ref/dotnet/System.Reflection.Primitives.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Reflection.Primitives.dll",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Primitives.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Reflection.Primitives.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Reflection.Primitives.xml",
+        "System.Reflection.Primitives.nuspec"
+      ]
+    },
+    "System.Reflection.TypeExtensions/4.0.0": {
+      "sha512": "YRM/msNAM86hdxPyXcuZSzmTO0RQFh7YMEPBLTY8cqXvFPYIx2x99bOyPkuU81wRYQem1c1HTkImQ2DjbOBfew==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Reflection.TypeExtensions.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.Reflection.TypeExtensions.dll",
+        "lib/netcore50/System.Reflection.TypeExtensions.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/a37798ee61124eb7b6c56400aee24da1.psmdcp",
+        "ref/dotnet/de/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/es/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/fr/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/it/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/ja/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/ko/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/ru/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/System.Reflection.TypeExtensions.dll",
+        "ref/dotnet/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/zh-hans/System.Reflection.TypeExtensions.xml",
+        "ref/dotnet/zh-hant/System.Reflection.TypeExtensions.xml",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/System.Reflection.TypeExtensions.dll",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Reflection.TypeExtensions.dll",
+        "System.Reflection.TypeExtensions.nuspec"
+      ]
+    },
+    "System.Resources.ResourceManager/4.0.1-beta-23321": {
+      "sha512": "Xb2b2WouJJyVwrwm2TCWkmTpzdW37VyVmQZhYnx9oFEeE+e+Wvl/k+0jNQrB57kWJFre00u/g+mDykAgBoKWOg==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Resources.ResourceManager.dll",
+        "lib/net45/_._",
+        "lib/netcore50/System.Resources.ResourceManager.dll",
+        "lib/win8/_._",
+        "lib/wp80/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/97c30e7c67b449309795182925a582aa.psmdcp",
+        "ref/dotnet/System.Resources.ResourceManager.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Resources.ResourceManager.dll",
+        "ref/win8/_._",
+        "ref/wp80/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Resources.ResourceManager.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Resources.ResourceManager.xml",
+        "System.Resources.ResourceManager.nuspec"
+      ]
+    },
+    "System.Runtime/4.0.21-beta-23321": {
+      "sha512": "1cXiVm2L7F48anx94AXMlaMMkW34ECCyFiE/EJ+sJ3cVRiCIbzeGP/HgfWvAmR6Vb7HDyx4WUYeM2ID1jcwSiQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Runtime.xml",
+        "lib/DNXCore50/es/System.Runtime.xml",
+        "lib/DNXCore50/fr/System.Runtime.xml",
+        "lib/DNXCore50/it/System.Runtime.xml",
+        "lib/DNXCore50/ja/System.Runtime.xml",
+        "lib/DNXCore50/ko/System.Runtime.xml",
+        "lib/DNXCore50/ru/System.Runtime.xml",
+        "lib/DNXCore50/System.Runtime.dll",
+        "lib/DNXCore50/System.Runtime.xml",
+        "lib/DNXCore50/zh-hans/System.Runtime.xml",
+        "lib/DNXCore50/zh-hant/System.Runtime.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/de/System.Runtime.xml",
+        "lib/netcore50/es/System.Runtime.xml",
+        "lib/netcore50/fr/System.Runtime.xml",
+        "lib/netcore50/it/System.Runtime.xml",
+        "lib/netcore50/ja/System.Runtime.xml",
+        "lib/netcore50/ko/System.Runtime.xml",
+        "lib/netcore50/ru/System.Runtime.xml",
+        "lib/netcore50/System.Runtime.dll",
+        "lib/netcore50/System.Runtime.xml",
+        "lib/netcore50/zh-hans/System.Runtime.xml",
+        "lib/netcore50/zh-hant/System.Runtime.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/7673ec88ee024db58f262b21c8ee84bc.psmdcp",
+        "ref/dotnet/System.Runtime.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Runtime.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Runtime.xml",
+        "System.Runtime.nuspec"
+      ]
+    },
+    "System.Runtime.Extensions/4.0.11-beta-23321": {
+      "sha512": "iqvpTN0WhcIGVz9quiA2PotxXLDYmu+pK6hLPuoIkyoQF8IJN7/uDV02sOl0ujB8oxoHBC+tASA7QA3nEeZeMQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/aa40024f803a4c37a959fddfb6cf0d2a.psmdcp",
+        "ref/dotnet/System.Runtime.Extensions.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "System.Runtime.Extensions.nuspec"
+      ]
+    },
+    "System.Runtime.Handles/4.0.1-beta-23321": {
+      "sha512": "BLg+2M7bIZTM39Y9sO17CnS0xc+xzKAHncXjexGciJx+hyrUl78YJ6QAfbHAJ14Z+e+oiTQVO8cj7AOq3xqaJA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Runtime.Handles.xml",
+        "lib/DNXCore50/es/System.Runtime.Handles.xml",
+        "lib/DNXCore50/fr/System.Runtime.Handles.xml",
+        "lib/DNXCore50/it/System.Runtime.Handles.xml",
+        "lib/DNXCore50/ja/System.Runtime.Handles.xml",
+        "lib/DNXCore50/ko/System.Runtime.Handles.xml",
+        "lib/DNXCore50/ru/System.Runtime.Handles.xml",
+        "lib/DNXCore50/System.Runtime.Handles.dll",
+        "lib/DNXCore50/System.Runtime.Handles.xml",
+        "lib/DNXCore50/zh-hans/System.Runtime.Handles.xml",
+        "lib/DNXCore50/zh-hant/System.Runtime.Handles.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/de/System.Runtime.Handles.xml",
+        "lib/netcore50/es/System.Runtime.Handles.xml",
+        "lib/netcore50/fr/System.Runtime.Handles.xml",
+        "lib/netcore50/it/System.Runtime.Handles.xml",
+        "lib/netcore50/ja/System.Runtime.Handles.xml",
+        "lib/netcore50/ko/System.Runtime.Handles.xml",
+        "lib/netcore50/ru/System.Runtime.Handles.xml",
+        "lib/netcore50/System.Runtime.Handles.dll",
+        "lib/netcore50/System.Runtime.Handles.xml",
+        "lib/netcore50/zh-hans/System.Runtime.Handles.xml",
+        "lib/netcore50/zh-hant/System.Runtime.Handles.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/4c3f0754f0eb4acf8da1fc993b79df9d.psmdcp",
+        "ref/dotnet/System.Runtime.Handles.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Handles.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Runtime.Handles.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Runtime.Handles.xml",
+        "System.Runtime.Handles.nuspec"
+      ]
+    },
+    "System.Runtime.InteropServices/4.0.21-beta-23321": {
+      "sha512": "QaHgkctkiMo9uD8AJmTEw/6/XogvYYp6Z0CH99+4j9WcXaSiBrRs/z0D4Wrcr0qQMls3gv3LDm8fve+XsYO67A==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/es/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/fr/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/it/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/ja/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/ko/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/ru/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/System.Runtime.InteropServices.dll",
+        "lib/DNXCore50/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/zh-hans/System.Runtime.InteropServices.xml",
+        "lib/DNXCore50/zh-hant/System.Runtime.InteropServices.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/de/System.Runtime.InteropServices.xml",
+        "lib/netcore50/es/System.Runtime.InteropServices.xml",
+        "lib/netcore50/fr/System.Runtime.InteropServices.xml",
+        "lib/netcore50/it/System.Runtime.InteropServices.xml",
+        "lib/netcore50/ja/System.Runtime.InteropServices.xml",
+        "lib/netcore50/ko/System.Runtime.InteropServices.xml",
+        "lib/netcore50/ru/System.Runtime.InteropServices.xml",
+        "lib/netcore50/System.Runtime.InteropServices.dll",
+        "lib/netcore50/System.Runtime.InteropServices.xml",
+        "lib/netcore50/zh-hans/System.Runtime.InteropServices.xml",
+        "lib/netcore50/zh-hant/System.Runtime.InteropServices.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/6c73e975deea494b8deacccbdab960b0.psmdcp",
+        "ref/dotnet/System.Runtime.InteropServices.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.InteropServices.dll",
+        "System.Runtime.InteropServices.nuspec"
+      ]
+    },
+    "System.Text.Encoding/4.0.11-beta-23321": {
+      "sha512": "ln7Yt9MrJUPmG1kS91ZmBFMCELsxCnP5vctGpqpjzZV9kT7+Tp8oLIftVVes+ET+i1vy/qo3dln+dvwXjjCKHA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Text.Encoding.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/System.Text.Encoding.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/7c7a11974e514ddd8c6a6c8fb25bbdf9.psmdcp",
+        "ref/dotnet/System.Text.Encoding.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.dll",
+        "System.Text.Encoding.nuspec"
+      ]
+    },
+    "System.Text.Encoding.Extensions/4.0.11-beta-23321": {
+      "sha512": "DfR8dxgjAyrPeFGLG+O9mLvC5eP76hMMLrOsBMqVBnfwxSa/TYjlNfjluR+bHI/qQZ/W0JELViC93lNX9LGsSQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Text.Encoding.Extensions.dll",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/System.Text.Encoding.Extensions.dll",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/399d4c41e1ee472bb75d0c6e733ee91a.psmdcp",
+        "ref/dotnet/System.Text.Encoding.Extensions.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Text.Encoding.Extensions.dll",
+        "System.Text.Encoding.Extensions.nuspec"
+      ]
+    },
+    "System.Threading/4.0.11-beta-23321": {
+      "sha512": "PeQJ218GGDU4Cccsp8Im1sO5B4zvMIbLxWnYLVhFIIOry0diB/YhuBjwIG8xDuXNYmlB4qrIfxzBZCrZR4nsCA==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/f541871dcbcc410595a9f545225eebef.psmdcp",
+        "ref/dotnet/System.Threading.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "runtimes/win8-aot/lib/netcore50/System.Threading.dll",
+        "System.Threading.nuspec"
+      ]
+    },
+    "System.Threading.Tasks/4.0.11-beta-23321": {
+      "sha512": "itQejciEb+mDCZdLwL+kjRisCLYXL1ZA15CiqUG6B3tKrDe96vyMFN4I8Lqt3r4GNf3mHNmfuQgPd8aF4qZ4EQ==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/de/System.Threading.Tasks.xml",
+        "lib/DNXCore50/es/System.Threading.Tasks.xml",
+        "lib/DNXCore50/fr/System.Threading.Tasks.xml",
+        "lib/DNXCore50/it/System.Threading.Tasks.xml",
+        "lib/DNXCore50/ja/System.Threading.Tasks.xml",
+        "lib/DNXCore50/ko/System.Threading.Tasks.xml",
+        "lib/DNXCore50/ru/System.Threading.Tasks.xml",
+        "lib/DNXCore50/System.Threading.Tasks.dll",
+        "lib/DNXCore50/System.Threading.Tasks.xml",
+        "lib/DNXCore50/zh-hans/System.Threading.Tasks.xml",
+        "lib/DNXCore50/zh-hant/System.Threading.Tasks.xml",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/_._",
+        "lib/netcore50/de/System.Threading.Tasks.xml",
+        "lib/netcore50/es/System.Threading.Tasks.xml",
+        "lib/netcore50/fr/System.Threading.Tasks.xml",
+        "lib/netcore50/it/System.Threading.Tasks.xml",
+        "lib/netcore50/ja/System.Threading.Tasks.xml",
+        "lib/netcore50/ko/System.Threading.Tasks.xml",
+        "lib/netcore50/ru/System.Threading.Tasks.xml",
+        "lib/netcore50/System.Threading.Tasks.dll",
+        "lib/netcore50/System.Threading.Tasks.xml",
+        "lib/netcore50/zh-hans/System.Threading.Tasks.xml",
+        "lib/netcore50/zh-hant/System.Threading.Tasks.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/9aa11746a67a430098b88e80fb39e238.psmdcp",
+        "ref/dotnet/System.Threading.Tasks.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtimes/win8-aot/lib/netcore50/de/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/es/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/fr/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/it/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/ja/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/ko/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/ru/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/System.Threading.Tasks.dll",
+        "runtimes/win8-aot/lib/netcore50/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hans/System.Threading.Tasks.xml",
+        "runtimes/win8-aot/lib/netcore50/zh-hant/System.Threading.Tasks.xml",
+        "System.Threading.Tasks.nuspec"
+      ]
+    },
+    "System.Threading.Timer/4.0.1-beta-23321": {
+      "sha512": "tgujlu3HLwLyVl1uDqnNyW3vHMNfiYaUNhdne2qDuyY0S/W5EJLS1eVCofH+s0Em251uLDkJGJPEzo30NWUW8g==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/DNXCore50/System.Threading.Timer.dll",
+        "lib/net451/_._",
+        "lib/netcore50/System.Threading.Timer.dll",
+        "lib/win81/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/4eff7df69a0146c8bf5f24a4e7c66492.psmdcp",
+        "ref/dotnet/System.Threading.Timer.dll",
+        "ref/net451/_._",
+        "ref/netcore50/System.Threading.Timer.dll",
+        "ref/win81/_._",
+        "ref/wpa81/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Threading.Timer.dll",
+        "System.Threading.Timer.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "": [
+      "Microsoft.NETCore.Platforms >= 1.0.1-beta-23321",
+      "Microsoft.NETCore.Runtime.CoreCLR >= 1.0.1-beta-23321",
+      "Microsoft.NETCore.TestHost >= 1.0.0-beta-23321",
+      "System.Linq.Expressions >= 4.0.11-beta-23321",
+      "System.Runtime >= 4.0.21-beta-23321"
+    ],
+    "DNXCore,Version=v5.0": []
+  }
+}
