@@ -25,7 +25,7 @@ that are used by Visual Studio.
 ### Download C# and Visual Basic
 
 Want to start developing in C# and Visual Basic? Download [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
-which has the latest features built-in. There are also [prebuilt Azure VM images](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx) available with VS 2015 already installed.
+which has the latest features built-in. There are also [prebuilt Azure VM images](https://azure.microsoft.com/en-us/marketplace/virtual-machines/all/?term=Visual+Studio+2015) available with VS 2015 already installed.
 
 To install the latest release without Visual Studio, run one of the following [nuget](https://dist.nuget.org/index.html) command lines:
 
