@@ -29,7 +29,7 @@ End Class
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "(?s)^.*$", "BC30035", "BC30248", "BC30203", "BC30157")
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "@", "BC30035")
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "#", "BC30248")
-            DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "(?<=\!)", "BC30203")
+            DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "(?<=\!)", "BC30203", "BC30157")
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "!", "BC30203", "BC30157")
         End Sub
 
@@ -79,9 +79,9 @@ End Class
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "(?s)^.*$", ErrorId)
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "Abracadabra", ErrorId)
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "ts Abracadabra", ErrorId)
-            DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "ts Abracadabr")
+            DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "ts Abracadabr", ErrorId)
             DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "Abracadabra[\r\n]+", ErrorId)
-            DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "bracadabra[\r\n]+")
+            DiagnosticsHelper.VerifyDiagnostics(model, sourceText, "bracadabra[\r\n]+", ErrorId)
         End Sub
 
         <Fact, WorkItem(1066483)>

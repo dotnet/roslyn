@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
 Imports Microsoft.CodeAnalysis.Text
@@ -8,8 +9,8 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CSharpIntelliSenseCommandHandlerTests
-        <Fact>
-        Public Sub TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1()
+        <WpfFact>
+        Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -22,19 +23,19 @@ class C
                               </Document>)
 
                 state.SendTypeChars("Fo")
-                state.AssertCompletionSession()
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
                 state.SendTypeChars("(")
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()").ConfigureAwait(True)
                 Assert.Contains("Foo(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(543913)>
-        <Fact>
-        Public Sub TestEscapeDismissesCompletionFirst()
+        <WpfFact>
+        Public Async Function TestEscapeDismissesCompletionFirst() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -47,20 +48,22 @@ class C
                               </Document>)
 
                 state.SendTypeChars("Foo(a")
-                state.AssertCompletionSession()
-                state.AssertSignatureHelpSession()
-                state.SendEscape(block:=True)
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
-                state.SendEscape(block:=True)
-                state.AssertNoCompletionSession()
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.SendEscape()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.SendEscape()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(531149)>
-        <Fact>
-        Public Sub TestCutDismissesCompletion()
+        <WpfFact>
+        Public Async Function TestCutDismissesCompletion() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -72,17 +75,18 @@ class C
 }
                               </Document>)
                 state.SendTypeChars("Foo(a")
-                state.AssertCompletionSession()
-                state.AssertSignatureHelpSession()
-                state.SendCut(block:=True)
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.SendCut()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(531149)>
-        <Fact>
-        Public Sub TestPasteDismissesCompletion()
+        <WpfFact>
+        Public Async Function TestPasteDismissesCompletion() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
 class C
@@ -95,12 +99,13 @@ class C
                               </Document>)
 
                 state.SendTypeChars("Foo(a")
-                state.AssertCompletionSession()
-                state.AssertSignatureHelpSession()
-                state.SendPaste(block:=True)
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.SendPaste()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

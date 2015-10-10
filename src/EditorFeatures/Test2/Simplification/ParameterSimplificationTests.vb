@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_ParameterCanBeSimplified()
             Dim code = <![CDATA[
 using System;
@@ -53,7 +53,7 @@ class C
             TestDocumentSimplification(code.Value, expected.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_ParameterCannotBeSimplified()
             Dim code = <![CDATA[
 using System;

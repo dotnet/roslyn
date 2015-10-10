@@ -12,7 +12,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Partial Public Class CSharpNavigationBarTests
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545021)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545021)>
         Public Sub GenericTypeVariance()
             AssertItemsAre(
                 <Workspace>
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C<in I, out O>", Glyph.InterfaceInternal, children:={}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545284)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545284)>
         Public Sub GenericMember()
             AssertItemsAre(
                 <Workspace>
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                      Item("Swap<T>(T lhs, T rhs)", Glyph.MethodPrivate)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
         Public Sub NestedClasses()
             AssertItemsAre(
                 <Workspace>
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("C.Nested", Glyph.ClassPrivate, children:={}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545023)>
         Public Sub SelectedItemForNestedClass()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Nothing, False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545019)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545019)>
         Public Sub SelectedItemForEnumAfterComma()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("A", Glyph.EnumMember), False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
         Public Sub SelectedItemForFieldAfterSemicolon()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate), False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
         Public Sub SelectedItemForFieldInType()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate), False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545267)>
         Public Sub SelectedItemAtEndOfFile()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate), True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545012)>
         Public Sub ExplicitInterfaceImplementation()
             AssertItemsAre(
                 <Workspace>
@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("IDisposable.Dispose()", Glyph.MethodPrivate)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545007)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545007)>
         Public Sub RefAndOutParameters()
             AssertItemsAre(
                 <Workspace>
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(out string foo, ref string bar)", Glyph.MethodPrivate)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545001)>
         Public Sub OptionalParameter()
             AssertItemsAre(
                 <Workspace>
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(int i = 0)", Glyph.MethodPrivate)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274)>
         Public Sub Properties()
             AssertItemsAre(
                 <Workspace>
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("Number", Glyph.PropertyPrivate)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
         Public Sub [Enum]()
             AssertItemsAre(
                 <Workspace>
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("C", Glyph.EnumMember)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
         Public Sub [Delegate]()
             AssertItemsAre(
                 <Workspace>
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("Foo", Glyph.DelegateInternal, children:={}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545114)>
         Public Sub PartialClassWithFieldInOtherFile()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("foo", Glyph.FieldPrivate, grayed:=True), True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
         Public Sub PartialClassWithBothPartialMethodParts1()
             AssertItemsAre(
                 <Workspace>
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M()", Glyph.MethodPrivate, grayed:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(578100)>
         Public Sub PartialClassWithBothPartialMethodParts2()
             AssertItemsAre(
                 <Workspace>

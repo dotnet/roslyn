@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             return workspace;
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void NoItemsForEmptyFile()
         {
             using (var workspace = SetupWorkspace())
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindClass()
         {
             using (var workspace = SetupWorkspace("class Foo { }"))
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindVerbatimClass()
         {
             using (var workspace = SetupWorkspace("class @static { }"))
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindNestedClass()
         {
             using (var workspace = SetupWorkspace("class Foo { class Bar { internal class DogBed { } } }"))
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindMemberInANestedClass()
         {
             using (var workspace = SetupWorkspace("class Foo { class Bar { class DogBed { public void Method() { } } } }"))
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindGenericClassWithConstraints()
         {
             using (var workspace = SetupWorkspace("using System.Collections; class Foo<T> where T : IEnumerable { }"))
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindGenericMethodWithConstraints()
         {
             using (var workspace = SetupWorkspace("using System; class Foo<U> { public void Bar<T>(T item) where T:IComparable<T> {} }"))
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindPartialClass()
         {
             using (var workspace = SetupWorkspace("public partial class Foo { int a; } partial class Foo { int b; }"))
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindTypesInMetadata()
         {
             using (var workspace = SetupWorkspace("using System; Class Program {FileStyleUriParser f;}"))
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindClassInNamespace()
         {
             using (var workspace = SetupWorkspace("namespace Bar { class Foo { } }"))
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindStruct()
         {
             using (var workspace = SetupWorkspace("struct Bar { }"))
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindEnum()
         {
             using (var workspace = SetupWorkspace("enum Colors {Red, Green, Blue}"))
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindEnumMember()
         {
             using (var workspace = SetupWorkspace("enum Colors {Red, Green, Blue}"))
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindField1()
         {
             using (var workspace = SetupWorkspace("class Foo { int bar;}"))
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindField2()
         {
             using (var workspace = SetupWorkspace("class Foo { int bar;}"))
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindField3()
         {
             using (var workspace = SetupWorkspace("class Foo { int bar;}"))
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindVerbatimField()
         {
             using (var workspace = SetupWorkspace("class Foo { int @string;}"))
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindPtrField1()
         {
             using (var workspace = SetupWorkspace("class Foo { int* bar; }"))
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindPtrField2()
         {
             using (var workspace = SetupWorkspace("class Foo { int* bar; }"))
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindConstField()
         {
             using (var workspace = SetupWorkspace("class Foo { const int bar = 7;}"))
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindIndexer()
         {
             var program = @"class Foo { int[] arr; public int this[int i] { get { return arr[i]; } set { arr[i] = value; } } }";
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindEvent()
         {
             var program = "class Foo { public event EventHandler ChangedEventHandler; }";
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindAutoProperty()
         {
             using (var workspace = SetupWorkspace("class Foo { int Bar { get; set; } }"))
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindMethod()
         {
             using (var workspace = SetupWorkspace("class Foo { void DoSomething(); }"))
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindVerbatimMethod()
         {
             using (var workspace = SetupWorkspace("class Foo { void @static(); }"))
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindParameterizedMethod()
         {
             using (var workspace = SetupWorkspace("class Foo { void DoSomething(int a, string b) {} }"))
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindConstructor()
         {
             using (var workspace = SetupWorkspace("class Foo { public Foo(){} }"))
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindParameterizedConstructor()
         {
             using (var workspace = SetupWorkspace("class Foo { public Foo(int i){} }"))
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindStaticConstructor()
         {
             using (var workspace = SetupWorkspace("class Foo { static Foo(){} }"))
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindPartialMethods()
         {
             using (var workspace = SetupWorkspace("partial class Foo { partial void Bar(); } partial class Foo { partial void Bar() { Console.Write(\"hello\"); } }"))
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindPartialMethodDefinitionOnly()
         {
             using (var workspace = SetupWorkspace("partial class Foo { partial void Bar(); }"))
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindPartialMethodImplementationOnly()
         {
             using (var workspace = SetupWorkspace("partial class Foo { partial void Bar() { } }"))
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindOverriddenMembers()
         {
             var program = "class Foo { public virtual string Name { get; set; } } class DogBed : Foo { public override string Name { get { return base.Name; } set {} } }";
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindInterface()
         {
             using (var workspace = SetupWorkspace("public interface IFoo { }"))
@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindDelegateInNamespace()
         {
             using (var workspace = SetupWorkspace("namespace Foo { delegate void DoStuff(); }"))
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindLambdaExpression()
         {
             using (var workspace = SetupWorkspace("using System; class Foo { Func<int, int> sqr = x => x*x; }"))
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindArray()
         {
             using (var workspace = SetupWorkspace("class Foo { object[] itemArray; }"))
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindClassAndMethodWithSameName()
         {
             using (var workspace = SetupWorkspace("class Foo { } class Test { void Foo() { } }"))
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void FindMethodNestedInGenericTypes()
         {
             using (var workspace = SetupWorkspace("class A<T> { class B { struct C<U> { void M() { } } } }"))
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void OrderingOfConstructorsAndTypes()
         {
             using (var workspace = SetupWorkspace(@"
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void NavigateToMethodWithNullableParameter()
         {
             using (var workspace = SetupWorkspace("class C { void M(object? o) {} }"))
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void StartStopSanity()
         {
             // Verify that multiple calls to start/stop and dispose don't blow up
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DescriptionItems()
         {
             using (var workspace = SetupWorkspace("public", "class", "Foo", "{ }"))
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermSplittingTest1()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermSplittingTest2()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermSplittingTest3()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermSplittingTest4()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermSplittingTest5()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermSplittingTest6()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermSplittingTest7()
         {
             var source = "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}";
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void TermIndexer1()
         {
             var source =
@@ -720,7 +720,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DottedPattern1()
         {
             var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
@@ -737,7 +737,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DottedPattern2()
         {
             var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
@@ -753,7 +753,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DottedPattern3()
         {
             var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
@@ -770,7 +770,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DottedPattern4()
         {
             var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
@@ -787,7 +787,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DottedPattern5()
         {
             var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
@@ -804,7 +804,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DottedPattern6()
         {
             var source = "namespace Foo { namespace Bar { class Baz { void Quux() { } } } }";
@@ -820,7 +820,7 @@ class D
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void DottedPattern7()
         {
             var source = "namespace Foo { namespace Bar { class Baz<X,Y,Z> { void Quux() { } } } }";
@@ -838,7 +838,7 @@ class D
         }
 
         [WorkItem(1174255)]
-        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void NoNavigationToGeneratedFiles()
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(@"

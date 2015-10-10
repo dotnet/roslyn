@@ -17,35 +17,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
     public class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Creation()
         {
             Test(@"
 $$", "$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Usings()
         {
             Test(@"using System;
 $$", @"using System$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Namespace()
         {
             Test(@"namespace {}
 $$", @"namespace {$$}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Class()
         {
             Test(@"class {}
 $$", "class {$$}");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Method()
         {
             Test(@"class C
@@ -57,7 +57,7 @@ $$", "class {$$}");
 }", assertNextHandlerInvoked: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Field()
         {
             Test(@"class C
@@ -70,7 +70,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void EventField()
         {
             Test(@"class C
@@ -83,7 +83,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Field2()
         {
             Test(@"class C
@@ -96,7 +96,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void EventField2()
         {
             Test(@"class C
@@ -109,7 +109,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Field3()
         {
             Test(@"class C
@@ -122,7 +122,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void EventField3()
         {
             Test(@"class C
@@ -135,7 +135,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void EmbededStatement()
         {
             Test(@"class C
@@ -154,7 +154,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void EmbededStatement1()
         {
             Test(@"class C
@@ -175,7 +175,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void EmbededStatement2()
         {
             Test(@"class C
@@ -196,7 +196,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Statement()
         {
             Test(@"class C
@@ -215,7 +215,7 @@ $$", "class {$$}");
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Statement1()
         {
             Test(@"class C
@@ -235,7 +235,7 @@ $$", "class {$$}");
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedMethod()
         {
             Test(@"class T
@@ -249,7 +249,7 @@ $$", "class {$$}");
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedOperator()
         {
             Test(@"class Complex
@@ -267,7 +267,7 @@ $$", "class {$$}");
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedConversionOperator()
         {
             Test(@"using System;
@@ -299,7 +299,7 @@ public struct DBBool
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedProperty()
         {
             Test(@"class T
@@ -313,7 +313,7 @@ public struct DBBool
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedIndexer()
         {
             Test(@"using System;
@@ -331,7 +331,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpression()
         {
             Test(@"using System;
@@ -353,7 +353,7 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedMethodWithSingleLineBlockBodiedAnonymousMethodExpression()
         {
             Test(@"using System;
@@ -369,7 +369,7 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedMethodWithBlockBodiedSimpleLambdaExpression()
         {
             Test(@"using System;
@@ -391,7 +391,7 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedMethodWithExpressionBodiedSimpleLambdaExpression()
         {
             Test(@"using System;
@@ -407,7 +407,7 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void ExpressionBodiedMethodWithBlockBodiedAnonymousMethodExpressionInMethodArgs()
         {
             Test(@"using System;
@@ -433,7 +433,7 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_SimpleExpressionBodiedMember()
         {
             Test(@"class T
@@ -447,7 +447,7 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_ExpressionBodiedMemberWithSingleLineBlock()
         {
             Test(@"using System;
@@ -463,7 +463,7 @@ class TestClass
         }
 
         [WorkItem(3944, "https://github.com/dotnet/roslyn/issues/3944")]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_ExpressionBodiedMemberWithMultiLineBlock()
         {
             Test(@"using System;
@@ -484,7 +484,7 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_Statement()
         {
             Test(@"class C
@@ -503,14 +503,14 @@ class TestClass
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_Using()
         {
             Test(@"using System.Linq;
 $$", @"         using           System          .                   Linq            $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_Using2()
         {
             Test(@"using
@@ -519,7 +519,7 @@ $$", @"         using
              System          .                   Linq            $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Format_Field()
         {
             Test(@"class C
@@ -532,7 +532,7 @@ $$", @"         using
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Statement_Trivia()
         {
             Test(@"class C
@@ -551,7 +551,7 @@ $$", @"         using
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void TrailingText_Negative()
         {
             Test(@"class C
@@ -564,7 +564,7 @@ $$", @"         using
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void CompletionSetUp()
         {
             Test(@"class Program
@@ -584,7 +584,7 @@ $$", @"         using
         }
 
         [WorkItem(530352)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void EmbededStatement3()
         {
             Test(@"class Program
@@ -604,7 +604,7 @@ $$", @"         using
         }
 
         [WorkItem(530716)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DontAssertOnMultilineToken()
         {
             Test(@"interface I
@@ -618,7 +618,7 @@ $$
         }
 
         [WorkItem(530718)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void AutomaticLineFormat()
         {
             Test(@"class C
@@ -631,7 +631,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterExisitingSemicolon()
         {
             Test(@"class TestClass
@@ -644,7 +644,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterCloseBraceInMethod()
         {
             Test(@"class TestClass
@@ -657,7 +657,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterCloseBraceInStatement()
         {
             Test(@"class TestClass
@@ -676,7 +676,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterAutoPropertyAccessor()
         {
             Test(@"class TestClass
@@ -689,7 +689,7 @@ $$
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotAfterAutoPropertyDeclaration()
         {
             Test(@"class TestClass
@@ -703,7 +703,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DelegatedInEmptyBlock()
         {
             Test(@"class TestClass
@@ -722,7 +722,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DelegatedInEmptyBlock2()
         {
             Test(@"class TestClass
@@ -741,7 +741,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedOutsideEmptyBlock()
         {
             Test(@"class TestClass
@@ -761,7 +761,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
         {
             Test(@"class TestClass
@@ -781,7 +781,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedInNonEmptyBlock()
         {
             Test(@"class TestClass
@@ -801,7 +801,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
         {
             Test(@"class TestClass
@@ -821,7 +821,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedAfterOpenBraceObjectCreationExpression()
         {
             Test(@"class TestClass

@@ -16,7 +16,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.FindResults
     Public Class FindResultsTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(1138943)>
         Public Sub ConstructorReferencesShouldNotAppearUnderClassNodeInCSharp()
             Dim markup = <Text><![CDATA[
@@ -48,7 +48,7 @@ class $$C
             Verify(markup, LanguageNames.CSharp, expectedResults)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(1138943)>
         Public Sub ConstructorReferencesShouldNotAppearUnderClassNodeInVisualBasic()
             Dim markup = <Text><![CDATA[
@@ -81,7 +81,7 @@ End Class"]]></Text>
             Verify(markup, LanguageNames.VisualBasic, expectedResults)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestSourceNamespace()
             Dim markup = <Text><![CDATA[
 namespace NS$$
@@ -103,7 +103,7 @@ namespace NS
             Verify(markup, LanguageNames.CSharp, expectedResults)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMetadataNamespace()
             Dim markup = <Text><![CDATA[
 using System$$;

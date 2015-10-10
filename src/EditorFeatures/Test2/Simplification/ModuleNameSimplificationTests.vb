@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Inherits AbstractSimplificationTests
 
         <WorkItem(624131)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub SimplifyModuleNameInNewStatement()
             Dim input =
         <Workspace>
@@ -46,7 +46,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub SimplifyModuleNameInNestedNamespaces()
             Dim input =
         <Workspace>
@@ -111,7 +111,7 @@ End Namespace
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub SimplifyModuleNameInDelegateConstruct()
             Dim input =
         <Workspace>
@@ -161,7 +161,7 @@ End Module
         End Sub
 
         <WorkItem(608198)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub DontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField()
             Dim input =
         <Workspace>
@@ -185,7 +185,7 @@ End Module
         End Sub
 
         <WorkItem(608198)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub DontSimplifyModuleNameInFieldInitializerAndConflictOfModuleNameAndField_2()
             Dim input =
         <Workspace>

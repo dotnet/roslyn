@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(542443)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestEvent1()
             Dim input =
 <Workspace>
@@ -38,7 +38,7 @@ public class MainClass
         End Sub
 
         <WorkItem(542443)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestEvent2()
             Dim input =
 <Workspace>
@@ -73,7 +73,7 @@ public class MainClass
         End Sub
 
         <WorkItem(542443)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestEvent3()
             Dim input =
 <Workspace>
@@ -108,7 +108,7 @@ public class MainClass
         End Sub
 
         <WorkItem(542443)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestEvent4()
             Dim input =
 <Workspace>
@@ -143,7 +143,7 @@ public class MainClass
         End Sub
 
         <WorkItem(529819)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestEventCascading1()
             Dim input =
 <Workspace>
@@ -162,7 +162,7 @@ End Class
         End Sub
 
         <WorkItem(529819)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestEventCascading2()
             Dim input =
 <Workspace>
@@ -181,7 +181,7 @@ End Class
         End Sub
 
         <WorkItem(553324)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestEventParameterCascading()
             Dim input =
 <Workspace>
@@ -202,7 +202,7 @@ End Module
         End Sub
 
         <WorkItem(529804)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrossAssemblyEventImplementation1()
             Dim input =
 <Workspace>
@@ -235,7 +235,7 @@ class C : I
         End Sub
 
         <WorkItem(529804)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrossAssemblyEventImplementation2()
             Dim input =
 <Workspace>
