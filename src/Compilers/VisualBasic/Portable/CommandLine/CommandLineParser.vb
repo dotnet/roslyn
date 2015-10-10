@@ -983,17 +983,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            Dim pathMapBuilder = ArrayBuilder(Of KeyValuePair(Of String, String)).GetInstance()
-                            For Each kEqualsV In value.Split(","c)
-                                Dim kv = kEqualsV.Split("="c)
-                                If kv.Length <> 2 Then Continue For
-                                Dim [from] = PathUtilities.TrimTrailingSeparators(kv(0))
-                                Dim [to] = PathUtilities.TrimTrailingSeparators(kv(1))
-                                If [from].Length = 0 OrElse [to].Length = 0 Then Continue For
-                                pathMapBuilder.Add(New KeyValuePair(Of String, String)([from], [to]))
-                            Next
-
-                            pathMap = pathMapBuilder.ToImmutableAndFree()
+                            pathMap = pathMap.Concat(ParsePathMap(value))
                             Continue For
 
                         Case "reportanalyzer"

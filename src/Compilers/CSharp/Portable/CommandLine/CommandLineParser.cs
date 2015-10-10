@@ -905,18 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value == null)
                                     break;
 
-                                var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
-                                foreach (var kEqualsV in value.Split(','))
-                                {
-                                    var kv = kEqualsV.Split('=');
-                                    if (kv.Length != 2) continue;
-                                    var from = TrimTrailingSeparators(kv[0]);
-                                    var to = TrimTrailingSeparators(kv[1]);
-                                    if (from.Length == 0 || to.Length == 0) continue;
-                                    pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
-                                }
-
-                                pathMap = pathMapBuilder.ToImmutableAndFree();
+                                pathMap = pathMap.Concat(ParsePathMap(value));
                             }
                             continue;
 
@@ -1189,16 +1178,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SqmSessionGuid = sqmSessionGuid,
                 ReportAnalyzer = reportAnalyzer
             };
-        }
-
-        private string TrimTrailingSeparators(string s)
-        {
-            while (s.Length > 0 && SourceFileResolver.IsPathSeparator(s[s.Length - 1]))
-            {
-                s = s.Substring(0, s.Length - 1);
-            }
-
-            return s;
         }
 
         private static void ParseAndResolveReferencePaths(string switchName, string switchValue, string baseDirectory, List<string> builder, MessageID origin, List<Diagnostic> diagnostics)

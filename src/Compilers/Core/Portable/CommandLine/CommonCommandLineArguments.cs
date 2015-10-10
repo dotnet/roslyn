@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// This option is used to help get build-to-build determinism even when the build
-        /// directory is different from one build to the next.
+        /// directory is different from one build to the next.  The prefix matching is case sensitive.
         /// </remarks>
         public ImmutableArray<KeyValuePair<string, string>> PathMap { get; internal set; }
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public SourceFileResolver(ImmutableArray<string> searchPaths, string baseDirectory)
-            : this(searchPaths, baseDirectory, default(ImmutableArray<KeyValuePair<string, string>>))
+            : this(searchPaths, baseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty)
         {
         }
 
@@ -51,17 +51,20 @@ namespace Microsoft.CodeAnalysis
             _pathMap = pathMap;
 
             // the keys in pathMap should not end with a path separator
-            if (!pathMap.IsDefaultOrEmpty) foreach (var kv in pathMap)
+            if (!pathMap.IsDefaultOrEmpty)
             {
-                var key = kv.Key;
-                if (key == null || key.Length == 0)
+                foreach (var kv in pathMap)
                 {
-                    throw new ArgumentException("empty key", nameof(pathMap));
-                }
+                    var key = kv.Key;
+                    if (key == null || key.Length == 0)
+                    {
+                        throw new ArgumentException(CodeAnalysisResources.EmptyKeyInPathMap, nameof(pathMap));
+                    }
 
-                if (IsPathSeparator(key[key.Length - 1]))
-                {
-                    throw new ArgumentException("key ends with a path separator", nameof(pathMap));
+                    if (IsPathSeparator(key[key.Length - 1]))
+                    {
+                        throw new ArgumentException(CodeAnalysisResources.KeyInPathMapEndsWithSeparator, nameof(pathMap));
+                    }
                 }
             }
         }
