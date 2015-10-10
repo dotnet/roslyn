@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
         public void AugmentPeekSession(IPeekSession session, IList<IPeekableItem> peekableItems)
         {
+            if (session.RelationshipName != PredefinedPeekRelationships.Definitions.Name)
+            {
+                return;
+            }
+
             var triggerPoint = session.GetTriggerPoint(_textBuffer.CurrentSnapshot);
             if (!triggerPoint.HasValue)
             {
