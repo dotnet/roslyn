@@ -254,6 +254,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return TextView.Caret.Position;
         }
 
+        /// <summary>
+        /// Used in synchronous methods to ensure all outstanding <see cref="IAsyncToken"/> work has been
+        /// completed.
+        /// </summary>
+        public void AssertNoAsynchronousOperationsRunning()
+        {
+            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
+            Assert.False(waiters.Any(x => x.HasPendingWork), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
+        }
+
         public async Task WaitForAsynchronousOperationsAsync()
         {
             var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();

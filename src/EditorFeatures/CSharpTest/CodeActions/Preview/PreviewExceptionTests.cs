@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
         }
 
         [WpfFact]
-        public void TestExceptionInActionSets()
+        public async Task TestExceptionInActionSets()
         {
             using (var workspace = CreateWorkspaceFromFile("class D {}", null, null))
             {
-                ActionSets(workspace, new ErrorCases.ExceptionInCodeAction());
+                await ActionSets(workspace, new ErrorCases.ExceptionInCodeAction()).ConfigureAwait(true);
             }
         }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             Assert.False(extensionManager.IsIgnored(provider));
         }
 
-        private void ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
+        private async Task ActionSets(TestWorkspace workspace, CodeRefactoringProvider provider)
         {
             List<CodeAction> refactorings = new List<CodeAction>();
             ICodeActionEditHandlerService editHandler;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
             var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, refactorings.First(), provider);
-            var actionSets = suggestedAction.GetActionSetsAsync(CancellationToken.None).PumpingWaitResult();
+            var actionSets = await suggestedAction.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(true);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }

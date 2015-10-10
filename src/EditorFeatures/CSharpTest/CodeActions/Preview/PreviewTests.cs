@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal);
 
                 // And finally the added project.
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult();
+                preview = await previews.TakeNextPreviewAsync().ConfigureAwait(true);
                 Assert.NotNull(preview);
                 Assert.True(preview is string);
                 text = preview as string;

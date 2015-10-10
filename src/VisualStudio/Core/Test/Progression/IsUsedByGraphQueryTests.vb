@@ -25,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New IsUsedByGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New IsUsedByGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,

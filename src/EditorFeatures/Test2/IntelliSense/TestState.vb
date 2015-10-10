@@ -139,11 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "IntelliSense Operations"
 
-        Public Overloads Sub SendEscape(Optional block As Boolean = False)
-            If block Then
-                WaitForAsynchronousOperations()
-            End If
-
+        Public Overloads Sub SendEscape()
             MyBase.SendEscape(Sub(a, n) IntelliSenseCommandHandler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
@@ -173,20 +169,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendPageUp(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendCut(Optional block As Boolean = False)
-            If block Then
-                WaitForAsynchronousOperations()
-            End If
-
+        Public Overloads Sub SendCut()
             Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of CutCommandArgs))
             MyBase.SendCut(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendPaste(Optional block As Boolean = False)
-            If block Then
-                WaitForAsynchronousOperations()
-            End If
-
+        Public Overloads Sub SendPaste()
             Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of PasteCommandArgs))
             MyBase.SendPaste(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
@@ -202,7 +190,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
-            WaitForAsynchronousOperations()
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
@@ -239,13 +226,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
-            WaitForAsynchronousOperations()
+            AssertNoAsynchronousOperationsRunning()
             Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
                                        Function(i) i.DisplayText = v))
         End Function
 
         Public Function CompletionItemsContainsAny(displayText As String()) As Boolean
-            WaitForAsynchronousOperations()
+            AssertNoAsynchronousOperationsRunning()
             Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
                                        Function(i) i.DisplayText = v))
         End Function

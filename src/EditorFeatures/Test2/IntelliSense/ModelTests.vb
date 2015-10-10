@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         <WpfFact(Skip:="true")>
-        Public Sub ControllerIsNotUpdatedIfComputationIsCancelled()
+        Public Async Function ControllerIsNotUpdatedIfComputationIsCancelled() As Task
             Dim controller = New Mock(Of IController(Of Model))
             Dim token = New Mock(Of IAsyncToken)
             controller.Setup(Function(c) c.BeginAsyncOperation()).Returns(token.Object)
@@ -100,13 +100,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                                           c.ThrowIfCancellationRequested()
                                                                           Return Task.FromResult(model)
                                                                       End Function)
-            checkpoint1.Task.Wait()
+            Await checkpoint1.Task.ConfigureAwait(True)
             modelComputation.Stop()
             checkpoint2.Release()
-            checkpoint3.PumpingWait()
+            Await checkpoint3.Task.ConfigureAwait(True)
 
             controller.Verify(Sub(c) c.OnModelUpdated(model), Times.Never)
-        End Sub
+        End Function
 
     End Class
 End Namespace

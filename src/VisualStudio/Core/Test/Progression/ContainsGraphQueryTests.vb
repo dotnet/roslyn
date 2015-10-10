@@ -8,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsGraphQueryTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub TypesContainedInCSharpDocument()
+        Public Async Function TypesContainedInCSharpDocument() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -47,10 +47,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub TypesContainedInCSharpDocumentInsideNamespace()
+        Public Async Function TypesContainedInCSharpDocumentInsideNamespace() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -92,10 +92,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub TypesContainedInVisualBasicDocument()
+        Public Async Function TypesContainedInVisualBasicDocument() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -119,7 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.vb")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -146,7 +146,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function MembersContainedInCSharpScriptDocument() As Task
@@ -165,7 +165,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.csx")
-                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(False)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(False)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -191,7 +191,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub MembersContainedInClass()
+        Public Async Function MembersContainedInClass() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -202,7 +202,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -221,11 +221,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         <WorkItem(543892)>
-        Public Sub NestedTypesContainedInClass()
+        Public Async Function NestedTypesContainedInClass() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -236,7 +236,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -253,10 +253,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(545018)>
-        Public Sub EnumMembersInEnum()
+        Public Async Function EnumMembersInEnum() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -267,7 +267,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -284,10 +284,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
-        Public Sub NothingInBrokenCode()
+        Public Async Function NothingInBrokenCode() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -298,7 +298,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -313,10 +313,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(610147)>
-        Public Sub NothingInBrokenCode2()
+        Public Async Function NothingInBrokenCode2() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -327,7 +327,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -342,10 +342,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression), WorkItem(608653)>
-        Public Sub NothingInBrokenCode3()
+        Public Async Function NothingInBrokenCode3() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true" FilePath="Z:\Project.vbproj">
@@ -358,7 +358,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -372,6 +372,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

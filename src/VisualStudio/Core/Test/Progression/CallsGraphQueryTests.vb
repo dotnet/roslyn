@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
@@ -7,7 +8,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class CallsGraphQueryTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub CallsSimpleTests()
+        Public Async Function CallsSimpleTests() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -23,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -43,10 +44,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub CallsLambdaTests()
+        Public Async Function CallsLambdaTests() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -69,7 +70,7 @@ class A
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -87,10 +88,10 @@ class A
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub CallsPropertiesTests()
+        Public Async Function CallsPropertiesTests() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -105,7 +106,7 @@ class A
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -122,10 +123,10 @@ class A
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub CallsDelegatesTests()
+        Public Async Function CallsDelegatesTests() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -154,7 +155,7 @@ class C
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -176,10 +177,10 @@ class C
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub CallsDelegateCreationExpressionTests()
+        Public Async Function CallsDelegateCreationExpressionTests() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -207,7 +208,7 @@ class Test
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New CallsGraphQuery(), GraphContextDirection.Source).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -226,6 +227,6 @@ class Test
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

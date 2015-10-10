@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,16 +25,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
         }
 
-        private static void WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
+        private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
             var workspaceWaiter = workspace.ExportProvider
                 .GetExports<IAsynchronousOperationListener, FeatureMetadata>()
                 .First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
-            workspaceWaiter.CreateWaitTask().PumpingWait();
+            await workspaceWaiter.CreateWaitTask().ConfigureAwait(true);
         }
 
         [WpfFact]
-        public void TestEmptySolutionUpdateDoesNotFireEvents()
+        public async Task TestEmptySolutionUpdateDoesNotFireEvents()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.AddTestProject(project);
 
                 // wait for all previous operations to complete
-                WaitForWorkspaceOperationsToComplete(workspace);
+                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                 var solution = workspace.CurrentSolution;
                 bool workspaceChanged = false;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
 
                 // wait for any new outstanding operations to complete (there shouldn't be any)
-                WaitForWorkspaceOperationsToComplete(workspace);
+                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                 // same solution instance == nothing changed
                 Assert.Equal(solution, workspace.CurrentSolution);
@@ -450,7 +451,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestGetCompilationOnCrossLanguageDependentProjectChanged()
+        public async Task TestGetCompilationOnCrossLanguageDependentProjectChanged()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -485,7 +486,7 @@ class D { }
                 // this solution should have the change
                 var solutionZ = workspace.CurrentSolution;
                 var docZ = solutionZ.GetDocument(document1.Id);
-                var docZText = docZ.GetTextAsync().PumpingWaitResult();
+                var docZText = await docZ.GetTextAsync().ConfigureAwait(true);
 
                 var compilation2Z = solutionZ.GetProject(id2).GetCompilationAsync().Result;
                 var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
@@ -644,7 +645,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestApplyChangesWithDocumentTextUpdated()
+        public async Task TestApplyChangesWithDocumentTextUpdated()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -659,14 +660,14 @@ class D { }
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
                 // prove the document has the correct text
-                Assert.Equal(startText, workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().PumpingWaitResult().ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
                 var newSolution = oldSolution.WithDocumentText(document.Id, SourceText.From(newText));
 
                 // prove that current document text is unchanged
-                Assert.Equal(startText, workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().PumpingWaitResult().ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
 
                 // prove buffer is unchanged too
                 Assert.Equal(startText, buffer.CurrentSnapshot.GetText());
@@ -726,7 +727,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestDocumentEvents()
+        public async Task TestDocumentEvents()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -758,7 +759,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    WaitForWorkspaceOperationsToComplete(workspace);
+                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                     // Wait to receive signal that events have fired.
                     Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
@@ -776,7 +777,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    WaitForWorkspaceOperationsToComplete(workspace);
+                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                     // Verifying that an event has not been called is difficult to prove.  
                     // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
@@ -792,7 +793,7 @@ class D { }
         }
 
         [WpfFact]
-        public void TestAdditionalFile_Properties()
+        public async Task TestAdditionalFile_Properties()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -813,12 +814,12 @@ class D { }
 
                 var additionalDocument = project.GetAdditionalDocument(additionalDoc.Id);
 
-                Assert.Equal("some text", additionalDocument.GetTextAsync().PumpingWaitResult().ToString());
+                Assert.Equal("some text", (await additionalDocument.GetTextAsync().ConfigureAwait(true)).ToString());
             }
         }
 
         [WpfFact]
-        public void TestAdditionalFile_DocumentChanged()
+        public async Task TestAdditionalFile_DocumentChanged()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -833,7 +834,7 @@ class D { }
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
                 var project = workspace.CurrentSolution.Projects.Single();
-                var oldVersion = project.GetSemanticVersionAsync().PumpingWaitResult();
+                var oldVersion = await project.GetSemanticVersionAsync().ConfigureAwait(true);
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
@@ -846,13 +847,13 @@ class D { }
                 Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
                 // Text changes are considered top level changes and they change the project's semantic version.
-                Assert.Equal(doc.GetTextVersionAsync().PumpingWaitResult(), doc.GetTopLevelChangeTextVersionAsync().PumpingWaitResult());
-                Assert.NotEqual(oldVersion, doc.Project.GetSemanticVersionAsync().PumpingWaitResult());
+                Assert.Equal(await doc.GetTextVersionAsync().ConfigureAwait(true), await doc.GetTopLevelChangeTextVersionAsync().ConfigureAwait(true));
+                Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync().ConfigureAwait(true));
             }
         }
 
         [WpfFact]
-        public void TestAdditionalFile_OpenClose()
+        public async Task TestAdditionalFile_OpenClose()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -864,8 +865,8 @@ class D { }
                 workspace.AddTestProject(project1);
                 var buffer = additionalDoc.GetTextBuffer();
                 var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-                var text = doc.GetTextAsync(CancellationToken.None).PumpingWaitResult();
-                var version = doc.GetTextVersionAsync(CancellationToken.None).PumpingWaitResult();
+                var text = await doc.GetTextAsync(CancellationToken.None).ConfigureAwait(true);
+                var version = await doc.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(true);
 
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 

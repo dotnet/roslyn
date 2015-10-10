@@ -43,15 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             Return graphBuilder.Graph
         End Function
 
-        Public Function GetGraphContextAfterQuery(graph As Graph, graphQuery As IGraphQuery, direction As GraphContextDirection) As IGraphContext
-            Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
-            Dim graphBuilder = graphQuery.GetGraphAsync(_workspace.CurrentSolution, graphContext, CancellationToken.None).PumpingWaitResult
-            graphBuilder.ApplyToGraph(graphContext.Graph)
-
-            Return graphContext
-        End Function
-
-        Public Async Function GetGraphContextAfterQueryAsync(graph As Graph, graphQuery As IGraphQuery, direction As GraphContextDirection) As Task(Of IGraphContext)
+        Public Async Function GetGraphContextAfterQuery(graph As Graph, graphQuery As IGraphQuery, direction As GraphContextDirection) As Task(Of IGraphContext)
             Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
             Dim graphBuilder = Await graphQuery.GetGraphAsync(_workspace.CurrentSolution, graphContext, CancellationToken.None).ConfigureAwait(True)
             graphBuilder.ApplyToGraph(graphContext.Graph)
@@ -59,9 +51,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             Return graphContext
         End Function
 
-        Public Function GetGraphContextAfterQueryWithSolution(graph As Graph, solution As Solution, graphQuery As IGraphQuery, direction As GraphContextDirection) As IGraphContext
+        Public Async Function GetGraphContextAfterQueryWithSolution(graph As Graph, solution As Solution, graphQuery As IGraphQuery, direction As GraphContextDirection) As Task(Of IGraphContext)
             Dim graphContext As New MockGraphContext(direction, graph.Copy(), graph.Nodes)
-            Dim graphBuilder = graphQuery.GetGraphAsync(solution, graphContext, CancellationToken.None).PumpingWaitResult
+            Dim graphBuilder = Await graphQuery.GetGraphAsync(solution, graphContext, CancellationToken.None).ConfigureAwait(True)
             graphBuilder.ApplyToGraph(graphContext.Graph)
 
             Return graphContext

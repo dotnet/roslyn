@@ -124,21 +124,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         End Function
 
         <WpfFact>
-        Public Sub TestPickTheRightPreview_WithPreference()
+        Public Async Function TestPickTheRightPreview_WithPreference() As Task
             Using workspace = CreateWorkspaceFromFile("Class D : End Class", Nothing, Nothing)
                 Dim document As Document = Nothing
                 Dim previews As SolutionPreviewResult = Nothing
                 GetMainDocumentAndPreviews(workspace, document, previews)
 
                 ' Should return preview that matches the preferred (added) project.
-                Dim preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
+                Dim preview = Await previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 Dim text = DirectCast(preview, String)
                 Assert.Contains(s_addedProjectName, text, StringComparison.Ordinal)
 
                 ' Should return preview that matches the preferred (changed) document.
-                preview = previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 Dim diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' There is no longer a preview for the preferred project. Should return the first remaining preview.
-                preview = previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync(preferredProjectId:=s_addedProjectId).ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is IWpfDifferenceViewer)
                 diffView = DirectCast(preview, IWpfDifferenceViewer)
@@ -157,18 +157,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
                 diffView.Close()
 
                 ' There is no longer a preview for the  preferred document. Should return the first remaining preview.
-                preview = previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync(preferredDocumentId:=document.Id).ConfigureAwait(True)
                 Assert.NotNull(preview)
                 Assert.True(TypeOf preview Is String)
                 text = DirectCast(preview, String)
                 Assert.Contains(s_removedMetadataReferenceDisplayName, text, StringComparison.Ordinal)
 
                 ' There are no more previews.
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.Null(preview)
-                preview = previews.TakeNextPreviewAsync().PumpingWaitResult()
+                preview = Await previews.TakeNextPreviewAsync().ConfigureAwait(True)
                 Assert.Null(preview)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace
