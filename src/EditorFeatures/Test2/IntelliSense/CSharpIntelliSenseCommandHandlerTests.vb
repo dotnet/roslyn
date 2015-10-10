@@ -23,14 +23,12 @@ class C
                               </Document>)
 
                 state.SendTypeChars("Fo")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()").ConfigureAwait(True)
                 Assert.Contains("Foo(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -50,17 +48,14 @@ class C
                               </Document>)
 
                 state.SendTypeChars("Foo(a")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
                 state.SendEscape(block:=True)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
                 state.SendEscape(block:=True)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -78,13 +73,11 @@ class C
 }
                               </Document>)
                 state.SendTypeChars("Foo(a")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
                 state.SendCut(block:=True)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -103,13 +96,11 @@ class C
                               </Document>)
 
                 state.SendTypeChars("Foo(a")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
                 state.SendPaste(block:=True)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
-                state.AssertSignatureHelpSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
     End Class

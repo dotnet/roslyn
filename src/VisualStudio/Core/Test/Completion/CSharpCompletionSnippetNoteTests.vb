@@ -25,8 +25,7 @@ class C
         Public Async Function SnippetExpansionNoteAddedToDescription_ExactMatch() As Threading.Tasks.Task
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "interface").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
                     String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface"))
@@ -38,8 +37,7 @@ class C
         Public Async Function SnippetExpansionNoteAddedToDescription_DifferentSnippetShortcutCasing() As Threading.Tasks.Task
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources.Keyword, "interface")}
 {String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface")}")
             End Using
@@ -50,8 +48,7 @@ class C
         Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSubstringOfInsertedText()
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "interfac").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
                     String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interfac"))
@@ -63,8 +60,7 @@ class C
         Public Async Sub SnippetExpansionNoteNotAddedToDescription_ShortcutIsProperSuperstringOfInsertedText()
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "interfaces").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "interface"))
             End Using
         End Sub
@@ -75,8 +71,7 @@ class C
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "InsertionText").ConfigureAwait(True)
 
                 state.SendTypeChars("DisplayTex")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText"))
             End Using
         End Sub
@@ -103,8 +98,7 @@ class C
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, False)
 
                 state.SendTypeChars("for")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "for"))
             End Using
         End Function

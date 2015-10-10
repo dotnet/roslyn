@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
@@ -225,18 +226,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendSelectAll(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Sub AssertNoCompletionSession(Optional block As Boolean = True)
+        Public Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
             If block Then
-                WaitForAsynchronousOperations()
+                Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             End If
-
             Assert.Null(Me.CurrentCompletionPresenterSession)
-        End Sub
+        End Function
 
-        Public Sub AssertCompletionSession()
-            WaitForAsynchronousOperations()
+        Public Async Function AssertCompletionSession() As Task
+            Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
-        End Sub
+        End Function
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
             WaitForAsynchronousOperations()
@@ -328,18 +328,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             CurrentSignatureHelpPresenterSession.SetSelectedItem(item)
         End Sub
 
-        Public Sub AssertNoSignatureHelpSession(Optional block As Boolean = True)
+        Public Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
             If block Then
-                WaitForAsynchronousOperations()
+                Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             End If
 
             Assert.Null(Me.CurrentSignatureHelpPresenterSession)
-        End Sub
+        End Function
 
-        Public Sub AssertSignatureHelpSession()
-            WaitForAsynchronousOperations()
+        Public Async Function AssertSignatureHelpSession() As Task
+            Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             Assert.NotNull(Me.CurrentSignatureHelpPresenterSession)
-        End Sub
+        End Function
 
         Private Function GetDisplayText(item As SignatureHelpItem, selectedParameter As Integer) As String
             Dim suffix = If(selectedParameter < item.Parameters.Count,
@@ -371,10 +371,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
         End Function
 
-        Public Sub AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
+        Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
-                               Optional selectedParameter As String = Nothing)
-            WaitForAsynchronousOperations()
+                               Optional selectedParameter As String = Nothing) As Task
+            Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
 
             If displayText IsNot Nothing Then
                 Assert.Equal(displayText, GetDisplayText(Me.CurrentSignatureHelpPresenterSession.SelectedItem, Me.CurrentSignatureHelpPresenterSession.SelectedParameter.Value))
@@ -389,7 +389,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     Me.CurrentSignatureHelpPresenterSession.SelectedItem.Parameters(
                         Me.CurrentSignatureHelpPresenterSession.SelectedParameter.Value).DisplayParts))
             End If
-        End Sub
+        End Function
 #End Region
     End Class
 End Namespace

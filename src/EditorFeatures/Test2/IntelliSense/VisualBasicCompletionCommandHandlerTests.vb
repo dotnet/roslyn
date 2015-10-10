@@ -48,8 +48,7 @@ End Class
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("On Error Resume Next", description:=String.Format(FeaturesResources.Keyword, "On Error Resume Next") + vbCrLf + VBFeaturesResources.OnErrorResumeNextKeywordToolTip)
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -65,8 +64,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -84,8 +82,7 @@ End Module
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -103,8 +100,7 @@ End Module
                               </document>)
 
                 state.SendTypeChars("Fog(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
 
                 Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -121,11 +117,9 @@ End Module
                                 End Class
                               </document>)
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars(".")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -158,8 +152,7 @@ End Module
                               </document>)
 
                 state.SendTypeChars("Fog(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
 
                 Assert.Contains("    FogBar(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -176,14 +169,11 @@ End Module
                                 End Class
                               </document>)
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars(".")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendEscape()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -225,8 +215,7 @@ End Module
 
                 state.SendTypeChars("Fog")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
 
                 Assert.Contains("    FogBar", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -243,8 +232,7 @@ End Module
                                 End Class
                               </document>)
                 state.SendTypeChars("Progra.")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="Equals", isSoftSelected:=True)
                 Assert.Contains("Program.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -262,8 +250,7 @@ End Class
                               </document>)
                 state.SendTypeChars("Progra")
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Contains(<text>
     Sub Main(args As String())
         Program
@@ -291,8 +278,7 @@ Class Program
 End Class
                               </document>)
                 state.SendTypeChars(".A")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
                 state.SendDownKey()
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
@@ -331,8 +317,7 @@ Class Program
 End Class
                               </document>)
                 state.SendTypeChars(".A")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.Equal(3, state.CurrentCompletionPresenterSession.CompletionItems.Count)
             End Using
         End Function
@@ -403,14 +388,12 @@ End Class
                                 End Class
                               </document>, extraCompletionProviders:={provider})
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars(".M")
 
                 ' We should not have a session now.  Note: do not block as this will just hang things
                 ' since the provider will not return.
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession(block:=False)
+                Await state.AssertNoCompletionSession(block:=False).ConfigureAwait(True)
 
                 ' Now, navigate back.
                 state.SendBackspace()
@@ -419,13 +402,11 @@ End Class
                 e.Set()
 
                 ' At this point, completion will be available since the caret is still within the model's span.
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
 
                 ' Now, navigate back again.  Completion should be dismissed
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -444,14 +425,12 @@ End Class
                                 End Class
                               </document>, extraCompletionProviders:={provider})
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars(".Ma")
 
                 ' We should not have a session now.  Note: do not block as this will just hang things
                 ' since the provider will not return.
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession(block:=False)
+                Await state.AssertNoCompletionSession(block:=False).ConfigureAwait(True)
 
                 ' Now, navigate using the caret.
                 state.SendMoveToPreviousCharacter()
@@ -461,8 +440,7 @@ End Class
 
                 ' We should not have a session since we tear things down if we see a caret move
                 ' before the providers have returned.
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -477,20 +455,15 @@ End Class
                                 End Class
                               </document>)
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars(".Ma")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendMoveToPreviousCharacter()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendMoveToPreviousCharacter()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendMoveToPreviousCharacter()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -505,11 +478,9 @@ End Class
                                 End Class
                               </document>)
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars(".Ma(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.Contains(".Main(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendUndo()
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
@@ -536,8 +507,7 @@ Class Program
 End Class
                               </document>)
                 state.SendTypeChars(".A")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
                 state.SendDownKey()
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
@@ -567,8 +537,7 @@ Class Program
 End Class
                               </document>)
                 state.SendTypeChars(".A")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="A", isHardSelected:=True)
                 state.SendSelectCompletionItemThroughPresenterSession(state.CurrentCompletionPresenterSession.CompletionItems.First(
                                                            Function(i) i.DisplayText = "B"))
@@ -605,8 +574,7 @@ Class c
     Inherits$$
 End Class</document>)
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.True(state.CompletionItemsContainsAll(displayText:={"Attribute", "Exception"}))
             End Using
         End Function
@@ -628,8 +596,7 @@ Class MyException
     Inherits $$
 End Class]]></document>)
                 state.SendTypeChars("TestEx")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(description:="Class TestException" & vbCrLf & "TestDoc")
             End Using
         End Function
@@ -705,11 +672,9 @@ Module Program
 End Module</Document>)
 
                 state.SendTypeChars(" 0")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Equal(<Document>
 Imports System
 
@@ -738,11 +703,9 @@ End Module</Document>)
                 ' Could match Int32
                 ' kayleh 1/17/2013, but we decided to have #s always dismiss the list in bug 547287
                 state.SendTypeChars(" 3")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Equal(<Document>
 Imports System
 
@@ -770,12 +733,10 @@ End Module</Document>)
 
                 ' Could match Int32
                 state.SendTypeChars(" I3")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="Int32", isHardSelected:=True)
                 state.SendReturn()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Equal(<Document>
 Imports System
 
@@ -800,8 +761,7 @@ end class
                               </Document>)
 
                 state.SendTypeChars(".")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -817,8 +777,7 @@ end class
                               </Document>)
 
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.True(state.CompletionItemsContainsAll({"ToString"}))
             End Using
         End Function
@@ -835,11 +794,9 @@ class c
 end class
                               </Document>)
                 state.SendTypeChars("Dim i =")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendDeleteWordToLeft()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -855,8 +812,7 @@ class c
 end class
                               </Document>)
                 state.SendTypeChars("Fo(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.Equal("        Foo(", state.GetLineTextFromCaretPosition())
                 Assert.DoesNotContain("Foo(Of", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -874,8 +830,7 @@ class c
 end class
                               </Document>)
                 state.SendTypeChars("Fo ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.Equal("        Foo(Of ", state.GetLineTextFromCaretPosition())
             End Using
         End Function
@@ -891,8 +846,7 @@ end class
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Contains("Imports Sys(", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -908,8 +862,7 @@ end class
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(".")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.Contains("Imports System.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -925,8 +878,7 @@ end class
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="System", isHardSelected:=True)
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Contains("Imports Sys ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -947,8 +899,7 @@ end class
                             </Document>)
 
                 state.SendTypeChars("x:")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.DoesNotContain(":=", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -970,8 +921,7 @@ end class
 
                 state.SendTypeChars("x")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Contains(":=", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -986,8 +936,7 @@ $$
 
                 state.SendTypeChars("#re")
                 state.SendTab()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 Assert.Equal("#Region", state.GetLineTextFromCaretPosition())
             End Using
         End Function
@@ -1038,8 +987,7 @@ End Class
                               </Document>)
 
                 state.SendTypeChars("s")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "string:="))
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
@@ -1067,8 +1015,7 @@ End Class
                               </Document>)
 
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.Equal(1, state.CurrentCompletionPresenterSession.CompletionItems.Count)
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "str:="))
             End Using
@@ -1097,8 +1044,7 @@ End Class
                               </Document>)
 
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.Equal(3, state.CurrentCompletionPresenterSession.CompletionItems.Count)
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "b:="))
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:="))
@@ -1116,8 +1062,7 @@ End Class
                               </Document>)
 
                 state.SendTypeChars(" ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1132,8 +1077,7 @@ End Module
                               </Document>)
 
                 state.SendTypeChars("z")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("#Const", isSoftSelected:=True)
             End Using
         End Function
@@ -1151,8 +1095,7 @@ End Class
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
                 Assert.True(state.SignatureHelpItemsContainsAll({"Object.Finalize()"}))
             End Using
         End Function
@@ -1171,8 +1114,7 @@ End Module
                               </Document>)
 
                 state.SendTypeChars("a")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("args", isHardSelected:=True)
                 state.SendDownKey()
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
@@ -1194,8 +1136,7 @@ End Module
                               </Document>)
 
                 state.SendTypeChars("_")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("_AppDomain", isHardSelected:=False)
             End Using
         End Function
@@ -1214,29 +1155,23 @@ End Module
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars(".")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendBackspace()
                 state.SendBackspace()
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars("-")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendBackspace()
                 state.SendBackspace()
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars("1")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1272,8 +1207,7 @@ End Module|}          </Document>)
                 Dim subjectBuffer = subjectDocument.GetTextBuffer()
 
                 state.SendTypeCharsToSpecificViewAndBuffer("(", view, subjectBuffer)
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendTypeCharsToSpecificViewAndBuffer("a", view, subjectBuffer)
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem(displayText:="arg")
@@ -1344,11 +1278,9 @@ End Class
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars("!")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("!--")
             End Using
         End Function
@@ -1361,11 +1293,9 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1379,8 +1309,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1395,8 +1324,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1410,8 +1338,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1425,8 +1352,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1440,8 +1366,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1455,8 +1380,7 @@ End Class
                               </Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("End", description:=String.Format(FeaturesResources.Keyword, "End") + vbCrLf + VBFeaturesResources.EndKeywordToolTip)
             End Using
         End Function
@@ -1467,8 +1391,7 @@ End Class
                               <Document>$$</Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1488,11 +1411,9 @@ End Class
                                 End Module
                               </document>)
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars("{")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1507,11 +1428,9 @@ End Class
                                 End Module
                               </document>)
 
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars("<")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1598,12 +1517,10 @@ Class G
 End Class
             ]]></Document>)
                 state.SendTypeChars("str")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("String", isHardSelected:=True)
                 state.SendTypeChars("gg")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1619,8 +1536,7 @@ Class G
 End Class
             ]]></Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1637,11 +1553,9 @@ Class G
 End Class
             ]]></Document>)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1658,8 +1572,7 @@ Class G
 End Class
             ]]></Document>)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("Integer")
             End Using
         End Function
@@ -1677,12 +1590,10 @@ Class G
 End Class
             ]]></Document>)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "AccessViolationException"))
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "AccessViolationException"))
             End Using
         End Function
@@ -1768,11 +1679,9 @@ End Class
                               <Document>$$</Document>)
 
                 state.SendTypeChars("Imp")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendInsertSnippetCommand()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1783,11 +1692,9 @@ End Class
                               <Document>$$</Document>)
 
                 state.SendTypeChars("Imp")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendSurroundWithCommand()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1804,8 +1711,7 @@ Class G
 End Class]]></Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1822,8 +1728,7 @@ Class G
 End Class]]></Document>)
 
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("summary")
             End Using
         End Function
@@ -1835,11 +1740,9 @@ End Class]]></Document>)
                               <Document>$$</Document>)
 
                 state.SendTypeChars("A")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -1852,8 +1755,7 @@ End Class]]></Document>)
 End Module</Document>)
 
                 state.SendTypeChars("sub")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("Sub")
                 Assert.True(state.CurrentCompletionPresenterSession.Builder IsNot Nothing)
             End Using
@@ -1868,8 +1770,7 @@ End Module</Document>)
 End Module</Document>)
 
                 state.SendTypeChars("prop")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("Property", isSoftSelected:=True)
                 Assert.True(state.CurrentCompletionPresenterSession.Builder IsNot Nothing)
             End Using
@@ -2048,8 +1949,7 @@ Public Class Class2
     End Sub
 End Class</Document>)
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -2109,8 +2009,7 @@ Class C
     End Sub
 End Class</Document>)
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 Assert.True(state.CurrentCompletionPresenterSession.IsSoftSelected)
             End Using
         End Function
@@ -2126,8 +2025,7 @@ Class C
     End Sub
 End Class</Document>)
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 ' DayOfWeek.Monday should  immediately follow DayOfWeek.Friday
                 Dim friday = state.CurrentCompletionPresenterSession.CompletionItems.First(Function(i) i.DisplayText = "DayOfWeek.Friday")
                 Dim monday = state.CurrentCompletionPresenterSession.CompletionItems.First(Function(i) i.DisplayText = "DayOfWeek.Monday")
@@ -2147,8 +2045,7 @@ End Class]]></Document>)
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("Sub")
                 state.SendSave()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession(block:=True)
+                Await state.AssertNoCompletionSession(block:=True).ConfigureAwait(True)
                 state.AssertMatchesTextStartingAtLine(2, "    Su")
             End Using
         End Function
@@ -2186,8 +2083,7 @@ End Class
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 state.AssertSelectedCompletionItem("ReadOnly")
                 state.SendTypeChars("a")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -2203,8 +2099,7 @@ End Class
             ]]></Document>)
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTyping, LanguageNames.VisualBasic, False)
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -2282,11 +2177,9 @@ Class C
                 ' of the caret to the end of the selection isn't responsible for 
                 ' dismissing the session.
                 state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendSelectAll()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoCompletionSession()
+                Await state.AssertNoCompletionSession().ConfigureAwait(True)
             End Using
         End Function
 

@@ -20,11 +20,9 @@ class C
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()").ConfigureAwait(True)
                 state.SendTypeChars(")")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -42,11 +40,9 @@ class C
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i").ConfigureAwait(True)
                 state.SendTypeChars("1,")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j").ConfigureAwait(True)
             End Using
         End Function
 
@@ -64,14 +60,11 @@ class C
                               </Document>)
 
                 state.SendTypeChars(",")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j").ConfigureAwait(True)
                 state.SendLeftKey()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i").ConfigureAwait(True)
                 state.SendRightKey()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j").ConfigureAwait(True)
             End Using
         End Function
 
@@ -89,11 +82,9 @@ class C
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()").ConfigureAwait(True)
                 state.SendRightKey()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -112,14 +103,11 @@ class C
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()").ConfigureAwait(True)
                 state.SendTypeChars("Bar(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Bar()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Bar()").ConfigureAwait(True)
                 state.SendTypeChars(")")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()").ConfigureAwait(True)
             End Using
         End Function
 
@@ -132,8 +120,7 @@ namespace global::F$$
                               </Document>)
 
                 state.SendTypeChars("<")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -154,8 +141,7 @@ class C
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -181,23 +167,20 @@ class Program
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("void C.M(int third)")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int third)").ConfigureAwait(True)
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendTypeChars(":")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)").ConfigureAwait(True)
                 Assert.Equal(1, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 ' Keep the same item selected when the colon is deleted, but now both items are
                 ' available again.
                 state.SendBackspace()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int first, int second)").ConfigureAwait(True)
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
@@ -219,15 +202,13 @@ class Program
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)").ConfigureAwait(True)
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendTypeChars(""""",")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("void Program.F(int i)")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("void Program.F(int i)").ConfigureAwait(True)
                 Assert.Equal(2, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
             End Using
         End Function
@@ -251,18 +232,15 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("void C.M()")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("void C.M()").ConfigureAwait(True)
                 Assert.Equal(4, state.CurrentSignatureHelpPresenterSession.SignatureHelpItems.Count)
 
                 state.SendUpKey()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)").ConfigureAwait(True)
 
                 state.SendTypeChars("1, ")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M(int i, int j, int k)").ConfigureAwait(True)
             End Using
         End Function
 
@@ -284,14 +262,12 @@ class Program
 ]]></Document>)
 
                 state.SendTypeChars("[")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("char string[int index]")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("char string[int index]").ConfigureAwait(True)
 
                 state.SendTypeChars("x")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("char string[int index]")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("char string[int index]").ConfigureAwait(True)
             End Using
         End Function
 
@@ -326,13 +302,11 @@ class C
                 Dim linkDocument = documents.Single(Function(d) d.IsLinkFile)
 
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem("void C.M2(int x)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M2(int x)").ConfigureAwait(True)
                 state.SendEscape()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem("void C.M2(string x)")
+                Await state.AssertSelectedSignatureHelpItem("void C.M2(string x)").ConfigureAwait(True)
             End Using
         End Function
 
@@ -355,12 +329,10 @@ class C
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem("void C.M()")
+                Await state.AssertSelectedSignatureHelpItem("void C.M()").ConfigureAwait(True)
                 state.SendTypeChars("""")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
-                state.AssertSelectedSignatureHelpItem("void C.M(string s)")
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
+                Await state.AssertSelectedSignatureHelpItem("void C.M(string s)").ConfigureAwait(True)
             End Using
         End Function
 
@@ -383,11 +355,9 @@ class C
 ]]></Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem("void C.M()")
+                Await state.AssertSelectedSignatureHelpItem("void C.M()").ConfigureAwait(True)
                 state.SendTypeChars("//")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
 
@@ -410,8 +380,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()").ConfigureAwait(True)
             End Using
         End Function
 
@@ -434,8 +403,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()").ConfigureAwait(True)
             End Using
         End Function
 
@@ -458,8 +426,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()").ConfigureAwait(True)
             End Using
         End Function
 
@@ -482,8 +449,7 @@ class C
 ]]></Document>)
 
                 state.SendTypeChars("<")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()")
+                Await state.AssertSelectedSignatureHelpItem($"({CSharpFeaturesResources.Extension}) IEnumerable<TResult> IEnumerable.OfType<TResult>()").ConfigureAwait(True)
             End Using
         End Function
 
@@ -504,13 +470,11 @@ class C
                 ' disable implicit sig help then type a trigger character -> no session should be available
                 state.Workspace.Options = state.Workspace.Options.WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, "C#", False)
                 state.SendTypeChars("(")
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertNoSignatureHelpSession()
+                Await state.AssertNoSignatureHelpSession().ConfigureAwait(True)
 
                 ' force-invoke -> session should be available
                 state.SendInvokeSignatureHelp()
-                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Function
     End Class
