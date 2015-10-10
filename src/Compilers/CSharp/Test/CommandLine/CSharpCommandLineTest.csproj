@@ -92,7 +92,7 @@
     <None Include="..\..\csc\csc.rsp">
       <Link>csc.rsp</Link>
     </None>
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

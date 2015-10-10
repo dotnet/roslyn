@@ -147,7 +147,7 @@
     <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
-    <None Include="App.config" />
+    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources\VBAllInOne.vb" />
   </ItemGroup>

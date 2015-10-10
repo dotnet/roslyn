@@ -155,8 +155,8 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
+# /p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln
@@ -228,6 +228,10 @@ test_roslyn()
         Roslyn.Compilers.CSharp.Symbol.UnitTests
         Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
     local any_failed=false
+
+    # Need to copy over the execution dependencies.  This isn't being done correctly
+    # by msbuild at the moment. 
+    cp ~/.nuget/packages/xunit.extensibility.execution/$XUNIT_VERSION/lib/net45/xunit.execution.desktop.* Binaries/$BUILD_CONFIGURATION
 
     for i in "${test_binaries[@]}"
     do
