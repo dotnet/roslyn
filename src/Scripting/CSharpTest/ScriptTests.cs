@@ -241,7 +241,6 @@ d.Do()"
             var script = 
                 CSharpScript.Create(
                     "var a = '1';",
-                    options: ScriptOptions.Default.WithReferences(InteractiveSessionTests.SystemRuntimeAssembly),
                     globalsType: globals.GetType()).
                 ContinueWith("var b = 2u;").
                 ContinueWith("var a = 3m;").

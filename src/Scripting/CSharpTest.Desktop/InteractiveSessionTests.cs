@@ -5,12 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
@@ -298,16 +301,16 @@ System.Collections.IEnumerable w = new Window();
                 AddReferences(typeof(C).Assembly, typeof(C).Assembly);
 
             var s0 = await CSharpScript.RunAsync<int>("x", options, new C());
+            var c0 = s0.Script.GetCompilation();
 
             // includes corlib, host type assembly by default:
             AssertEx.Equal(new[] 
             {
                 typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(C).Assembly.Location,
-                Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")).Location, // TODO: remove
                 typeof(C).Assembly.Location,
                 typeof(C).Assembly.Location,
-            }, s0.Script.GetCompilation().ExternalReferences.SelectAsArray(m => m.Display));
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
 
             Assert.Equal(1, s0.ReturnValue);
 
@@ -317,6 +320,47 @@ System.Collections.IEnumerable w = new Window();
 x            
 ");
             Assert.Equal(1, s1.ReturnValue);
+        }
+
+        [Fact]
+        public async Task MissingRefrencesAutoResolution()  
+        {
+            var portableLib = CSharpCompilation.Create(
+                "PortableLib",                                                
+                new[] { SyntaxFactory.ParseSyntaxTree("public class C {}") }, 
+                new[] { SystemRuntimePP7Ref },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var portableLibRef = portableLib.ToMetadataReference();
+
+            var loader = new InteractiveAssemblyLoader();
+            loader.RegisterDependency(Assembly.Load(portableLib.EmitToArray().ToArray()));
+
+            var s0 = await CSharpScript.Create("new C()", options: ScriptOptions.Default.AddReferences(portableLibRef), assemblyLoader: loader).RunAsync();
+            var c0 = s0.Script.GetCompilation();
+
+            // includes corlib, host type assembly by default:
+            AssertEx.Equal(new[]
+            {
+                typeof(object).GetTypeInfo().Assembly.Location,
+                "PortableLib"
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
+
+            // System.Runtime, 4.0.0.0 depends on all the assemblies below:
+            AssertEx.Equal(new[]
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "PortableLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Data.SqlXml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+            }, c0.GetBoundReferenceManager().GetReferencedAssemblies().Select(a => a.Value.Identity.GetDisplayName()));
         }
     }
 }
