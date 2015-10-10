@@ -8813,7 +8813,7 @@ int NewMethod()
 }
 
 i = 3;";
-            TestExtractMethod(code, expected, parseOptions: Interactive);
+            TestExtractMethod(code, expected, parseOptions: Options.Script);
         }
 
         [WorkItem(542670)]
@@ -9169,7 +9169,7 @@ class Node<K, T> where T : new()
 
         [WorkItem(542708)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
-        public void InteractiveArgumentException()
+        public void Script_ArgumentException()
         {
             var code = @"using System;
 public static void GetNonVirtualMethod<TDelegate>( Type type, string name)
@@ -9189,7 +9189,7 @@ Type GetDelegateType(Type delegateType)
     return delegateType;
 }";
 
-            TestExtractMethod(code, expected, parseOptions: Interactive);
+            TestExtractMethod(code, expected, parseOptions: Options.Script);
         }
 
         [WorkItem(529008)]
@@ -9544,7 +9544,7 @@ void NewMethod()
     }
 }";
 
-            TestExtractMethod(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Interactive));
+            TestExtractMethod(code, expected, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
 
         [WorkItem(530322)]
@@ -10266,14 +10266,6 @@ namespace ClassLibrary9
                 var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
                 Assert.True(delegatedToNext);
                 Assert.False(state.IsAvailable);
-            }
-        }
-
-        private CSharpParseOptions Interactive
-        {
-            get
-            {
-                return new CSharpParseOptions(kind: SourceCodeKind.Interactive);
             }
         }
     }

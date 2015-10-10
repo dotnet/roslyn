@@ -115,7 +115,7 @@ $$
         {
             var markup = "#r \"$$\"";
 
-            VerifyNoItemsExist(markup, SourceCodeKind.Interactive);
+            VerifyNoItemsExist(markup, SourceCodeKind.Script);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -135,7 +135,7 @@ $$
         {
             var markup = "#r \"$$\"";
 
-            VerifyNoItemsExist(markup, SourceCodeKind.Interactive);
+            VerifyNoItemsExist(markup, SourceCodeKind.Script);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

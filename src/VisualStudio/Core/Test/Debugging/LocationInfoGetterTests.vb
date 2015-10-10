@@ -419,7 +419,7 @@ $$End Function
             Test(<text>
 
 $$System.Console.WriteLine("Hello")
-</text>.NormalizedValue, Nothing, 0, New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
+</text>.NormalizedValue, Nothing, 0, New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
         End Sub
 
     End Class

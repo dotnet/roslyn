@@ -5,8 +5,8 @@ Microsoft.CodeAnalysis.Compilation.GetSubmissionResultType(out bool hasValue) ->
 Microsoft.CodeAnalysis.Compilation.PreviousSubmission.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.ScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.WithPreviousSubmission(Microsoft.CodeAnalysis.Compilation newPreviousSubmission) -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.CompilationOptions.ReportSuppressedDiagnostics.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.Deterministic.get -> bool
+Microsoft.CodeAnalysis.CompilationOptions.ReportSuppressedDiagnostics.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithReportSuppressedDiagnostics(bool value) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.Diagnostic.GetSuppressionInfo(Microsoft.CodeAnalysis.Compilation compilation) -> Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo
 Microsoft.CodeAnalysis.DiagnosticDescriptor.GetEffectiveSeverity(Microsoft.CodeAnalysis.CompilationOptions compilationOptions) -> Microsoft.CodeAnalysis.ReportDiagnostic
@@ -50,6 +50,7 @@ Microsoft.CodeAnalysis.Emit.DebugInformationFormat.Embedded = 3 -> Microsoft.Cod
 Microsoft.CodeAnalysis.Emit.DebugInformationFormat.PortablePdb = 2 -> Microsoft.CodeAnalysis.Emit.DebugInformationFormat
 Microsoft.CodeAnalysis.MetadataReference.MetadataReference(Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
 Microsoft.CodeAnalysis.ParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
+Microsoft.CodeAnalysis.SourceCodeKind.Interactive = 2 -> Microsoft.CodeAnalysis.SourceCodeKind
 Microsoft.CodeAnalysis.StrongNameProvider.StrongNameProvider() -> void
 abstract Microsoft.CodeAnalysis.Diagnostic.IsSuppressed.get -> bool
 abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions

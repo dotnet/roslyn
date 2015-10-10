@@ -1413,11 +1413,11 @@ index: 0);
 
         [WorkItem(541748)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public void TestOnErrorInInteractive()
+        public void TestOnErrorInScript()
         {
             TestMissing(
 @"[|Console.WrieLine();|]",
-Options.Interactive);
+Options.Script);
         }
 
         [WpfFact(Skip = "1033012"), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]

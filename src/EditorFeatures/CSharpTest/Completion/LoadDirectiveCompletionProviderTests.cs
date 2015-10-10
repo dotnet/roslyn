@@ -40,20 +40,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 glyph);
         }
 
-        private void VerifyItemExistsInInteractive(string markup, string expected)
+        private void VerifyItemExistsInScript(string markup, string expected)
         {
-            VerifyItemExists(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive, usePreviousCharAsTrigger: false);
+            VerifyItemExists(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: false);
         }
 
         private void VerifyItemIsAbsentInInteractive(string markup, string expected)
         {
-            VerifyItemIsAbsent(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive, usePreviousCharAsTrigger: false);
+            VerifyItemIsAbsent(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NetworkPath()
         {
-            VerifyItemExistsInInteractive(
+            VerifyItemExistsInScript(
                 @"#load ""$$",
                 @"\\");
         }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NetworkPathAfterInitialBackslash()
         {
-            VerifyItemExistsInInteractive(
+            VerifyItemExistsInScript(
                 @"#load ""\$$",
                 @"\\");
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             int depth = Directory.GetCurrentDirectory().Count(c => c == Path.DirectorySeparatorChar);
             var pathToRoot = string.Concat(Enumerable.Repeat(@"..\", depth));
 
-            VerifyItemExistsInInteractive(
+            VerifyItemExistsInScript(
                 @"#load ""$$",
                 "..");
             VerifyItemIsAbsentInInteractive(

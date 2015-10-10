@@ -44,7 +44,7 @@ select x * x
 ");
             runner.RunInteractive();
 
-            Assert.Equal(
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 

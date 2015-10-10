@@ -1301,7 +1301,7 @@ class Program
 
         [WorkItem(542460, "DevDiv")]
         [Fact]
-        public void QueryWithMultipleParseErrorsAndInteractiveParseOption()
+        public void QueryWithMultipleParseErrorsAndScriptParseOption()
         {
             string sourceCode = @"
 using System;
@@ -1318,7 +1318,7 @@ public class QueryExpressionTest
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
@@ -1329,7 +1329,7 @@ public class QueryExpressionTest
 
         [WorkItem(542496, "DevDiv")]
         [Fact]
-        public void QueryExpressionInFieldInitReferencingAnotherFieldWithInteractiveParseOption()
+        public void QueryExpressionInFieldInitReferencingAnotherFieldWithScriptParseOption()
         {
             string sourceCode = @"
 using System.Linq;
@@ -1344,7 +1344,7 @@ class P
                select x + one;
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();

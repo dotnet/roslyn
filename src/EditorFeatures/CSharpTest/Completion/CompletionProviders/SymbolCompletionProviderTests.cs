@@ -272,8 +272,8 @@ class C {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void OpenStringLiteralInDirective()
         {
-            VerifyItemIsAbsent("#r \"$$", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive);
-            VerifyItemIsAbsent("#r \"$$", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive);
+            VerifyItemIsAbsent("#r \"$$", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            VerifyItemIsAbsent("#r \"$$", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -286,8 +286,8 @@ class C {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void StringLiteralInDirective()
         {
-            VerifyItemIsAbsent("#r \"$$\"", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive);
-            VerifyItemIsAbsent("#r \"$$\"", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive);
+            VerifyItemIsAbsent("#r \"$$\"", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+            VerifyItemIsAbsent("#r \"$$\"", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -8349,7 +8349,7 @@ class A {
 int aaa = 1;
 int bbb = $$
 ";
-            VerifyItemExists(markup, "aaa", sourceCodeKind: SourceCodeKind.Interactive);
+            VerifyItemExists(markup, "aaa", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")]
@@ -8360,7 +8360,7 @@ int bbb = $$
 Action aaa = null;
 event Action bbb = $$
 ";
-            VerifyItemExists(markup, "aaa", sourceCodeKind: SourceCodeKind.Interactive);
+            VerifyItemExists(markup, "aaa", sourceCodeKind: SourceCodeKind.Script);
         }
 
         [WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")]

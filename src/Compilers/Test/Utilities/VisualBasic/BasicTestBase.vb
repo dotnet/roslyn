@@ -382,7 +382,7 @@ Public MustInherit Class BasicTestBaseBase
                 GetUniqueName(),
                 references:=If(references Is Nothing, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}.Concat(references)),
                 options:=options,
-                syntaxTree:=Parse(code, options:=If(parseOptions, TestOptions.Interactive)),
+                syntaxTree:=Parse(code, options:=If(parseOptions, TestOptions.Script)),
                 previousSubmission:=previous,
                 returnType:=returnType,
                 hostObjectType:=hostObjectType)

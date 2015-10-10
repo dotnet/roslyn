@@ -359,7 +359,7 @@ using System;
         [Fact]
         public void UnusedUsingInteractive()
         {
-            var tree = Parse("using System;", options: TestOptions.Interactive);
+            var tree = Parse("using System;", options: TestOptions.Script);
             var comp = CSharpCompilation.CreateSubmission("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
 
             comp.VerifyDiagnostics();

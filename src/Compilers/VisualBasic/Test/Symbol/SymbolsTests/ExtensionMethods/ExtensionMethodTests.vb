@@ -2449,33 +2449,36 @@ o.F()]]>
 
         <Fact>
         Public Sub InteractiveExtensionMethods()
-            Dim parseOptions = TestOptions.Interactive
             Dim references = {MscorlibRef, SystemCoreRef}
-            Dim source0 = <![CDATA[
+            
+            Dim source0 = "
 Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function F(o As Object) As Object
     Return 0
 End Function
 Dim o As New Object()
-? o.F()]]>
-            Dim source1 = <![CDATA[
+? o.F()"
+
+            Dim source1 = "
 Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function G(o As Object) As Object
     Return 1
 End Function
 Dim o As New Object()
-? o.G().F()]]>
+? o.G().F()"
+
             Dim s0 = VisualBasicCompilation.CreateSubmission(
                 "s0.dll",
-                syntaxTree:=Parse(source0.Value, parseOptions),
+                syntaxTree:=Parse(source0, TestOptions.Script),
                 references:=references)
             s0.VerifyDiagnostics()
             Assert.True(s0.SourceAssembly.MightContainExtensionMethods)
+            
             Dim s1 = VisualBasicCompilation.CreateSubmission(
                 "s1.dll",
-                syntaxTree:=Parse(source1.Value, parseOptions),
+                syntaxTree:=Parse(source1, TestOptions.Script),
                 previousSubmission:=s0,
                 references:=references)
             s1.VerifyDiagnostics()

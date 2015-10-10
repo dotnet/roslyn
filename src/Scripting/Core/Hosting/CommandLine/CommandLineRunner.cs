@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            options = options.WithPath(scriptPath).WithIsInteractive(false);
+            options = options.WithPath(scriptPath);
             var script = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
