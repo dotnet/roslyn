@@ -97,7 +97,6 @@
     </Compile>
     <Compile Include="CLRHelpers.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
-    <Compile Include="ProcessUtilities.cs" />
     <Compile Include="SharedResourceHelpers.cs" />
     <Compile Include="CommonDiagnosticAnalyzers.cs" />
     <Compile Include="CommonTestBase.CompilationVerifier.cs" />
@@ -107,7 +106,6 @@
     <Compile Include="HostedRuntimeEnvironment.cs" />
     <Compile Include="MetadataSignatureHelper.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
-    <Compile Include="ProcessResult.cs" />
     <Compile Include="ReflectionAssert.cs" />
     <Compile Include="IlasmUtilities.cs" />
     <Compile Include="SigningTestHelpers.cs" />

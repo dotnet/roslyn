@@ -42,6 +42,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)FX\MonoHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\ObjectReference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\PinnedMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\ProcessResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FX\ProcessUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\RegexExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\StringExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\CustomAttributeRow.cs" />
