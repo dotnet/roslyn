@@ -53,7 +53,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
-        Public Sub SnippetListOnlyIfTextBeforeQuestionMark()
+        Public Async Function SnippetListOnlyIfTextBeforeQuestionMark() As Task
             Dim markup = <File>
 Class C
     ?$$
@@ -62,10 +62,11 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 testState.SendTabToCompletion()
+                Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
                 testState.WaitForAsynchronousOperations()
                 Assert.Null(testState.CurrentCompletionPresenterSession)
             End Using
-        End Sub
+        End Function
     End Class
 
     <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
