@@ -65,7 +65,12 @@
           UseHardlinksIfPossible="true" />
 
     <ItemGroup>
-      <TestAssemblies Include="$(OutputDirectory)\**\$(IncludePattern)" />
+      <TestAssemblies Condition="'$(Test64)' != 'true'" 
+                      Include="$(OutputDirectory)\**\$(IncludePattern)" />
+
+      <TestAssemblies Condition="'$(Test64)' == 'true'" 
+                      Include="$(OutputDirectory)\**\$(IncludePattern)" 
+                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*" />
     </ItemGroup>
 
     <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />

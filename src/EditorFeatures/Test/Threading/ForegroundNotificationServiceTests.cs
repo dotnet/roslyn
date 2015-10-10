@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             _service = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IForegroundNotificationService>();
         }
 
-        [WpfFact]
+        [ConditionalWpfFact(typeof(x86))]
         public async Task Test_Enqueue()
         {
             var asyncToken = EmptyAsyncToken.Instance;
