@@ -1376,7 +1376,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(2445, "https://github.com/dotnet/roslyn/issues/2445")>
-        Public Sub InvalidExpansionTarget()
+        Public Async Function InvalidExpansionTarget() As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -1399,8 +1399,8 @@ End Module
 
                 session.Commit()
 
-                VerifyTagsAreCorrect(workspace, "x")
+                Await VerifyTagsAreCorrect(workspace, "x").ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
@@ -148,7 +149,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub MembersContainedInCSharpScriptDocument()
+        Public Async Function MembersContainedInCSharpScriptDocument() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -164,7 +165,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.csx")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryAsync(inputGraph, New ContainsGraphQuery(), GraphContextDirection.Contains).ConfigureAwait(False)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -187,7 +188,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub MembersContainedInClass()

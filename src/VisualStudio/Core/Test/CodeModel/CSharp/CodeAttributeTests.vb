@@ -640,7 +640,7 @@ class CAttribute : Attribute { }
 
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgumentStress()
             Dim code =
 <Code>
@@ -654,10 +654,7 @@ class C
                 Sub(codeAttribute)
                     For i = 1 To 100
                         Dim value = i.ToString()
-                        Assert.DoesNotThrow(
-                            Sub()
-                                Dim codeAttributeArgument = codeAttribute.AddArgument(value, Position:=1)
-                            End Sub)
+                        Dim codeAttributeArgument = codeAttribute.AddArgument(value, Position:=1)
                     Next
                 End Sub)
         End Sub

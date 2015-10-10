@@ -703,7 +703,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DelegatedInEmptyBlock()
         {
             Test(@"class TestClass
@@ -722,7 +722,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DelegatedInEmptyBlock2()
         {
             Test(@"class TestClass
@@ -741,7 +741,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedOutsideEmptyBlock()
         {
             Test(@"class TestClass
@@ -761,7 +761,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedAfterOpenBraceAndMissingCloseBrace()
         {
             Test(@"class TestClass
@@ -781,7 +781,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedInNonEmptyBlock()
         {
             Test(@"class TestClass
@@ -801,7 +801,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedAfterOpenBraceInAnonymousObjectCreationExpression()
         {
             Test(@"class TestClass
@@ -821,7 +821,7 @@ $$
         }
 
         [WorkItem(150480)]
-        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void NotDelegatedAfterOpenBraceObjectCreationExpression()
         {
             Test(@"class TestClass
