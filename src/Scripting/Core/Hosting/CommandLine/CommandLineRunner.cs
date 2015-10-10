@@ -163,6 +163,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void RunInteractiveLoop(ScriptOptions options, CancellationToken cancellationToken)
         {
+            _console.Out.WriteLine(ScriptingResources.HelpPrompt);
+
             var globals = new InteractiveScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
@@ -206,6 +208,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
 
                 string code = input.ToString();
+
+                if (IsHelpCommand(code))
+                {
+                    DisplayHelpText();
+                    continue;
+                }
 
                 Script<object> newScript;
                 if (state == null)
@@ -327,6 +335,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             return false;
+        }
+
+        private static bool IsHelpCommand(string text)
+        {
+            const string helpCommand = "#help";
+            Debug.Assert(text != null);
+            return text.Trim() == helpCommand;
+        }
+
+        private void DisplayHelpText()
+        {
+            _console.Out.Write(ScriptingResources.HelpText);
+            _console.Out.WriteLine();
         }
 
         private void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)
