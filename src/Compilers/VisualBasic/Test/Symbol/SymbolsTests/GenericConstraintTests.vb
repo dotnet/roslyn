@@ -5607,6 +5607,54 @@ End Class
 </compilation>)
         End Sub
 
+        <WorkItem(4097, "https://github.com/dotnet/roslyn/issues/4097")>
+        <Fact>
+        Public Sub ObsoleteTypeInConstraints()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<System.Obsolete>
+class Class1(Of T As Class2)
+End Class
+
+<System.Obsolete>
+class Class2
+End Class
+
+class Class3(Of T As Class2)
+    <System.Obsolete>
+    Sub M1(Of S As Class2)
+    End Sub
+
+    Sub M2(Of S As Class2)
+    End Sub
+End Class
+
+class Class4
+    <System.Obsolete>
+    Private Partial Sub M3(Of S As Class2)
+    End Sub
+End Class
+
+Partial class Class4
+    Private Partial Sub M4(Of S As Class2)
+    End Sub
+End Class
+   ]]></file>
+</compilation>, options:=TestOptions.DebugDll).Diagnostics.AssertTheseDiagnostics(
+<expected>
+BC40008: 'Class2' is obsolete.
+class Class3(Of T As Class2)
+                     ~~~~~~
+BC40008: 'Class2' is obsolete.
+    Sub M2(Of S As Class2)
+                   ~~~~~~
+BC40008: 'Class2' is obsolete.
+    Private Partial Sub M4(Of S As Class2)
+                                   ~~~~~~
+</expected>)
+        End Sub
+
     End Class
 
 End Namespace

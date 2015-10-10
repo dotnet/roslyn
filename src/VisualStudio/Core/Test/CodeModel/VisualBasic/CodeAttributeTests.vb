@@ -774,7 +774,7 @@ End Class
 #End Region
 
 #Region "AddAttributeArgument tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5841"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgument1()
             Dim code =
 <Code>
@@ -798,7 +798,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5800"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgument2()
             Dim code =
 <Code>
@@ -822,7 +822,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5800"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAddArgument3()
             Dim code =
 <Code>
@@ -835,7 +835,7 @@ End Class
 </Code>
 
             Dim expectedCode =
-<Code>
+    <Code>
 Imports System
 
 &lt;AttributeUsage(AttributeTargets.All, AllowMultiple:=False)&gt;
@@ -846,6 +846,27 @@ End Class
 
             TestAddAttributeArgument(code, expectedCode, New AttributeArgumentData With {.Name = "AllowMultiple", .Value = "False", .Position = 1})
 
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttributeArgumentStress()
+            Dim code =
+<Code>
+&lt;$$A&gt;
+Class C
+End Class
+</Code>
+
+            TestElement(code,
+                Sub(codeAttribute)
+                    For i = 1 To 100
+                        Dim value = i.ToString()
+                        Assert.DoesNotThrow(
+                            Sub()
+                                Dim codeAttributeArgument = codeAttribute.AddArgument(value, Position:=1)
+                            End Sub)
+                    Next
+                End Sub)
         End Sub
 #End Region
 

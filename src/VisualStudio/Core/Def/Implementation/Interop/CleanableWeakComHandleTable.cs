@@ -197,11 +197,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
                 _deadKeySet.Remove(key);
             }
 
-            TValue value;
-            if (TryGetValue(key, out value))
+            WeakComHandle<TValue, TValue> handle;
+            if (_table.TryGetValue(key, out handle))
             {
                 _table.Remove(key);
-                return value;
+                return handle.ComAggregateObject;
             }
 
             return null;
@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             if (_table.TryGetValue(key, out handle))
             {
                 value = handle.ComAggregateObject;
-                return value != null;
+                return true;
             }
 
             value = null;
