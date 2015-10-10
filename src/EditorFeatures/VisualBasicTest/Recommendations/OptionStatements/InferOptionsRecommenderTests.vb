@@ -9,7 +9,7 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class InferOptionsRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionsAfterOptionInfer()
             VerifyRecommendationsAreExactly(<File>Option Infer |</File>, "On", "Off")

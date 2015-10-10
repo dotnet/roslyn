@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(529629)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_Indexer1()
             Dim input =
 <Workspace>
@@ -29,7 +29,7 @@ class D
         End Sub
 
         <WorkItem(529629)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_Indexer1()
             Dim input =
 <Workspace>
@@ -56,7 +56,7 @@ end class
         End Sub
 
         <WorkItem(545577)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_Indexer2()
             Dim input =
 <Workspace>
@@ -79,7 +79,7 @@ End Class
         End Sub
 
         <WorkItem(650779)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_Indexer3()
             Dim input =
 <Workspace>
@@ -109,7 +109,7 @@ End Class
         End Sub
 
         <WorkItem(661362)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_Indexer4()
             Dim input =
 <Workspace>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
@@ -118,21 +119,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             registrationService.Unregister(workspace);
         }
 
-        public void WaitForTags()
+        public async Task WaitForTags()
         {
             if (solutionCrawlerService != null)
             {
                 solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(workspace, incrementalAnalyzers);
             }
 
-            asyncListener.CreateWaitTask().PumpingWait();
+            await asyncListener.CreateWaitTask().ConfigureAwait(true);
         }
     }
 
     public class DiagnosticsSquiggleTaggerProviderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void Test_TagSourceDiffer()
+        [WpfFact(Skip ="xunit"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public async Task Test_TagSourceDiffer()
         {
             var analyzer = new Analyzer();
             var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 using (var disposable = tagger as IDisposable)
                 {
                     // test first update
-                    wrapper.WaitForTags();
+                    await wrapper.WaitForTags().ConfigureAwait(true);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     var text = document.GetTextAsync().Result;
                     workspace.TryApplyChanges(document.WithText(text.WithChanges(new TextChange(new TextSpan(text.Length - 1, 1), string.Empty))).Project.Solution);
 
-                    wrapper.WaitForTags();
+                    await wrapper.WaitForTags().ConfigureAwait(true);
 
                     snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -169,8 +170,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void MultipleTaggersAndDispose()
+        [WpfFact(Skip = "xunit"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public async Task MultipleTaggersAndDispose()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class A {" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace))
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 using (var disposable = tagger2 as IDisposable)
                 {
-                    wrapper.WaitForTags();
+                    await wrapper.WaitForTags().ConfigureAwait(true);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger2.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -193,14 +194,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
-        public void TaggerProviderCreatedAfterInitialDiagnosticsReported()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public async Task TaggerProviderCreatedAfterInitialDiagnosticsReported()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class C {" }, CSharpParseOptions.Default))
             using (var wrapper = new DiagnosticTaggerWrapper(workspace, analyzerMap: null, createTaggerProvider: false))
             {
                 // First, make sure all diagnostics have been reported.
-                wrapper.WaitForTags();
+                await wrapper.WaitForTags().ConfigureAwait(true);
 
                 // Now make the tagger.
                 var taggerProvider = wrapper.TaggerProvider;
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var tagger1 = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger1 as IDisposable)
                 {
-                    wrapper.WaitForTags();
+                    await wrapper.WaitForTags().ConfigureAwait(true);
 
                     // We should have tags at this point.
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;

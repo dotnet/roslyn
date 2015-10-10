@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return outliner.GetOutliningSpans(accessorDeclaration, CancellationToken.None).WhereNotNull()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestReadOnlyPropertyGet()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  ReadOnly Property P1 As Integer",
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestReadOnlyPropertyGetWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  ReadOnly Property P1 As Integer",
@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions(1))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestPropertyGet()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Property P1 As Integer",
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestPropertyGetWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Property P1 As Integer",
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions(1))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestWriteOnlyPropertySet()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  WriteOnly Property P1 As Integer",
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestWriteOnlyPropertySetWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  WriteOnly Property P1 As Integer",
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions(1))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestPropertySet()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Property P1 As Integer",
@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestPropertySetWithPrivateModifier()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Property P1 As Integer",
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestPropertySetWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Property P1 As Integer",
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions(1))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEventAddHandler()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Custom Event eventName As EventHandler",
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEventAddHandlerWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Custom Event eventName As EventHandler",
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions(1))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEventRemoveHandler()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Custom Event eventName As EventHandler",
@@ -362,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEventRemoveHandlerWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Custom Event eventName As EventHandler",
@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion2, actualRegions(1))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEventRaiseHandler()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Custom Event eventName As EventHandler",
@@ -424,7 +424,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestCustomEventRaiseHandlerWithComments()
             Dim syntaxTree = ParseLines("Class C1",
                                   "  Custom Event eventName As EventHandler",

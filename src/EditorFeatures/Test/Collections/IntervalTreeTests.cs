@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             yield return SimpleIntervalTree.Create(new TupleIntrospector<string>(), values);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestEmpty()
         {
             foreach (var tree in CreateTrees())
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBeforeSpan()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAbuttingBeforeSpan()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAfterSpan()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAbuttingAfterSpan()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMatchingSpan()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestContainedAbuttingStart()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestContainedAbuttingEnd()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCompletedContained()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestOverlappingStart()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestOverlappingEnd()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestOverlappingAll()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A")))
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNonOverlappingSpans()
         {
             foreach (var tree in CreateTrees(Tuple.Create(5, 5, "A"), Tuple.Create(15, 5, "B")))
@@ -189,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestSubsumedSpans()
         {
             var spans = List(
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             TestOverlapsAndIntersects(spans);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestOverlappingSpans()
         {
             var spans = List(
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             TestOverlapsAndIntersects(spans);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestIntersectsWith()
         {
             var spans = List(
@@ -227,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void LargeTest()
         {
             var spans = List(
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             TestOverlapsAndIntersects(spans);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCrash1()
         {
             foreach (var tree in CreateTrees(Tuple.Create(8, 1, "A"), Tuple.Create(59, 1, "B"), Tuple.Create(52, 1, "C")))
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestEmptySpanAtStart()
         {
             // Make sure creating empty spans works (there was a bug here)
@@ -281,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             return new IntervalTree<int>(Int32Introspector.Instance, values);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestSortedEnumerable1()
         {
             var tree = new IntervalTree<int>(Int32Introspector.Instance, new[] { 0, 0, 0 });
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections
             Assert.Equal(CreateIntTree(2, 2, 2), new[] { 2, 2, 2 });
         }
 
-        [Fact]
+        [WpfFact]
         public void TestSortedEnumerable2()
         {
             var tree = new IntervalTree<int>(Int32Introspector.Instance, new[] { 1, 0 });

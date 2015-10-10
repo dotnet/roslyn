@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Iterator
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpAddYieldCodeFixProvider());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldIEnumerableReturnNull()
         {
             var initial =
@@ -33,7 +33,7 @@ class Program
             TestMissing(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldIEnumerableReturnObject()
         {
             var initial =
@@ -61,7 +61,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldIEnumeratorReturnObject()
         {
             var initial =
@@ -89,7 +89,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldIEnumeratorReturnGenericList()
         {
             var initial =
@@ -119,7 +119,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldGenericIEnumeratorReturnObject()
         {
             var initial =
@@ -149,7 +149,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldGenericIEnumerableReturnObject()
         {
             var initial =
@@ -179,7 +179,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldIEnumerableReturnGenericList()
         {
             var initial =
@@ -197,7 +197,7 @@ class Program
             TestMissing(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldGenericIEnumeratorReturnDefault()
         {
             var initial =
@@ -227,7 +227,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldGenericIEnumerableReturnConvertibleToObject()
         {
             var initial =
@@ -257,7 +257,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldGenericIEnumerableReturnConvertibleToFloat()
         {
             var initial =
@@ -287,7 +287,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldGenericIEnumeratorNonConvertableType()
         {
             var initial =
@@ -305,7 +305,7 @@ class Program
             TestMissing(initial);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldGenericIEnumeratorConvertableTypeDateTime()
         {
             var initial =
@@ -335,7 +335,7 @@ class Program
             Test(initial, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToYield)]
         public void TestAddYieldNoTypeArguments()
         {
             var initial =

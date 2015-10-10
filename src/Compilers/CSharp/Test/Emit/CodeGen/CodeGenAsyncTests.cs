@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
-            SynchronizationContext.SetSynchronizationContext(null);
-
             options = options ?? TestOptions.ReleaseExe;
 
             IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
@@ -28,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
-            SynchronizationContext.SetSynchronizationContext(null);
-
             var compilation = CreateCompilation(source, references: references, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }

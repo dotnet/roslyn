@@ -8,19 +8,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class SourceTextContainerExtensionsTests
     {
-        [Fact]
+        [WpfFact]
         public void GetBufferTextFromNonTextContainerThrows()
         {
             var containerMock = new Mock<SourceTextContainer>();
             Assert.Throws<ArgumentException>(() => Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(containerMock.Object));
         }
 
-        [Fact]
+        [WpfFact]
         public void GetBufferTextFromTextContainerDoesNotThrow()
         {
             var textSnapshotMock = new Mock<VisualStudio.Text.ITextSnapshot>();
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
             var textContainer = Microsoft.CodeAnalysis.Text.Extensions.TextBufferContainer.From(bufferMock.Object);
 
-            Assert.DoesNotThrow(() => Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(textContainer));
+            Microsoft.CodeAnalysis.Text.Extensions.GetTextBuffer(textContainer);
         }
     }
 }

@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(539174)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VisualBasic_OperatorError1()
             Dim input =
 <Workspace>
@@ -20,7 +20,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharpFindReferencesOnUnaryOperatorOverload()
             Dim input =
 <Workspace>
@@ -41,7 +41,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharpFindReferencesOnUnaryOperatorOverloadFromDefinition()
             Dim input =
 <Workspace>
@@ -62,7 +62,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharpFindReferencesOnBinaryOperatorOverload()
             Dim input =
 <Workspace>
@@ -82,7 +82,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharpFindReferencesOnBinaryOperatorOverloadFromDefinition()
             Dim input =
 <Workspace>
@@ -102,7 +102,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VisualBasicFindReferencesOnUnaryOperatorOverload()
             Dim input =
 <Workspace>
@@ -124,7 +124,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VisualBasicFindReferencesOnUnaryOperatorOverloadFromDefinition()
             Dim input =
 <Workspace>
@@ -146,7 +146,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VisualBasicFindReferencesOnBinaryOperatorOverload()
             Dim input =
 <Workspace>
@@ -167,7 +167,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VisualBasicFindReferencesOnBinaryOperatorOverloadFromDefinition()
             Dim input =
 <Workspace>

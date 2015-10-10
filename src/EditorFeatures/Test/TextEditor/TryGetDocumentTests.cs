@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
 {
     public class TryGetDocumentTests
     {
-        [Fact]
+        [WpfFact]
         [WorkItem(624315)]
         public void MultipleTextChangesTest()
         {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TextEditor
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void EmptyTextChanges()
         {
             var code = @"class C";

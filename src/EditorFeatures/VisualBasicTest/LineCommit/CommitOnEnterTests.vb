@@ -14,7 +14,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
     Public Class CommitOnEnterTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterEnterOnSimpleStatement()
             Dim test = <Workspace>
@@ -28,7 +28,7 @@ imports System$$|]
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub NoCommitAfterEnterAfterQuery()
             Dim test = <Workspace>
@@ -46,7 +46,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421)>
         Public Sub NoCommitAfterExplicitLineContinuation()
@@ -65,7 +65,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         <WorkItem(531421)>
         Public Sub CommitAfterBlankLineFollowingExplicitLineContinuation()
@@ -85,7 +85,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterDeclaration()
             Dim test = <Workspace>
@@ -104,7 +104,7 @@ End Class|]
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterEndConstruct()
             Dim test = <Workspace>
@@ -123,7 +123,7 @@ End Class$$|]
             AssertCommitsStatement(test, expectCommit:=True, usedSemantics:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterBlankLineAfterQuery()
             Dim test = <Workspace>
@@ -142,7 +142,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub NoCommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
@@ -160,7 +160,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterEnterAfterPartialExpression()
             Dim test = <Workspace>
@@ -179,7 +179,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterEnterOnBlankLine()
             Dim test = <Workspace>
@@ -197,7 +197,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(539451)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterColon()
@@ -216,7 +216,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(539408)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterConstDirective()
@@ -231,7 +231,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(539408)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterComment()
@@ -246,7 +246,7 @@ rem Hello World$$|]
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(544372)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub UndoAfterCommitOnBlankLine()
@@ -264,7 +264,7 @@ rem Hello World$$|]
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(540210)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterThenTouchingThen()
@@ -288,7 +288,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(540210)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterThenTouchingStatement()
@@ -312,7 +312,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(530463)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub CommitAfterPropertyStatement()
@@ -335,7 +335,7 @@ End Class
             AssertCommitsStatement(test, expectCommit:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(986168)>
         <Trait(Traits.Feature, Traits.Features.LineCommit)>
         Public Sub DontCommitInsideStringLiteral()

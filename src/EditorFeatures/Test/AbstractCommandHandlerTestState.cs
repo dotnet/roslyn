@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
@@ -251,6 +252,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public CaretPosition GetCaretPoint()
         {
             return TextView.Caret.Position;
+        }
+
+        /// <summary>
+        /// Used in synchronous methods to ensure all outstanding <see cref="IAsyncToken"/> work has been
+        /// completed.
+        /// </summary>
+        public void AssertNoAsynchronousOperationsRunning()
+        {
+            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
+            Assert.False(waiters.Any(x => x.HasPendingWork), "IAsyncTokens unexpectedly alive. Call WaitForAsynchronousOperationsAsync before this method");
+        }
+
+        public async Task WaitForAsynchronousOperationsAsync()
+        {
+            var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
+            await waiters.WaitAllAsync().ConfigureAwait(true);
         }
 
         public void WaitForAsynchronousOperations()

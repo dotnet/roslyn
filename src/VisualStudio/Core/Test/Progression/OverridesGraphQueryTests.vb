@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.GraphModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 Imports Roslyn.Test.Utilities
@@ -7,8 +8,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class OverridesGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub TestOverridesMethod1()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function TestOverridesMethod1() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -32,7 +33,7 @@ class Foo : Base, IComparable
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -50,10 +51,10 @@ class Foo : Base, IComparable
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub TestOverridesMethod2()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function TestOverridesMethod2() As Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -77,7 +78,7 @@ class Foo : Base, IComparable
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithMarkedSymbolNode()
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New OverridesGraphQuery(), GraphContextDirection.Target).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -92,6 +93,6 @@ class Foo : Base, IComparable
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

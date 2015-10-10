@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _testHost.Dispose();
         }
 
-        [Fact]
+        [WpfFact]
         public void TestClear()
         {
             AddEntries("1", "2", "3");
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(2, HistoryEntries.Count());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMaxLength()
         {
             var buffer = _testHost.ExportProvider.GetExport<ITextBufferFactoryService>().Value.CreateTextBuffer();
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Assert.Equal(new[] { "1", "2" }, GetHistoryEntries(history)); // Oldest entry is dropped.
         }
 
-        [Fact]
+        [WpfFact]
         public void TestLast()
         {
             for (int i = 0; i < 3; i++)
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestForgetOriginalBuffers()
         {
             var entries = new[] { "1", "2", "3" };
@@ -102,14 +102,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertEx.None(_history.Items, e => e.OriginalSpan.HasValue);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestDuplicateEntries()
         {
             AddEntries("1", "1", "2", "2", "1", "2", "2", "1");
             Assert.Equal(new[] { "1", "2", "1", "2", "1" }, HistoryEntries);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPrevious()
         {
             AddEntries("1", "2", "3");
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetPrevious(null), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNext()
         {
             AddEntries("1", "2", "3");
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetNext(null), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPreviousWithPattern_NoMatch()
         {
             AddEntries("123", "12", "1");
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetPrevious("4"), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPreviousWithPattern_PatternMaintained()
         {
             AddEntries("123", "12", "1");
@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetPrevious("12"), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPreviousWithPattern_PatternDropped()
         {
             AddEntries("1", "2", "3");
@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetPrevious(null), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPreviousWithPattern_PatternChanged()
         {
             AddEntries("1a", "2a", "1b", "2b");
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetPrevious("2"), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNextWithPattern_NoMatch()
         {
             AddEntries("start", "1", "12", "123");
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetNext("4"), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNextWithPattern_PatternMaintained()
         {
             AddEntries("start", "1", "12", "123");
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetNext("12"), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNextWithPattern_PatternDropped()
         {
             AddEntries("start", "3", "2", "1");
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             CheckHistoryText(_history.GetNext(null), null);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNextWithPattern_PatternChanged()
         {
             AddEntries("start", "2b", "1b", "2a", "1a");

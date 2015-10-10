@@ -68,8 +68,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             string workspaceKind = null)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-
             if (workspaceElement.Name != WorkspaceElementName)
             {
                 throw new ArgumentException();
