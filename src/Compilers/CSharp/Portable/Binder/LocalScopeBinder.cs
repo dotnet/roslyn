@@ -440,14 +440,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            throw ExceptionUtilities.Unreachable;
+            return ImmutableArray<LocalSymbol>.Empty;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
         {
-            throw ExceptionUtilities.Unreachable;
+            return ImmutableArray<LocalFunctionSymbol>.Empty;
         }
     }
 }

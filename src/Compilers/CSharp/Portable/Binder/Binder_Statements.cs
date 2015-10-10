@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = BindDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.LocalFunctionStatement:
-                    result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
+                    // The binder in the map is for the method body, so we use the *enclosing* binder for the block
+                    result = Next.BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
                     break;
                 case SyntaxKind.ExpressionStatement:
                     result = BindExpressionStatement((ExpressionStatementSyntax)node, diagnostics);
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PatternVariableBinder patternBinder = this as PatternVariableBinder;
                 if (patternBinder != null && patternBinder.Syntax == node && !patternBinder.Locals.IsDefaultOrEmpty)
                 {
-                    result = new BoundBlock(node, patternBinder.Locals, ImmutableArray.Create(result), result.HasErrors);
+                    result = new BoundBlock(node, patternBinder.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(result), result.HasErrors);
                 }
             }
 
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundBody = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundFixedStatement(node,
-                                           GetDeclaredLocalsForScope(),
+                                           GetDeclaredLocalsForScope(node),
                                            boundMultipleDeclarations,
                                            boundBody);
         }
@@ -430,12 +431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.Body != null)
                 {
-                    block = binder.BindBlock(node.Body, diagnostics);
+                    block = binder.BindEmbeddedBlock(node.Body, diagnostics);
                 }
                 else if (node.ExpressionBody != null)
                 {
                     block = binder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
-        }
+                }
                 else
                 {
                     block = null;
@@ -2096,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocalFunction(nameToken);
         }
 
-        internal BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
+        internal BoundBlock BindEmbeddedBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             return this.GetBinder(node).BindBlock(node, diagnostics);
         }
@@ -2129,8 +2130,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBlock(
                 node,
-                GetDeclaredLocalsForScope(),
-                GetDeclaredLocalFunctionsForScope(),
+                GetDeclaredLocalsForScope(node),
+                GetDeclaredLocalFunctionsForScope(node),
                 boundStatements.ToImmutableAndFree());
         }
 

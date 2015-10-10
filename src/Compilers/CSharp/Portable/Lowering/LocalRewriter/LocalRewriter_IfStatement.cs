@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var statements = builder.ToImmutableAndFree();
                 return (patternVariables.IsDefaultOrEmpty)
                     ? new BoundStatementList(syntax, statements, hasErrors)
-                    : new BoundBlock(syntax, patternVariables, statements, hasErrors) { WasCompilerGenerated = true };
+                    : new BoundBlock(syntax, patternVariables, ImmutableArray<LocalFunctionSymbol>.Empty, statements, hasErrors) { WasCompilerGenerated = true };
             }
             else
             {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!patternVariables.IsDefaultOrEmpty)
                 {
                     // pattern variables are not in scope in the else part
-                    var firstPart = new BoundBlock(syntax, patternVariables, builder.ToImmutableAndFree(), hasErrors) { WasCompilerGenerated = true };
+                    var firstPart = new BoundBlock(syntax, patternVariables, ImmutableArray<LocalFunctionSymbol>.Empty, builder.ToImmutableAndFree(), hasErrors) { WasCompilerGenerated = true };
                     builder = ArrayBuilder<BoundStatement>.GetInstance();
                     builder.Add(firstPart);
                 }
