@@ -18,9 +18,7 @@
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
-The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers 
-with rich code analysis APIs.  It enables building code analysis tools with the same APIs 
-that are used by Visual Studio.
+Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
 ### Download C# and Visual Basic
 
