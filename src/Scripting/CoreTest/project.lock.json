@@ -116,6 +116,17 @@
           "ref/dotnet/System.Diagnostics.Debug.dll": {}
         }
       },
+      "System.Diagnostics.Process/4.1.0-beta-23401": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Handles": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Diagnostics.Process.dll": {}
+        }
+      },
       "System.Diagnostics.StackTrace/4.0.0": {
         "dependencies": {
           "System.Reflection": "[4.0.0, )",
@@ -904,6 +915,48 @@
         "ref/xamarinmac20/_._",
         "runtimes/win8-aot/lib/netcore50/System.Diagnostics.Debug.dll",
         "System.Diagnostics.Debug.nuspec"
+      ]
+    },
+    "System.Diagnostics.Process/4.1.0-beta-23401": {
+      "sha512": "6vmT4f8dxyfe6CEg5r9+4XhOJAErxFhKH2f+2cfgTyJp1pp9gy0ShIwb8pvLTdTdxXfYmVnKvH3kMg9HQsulsw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/de/System.Diagnostics.Process.xml",
+        "lib/net46/es/System.Diagnostics.Process.xml",
+        "lib/net46/fr/System.Diagnostics.Process.xml",
+        "lib/net46/it/System.Diagnostics.Process.xml",
+        "lib/net46/ja/System.Diagnostics.Process.xml",
+        "lib/net46/ko/System.Diagnostics.Process.xml",
+        "lib/net46/ru/System.Diagnostics.Process.xml",
+        "lib/net46/System.Diagnostics.Process.dll",
+        "lib/net46/System.Diagnostics.Process.xml",
+        "lib/net46/zh-hans/System.Diagnostics.Process.xml",
+        "lib/net46/zh-hant/System.Diagnostics.Process.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "package/services/metadata/core-properties/e2a4bd7066714f87b692ce1e29510813.psmdcp",
+        "ref/dotnet/System.Diagnostics.Process.dll",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net46/de/System.Diagnostics.Process.xml",
+        "ref/net46/es/System.Diagnostics.Process.xml",
+        "ref/net46/fr/System.Diagnostics.Process.xml",
+        "ref/net46/it/System.Diagnostics.Process.xml",
+        "ref/net46/ja/System.Diagnostics.Process.xml",
+        "ref/net46/ko/System.Diagnostics.Process.xml",
+        "ref/net46/ru/System.Diagnostics.Process.xml",
+        "ref/net46/System.Diagnostics.Process.dll",
+        "ref/net46/System.Diagnostics.Process.xml",
+        "ref/net46/zh-hans/System.Diagnostics.Process.xml",
+        "ref/net46/zh-hant/System.Diagnostics.Process.xml",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "runtime.json",
+        "System.Diagnostics.Process.nuspec"
       ]
     },
     "System.Diagnostics.StackTrace/4.0.0": {

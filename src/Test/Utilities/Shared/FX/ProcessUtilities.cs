@@ -36,7 +36,7 @@ namespace Roslyn.Test.Utilities
             {
                 foreach (var entry in additionalEnvironmentVars)
                 {
-                    startInfo.EnvironmentVariables[entry.Key] = entry.Value;
+                    startInfo.Environment[entry.Key] = entry.Value;
                 }
             }
 
@@ -103,7 +103,6 @@ namespace Roslyn.Test.Utilities
             string result = null;
 
             startInfo.CreateNoWindow = true;
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
 
@@ -112,7 +111,7 @@ namespace Roslyn.Test.Utilities
                 startInfo.WorkingDirectory = startFolder;
             }
 
-            using (var process = System.Diagnostics.Process.Start(startInfo))
+            using (var process = Process.Start(startInfo))
             {
                 // Do not wait for the child process to exit before reading to the end of its
                 // redirected stream. Read the output stream first and then wait. Doing otherwise
