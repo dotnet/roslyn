@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
 {
     public class BidirectionalMapTests
     {
-        [Fact]
+        [WpfFact]
         public void TestEmpty()
         {
             var map = BidirectionalMap<string, int>.Empty;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.False(map.ContainsValue(0));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMap()
         {
             var map = BidirectionalMap<string, int>.Empty
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.True(map.ContainsValue(2));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveKey()
         {
             var map = BidirectionalMap<string, int>.Empty
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.True(map.ContainsValue(2));
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveValue()
         {
             var map = BidirectionalMap<string, int>.Empty

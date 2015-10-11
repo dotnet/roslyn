@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,20 +22,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     {
         private TestWorkspace CreateWorkspace(bool disablePartialSolutions = true)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             return new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, disablePartialSolutions: disablePartialSolutions);
         }
 
-        private static void WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
+        private static async Task WaitForWorkspaceOperationsToComplete(TestWorkspace workspace)
         {
             var workspaceWaiter = workspace.ExportProvider
                 .GetExports<IAsynchronousOperationListener, FeatureMetadata>()
                 .First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
-            workspaceWaiter.CreateWaitTask().PumpingWait();
+            await workspaceWaiter.CreateWaitTask().ConfigureAwait(true);
         }
 
-        [Fact]
-        public void TestEmptySolutionUpdateDoesNotFireEvents()
+        [WpfFact]
+        public async Task TestEmptySolutionUpdateDoesNotFireEvents()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.AddTestProject(project);
 
                 // wait for all previous operations to complete
-                WaitForWorkspaceOperationsToComplete(workspace);
+                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                 var solution = workspace.CurrentSolution;
                 bool workspaceChanged = false;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                 workspace.OnParseOptionsChanged(project.Id, project.ParseOptions);
 
                 // wait for any new outstanding operations to complete (there shouldn't be any)
-                WaitForWorkspaceOperationsToComplete(workspace);
+                await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                 // same solution instance == nothing changed
                 Assert.Equal(solution, workspace.CurrentSolution);
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddProject()
         {
             using (var workspace = CreateWorkspace())
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveExistingProject1()
         {
             using (var workspace = CreateWorkspace())
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveExistingProject2()
         {
             using (var workspace = CreateWorkspace())
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveNonAddedProject1()
         {
             using (var workspace = CreateWorkspace())
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveNonAddedProject2()
         {
             using (var workspace = CreateWorkspace())
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestChangeOptions1()
         {
             using (var workspace = CreateWorkspace())
@@ -172,7 +172,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestChangeOptions2()
         {
             using (var workspace = CreateWorkspace())
@@ -218,7 +218,7 @@ class D { }
             return type;
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReferenceFails()
         {
             using (var workspace = CreateWorkspace())
@@ -234,7 +234,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReference1()
         {
             using (var workspace = CreateWorkspace())
@@ -258,7 +258,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReferenceTwice()
         {
             using (var workspace = CreateWorkspace())
@@ -277,7 +277,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveP2PReference1()
         {
             using (var workspace = CreateWorkspace())
@@ -301,7 +301,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddP2PReferenceCircularity()
         {
             using (var workspace = CreateWorkspace())
@@ -320,7 +320,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveProjectWithOpenedDocuments()
         {
             using (var workspace = CreateWorkspace())
@@ -340,7 +340,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveProjectWithClosedDocuments()
         {
             using (var workspace = CreateWorkspace())
@@ -357,7 +357,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemoveOpenedDocument()
         {
             using (var workspace = CreateWorkspace())
@@ -377,7 +377,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilation()
         {
             using (var workspace = CreateWorkspace())
@@ -398,7 +398,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilationOnDependentProject()
         {
             using (var workspace = CreateWorkspace())
@@ -424,7 +424,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilationOnCrossLanguageDependentProject()
         {
             using (var workspace = CreateWorkspace())
@@ -450,8 +450,8 @@ class D { }
             }
         }
 
-        [Fact]
-        public void TestGetCompilationOnCrossLanguageDependentProjectChanged()
+        [WpfFact]
+        public async Task TestGetCompilationOnCrossLanguageDependentProjectChanged()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -486,7 +486,7 @@ class D { }
                 // this solution should have the change
                 var solutionZ = workspace.CurrentSolution;
                 var docZ = solutionZ.GetDocument(document1.Id);
-                var docZText = docZ.GetTextAsync().PumpingWaitResult();
+                var docZText = await docZ.GetTextAsync().ConfigureAwait(true);
 
                 var compilation2Z = solutionZ.GetProject(id2).GetCompilationAsync().Result;
                 var classDz = compilation2Z.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
@@ -496,7 +496,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestDependentSemanticVersionChangesWhenNotOriginallyAccessed()
         {
             using (var workspace = CreateWorkspace(disablePartialSolutions: false))
@@ -552,7 +552,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
         {
             using (var workspace = CreateWorkspace(disablePartialSolutions: false))
@@ -617,7 +617,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestOpenAndChangeDocument()
         {
             using (var workspace = CreateWorkspace())
@@ -644,8 +644,8 @@ class D { }
             }
         }
 
-        [Fact]
-        public void TestApplyChangesWithDocumentTextUpdated()
+        [WpfFact]
+        public async Task TestApplyChangesWithDocumentTextUpdated()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -660,14 +660,14 @@ class D { }
                 workspace.OnDocumentOpened(document.Id, document.GetOpenTextContainer());
 
                 // prove the document has the correct text
-                Assert.Equal(startText, workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().PumpingWaitResult().ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
                 var newSolution = oldSolution.WithDocumentText(document.Id, SourceText.From(newText));
 
                 // prove that current document text is unchanged
-                Assert.Equal(startText, workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().PumpingWaitResult().ToString());
+                Assert.Equal(startText, (await workspace.CurrentSolution.GetDocument(document.Id).GetTextAsync().ConfigureAwait(true)).ToString());
 
                 // prove buffer is unchanged too
                 Assert.Equal(startText, buffer.CurrentSnapshot.GetText());
@@ -679,7 +679,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestApplyChangesWithDocumentAdded()
         {
             using (var workspace = CreateWorkspace())
@@ -703,7 +703,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestApplyChangesWithDocumentRemoved()
         {
             using (var workspace = CreateWorkspace())
@@ -726,8 +726,8 @@ class D { }
             }
         }
 
-        [Fact]
-        public void TestDocumentEvents()
+        [WpfFact]
+        public async Task TestDocumentEvents()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -759,7 +759,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    WaitForWorkspaceOperationsToComplete(workspace);
+                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                     // Wait to receive signal that events have fired.
                     Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
@@ -777,7 +777,7 @@ class D { }
                     workspace.CloseDocument(document.Id);
 
                     // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
-                    WaitForWorkspaceOperationsToComplete(workspace);
+                    await WaitForWorkspaceOperationsToComplete(workspace).ConfigureAwait(true);
 
                     // Verifying that an event has not been called is difficult to prove.  
                     // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
@@ -792,8 +792,8 @@ class D { }
             }
         }
 
-        [Fact]
-        public void TestAdditionalFile_Properties()
+        [WpfFact]
+        public async Task TestAdditionalFile_Properties()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -814,12 +814,12 @@ class D { }
 
                 var additionalDocument = project.GetAdditionalDocument(additionalDoc.Id);
 
-                Assert.Equal("some text", additionalDocument.GetTextAsync().PumpingWaitResult().ToString());
+                Assert.Equal("some text", (await additionalDocument.GetTextAsync().ConfigureAwait(true)).ToString());
             }
         }
 
-        [Fact]
-        public void TestAdditionalFile_DocumentChanged()
+        [WpfFact]
+        public async Task TestAdditionalFile_DocumentChanged()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -834,7 +834,7 @@ class D { }
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
                 var project = workspace.CurrentSolution.Projects.Single();
-                var oldVersion = project.GetSemanticVersionAsync().PumpingWaitResult();
+                var oldVersion = await project.GetSemanticVersionAsync().ConfigureAwait(true);
 
                 // fork the solution to introduce a change.
                 var oldSolution = workspace.CurrentSolution;
@@ -847,13 +847,13 @@ class D { }
                 Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
                 // Text changes are considered top level changes and they change the project's semantic version.
-                Assert.Equal(doc.GetTextVersionAsync().PumpingWaitResult(), doc.GetTopLevelChangeTextVersionAsync().PumpingWaitResult());
-                Assert.NotEqual(oldVersion, doc.Project.GetSemanticVersionAsync().PumpingWaitResult());
+                Assert.Equal(await doc.GetTextVersionAsync().ConfigureAwait(true), await doc.GetTopLevelChangeTextVersionAsync().ConfigureAwait(true));
+                Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync().ConfigureAwait(true));
             }
         }
 
-        [Fact]
-        public void TestAdditionalFile_OpenClose()
+        [WpfFact]
+        public async Task TestAdditionalFile_OpenClose()
         {
             using (var workspace = CreateWorkspace())
             {
@@ -865,8 +865,8 @@ class D { }
                 workspace.AddTestProject(project1);
                 var buffer = additionalDoc.GetTextBuffer();
                 var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-                var text = doc.GetTextAsync(CancellationToken.None).PumpingWaitResult();
-                var version = doc.GetTextVersionAsync(CancellationToken.None).PumpingWaitResult();
+                var text = await doc.GetTextAsync(CancellationToken.None).ConfigureAwait(true);
+                var version = await doc.GetTextVersionAsync(CancellationToken.None).ConfigureAwait(true);
 
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
@@ -883,7 +883,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAdditionalFile_AddRemove()
         {
             using (var workspace = CreateWorkspace())
@@ -921,7 +921,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAdditionalFile_AddRemove_FromProject()
         {
             using (var workspace = CreateWorkspace())

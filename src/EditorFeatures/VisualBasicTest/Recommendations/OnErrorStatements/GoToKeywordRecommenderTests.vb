@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class GoToKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GoToAfterOnError()
             VerifyRecommendationsContain(<MethodBody>On Error |</MethodBody>, "GoTo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub GoToNotAfterOnErrorInLambda()
             VerifyRecommendationsAreExactly(<MethodBody>

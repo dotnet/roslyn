@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overloads Property CompilationOptions As VisualBasicCompilationOptions
 
         ''' <summary>
-        ''' Set and Get  the Visual Basic parse parse options.
+        ''' Set and Get the Visual Basic parse options.
         ''' </summary>
         ''' <returns>The currently set Visual Basic parse options.</returns>
         Public Overloads Property ParseOptions As VisualBasicParseOptions

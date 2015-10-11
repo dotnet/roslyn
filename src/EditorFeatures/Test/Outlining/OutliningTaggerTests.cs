@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 {
     public class OutliningTaggerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void CSharpOutliningTagger()
         {
             var code = new string[]
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void VisualBasicOutliningTagger()
         {
             var code = new string[]
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public void OutliningTaggerTooltipText()
         {
             var code = new string[]

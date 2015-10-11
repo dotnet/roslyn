@@ -386,7 +386,7 @@ namespace Microsoft.Cci
             int scopeRid;
             if (scopeIndex.TryGetValue(scope, out scopeRid))
             {
-                // scoep is already indexed:
+                // scope is already indexed:
                 return scopeRid;
             }
 

@@ -351,7 +351,7 @@ BC36977: Executables cannot be satellite assemblies; culture should always be em
 
     End Sub
 
-    <Fact>
+    <Fact(Skip:=("https://github.com/dotnet/roslyn/issues/5866"))>
     Public Sub CultureAttributeMismatch()
         Dim neutral As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="neutral">

@@ -993,10 +993,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' x And y is rewritten into:
             '
             ' tempX = x
-            ' [tempY = y] ' if not shortcircuiting
+            ' [tempY = y] ' if not short-circuiting
             ' If (tempX.HasValue AndAlso Not tempX.GetValueOrDefault(),
             '   False?,                             ' result based on the left operand
-            '   If ((tempY = y).HasValue,           ' if shortcircuiting, otherwise just "y.HasValue"
+            '   If ((tempY = y).HasValue,           ' if short-circuiting, otherwise just "y.HasValue"
             '       If (tempY.GetValueOrDefault(),  ' innermost If
             '           tempX,
             '           False?),
@@ -1056,7 +1056,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '       nestedIf,
                     '       Null)
                     '
-                    ' note that we use init of the Right as a target of HasValue when shortcircuiting 
+                    ' note that we use init of the Right as a target of HasValue when short-circuiting 
                     ' it will run only if we do not get result after looking at left
                     '
                     ' NOTE: when not short circuiting we use captured right and evaluate init 

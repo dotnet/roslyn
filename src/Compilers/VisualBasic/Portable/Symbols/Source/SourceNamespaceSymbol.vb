@@ -615,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
-        ''' Does this namespace have multiple different different case-sensitive spellings
+        ''' Does this namespace have multiple different case-sensitive spellings
         ''' (i.e., "Namespace FOO" and "Namespace foo". Includes parent namespace(s).
         ''' </summary>
         Friend ReadOnly Property HasMultipleSpellings As Boolean

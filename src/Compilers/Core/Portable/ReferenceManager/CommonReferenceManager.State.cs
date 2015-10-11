@@ -323,8 +323,6 @@ namespace Microsoft.CodeAnalysis
 
             // lazyCorLibrary is null if the compilation is corlib
             Debug.Assert(_lazyReferencedAssemblies.Length == 0 || _lazyCorLibraryOpt != null);
-
-            Debug.Assert(_lazyReferencedAssemblies.Length == _lazyAliasesOfReferencedAssemblies.Length);
         }
 
         [Conditional("DEBUG")]
@@ -362,6 +360,7 @@ namespace Microsoft.CodeAnalysis
 
             Debug.Assert(referencedModules.Length == referencedModulesReferences.Length);
             Debug.Assert(referencedModules.Length == referencedModulesMap.Count);
+            Debug.Assert(referencedAssemblies.Length == aliasesOfReferencedAssemblies.Length);
 
             _lazyReferencedAssembliesMap = referencedAssembliesMap;
             _lazyReferencedModuleIndexMap = referencedModulesMap;
@@ -379,6 +378,45 @@ namespace Microsoft.CodeAnalysis
 
             // once we flip this bit the state of the manager is immutable and available to any readers:
             Interlocked.Exchange(ref _isBound, 1);
+        }
+
+        protected static void BuildReferencedAssembliesAndModulesMaps(
+            ImmutableArray<MetadataReference> references,
+            ImmutableArray<ResolvedReference> referenceMap,
+            int referencedModuleCount,
+            out Dictionary<MetadataReference, int> referencedAssembliesMap,
+            out Dictionary<MetadataReference, int> referencedModulesMap,
+            out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies)
+        {
+            referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length);
+            referencedModulesMap = new Dictionary<MetadataReference, int>(referencedModuleCount);
+            var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referenceMap.Length - referencedModuleCount);
+
+            for (int i = 0; i < referenceMap.Length; i++)
+            {
+                if (referenceMap[i].IsSkipped)
+                {
+                    continue;
+                }
+
+                if (referenceMap[i].Kind == MetadataImageKind.Module)
+                {
+                    // add 1 for the manifest module:
+                    int moduleIndex = 1 + referenceMap[i].Index;
+                    referencedModulesMap.Add(references[i], moduleIndex);
+                }
+                else
+                {
+                    // index into assembly data array
+                    int assemblyIndex = referenceMap[i].Index;
+                    Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
+
+                    referencedAssembliesMap.Add(references[i], assemblyIndex);
+                    aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].Aliases);
+                }
+            }
+
+            aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
         }
 
         #region Compilation APIs Implementation

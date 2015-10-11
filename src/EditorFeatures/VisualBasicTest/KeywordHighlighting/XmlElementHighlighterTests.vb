@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New XmlElementHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlElement1()
             Test(<Text><![CDATA[
 Class C
@@ -20,7 +20,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlElement2()
             Test(<Text><![CDATA[
 Class C
@@ -30,7 +30,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlElement3()
             Test(<Text><![CDATA[
 Class C
@@ -40,7 +40,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample2_1()
             Test(<Text><![CDATA[
 Class C
@@ -57,7 +57,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample2_2()
             Test(<Text><![CDATA[
 Class C
@@ -74,7 +74,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample4_1()
             Test(<Text><![CDATA[
 Class C
@@ -91,7 +91,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample4_2()
             Test(<Text><![CDATA[
 Class C
@@ -108,7 +108,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample4_3()
             Test(<Text><![CDATA[
 Class C
@@ -125,7 +125,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestXmlLiteralSample4_4()
             Test(<Text><![CDATA[
 Class C

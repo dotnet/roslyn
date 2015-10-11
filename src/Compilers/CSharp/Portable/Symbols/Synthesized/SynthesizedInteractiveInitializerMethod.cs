@@ -230,23 +230,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out TypeSymbol resultType,
             out TypeSymbol returnType)
         {
-            var submissionReturnType = compilation.SubmissionReturnType;
-            if (submissionReturnType == null)
+            var submissionReturnType = compilation.SubmissionReturnType ?? typeof(object);
+            var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
+            if (useSiteDiagnostic != null)
             {
-                resultType = null;
-                returnType = compilation.GetSpecialType(SpecialType.System_Void);
+                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton);
             }
-            else
-            {
-                var taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
-                var useSiteDiagnostic = taskT.GetUseSiteDiagnostic();
-                if (useSiteDiagnostic != null)
-                {
-                    diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton);
-                }
-                resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics);
-                returnType = taskT.Construct(resultType);
-            }
+            resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics);
+            returnType = taskT.Construct(resultType);
         }
     }
 }

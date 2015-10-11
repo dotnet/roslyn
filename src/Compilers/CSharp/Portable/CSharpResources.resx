@@ -2139,7 +2139,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
-    <value>Auto-implemented property property '{0}' must be fully assigned before control is returned to the caller.</value>
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
@@ -3529,6 +3529,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   </data>
   <data name="ERR_BadAwaitInLock" xml:space="preserve">
     <value>Cannot await in the body of a lock statement</value>
+  </data>
+  <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
+    <value>The 'await' operator cannot be used in a static script variable initializer.</value>
   </data>
   <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
     <value>Cannot await in an unsafe context</value>

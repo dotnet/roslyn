@@ -4,13 +4,14 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class CollectionExtensionsTest
     {
-        [Fact]
+        [WpfFact]
         public void PushReverse1()
         {
             var stack = new Stack<int>();
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(0, stack.Count);
         }
 
-        [Fact]
+        [WpfFact]
         public void PushReverse2()
         {
             var stack = new Stack<int>();
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(0, stack.Count);
         }
 
-        [Fact]
+        [WpfFact]
         public void PushReverse3()
         {
             var stack = new Stack<int>();

@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Public Class ChangeToAsyncTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)>
         Public Sub CantAwaitAsyncSub1()
             Dim initial =
     <ModuleDeclaration>

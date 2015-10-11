@@ -4,7 +4,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
 
         <WorkItem(541928)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInInto1()
             Dim input =
 <Workspace>
@@ -28,7 +28,7 @@ class C
         End Sub
 
         <WorkItem(541928)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInInto2()
             Dim input =
 <Workspace>
@@ -52,7 +52,7 @@ class C
         End Sub
 
         <WorkItem(542161)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInSubmission1()
             Dim input =
 <Workspace>
@@ -66,7 +66,7 @@ var q = from $${|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|x|];
         End Sub
 
         <WorkItem(542161)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInSubmission2()
             Dim input =
 <Workspace>
@@ -80,7 +80,7 @@ var q = from {|Definition:x|} in new int[] { 1, 2, 3, 4 } select [|$$x|];
         End Sub
 
         <WorkItem(542161)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInFieldInitializer1()
             Dim input =
 <Workspace>
@@ -98,7 +98,7 @@ class C
         End Sub
 
         <WorkItem(542161)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpRangeVariableInFieldInitializer2()
             Dim input =
 <Workspace>
@@ -116,7 +116,7 @@ class C
         End Sub
 
         <WorkItem(542509)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestVisualBasicTrivialSelect1()
             Dim input =
 <Workspace>
@@ -138,7 +138,7 @@ End Module
         End Sub
 
         <WorkItem(542509)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestVisualBasicTrivialSelect2()
             Dim input =
 <Workspace>
@@ -160,7 +160,7 @@ End Module
         End Sub
 
         <WorkItem(545163)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestVisualBasicLetClause1()
             Dim input =
 <Workspace>
@@ -179,7 +179,7 @@ End Module
         End Sub
 
         <WorkItem(545163)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestVisualBasicLetClause2()
             Dim input =
 <Workspace>
@@ -198,7 +198,7 @@ End Module
         End Sub
 
         <WorkItem(628189)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestVisualBasicMultipleAggregateFunctions()
             Dim input =
 <Workspace>

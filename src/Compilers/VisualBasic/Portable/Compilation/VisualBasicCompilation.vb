@@ -1981,7 +1981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Iterator Function FilterDiagnosticsByLocation(diagnostics As IEnumerable(Of Diagnostic), tree As SyntaxTree, filterSpanWithinTree As TextSpan?) As IEnumerable(Of Diagnostic)
             For Each diagnostic In diagnostics
-                If diagnostic.ContainsLocation(tree, filterSpanWithinTree) Then
+                If diagnostic.HasIntersectingLocation(tree, filterSpanWithinTree) Then
                     Yield diagnostic
                 End If
             Next
@@ -2006,7 +2006,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(syntaxDiagnostics)
             End If
 
-            ' Add declaring errors errors
+            ' Add declaring errors
             If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
                 Dim declarationDiags = DirectCast(SourceModule, SourceModuleSymbol).GetDeclarationErrorsInTree(tree, filterSpanWithinTree, AddressOf FilterDiagnosticsByLocation, cancellationToken)
                 Dim filteredDiags = FilterDiagnosticsByLocation(declarationDiags, tree, filterSpanWithinTree)

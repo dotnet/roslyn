@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 </text>.NormalizedValue
         Private Shared s_baseIndentationOfNugget As Integer = 8
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EmptyFile()
             AssertSmartIndent(
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
                 expectedIndentation:=0)
         End Sub
 
-        <Fact(Skip:="674611")>
+        <WpfFact(Skip:="674611")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
         <WorkItem(674611)>
@@ -61,7 +61,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
         Public Sub AtEndOfSpanInNugget()
@@ -80,7 +80,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
         Public Sub InsideMiddleOfSpanInNugget()
@@ -99,7 +99,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
         Public Sub AtContinuationAtStartOfNugget()
@@ -122,7 +122,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(529886)>
         Public Sub AtContinuationInsideOfNugget()
@@ -146,7 +146,7 @@ End Module
 
 #Region "Non-line-continued constructs"
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BadLineNumberLabelInFile()
             AssertSmartIndent(
@@ -155,7 +155,7 @@ End Module
                 expectedIndentation:=0)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImportStatement()
             Dim code = <Code>Import System
@@ -167,7 +167,7 @@ End Module
                 expectedIndentation:=0)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Comments()
             Dim code = <Code>        ' comments
@@ -179,7 +179,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XmlComments()
             Dim code = <Code>        ''' Xml comments
@@ -191,7 +191,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ClassStatement()
             Dim code = <Code>Namespace NS
@@ -204,7 +204,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ClassStatementWithInherits()
             Dim code = <Code>Namespace NS
@@ -218,7 +218,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndClassStatement()
             Dim code = <Code>Namespace NS
@@ -233,7 +233,7 @@ End Module
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ClassStatementWithInheritsImplementsAndStatementSeparators()
             Dim code = <Code>Namespace NS
@@ -247,7 +247,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ClassStatementWithInheritsImplementsAndStatementSeparators2()
             Dim code = <Code>Namespace NS
@@ -260,7 +260,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub InterfaceStatement()
             Dim code = <Code>Namespace NS
@@ -273,7 +273,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndInterfaceStatement()
             Dim code = <Code>Namespace NS
@@ -288,7 +288,7 @@ End Module
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub InterfaceStatementWithInherits()
             Dim code = <Code>Namespace NS
@@ -302,7 +302,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub InterfaceStatementWithInheritsOnTheSameLine()
             Dim code = <Code>Namespace NS
@@ -315,7 +315,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EnumStatement()
             Dim code = <Code>Namespace NS
@@ -328,7 +328,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndEnumStatement()
             Dim code = <Code>Namespace NS
@@ -343,7 +343,7 @@ End Module
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EnumMembers()
             Dim code = <Code>Namespace NS
@@ -357,7 +357,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub StructureStatement()
             Dim code = <Code>Namespace NS
@@ -370,7 +370,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndStructureStatement()
             Dim code = <Code>Namespace NS
@@ -385,7 +385,7 @@ End Module
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub NamespaceStatement()
             Dim code = <Code>Namespace NS
@@ -397,7 +397,7 @@ End Module
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndNamespaceStatement()
             Dim code = <Code>Namespace NS
@@ -413,7 +413,7 @@ End Namespace
                 expectedIndentation:=0)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ModuleStatement()
             Dim code = <Code>Namespace NS
@@ -426,7 +426,7 @@ End Namespace
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndModuleStatement()
             Dim code = <Code>Namespace NS
@@ -442,7 +442,7 @@ End Namespace
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SubStatement()
             Dim code = <Code>Namespace NS
@@ -456,7 +456,7 @@ End Namespace
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SubStatementWithParametersOnDifferentLines()
             Dim code = <Code>Class C
@@ -473,7 +473,7 @@ End Class</Code>.Value
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SingleLineIfStatement()
             Dim code = <Code>Namespace NS
@@ -488,7 +488,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub IfStatement()
             Dim code = <Code>Namespace NS
@@ -503,7 +503,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ElseStatement()
             Dim code = <Code>Namespace NS
@@ -520,7 +520,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndIfStatement()
             Dim code = <Code>Namespace NS
@@ -539,7 +539,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub LineContinuedIfStatement()
             Dim code = <Code>Class C
@@ -554,7 +554,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub DoStatement()
             Dim code = <Code>Namespace NS
@@ -569,7 +569,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndDoStatement()
             Dim code = <Code>Namespace NS
@@ -586,7 +586,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ForStatement()
             Dim code = <Code>Namespace NS
@@ -601,7 +601,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ForEachStatement()
             Dim code = <Code>Namespace NS
@@ -616,7 +616,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndForStatement()
             Dim code = <Code>Namespace NS
@@ -633,7 +633,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub OperatorStatement()
             Dim code = <Code>Namespace NS
@@ -647,7 +647,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SelectStatement()
             Dim code = <Code>Namespace NS
@@ -662,7 +662,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SelectCaseStatement()
             Dim code = <Code>Namespace NS
@@ -677,7 +677,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub CaseStatement()
             Dim code = <Code>Namespace NS
@@ -693,7 +693,7 @@ End Class</Code>.Value
                 expectedIndentation:=20)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub CaseStatementWithCode()
             Dim code = <Code>Namespace NS
@@ -710,7 +710,7 @@ End Class</Code>.Value
                 expectedIndentation:=20)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub CaseElseStatement()
             Dim code = <Code>Namespace NS
@@ -728,7 +728,7 @@ End Class</Code>.Value
                 expectedIndentation:=20)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndSelectStatement()
             Dim code = <Code>Namespace NS
@@ -746,7 +746,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SyncLockStatement()
             Dim code = <Code>Namespace NS
@@ -761,7 +761,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndSyncLockStatement()
             Dim code = <Code>Namespace NS
@@ -778,7 +778,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TryStatement()
             Dim code = <Code>Namespace NS
@@ -793,7 +793,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub CatchStatement()
             Dim code = <Code>Namespace NS
@@ -809,7 +809,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub FinallyStatement()
             Dim code = <Code>Namespace NS
@@ -826,7 +826,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndTryStatement()
             Dim code = <Code>Namespace NS
@@ -845,7 +845,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub UsingStatement()
             Dim code = <code>Namespace NS
@@ -860,7 +860,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub WhileStatement()
             Dim code = <Code>Namespace NS
@@ -875,7 +875,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndWhileStatement()
             Dim code = <Code>Namespace NS
@@ -893,7 +893,7 @@ End Class</Code>.Value
         End Sub
 
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub WithStatement()
             Dim code = <Code>Namespace NS
@@ -908,7 +908,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub EndWithStatement()
             Dim code = <Code>Namespace NS
@@ -925,7 +925,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PropertyStatementWithParameter()
             Dim code = <Code>Namespace NS
@@ -939,7 +939,7 @@ End Class</Code>.Value
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PropertyStatementWithoutParens()
             Dim code = <Code>Namespace NS
@@ -953,7 +953,7 @@ End Class</Code>.Value
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PropertyStatementWithParens()
             Dim code = <Code>Namespace NS
@@ -967,7 +967,7 @@ End Class</Code>.Value
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PropertyStatementWithGet()
             Dim code = <Code>Namespace NS
@@ -982,7 +982,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PropertyStatementWithSet()
             Dim code = <Code>Namespace NS
@@ -1000,7 +1000,7 @@ End Class</Code>.Value
         End Sub
 
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         <WorkItem(536466)>
         Public Sub XmlComments2()
@@ -1014,7 +1014,7 @@ End Class</Code>.Value
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         <WorkItem(536545)>
         Public Sub XmlComments3()
@@ -1032,7 +1032,7 @@ End Class</Code>.Value
 #End Region
 
 #Region "Lambdas"
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SingleLineFunctionLambda()
             Dim code = <Code>Namespace NS
@@ -1047,7 +1047,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MultiLineFunctionLambda()
             Dim code = <Code>Namespace NS
@@ -1062,7 +1062,7 @@ End Class</Code>.Value
                 expectedIndentation:=22)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MultiLineFunctionLambdaWithComment()
             Dim code = <Code>Namespace NS
@@ -1077,7 +1077,7 @@ End Class</Code>.Value
                 expectedIndentation:=22)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SingleLineSubLambda()
             Dim code = <Code>Namespace NS
@@ -1092,7 +1092,7 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SingleLineSubLambda2()
             Dim code = <Code>Namespace NS
@@ -1107,7 +1107,7 @@ End Class</Code>.Value
                 expectedIndentation:=26)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MultiLineSubLambda()
             Dim code = <Code>Namespace NS
@@ -1122,7 +1122,7 @@ End Class</Code>.Value
                 expectedIndentation:=22)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MultiLineSubLambdaWithComment()
             Dim code = <Code>Namespace NS
@@ -1141,7 +1141,7 @@ End Class</Code>.Value
 
 #Region "LINQ"
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub QueryExpressionOnSingleLineAmbiguous()
             Dim code = <Code>Class C
@@ -1155,7 +1155,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub QueryExpressionOnMultipleLinesAmbiguous()
             Dim code = <Code>Class C
@@ -1170,7 +1170,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub QueryExpressionOnMultipleLinesAmbiguous2()
             Dim code = <Code>Class C
@@ -1186,7 +1186,7 @@ End Class</Code>.Value
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538933)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub QueryExpressionFollowedByBlankLine()
@@ -1206,7 +1206,7 @@ End Class</Code>.Value
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub QueryExpressionWithNestedQueryExpressionOnNewLine()
             Dim code = <Code>Class C
@@ -1221,7 +1221,7 @@ End Class</Code>.Value
                 expectedIndentation:=20)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub QueryExpressionWithNestedQueryExpressionOnSameLine()
             Dim code = <Code>Class C
@@ -1235,7 +1235,7 @@ End Class</Code>.Value
                 expectedIndentation:=26)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub QueryExpressionWithNestedQueryExpressionWithMultipleLines()
             Dim code = <Code>Class C
@@ -1251,7 +1251,7 @@ End Class</Code>.Value
         End Sub
 
         <WorkItem(536762)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BugFix1417_2()
             Dim code = <Code>Sub Main()
@@ -1281,7 +1281,7 @@ End Class</Code>.Value
 #End Region
 
 #Region "Implicit line-continuation"
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationAfterAttributeInNamespace()
             Dim code = "Namespace foo" & vbCrLf &
@@ -1294,7 +1294,7 @@ End Class</Code>.Value
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationWithMultipleAttributes()
             Dim code = "Namespace foo" & vbCrLf &
@@ -1308,7 +1308,7 @@ End Class</Code>.Value
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationAfterAttributeInClass()
             Dim code = "Namespace foo" & vbCrLf &
@@ -1322,7 +1322,7 @@ End Class</Code>.Value
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationMethodParameters()
             Dim code = <Code>Class C
@@ -1337,7 +1337,7 @@ End Class</Code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationMethodArguments()
             Dim code = <Code>Class C
@@ -1353,7 +1353,7 @@ End Class</Code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationExpression()
             Dim code = <Code>Class C
@@ -1368,7 +1368,7 @@ End Class</Code>.Value
         End Sub
 
         <WorkItem(539456)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationExpression1()
             Dim code = <Code>Class C
@@ -1387,7 +1387,7 @@ End Class</Code>.Value
         End Sub
 
         <WorkItem(540634)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ImplicitLineContinuationExpression2()
             Dim code = <Code>Module Program
@@ -1407,7 +1407,7 @@ End Module
 #End Region
 
 #Region "Explicit line-continuation"
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ExplicitLineContinuationInExpression()
             Dim code = <Code>Class C
@@ -1421,7 +1421,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MultipleExplicitLineContinuationsInExpression()
             Dim code = <Code>Class C
@@ -1437,7 +1437,7 @@ End Module
                 expectedIndentation:=24)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ExplicitLineContinuationInFieldDeclaration()
             Dim code = <Code>Class C
@@ -1450,7 +1450,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ExplicitLineContinuationAfterAttributeInNamespace()
             Dim code = "Namespace foo" & vbCrLf &
@@ -1463,7 +1463,7 @@ End Module
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ExplicitLineContinuationWithMultipleAttributes()
             Dim code = "Namespace foo" & vbCrLf &
@@ -1477,7 +1477,7 @@ End Module
                 expectedIndentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub ExplicitLineContinuationAfterAttributeInClass()
             Dim code = "Namespace foo" & vbCrLf &
@@ -1495,7 +1495,7 @@ End Module
 
 #Region "Statement Separators"
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MultipleStatementsWithStatementSeparators()
             Dim code = <Code>Namespace Foo
@@ -1510,7 +1510,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MultipleStatementsIncludingMultilineLambdaWithStatementSeparators()
             Dim code = <Code>Namespace Foo
@@ -1531,7 +1531,7 @@ End Module
 
 #Region "Preprocessor directives"
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PreprocessorConstWithoutAssignment()
@@ -1547,7 +1547,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PreprocessorConstWithAssignment()
@@ -1563,7 +1563,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PreprocessorIf()
@@ -1579,7 +1579,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PreprocessorElseIf()
@@ -1596,7 +1596,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PreprocessorElse()
@@ -1613,7 +1613,7 @@ End Module
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538937)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub PreprocessorEndIf()
@@ -1633,7 +1633,7 @@ End Module
 #End Region
 
 #Region "XML Literals"
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLLiteralOpenTag()
             Dim code = "Class C" & vbCrLf &
@@ -1647,7 +1647,7 @@ End Module
                 expectedIndentation:=20)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLLiteralNestOpenTag()
             Dim code = "Class C" & vbCrLf &
@@ -1662,7 +1662,7 @@ End Module
                 expectedIndentation:=24)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLLiteralCloseTag()
             Dim code = "Class C" & vbCrLf &
@@ -1678,7 +1678,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538938)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLLiteralCloseTagInXML()
@@ -1695,7 +1695,7 @@ End Module
                 expectedIndentation:=20)
         End Sub
 
-        <Fact(Skip:="Bug 816976")>
+        <WpfFact(Skip:="Bug 816976")>
         <WorkItem(816976)>
         <WorkItem(538938)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -1713,7 +1713,7 @@ End Module
                 expectedIndentation:=24)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLExpressionHoleWithMultilineLambda()
             Dim code = "Class C" & vbCrLf &
@@ -1728,7 +1728,7 @@ End Module
                 expectedIndentation:=16)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(538938)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLExpressionHoleClosed()
@@ -1744,7 +1744,7 @@ End Module
                 expectedIndentation:=20)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLExpressionHoleWithXMLInIt()
             Dim code = "Class C" & vbCrLf &
@@ -1759,7 +1759,7 @@ End Module
                 expectedIndentation:=28)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLLiteralText()
             Dim code = "Class C" & vbCrLf &
@@ -1774,7 +1774,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLIndentOnBlankLine()
             Dim code = "Class C" & vbCrLf &
@@ -1790,7 +1790,7 @@ End Module
         End Sub
 
         <WorkItem(816976)>
-        <Fact(Skip:="Bug 816976")>
+        <WpfFact(Skip:="Bug 816976")>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub XMLIndentOnLineContinuedXMLExpressionHole()
             Dim code = "Class C" & vbCrLf &
@@ -1809,7 +1809,7 @@ End Module
 #Region "Bugs"
 
         <WorkItem(538771)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BugFix4481()
             Dim code = <Code>_
@@ -1822,7 +1822,7 @@ End Module
         End Sub
 
         <WorkItem(538771)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BugFix4481_2()
             Dim code = <Code>  _
@@ -1835,7 +1835,7 @@ End Module
         End Sub
 
         <WorkItem(539553)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug5559()
             Dim code = <Code>Public Class Class1
@@ -1856,7 +1856,7 @@ End Class</Code>.Value
         End Sub
 
         <WorkItem(539575)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug5586()
             Dim code = <Code>Module Program
@@ -1873,7 +1873,7 @@ End Module</Code>.Value
         End Sub
 
         <WorkItem(539609)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug5629()
             Dim code = <Code>Module Module1
@@ -1892,7 +1892,7 @@ End Module</Code>.Value
         End Sub
 
         <WorkItem(539686)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug5730()
             Dim code = <Code>Module Program
@@ -1910,7 +1910,7 @@ End Module
         End Sub
 
         <WorkItem(539686)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug5730_1()
             Dim code = <Code>Module Program
@@ -1927,7 +1927,7 @@ End Module</Code>.Value
         End Sub
 
         <WorkItem(539639)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug5666()
             Dim code = <Code>Module Program
@@ -1947,7 +1947,7 @@ End Module
         End Sub
 
         <WorkItem(539453)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug5430_1()
             Dim code = My.Resources.XmlLiterals.IndentationTest2
@@ -1959,7 +1959,7 @@ End Module
         End Sub
 
         <WorkItem(540198)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Bug6374()
             Dim code = <text>Imports System
@@ -1981,7 +1981,7 @@ End Module</text>.Value
         End Sub
 
         <WorkItem(542240)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub MissingEndStatement()
             Dim code = <text>Module Module1
@@ -2000,7 +2000,7 @@ End Module</text>.Value
         End Sub
 #End Region
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndenterConstructorThrows1()
             AssertEx.Throws(Of ArgumentNullException)(
@@ -2008,7 +2008,7 @@ End Module</text>.Value
                 allowDerived:=True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Parameter1()
             Dim code = <code>Class CL
@@ -2023,7 +2023,7 @@ End Class</code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Argument()
             Dim code = <code>Class CL
@@ -2039,7 +2039,7 @@ End Class</code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Parameter_LineContinuation()
             Dim code = <code>Class CL
@@ -2054,7 +2054,7 @@ End Class</code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Parameter_LineContinuation2()
             Dim code = <code>Class CL
@@ -2069,7 +2069,7 @@ End Class</code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Parameter2()
             Dim code = <code>Class CL
@@ -2084,7 +2084,7 @@ End Class</code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TypeParameter()
             Dim code = <code>Class CL
@@ -2099,7 +2099,7 @@ End Class</code>.Value
                 expectedIndentation:=19)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TypeParameter2()
             Dim code = <code>Class CL
@@ -2114,7 +2114,7 @@ End Class</code>.Value
                 expectedIndentation:=19)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TypeArgument()
             Dim code = <code>Class CL
@@ -2130,7 +2130,7 @@ End Class</code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TypeArgument2()
             Dim code = <code>Class CL
@@ -2146,7 +2146,7 @@ End Class</code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Argument_ImplicitLineContinuation()
             Dim code = <code>Class CL
@@ -2162,7 +2162,7 @@ End Class</code>.Value
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub Argument_ImplicitLineContinuation2()
             Dim code = <code>Class CL
@@ -2178,7 +2178,7 @@ End Class</code>.Value
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub StatementAfterLabel()
             Dim code = <code>Module Module1
@@ -2195,7 +2195,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub AfterStatementInNugget()
             Dim markup = <code>Module Module1
@@ -2215,7 +2215,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub AfterStatementOnFirstLineOfNugget()
             Dim markup = <code>Module Module1
@@ -2244,7 +2244,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub InQueryInNugget()
             Dim markup = <code>Module Module1
@@ -2266,7 +2266,7 @@ End Module
         End Sub
 
         <WorkItem(574314)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub InQueryOnFirstLineOfNugget()
             Dim markup = <code>Module Module1
     Sub Main(args As String())
@@ -2284,7 +2284,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 2 + "Dim query = ".Length)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub InNestedBlockInNugget()
             Dim markup = <code>Module Module1
@@ -2304,7 +2304,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub InNestedBlockStartingOnFirstLineOfNugget()
             Dim markup = <code>Module Module1
@@ -2323,7 +2323,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 8)
         End Sub
 
-        <Fact, WorkItem(646663)>
+        <WpfFact, WorkItem(646663)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub InEmptyNugget()
             Dim markup = <code>Module Module1
@@ -2341,7 +2341,7 @@ End Module
                 expectedIndentation:=s_baseIndentationOfNugget + 4)
         End Sub
 
-        <Fact, WorkItem(1190278)>
+        <WpfFact, WorkItem(1190278)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB()
             Dim markup = <code>Option Strict Off
@@ -2454,7 +2454,7 @@ End Namespace
                 expectedIndentation:=15)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BlockIndentation1()
             Dim code = <code>Class C
@@ -2468,7 +2468,7 @@ End Namespace
                 indentStyle:=FormattingOptions.IndentStyle.Block)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BlockIndentation2()
             Dim code = <code>Class C
@@ -2483,7 +2483,7 @@ End Namespace
                 indentStyle:=FormattingOptions.IndentStyle.Block)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub NoIndentation()
             Dim code = <code>Class C
@@ -2498,7 +2498,7 @@ End Namespace
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(809354)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub CaseStatement1()
@@ -2525,7 +2525,7 @@ End Module
                 expectedIndentation:=17)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub NotLineContinuationIndentation_Empty()
@@ -2548,7 +2548,7 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub LineContinuationIndentation()
@@ -2572,7 +2572,7 @@ End Class
                 expectedIndentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub NotLineContinuationIndentation_ObjectMember()
@@ -2596,7 +2596,7 @@ End Class
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub NotLineContinuationIndentation_ObjectCollection()
@@ -2615,7 +2615,7 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1082028)>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub NotLineContinuationIndentation_Collection()
@@ -2635,7 +2635,7 @@ End Module
         End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentInsideInterpolatedMultiLineString_0()
             Dim code = <code>Module Module1
     Sub Main()
@@ -2652,7 +2652,7 @@ End Module
         End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentInsideInterpolatedMultiLineString_1()
             Dim code = <code>Module Module1
     Sub Main()
@@ -2669,7 +2669,7 @@ End Module
         End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentInsideInterpolatedMultiLineString_2()
             Dim code = <code>Module Module1
     Sub Main()
@@ -2686,7 +2686,7 @@ End Module
         End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentInsideInterpolatedMultiLineString_3()
             Dim code = <code>Module Module1
     Sub Main()
@@ -2703,7 +2703,7 @@ End Module
         End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentInsideInterpolatedMultiLineString_4()
             Dim code = <code>Module Module1
     Sub Main()
@@ -2720,7 +2720,7 @@ End Module
         End Sub
 
         <WorkItem(2231, "https://github.com/dotnet/roslyn/issues/2231")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentInsideMultiLineString()
             Dim code = <code>Module Module1
     Sub Main()
@@ -2737,7 +2737,7 @@ End Module
         End Sub
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentAtCaseBlockEnd()
             Dim code = <code>Class Program
     Public Sub M()
@@ -2759,7 +2759,7 @@ End Class
         End Sub
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentAtCaseBlockEndComment()
             Dim code = <code>Class Program
     Public Sub M()
@@ -2782,7 +2782,7 @@ End Class
         End Sub
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentAtCaseBlockInbetweenComments()
             Dim code = <code>Class Program
     Public Sub M()
@@ -2806,7 +2806,7 @@ End Class
         End Sub
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
-        <Fact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub SmartIndentAtCaseBlockEndUntabbedComment()
             Dim code = <code>Class Program
     Public Sub M()
@@ -2874,7 +2874,7 @@ End Class
                 Dim x = 0
             End If
 
-            Assert.Equal(expectedIndentation, actualIndentation.Value)
+            Assert.Equal(Of Integer)(expectedIndentation.Value, actualIndentation.Value)
         End Sub
 
         ''' <param name="indentationLine">0-based. The line number in code to get indentation for.</param>
@@ -2913,7 +2913,7 @@ End Class
                     Dim actualIndentation = indenter.GetDesiredIndentation(indentationLineFromBuffer)
 
                     If expectedIndentation.HasValue Then
-                        Assert.Equal(expectedIndentation, actualIndentation.Value)
+                        Assert.Equal(Of Integer)(expectedIndentation.Value, actualIndentation.Value)
                     Else
                         Assert.Null(actualIndentation)
                     End If

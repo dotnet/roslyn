@@ -29,14 +29,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.De
         End Sub
 
         <WorkItem(530100)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AccessibilityModifiers()
             VerifyContains("Public", "Friend")
             VerifyMissing("Protected", "Private", "Protected Friend")
         End Sub
 
         <WorkItem(530100)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ClassModifiers()
             VerifyContains("MustInherit", "NotInheritable", "Partial")
         End Sub

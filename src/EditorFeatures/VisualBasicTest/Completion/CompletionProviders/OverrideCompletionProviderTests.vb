@@ -11,13 +11,17 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Completio
 Public Class OverrideCompletionProviderTests
     Inherits AbstractVisualBasicCompletionProviderTests
 
+    Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+        MyBase.New(workspaceFixture)
+    End Sub
+
     Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
         Return New OverrideCompletionProvider(TestWaitIndicator.Default)
     End Function
 
 #Region "CompletionItem tests"
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NotOfferedBaseClassMember()
         Dim text = <a>MustInherit Class Base
     Public MustOverride Sub Foo()
@@ -37,7 +41,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "Foo()", "Sub Base.Foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub IntermediateClassOverriddenMember()
         Dim text = <a>MustInherit Class Base
     Public MustOverride Sub Foo()
@@ -58,7 +62,7 @@ End Class</a>
     End Sub
 
     <WorkItem(543807)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub HideFinalize()
         Dim text = <a>Class foo
     Overrides $$
@@ -68,7 +72,7 @@ End Class</a>
     End Sub
 
     <WorkItem(543807)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ShowShadowingFinalize()
         Dim text = <a>Class foo
     Overridable Shadows Sub Finalize()
@@ -85,7 +89,7 @@ End class</a>
     End Sub
 
     <WorkItem(543806)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ShowObjectOverrides()
         Dim text = <a>Class foo
     Overrides $$
@@ -96,7 +100,7 @@ End Class</a>
         VerifyItemExists(text.Value, "GetHashCode()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub InheritedOverridableSub()
         Dim text = <a>Public Class a
     Public Overridable Sub foo()
@@ -111,7 +115,7 @@ End Class</a>
         VerifyItemExists(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub InheritedOverridableFunction()
         Dim text = <a>Public Class a
     Public Overridable Function foo() As Integer
@@ -127,7 +131,7 @@ End Class</a>
         VerifyItemExists(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub InheritedMustOverrideFunction()
         Dim text = <a>Public Class a
     Public MustOverride Sub foo()
@@ -142,7 +146,7 @@ End Class</a>
         VerifyItemExists(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub MatchSub()
         Dim text = <a>Public Class a
     Public Overridable Sub foo()
@@ -162,7 +166,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "bar()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub MatchFunction()
         Dim text = <a>Public Class a
     Public Overridable Sub foo()
@@ -182,7 +186,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub DontFilterIfNothingMatchesReturnTypeVoidness()
         Dim text = <a>MustInherit Class Base
     MustOverride Function Foo() As String
@@ -200,7 +204,7 @@ End Class</a>
         VerifyItemExists(text.Value, "Foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NotAlreadyImplemented()
         Dim text = <a>Public Class a
     Public Overridable Sub foo()
@@ -219,7 +223,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NotShowNotInheritable()
         Dim text = <a>Public Class a
     Public NotInheritable Sub foo()
@@ -235,7 +239,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NotShowNotOverridable()
         Dim text = <a>Public Class a
     Public Sub foo()
@@ -251,7 +255,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NotIfTextAfterPosition()
         Dim text = <a>Public Class a
     Public Overridable Function foo() As Integer
@@ -267,7 +271,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub NotIfDeclaringShared()
         Dim text = <a>Public Class a
     Public Overridable Function foo() As Integer
@@ -283,7 +287,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "foo()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub SuggestProperty()
         Dim text = <a>Public Class a
     Public Overridable Property foo As String
@@ -297,7 +301,7 @@ End Class</a>
         VerifyItemExists(text.Value, "foo")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ShowAllAccessibilitiesIfNoneTyped()
         Dim text = <a>Public Class a
     Public Overridable Sub r1()
@@ -321,7 +325,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "s1()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub FilterPublic()
         Dim text = <a>Public Class a
     Public Overridable Sub r1()
@@ -345,7 +349,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "u1()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub FilterProtected()
         Dim text = <a>Public Class a
     Public Overridable Sub r1()
@@ -369,7 +373,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "u1()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub FilterFriend()
         Dim text = <a>Public Class a
     Public Overridable Sub r1()
@@ -393,7 +397,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "t1()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub FilterProtectedFriend()
         Dim text = <a>Public Class a
     Public Overridable Sub r1()
@@ -420,7 +424,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "t1()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub GenericTypeNameSubstitutedForGenericInDerivedClass1()
         Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
@@ -435,7 +439,7 @@ End Class</a>
         VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub GenericTypeNameSubstitutedForGenericInDerivedClass2()
         Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
@@ -450,7 +454,7 @@ End Class</a>
         VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub GenericTypeNameSubstitutedForGenericInDerivedClass3()
         Dim markup = <a>Public MustInherit Class Base(Of T, S)
     Public MustOverride Sub Foo(t As T, s As S)
@@ -465,7 +469,7 @@ End Class</a>
         VerifyItemIsAbsent(markup.Value, "Foo(t As T, s As S)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub GenericTypeNameSubstitutedForNonGenericInDerivedClass1()
         Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
@@ -480,7 +484,7 @@ End Class</a>
         VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub GenericTypeNameSubstitutedForNonGenericInDerivedClass2()
         Dim markup = <a>Public MustInherit Class Base(Of T)
     Public MustOverride Sub Foo(t As T)
@@ -495,7 +499,7 @@ End Class</a>
         VerifyItemIsAbsent(markup.Value, "Foo(t As T)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub GenericTypeNameSubstitutedForNonGenericInDerivedClass3()
         Dim markup = <a>Imports System
 
@@ -513,7 +517,7 @@ End Class</a>
     End Sub
 
     <WorkItem(529714)>
-    <Fact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub GenericMethodTypeParametersRenamed()
         Dim text = <a>Class CFoo
     Overridable Function Something(Of X)(arg As X) As X
@@ -530,7 +534,7 @@ End Class</a>
         VerifyItemIsAbsent(text.Value, "Something(Of X)(arg As X)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ParameterTypeSimplified()
         Dim text = <a>Imports System
 
@@ -548,7 +552,7 @@ End Class</a>
         VerifyItemExists(text.Value, "foo(e As Exception)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub EscapedMethodNameInIntelliSenseList()
         Dim markup = <a>Class CBase
     Public Overridable Sub [Class]()
@@ -568,7 +572,7 @@ End Class</a>.Value
         BaseVerifyWorker(code, position, "[Class]()", "Sub CBase.Class()", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub EscapedPropertyNameInIntelliSenseList()
         Dim markup = <a>Class CBase
     Public Overridable Property [Class] As Integer
@@ -587,7 +591,7 @@ End Class</a>.Value
         BaseVerifyWorker(code, position, "[Class]", "Property CBase.Class As Integer", SourceCodeKind.Regular, False, False, Nothing, experimental:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub EscapedParameterNameInIntelliSenseList()
         Dim markup = <a>Class CBase
     Public Overridable Sub Foo([Integer] As Integer)
@@ -603,7 +607,7 @@ End Class</a>
         VerifyItemExists(markup.Value, "Foo([Integer] As Integer)", "Sub CBase.Foo([Integer] As Integer)")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub HideKeywords()
         Dim text = <a>
 Class Program
@@ -618,7 +622,7 @@ End Class</a>
 
 #Region "Commit tests"
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitInEmptyClass()
         Dim markupBeforeCommit = <a>Class c
     Overrides $$
@@ -633,7 +637,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitSubBeforeSub()
         Dim markupBeforeCommit = <a>Class c
     Overrides $$
@@ -654,7 +658,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitSubAfterSub()
         Dim markupBeforeCommit = <a>Class c
     Sub bar()
@@ -673,7 +677,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "GetHashCode()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitFunction()
         Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Function foo() As Integer
@@ -702,7 +706,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitFunctionWithParams()
         Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Function foo(x As Integer) As Integer
@@ -731,7 +735,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitSubWithParams()
         Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Sub foo(x As Integer)
@@ -758,7 +762,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitProtected()
         Dim markupBeforeCommit = <a>Public Class c
     Protected Overridable Sub foo()
@@ -785,7 +789,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitFriend()
         Dim markupBeforeCommit = <a>Public Class c
     Friend Overridable Sub foo()
@@ -812,7 +816,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitProtectedFriend()
         Dim markupBeforeCommit = <a>Public Class c
     Protected Friend Overridable Sub foo()
@@ -839,7 +843,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitAbstractThrows()
         Dim markupBeforeCommit = <a>Public MustInherit Class c
     Public MustOverride Sub foo()
@@ -866,7 +870,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitRetainMustOverride()
         Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Sub foo()
@@ -891,7 +895,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitRetainNotOverridable()
         Dim markupBeforeCommit = <a>Public Class c
     Public Overridable Sub foo()
@@ -920,7 +924,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitProperty()
         Dim markupBeforeCommit = <a>Public Class base
     Public Overridable Property foo As String
@@ -953,7 +957,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitWriteOnlyProperty()
         Dim markupBeforeCommit = <a>Public Class base
     Public Overridable WriteOnly Property foo As String
@@ -990,7 +994,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitReadOnlyProperty()
         Dim markupBeforeCommit = <a>Public Class base
     Public Overridable ReadOnly Property foo As String
@@ -1028,7 +1032,7 @@ End Class</a>
     End Sub
 
     <WorkItem(543937)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitOptionalKeywordAndParameterValuesAreGenerated()
         Dim markupBeforeCommit = <a><![CDATA[Class CBase
     Public Overridable Sub foo(Optional x As Integer = 42)
@@ -1061,7 +1065,7 @@ End Class]]></a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(x As Integer = 42)", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitAttributesAreNotGenerated()
         Dim markupBeforeCommit = <a><![CDATA[Imports System
 
@@ -1096,7 +1100,7 @@ End Class]]></a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitGenericMethod()
         Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo(Of T)(x As T)
@@ -1126,7 +1130,7 @@ End Class</a>
     End Sub
 
     <WorkItem(545627)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitGenericMethodOnArraySubstitutedGenericType()
         Dim markupBeforeCommit = <a>Class A(Of T)
     Public Overridable Sub M(Of U As T)()
@@ -1153,7 +1157,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "M(Of U)()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitFormats()
         Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo()
@@ -1182,7 +1186,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitSimplifiesParameterTypes()
         Dim markupBeforeCommit = <a>Imports System
 Class CBase
@@ -1213,7 +1217,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo(e As Exception)", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitSimplifiesReturnType()
         Dim markupBeforeCommit = <a>Imports System
 Class CBase
@@ -1246,7 +1250,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitEscapedMethodName()
         Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub [Class]()
@@ -1275,7 +1279,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "[Class]()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitEscapedPropertyName()
         Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Property [Class] As Integer
@@ -1307,7 +1311,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "[Class]", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitEscapedParameterName()
         Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub Foo([Integer] As Integer)
@@ -1336,7 +1340,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo([Integer] As Integer)", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitByRef()
         Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo(ByRef x As Integer, y As String)
@@ -1366,7 +1370,7 @@ End Class</a>
     End Sub
 
     <WorkItem(529714)>
-    <Fact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact(Skip:="529714"), Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitGenericMethodTypeParametersRenamed()
         Dim markupBeforeCommit = <a>Class CFoo
     Overridable Function Something(Of X)(arg As X) As X
@@ -1395,7 +1399,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Something(Of X1)(arg As X1)", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub AddsImports()
         Dim markupBeforeCommit = <a>MustInherit Class CBase
     MustOverride Sub Foo()
@@ -1425,7 +1429,7 @@ End Class</a>
     End Sub
 
     <WorkItem(543937)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub OptionalArguments()
         Dim markupBeforeCommit = <a>Class CBase
     Public Overridable Sub foo(Optional x As Integer = 42)
@@ -1457,7 +1461,7 @@ End Class</a>
     End Sub
 
     <WorkItem(636706)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub ParameterizedProperty()
         Dim markupBeforeCommit = <a>Public Class Foo
     Public Overridable Property Bar(bay As Integer) As Integer
@@ -1504,7 +1508,7 @@ End Class</a>
     End Sub
 
     <WorkItem(529737)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub OverrideDefaultPropertiesByName()
         Dim markupBeforeCommit = <a>Class A
     Default Overridable ReadOnly Property Foo(x As Integer) As Object
@@ -1545,7 +1549,7 @@ End Class
 #Region "Commit: With Trivia"
 
     <WorkItem(529216)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitSurroundingTriviaDirective()
         Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
@@ -1576,7 +1580,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitBeforeTriviaDirective()
         Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
@@ -1608,7 +1612,7 @@ End Class</a>
     End Sub
 
     <WorkItem(529216)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitAfterTriviaDirective()
         Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
@@ -1639,7 +1643,7 @@ End Class</a>
         VerifyCustomCommitProvider(markupBeforeCommit.Value.Replace(vbLf, vbCrLf), "Foo()", expectedCode.Value.Replace(vbLf, vbCrLf))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitBeforeComment()
         Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
@@ -1671,7 +1675,7 @@ End Class</a>
     End Sub
 
     <WorkItem(529216)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub CommitAfterComment()
         Dim markupBeforeCommit = <a>Class Base
     Public Overridable Sub Foo()
@@ -1702,7 +1706,7 @@ End Class</a>
 #End Region
 
     <WorkItem(529572)>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub WitheventsFieldNotOffered()
         Dim text = <a>Public Class C1
     Public WithEvents w As C1 = Me
@@ -1716,7 +1720,7 @@ End Class
     End Sub
 
     <WorkItem(715, "https://github.com/dotnet/roslyn/issues/715")>
-    <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
     Public Sub EventsNotOffered()
         Dim text = <Workspace>
                        <Project Language="Visual Basic" CommonReferences="true">

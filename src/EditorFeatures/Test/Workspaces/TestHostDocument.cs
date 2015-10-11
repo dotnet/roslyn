@@ -203,6 +203,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (_textView == null)
             {
+                TestWorkspace.ResetThreadAffinity();
+
                 _textView = _exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(this.TextBuffer);
                 if (this.CursorPosition.HasValue)
                 {

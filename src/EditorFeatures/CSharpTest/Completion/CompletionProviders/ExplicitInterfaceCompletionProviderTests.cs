@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,12 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ExplicitInterfaceCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public ExplicitInterfaceCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override CompletionListProvider CreateCompletionProvider()
         {
             return new ExplicitInterfaceCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExplicitInterfaceMember()
         {
             var markup = @"
@@ -36,7 +41,7 @@ class Bar : IFoo
         }
 
         [WorkItem(709988)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOnNotParen()
         {
             var markup = @"
@@ -65,7 +70,7 @@ class Bar : IFoo
         }
 
         [WorkItem(709988)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOnParen()
         {
             var markup = @"
