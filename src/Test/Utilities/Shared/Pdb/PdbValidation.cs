@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             uint timeDateStamp = reader.ReadUInt32();
 
             uint version = reader.ReadUInt32();
-            Assert.Equal(isPortable ? 0x504d0001u : 0, version);
+            Assert.Equal(isPortable ? 0x504d0100u : 0, version);
 
             int type = reader.ReadInt32();
             Assert.Equal(2, type);

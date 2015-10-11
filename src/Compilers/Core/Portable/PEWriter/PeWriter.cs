@@ -1358,7 +1358,7 @@ namespace Microsoft.Cci
             else
             {
                 writer.WriteBytes(portablePdbContentId.Stamp);
-                writer.WriteUInt32('P' << 24 | 'M' << 16 | 0x00 << 8 | 0x01);
+                writer.WriteUInt32('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00);
             }
             
             // type: 
