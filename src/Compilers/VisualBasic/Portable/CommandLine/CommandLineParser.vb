@@ -117,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
             Dim sdkPaths As New List(Of String)()
             Dim libPaths As New List(Of String)()
+            Dim sourcePaths As New List(Of String)()
             Dim keyFileSearchPaths = New List(Of String)()
             Dim globalImports = New List(Of GlobalImport)
             Dim rootNamespace As String = ""
@@ -377,6 +378,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         Continue For
+
+                    Case "lib", "libpath", "libpaths"
+                        If String.IsNullOrEmpty(value) Then
+                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+                            Continue For
+                        End If
+
+                        libPaths.AddRange(ParseSeparatedPaths(value))
+                        Continue For
+
 #If DEBUG Then
                     Case "attachdebugger"
                         Debugger.Launch()
@@ -386,9 +397,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If IsInteractive Then
                     Select Case name
-                        Case "rp", "referencepath"
-                            ' TODO: should it really go to /libpath?
-                            libPaths.AddRange(ParseSeparatedPaths(value))
+                        Case "loadpath", "loadpaths"
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+                                Continue For
+                            End If
+
+                            sourcePaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
                     End Select
                 Else
@@ -494,15 +509,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case "netcf"
                             ' Do nothing as we no longer have any use for implementing this switch and 
                             ' want to avoid failing with any warnings/errors
-                            Continue For
-
-                        Case "libpath"
-                            If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "libpath", ":<path_list>")
-                                Continue For
-                            End If
-
-                            libPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
                         Case "sdkpath"
@@ -1251,6 +1257,7 @@ lVbRuntimePlus:
                 .AnalyzerReferences = analyzers.AsImmutable(),
                 .AdditionalFiles = additionalFiles.AsImmutable(),
                 .ReferencePaths = searchPaths,
+                .SourcePaths = sourcePaths.AsImmutable(),
                 .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                 .Win32ResourceFile = win32ResourceFile,
                 .Win32Icon = win32IconFile,

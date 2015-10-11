@@ -136,7 +136,7 @@ a.cs
 /r:..\v4.0.30319\System.dll
 /r:.\System.Data.dll 
 a.cs @""..\c.rsp"" @\d.rsp
-/referencePath:..\foo;../bar;""a b""
+/libpaths:..\foo;../bar;""a b""
 "
                 },
                 { Path.Combine(dirSubDir.Path, @"b.rsp"), @"
@@ -144,7 +144,7 @@ b.cs
 "
                 },
                 { prependBasePath(@"..\c.rsp"), @"
-c.cs /referencePath:x
+c.cs /lib:x
 "
                 },
                 {  Path.Combine(Path.GetPathRoot(basePath), @"d.rsp"), @"
@@ -153,11 +153,11 @@ c.cs /referencePath:x
 d.cs
 "
                 }
-            }, isInteractive: true);
+            }, isInteractive: false);
 
             var args = parser.Parse(new[] { "first.cs", "second.cs", "@a.rsp", "last.cs" }, basePath, s_defaultSdkDirectory);
             args.Errors.Verify();
-            Assert.True(args.IsInteractive);
+            Assert.False(args.IsInteractive);
 
             string[] resolvedSourceFiles = args.SourceFiles.Select(f => f.Path).ToArray();
             string[] references = args.MetadataReferences.Select(r => r.Reference).ToArray();
@@ -959,7 +959,7 @@ d.cs
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "c.csx", "/langversion:-1" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/langversion:-1", "c.csx", }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/langversion:-1'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:-1"));
@@ -990,8 +990,15 @@ d.cs
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "c.csx", "/r:d.dll", "/define:DEGUG" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/r:d.dll", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
+            Assert.Equal(false, parsedArgs.DisplayHelp);
+            Assert.Equal(true, parsedArgs.SourceFiles.Any());
+
+            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/define:foo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/define:foo'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/define:foo"));
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
@@ -3089,6 +3096,24 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         [ConditionalFact(typeof(WindowsOnly))]
         public void SdkPathAndLibEnvVariable()
         {
+            var dir = Temp.CreateDirectory();
+            var lib1 = dir.CreateDirectory("lib1");
+            var lib2 = dir.CreateDirectory("lib2");
+            var lib3 = dir.CreateDirectory("lib3");
+
+            var parsedArgs = DefaultParse(new[] { @"/lib:lib1", @"/libpath:lib2", @"/libpaths:lib3", "a.cs" }, dir.Path);
+            AssertEx.Equal(new[] 
+            {
+                s_defaultSdkDirectory,
+                lib1.Path,
+                lib2.Path,
+                lib3.Path
+            }, parsedArgs.ReferencePaths);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void SdkPathAndLibEnvVariable_Errors()
+        {
             var parsedArgs = DefaultParse(new[] { @"/lib:c:lib2", @"/lib:o:\sdk1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // warning CS1668: Invalid search path 'c:lib2' specified in '/LIB option' -- 'path is too long or invalid'
@@ -4038,35 +4063,6 @@ public class CS1698_a {}
             CleanupAllGeneratedFiles(cs1698a.Path);
             CleanupAllGeneratedFiles(cs1698b.Path);
             CleanupAllGeneratedFiles(cs1698.Path);
-        }
-
-        [Fact]
-        public void ReferencePaths()
-        {
-            var baseDir = Temp.CreateDirectory();
-            var subDirA = baseDir.CreateDirectory("a");
-            var subDirB = baseDir.CreateDirectory("b");
-            var subDirC = baseDir.CreateDirectory("c");
-
-            CSharpCommandLineArguments parsedArgs;
-
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/rp:a;b", "/referencePath:c" }, baseDir.Path, s_defaultSdkDirectory);
-            parsedArgs.Errors.Verify();
-
-            AssertEx.Equal(new[]
-                {
-                    RuntimeEnvironment.GetRuntimeDirectory(),
-                    subDirA.Path,
-                    subDirB.Path,
-                    subDirC.Path,
-                },
-                parsedArgs.ReferencePaths,
-                StringComparer.Ordinal);
-
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/referencePath:" }, _baseDirectory, s_defaultSdkDirectory);
-            parsedArgs.Errors.Verify(
-                // error CS2006: Command-line syntax error: Missing '<path list>' for 'referencepath' option
-                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<path list>", "referencepath"));
         }
 
         [Fact]
@@ -6861,14 +6857,6 @@ using System.Diagnostics; // Unused.
             DefaultParse(new[] { "/lib:" + nonExistentPath, sourceFile.Path }, _baseDirectory).Errors.Verify(
                 // warning CS1668: Invalid search path 'DoesNotExist' specified in '/LIB option' -- 'directory does not exist'
                 Diagnostic(ErrorCode.WRN_InvalidSearchPathDir).WithArguments("DoesNotExist", "/LIB option", "directory does not exist"));
-
-            // referencepath switch
-            CSharpCommandLineParser.Interactive.Parse(new[] { "/referencepath:" + invalidPath, sourceFile.Path }, _baseDirectory, s_defaultSdkDirectory).Errors.Verify(
-                // warning CS1668: Invalid search path '::' specified in '/REFERENCEPATH option' -- 'path is too long or invalid'
-                Diagnostic(ErrorCode.WRN_InvalidSearchPathDir).WithArguments("::", "/REFERENCEPATH option", "path is too long or invalid"));
-            CSharpCommandLineParser.Interactive.Parse(new[] { "/referencepath:" + nonExistentPath, sourceFile.Path }, _baseDirectory, s_defaultSdkDirectory).Errors.Verify(
-                // warning CS1668: Invalid search path 'DoesNotExist' specified in '/REFERENCEPATH option' -- 'directory does not exist'
-                Diagnostic(ErrorCode.WRN_InvalidSearchPathDir).WithArguments("DoesNotExist", "/REFERENCEPATH option", "directory does not exist"));
 
             // LIB environment variable
             DefaultParse(new[] { sourceFile.Path }, _baseDirectory, additionalReferenceDirectories: invalidPath).Errors.Verify(

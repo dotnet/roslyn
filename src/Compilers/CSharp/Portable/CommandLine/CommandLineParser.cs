@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<CommandLineReference> metadataReferences = new List<CommandLineReference>();
             List<CommandLineAnalyzerReference> analyzers = new List<CommandLineAnalyzerReference>();
             List<string> libPaths = new List<string>();
+            List<string> sourcePaths = new List<string>();
             List<string> keyFileSearchPaths = new List<string>();
             List<string> usings = new List<string>();
             var generalDiagnosticOption = ReportDiagnostic.Default;
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             var sqmSessionGuid = Guid.Empty;
+            bool optionsEnded = false;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
@@ -138,16 +140,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (string arg in flattenedArgs)
             {
-                Debug.Assert(!arg.StartsWith("@", StringComparison.Ordinal));
+                Debug.Assert(optionsEnded || !arg.StartsWith("@", StringComparison.Ordinal));
 
                 string name, value;
-                if (!TryParseOption(arg, out name, out value))
+                if (optionsEnded || !TryParseOption(arg, out name, out value))
                 {
                     sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics));
                     if (sourceFiles.Count > 0)
                     {
                         sourceFilesSpecified = true;
                     }
+
                     continue;
                 }
 
@@ -163,75 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         metadataReferences.AddRange(ParseAssemblyReferences(arg, value, diagnostics, embedInteropTypes: false));
                         continue;
 
-                    case "a":
-                    case "analyzer":
-                        analyzers.AddRange(ParseAnalyzers(arg, value, diagnostics));
-                        continue;
-
-                    case "d":
-                    case "define":
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
-                            continue;
-                        }
-
-                        IEnumerable<Diagnostic> defineDiagnostics;
-                        defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(value), out defineDiagnostics));
-                        diagnostics.AddRange(defineDiagnostics);
-                        continue;
-
-                    case "codepage":
-                        if (value == null)
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
-                            continue;
-                        }
-
-                        var encoding = TryParseEncodingName(value);
-                        if (encoding == null)
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.FTL_BadCodepage, value);
-                            continue;
-                        }
-
-                        codepage = encoding;
-                        continue;
-
-                    case "checksumalgorithm":
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
-                            continue;
-                        }
-
-                        var newChecksumAlgorithm = TryParseHashAlgorithmName(value);
-                        if (newChecksumAlgorithm == SourceHashAlgorithm.None)
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.FTL_BadChecksumAlgorithm, value);
-                            continue;
-                        }
-
-                        checksumAlgorithm = newChecksumAlgorithm;
-                        continue;
-
-                    case "checked":
-                    case "checked+":
-                        if (value != null)
-                        {
-                            break;
-                        }
-
-                        checkOverflow = true;
-                        continue;
-
-                    case "checked-":
-                        if (value != null)
-                            break;
-
-                        checkOverflow = false;
-                        continue;
-
                     case "features":
                         if (value == null)
                         {
@@ -243,51 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         continue;
 
-                    case "noconfig":
-                        // It is already handled (see CommonCommandLineCompiler.cs).
-                        continue;
-
-                    case "sqmsessionguid":
-                        if (value == null)
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_MissingGuidForOption, "<text>", name);
-                        }
-                        else
-                        {
-                            if (!Guid.TryParse(value, out sqmSessionGuid))
-                            {
-                                AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidFormatForGuidForOption, value, name);
-                            }
-                        }
-                        continue;
-
-                    case "preferreduilang":
-                        value = RemoveQuotesAndSlashes(value);
-
-                        if (string.IsNullOrEmpty(value))
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
-                            continue;
-                        }
-
-                        try
-                        {
-                            preferredUILang = new CultureInfo(value);
-                            if (CorLightup.Desktop.IsUserCustomCulture(preferredUILang) ?? false)
-                            {
-                                // Do not use user custom cultures.
-                                preferredUILang = null;
-                            }
-                        }
-                        catch (CultureNotFoundException)
-                        {
-                        }
-
-                        if (preferredUILang == null)
-                        {
-                            AddDiagnostic(diagnostics, ErrorCode.WRN_BadUILang, value);
-                        }
-
+                    case "lib":
+                    case "libpath":
+                    case "libpaths":
+                        ParseAndResolveReferencePaths(name, value, baseDirectory, libPaths, MessageID.IDS_LIB_OPTION, diagnostics);
                         continue;
 
 #if DEBUG
@@ -301,15 +194,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (name)
                     {
-                        // interactive:
-                        case "rp":
-                        case "referencepath":
-                            // TODO: should it really go to libPaths?
-                            ParseAndResolveReferencePaths(name, value, baseDirectory, libPaths, MessageID.IDS_REFERENCEPATH_OPTION, diagnostics);
+                        case "-": // csi -- script.csx
+                            if (value != null) break;
+
+                            // Indicates that the remaining arguments should not be treated as options.
+                            optionsEnded = true;
+                            continue;
+
+                        case "loadpath":
+                        case "loadpaths":
+                            ParseAndResolveReferencePaths(name, value, baseDirectory, sourcePaths, MessageID.IDS_REFERENCEPATH_OPTION, diagnostics);
                             continue;
 
                         case "u":
                         case "using":
+                        case "usings":
+                        case "import":
+                        case "imports":
                             usings.AddRange(ParseUsings(arg, value, diagnostics));
                             continue;
                     }
@@ -318,6 +219,121 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (name)
                     {
+                        case "a":
+                        case "analyzer":
+                            analyzers.AddRange(ParseAnalyzers(arg, value, diagnostics));
+                            continue;
+
+                        case "d":
+                        case "define":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
+                                continue;
+                            }
+
+                            IEnumerable<Diagnostic> defineDiagnostics;
+                            defines.AddRange(ParseConditionalCompilationSymbols(RemoveQuotesAndSlashes(value), out defineDiagnostics));
+                            diagnostics.AddRange(defineDiagnostics);
+                            continue;
+
+                        case "codepage":
+                            if (value == null)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
+                                continue;
+                            }
+
+                            var encoding = TryParseEncodingName(value);
+                            if (encoding == null)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.FTL_BadCodepage, value);
+                                continue;
+                            }
+
+                            codepage = encoding;
+                            continue;
+
+                        case "checksumalgorithm":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
+                                continue;
+                            }
+
+                            var newChecksumAlgorithm = TryParseHashAlgorithmName(value);
+                            if (newChecksumAlgorithm == SourceHashAlgorithm.None)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.FTL_BadChecksumAlgorithm, value);
+                                continue;
+                            }
+
+                            checksumAlgorithm = newChecksumAlgorithm;
+                            continue;
+
+                        case "checked":
+                        case "checked+":
+                            if (value != null)
+                            {
+                                break;
+                            }
+
+                            checkOverflow = true;
+                            continue;
+
+                        case "checked-":
+                            if (value != null)
+                                break;
+
+                            checkOverflow = false;
+                            continue;
+
+                        case "noconfig":
+                            // It is already handled (see CommonCommandLineCompiler.cs).
+                            continue;
+
+                        case "sqmsessionguid":
+                            if (value == null)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_MissingGuidForOption, "<text>", name);
+                            }
+                            else
+                            {
+                                if (!Guid.TryParse(value, out sqmSessionGuid))
+                                {
+                                    AddDiagnostic(diagnostics, ErrorCode.ERR_InvalidFormatForGuidForOption, value, name);
+                                }
+                            }
+                            continue;
+
+                        case "preferreduilang":
+                            value = RemoveQuotesAndSlashes(value);
+
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
+                                continue;
+                            }
+
+                            try
+                            {
+                                preferredUILang = new CultureInfo(value);
+                                if (CorLightup.Desktop.IsUserCustomCulture(preferredUILang) ?? false)
+                                {
+                                    // Do not use user custom cultures.
+                                    preferredUILang = null;
+                                }
+                            }
+                            catch (CultureNotFoundException)
+                            {
+                            }
+
+                            if (preferredUILang == null)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.WRN_BadUILang, value);
+                            }
+
+                            continue;
                         case "out":
                             if (string.IsNullOrWhiteSpace(value))
                             {
@@ -948,10 +964,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             noStdLib = true;
                             continue;
 
-                        case "lib":
-                            ParseAndResolveReferencePaths(name, value, baseDirectory, libPaths, MessageID.IDS_LIB_OPTION, diagnostics);
-                            continue;
-
                         case "nostdlib-":
                             if (value != null)
                                 break;
@@ -1148,6 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AnalyzerReferences = analyzers.AsImmutable(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
+                SourcePaths = sourcePaths.AsImmutable(),
                 KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                 Win32ResourceFile = win32ResourceFile,
                 Win32Icon = win32IconFile,

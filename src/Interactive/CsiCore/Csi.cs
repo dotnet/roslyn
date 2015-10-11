@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
@@ -18,10 +19,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
                 var responseFile = Path.Combine(AppContext.BaseDirectory, InteractiveResponseFileName);
 
                 var compiler = new CSharpInteractiveCompiler(
-                    responseFile,
-                    AppContext.BaseDirectory, 
-                    args,
-                    new NotImplementedAnalyzerLoader());
+                    responseFile: responseFile,
+                    baseDirectory: Directory.GetCurrentDirectory(), 
+                    sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory(),
+                    args: args,
+                    analyzerLoader: new NotImplementedAnalyzerLoader());
 
                 var runner = new CommandLineRunner(
                     ConsoleIO.Default,

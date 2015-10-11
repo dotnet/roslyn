@@ -3462,7 +3462,7 @@ End Class
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\", "d:\x\y\z", Path.Combine(_baseDirectory, "abc"))
 
-            parsedArgs = DefaultParse({"/libpath:c:\Windows", "/libpath:abc\def, , , ", "a.vb"}, _baseDirectory)
+            parsedArgs = DefaultParse({"/lib:c:\Windows", "/libpaths:abc\def, , , ", "a.vb"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             AssertReferencePathsEqual(parsedArgs.ReferencePaths, Nothing, "c:\Windows", Path.Combine(_baseDirectory, "abc\def"))
 

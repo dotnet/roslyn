@@ -30,6 +30,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CsiTests.cs" />
     <Compile Include="InteractiveSessionTests.cs" />
     <Compile Include="ObjectFormatterTests.cs" />
   </ItemGroup>
@@ -49,6 +50,14 @@
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj">
       <Project>{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}</Project>
       <Name>BasicCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\csi\csi.csproj">
+      <Project>{14118347-ed06-4608-9c45-18228273c712}</Project>
+      <Name>csi</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>

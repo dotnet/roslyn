@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -83,48 +84,67 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             SourceText code = null;
-            IEnumerable<Diagnostic> errors = _compiler.Arguments.Errors;
+
+            var diagnosticsInfos = new List<DiagnosticInfo>();
+
             if (!sourceFiles.IsEmpty)
             {
                 if (sourceFiles.Length > 1 || !sourceFiles[0].IsScript)
                 {
-                    errors = errors.Concat(new[] { Diagnostic.Create(_compiler.MessageProvider, _compiler.MessageProvider.ERR_ExpectedSingleScript) });
+                    diagnosticsInfos.Add(new DiagnosticInfo(_compiler.MessageProvider, _compiler.MessageProvider.ERR_ExpectedSingleScript));
                 }
                 else
                 {
-                    var diagnostics = new List<DiagnosticInfo>();
-                    code = _compiler.ReadFileContent(sourceFiles[0], diagnostics);
-                    errors = errors.Concat(diagnostics.Select(Diagnostic.Create));
+                    code = _compiler.ReadFileContent(sourceFiles[0], diagnosticsInfos);
                 }
             }
 
+            var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
+            var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos);
+
+            var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
             if (_compiler.ReportErrors(errors, _console.Out, errorLogger))
             {
                 return CommonCompiler.Failed;
             }
 
             var cancellationToken = new CancellationToken();
-            
-            var scriptOptions = GetScriptOptions(_compiler.Arguments);
 
-            if (sourceFiles.IsEmpty)
+            if (scriptPathOpt == null)
             {
                 RunInteractiveLoop(scriptOptions, cancellationToken);
                 return CommonCompiler.Succeeded;
             }
             else
             {
-                return RunScript(scriptOptions, code.ToString(), sourceFiles[0].Path, errorLogger, cancellationToken);
+                return RunScript(scriptOptions, code.ToString(), errorLogger, cancellationToken);
             }
         }
 
-        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments)
+        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics)
         {
-            // TODO: reference paths, usings from arguments (https://github.com/dotnet/roslyn/issues/5277)
-            // TODO: auto -add facades
-            return ScriptOptions.Default.
-                AddReferences("System", "System.Core", "System.Runtime", "System.IO.FileSystem", "System.IO.FileSystem.Primitives", "System.Collections").
-                AddNamespaces("System", "System.IO", "System.Threading.Tasks", "System.Linq");
+            var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
+
+            var metadataResolver = GetMetadataReferenceResolver(arguments, touchedFilesLoggerOpt);
+            var sourceResolver = GetSourceReferenceResolver(arguments, touchedFilesLoggerOpt);
+
+            var resolvedReferences = new List<MetadataReference>();
+            if (!arguments.ResolveMetadataReferences(metadataResolver, diagnostics, messageProvider, resolvedReferences))
+            {
+                // can't resolve some references
+                return null;
+            }
+
+            // TODO: https://github.com/dotnet/roslyn/issues/5854
+            var importedNamespaces = arguments.CompilationOptions.GetImports();
+
+            return new ScriptOptions(
+                path: scriptPathOpt ?? "", 
+                references: ImmutableArray.CreateRange(resolvedReferences),
+                namespaces: importedNamespaces,
+                metadataResolver: metadataResolver,
+                sourceResolver: sourceResolver,
+                isInteractive: scriptPathOpt == null);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
@@ -140,12 +160,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 });
         }
 
-        private int RunScript(ScriptOptions options, string code, string scriptPath, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
+        {
+            return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, loggerOpt);
+        }
+
+        private int RunScript(ScriptOptions options, string code, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            options = options.WithPath(scriptPath);
             var script = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {

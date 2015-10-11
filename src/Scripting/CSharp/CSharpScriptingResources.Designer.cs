@@ -10,7 +10,7 @@
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp {
     using System;
-    using System.Reflection;
+    using System.Reflection;    
     
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -61,15 +61,15 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Usage: csi [options] [script-file.csx] [-- script-arguments]
+        ///   Looks up a localized string similar to Usage: csi [options] [script-file.csx | -] [script-arguments]
         ///
-        ///If script-file is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+        ///If script-file.csx is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
         ///
         ///Options:
-        ///  /help                          Display this usage message (Short form: /?)
-        ///  /reference:&lt;alias&gt;=&lt;file&gt;      Reference metadata from the specified assembly file using the given alias (Short form: /r)
-        ///  /reference:&lt;file list&gt;         Reference metadata from the specified assembly files (Short form: /r)
-        ///  /referencePath [rest of string was truncated]&quot;;.
+        ///  /help                          Display this usage message (alternative form: /?)
+        ///  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
+        ///  /r:&lt;file list&gt;                 Reference metadata from the specified assembly files (alternative form: /reference)
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string InteractiveHelp {
             get {

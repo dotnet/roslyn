@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
         Private Shared Function GetGlobalImportsForCompilation(script As Script) As IEnumerable(Of GlobalImport)
             ' TODO: remember these per options instance so we don't need to reparse each submission
-            ' TODO: get imports out of compilation???
+            ' TODO: get imports out of compilation??? https://github.com/dotnet/roslyn/issues/5854
             Return script.Options.Namespaces.Select(Function(n) GlobalImport.Parse(n))
         End Function
 

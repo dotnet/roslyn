@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<string> ReferencePaths { get; internal set; }
 
         /// <summary>
+        /// Sequence of absolute paths used to search for sources specified as #load directives.
+        /// </summary>
+        public ImmutableArray<string> SourcePaths { get; internal set; }
+
+        /// <summary>
         /// Sequence of absolute paths used to search for key files.
         /// </summary>
         public ImmutableArray<string> KeyFileSearchPaths { get; internal set; }
@@ -171,7 +176,7 @@ namespace Microsoft.CodeAnalysis
         public SourceHashAlgorithm ChecksumAlgorithm { get; internal set; }
 
         /// <summary>
-        /// Arguments following script argument separator "--" or null if <see cref="IsInteractive"/> is false.
+        /// Arguments following a script file or separator "--". Null if the command line parser is not interactive.
         /// </summary>
         public ImmutableArray<string> ScriptArguments { get; internal set; }
 

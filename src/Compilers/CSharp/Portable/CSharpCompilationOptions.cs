@@ -218,6 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        internal override ImmutableArray<string> GetImports()
+        {
+            return Usings;
+        }
+
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)
         {
             if (kind == this.OutputKind)
