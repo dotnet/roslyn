@@ -2564,6 +2564,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol constructor,
             DiagnosticBag diagnostics)
         {
+            // Handle scoping for possible pattern variables declared in the initializer
+            PatternVariableBinder patBinder = (initializerArgumentListOpt != null)
+                ? new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this)
+                : null;
+            var result = (patBinder ?? this).BindConstructorInitializerCore(initializerArgumentListOpt, constructor, diagnostics);
+            return patBinder?.WrapWithPatternVariables(result) ?? result;
+        }
+
+        private BoundExpression BindConstructorInitializerCore(
+            ArgumentListSyntax initializerArgumentListOpt,
+            MethodSymbol constructor,
+            DiagnosticBag diagnostics)
+        {
             Debug.Assert((object)constructor != null);
             Debug.Assert(constructor.MethodKind == MethodKind.Constructor ||
                 constructor.MethodKind == MethodKind.StaticConstructor); // error scenario: constructor initializer on static constructor

@@ -3168,12 +3168,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCatchFilter(CatchFilterClauseSyntax filter, DiagnosticBag diagnostics)
         {
-            BoundExpression boundFilter = this.BindBooleanExpression(filter.FilterExpression, diagnostics);
+            // TODO: should pattern variables declared in a catch filter be available in the catch block?
+            PatternVariableBinder patternBinder = new PatternVariableBinder(filter, filter.FilterExpression, this);
+            BoundExpression boundFilter = patternBinder.BindBooleanExpression(filter.FilterExpression, diagnostics);
             if (boundFilter.ConstantValue != ConstantValue.NotAvailable)
             {
                 Error(diagnostics, ErrorCode.WRN_FilterIsConstant, filter.FilterExpression);
             }
 
+            boundFilter = patternBinder.WrapWithPatternVariables(boundFilter);
             boundFilter = new BoundSequencePointExpression(filter, boundFilter, boundFilter.Type);
             return boundFilter;
         }

@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerBinder = compilation.GetBinderFactory(sourceConstructor.SyntaxTree).GetBinder(initializerArgumentListOpt);
             }
 
-            //wrap in ConstructorInitializerBinder for appropriate errors
+            // wrap in ConstructorInitializerBinder for appropriate errors
             Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);

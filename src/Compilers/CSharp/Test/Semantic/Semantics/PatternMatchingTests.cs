@@ -218,5 +218,106 @@ public class X
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "long").WithArguments("string", "long").WithLocation(11, 18)
                 );
         }
+
+        [Fact]
+        public void PatternInCtorInitializer()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        new D(1);
+        new D(10);
+        new D(1.2);
+    }
+}
+class D
+{
+    public D(object o) : this(o is int x && x >= 5) {}
+    public D(bool b) { Console.WriteLine(b); }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput =
+@"False
+True
+False";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void PatternInCatchFilter()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        M(1);
+        M(10);
+        M(1.2);
+    }
+    private static void M(object o)
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch (Exception) when (o is int x && x >= 5)
+        {
+            Console.WriteLine($""Yes for {o}"");
+        }
+        catch (Exception)
+        {
+            Console.WriteLine($""No for {o}"");
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"No for 1
+Yes for 10
+No for 1.2";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void PatternInFieldInitializer()
+        {
+            var source =
+@"using System;
+public class X
+{
+    static object o1 = 1;
+    static object o2 = 10;
+    static object o3 = 1.2;
+    static bool b1 = M(o1, (o1 is int x && x >= 5)),
+                b2 = M(o2, (o2 is int x && x >= 5)),
+                b3 = M(o3, (o3 is int x && x >= 5));
+    public static void Main()
+    {
+    }
+    private static bool M(object o, bool result)
+    {
+        Console.WriteLine($""{result} for {o}"");
+        return result;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False for 1
+True for 10
+False for 1.2";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

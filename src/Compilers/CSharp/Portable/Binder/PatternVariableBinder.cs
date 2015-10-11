@@ -14,11 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ExpressionSyntax expression;
         private readonly ImmutableArray<ExpressionSyntax> expressions;
         public readonly SyntaxNode Syntax;
+
         internal PatternVariableBinder(SyntaxNode syntax, ImmutableArray<ExpressionSyntax> expressions, Binder next) : base(next)
         {
             this.Syntax = syntax;
             this.expressions = expressions;
         }
+
         internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<VariableDeclaratorSyntax> declarations, Binder next) : base(next)
         {
             this.Syntax = syntax;
@@ -30,6 +32,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             this.expressions = expressions.ToImmutableAndFree();
         }
+
+        internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<ArgumentSyntax> arguments, Binder next) : base(next)
+        {
+            this.Syntax = syntax;
+            var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            foreach (var arg in arguments)
+            {
+                var value = arg.Expression;
+                if (value != null) expressions.Add(value);
+            }
+            this.expressions = expressions.ToImmutableAndFree();
+        }
+
         internal PatternVariableBinder(ForStatementSyntax syntax, Binder next) : base(next)
         {
             this.Syntax = syntax;
@@ -44,11 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntax.Incrementors != null) expressions.AddRange(syntax.Incrementors);
             this.expressions = expressions.ToImmutableAndFree();
         }
+
         internal PatternVariableBinder(SyntaxNode syntax, ExpressionSyntax expression, Binder next) : base(next)
         {
             this.expression = expression;
             this.Syntax = syntax;
         }
+
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
             var patterns = PatternVariableFinder.FindPatternVariables(expression, expressions);
@@ -59,6 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             patterns.Free();
             return builder.ToImmutableAndFree();
+        }
+
+        internal BoundExpression WrapWithPatternVariables(BoundExpression expression)
+        {
+            return (Locals.Length == 0)
+                ? expression
+                : new BoundSequence(expression.Syntax, Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type);
         }
 
         class PatternVariableFinder : CSharpSyntaxWalker

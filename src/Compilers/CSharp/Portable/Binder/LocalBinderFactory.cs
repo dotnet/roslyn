@@ -395,12 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitCatchFilterClause(CatchFilterClauseSyntax node)
         {
-            // pattern variables in the filter are not available elsewhere
-
-            var patternBinder = new PatternVariableBinder(node, node.FilterExpression, _enclosing);
-            Debug.Assert(patternBinder.Locals.IsDefaultOrEmpty);
-            // TODO: implement scoping for pattern variables in a filter expression
-            //AddToMap(node, patternBinder);
         }
 
         public override void VisitFinallyClause(FinallyClauseSyntax node)
