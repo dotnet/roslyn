@@ -13,7 +13,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualStudioRuleSetTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub SingleFile()
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Directory.Delete(tempPath, recursive:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TwoFiles()
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
@@ -95,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Directory.Delete(tempPath, recursive:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub IncludeUpdated()
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set1"" Description=""Test"" ToolsVersion=""12.0"">
@@ -147,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Directory.Delete(tempPath, recursive:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub SameFileRequestedAfterChange()
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -190,7 +190,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Directory.Delete(tempPath, recursive:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub SameFileRequestedMultipleTimes()
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">
@@ -219,7 +219,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim ruleSet2 = ruleSetManager.GetOrCreateRuleSet(ruleSetPath)
 
                 Assert.Equal(expected:=1, actual:=fileChangeService.WatchedFileCount)
-                Assert.ReferenceEquals(ruleSet1, ruleSet2)
+                Assert.Same(ruleSet1, ruleSet2)
             End Using
 
             Assert.Equal(expected:=0, actual:=fileChangeService.WatchedFileCount)
@@ -227,7 +227,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Directory.Delete(tempPath, recursive:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub FileWithError()
             Dim ruleSetSource = "<?xml version=""1.0"" encoding=""utf-8""?>
 <RuleSet Name=""New Rule Set3"" Description=""Test"" ToolsVersion=""12.0"">

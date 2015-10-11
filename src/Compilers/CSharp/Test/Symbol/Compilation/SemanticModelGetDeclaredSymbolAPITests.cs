@@ -3597,9 +3597,9 @@ class Program
 
         [WorkItem(541800, "DevDiv")]
         [Fact]
-        public void GetDeclaredSymbolOnGlobalStmtParseOptionInteractive()
+        public void GetDeclaredSymbolOnGlobalStmtParseOptionScript()
         {
-            var parseOptions = TestOptions.Interactive;
+            var parseOptions = TestOptions.Script;
             var compilation = CreateCompilationWithMscorlib(@"/", parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3679,7 +3679,7 @@ class Program
 
         [WorkItem(542459, "DevDiv")]
         [Fact]
-        public void StructKeywordInsideSwitchWithInteractiveParseOption()
+        public void StructKeywordInsideSwitchWithScriptParseOption()
         {
             var compilation = CreateCompilationWithMscorlib(@"
 using System;
@@ -3701,7 +3701,7 @@ class Test
         }
     }
 }
-", parseOptions: TestOptions.Interactive
+", parseOptions: TestOptions.Script
  );
 
             var tree = compilation.SyntaxTrees[0];
@@ -3720,7 +3720,7 @@ using System;
 struct break;
 ";
 
-            var compilation = CreateCompilationWithMscorlib(code, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib(code, parseOptions: TestOptions.Script);
 
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3750,7 +3750,7 @@ namespace N1
 
         [WorkItem(542583, "DevDiv")]
         [Fact]
-        public void LambdaExpressionInFieldInitReferencingAnotherFieldWithInteractiveParseOption()
+        public void LambdaExpressionInFieldInitReferencingAnotherFieldWithScriptParseOption()
         {
             string sourceCode = @"
 using System.Linq;
@@ -3761,7 +3761,7 @@ class P
     double one = 1;
     public Func<int, int> z = (x => x + one);
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedExpressionSyntax>().First();

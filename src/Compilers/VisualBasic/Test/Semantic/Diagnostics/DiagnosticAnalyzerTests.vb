@@ -599,6 +599,62 @@ End Class
                     Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
         End Sub
 
+        <Fact, WorkItem(4745, "https://github.com/dotnet/roslyn/issues/4745")>
+        Public Sub TestNamespaceDeclarationAnalyzer()
+            Dim analyzer = New VisualBasicNamespaceDeclarationAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Namespace Foo.Bar.FooBar
+End Namespace
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Foo.Bar.FooBar]]>))
+        End Sub
+
+        <Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")>
+        Public Sub TestObjectCreationInCodeBlockAnalyzer()
+            Dim analyzer = New VisualBasicCodeBlockObjectCreationAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public Class C1
+End Class
+
+Public Class C2
+End Class
+
+Public Class C3
+End Class
+
+Public Class D
+    Dim x As C1 = New C1()
+    Dim y As New C2()
+    Public ReadOnly Property Z As New C3()
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C1()]]>),
+                    Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C2()]]>),
+                    Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C3()]]>))
+        End Sub
+
         <Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")>
         Public Sub TestReportingNotConfigurableDiagnostic()
             Dim analyzer = New NotConfigurableDiagnosticAnalyzer()

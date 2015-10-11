@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
         Public Class MethodNameGeneration
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestGetLiteralGeneratesSmartName()
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -28,7 +28,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestGetLiteralDoesNotGenerateSmartName()
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -49,7 +49,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestGetLiteralGeneratesSmartName2()
                 Dim code = <text>Public Class Class1
     Sub MySub()
@@ -72,7 +72,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestAppendingNumberedSuffixToGetMethods()
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -105,7 +105,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestAppendingNumberedSuffixToNewMethods()
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -139,7 +139,7 @@ End Class</text>
             ''' This is a special case in VB as it is case insensitive
             ''' Hence Get_FirstName() would conflict with the internal get_FirstName() that VB generates for the getter
             <WorkItem(540483)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestPropertyGetter()
                 Dim code = <text>Class Program
     Private _FirstName As String
@@ -180,7 +180,7 @@ End Class</text>
             End Sub
 
             <WorkItem(530674)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestEscapedParameterName()
                 Dim code = <text>Imports System.Linq
 

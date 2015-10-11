@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -9,24 +10,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public abstract class TestWorkspaceFixture : IDisposable
     {
-        public TestWorkspace Workspace { get; protected set; }
+        private TestWorkspace _workspace;
+
+        public TestWorkspace Workspace
+        {
+            get
+            {
+                _workspace = _workspace ?? CreateWorkspace();
+                return _workspace;
+            }
+        }
 
         public TestWorkspaceFixture()
         {
         }
 
+        protected abstract TestWorkspace CreateWorkspace();
+
         public void Dispose()
         {
-            if (this.Workspace != null)
+            if (_workspace != null)
             {
-                this.Workspace.Dispose();
-                this.Workspace = null;
+                _workspace.Dispose();
+                _workspace = null;
             }
         }
 
         public Document UpdateDocument(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
         {
-            var hostDocument = this.Workspace.Documents.Single();
+            var hostDocument = Workspace.Documents.Single();
             var textBuffer = hostDocument.TextBuffer;
 
             // clear the document
@@ -38,9 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // and set the content
             UpdateText(hostDocument.TextBuffer, text);
 
-            this.Workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
+            Workspace.OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 
-            return this.Workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            return Workspace.CurrentSolution.GetDocument(hostDocument.Id);
         }
 
         private static void UpdateText(ITextBuffer textBuffer, string text)
@@ -50,6 +62,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 edit.Replace(0, textBuffer.CurrentSnapshot.Length, text);
                 edit.Apply();
             }
+        }
+
+        public void CloseTextView()
+        {
+            Workspace.Documents.Single().CloseTextView();
+
+            // The editor caches TextFormattingRunProperties instances for better perf, but since things like
+            // Brushes are DispatcherObjects, they are tied to the thread they are created on. Since we're going
+            // to be run on a different thread, clear out their collection.
+            var textFormattingRunPropertiesType = typeof(VisualStudio.Text.Formatting.TextFormattingRunProperties);
+            var existingPropertiesField = textFormattingRunPropertiesType.GetField("ExistingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
+            existingProperties.Clear();
         }
     }
 }

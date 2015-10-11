@@ -2912,12 +2912,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         Friend Overrides Sub ReportEnclosingExceptionHandlingRudeEdits(diagnostics As List(Of RudeEditDiagnostic),
                                                                        exceptionHandlingEdits As IEnumerable(Of Edit(Of SyntaxNode)),
                                                                        oldStatement As SyntaxNode,
-                                                                       newStatement As SyntaxNode)
+                                                                       newStatementSpan As TextSpan)
             For Each edit In exceptionHandlingEdits
                 Debug.Assert(edit.Kind <> EditKind.Update OrElse edit.OldNode.RawKind = edit.NewNode.RawKind)
 
                 If edit.Kind <> EditKind.Update OrElse Not AreExceptionHandlingPartsEquivalent(edit.OldNode, edit.NewNode) Then
-                    AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatement)
+                    AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan)
                 End If
             Next
         End Sub
@@ -3112,7 +3112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
             Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(match.NewRoot)
             If onErrorOrResumeStatement IsNot Nothing Then
-                AddRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement)
+                AddRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf)

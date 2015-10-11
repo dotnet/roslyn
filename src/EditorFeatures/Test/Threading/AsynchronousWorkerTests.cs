@@ -19,13 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         public AsynchronousWorkerTests()
         {
             TestWorkspace.ResetThreadAffinity();
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             _foregroundSyncContext = SynchronizationContext.Current;
             Assert.NotNull(_foregroundSyncContext);
         }
 
         // Ensure a background action actually runs on the background.
-        [Fact]
+        [WpfFact]
         public void TestBackgroundAction()
         {
             var listener = new AggregateAsynchronousOperationListener(Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(), "Test");
@@ -45,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             Assert.True(actionRan);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMultipleBackgroundAction()
         {
             // Test that background actions don't run at the same time.
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             Assert.True(action2Ran);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBackgroundCancel1()
         {
             // Ensure that we can cancel a background action.
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             Assert.True(actionRan);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBackgroundCancelOneAction()
         {
             // Ensure that when a background action is cancelled the next
@@ -183,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             Assert.True(action2Ran);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBackgroundCancelMultipleActions()
         {
             // Ensure that multiple background actions are cancelled if they

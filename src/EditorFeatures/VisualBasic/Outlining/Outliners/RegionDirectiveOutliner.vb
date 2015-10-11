@@ -26,7 +26,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
                     VisualBasicOutliningHelpers.CreateRegion(
                         TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
                         GetBannerText(regionDirective),
-                        autoCollapse:=False))
+                        autoCollapse:=False,
+                        isDefaultCollapsed:=True))
             End If
         End Sub
 

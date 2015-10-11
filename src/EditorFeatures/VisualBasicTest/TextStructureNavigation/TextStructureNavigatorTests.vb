@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
     Public Class TextStructureNavigatorTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub Empty()
             AssertExtent(
                 String.Empty,
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=0, length:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub Whitespace()
             AssertExtent(
                 "   ",
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=0, length:=3)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub EndOfFile()
             AssertExtent(
                 "Imports System",
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=8, length:=6)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub NewLine()
             AssertExtent(
                 "Module Module1" & vbCrLf & vbCrLf & "End Module",
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=16, length:=2)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub Comment()
             AssertExtent(
                 " ' Comment  ",
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=5, length:=2)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub Keyword()
             For i = 7 To 12
                 AssertExtent(
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Next
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub Identifier()
             For i = 13 To 13 + 8
                 AssertExtent(
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Next
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub EscapedIdentifier()
             For i = 12 To 12 + 7
                 AssertExtent(
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Next
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub Number()
             For i = 37 To 37 + 12
                 AssertExtent(
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Next
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub [String]()
             AssertExtent(
                 "Class Test : Dim str As String = "" () test  "" : End Class",
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
                 start:=44, length:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>
         Public Sub InterpolatedString()
             AssertExtent(
                 "Class Test : Dim str As String = $"" () test  "" : End Class",

@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
     public class CSharpCompilerOptionsTests
     {
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(530980)]
         public void DocumentationModeSetToDiagnoseIfProducingDocFile()
@@ -36,7 +36,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(530980)]
         public void DocumentationModeSetToParseIfNotProducingDocFile()
@@ -54,7 +54,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void UseOPTID_COMPATIBILITY()
         {
@@ -71,7 +71,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        ////[Fact]
+        ////[WpfFact]
         ////[Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         ////public void UseOPTID_COMPATIBILITY_caseinsensitive()
         ////{
@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         ////    }
         ////}
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(1092636)]
         [WorkItem(1040247)]

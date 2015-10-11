@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     SyntaxKind.CaseElseStatement
                     Return UseSyntax(node, newContext)
 
-                ' Resuse SyntaxKind.CaseBlock but do not resuse CaseElseBlock.  These need to be crumbled so that the 
+                ' Reuse SyntaxKind.CaseBlock but do not reuse CaseElseBlock.  These need to be crumbled so that the 
                 ' error check for multiple case else statements is done.
                 Case SyntaxKind.CaseBlock
                     Return UseSyntax(node, newContext) Or LinkResult.SkipTerminator

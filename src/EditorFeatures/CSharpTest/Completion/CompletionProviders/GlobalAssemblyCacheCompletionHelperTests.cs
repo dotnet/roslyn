@@ -15,21 +15,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 {
     public class GlobalAssemblyCacheCompletionHelperTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExistingReference()
         {
             var code = "System.Windows";
             VerifyPresence(code, "System.Windows.Forms");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FullReferenceIdentity()
         {
             var code = "System,";
             VerifyPresence(code, typeof(System.Diagnostics.Process).Assembly.FullName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FullReferenceIdentityDescription()
         {
             var code = "System";
@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                 completion => completion.GetDescriptionAsync().Result.GetFullText() == typeof(System.Diagnostics.Process).Assembly.FullName));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NothingOnForwardSlash()
         {
             var code = "System.Windows/";
             VerifyAbsence(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NothingOnBackSlash()
         {
             var code = @"System.Windows\";

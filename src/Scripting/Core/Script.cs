@@ -199,6 +199,12 @@ namespace Microsoft.CodeAnalysis.Scripting
                     {
                         var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
                         references.Add(globalsTypeAssembly);
+
+                        // TODO: remove
+                        var systemRuntimeFacade = MetadataReference.CreateFromAssemblyInternal(
+                            Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")));
+
+                        references.Add(systemRuntimeFacade);
                     }
 
                     if (languageRuntimeReferenceOpt != null)

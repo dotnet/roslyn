@@ -152,14 +152,14 @@ new System.Data.DataSet()
 using System.Linq;
 
 var x = from a in new[] { 1, 2 ,3 } select a + 1;
-", options.WithPath(@"C:\dir\a.csx").WithIsInteractive(false));
+", options.WithPath(@"C:\dir\a.csx"));
 
-            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null).WithIsInteractive(true));
+            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null));
 
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
 
-        [Fact]
+        [Fact(Skip = "xunit2")]
         public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(
@@ -302,6 +302,7 @@ System.Collections.IEnumerable w = new Window();
             {
                 typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(C).Assembly.Location,
+                Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")).Location, // TODO: remove
                 typeof(C).Assembly.Location,
                 typeof(C).Assembly.Location,
             }, s0.Script.GetCompilation().ExternalReferences.SelectAsArray(m => m.Display));

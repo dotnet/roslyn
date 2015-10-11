@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property Title As String
             Get
-                ' TODO: localize
+                ' Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
                 Return "Visual Basic Interactive"
             End Get
         End Property
@@ -65,9 +65,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                 CommonVsUtils.GetWorkingDirectory())
         End Function
 
-        Protected Overrides Sub LogSession(key As String, value As String)
-            Logger.Log(FunctionId.VisualBasic_Interactive_Window, KeyValueLogMessage.Create(Sub(m) m.Add(key, value)))
-        End Sub
+        Protected Overrides ReadOnly Property InteractiveWindowFunctionId As FunctionId
+            Get
+                Return FunctionId.VisualBasic_Interactive_Window
+            End Get
+        End Property
     End Class
 End Namespace
 

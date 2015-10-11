@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.FullyQ
         End Function
 
         <WorkItem(718494)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Sub TestAsyncFunction1()
             Test(
 NewLines("Imports System.Threading.Tasks \n Module Program \n [|Async Function F()|] \n Return Nothing \n End Function \n End Module"),
@@ -22,7 +22,7 @@ NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F()
         End Sub
 
         <WorkItem(718494)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Sub TestAsyncFunction2()
             Test(
 NewLines("Imports System.Threading.Tasks \n Module Program \n [|Async Function F() As   Integer|]   \n Return Nothing \n End Function \n End Module"),
@@ -30,7 +30,7 @@ NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F()
         End Sub
 
         <WorkItem(718494)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Sub TestAsyncFunction3()
             Test(
 NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F() As Task \n Dim a = [|Async Function() As Integer|] \n Return Nothing \n End Function\n Return Nothing \n End Function \n End Module"),
@@ -38,7 +38,7 @@ NewLines("Imports System.Threading.Tasks \n Module Program \n Async Function F()
         End Sub
 
         <WorkItem(718494)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Sub TestIteratorFunction1()
             Test(
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n [|Iterator Function F()|] \n Return Nothing \n End Function \n End Module"),
@@ -46,7 +46,7 @@ NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Mo
         End Sub
 
         <WorkItem(718494)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Sub TestIteratorFunction2()
             Test(
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n [|Iterator Function F() As   Integer|]   \n Return Nothing \n End Function \n End Module"),
@@ -54,7 +54,7 @@ NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Mo
         End Sub
 
         <WorkItem(718494)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectFunctionReturnType)>
         Public Sub TestIteratorFunction3()
             Test(
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Module Program \n Async Function F() As Task \n Dim a = [|Iterator Function() As Integer|] \n Return Nothing \n End Function\n Return Nothing \n End Function \n End Module"),

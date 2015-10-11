@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class EscapingTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToEscapedKeyword1()
             Using result = RenameEngineResult.Create(
@@ -22,7 +22,7 @@ class [|$$Foo|]
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeWhenRenamingToEscapedKeyword2()
             Using result = RenameEngineResult.Create(
@@ -41,7 +41,7 @@ class {|escaped:$$Foo|}
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub UseFullAttributeNameWhenShortNameIsKeyword()
             Using result = RenameEngineResult.Create(
@@ -67,7 +67,7 @@ class [|$$MainAttribute|] : System.Attribute
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub EscapeAttributeIfKeyword()
             Using result = RenameEngineResult.Create(
@@ -94,7 +94,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
         End Sub
 
         <WorkItem(527603)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotStickTokensTogetherForRefParameter_1()
             Using result = RenameEngineResult.Create(
@@ -114,7 +114,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
         End Sub
 
         <WorkItem(527603)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub DoNotStickTokensTogetherForRefParameter_2()
             Using result = RenameEngineResult.Create(
@@ -133,7 +133,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierUnescapes()
             Using result = RenameEngineResult.Create(
@@ -154,7 +154,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierUnescapes_2()
             Using result = RenameEngineResult.Create(
@@ -176,7 +176,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenameEscapedIdentifierUnescapes_3()
             Using result = RenameEngineResult.Create(

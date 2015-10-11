@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' CONSIDER: even for generateSwitchTable case? We might want to do so to
                 ' CONSIDER: maintain consistency of bound nodes coming out of the binder.
                 ' CONSIDER: With the current design, value of BoundCaseStatement.ConditionOpt field 
-                ' CONSIDER: is dependant on the value of generateSwitchTable.
+                ' CONSIDER: is dependent on the value of generateSwitchTable.
 
                 If Not generateSwitchTable AndAlso caseBlockBuilder.Any() Then
                     Dim booleanType = GetSpecialType(SpecialType.System_Boolean, selectExpression.Syntax, diagnostics)
