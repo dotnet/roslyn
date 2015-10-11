@@ -106,6 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (type.IsNullableType())
             {
+                // This is a semantic error in the binder, so we should not get here.
+                // Not sure what the semantics should be, as (null is Nullable<int>) is false.
+
                 // bool Is<T>(object e, out T? t) where T : struct
                 // {
                 //     t = e as T?;
@@ -139,7 +142,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     if (s) o = (T)i;
                 //     return s;
                 // }
-                throw new NotImplementedException();
+                return _factory.Conditional(_factory.Is(input, type),
+                    _factory.Sequence(_factory.AssignmentExpression(_factory.Local(target), _factory.Convert(type, input)), _factory.Literal(true)),
+                    _factory.Literal(false),
+                    _factory.SpecialType(SpecialType.System_Boolean));
             }
         }
     }

@@ -59,6 +59,72 @@ public class X
         }
 
         [Fact]
+        public void NullablePatternTest()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        T(null);
+        T(1);
+    }
+    public static void T(object x)
+    {
+        if (x is Nullable<int> y) Console.WriteLine($""expression {x} is Nullable<int> y"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (11,18): error CS8105: It is not legal to use nullable type 'int?' in a pattern; use the underlying type 'int' instead.
+    //         if (x is Nullable<int> y) Console.WriteLine($"expression {x} is Nullable<int> y");
+    Diagnostic(ErrorCode.ERR_PatternNullableType, "Nullable<int>").WithArguments("int?", "int").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
+        public void UnconstrainedPatternTest()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        Test<string>(1);
+        Test<int>(""foo"");
+        Test<int>(1);
+        Test<int>(1.2);
+        Test<double>(1.2);
+        Test<int?>(1);
+        Test<int?>(null);
+        Test<string>(null);
+    }
+    public static void Test<T>(object x)
+    {
+        if (x is T y)
+            Console.WriteLine($""expression {x} is {typeof(T).Name} {y}"");
+        else
+            Console.WriteLine($""expression {x} is not {typeof(T).Name}"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                );
+            var expectedOutput =
+@"expression 1 is not String
+expression foo is not Int32
+expression 1 is Int32 1
+expression 1.2 is not Int32
+expression 1.2 is Double 1.2
+expression 1 is Nullable`1 1
+expression  is not Nullable`1
+expression  is not String";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void PropertyPatternTest()
         {
             var source =
