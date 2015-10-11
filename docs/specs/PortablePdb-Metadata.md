@@ -97,11 +97,12 @@ The representation is optimized for an efficient deserialization of the name int
 
 MethodBody table is either empty (missing) or has exactly as many rows as MethodDef table and the following column:
 
-* _SequencePoints_ (Blob heap index, 0 if the method doesn’t have a body, encoding: [sequence points blob](#SequencePointsBlob))
+* _Document_       (The row id of the document containing the first sequence point of the method, or 0 if the method doesn't have sequence points)
+* _SequencePoints_ (Blob heap index, 0 if the method doesn’t have sequence points, encoding: [sequence points blob](#SequencePointsBlob))
 
 The table is a logical extension of MethodDef table (adding a column to the table) and as such can be indexed by MethodDef row id.
 
-#### <a name="MethodBodyBlob"></a>Method Body Blob
+#### <a name="SequencePointsBlob"></a>Sequence Points Blob
 Sequence point is a quintuple of integers and a document reference:
 
 * IL Offset
@@ -133,7 +134,6 @@ _Method body blob_ has the following structure:
 | component        | value stored                  | integer representation |
 |:-----------------|:------------------------------|:-----------------------|
 | _LocalSignature_ | StandAloneSig table row id    | unsigned compressed    |
-| _Document_       | Document table row id         | unsigned compressed    |
 
 _LocalSignature_ stores the row id of the local signature of the method. This information is somewhat redundant since it can be retrieved from the IL stream. However in some scenarios the IL stream is not available or loading it would unnecessary page in memory that might not otherwise be needed.
 
@@ -164,7 +164,7 @@ _LocalSignature_ stores the row id of the local signature of the method. This in
 | _δILOffset_  | 0                                  | unsigned compressed            |
 | _Document_   | Document row id                    | unsigned compressed            |
 
-Each _SequencePointRecord_ represents a single sequence point. The sequence point inherits the value of _Document_ property from the previous record (_SequencePointRecord_ or _document-record_) or from the _header_ if its the first sequence point. The value of _IL Offset_ is calculated using the value of the previous sequence point (if any) and the value stored in the record. 
+Each _SequencePointRecord_ represents a single sequence point. The sequence point inherits the value of _Document_ property from the previous record (_SequencePointRecord_ or _document-record_) or from the _Document_ field of the _MethodBody_ table if it's the first sequence point. The value of _IL Offset_ is calculated using the value of the previous sequence point (if any) and the value stored in the record. 
 
 The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ of a non-hidden sequence point are calculated based upon the values of the previous non-hidden sequence point (if any) and the data stored in the record.
 

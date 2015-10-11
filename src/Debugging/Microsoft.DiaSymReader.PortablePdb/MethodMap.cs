@@ -177,17 +177,10 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 {
                     continue;
                 }
-
-                var methodBodyReader = reader.GetBlobReader(methodBody.SequencePoints);
-
-                // skip signature:
-                methodBodyReader.ReadCompressedInteger();
-
-                // document:
-                var currentDocument = MetadataTokens.DocumentHandle(methodBodyReader.ReadCompressedInteger());
-
+                                
                 // sequence points:
-                var spReader = reader.GetSequencePointsReader(methodBody.SequencePoints);
+                var spReader = methodBody.GetSequencePointsReader();
+                DocumentHandle currentDocument = methodBody.Document;
 
                 int minLine = int.MaxValue;
                 int maxLine = int.MinValue;

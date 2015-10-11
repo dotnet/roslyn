@@ -51,6 +51,7 @@ namespace Microsoft.Cci
         public readonly byte TypeDefOrRefCodedIndexSize;
         public readonly byte TypeOrMethodDefCodedIndexSize;
 
+        public readonly byte DocumentIndexSize;
         public readonly byte LocalVariableIndexSize;
         public readonly byte LocalConstantIndexSize;
         public readonly byte ImportScopeIndexSize;
@@ -211,6 +212,7 @@ namespace Microsoft.Cci
             this.TypeDefOrRefCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.TypeSpec);
             this.TypeOrMethodDefCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.TypeDef, TableIndex.MethodDef);
 
+            this.DocumentIndexSize = this.GetReferenceByteSize(0, TableIndex.Document);
             this.LocalVariableIndexSize = this.GetReferenceByteSize(0, TableIndex.LocalVariable);
             this.LocalConstantIndexSize = this.GetReferenceByteSize(0, TableIndex.LocalConstant);
             this.ImportScopeIndexSize = this.GetReferenceByteSize(0, TableIndex.ImportScope);
@@ -293,7 +295,7 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.GenericParamConstraint, this.GenericParamIndexSize + this.TypeDefOrRefCodedIndexSize);
 
             size += GetTableSize(TableIndex.Document, this.BlobIndexSize + this.GuidIndexSize + this.BlobIndexSize + this.GuidIndexSize);
-            size += GetTableSize(TableIndex.MethodBody, this.BlobIndexSize);
+            size += GetTableSize(TableIndex.MethodBody, this.DocumentIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.ImportScopeIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
             size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
             size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize);

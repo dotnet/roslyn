@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using Roslyn.Reflection.Metadata.Decoding;
 
 namespace Roslyn.Test.MetadataUtilities
 {
@@ -614,7 +615,10 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string SequencePoint(SequencePoint sequencePoint)
         {
-            string range = sequencePoint.IsHidden ? "<hidden>" : $"({sequencePoint.StartLine}, {sequencePoint.StartColumn}) - ({sequencePoint.EndLine}, {sequencePoint.EndColumn})";
+            string range = sequencePoint.IsHidden ? 
+                "<hidden>" : 
+                $"({sequencePoint.StartLine}, {sequencePoint.StartColumn}) - ({sequencePoint.EndLine}, {sequencePoint.EndColumn}) {Token(() => sequencePoint.Document)}";
+
             return $"IL_{sequencePoint.Offset:X4}: " + range;
         }
 
@@ -1511,7 +1515,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 try
                 {
-                    var spReader = _reader.GetSequencePointsReader(entry.SequencePoints);
+                    var spReader = entry.GetSequencePointsReader();
                     while (spReader.MoveNext())
                     {
                         _writer.Write("  ");

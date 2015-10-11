@@ -35,9 +35,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         private SequencePointBlobReader GetSequencePointsReader()
         {
-            var mdReader = SymReader.MetadataReader;
-            var body = mdReader.GetMethodBody(BodyHandle);
-            return mdReader.GetSequencePointsReader(body.SequencePoints);
+            return SymReader.MetadataReader.GetMethodBody(BodyHandle).GetSequencePointsReader();
         }
 
         private RootScopeData GetRootScopeData()

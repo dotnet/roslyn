@@ -21,6 +21,7 @@ namespace Microsoft.Cci
 
         private struct MethodBodyRow
         {
+            public uint Document;       // DocumentRid
             public BlobIdx SequencePoints;
         }
 
@@ -99,8 +100,9 @@ namespace Microsoft.Cci
             int importScopeRid = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : 0;
 
             // documents & sequence points:
-            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex);
-            _methodBodyTable.Add(new MethodBodyRow { SequencePoints = sequencePointsBlob });
+            int firstDocumentRowId;
+            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out firstDocumentRowId);
+            _methodBodyTable.Add(new MethodBodyRow { Document = (uint)firstDocumentRowId, SequencePoints = sequencePointsBlob });
             
             // Unlike native PDB we don't emit an empty root scope.
             // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
@@ -557,10 +559,15 @@ namespace Microsoft.Cci
 
         #region Sequence Points
 
-        private BlobIdx SerializeSequencePoints(int localSignatureRowId, ImmutableArray<SequencePoint> sequencePoints, Dictionary<DebugSourceDocument, int> documentIndex)
+        private BlobIdx SerializeSequencePoints(
+            int localSignatureRowId,
+            ImmutableArray<SequencePoint> sequencePoints,
+            Dictionary<DebugSourceDocument, int> documentIndex,
+            out int firstDocumentRowId)
         {
             if (sequencePoints.Length == 0)
             {
+                firstDocumentRowId = 0;
                 return default(BlobIdx);
             }
 
@@ -569,20 +576,20 @@ namespace Microsoft.Cci
             int previousNonHiddenStartLine = -1;
             int previousNonHiddenStartColumn = -1;
 
-            uint currentDocumentRowId = GetOrAddDocument(sequencePoints[0].Document, documentIndex);
-
+            firstDocumentRowId = GetOrAddDocument(sequencePoints[0].Document, documentIndex);
+            
             // header:
             writer.WriteCompressedInteger((uint)localSignatureRowId);
-            writer.WriteCompressedInteger(currentDocumentRowId);
 
+            int currentDocumentRowId = firstDocumentRowId;
             for (int i = 0; i < sequencePoints.Length; i++)
             {
-                uint documentRowId = GetOrAddDocument(sequencePoints[i].Document, documentIndex);
+                int documentRowId = GetOrAddDocument(sequencePoints[i].Document, documentIndex);
                 if (documentRowId != currentDocumentRowId)
                 {
                     // document record:
                     writer.WriteCompressedInteger(0);
-                    writer.WriteCompressedInteger(documentRowId);
+                    writer.WriteCompressedInteger((uint)documentRowId);
                     currentDocumentRowId = documentRowId;
                 }
 
@@ -649,7 +656,7 @@ namespace Microsoft.Cci
 
         #region Documents
 
-        private uint GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, int> index)
+        private int GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, int> index)
         {
             int documentRowId;
             if (!index.TryGetValue(document, out documentRowId))
@@ -667,7 +674,7 @@ namespace Microsoft.Cci
                 });
             }
 
-            return (uint)documentRowId;
+            return documentRowId;
         }
 
         private static readonly char[] Separator1 = { '/' };
@@ -765,6 +772,7 @@ namespace Microsoft.Cci
         {
             foreach (var row in _methodBodyTable)
             {
+                writer.WriteReference(row.Document, metadataSizes.DocumentIndexSize);
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.SequencePoints), metadataSizes.BlobIndexSize);
             }
         }

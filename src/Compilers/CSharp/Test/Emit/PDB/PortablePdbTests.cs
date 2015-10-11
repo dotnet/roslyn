@@ -49,7 +49,7 @@ class C
 
                     var name = mdReader.GetString(method.Name);
 
-                    var spReader = pdbReader.GetSequencePointsReader(methodBody.SequencePoints);
+                    var spReader = methodBody.GetSequencePointsReader();
 
                     TextWriter writer = new StringWriter();
                     while (spReader.MoveNext())
@@ -83,7 +83,6 @@ class C
                             AssertEx.Equal(new byte[] 
                             {
                                 0x01, // local signature
-                                0x01, // document
 
                                 0x00, // IL offset
                                 0x00, // Delta Lines
@@ -132,7 +131,6 @@ class C
                             AssertEx.Equal(new byte[] 
                             {
                                 0x00, // local signature
-                                0x01, // document
 
                                 0x00, // delta IL offset
                                 0x00, // Delta Lines
