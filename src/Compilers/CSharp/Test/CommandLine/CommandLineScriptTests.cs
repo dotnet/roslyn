@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         {
             // As in VS/ETA, make a new list of references for each submission.
 
-            var options = new CSharpParseOptions(kind: SourceCodeKind.Interactive, documentationMode: DocumentationMode.None);
+            var options = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
             var corLib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
 
             var s1 = CSharpCompilation.CreateSubmission("s1.dll",
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         {
             // As in VS/ETA, make a new list of references for each submission.
 
-            var options = new CSharpParseOptions(kind: SourceCodeKind.Interactive, documentationMode: DocumentationMode.None);
+            var options = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
             var corLib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
 
             var s1 = CSharpCompilation.CreateSubmission("s1.dll",

@@ -733,8 +733,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             hasValue = False
             Dim tree = SyntaxTrees.SingleOrDefault()
 
+            ' TODO: look for return statements
+            ' https://github.com/dotnet/roslyn/issues/5773
+
             ' submission can be empty or comprise of a script file
-            If tree Is Nothing OrElse tree.Options.Kind <> SourceCodeKind.Interactive Then
+            If tree Is Nothing Then
                 Return GetSpecialType(SpecialType.System_Void)
             End If
 

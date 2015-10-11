@@ -272,9 +272,9 @@ $$");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public void AfterPrivate_Interactive()
+        public void AfterPrivate_Script()
         {
-            VerifyKeyword(SourceCodeKind.Interactive,
+            VerifyKeyword(SourceCodeKind.Script,
 @"private $$");
         }
 

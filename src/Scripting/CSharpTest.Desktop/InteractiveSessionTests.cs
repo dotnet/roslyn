@@ -152,9 +152,9 @@ new System.Data.DataSet()
 using System.Linq;
 
 var x = from a in new[] { 1, 2 ,3 } select a + 1;
-", options.WithPath(@"C:\dir\a.csx").WithIsInteractive(false));
+", options.WithPath(@"C:\dir\a.csx"));
 
-            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null).WithIsInteractive(true));
+            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null));
 
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }

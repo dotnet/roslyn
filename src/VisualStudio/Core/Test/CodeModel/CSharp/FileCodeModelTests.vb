@@ -420,7 +420,7 @@ class C : B, I
             TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "B", .ImplementedInterfaces = "I"})
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5868"), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddClass10()
             Dim code =
 <Code>

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var code = "#load \"\"";
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var code = "#load \"missing\"";
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(TestSourceReferenceResolver.Default);
-            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib45(code, options: options, parseOptions: TestOptions.Script);
 
             Assert.Single(compilation.SyntaxTrees);
             compilation.VerifyDiagnostics(

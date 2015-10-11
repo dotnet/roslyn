@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             foreach (var ex in expected)
             {
                 VerifyItemExists(code, ex, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-                VerifyItemExists(code, ex, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive);
             }
         }
 

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class InteractiveParsingTests : ParsingTests
+    public class ScriptParsingTests : ParsingTests
     {
         #region Helpers
 
@@ -67,10 +67,10 @@ static partial class C { }
 int a  
 Console.Foo
 ";
-            ParseAndValidate(test, TestOptions.Interactive,
+            ParseAndValidate(test, TestOptions.Script,
                 new ErrorDescription[] {
-                    new ErrorDescription { Code = 1002, Line = 2, Column = 6 },
-                    new ErrorDescription { Code = 1002, Line = 3, Column = 12 }});
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 6 },
+                    new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 12 }});
         }
 
         [Fact]
@@ -239,7 +239,7 @@ bar();
             var test = @"
 Script() { }
 ";
-            ParseAndValidate(test, new ErrorDescription { Code = 1002, Line = 2, Column = 10 });
+            ParseAndValidate(test, new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 10 });
         }
 
         [Fact]
@@ -257,7 +257,7 @@ static Script() { }
             var test = @"
 ~Script() { }
 ";
-            ParseAndValidate(test, new ErrorDescription { Code = 1002, Line = 2, Column = 11 });
+            ParseAndValidate(test, new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 11 });
         }
 
         #endregion
@@ -1667,8 +1667,8 @@ delegate void Foo();
 delegate void MyDel(int i);
 ";
             ParseAndValidate(test,
-                new ErrorDescription { Code = 1002, Line = 2, Column = 13 },
-                new ErrorDescription { Code = 1002, Line = 3, Column = 15 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 13 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 15 });
         }
 
         [Fact]
@@ -2425,7 +2425,11 @@ fixed int x[10];
 
             // pointer decl
             test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.Regular, new[] { new ErrorDescription { Code = 1002, Line = 1, Column = 8 } }); // expected ';'
+            ParseAndValidate(test, TestOptions.Regular, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
+
+            // multiplication
+            test = @"a.b * c;";
+            ParseAndValidate(test, TestOptions.Script);
 
             // multiplication
             test = @"a.b * c;";
@@ -2433,21 +2437,13 @@ fixed int x[10];
 
             // multiplication
             test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.Script, new[] { new ErrorDescription { Code = 1002, Line = 1, Column = 8 } });   // expected ';'
-
-            // multiplication
-            test = @"a.b * c;";
-            ParseAndValidate(test, TestOptions.Interactive);
-
-            // multiplication
-            test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.Interactive);
+            ParseAndValidate(test, TestOptions.Script);
         }
 
         [Fact]
         public void Multiplication_Interactive_Semicolon()
         {
-            var tree = UsingTree(@"a * b;", TestOptions.Interactive);
+            var tree = UsingTree(@"a * b;", TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2477,7 +2473,7 @@ fixed int x[10];
         [Fact]
         public void Multiplication_Interactive_NoSemicolon()
         {
-            var tree = UsingTree(@"a * b", TestOptions.Interactive);
+            var tree = UsingTree(@"a * b", TestOptions.Script);
 
             Assert.False(tree.GetCompilationUnitRoot().ContainsDiagnostics);
 
@@ -2509,7 +2505,7 @@ fixed int x[10];
         [Fact]
         public void Multiplication_Complex()
         {
-            var tree = UsingTree(@"a<t>.n * f(x)", TestOptions.Interactive);
+            var tree = UsingTree(@"a<t>.n * f(x)", TestOptions.Script);
             Assert.False(tree.GetCompilationUnitRoot().ContainsDiagnostics);
 
             N(SyntaxKind.CompilationUnit);
@@ -2644,7 +2640,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_FieldDecl_Semicolon1()
         {
-            var tree = UsingTree(@"T ? a;", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a;", TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2674,7 +2670,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_FieldDecl_Semicolon2()
         {
-            var tree = UsingTree(@"T ? b, c = 1;", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? b, c = 1;", TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2717,7 +2713,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_FieldDecl_Semicolon3()
         {
-            var tree = UsingTree(@"T ? b = d => { };", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? b = d => { };", TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2764,7 +2760,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_FieldDecl_Semicolon4()
         {
-            var tree = UsingTree(@"T ? b = x ? y : z;", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? b = x ? y : z;", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.FieldDeclaration);
@@ -2814,7 +2810,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_FieldDecl_Comma1()
         {
-            var tree = UsingTree(@"T ? a,", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a,", TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2849,7 +2845,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_FieldDecl_Comma2()
         {
-            var tree = UsingTree(@"T ? a = 1,", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a = 1,", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.FieldDeclaration);
@@ -2893,7 +2889,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_PropertyDecl1()
         {
-            var tree = UsingTree(@"T ? a {", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a {", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -2920,7 +2916,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_PropertyDecl2()
         {
-            var tree = UsingTree(@"T ? a.b {", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a.b {", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -2955,7 +2951,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_PropertyDecl3()
         {
-            var tree = UsingTree(@"T ? a<T>.b {", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<T>.b {", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -2999,7 +2995,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_PropertyDecl4()
         {
-            var tree = UsingTree(@"T ? a<T?>.b<S>.c {", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<T?>.b<S>.c {", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.PropertyDeclaration);
@@ -3066,7 +3062,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl1()
         {
-            var tree = UsingTree(@"T ? a() {", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a() {", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3098,7 +3094,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl1_Where()
         {
-            var tree = UsingTree(@"T ? a() where", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a() where", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3142,7 +3138,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl2()
         {
-            var tree = UsingTree(@"T ? a(T b", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T b", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3178,7 +3174,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl3()
         {
-            var tree = UsingTree(@"T ? a.b(T c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a.b(T c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3222,7 +3218,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl4()
         {
-            var tree = UsingTree(@"T ? a<A>.b<B>(C c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<A>.b<B>(C c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3284,7 +3280,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl5()
         {
-            var tree = UsingTree(@"T ? a([Attr]C c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a([Attr]C c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3332,7 +3328,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl6()
         {
-            var tree = UsingTree(@"T ? a([Attr(a = b)]c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a([Attr(a = b)]c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3400,7 +3396,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl7()
         {
-            var tree = UsingTree(@"T ? a(out C c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(out C c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3437,7 +3433,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl8()
         {
-            var tree = UsingTree(@"T ? a(C[] a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(C[] a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3485,7 +3481,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl9()
         {
-            var tree = UsingTree(@"T ? a(params", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(params", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3522,7 +3518,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl10()
         {
-            var tree = UsingTree(@"T ? a(out T ? b", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(out T ? b", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3563,7 +3559,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl11()
         {
-            var tree = UsingTree(@"T ? a(ref T ? b", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(ref T ? b", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3604,7 +3600,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl12()
         {
-            var tree = UsingTree(@"T ? a(params T ? b", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(params T ? b", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3645,7 +3641,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl13()
         {
-            var tree = UsingTree(@"T ? a([Attr]T ? b", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a([Attr]T ? b", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3697,7 +3693,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl14A()
         {
-            var tree = UsingTree(@"T ? a(T ? b,", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T ? b,", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3746,7 +3742,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl14B()
         {
-            var tree = UsingTree(@"T ? a(T ? b)", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T ? b)", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3786,7 +3782,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl15()
         {
-            var tree = UsingTree(@"T ? a(T c)", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T c)", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3822,7 +3818,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl16()
         {
-            var tree = UsingTree(@"T ? a(this c d", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(this c d", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3859,7 +3855,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl17()
         {
-            var tree = UsingTree(@"T ? a(ref out T a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(ref out T a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3897,7 +3893,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl18()
         {
-            var tree = UsingTree(@"T ? a(int a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(int a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3933,7 +3929,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl19()
         {
-            var tree = UsingTree(@"T ? a(ref int a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(ref int a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -3970,7 +3966,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl20()
         {
-            var tree = UsingTree(@"T ? a(T a =", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T a =", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -4014,7 +4010,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl21()
         {
-            var tree = UsingTree(@"T ? a(T[,] a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T[,] a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -4122,7 +4118,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl_GenericAmbiguity1()
         {
-            var tree = UsingTree(@"T ? m(a < b, c > d)", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(a < b, c > d)", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -4174,7 +4170,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression1()
         {
-            var tree = UsingTree(@"T ? 1", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? 1", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4208,7 +4204,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression2()
         {
-            var tree = UsingTree(@"T ? a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4242,7 +4238,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression3()
         {
-            var tree = UsingTree(@"T ? a.", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a.", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4284,7 +4280,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression4()
         {
-            var tree = UsingTree(@"T ? a[", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a[", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4326,7 +4322,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression5()
         {
-            var tree = UsingTree(@"T ? a<", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4368,7 +4364,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression6()
         {
-            var tree = UsingTree(@"T ? a<b", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<b", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4410,7 +4406,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression7()
         {
-            var tree = UsingTree(@"T ? a<b>", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<b>", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4453,7 +4449,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression8()
         {
-            var tree = UsingTree(@"T ? a<b,c>", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<b,c>", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4501,7 +4497,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression9()
         {
-            var tree = UsingTree(@"T ? a<b>.", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<b>.", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4552,7 +4548,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression10()
         {
-            var tree = UsingTree(@"T ? a<b>.c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<b>.c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4603,7 +4599,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression11()
         {
-            var tree = UsingTree(@"T ? a<b>.c(", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a<b>.c(", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4662,7 +4658,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression12()
         {
-            var tree = UsingTree(@"T ? a(", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4704,7 +4700,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression13()
         {
-            var tree = UsingTree(@"T ? a.b(", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a.b(", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4754,7 +4750,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression14()
         {
-            var tree = UsingTree(@"T ? m(c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4803,7 +4799,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression15()
         {
-            var tree = UsingTree(@"T ? m(c,", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(c,", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4860,7 +4856,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression16()
         {
-            var tree = UsingTree(@"T ? m(c:", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(c:", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4917,7 +4913,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression17()
         {
-            var tree = UsingTree(@"T ? m(c?", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(c?", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -4979,7 +4975,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression18()
         {
-            var tree = UsingTree(@"T ? m(c? a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(c? a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5041,7 +5037,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression19()
         {
-            var tree = UsingTree(@"T ? m(c? a =", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(c? a =", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5111,7 +5107,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression20()
         {
-            var tree = UsingTree(@"T ? m(c? a = b ?", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(c? a = b ?", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5194,7 +5190,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression21()
         {
-            var tree = UsingTree(@"T ? m()", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m()", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5236,7 +5232,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression22()
         {
-            var tree = UsingTree(@"T ? m(a)", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(a)", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5285,7 +5281,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression23()
         {
-            var tree = UsingTree(@"T ? m();", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m();", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5327,7 +5323,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression24()
         {
-            var tree = UsingTree(@"T ? m(a);", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(a);", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5376,7 +5372,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression25()
         {
-            var tree = UsingTree(@"T ? m(x: 1", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(x: 1", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5433,7 +5429,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression26()
         {
-            var tree = UsingTree(@"T ? m(x: 1, y: a ? b : c)", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(x: 1, y: a ? b : c)", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5519,7 +5515,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression27()
         {
-            var tree = UsingTree(@"T ? u => { } : v => { }", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? u => { } : v => { }", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5571,7 +5567,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression28()
         {
-            var tree = UsingTree(@"T ? u => (d ? e => 1 : f => 2)(3) : c => 2", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? u => (d ? e => 1 : f => 2)(3) : c => 2", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5670,7 +5666,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression30()
         {
-            var tree = UsingTree(@"T ? a ?", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a ?", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5717,7 +5713,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression31()
         {
-            var tree = UsingTree(@"T ? a =", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a =", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5757,7 +5753,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression32()
         {
-            var tree = UsingTree(@"T ? a = b", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a = b", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5799,7 +5795,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression33()
         {
-            var tree = UsingTree(@"T ? a = b : ", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a = b : ", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5841,7 +5837,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression34()
         {
-            var tree = UsingTree(@"T ? m(out c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(out c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5891,7 +5887,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression35()
         {
-            var tree = UsingTree(@"T ? m(ref c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(ref c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -5941,7 +5937,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression36()
         {
-            var tree = UsingTree(@"T ? m(ref out", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(ref out", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6000,7 +5996,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression37()
         {
-            var tree = UsingTree(@"T ? m(ref out c", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(ref out c", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6059,7 +6055,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression38()
         {
-            var tree = UsingTree(@"T ? m(this", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(this", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6108,7 +6104,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression39()
         {
-            var tree = UsingTree(@"T ? m(this.", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(this.", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6163,7 +6159,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression40()
         {
-            var tree = UsingTree(@"T ? m(this<", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(this<", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6220,7 +6216,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression41()
         {
-            var tree = UsingTree(@"T ? m(this[", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(this[", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6277,7 +6273,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression41A()
         {
-            var tree = UsingTree(@"T ? m(this a", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(this a", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6334,7 +6330,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression42()
         {
-            var tree = UsingTree(@"T ? m(this(", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(this(", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6389,7 +6385,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression43()
         {
-            var tree = UsingTree(@"T ? m(T[", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(T[", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6446,7 +6442,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression44()
         {
-            var tree = UsingTree(@"T ? m(T[1", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(T[1", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6510,7 +6506,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression45()
         {
-            var tree = UsingTree(@"T ? m(T[1]", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(T[1]", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6574,7 +6570,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_MethodDecl46()
         {
-            var tree = UsingTree(@"T ? a(T ? a =", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T ? a =", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6644,7 +6640,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression47()
         {
-            var tree = UsingTree(@"T ? a(T)", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T)", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6691,7 +6687,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression48()
         {
-            var tree = UsingTree(@"T ? a(ref int.MaxValue)", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(ref int.MaxValue)", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6749,7 +6745,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression49()
         {
-            var tree = UsingTree(@"T ? a(ref a,", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(ref a,", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6805,7 +6801,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression50()
         {
-            var tree = UsingTree(@"T ? a(,", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(,", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -6862,7 +6858,7 @@ fixed int x[10];
         [Fact]
         public void Ternary_Expression51()
         {
-            var tree = UsingTree(@"T ? a(T ? b[1] : b[2])", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? a(T ? b[1] : b[2])", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -7021,7 +7017,7 @@ T ? f(a ? b : c)
         [Fact]
         public void Ternary_Expression_GenericAmbiguity1()
         {
-            var tree = UsingTree(@"T ? m(a < b, c > d) :", TestOptions.Interactive);
+            var tree = UsingTree(@"T ? m(a < b, c > d) :", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -7352,7 +7348,7 @@ T ? f(from x
         [Fact]
         public void From_Identifier()
         {
-            var tree = UsingTree(@"from", TestOptions.Interactive);
+            var tree = UsingTree(@"from", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -7373,7 +7369,7 @@ T ? f(from x
         [Fact]
         public void From_FieldDecl()
         {
-            var tree = UsingTree(@"from c", TestOptions.Interactive);
+            var tree = UsingTree(@"from c", TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8012,7 +8008,7 @@ T ? f(from x
         [Fact]
         public void GlobalStatementSeparators_Comma1()
         {
-            var tree = UsingTree("a < b,c.", TestOptions.Interactive);
+            var tree = UsingTree("a < b,c.", TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -8266,8 +8262,7 @@ H �oz
 ";
             ParseAndValidate(test,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 3 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_UnexpectedCharacter, Line = 2, Column = 3 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 6 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_UnexpectedCharacter, Line = 2, Column = 3 });
         }
 
         [Fact]
@@ -8289,8 +8284,7 @@ int a
 Console.Foo()
 ";
             ParseAndValidate(test,
-                new ErrorDescription { Code = 1002, Line = 3, Column = 6 },
-                new ErrorDescription { Code = 1002, Line = 4, Column = 14 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 3, Column = 6 });
         }
 
         #endregion
@@ -8307,7 +8301,7 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 1 },
                 new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1002, Line = 1, Column = 9 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
 
         [Fact]
@@ -8320,7 +8314,7 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1002, Line = 1, Column = 9 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
 
         [Fact]
@@ -8333,7 +8327,7 @@ Console.Foo()
                 new ErrorDescription { Code = 1003, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1019, Line = 1, Column = 9 },
                 new ErrorDescription { Code = 1026, Line = 1, Column = 9 },
-                new ErrorDescription { Code = 1002, Line = 1, Column = 9 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 9 });
         }
 
         #endregion
@@ -8380,11 +8374,10 @@ interface IC { }
 ";
             ParseAndValidate(test,
                 new ErrorDescription { Code = 1525, Line = 2, Column = 1 },
-                new ErrorDescription { Code = 1002, Line = 2, Column = 10 },
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 10 },
                 new ErrorDescription { Code = 1525, Line = 2, Column = 25 },
                 new ErrorDescription { Code = 1525, Line = 2, Column = 26 },
-                new ErrorDescription { Code = 1733, Line = 2, Column = 35 },
-                new ErrorDescription { Code = 1002, Line = 2, Column = 35 });
+                new ErrorDescription { Code = 1733, Line = 2, Column = 35 });
         }
 
         [Fact]
@@ -8396,7 +8389,7 @@ parial class Test
 }
 ";
             ParseAndValidate(test,
-                new ErrorDescription { Code = 1002, Line = 2, Column = 8 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 8 });
         }
 
         [Fact]
@@ -8408,7 +8401,7 @@ p class A
  }
 ";
             ParseAndValidate(test,
-                new ErrorDescription { Code = 1002, Line = 2, Column = 3 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 2, Column = 3 });
         }
 
         [WorkItem(528532, "DevDiv")]
@@ -8416,7 +8409,7 @@ p class A
         public void ParseForwardSlash()
         {
             var test = @"/";
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Interactive);
+            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             Assert.Equal(1, tree.GetCompilationUnitRoot().ChildNodes().Count());
             Assert.Equal(SyntaxKind.GlobalStatement, tree.GetCompilationUnitRoot().ChildNodes().ToList()[0].Kind());
@@ -8431,8 +8424,7 @@ p class A
             ParseAndValidate(test,
                 new ErrorDescription { Code = 1733, Line = 1, Column = 28 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 28 },
-                new ErrorDescription { Code = 1733, Line = 1, Column = 28 },
-                new ErrorDescription { Code = 1002, Line = 1, Column = 28 });
+                new ErrorDescription { Code = 1733, Line = 1, Column = 28 });
         }
 
         #region Shebang
@@ -8440,7 +8432,7 @@ p class A
         [Fact]
         public void Shebang()
         {
-            var tree = ParseAndValidate("#!/usr/bin/env scriptcs", TestOptions.Script);
+            var tree = ParseAndValidate("#!/usr/bin/env csi", TestOptions.Script);
             var root = tree.GetCompilationUnitRoot();
 
             Assert.Empty(root.ChildNodes());
@@ -8448,7 +8440,7 @@ p class A
             Assert.Equal(SyntaxKind.EndOfFileToken, eof.Kind());
             Assert.Equal(SyntaxKind.ShebangTrivia, eof.GetLeadingTrivia().Single().Kind());
 
-            tree = ParseAndValidate("#! /usr/bin/env scriptcs\r\n ", TestOptions.Script);
+            tree = ParseAndValidate("#! /usr/bin/env csi\r\n ", TestOptions.Script);
             root = tree.GetCompilationUnitRoot();
 
             Assert.Empty(root.ChildNodes());
@@ -8461,7 +8453,7 @@ p class A
             Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[2].Kind());
 
             tree = ParseAndValidate(
-@"#!/usr/bin/env scriptcs
+@"#!/usr/bin/env csi
 Console.WriteLine(""Hi!"");", TestOptions.Script);
             root = tree.GetCompilationUnitRoot();
 
@@ -8476,30 +8468,30 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         [Fact]
         public void ShebangNotFirstCharacter()
         {
-            ParseAndValidate(" #!/usr/bin/env scriptcs", TestOptions.Script,
+            ParseAndValidate(" #!/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 2 });
 
-            ParseAndValidate("\n#!/usr/bin/env scriptcs", TestOptions.Script,
+            ParseAndValidate("\n#!/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 2, Column = 1 });
 
-            ParseAndValidate("\r\n#!/usr/bin/env scriptcs", TestOptions.Script,
+            ParseAndValidate("\r\n#!/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 2, Column = 1 });
 
-            ParseAndValidate("#!/bin/sh\r\n#!/usr/bin/env scriptcs", TestOptions.Script,
+            ParseAndValidate("#!/bin/sh\r\n#!/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 2, Column = 1 });
         }
 
         [Fact]
         public void ShebangNoBang()
         {
-            ParseAndValidate("#/usr/bin/env scriptcs", TestOptions.Script,
+            ParseAndValidate("#/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 1 });
         }
 
         [Fact]
         public void ShebangInComment()
         {
-            var tree = ParseAndValidate("//#!/usr/bin/env scriptcs", TestOptions.Script);
+            var tree = ParseAndValidate("//#!/usr/bin/env csi", TestOptions.Script);
             var root = tree.GetCompilationUnitRoot();
 
             Assert.Empty(root.ChildNodes());
@@ -8511,11 +8503,8 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         [Fact]
         public void ShebangNotInScript()
         {
-            foreach (var kind in Enum.GetValues(typeof(SourceCodeKind)).Cast<SourceCodeKind>().Where(k => k != SourceCodeKind.Script))
-            {
-                ParseAndValidate("#!/usr/bin/env scriptcs", new CSharpParseOptions(kind: kind),
-                    new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 1 });
-            }
+            ParseAndValidate("#!/usr/bin/env csi", TestOptions.Regular,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 1 });
         }
 
         #endregion

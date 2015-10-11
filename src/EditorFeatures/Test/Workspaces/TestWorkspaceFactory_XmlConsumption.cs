@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The project
 
-                var document = new TestHostDocument(exportProvider, languageServices, textBuffer, submissionName, cursorPosition, spans, SourceCodeKind.Interactive);
+                var document = new TestHostDocument(exportProvider, languageServices, textBuffer, submissionName, cursorPosition, spans, SourceCodeKind.Script);
                 var documents = new List<TestHostDocument> { document };
 
                 if (languageName == NoCompilationConstants.LanguageName)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 var compilationFactory = languageServices.GetService<ICompilationFactoryService>();
                 var compilationOptions = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
-                var parseOptions = syntaxFactory.GetDefaultParseOptions().WithKind(SourceCodeKind.Interactive);
+                var parseOptions = syntaxFactory.GetDefaultParseOptions().WithKind(SourceCodeKind.Script);
 
                 var references = CreateCommonReferences(workspace, submissionElement);
 
