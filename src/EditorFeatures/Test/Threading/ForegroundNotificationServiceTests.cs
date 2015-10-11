@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         public ForegroundNotificationServiceTests()
         {
             TestWorkspace.ResetThreadAffinity();
-            _service = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IForegroundNotificationService>();
+            _service = new ForegroundNotificationService();
         }
 
         [ConditionalWpfFact(typeof(x86))]
