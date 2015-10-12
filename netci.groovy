@@ -116,7 +116,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(16)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
         onlyTriggerPhrase(triggerOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
