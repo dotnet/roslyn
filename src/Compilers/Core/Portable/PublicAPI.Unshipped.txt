@@ -1,4 +1,10 @@
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", bool elasticTrivia = false) -> TNode
+Microsoft.CodeAnalysis.Collections.CompilationContext
+Microsoft.CodeAnalysis.Collections.CompilationContext.GetOrAdd<T>(Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Collections.CompilationContext.Key<T> key, T value) -> T
+Microsoft.CodeAnalysis.Collections.CompilationContext.Key<T>
+Microsoft.CodeAnalysis.Collections.CompilationContext.TryAdd<T>(Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Collections.CompilationContext.Key<T> key, T value) -> bool
+Microsoft.CodeAnalysis.Collections.CompilationContext.TryGetValue<T>(Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Collections.CompilationContext.Key<T> key, out T value) -> bool
+Microsoft.CodeAnalysis.Collections.CompilationContext.TryRemove<T>(Microsoft.CodeAnalysis.Compilation compilation, Microsoft.CodeAnalysis.Collections.CompilationContext.Key<T> key, out T value) -> bool
 Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.CommandLineParser.IsInteractive.get -> bool
 Microsoft.CodeAnalysis.Compilation.GetSubmissionResultType(out bool hasValue) -> Microsoft.CodeAnalysis.ITypeSymbol
@@ -55,6 +61,7 @@ Microsoft.CodeAnalysis.StrongNameProvider.StrongNameProvider() -> void
 abstract Microsoft.CodeAnalysis.Diagnostic.IsSuppressed.get -> bool
 abstract Microsoft.CodeAnalysis.ParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
 override Microsoft.CodeAnalysis.SyntaxTree.ToString() -> string
+static Microsoft.CodeAnalysis.Collections.CompilationContext.Instance.get -> Microsoft.CodeAnalysis.Collections.CompilationContext
 static Microsoft.CodeAnalysis.Diagnostic.Create(string id, string category, Microsoft.CodeAnalysis.LocalizableString message, Microsoft.CodeAnalysis.DiagnosticSeverity severity, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, int warningLevel, bool isSuppressed, Microsoft.CodeAnalysis.LocalizableString title = null, Microsoft.CodeAnalysis.LocalizableString description = null, string helpLink = null, Microsoft.CodeAnalysis.Location location = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations = null, System.Collections.Generic.IEnumerable<string> customTags = null, System.Collections.Immutable.ImmutableDictionary<string, string> properties = null) -> Microsoft.CodeAnalysis.Diagnostic
 static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions analysisOptions) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers
 static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.GetAnalyzerActionCountsAsync(this Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers compilationWithAnalyzers, Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer analyzer, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry.ActionCounts>
