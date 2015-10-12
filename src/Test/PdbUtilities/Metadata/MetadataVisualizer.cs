@@ -630,6 +630,8 @@ namespace Roslyn.Test.MetadataUtilities
 
             if (_reader.DebugMetadataHeader != null)
             {
+                _writer.WriteLine("Id: " + BitConverter.ToString(_reader.DebugMetadataHeader.Id.ToArray()));
+
                 if (!_reader.DebugMetadataHeader.EntryPoint.IsNil)
                 {
                     _writer.WriteLine("EntryPoint: {0}", Token(() => _reader.DebugMetadataHeader.EntryPoint));

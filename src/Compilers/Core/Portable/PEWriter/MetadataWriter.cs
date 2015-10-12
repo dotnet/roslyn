@@ -1998,6 +1998,12 @@ namespace Microsoft.Cci
             // stream headers
             int offsetFromStartOfMetadata = metadataSizes.MetadataHeaderSize;
 
+            // emit the #Pdb stream first so that only a single page has to be read in order to find out PDB ID
+            if (metadataSizes.IsStandaloneDebugMetadata)
+            {
+                SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.StandalonePdbStreamSize, "#Pdb", writer);
+            }
+
             // Spec: Some compilers store metadata in a #- stream, which holds an uncompressed, or non-optimized, representation of metadata tables;
             // this includes extra metadata -Ptr tables. Such PE files do not form part of ECMA-335 standard.
             //
@@ -2012,11 +2018,6 @@ namespace Microsoft.Cci
             if (metadataSizes.IsMinimalDelta)
             {
                 SerializeStreamHeader(ref offsetFromStartOfMetadata, 0, "#JTD", writer);
-            }
-
-            if (metadataSizes.IsStandaloneDebugMetadata)
-            {
-                SerializeStreamHeader(ref offsetFromStartOfMetadata, metadataSizes.StandalonePdbStreamSize, "#Pdb", writer);
             }
 
             int endOffset = writer.Position;
@@ -2064,6 +2065,7 @@ namespace Microsoft.Cci
             Debug.Assert(this.module.Properties.PersistentIdentifier != default(Guid));
 
             int moduleVersionIdOffsetInMetadataStream;
+            int pdbIdOffsetInMetadataStream;
             int entryPointToken;
 
             SerializeMetadataAndIL(
@@ -2076,6 +2078,7 @@ namespace Microsoft.Cci
                 methodBodyStreamRva: 0,
                 calculateMappedFieldDataStreamRva: _ => 0,
                 moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
+                pdbIdOffsetInPortablePdbStream: out pdbIdOffsetInMetadataStream,
                 metadataSizes: out metadataSizes,
                 entryPointToken: out entryPointToken);
 
@@ -2085,6 +2088,7 @@ namespace Microsoft.Cci
             Debug.Assert(entryPointToken == 0);
             Debug.Assert(mappedFieldDataWriter.Count == 0);
             Debug.Assert(managedResourceDataWriter.Count == 0);
+            Debug.Assert(pdbIdOffsetInMetadataStream == 0);
         }
 
         public void SerializeMetadataAndIL(
@@ -2097,6 +2101,7 @@ namespace Microsoft.Cci
             int methodBodyStreamRva,
             Func<MetadataSizes, int> calculateMappedFieldDataStreamRva,
             out int moduleVersionIdOffsetInMetadataStream,
+            out int pdbIdOffsetInPortablePdbStream,
             out int entryPointToken,
             out MetadataSizes metadataSizes)
         {
@@ -2169,8 +2174,9 @@ namespace Microsoft.Cci
             int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(metadataSizes);
 
             int guidHeapStartOffset;
-            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, debugEntryPointToken, out guidHeapStartOffset);
+            SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, debugEntryPointToken, out guidHeapStartOffset, out pdbIdOffsetInPortablePdbStream);
             moduleVersionIdOffsetInMetadataStream = GetModuleVersionGuidOffsetInMetadataStream(guidHeapStartOffset);
+            Debug.Assert(pdbIdOffsetInPortablePdbStream == 0);
 
             if (!EmitStandaloneDebugMetadata)
             {
@@ -2193,7 +2199,7 @@ namespace Microsoft.Cci
                 emitStandaloneDebugMetadata: true,
                 isStandaloneDebugMetadata: true);
 
-            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, debugEntryPointToken, out guidHeapStartOffset);
+            SerializeMetadata(debugMetadataWriterOpt, debugMetadataSizes, 0, 0, debugEntryPointToken, out guidHeapStartOffset, out pdbIdOffsetInPortablePdbStream);
         }
 
         private static int CalculateStrongNameSignatureSize(IModule module)
@@ -2226,22 +2232,27 @@ namespace Microsoft.Cci
             int methodBodyStreamRva,
             int mappedFieldDataStreamRva,
             int debugEntryPointToken,
-            out int guidHeapStartOffset)
+            out int guidHeapStartOffset,
+            out int pdbIdOffset)
         {
             // header:
             SerializeMetadataHeader(metadataWriter, metadataSizes);
+
+            // #Pdb stream
+            if (metadataSizes.IsStandaloneDebugMetadata)
+            {
+                SerializeStandalonePdbStream(metadataWriter, metadataSizes, debugEntryPointToken, out pdbIdOffset);
+            }
+            else
+            {
+                pdbIdOffset = 0;
+            }
 
             // #~ or #- stream:
             SerializeMetadataTables(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva);
 
             // #Strings, #US, #Guid and #Blob streams:
             (metadataSizes.IsStandaloneDebugMetadata ? _debugHeapsOpt : heaps).WriteTo(metadataWriter, out guidHeapStartOffset);
-
-            // #Pdb stream
-            if (metadataSizes.IsStandaloneDebugMetadata)
-            {
-                SerializeStandalonePdbStream(metadataWriter, metadataSizes, debugEntryPointToken);
-            }
         }
 
         private int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
@@ -3793,9 +3804,13 @@ namespace Microsoft.Cci
             Debug.Assert(metadataSizes.CalculateTableStreamHeaderSize() == endPosition - startPosition);
         }
 
-        private static void SerializeStandalonePdbStream(BlobBuilder writer, MetadataSizes metadataSizes, int entryPointToken)
+        private static void SerializeStandalonePdbStream(BlobBuilder writer, MetadataSizes metadataSizes, int entryPointToken, out int pdbIdOffset)
         {
             int startPosition = writer.Position;
+
+            // zero out and save position, will be filled in later
+            pdbIdOffset = startPosition;
+            writer.WriteBytes(0, MetadataSizes.PdbIdSize);
 
             writer.WriteUInt32((uint)entryPointToken);
 

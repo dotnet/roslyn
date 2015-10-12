@@ -17,10 +17,15 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
             fixed (byte* pdbPtr = TestResources.Documents.PortablePdb)
             {
                 var pdbReader = new MetadataReader(pdbPtr, TestResources.Documents.PortablePdb.Length);
-                Assert.Equal("PDB v0.1", pdbReader.MetadataVersion);
+                Assert.Equal("PDB v1.0", pdbReader.MetadataVersion);
                 Assert.Equal(MetadataKind.Ecma335, pdbReader.MetadataKind);
                 Assert.False(pdbReader.IsAssembly);
                 Assert.True(pdbReader.DebugMetadataHeader.EntryPoint.IsNil);
+
+                AssertEx.Equal(new byte[] 
+                {
+                    0xC5, 0x45, 0x63, 0xB7, 0xFE, 0x16, 0xF3, 0x4F, 0xB9, 0x0B, 0x28, 0x49, 0x53, 0x1A, 0x21, 0x45, 0x88, 0xA3, 0x65, 0xC1
+                }, pdbReader.DebugMetadataHeader.Id);
             }
         }
 

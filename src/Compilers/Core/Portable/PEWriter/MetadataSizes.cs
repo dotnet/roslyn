@@ -335,8 +335,8 @@ namespace Microsoft.Cci
             get
             {
                 const int RegularStreamHeaderSizes = 76;
-                const int MinimalDeltaMarkerStreamSize = 16;
-                const int StandalonePdbStreamSize = 16;
+                const int MinimalDeltaMarkerStreamHeaderSize = 16;
+                const int StandalonePdbStreamHeaderSize = 16;
 
                 Debug.Assert(RegularStreamHeaderSizes ==
                     GetMetadataStreamHeaderSize("#~") +
@@ -345,8 +345,8 @@ namespace Microsoft.Cci
                     GetMetadataStreamHeaderSize("#GUID") +
                     GetMetadataStreamHeaderSize("#Blob"));
 
-                Debug.Assert(MinimalDeltaMarkerStreamSize == GetMetadataStreamHeaderSize("#JTD"));
-                Debug.Assert(StandalonePdbStreamSize == GetMetadataStreamHeaderSize("#Pdb"));
+                Debug.Assert(MinimalDeltaMarkerStreamHeaderSize == GetMetadataStreamHeaderSize("#JTD"));
+                Debug.Assert(StandalonePdbStreamHeaderSize == GetMetadataStreamHeaderSize("#Pdb"));
 
                 return
                     sizeof(uint) +                 // signature
@@ -357,9 +357,9 @@ namespace Microsoft.Cci
                     MetadataVersionPaddedLength +  // metadata version
                     sizeof(ushort) +               // storage header: reserved
                     sizeof(ushort) +               // stream count
+                    (IsStandaloneDebugMetadata ? StandalonePdbStreamHeaderSize : 0) + 
                     RegularStreamHeaderSizes +
-                    (IsMinimalDelta ? MinimalDeltaMarkerStreamSize : 0) +
-                    (IsStandaloneDebugMetadata ? StandalonePdbStreamSize : 0);
+                    (IsMinimalDelta ? MinimalDeltaMarkerStreamHeaderSize : 0);
             }
         }
 
@@ -405,9 +405,12 @@ namespace Microsoft.Cci
             return result;
         }
 
+        internal const int PdbIdSize = 20;
+
         internal int CalculateStandalonePdbStreamSize()
         {
-            int result = sizeof(int) +        // EntryPoint
+            int result = PdbIdSize +          // PDB ID
+                         sizeof(int) +        // EntryPoint
                          sizeof(long);        // ReferencedTypeSystemTables
 
             // external table row counts
