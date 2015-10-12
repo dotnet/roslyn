@@ -13,7 +13,7 @@ namespace Microsoft.Cci
 
         public const ulong DebugMetadataTablesMask = 
             1UL << (int)TableIndex.Document |
-            1UL << (int)TableIndex.MethodBody |
+            1UL << (int)TableIndex.MethodDebugInformation |
             1UL << (int)TableIndex.LocalScope |
             1UL << (int)TableIndex.LocalVariable |
             1UL << (int)TableIndex.LocalConstant |
@@ -295,7 +295,7 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.GenericParamConstraint, this.GenericParamIndexSize + this.TypeDefOrRefCodedIndexSize);
 
             size += GetTableSize(TableIndex.Document, this.BlobIndexSize + this.GuidIndexSize + this.BlobIndexSize + this.GuidIndexSize);
-            size += GetTableSize(TableIndex.MethodBody, this.DocumentIndexSize + this.BlobIndexSize);
+            size += GetTableSize(TableIndex.MethodDebugInformation, this.DocumentIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.ImportScopeIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
             size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
             size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize);

@@ -45,11 +45,11 @@ class C
                 foreach (var methodHandle in mdReader.MethodDefinitions)
                 {
                     var method = mdReader.GetMethodDefinition(methodHandle);
-                    var methodBody = pdbReader.GetMethodBody(methodHandle);
+                    var methodDebugInfo = pdbReader.GetMethodDebugInformation(methodHandle);
 
                     var name = mdReader.GetString(method.Name);
 
-                    var spReader = methodBody.GetSequencePointsReader();
+                    var spReader = methodDebugInfo.GetSequencePointsReader();
 
                     TextWriter writer = new StringWriter();
                     while (spReader.MoveNext())
@@ -66,7 +66,7 @@ class C
                     }
 
                     var spString = writer.ToString();
-                    var spBlob = pdbReader.GetBlobBytes(methodBody.SequencePoints);
+                    var spBlob = pdbReader.GetBlobBytes(methodDebugInfo.SequencePoints);
 
                     switch (name)
                     {

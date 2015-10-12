@@ -1467,22 +1467,22 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteMethodBody()
         {
-            if (_reader.MethodBodies.Count == 0)
+            if (_reader.MethodDebugInformation.Count == 0)
             {
                 return;
             }
 
-            _writer.WriteLine(MakeTableName(TableIndex.MethodBody));
+            _writer.WriteLine(MakeTableName(TableIndex.MethodDebugInformation));
             _writer.WriteLine(new string('=', 50));
 
-            foreach (var handle in _reader.MethodBodies)
+            foreach (var handle in _reader.MethodDebugInformation)
             {
                 if (handle.IsNil)
                 {
                     continue;
                 }
 
-                var entry = _reader.GetMethodBody(handle);
+                var entry = _reader.GetMethodDebugInformation(handle);
                 
                 _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePoints)}");
 

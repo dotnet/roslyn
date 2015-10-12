@@ -503,7 +503,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.TypeSpec] = _typeSpecTable.Count;
 
             rowCounts[(int)TableIndex.Document] = _documentTable.Count;
-            rowCounts[(int)TableIndex.MethodBody] = _methodBodyTable.Count;
+            rowCounts[(int)TableIndex.MethodDebugInformation] = _methodDebugInformationTable.Count;
             rowCounts[(int)TableIndex.LocalScope] = _localScopeTable.Count;
             rowCounts[(int)TableIndex.LocalVariable] = _localVariableTable.Count;
             rowCounts[(int)TableIndex.LocalConstant] = _localConstantTable.Count;
@@ -2462,9 +2462,9 @@ namespace Microsoft.Cci
                 this.SerializeDocumentTable(writer, metadataSizes);
             }
 
-            if (metadataSizes.IsPresent(TableIndex.MethodBody))
+            if (metadataSizes.IsPresent(TableIndex.MethodDebugInformation))
             {
-                this.SerializeMethodBodyTable(writer, metadataSizes);
+                this.SerializeMethodDebugInformationTable(writer, metadataSizes);
             }
 
             if (metadataSizes.IsPresent(TableIndex.LocalScope))

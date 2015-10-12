@@ -18,7 +18,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             get
             {
                 var mdReader = SymMethod.MetadataReader;
-                var allScopes = mdReader.GetLocalScopes(SymMethod.BodyHandle);
+                var allScopes = mdReader.GetLocalScopes(SymMethod.DebugHandle);
 
                 foreach (var handle in allScopes)
                 {
@@ -33,7 +33,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         protected override ImmutableArray<ChildScopeData> CreateChildren()
         {
-            foreach (var handle in SymMethod.MetadataReader.GetLocalScopes(SymMethod.BodyHandle))
+            foreach (var handle in SymMethod.MetadataReader.GetLocalScopes(SymMethod.DebugHandle))
             {
                 // The root scope has only a single child scope, 
                 // which is the first scope in the scopes belonging to the method:

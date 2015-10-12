@@ -225,14 +225,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     options |= PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError;
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, options, methodName: qualifiedMethodName);
 
-                    ValidateDebugDirectory(exebits, pdbbits, compilation.AssemblyName + ".pdb", portable, compilation.IsEmitDeterministic);
+                    ValidateDebugDirectory(exebits, portable ? pdbbits : null, compilation.AssemblyName + ".pdb", compilation.IsEmitDeterministic);
                 }
             }
 
             return actual;
         }
 
-        public static void ValidateDebugDirectory(Stream peStream, Stream pdbStream, string pdbPath, bool isPortable, bool isDeterministic)
+        public static void ValidateDebugDirectory(Stream peStream, Stream portablePdbStreamOpt, string pdbPath, bool isDeterministic)
         {
             peStream.Seek(0, SeekOrigin.Begin);
             PEReader peReader = new PEReader(peStream);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             byte[] stamp = reader.ReadBytes(sizeof(int));
 
             uint version = reader.ReadUInt32();
-            Assert.Equal(isPortable ? 0x504d0100u : 0, version);
+            Assert.Equal((portablePdbStreamOpt != null) ? 0x504d0100u : 0, version);
 
             int type = reader.ReadInt32();
             Assert.Equal(2, type);
@@ -304,9 +304,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var actualPath = Encoding.UTF8.GetString(pathBlob, 0, terminator);
             Assert.Equal(pdbPath, actualPath);
 
-            if (isPortable)
+            if (portablePdbStreamOpt != null)
             {
-                ValidatePortablePdbId(pdbStream, stamp, guidBlob);
+                ValidatePortablePdbId(portablePdbStreamOpt, stamp, guidBlob);
             }
         }
 

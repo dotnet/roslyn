@@ -19,7 +19,7 @@ namespace Microsoft.Cci
             public uint Language;      // Guid
         }
 
-        private struct MethodBodyRow
+        private struct MethodDebugInformationRow
         {
             public uint Document;       // DocumentRid
             public BlobIdx SequencePoints;
@@ -68,7 +68,7 @@ namespace Microsoft.Cci
         }
 
         private readonly List<DocumentRow> _documentTable = new List<DocumentRow>();
-        private readonly List<MethodBodyRow> _methodBodyTable = new List<MethodBodyRow>();
+        private readonly List<MethodDebugInformationRow> _methodDebugInformationTable = new List<MethodDebugInformationRow>();
         private readonly List<LocalScopeRow> _localScopeTable = new List<LocalScopeRow>();
         private readonly List<LocalVariableRow> _localVariableTable = new List<LocalVariableRow>();
         private readonly List<LocalConstantRow> _localConstantTable = new List<LocalConstantRow>();
@@ -83,7 +83,7 @@ namespace Microsoft.Cci
         {
             if (bodyOpt == null)
             {
-                _methodBodyTable.Add(default(MethodBodyRow));
+                _methodDebugInformationTable.Add(default(MethodDebugInformationRow));
                 return;
             }
 
@@ -92,7 +92,7 @@ namespace Microsoft.Cci
 
             if (!emitDebugInfo)
             {
-                _methodBodyTable.Add(default(MethodBodyRow));
+                _methodDebugInformationTable.Add(default(MethodDebugInformationRow));
                 return;
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.Cci
             // documents & sequence points:
             int firstDocumentRowId;
             BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out firstDocumentRowId);
-            _methodBodyTable.Add(new MethodBodyRow { Document = (uint)firstDocumentRowId, SequencePoints = sequencePointsBlob });
+            _methodDebugInformationTable.Add(new MethodDebugInformationRow { Document = (uint)firstDocumentRowId, SequencePoints = sequencePointsBlob });
             
             // Unlike native PDB we don't emit an empty root scope.
             // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
@@ -768,9 +768,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeMethodBodyTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        private void SerializeMethodDebugInformationTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (var row in _methodBodyTable)
+            foreach (var row in _methodDebugInformationTable)
             {
                 writer.WriteReference(row.Document, metadataSizes.DocumentIndexSize);
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.SequencePoints), metadataSizes.BlobIndexSize);

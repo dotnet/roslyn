@@ -15,27 +15,27 @@ namespace Microsoft.DiaSymReader.PortablePdb
         internal sealed class ByHandleComparer : IComparer<ISymUnmanagedMethod>
         {
             public static readonly ByHandleComparer Default = new ByHandleComparer();
-            public int Compare(ISymUnmanagedMethod x, ISymUnmanagedMethod y) => HandleComparer.Default.Compare(((SymMethod)x).BodyHandle, ((SymMethod)y).BodyHandle);
+            public int Compare(ISymUnmanagedMethod x, ISymUnmanagedMethod y) => HandleComparer.Default.Compare(((SymMethod)x).DebugHandle, ((SymMethod)y).DebugHandle);
         }
 
-        internal MethodBodyHandle BodyHandle { get; }
-        internal MethodDefinitionHandle DefinitionHandle => BodyHandle.ToMethodDefinitionHandle();
+        internal MethodDebugInformationHandle DebugHandle { get; }
+        internal MethodDefinitionHandle DefinitionHandle => DebugHandle.ToDefinitionHandle();
         internal SymReader SymReader { get; }
         private RootScopeData _lazyRootScopeData;
         private AsyncMethodData _lazyAsyncMethodData;
 
         internal MetadataReader MetadataReader => SymReader.MetadataReader;
 
-        internal SymMethod(SymReader symReader, MethodBodyHandle handle)
+        internal SymMethod(SymReader symReader, MethodDebugInformationHandle handle)
         {
             Debug.Assert(symReader != null);
             SymReader = symReader;
-            BodyHandle = handle;
+            DebugHandle = handle;
         }
 
         private SequencePointBlobReader GetSequencePointsReader()
         {
-            return SymReader.MetadataReader.GetMethodBody(BodyHandle).GetSequencePointsReader();
+            return SymReader.MetadataReader.GetMethodDebugInformation(DebugHandle).GetSequencePointsReader();
         }
 
         private RootScopeData GetRootScopeData()
@@ -307,7 +307,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private AsyncMethodData ReadAsyncMethodData()
         {
             var reader = MetadataReader;
-            var body = reader.GetMethodBody(BodyHandle);
+            var body = reader.GetMethodDebugInformation(DebugHandle);
             var kickoffMethod = body.GetStateMachineKickoffMethod();
 
             if (kickoffMethod.IsNil)

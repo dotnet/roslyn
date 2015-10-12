@@ -27,11 +27,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 public int Compare(MethodLineExtent x, MethodLineExtent y) => x.MinLine - y.MinLine;
             }
 
-            public readonly MethodBodyHandle Method;
+            public readonly MethodDebugInformationHandle Method;
             public readonly int MinLine;
             public readonly int MaxLine;
 
-            public MethodLineExtent(MethodBodyHandle method, int minLine, int maxLine)
+            public MethodLineExtent(MethodDebugInformationHandle method, int minLine, int maxLine)
             {
                 Method = method;
                 MinLine = minLine;
@@ -168,9 +168,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
             // sequence point of methods that span multiple documents to build a map from Document -> Methods.
             // We can then defer decoding sequence points of methods contained in a specified document until requested.
 
-            foreach (var methodBodyHandle in reader.MethodBodies)
+            foreach (var methodDebugHandle in reader.MethodDebugInformation)
             {
-                var methodBody = reader.GetMethodBody(methodBodyHandle);
+                var methodBody = reader.GetMethodDebugInformation(methodDebugHandle);
 
                 // no debug info for the method
                 if (methodBody.SequencePoints.IsNil)
@@ -196,7 +196,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
                     if (spReader.Current.Document != currentDocument)
                     {
-                        yield return KeyValuePair.Create(currentDocument, new MethodLineExtent(methodBodyHandle, minLine, maxLine));
+                        yield return KeyValuePair.Create(currentDocument, new MethodLineExtent(methodDebugHandle, minLine, maxLine));
 
                         currentDocument = spReader.Current.Document;
                         minLine = startLine;
@@ -216,11 +216,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
                     }
                 }
 
-                yield return KeyValuePair.Create(currentDocument, new MethodLineExtent(methodBodyHandle, minLine, maxLine));
+                yield return KeyValuePair.Create(currentDocument, new MethodLineExtent(methodDebugHandle, minLine, maxLine));
             }
         }
 
-        public IEnumerable<MethodBodyHandle> GetMethodsContainingLine(DocumentHandle documentHandle, int line)
+        public IEnumerable<MethodDebugInformationHandle> GetMethodsContainingLine(DocumentHandle documentHandle, int line)
         {
             MethodsInDocument methodsInDocument;
             if (!_methodsByDocument.TryGetValue(documentHandle, out methodsInDocument))
@@ -231,7 +231,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return EnumerateMethodsContainingLine(methodsInDocument.ExtentsByMinLine, line);
         }
 
-        private static IEnumerable<MethodBodyHandle> EnumerateMethodsContainingLine(ImmutableArray<ImmutableArray<MethodLineExtent>> extents, int line)
+        private static IEnumerable<MethodDebugInformationHandle> EnumerateMethodsContainingLine(ImmutableArray<ImmutableArray<MethodLineExtent>> extents, int line)
         {
             foreach (var subsequence in extents)
             {
@@ -275,7 +275,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return methodsInDocument.ExtentsByMethod;
         }
 
-        internal bool TryGetMethodSourceExtent(DocumentHandle documentHandle, MethodBodyHandle methodHandle, out int startLine, out int endLine)
+        internal bool TryGetMethodSourceExtent(DocumentHandle documentHandle, MethodDebugInformationHandle methodHandle, out int startLine, out int endLine)
         {
             MethodsInDocument methodsInDocument;
             if (!_methodsByDocument.TryGetValue(documentHandle, out methodsInDocument))
