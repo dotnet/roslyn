@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     Public Class GenericTypeParameterTests
         <WorkItem(403671)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub CustomerReported_ErrorTolerance()
             Using result = RenameEngineResult.Create(
                 <Workspace>

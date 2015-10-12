@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
 {
     public class DiagnosticAnalyzerDriverTests
     {
-        [Fact]
+        [WpfFact]
         public void DiagnosticAnalyzerDriverAllInOne()
         {
             var source = TestResource.AllInOneCSharpCode;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             }
         }
 
-        [Fact, WorkItem(908658)]
+        [WpfFact, WorkItem(908658)]
         public void DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         {
             var methodNames = new string[] { "Initialize", "AnalyzeCodeBlock" };
@@ -84,7 +84,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(759)]
         public void DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
@@ -98,7 +98,7 @@ class C
         }
 
         [WorkItem(908621)]
-        [Fact]
+        [WpfFact]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_1()
         {
             var analyzer = new ThrowingDiagnosticAnalyzer<SyntaxKind>();
@@ -107,7 +107,7 @@ class C
         }
 
         [WorkItem(908621)]
-        [Fact]
+        [WpfFact]
         public void DiagnosticServiceIsSafeAgainstAnalyzerExceptions_2()
         {
             var analyzer = new ThrowingDoNotCatchDiagnosticAnalyzer<SyntaxKind>();
@@ -125,7 +125,7 @@ class C
             Assert.True(exceptions.Count == 0);
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzerOptionsArePassedToAllAnalyzers()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(TestResource.AllInOneCSharpCode, TestOptions.Regular))
@@ -160,7 +160,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzerCreatedAtCompilationLevelNeedNotBeCompilationAnalyzer()
         {
             var source = @"x";
@@ -211,7 +211,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void CodeBlockAnalyzersOnlyAnalyzeExecutableCode()
         {
             var source = @"

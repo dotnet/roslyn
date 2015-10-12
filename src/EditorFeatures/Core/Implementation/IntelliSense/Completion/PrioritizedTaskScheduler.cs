@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -34,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             while (true)
             {
                 var task = _tasks.Take();
-                this.TryExecuteTask(task);
+                bool ret = this.TryExecuteTask(task);
+                Debug.Assert(ret);
             }
         }
 

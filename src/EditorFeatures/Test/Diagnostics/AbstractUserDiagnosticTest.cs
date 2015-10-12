@@ -207,18 +207,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        protected void TestAddDocument(
+        protected async Task TestAddDocument(
             string initialMarkup, string expectedMarkup,
             IList<string> expectedContainers,
             string expectedDocumentName,
             int index = 0,
             bool compareTokens = true, bool isLine = true)
         {
-            TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, null, null, compareTokens, isLine);
-            TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine);
+            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, null, null, compareTokens, isLine).ConfigureAwait(true);
+            await TestAddDocument(initialMarkup, expectedMarkup, index, expectedContainers, expectedDocumentName, GetScriptOptions(), null, compareTokens, isLine).ConfigureAwait(true);
         }
 
-        private void TestAddDocument(
+        private async Task TestAddDocument(
             string initialMarkup, string expectedMarkup,
             int index,
             IList<string> expectedContainers,
@@ -229,12 +229,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var workspace = isLine ? CreateWorkspaceFromFile(initialMarkup, parseOptions, compilationOptions) : TestWorkspaceFactory.CreateWorkspace(initialMarkup))
             {
                 var codeActions = GetCodeActions(workspace, fixAllActionEquivalenceKey: null);
-                TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
-                    codeActions, compareTokens);
+                await TestAddDocument(workspace, expectedMarkup, index, expectedContainers, expectedDocumentName,
+                    codeActions, compareTokens).ConfigureAwait(true);
             }
         }
 
-        private void TestAddDocument(
+        private async Task TestAddDocument(
             TestWorkspace workspace,
             string expectedMarkup,
             int index,
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             bool compareTokens)
         {
             var operations = VerifyInputsAndGetOperations(index, actions);
-            TestAddDocument(
+            await TestAddDocument(
                 workspace,
                 expectedMarkup,
                 operations,
@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 modifiedProjectId: null,
                 expectedFolders: expectedFolders,
                 expectedDocumentName: expectedDocumentName,
-                compareTokens: compareTokens);
+                compareTokens: compareTokens).ConfigureAwait(true);
         }
 
-        private Tuple<Solution, Solution> TestAddDocument(
+        private async Task<Tuple<Solution, Solution>> TestAddDocument(
             TestWorkspace workspace,
             string expected,
             IEnumerable<CodeActionOperation> operations,
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             if (!hasProjectChange)
             {
                 // If there is just one document change then we expect the preview to be a WpfTextView
-                var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().PumpingWaitResult();
+                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().ConfigureAwait(true);
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 diffView.Close();
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var contents = editHandler.GetPreviews(workspace, operations, CancellationToken.None);
                 bool hasPreview = false;
                 object preview;
-                while ((preview = contents.TakeNextPreviewAsync().PumpingWaitResult()) != null)
+                while ((preview = await contents.TakeNextPreviewAsync().ConfigureAwait(true)) != null)
                 {
                     var diffView = preview as IWpfDifferenceViewer;
                     if (diffView != null)
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return Tuple.Create(oldSolution, newSolution);
         }
 
-        internal void TestWithMockedGenerateTypeDialog(
+        internal async Task TestWithMockedGenerateTypeDialog(
             string initial,
             string languageName,
             string typeName,
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 }
                 else
                 {
-                    oldSolutionAndNewSolution = TestAddDocument(
+                    oldSolutionAndNewSolution = await TestAddDocument(
                         testState.Workspace,
                         expected,
                         operations,
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         testState.ProjectToBeModified.Id,
                         newFileFolderContainers,
                         newFileName,
-                        compareTokens: false);
+                        compareTokens: false).ConfigureAwait(true);
                 }
 
                 if (checkIfUsingsIncluded)

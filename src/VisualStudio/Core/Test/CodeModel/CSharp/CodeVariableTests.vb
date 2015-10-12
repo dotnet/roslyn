@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "GetStartPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint_Field()
             Dim code =
 <Code>
@@ -42,7 +42,7 @@ class C
                      TextPoint(line:=3, lineOffset:=5, absoluteOffset:=15, lineLength:=12)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint_EnumMember()
             Dim code =
 <Code>
@@ -79,7 +79,7 @@ enum E
 
 #Region "GetEndPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint_Field()
             Dim code =
 <Code>
@@ -112,7 +112,7 @@ class C
                      TextPoint(line:=3, lineOffset:=13, absoluteOffset:=23, lineLength:=12)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint_EnumMember()
             Dim code =
 <Code>
@@ -149,7 +149,7 @@ enum E
 
 #Region "Access tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Access1()
             Dim code =
 <Code>
@@ -162,7 +162,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Access2()
             Dim code =
 <Code>
@@ -175,7 +175,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Access3()
             Dim code =
 <Code>
@@ -188,7 +188,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProtected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Access4()
             Dim code =
 <Code>
@@ -201,7 +201,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Access5()
             Dim code =
 <Code>
@@ -214,7 +214,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessProject)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Access6()
             Dim code =
 <Code>
@@ -227,7 +227,7 @@ class C
             TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Access7()
             Dim code =
 <Code>
@@ -244,7 +244,7 @@ enum E
 
 #Region "Attributes tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes1()
             Dim code =
 <Code>
@@ -257,7 +257,7 @@ class C
             TestAttributes(code, NoElements)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes2()
             Dim code =
 <Code>
@@ -273,7 +273,7 @@ class C
             TestAttributes(code, IsElement("Serializable"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes3()
             Dim code =
 <Code>using System;
@@ -289,7 +289,7 @@ class C
             TestAttributes(code, IsElement("Serializable"), IsElement("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Attributes4()
             Dim code =
 <Code>using System;
@@ -307,7 +307,7 @@ class C
 
 #Region "AddAttribute tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute1()
             Dim code =
 <Code>
@@ -333,7 +333,7 @@ class C
             TestAddAttribute(code, expected, New AttributeData With {.Name = "Serializable"})
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute2()
             Dim code =
 <Code>
@@ -361,7 +361,7 @@ class C
         End Sub
 
         <WorkItem(2825, "https://github.com/dotnet/roslyn/issues/2825")>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttribute_BelowDocComment()
             Dim code =
 <Code>
@@ -392,7 +392,7 @@ class C
 
 #Region "ConstKind tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ConstKind1()
             Dim code =
 <Code>
@@ -405,7 +405,7 @@ enum E
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ConstKind2()
             Dim code =
 <Code>
@@ -418,7 +418,7 @@ class C
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ConstKind3()
             Dim code =
 <Code>
@@ -431,7 +431,7 @@ class C
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ConstKind4()
             Dim code =
 <Code>
@@ -444,7 +444,7 @@ class C
             TestConstKind(code, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ConstKind5()
             Dim code =
 <Code>
@@ -461,7 +461,7 @@ class C
 
 #Region "FullName tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub FullName1()
             Dim code =
 <Code>
@@ -475,7 +475,7 @@ enum E
             TestFullName(code, "E.Foo")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub FullName2()
             Dim code =
 <Code>
@@ -493,7 +493,7 @@ enum E
 
 #Region "InitExpression tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub InitExpression1()
             Dim code =
 <Code>
@@ -506,7 +506,7 @@ class C
             TestInitExpression(code, "42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub InitExpression2()
             Dim code =
 <Code>
@@ -519,7 +519,7 @@ class C
             TestInitExpression(code, "19 + 23")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub InitExpression3()
             Dim code =
 <Code>
@@ -536,7 +536,7 @@ enum E
 
 #Region "IsConstant tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub IsConstant1()
             Dim code =
 <Code>
@@ -549,7 +549,7 @@ enum E
             TestIsConstant(code, True)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub IsConstant2()
             Dim code =
 <Code>
@@ -562,7 +562,7 @@ class C
             TestIsConstant(code, True)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub IsConstant3()
             Dim code =
 <Code>
@@ -575,7 +575,7 @@ class C
             TestIsConstant(code, True)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub IsConstant4()
             Dim code =
 <Code>
@@ -592,7 +592,7 @@ class C
 
 #Region "IsShared tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub IsShared1()
             Dim code =
 <Code>
@@ -605,7 +605,7 @@ class C
             TestIsShared(code, False)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub IsShared2()
             Dim code =
 <Code>
@@ -622,7 +622,7 @@ class C
 
 #Region "Name tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Name1()
             Dim code =
 <Code>
@@ -636,7 +636,7 @@ enum E
             TestName(code, "Foo")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Name2()
             Dim code =
 <Code>
@@ -654,7 +654,7 @@ enum E
 
 #Region "Prototype tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Prototype_ClassName()
             Dim code =
 <Code>
@@ -670,7 +670,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeClassName, "C.x")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Prototype_FullName()
             Dim code =
 <Code>
@@ -686,7 +686,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeFullname, "N.C.x")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Prototype_InitExpression1()
             Dim code =
 <Code>
@@ -702,7 +702,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "x = 0")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Prototype_InitExpression2()
             Dim code =
 <Code>
@@ -718,7 +718,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression, "A = 42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Prototype_InitExpressionAndType1()
             Dim code =
 <Code>
@@ -734,7 +734,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "int x = 0")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Prototype_InitExpressionAndType2()
             Dim code =
 <Code>
@@ -750,7 +750,7 @@ namespace N
             TestPrototype(code, EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression Or EnvDTE.vsCMPrototype.vsCMPrototypeType, "N.E A = 42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Prototype_ClassNameInitExpressionAndType()
             Dim code =
 <Code>
@@ -770,7 +770,7 @@ namespace N
 
 #Region "Type tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Type1()
             Dim code =
 <Code>
@@ -789,7 +789,7 @@ class C
                          })
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Type2()
             Dim code =
 <Code>
@@ -809,7 +809,7 @@ class C
         End Sub
 
         <WorkItem(888785, "devdiv")>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ArrayTypeName()
             Dim code =
 <Code>
@@ -831,7 +831,7 @@ class C
 #End Region
 
 #Region "Set Access tests"
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetEnumAccess1()
             Dim code =
 <Code>
@@ -852,7 +852,7 @@ enum E
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetEnumAccess2()
             Dim code =
 <Code>
@@ -873,7 +873,7 @@ enum E
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetEnumAccess3()
             Dim code =
 <Code>
@@ -894,7 +894,7 @@ enum E
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPrivate, ThrowsArgumentException(Of EnvDTE.vsCMAccess)())
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess1()
             Dim code =
 <Code>
@@ -915,7 +915,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess2()
             Dim code =
 <Code>
@@ -936,7 +936,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess3()
             Dim code =
 <Code>
@@ -957,7 +957,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess4()
             Dim code =
 <Code>
@@ -978,7 +978,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess5()
             Dim code =
 <Code>
@@ -999,7 +999,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess6()
             Dim code =
 <Code>
@@ -1032,7 +1032,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess7()
             Dim code =
 <Code>
@@ -1065,7 +1065,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess8()
             Dim code =
 <Code>
@@ -1098,7 +1098,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess9()
             Dim code =
 <Code>
@@ -1127,7 +1127,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessPublic)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess10()
             Dim code =
 <Code>
@@ -1156,7 +1156,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessDefault)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess11()
             Dim code =
 <Code>
@@ -1185,7 +1185,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess12()
             Dim code =
 <Code>
@@ -1216,7 +1216,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess13()
             Dim code =
 <Code>
@@ -1247,7 +1247,7 @@ class C
             TestSetAccess(code, expected, EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetAccess14()
             Dim code =
 <Code><![CDATA[
@@ -1286,7 +1286,7 @@ class C
 
 #Region "Set ConstKind tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind1()
             Dim code =
 <Code>
@@ -1307,7 +1307,7 @@ enum E
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind2()
             Dim code =
 <Code>
@@ -1328,7 +1328,7 @@ enum E
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind3()
             Dim code =
 <Code>
@@ -1349,7 +1349,7 @@ enum E
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone, ThrowsArgumentException(Of EnvDTE80.vsCMConstKind))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind4()
             Dim code =
 <Code>
@@ -1370,7 +1370,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind5()
             Dim code =
 <Code>
@@ -1391,7 +1391,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind6()
             Dim code =
 <Code>
@@ -1412,7 +1412,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind7()
             Dim code =
 <Code>
@@ -1433,7 +1433,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKind8()
             Dim code =
 <Code>
@@ -1454,7 +1454,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindNone)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKindWhenVolatileIsPresent1()
             Dim code =
 <Code>
@@ -1475,7 +1475,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKindWhenVolatileIsPresent2()
             Dim code =
 <Code>
@@ -1496,7 +1496,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKindWhenVolatileIsPresent3()
             Dim code =
 <Code>
@@ -1517,7 +1517,7 @@ class C
             TestSetConstKind(code, expected, EnvDTE80.vsCMConstKind.vsCMConstKindConst)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetConstKindWhenVolatileIsPresent4()
             Dim code =
 <Code>
@@ -1542,7 +1542,7 @@ class C
 
 #Region "Set InitExpression tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetInitExpression1()
             Dim code =
 <Code>
@@ -1563,7 +1563,7 @@ class C
             TestSetInitExpression(code, expected, "42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetInitExpression2()
             Dim code =
 <Code>
@@ -1584,7 +1584,7 @@ class C
             TestSetInitExpression(code, expected, Nothing)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetInitExpression3()
             Dim code =
 <Code>
@@ -1605,7 +1605,7 @@ class C
             TestSetInitExpression(code, expected, "42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetInitExpression4()
             Dim code =
 <Code>
@@ -1626,7 +1626,7 @@ class C
             TestSetInitExpression(code, expected, "42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetInitExpression5()
             Dim code =
 <Code>
@@ -1647,7 +1647,7 @@ class C
             TestSetInitExpression(code, expected, "42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetInitExpression6()
             Dim code =
 <Code>
@@ -1668,7 +1668,7 @@ enum E
             TestSetInitExpression(code, expected, "42")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetInitExpression7()
             Dim code =
 <Code>
@@ -1693,7 +1693,7 @@ enum E
 
 #Region "Set IsConstant tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant1()
             Dim code =
 <Code>
@@ -1714,7 +1714,7 @@ enum E
             TestSetIsConstant(code, expected, True)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant2()
             Dim code =
 <Code>
@@ -1735,7 +1735,7 @@ enum E
             TestSetIsConstant(code, expected, False, ThrowsCOMException(Of Boolean)(E_FAIL))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant3()
             Dim code =
 <Code>
@@ -1756,7 +1756,7 @@ class C
             TestSetIsConstant(code, expected, True)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant4()
             Dim code =
 <Code>
@@ -1777,7 +1777,7 @@ class C
             TestSetIsConstant(code, expected, False)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant5()
             Dim code =
 <Code>
@@ -1798,7 +1798,7 @@ class C
             TestSetIsConstant(code, expected, False)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant6()
             Dim code =
 <Code>
@@ -1819,7 +1819,7 @@ class C
             TestSetIsConstant(code, expected, True)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant7()
             Dim code =
 <Code>
@@ -1840,7 +1840,7 @@ class C
             TestSetIsConstant(code, expected, False)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsConstant8()
             Dim code =
 <Code>
@@ -1865,7 +1865,7 @@ class C
 
 #Region "Set IsShared tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsShared1()
             Dim code =
 <Code>
@@ -1886,7 +1886,7 @@ class C
             TestSetIsShared(code, expected, True)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetIsShared2()
             Dim code =
 <Code>
@@ -1911,7 +1911,7 @@ class C
 
 #Region "Set Name tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetName1()
             Dim code =
 <Code>
@@ -1932,7 +1932,7 @@ class C
             TestSetName(code, expected, "Bar", NoThrow(Of String)())
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetName2()
             Dim code =
 <Code>
@@ -1961,7 +1961,7 @@ class C
 
 #Region "Set Type tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetType1()
             Dim code =
 <Code>
@@ -1982,7 +1982,7 @@ class C
             TestSetTypeProp(code, expected, "double")
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub SetType2()
             Dim code =
 <Code>
@@ -2005,7 +2005,7 @@ class C
 
 #End Region
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TypeDescriptor_GetProperties()
             Dim code =
 <Code>

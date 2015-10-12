@@ -9,7 +9,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.LanguageServices
     Public Class SyntaxFactsServiceTests
 
-        <Fact>
+        <WpfFact>
         Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding1()
             Dim definition =
 <Workspace>
@@ -29,7 +29,7 @@ class C
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding2()
             Dim definition =
 <Workspace>
@@ -49,7 +49,7 @@ class C
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding3()
             Dim definition =
 <Workspace>
@@ -69,7 +69,7 @@ class C
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding4()
             Dim definition =
 <Workspace>
@@ -89,7 +89,7 @@ class C
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CSharp_TestGetMemberBodySpanForSpeculativeBinding5()
             Dim definition =
 <Workspace>
@@ -109,7 +109,7 @@ $$}
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding1()
             Dim definition =
 <Workspace>
@@ -127,7 +127,7 @@ End Class
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding2()
             Dim definition =
 <Workspace>
@@ -145,7 +145,7 @@ End Class
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding3()
             Dim definition =
 <Workspace>
@@ -163,7 +163,7 @@ End Class
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding4()
             Dim definition =
 <Workspace>
@@ -181,7 +181,7 @@ End Class
             VerifyGetMemberBodySpanForSpeculativeBinding(definition)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub VB_TestGetMemberBodySpanForSpeculativeBinding5()
             Dim definition =
 <Workspace>

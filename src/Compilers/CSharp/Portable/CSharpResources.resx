@@ -3530,6 +3530,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInLock" xml:space="preserve">
     <value>Cannot await in the body of a lock statement</value>
   </data>
+  <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
+    <value>The 'await' operator cannot be used in a static script variable initializer.</value>
+  </data>
   <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
     <value>Cannot await in an unsafe context</value>
   </data>

@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(542553)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousType1()
             Dim input =
 <Workspace>
@@ -25,7 +25,7 @@ End Module
         End Sub
 
         <WorkItem(542553)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousType2()
             Dim input =
 <Workspace>
@@ -47,7 +47,7 @@ End Module
         End Sub
 
         <WorkItem(542553)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousType3()
             Dim input =
 <Workspace>
@@ -71,7 +71,7 @@ End Module
         End Sub
 
         <WorkItem(542553)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousType4()
             Dim input =
 <Workspace>
@@ -95,7 +95,7 @@ End Module
         End Sub
 
         <WorkItem(542705)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousType5()
             Dim input =
 <Workspace>

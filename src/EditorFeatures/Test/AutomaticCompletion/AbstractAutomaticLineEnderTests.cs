@@ -30,12 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             ITextUndoHistoryRegistry undoRegistry,
             IEditorOperationsFactoryService editorOperations);
 
-        protected void Test(string expected, string code, bool completionActive = false)
+        protected void Test(string expected, string code, bool completionActive = false, bool assertNextHandlerInvoked = false)
         {
             using (var workspace = CreateWorkspace(new string[] { code }))
             {
                 var view = workspace.Documents.Single().GetTextView();
                 var buffer = workspace.Documents.Single().GetTextBuffer();
+                var nextHandlerInvoked = false;
 
                 view.Caret.MoveTo(new SnapshotPoint(buffer.CurrentSnapshot, workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value));
 
@@ -44,9 +45,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
                                         GetExportedValue<ITextUndoHistoryRegistry>(workspace),
                                         GetExportedValue<IEditorOperationsFactoryService>(workspace));
 
-                commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer), CreateNextHandler(workspace));
+                commandHandler.ExecuteCommand(new AutomaticLineEnderCommandArgs(view, buffer),
+                                                    assertNextHandlerInvoked
+                                                        ? () => { nextHandlerInvoked = true; }
+                                                        : CreateNextHandler(workspace));
 
                 Test(view, buffer, expected);
+
+                Assert.Equal(assertNextHandlerInvoked, nextHandlerInvoked);
             }
         }
 

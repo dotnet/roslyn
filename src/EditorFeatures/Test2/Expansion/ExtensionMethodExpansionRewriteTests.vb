@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
         Inherits AbstractExpansionTest
 
 #Region "Visual Basic ExtensionMethodRewrite Expansion tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandSingleExtensionMethod()
             Dim input =
 <Workspace>
@@ -56,7 +56,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandSingleExtensionMethodWithArgument()
             Dim input =
 <Workspace>
@@ -103,7 +103,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandMultiExtensionMethod()
             Dim input =
 <Workspace>
@@ -150,7 +150,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandMultiExtensionMethodWithArgument()
             Dim input =
 <Workspace>
@@ -197,7 +197,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandMultiExtensionMethodWithMoreArgument()
             Dim input =
 <Workspace>
@@ -244,7 +244,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandSimplifySingleExtensionMethod()
             Dim input =
 <Workspace>
@@ -291,7 +291,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandSimplifyChainedExtensionMethodMoreArguments()
             Dim input =
 <Workspace>
@@ -338,7 +338,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_ExpandSimplifyChainedExtensionMethodMoreArgumentsWithStatic()
             Dim input =
 <Workspace>
@@ -392,7 +392,7 @@ End Module
         End Sub
 
         <WorkItem(654403)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VB_ExtensionMethodRewriteRoundTripsTrivia()
             Dim input =
 <Workspace>
@@ -459,7 +459,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub VisualBasic_ExpandExtensionMethodInMemberAccessExpression()
@@ -516,7 +516,7 @@ End Class]]>
             Test(input, expected)
         End Sub
 
-        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub VisualBasic_ExpandExtensionMethodInConditionalAccessExpression()
@@ -573,7 +573,7 @@ End Class]]>
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub VisualBasic_ExpandExtensionMethodInMemberAccessExpression_2()
@@ -636,7 +636,7 @@ End Class]]>
             Test(input, expected)
         End Sub
 
-        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub VisualBasic_ExpandExtensionMethodInConditionalAccessExpression_2()
@@ -701,7 +701,7 @@ End Class]]>
 #End Region
 
 #Region "CSharp ExtensionMethodRewrite Expansion tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandSingleExtensionMethod()
             Dim input =
 <Workspace>
@@ -750,7 +750,7 @@ public static class ProgramExtensions
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandSingleExtensionMethodWithArgument()
             Dim input =
 <Workspace>
@@ -809,7 +809,7 @@ public class Second
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandMultiExtensionMethod()
             Dim input =
 <Workspace>
@@ -858,7 +858,7 @@ public static class ProgramExtensions
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandMultiExtensionMethodWithArgument()
             Dim input =
 <Workspace>
@@ -917,7 +917,7 @@ public class Second
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandMultiExtensionMethodWithMoreArgument()
             Dim input =
 <Workspace>
@@ -976,7 +976,7 @@ public class Second
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandSimplifySingleExtensionMethod()
             Dim input =
 <Workspace>
@@ -1025,7 +1025,7 @@ public static class ProgramExtensions
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandSimplifyChainedExtensionMethodWithMoreArgument()
             Dim input =
 <Workspace>
@@ -1084,7 +1084,7 @@ public class Second
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExpandSimplifyWithStaticFieldExtensionMethod()
             Dim input =
 <Workspace>
@@ -1142,7 +1142,7 @@ public static class ProgramExtensions
         End Sub
 
         <WorkItem(654403)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_ExtensionMethodRewriteRoundTripsTrivia()
             Dim input =
 <Workspace>
@@ -1191,7 +1191,7 @@ public static class FooExtension
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub CSharp_ExpandExtensionMethodInMemberAccessExpression()
@@ -1256,7 +1256,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub CSharp_ExpandExtensionMethodInConditionalAccessExpression()
@@ -1321,7 +1321,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub CSharp_ExpandExtensionMethodInMemberAccessExpression_2()
@@ -1396,7 +1396,7 @@ class C
             Test(input, expected)
         End Sub
 
-        <Fact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact(Skip:="3260"), Trait(Traits.Feature, Traits.Features.Expansion)>
         <WorkItem(2593, "https://github.com/dotnet/roslyn/issues/2593")>
         <WorkItem(3260, "https://github.com/dotnet/roslyn/issues/3260")>
         Public Sub CSharp_ExpandExtensionMethodInConditionalAccessExpression_2()

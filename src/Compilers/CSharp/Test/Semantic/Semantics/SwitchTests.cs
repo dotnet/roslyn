@@ -2115,7 +2115,7 @@ namespace Test
         }
 
         [Fact]
-        public void SwitchFallOut_Script()
+        public void SwitchFallOut_Script1()
         {
             var source =
 @"using System;
@@ -2126,7 +2126,7 @@ switch (1)
     case 2:
         Console.WriteLine(2);
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (4,5): error CS0163: Control cannot fall through from one case label ('default:') to another
                 //     default:
@@ -2137,7 +2137,7 @@ switch (1)
         }
 
         [Fact]
-        public void SwitchFallOut_Interactive()
+        public void SwitchFallOut_Script2()
         {
             var source =
 @"using System;
@@ -2150,7 +2150,7 @@ switch (1)
 }";
             var submission = CSharpCompilation.CreateSubmission(
                 "s0.dll",
-                syntaxTree: SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Interactive),
+                syntaxTree: SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script),
                 references: new[] { MscorlibRef, SystemCoreRef });
             submission.VerifyDiagnostics(
                 // (4,5): error CS0163: Control cannot fall through from one case label ('case 1:') to another

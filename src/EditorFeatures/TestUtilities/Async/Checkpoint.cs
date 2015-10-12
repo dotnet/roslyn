@@ -17,10 +17,5 @@ namespace Roslyn.Test.Utilities
         {
             _tcs.TrySetResult(null);
         }
-
-        public void PumpingWait()
-        {
-            Task.PumpingWait();
-        }
     }
 }

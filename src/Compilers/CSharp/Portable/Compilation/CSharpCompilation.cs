@@ -567,13 +567,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // A submission may be empty or comprised of a single script file.
             var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
-            if (tree == null || tree.Options.Kind != SourceCodeKind.Interactive)
+            if (tree == null)
             {
                 return GetSpecialType(SpecialType.System_Void);
             }
 
-            var lastStatement = (GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members.LastOrDefault(decl => decl.Kind() == SyntaxKind.GlobalStatement);
-            if (lastStatement == null || lastStatement.Statement.Kind() != SyntaxKind.ExpressionStatement)
+            // TODO: look for return statements
+            // https://github.com/dotnet/roslyn/issues/5773
+
+            var lastStatement = (GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members.LastOrDefault(decl => decl.IsKind(SyntaxKind.GlobalStatement));
+            if (lastStatement == null || !lastStatement.Statement.IsKind(SyntaxKind.ExpressionStatement))
             {
                 return GetSpecialType(SpecialType.System_Void);
             }
@@ -2148,7 +2151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var diagnostic in diagnostics)
             {
-                if (diagnostic.ContainsLocation(tree, filterSpanWithinTree))
+                if (diagnostic.HasIntersectingLocation(tree, filterSpanWithinTree))
                 {
                     yield return diagnostic;
                 }
@@ -2179,7 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (stage == CompilationStage.Declare || (stage > CompilationStage.Declare && includeEarlierStages))
             {
                 var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
-                Debug.Assert(declarationDiagnostics.All(d => d.ContainsLocation(syntaxTree, filterSpanWithinTree)));
+                Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
                 builder.AddRange(declarationDiagnostics);
             }
 

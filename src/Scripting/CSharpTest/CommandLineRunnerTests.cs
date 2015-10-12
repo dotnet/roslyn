@@ -44,10 +44,11 @@ select x * x
 ");
             runner.RunInteractive();
 
-            Assert.Equal(
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
+Type ""#help"" for more information.
 > async Task<int[]> GetStuffAsync()
 . {{
 .   return new int[] {{ 1, 2, 3, 4, 5 }};
@@ -76,6 +77,7 @@ div(10, 0)
 $@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
+Type ""#help"" for more information.
 > int div(int a, int b) => a/b;
 > div(10, 2)
 5
@@ -101,6 +103,7 @@ Attempted to divide by zero.
 $@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
+Type ""#help"" for more information.
 > foreach (var arg in Args) Print(arg);
 ""arg1""
 ""arg2""
@@ -199,6 +202,30 @@ error CS0246: The type or namespace name 'Foo' could not be found (are you missi
                 "System.Linq",
                 "System.Text",
             }, arguments.CompilationOptions.Usings.AsEnumerable());
+        }
+
+        [Fact]
+        public void HelpCommand()
+        {
+            var runner = CreateRunner(input:
+@"#help
+");
+            runner.RunInteractive();
+
+            Assert.Equal(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> #help
+Keyboard shortcuts:
+  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Escape        Clear the current submission.
+  UpArrow       Replace the current submission with a previous submission.
+  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+REPL commands:
+  #help         Display help on available commands and key bindings.
+> ", runner.Console.Out.ToString());
         }
     }
 }

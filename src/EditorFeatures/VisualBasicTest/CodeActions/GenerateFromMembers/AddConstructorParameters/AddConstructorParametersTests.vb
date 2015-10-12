@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.G
         End Function
 
         <WorkItem(530592)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Sub TestAdd1()
             Test(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -24,7 +24,7 @@ NewLines("Class Program \n Private i As Integer \n Private s As String \n Public
         End Sub
 
         <WorkItem(530592)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Sub TestAddOptional1()
             Test(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -33,7 +33,7 @@ index:=1)
         End Sub
 
         <WorkItem(530592)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Sub TestAddToConstructorWithMostMatchingParameters1()
             Test(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String \n Private b As Boolean|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String) \n Me.New(i) \n Me.s = s \n End Sub \n End Class"),
@@ -41,7 +41,7 @@ NewLines("Class Program \n Private i As Integer \n Private s As String \n Privat
         End Sub
 
         <WorkItem(530592)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParameters)>
         Public Sub TestAddOptionalToConstructorWithMostMatchingParameters1()
             Test(
 NewLines("Class Program \n [|Private i As Integer \n Private s As String \n Private b As Boolean|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, s As String) \n Me.New(i) \n Me.s = s \n End Sub \n End Class"),

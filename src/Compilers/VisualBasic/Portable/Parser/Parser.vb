@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend ReadOnly Property IsScript As Boolean
             Get
-                Return _scanner.Options.Kind = SourceCodeKind.Interactive Or _scanner.Options.Kind = SourceCodeKind.Script
+                Return _scanner.Options.Kind = SourceCodeKind.Script
             End Get
         End Property
 

@@ -177,7 +177,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal void UpdateCodeElementNodeKey(AbstractKeyedCodeElement keyedElement, SyntaxNodeKey oldNodeKey, SyntaxNodeKey newNodeKey)
         {
-            var codeElement = _codeElementTable.Remove(oldNodeKey);
+            EnvDTE.CodeElement codeElement;
+            if (!_codeElementTable.TryGetValue(oldNodeKey, out codeElement))
+            {
+                throw new InvalidOperationException($"Could not find {oldNodeKey} in Code Model element table.");
+            }
+
+            _codeElementTable.Remove(oldNodeKey);
 
             var managedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(codeElement);
             if (!object.Equals(managedElement, keyedElement))
@@ -206,21 +212,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 EnvDTE.CodeElement codeElement;
                 if (_codeElementTable.TryGetValue(nodeKey, out codeElement))
                 {
-                    var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
-                    if (element.IsValidNode())
+                    if (codeElement != null)
                     {
-                        if (codeElement is T)
+                        var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
+                        if (element.IsValidNode())
                         {
-                            return (T)codeElement;
-                        }
+                            if (codeElement is T)
+                            {
+                                return (T)codeElement;
+                            }
 
-                        throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
-                    }
-                    else
-                    {
-                        _codeElementTable.Remove(nodeKey);
+                            throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
+                        }
                     }
                 }
+
+                // Go ahead and remove the nodeKey from the table. At this point, we'll be creating a new one.
+                _codeElementTable.Remove(nodeKey);
             }
 
             return (T)CodeModelService.CreateInternalCodeElement(this.State, this, node);

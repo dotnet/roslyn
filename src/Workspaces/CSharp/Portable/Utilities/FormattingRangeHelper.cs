@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return previousToken.Kind() == SyntaxKind.None ? token : previousToken;
         }
 
-        private static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
+        public static bool AreTwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
         {
             var tree = token1.SyntaxTree;
             var text = default(SourceText);

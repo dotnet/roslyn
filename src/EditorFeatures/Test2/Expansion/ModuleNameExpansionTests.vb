@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public Class ModuleNameExpansionTests
         Inherits AbstractExpansionTest
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub ExpandModuleNameForSimpleName()
             Dim input =
 <Workspace>
@@ -53,7 +53,7 @@ End Namespace
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub ExpandModuleNameForQualifiedNameWithMissingModuleName()
             Dim input =
 <Workspace>
@@ -98,7 +98,7 @@ End Namespace
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub ExpandModuleNameForMemberAccessWithMissingModuleName()
             Dim input =
 <Workspace>
@@ -143,7 +143,7 @@ End Namespace
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub ExpandAndOmitModuleNameWhenConflicting()
             Dim input =
                 <Workspace>
@@ -185,7 +185,7 @@ End Namespace
             Test(input, expected, useLastProject:=true)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub ExpandModuleNameForSimpleNameRoundtrip()
             Dim input =
 <Workspace>
@@ -230,7 +230,7 @@ End Namespace
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub ExpandModuleNameForQualifiedNameWithMissingModuleNameRoundtrip()
             Dim input =
 <Workspace>

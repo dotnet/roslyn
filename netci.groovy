@@ -45,7 +45,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(60)
+        absolute(90)
         abortBuild()
       }
       timestamps()
@@ -116,7 +116,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W+(${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+        triggerPhrase("(?i).*test\\W+(${contextName}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
         onlyTriggerPhrase(triggerOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
@@ -160,7 +160,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                 myJob.with {
                   label('ubuntu-fast')
                   steps {
-                    shell("./cibuild.sh")
+                    shell("./cibuild.sh --nocache --debug")
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/lin/unit')
@@ -169,7 +169,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                 myJob.with {
                   label('mac-roslyn')
                   steps {
-                    shell("./cibuild.sh")
+                    shell("./cibuild.sh --nocache --debug")
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/mac/unit')

@@ -2,7 +2,9 @@
   "dependencies": {
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.1.0-beta1-20150824-02",
     "Microsoft.DiaSymReader": "1.0.6",
-    "xunit": "1.9.2"
+    "System.Collections.Immutable": "1.1.37",
+    "System.Reflection.Metadata": "1.1.0-alpha-00015",
+    "xunit": "2.1.0"
   },
   "frameworks": {
     "net45": {}

@@ -3682,14 +3682,14 @@ class C
 }
 var o = new object();
 o.F();";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
         }
 
         [Fact]
         public void InteractiveExtensionMethods()
         {
-            var parseOptions = TestOptions.Interactive;
+            var parseOptions = TestOptions.Script;
             var references = new[] { MscorlibRef, SystemCoreRef };
             var source0 =
 @"static object F(this object o) { return 0; }
@@ -3699,11 +3699,13 @@ o.F();";
 @"static object G(this object o) { return 1; }
 var o = new object();
 o.G().F();";
+
             var s0 = CSharpCompilation.CreateSubmission(
                 "s0.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: parseOptions),
                 references: references);
             s0.VerifyDiagnostics();
+
             var s1 = CSharpCompilation.CreateSubmission(
                 "s1.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source1, options: parseOptions),

@@ -10,7 +10,7 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
-XUNIT_VERSION=2.0.0-alpha-build2576
+XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
@@ -59,7 +59,7 @@ done
 restore_nuget()
 {
 
-    local package_name="nuget.18.zip"
+    local package_name="nuget.21.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -155,7 +155,7 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
 /p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
     fi
 
@@ -220,7 +220,7 @@ set_mono_path()
 
 test_roslyn()
 {
-    local xunit_runner=~/.nuget/packages/xunit.runners/$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local xunit_runner=~/.nuget/packages/xunit.runner.console/$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
         Roslyn.Compilers.CSharp.Syntax.UnitTests
@@ -228,6 +228,10 @@ test_roslyn()
         Roslyn.Compilers.CSharp.Symbol.UnitTests
         Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
     local any_failed=false
+
+    # Need to copy over the execution dependencies.  This isn't being done correctly
+    # by msbuild at the moment. 
+    cp ~/.nuget/packages/xunit.extensibility.execution/$XUNIT_VERSION/lib/net45/xunit.execution.desktop.* Binaries/$BUILD_CONFIGURATION
 
     for i in "${test_binaries[@]}"
     do
