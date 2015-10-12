@@ -835,7 +835,7 @@ End Class
 </Code>
 
             Dim expectedCode =
-    <Code>
+<Code>
 Imports System
 
 &lt;AttributeUsage(AttributeTargets.All, AllowMultiple:=False)&gt;
