@@ -100,9 +100,9 @@ namespace Microsoft.Cci
             int importScopeRid = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : 0;
 
             // documents & sequence points:
-            int firstDocumentRowId;
-            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out firstDocumentRowId);
-            _methodDebugInformationTable.Add(new MethodDebugInformationRow { Document = (uint)firstDocumentRowId, SequencePoints = sequencePointsBlob });
+            int singleDocumentRowId;
+            BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out singleDocumentRowId);
+            _methodDebugInformationTable.Add(new MethodDebugInformationRow { Document = (uint)singleDocumentRowId, SequencePoints = sequencePointsBlob });
             
             // Unlike native PDB we don't emit an empty root scope.
             // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
@@ -563,11 +563,11 @@ namespace Microsoft.Cci
             int localSignatureRowId,
             ImmutableArray<SequencePoint> sequencePoints,
             Dictionary<DebugSourceDocument, int> documentIndex,
-            out int firstDocumentRowId)
+            out int singleDocumentRowId)
         {
             if (sequencePoints.Length == 0)
             {
-                firstDocumentRowId = 0;
+                singleDocumentRowId = 0;
                 return default(BlobIdx);
             }
 
@@ -576,21 +576,27 @@ namespace Microsoft.Cci
             int previousNonHiddenStartLine = -1;
             int previousNonHiddenStartColumn = -1;
 
-            firstDocumentRowId = GetOrAddDocument(sequencePoints[0].Document, documentIndex);
-            
             // header:
             writer.WriteCompressedInteger((uint)localSignatureRowId);
 
-            int currentDocumentRowId = firstDocumentRowId;
+            var previousDocument = TryGetSingleDocument(sequencePoints);
+            singleDocumentRowId = (previousDocument != null) ? GetOrAddDocument(previousDocument, documentIndex) : 0;
+
             for (int i = 0; i < sequencePoints.Length; i++)
             {
-                int documentRowId = GetOrAddDocument(sequencePoints[i].Document, documentIndex);
-                if (documentRowId != currentDocumentRowId)
+                var currentDocument = sequencePoints[i].Document;
+                if (previousDocument != currentDocument)
                 {
-                    // document record:
-                    writer.WriteCompressedInteger(0);
+                    int documentRowId = GetOrAddDocument(currentDocument, documentIndex);
+
+                    // optional document in header or document record:
+                    if (previousDocument != null)
+                    {
+                        writer.WriteCompressedInteger(0);
+                    }
+
                     writer.WriteCompressedInteger((uint)documentRowId);
-                    currentDocumentRowId = documentRowId;
+                    previousDocument = currentDocument;
                 }
 
                 // delta IL offset:
@@ -630,6 +636,20 @@ namespace Microsoft.Cci
             }
 
             return _debugHeapsOpt.GetBlobIndex(writer);
+        }
+
+        private static DebugSourceDocument TryGetSingleDocument(ImmutableArray<SequencePoint> sequencePoints)
+        {
+            DebugSourceDocument singleDocument = sequencePoints[0].Document;
+            for (int i = 1; i < sequencePoints.Length; i++)
+            {
+                if (sequencePoints[i].Document != singleDocument)
+                {
+                    return null;
+                }
+            }
+
+            return singleDocument;
         }
 
         private void SerializeDeltaLinesAndColumns(BlobBuilder writer, SequencePoint sequencePoint)

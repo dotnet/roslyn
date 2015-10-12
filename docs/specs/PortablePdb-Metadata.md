@@ -9,7 +9,7 @@ The format is based on the ECMA-335 Partition II metadata standard. The physical
 
 The ECMA-335-II standard is amended by an addition of the following tables to the “#~” metadata stream:
 
-* [SourceDocument](#SourceDocumentTable)
+* [Document](#DocumentTable)
 * [MethodDebugInformation](#MethodDebugInformationTable)
 * [LocalScope](#LocalScopeTable)
 * [LocalVariable](#LocalVariableTable)
@@ -46,9 +46,9 @@ The #Pdb stream has the following structure:
  
 References to heaps (strings, blobs, guids) are references to heaps of the debugging metadata. The sizes of references to type system tables are determined using the algorithm described in ECMA-335-II Chapter 24.2.6, except their respective row counts are found in _TypeSystemTableRows_ field of the #Pdb stream.
 
-### <a name="SourceDocumentTable"></a>SourceDocument Table: 0x30
+### <a name="DocumentTable"></a>Document Table: 0x30
 
-The SourceDocument table has the following columns:
+The Document table has the following columns:
 * _Name_ (Blob heap index of [document name blob](#DocumentNameBlob))
 * _HashAlgorithm_ (Guid heap index)
 * _Hash_ (Blob heap index)
@@ -56,7 +56,7 @@ The SourceDocument table has the following columns:
 
 The table is not required to be sorted.
 
-There shall be no duplicate rows in the _SourceDocument_ table, based upon document name. 
+There shall be no duplicate rows in the _Document_ table, based upon document name. 
 
 _Name_ shall not be nil. It can however encode an empty name string.
 
@@ -77,7 +77,7 @@ The values for which _HashAlgorithm_ has defined meaning are listed in the follo
 
 Otherwise, the meaning of _Language_, _HashAlgorithm_ and _Hash_ values is undefined and the reader can interpret them arbitrarily.
 
-#### <a name="DocumentNameBlob"></a>SourceDocument Name Blob
+#### <a name="DocumentNameBlob"></a>Document Name Blob
 
 Document name blob is a sequence:
 
@@ -98,7 +98,7 @@ The representation is optimized for an efficient deserialization of the name int
 
 MethodDebugInformation table is either empty (missing) or has exactly as many rows as MethodDef table and the following column:
 
-* _Document_ (The row id of the document containing the first sequence point of the method, or 0 if the method doesn't have sequence points)
+* _Document_       (The row id of the single document containing all sequence points of the method, or 0 if the method doesn't have sequence points or spans multiple documents)
 * _SequencePoints_ (Blob heap index, 0 if the method doesn’t have sequence points, encoding: [sequence points blob](#SequencePointsBlob))
 
 The table is a logical extension of MethodDef table (adding a column to the table) and as such can be indexed by MethodDef row id.
@@ -126,7 +126,7 @@ The values of non-hidden sequence point must satisfy the following constraints
 * End Line is greater or equal to Start Line.
 * If Start Line is equal to End Line then End Column is greater than Start Column.
 
-_Method body blob_ has the following structure:
+_Sequence points blob_ has the following structure:
 
     Blob ::= header SequencePointRecord (SequencePointRecord | document-record)*
     SequencePointRecord ::= sequence-point-record | hidden-sequence-point-record
@@ -135,8 +135,11 @@ _Method body blob_ has the following structure:
 | component        | value stored                  | integer representation |
 |:-----------------|:------------------------------|:-----------------------|
 | _LocalSignature_ | StandAloneSig table row id    | unsigned compressed    |
+| _InitialDocument_ (opt)| Document row id         | unsigned compressed            |
 
 _LocalSignature_ stores the row id of the local signature of the method. This information is somewhat redundant since it can be retrieved from the IL stream. However in some scenarios the IL stream is not available or loading it would unnecessary page in memory that might not otherwise be needed.
+
+_InitialDocument_ is only present if the _Document_ field of the _MethodDebugInformation_ table is nil (i.e. the method body spans multiple documents).
 
 #####sequence-point-record
 | component      | value stored                                         | integer representation                      |
@@ -163,9 +166,9 @@ _LocalSignature_ stores the row id of the local signature of the method. This in
 | component    | value stored                       | integer representation         |
 |:-------------|:-----------------------------------|:-------------------------------|
 | _δILOffset_  | 0                                  | unsigned compressed            |
-| _Document_   | SourceDocument row id              | unsigned compressed            |
+| _Document_   | Document row id                    | unsigned compressed            |
 
-Each _SequencePointRecord_ represents a single sequence point. The sequence point inherits the value of _Document_ property from the previous record (_SequencePointRecord_ or _document-record_) or from the _Document_ field of the _MethodDebugInformation_ table if it's the first sequence point. The value of _IL Offset_ is calculated using the value of the previous sequence point (if any) and the value stored in the record. 
+Each _SequencePointRecord_ represents a single sequence point. The sequence point inherits the value of _Document_ property from the previous record (_SequencePointRecord_ or _document-record_), from the _Document_ field of the _MethodDebugInformation_ table if it's the first sequence point of a method body that spans a single document, or from _InitialDocument_ if it's the first sequence point of a method body that spans multiple documents. The value of _IL Offset_ is calculated using the value of the previous sequence point (if any) and the value stored in the record. 
 
 The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ of a non-hidden sequence point are calculated based upon the values of the previous non-hidden sequence point (if any) and the data stored in the record.
 

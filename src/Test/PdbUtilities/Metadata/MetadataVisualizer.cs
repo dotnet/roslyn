@@ -1484,7 +1484,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 var entry = _reader.GetMethodDebugInformation(handle);
                 
-                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePointsBlob)}");
+                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: {Token(() => entry.Document)} #{_reader.GetHeapOffset(entry.SequencePointsBlob):x}");
 
                 if (entry.SequencePointsBlob.IsNil)
                 {
