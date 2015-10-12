@@ -83,7 +83,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             If statements?.Count = 1 Then
                 Dim statement = statements.Value(0)
                 If statement.IsKind(SyntaxKind.SimpleAssignmentStatement) Then
-                    'If statement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
                     Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
                         Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
