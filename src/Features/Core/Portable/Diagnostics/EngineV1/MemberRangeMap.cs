@@ -151,9 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 var newStart = Math.Min(Math.Max(span.Start + delta, 0), length);
-                var newSpan = new TextSpan(newStart, newStart >= length ? 0 : span.Length);
-
-                list[i] = newSpan;
+                list[i] = new TextSpan(newStart, newStart >= length ? 0 : span.Length);
             }
 
             data.MemberRangeMap[newVersion] = list.ToImmutableArray();
