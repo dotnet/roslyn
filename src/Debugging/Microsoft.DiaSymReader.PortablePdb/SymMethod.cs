@@ -33,9 +33,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
             DebugHandle = handle;
         }
 
-        private SequencePointBlobReader GetSequencePointsReader()
+        private SequencePointEnumerator GetSequencePointEnumerator()
         {
-            return SymReader.MetadataReader.GetMethodDebugInformation(DebugHandle).GetSequencePointsReader();
+            return SymReader.MetadataReader.GetMethodDebugInformation(DebugHandle).GetSequencePointEnumerator();
         }
 
         private RootScopeData GetRootScopeData()
@@ -83,7 +83,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods
             // and for lines outside of the current method.
 
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
             var documentHandle = symDocument.Handle;
 
             while (spReader.MoveNext())
@@ -139,7 +139,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods.
 
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
             var documentHandle = symDocument.Handle;
 
             bool setEndOffset = false;
@@ -193,7 +193,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetSequencePointCount(out int count)
         {
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
 
             int i = 0;
             while (spReader.MoveNext())
@@ -216,7 +216,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]int[] endColumns)
         {
             SymDocument currentDocument = null;
-            var spReader = GetSequencePointsReader();
+            var spReader = GetSequencePointEnumerator();
 
             int i = 0;
             while (spReader.MoveNext())

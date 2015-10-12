@@ -50,7 +50,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
                 // enumerate method sequence points:
                 var body = mdReader.GetMethodDebugInformation(extent.Method);
-                var spReader = body.GetSequencePointsReader();
+                var spReader = body.GetSequencePointEnumerator();
 
                 while (spReader.MoveNext())
                 {

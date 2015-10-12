@@ -173,13 +173,13 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 var methodBody = reader.GetMethodDebugInformation(methodDebugHandle);
 
                 // no debug info for the method
-                if (methodBody.SequencePoints.IsNil)
+                if (methodBody.SequencePointsBlob.IsNil)
                 {
                     continue;
                 }
                                 
                 // sequence points:
-                var spReader = methodBody.GetSequencePointsReader();
+                var spReader = methodBody.GetSequencePointEnumerator();
                 DocumentHandle currentDocument = methodBody.Document;
 
                 int minLine = int.MaxValue;

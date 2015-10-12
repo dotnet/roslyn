@@ -536,16 +536,16 @@ namespace Roslyn.Test.MetadataUtilities
             return sb.ToString();
         }
 
-        private string FormatImports(BlobHandle handle)
+        private string FormatImports(ImportScope scope)
         {
-            if (handle.IsNil)
+            if (scope.ImportsBlob.IsNil)
             {
                 return "nil";
             }
 
             var sb = new StringBuilder();
 
-            var importsReader = _reader.GetImportsReader(handle);
+            var importsReader = scope.GetImportDefinitionEnumerator();
             while (importsReader.MoveNext())
             {
                 if (sb.Length > 0)
@@ -1484,14 +1484,14 @@ namespace Roslyn.Test.MetadataUtilities
 
                 var entry = _reader.GetMethodDebugInformation(handle);
                 
-                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePoints)}");
+                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePointsBlob)}");
 
-                if (entry.SequencePoints.IsNil)
+                if (entry.SequencePointsBlob.IsNil)
                 {
                     continue;
                 }
 
-                _blobKinds[entry.SequencePoints] = BlobKind.SequencePoints;
+                _blobKinds[entry.SequencePointsBlob] = BlobKind.SequencePoints;
 
                 _writer.WriteLine("{");
 
@@ -1517,7 +1517,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 try
                 {
-                    var spReader = entry.GetSequencePointsReader();
+                    var spReader = entry.GetSequencePointEnumerator();
                     while (spReader.MoveNext())
                     {
                         _writer.Write("  ");
@@ -1715,11 +1715,11 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 var entry = _reader.GetImportScope(handle);
 
-                _blobKinds[entry.Imports] = BlobKind.Imports;
+                _blobKinds[entry.ImportsBlob] = BlobKind.Imports;
 
                 AddRow(
                     Token(() => entry.Parent),
-                    FormatImports(entry.Imports)
+                    FormatImports(entry)
                );
             }
 

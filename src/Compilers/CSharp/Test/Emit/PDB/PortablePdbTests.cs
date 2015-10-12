@@ -49,7 +49,7 @@ class C
 
                     var name = mdReader.GetString(method.Name);
 
-                    var spReader = methodDebugInfo.GetSequencePointsReader();
+                    var spReader = methodDebugInfo.GetSequencePointEnumerator();
 
                     TextWriter writer = new StringWriter();
                     while (spReader.MoveNext())
@@ -66,7 +66,7 @@ class C
                     }
 
                     var spString = writer.ToString();
-                    var spBlob = pdbReader.GetBlobBytes(methodDebugInfo.SequencePoints);
+                    var spBlob = pdbReader.GetBlobBytes(methodDebugInfo.SequencePointsBlob);
 
                     switch (name)
                     {

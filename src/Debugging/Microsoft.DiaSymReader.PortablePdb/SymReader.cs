@@ -178,7 +178,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             var methodDebugHandle = ((MethodDefinitionHandle)handle).ToDebugInformationHandle();
 
             var methodBody = MetadataReader.GetMethodDebugInformation(methodDebugHandle);
-            if (methodBody.SequencePoints.IsNil)
+            if (methodBody.SequencePointsBlob.IsNil)
             {
                 // no debug info for the method
                 method = null;
