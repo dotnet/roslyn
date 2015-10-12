@@ -99,22 +99,22 @@ for %%f in (%TEST_ASSEMBLIES%) do (
     if not exist %%f (
         echo ERROR: Cannot find %%f in %CD%
     ) else (
+        %XUNIT_RUNNER% %%f -verbose -runner %XUNIT_CONSOLE% -runnerargs "-verbose" -outdir %RESULTS% -runid %RUNID%
 
-    %XUNIT_RUNNER% %%f -verbose -runner %XUNIT_CONSOLE% -runnerargs "-verbose" -outdir %RESULTS% -runid %RUNID%
+        rem ====== Workaround for https://github.com/Microsoft/xunit-performance/issues/73
+        rem The output filename is tied to the runid. However, we want distinct output files
+        rem for each test assembly.
+        for %%g in (%RESULTS%\%RUNID%.*) do (ren %%g %%~nf%%~xg)
 
-    rem ====== Workaround for https://github.com/Microsoft/xunit-performance/issues/73
-    rem The output filename is tied to the runid. However, we want distinct output files
-    rem for each test assembly.
-    for %%g in (%RESULTS%\%RUNID%.*) do (ren %%g %%~nf%%~xg)
-
-    if exist %RESULTS%\%%~nf.etl (
-        if defined PYTHONPATH (
-            if defined HELIX_SCRIPT_ROOT (
-                echo Zipping %%~nf.etl
-                pushd %RESULTS%
-                %PYTHONPATH% %HELIX_SCRIPT_ROOT%\zip_script.py -zipFILE %%~nf.etl.zip %%~nf.etl
-                del %%~nf.etl
-                popd
+        if exist %RESULTS%\%%~nf.etl (
+            if defined PYTHONPATH (
+                if defined HELIX_SCRIPT_ROOT (
+                    echo Zipping %%~nf.etl
+                    pushd %RESULTS%
+                    %PYTHONPATH% %HELIX_SCRIPT_ROOT%\zip_script.py -zipFILE %%~nf.etl.zip %%~nf.etl
+                    del %%~nf.etl
+                    popd
+                )
             )
         )
     )
@@ -133,7 +133,7 @@ if DEFINED HELIX_RESULTS_CONTAINER_URI (
         if defined HELIX_SCRIPT_ROOT (
             for %%f in (%RESULTS%\*) do (
                 echo Uploading %%f
-               %PYTHONPATH% %HELIX_SCRIPT_ROOT%\upload_result.py -result %%f -result_name %%~nxf -upload_client_type Blob
+                %PYTHONPATH% %HELIX_SCRIPT_ROOT%\upload_result.py -result %%f -result_name %%~nxf -upload_client_type Blob
             )
         )
     )
