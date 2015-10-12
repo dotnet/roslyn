@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name("Roslyn Peekable Item Provider")]
     [SupportsStandaloneFiles(true)]
+    [SupportsPeekRelationship("IsDefinedBy")]
     internal sealed class PeekableItemSourceProvider : IPeekableItemSourceProvider
     {
         private readonly IPeekableItemFactory _peekableItemFactory;
