@@ -25,7 +25,7 @@ Where there is code available, the answer to the question has one or more tags s
     * [Why are there two solution files?](#why-are-there-two-solution-files)
     * [What components can I dogfood in Visual Studio?](#what-components-can-i-dogfood-in-visual-studio)
 * [Getting Information Questions](#getting-information-questions)
-    * [How do I get type info for a variable in a declaration, with inferred (â€˜varâ€™) or explicit variable type](#how-do-i-get-type-info-for-a-variable-in-a-declaration,-with-inferred-â€˜varâ€™-or-explicit-variable-type)
+    * [How do I get type info for a variable in a declaration, with inferred ('var') or explicit variable type](#how-do-i-get-type-info-for-a-variable-in-a-declaration-with-inferred-var-or-explicit-variable-type)
     * [How do I get all variables declared of a specified type that are available at a given code locations](#how-do-i-get-all-variables-declared-of-a-specified-type-that-are-available-at-a-given-code-locations)
     * [How do I get a completion list or accessible symbols at a code location](#how-do-i-get-a-completion-list-or-accessible-symbols-at-a-code-location)
     * [How do I get a completion list with members of an accessible type](#how-do-i-get-a-completion-list-with-members-of-an-accessible-type)
