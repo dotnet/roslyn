@@ -913,7 +913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Check for type arguments equal to type parameters of this type,
             ' but not contained by it ("cross-pollination"). Replace them with 
-            ' this type type parameters.
+            ' this types' type parameters.
             Dim newTypeArguments As TypeSymbol() = Nothing
             Dim i As Integer = 0
             Dim typeArgument As TypeSymbol

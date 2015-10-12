@@ -230,7 +230,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             AppDomain.Unload(loadDomain);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(x86))]
         public void TestAnalyzerLoading_Error()
         {
             var analyzerSource = @"

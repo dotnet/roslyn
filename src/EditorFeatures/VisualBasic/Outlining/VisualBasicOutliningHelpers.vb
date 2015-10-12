@@ -66,8 +66,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Outlining
             CollectCommentsRegions(triviaList, spans)
         End Sub
 
-        Friend Function CreateRegion(textSpan As TextSpan, bannerText As String, autoCollapse As Boolean) As OutliningSpan
-            Return New OutliningSpan(textSpan, bannerText, autoCollapse)
+        Friend Function CreateRegion(textSpan As TextSpan, bannerText As String, autoCollapse As Boolean, Optional isDefaultCollapsed As Boolean = False) As OutliningSpan
+            Return New OutliningSpan(textSpan, bannerText, autoCollapse, isDefaultCollapsed)
         End Function
 
         Friend Function CreateRegionFromBlock(node As SyntaxNode, bannerText As String, autoCollapse As Boolean) As OutliningSpan

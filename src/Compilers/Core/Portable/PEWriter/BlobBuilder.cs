@@ -179,7 +179,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Returns a sequence of all blobs that reprsent the content of the builder.
+        /// Returns a sequence of all blobs that represent the content of the builder.
         /// </summary>
         /// <exception cref="InvalidOperationException">Content is not available, the builder has been linked with another one.</exception>
         public Blobs GetBlobs()
@@ -664,7 +664,7 @@ namespace Microsoft.Cci
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        /// <returns>Bytes succesfully written from the <paramref name="source" />.</returns>
+        /// <returns>Bytes successfully written from the <paramref name="source" />.</returns>
         public int TryWriteBytes(Stream source, int byteCount)
         {
             if (source == null)

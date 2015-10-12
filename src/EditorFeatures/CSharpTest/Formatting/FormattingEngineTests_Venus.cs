@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTests_Venus : FormattingEngineTestBase
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public void SimpleOneLineNugget()
         {
             var code = @"public class Default
@@ -36,7 +36,7 @@ int x=1 ;
             AssertFormatWithBaseIndent(expected, code, baseIndentation: 7);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public void SimpleMultiLineNugget()
         {
             var code = @"public class Default
@@ -69,7 +69,7 @@ Console.WriteLine(5);}
             AssertFormatWithBaseIndent(expected, code, baseIndentation: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public void SimpleQueryWithinNugget()
         {
             var code = @"public class Default
@@ -103,7 +103,7 @@ var even =  from     n      in  numbers
             AssertFormatWithBaseIndent(expected, code, baseIndentation: 7);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public void LambdaExpressionInNugget()
         {
             var code = @"public class Default
@@ -138,7 +138,7 @@ foreach(int i   in source.Where(x  =>  x  > 5))
         }
 
         [WorkItem(576457)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)]
         public void StatementLambdaInNugget()
         {
             var code = @"public class Default

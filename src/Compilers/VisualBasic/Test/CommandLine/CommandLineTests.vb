@@ -82,7 +82,7 @@ End Class
         <WorkItem(545247, "DevDiv")>
         <Fact()>
         Public Sub CommandLineCompilationWithQuotedMainArgument()
-            ' Arguments with quoted rootnamespace and maintype are unquoted when
+            ' Arguments with quoted rootnamespace and main type are unquoted when
             ' the arguments are read in by the command line compiler.
             Dim src As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
@@ -1119,6 +1119,10 @@ a.vb
             Assert.Equal(False, ParsedArgs.CompilationOptions.Deterministic)
 
             ParsedArgs = DefaultParse({"/deterministic+", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
+            ParsedArgs = DefaultParse({"/deterministic", "a.vb"}, _baseDirectory)
             ParsedArgs.Errors.Verify()
             Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
 

@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 ' this is the top of eval stack
                 DeclareLocal(_empty, 0)
-                RecordVarWrite(_empty)
+                RecordDummyWrite(_empty)
             End Sub
 
             Public Shared Function Analyze(
@@ -576,15 +576,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' Such call will push the receiver ref before the arguments
                 ' so we need to ensure that arguments cannot use stack temps
                 Dim leftType As TypeSymbol = left.Type
-                Dim cookie As Object = Nothing
+                Dim mayPushReceiver As Boolean = False
                 If right.Kind = BoundKind.ObjectCreationExpression Then
                     Dim ctor = DirectCast(right, BoundObjectCreationExpression).ConstructorOpt
                     If ctor IsNot Nothing AndAlso ctor.ParameterCount <> 0 Then
-                        cookie = GetStackStateCookie()
+                        mayPushReceiver = True
                     End If
                 End If
 
+                If mayPushReceiver Then
+                    'push unknown value just to prevent access to stack locals.
+                    PushEvalStack(Nothing, ExprContext.Address)
+                End If
+
                 right = VisitExpression(node.Right, rhsContext)
+
+                If mayPushReceiver Then
+                    PopEvalStack()
+                End If
 
                 ' if assigning to a local, now it is the time to record the Write
                 If storedAssignmentLocal IsNot Nothing Then
@@ -597,12 +606,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(Not isIndirect, "indirect assignment is a read, not a write")
 
                     RecordVarWrite(storedAssignmentLocal.LocalSymbol)
-                End If
-
-                If cookie IsNot Nothing Then
-                    ' There is still RHS on the stack, adjust for that
-                    Me.PopEvalStack()
-                    EnsureStackState(cookie)
                 End If
 
                 Return node.Update(left, Nothing, right, node.SuppressObjectClone, node.Type)
@@ -1147,7 +1150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim dummy As New DummyLocal(Me._container)
                 Me._dummyVariables.Add(dummy, dummy)
                 Me._locals.Add(dummy, New LocalDefUseInfo(Me.StackDepth))
-                RecordVarWrite(dummy)
+                RecordDummyWrite(dummy)
 
                 Return dummy
             End Function
@@ -1166,7 +1169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     dummy = New DummyLocal(Me._container)
                     Me._dummyVariables.Add(label, dummy)
                     Me._locals.Add(dummy, New LocalDefUseInfo(Me.StackDepth))
-                    RecordVarWrite(dummy)
+                    RecordDummyWrite(dummy)
                 End If
             End Sub
 
@@ -1241,6 +1244,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Sub RecordVarWrite(local As LocalSymbol)
+                Debug.Assert(local.SynthesizedKind <> SynthesizedLocalKind.OptimizerTemp)
+
                 If Not CanScheduleToStack(local) Then
                     Return
                 End If
@@ -1250,21 +1255,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return
                 End If
 
-                ' if accessing real val, check stack
-                If Not TypeOf local Is DummyLocal Then
+                ' check stack
+                ' -1 because real assignment "consumes" value.
+                Dim evalStack = Me.StackDepth - 1
 
-                    ' -1 because real assignment "consumes" value.
-                    Dim evalStack = Me.StackDepth - 1
-
-                    If locInfo.StackAtDeclaration <> evalStack Then
-                        ' writing at different eval stack.
-                        locInfo.ShouldNotSchedule()
-                        Return
-                    End If
-                Else
-                    ' dummy must be accessed on same stack.
-                    Debug.Assert(local Is _empty OrElse locInfo.StackAtDeclaration = StackDepth())
+                If locInfo.StackAtDeclaration <> evalStack Then
+                    ' writing at different eval stack.
+                    locInfo.ShouldNotSchedule()
+                    Return
                 End If
+
+                Dim locDef = New LocalDefUseSpan(Me._counter)
+                locInfo.localDefs.Add(locDef)
+            End Sub
+
+            Private Sub RecordDummyWrite(local As LocalSymbol)
+                Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.OptimizerTemp)
+
+                Dim locInfo = _locals(local)
+
+                ' dummy must be accessed on same stack.
+                Debug.Assert(local Is _empty OrElse locInfo.StackAtDeclaration = StackDepth())
 
                 Dim locDef = New LocalDefUseSpan(Me._counter)
                 locInfo.localDefs.Add(locDef)

@@ -3138,7 +3138,7 @@ Task.FromResult(2);";
         }
 
         [Fact]
-        public void UnobservedAwaitableExpression_Interactive()
+        public void UnobservedAwaitableExpression_Submission()
         {
             var source0 =
 @"using System.Threading.Tasks;
@@ -3146,7 +3146,7 @@ Task.FromResult(1);
 Task.FromResult(2)";
             var submission = CSharpCompilation.CreateSubmission(
                 "s0.dll",
-                syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive),
+                syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references: new[] { MscorlibRef_v4_0_30316_17626 });
             submission.VerifyDiagnostics(
                 // (2,1): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.

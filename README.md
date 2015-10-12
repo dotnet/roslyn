@@ -18,32 +18,21 @@
 [![Join the chat at https://gitter.im/dotnet/roslyn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dotnet/roslyn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
-The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers 
-with rich code analysis APIs.  It enables building code analysis tools with the same APIs 
-that are used by Visual Studio.
+Roslyn provides open-source C# and Visual Basic compilers with rich code analysis APIs.  It enables building code analysis tools with the same APIs that are used by Visual Studio.
 
-### Try new language and IDE features
+### Download C# and Visual Basic
 
-Just want to provide feedback on new [language features](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14) 
-and [IDE features](http://blogs.msdn.com/b/visualstudio/archive/2014/11/12/the-c-and-visual-basic-code-focused-ide-experience.aspx)? 
+Want to start developing in C# and Visual Basic? Download [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
+which has the latest features built-in. There are also [prebuilt Azure VM images](https://azure.microsoft.com/en-us/marketplace/virtual-machines/all/?term=Visual+Studio+2015) available with VS 2015 already installed.
 
-* Try out [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx), 
-which has the latest features built-in.
+To install the latest release without Visual Studio, run one of the following [nuget](https://dist.nuget.org/index.html) command lines:
 
-* Want to keep your box clean? You can use 
-[prebuilt Azure VM images](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx) 
-with VS 2015 already installed.
+```
+nuget install Microsoft.Net.Compilers   # Install C# and VB compilers
+nuget install Microsoft.CodeAnalysis    # Install Language APIs and Services
+```
 
-### Build tools that understand C# and Visual Basic
-
-Get started building diagnostics, code fixes, refactorings, and other code-aware tools!
-
-- [**Getting Started On Visual Studio 2015**](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015)
-
-Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
-From the NuGet package manager console:
-
-    Install-Package Microsoft.CodeAnalysis
+To get the latest "preview" drop, published about once per month, add the `-pre` switch to the nuget commands.
 
 ### Source code
 

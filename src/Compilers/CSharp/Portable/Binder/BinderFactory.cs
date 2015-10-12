@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _syntaxTree.Options.Kind == SourceCodeKind.Interactive || _syntaxTree.Options.Kind == SourceCodeKind.Script;
+                return _syntaxTree.Options.Kind == SourceCodeKind.Script;
             }
         }
 

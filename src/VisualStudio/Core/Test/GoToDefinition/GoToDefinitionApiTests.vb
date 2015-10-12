@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
             Test(workspaceDefinition, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestVBOperator()
             Dim workspaceDefinition =
 <Workspace>

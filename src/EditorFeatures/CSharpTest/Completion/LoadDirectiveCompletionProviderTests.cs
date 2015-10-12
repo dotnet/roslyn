@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,6 +14,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 {
     public class LoadDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public LoadDirectiveCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override CompletionListProvider CreateCompletionProvider()
         {
             return new LoadDirectiveCompletionProvider();
@@ -35,33 +40,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
                 glyph);
         }
 
-        private void VerifyItemExistsInInteractive(string markup, string expected)
+        private void VerifyItemExistsInScript(string markup, string expected)
         {
-            VerifyItemExists(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive, usePreviousCharAsTrigger: false);
+            VerifyItemExists(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: false);
         }
 
         private void VerifyItemIsAbsentInInteractive(string markup, string expected)
         {
-            VerifyItemIsAbsent(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Interactive, usePreviousCharAsTrigger: false);
+            VerifyItemIsAbsent(markup, expected, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NetworkPath()
         {
-            VerifyItemExistsInInteractive(
+            VerifyItemExistsInScript(
                 @"#load ""$$",
                 @"\\");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NetworkPathAfterInitialBackslash()
         {
-            VerifyItemExistsInInteractive(
+            VerifyItemExistsInScript(
                 @"#load ""\$$",
                 @"\\");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void UpOneDirectoryNotShownAtRoot()
         {
             // after so many ".." we should be at the root drive an should no longer suggest the parent.  we can determine
@@ -70,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             int depth = Directory.GetCurrentDirectory().Count(c => c == Path.DirectorySeparatorChar);
             var pathToRoot = string.Concat(Enumerable.Repeat(@"..\", depth));
 
-            VerifyItemExistsInInteractive(
+            VerifyItemExistsInScript(
                 @"#load ""$$",
                 "..");
             VerifyItemIsAbsentInInteractive(

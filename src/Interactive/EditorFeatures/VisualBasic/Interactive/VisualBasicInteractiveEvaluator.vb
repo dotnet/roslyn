@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
     Public NotInheritable Class VisualBasicInteractiveEvaluator
         Inherits InteractiveEvaluator
 
-        Private Shared ReadOnly s_parseOptions As ParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
+        Private Shared ReadOnly s_parseOptions As ParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
 
         Private Const s_interactiveResponseFile As String = "VisualBasicInteractive.rsp"
 

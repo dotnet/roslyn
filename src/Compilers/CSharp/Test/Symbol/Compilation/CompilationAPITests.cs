@@ -10,13 +10,10 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1345,7 +1342,7 @@ class A
         public void GetEntryPoint_Script()
         {
             var source = @"System.Console.WriteLine(1);";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
 
             var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
@@ -1366,7 +1363,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
                 //     static void Main() { }
@@ -1389,7 +1386,7 @@ class A
             var source = @"1 + 1";
             var compilation = CSharpCompilation.CreateSubmission("sub",
                 references: new[] { MscorlibRef },
-                syntaxTree: Parse(source, options: TestOptions.Interactive));
+                syntaxTree: Parse(source, options: TestOptions.Script));
             compilation.VerifyDiagnostics();
 
             var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
@@ -1413,7 +1410,7 @@ class A
 ";
             var compilation = CSharpCompilation.CreateSubmission("sub",
                 references: new[] { MscorlibRef },
-                syntaxTree: Parse(source, options: TestOptions.Interactive));
+                syntaxTree: Parse(source, options: TestOptions.Script));
             compilation.VerifyDiagnostics(
                 // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
                 //     static void Main() { }
@@ -1976,16 +1973,15 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(out hasValue).SpecialType);
             Assert.False(hasValue);
 
-            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Int32, expectedHasValue: true);
-            TestSubmissionResult(CreateSubmission("1;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("void foo() { }", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("using System;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("int i;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine();", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: true);
-            TestSubmissionResult(CreateSubmission("null", parseOptions: TestOptions.Interactive), expectedType: null, expectedHasValue: true);
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine", parseOptions: TestOptions.Interactive), expectedType: null, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Int32, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("1;", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("void foo() { }", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("using System;", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("int i;", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine();", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("null", parseOptions: TestOptions.Script), expectedType: null, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine", parseOptions: TestOptions.Script), expectedType: null, expectedHasValue: true);
         }
 
         /// <summary>

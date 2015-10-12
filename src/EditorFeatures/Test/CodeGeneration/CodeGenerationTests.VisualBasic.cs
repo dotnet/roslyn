@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     {
         public class VisualBasic
         {
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddNamespace()
             {
                 var input = "Namespace [|N1|]\n End Namespace";
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     name: "N2");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddField()
             {
                 var input = "Class [|C|]\n End Class";
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     type: GetTypeSymbol(typeof(int)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddSharedField()
             {
                 var input = "Class [|C|]\n End Class";
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     modifiers: new DeclarationModifiers(isStatic: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddArrayField()
             {
                 var input = "Class [|C|]\n End Class";
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     type: CreateArrayType(typeof(int)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddConstructor()
             {
                 var input = "Class [|C|]\n End Class";
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             }
 
             [WorkItem(530785)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddConstructorWithXmlComment()
             {
                 var input = @"
@@ -94,7 +94,7 @@ End Class";
                 TestAddConstructor(input, expected, compareTokens: false);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddConstructorWithoutBody()
             {
                 var input = "Class [|C|]\n End Class";
@@ -103,7 +103,7 @@ End Class";
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddConstructorResolveNamespaceImport()
             {
                 var input = "Class [|C|]\n End Class";
@@ -112,7 +112,7 @@ End Class";
                     parameters: Parameters(Parameter(typeof(StringBuilder), "s")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddSharedConstructor()
             {
                 var input = "Class [|C|]\n End Class";
@@ -121,7 +121,7 @@ End Class";
                     modifiers: new DeclarationModifiers(isStatic: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddChainedConstructor()
             {
                 var input = "Class [|C|]\n Public Sub New(i As Integer)\n End Sub\n End Class";
@@ -130,7 +130,7 @@ End Class";
                     thisArguments: new[] { VB.SyntaxFactory.ParseExpression("42") });
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544476)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544476)]
             public void AddClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -142,7 +142,7 @@ End Namespace";
                     compareTokens: false);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddClassEscapeName()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -151,7 +151,7 @@ End Namespace";
                     name: "Class");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddClassUnicodeName()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -160,7 +160,7 @@ End Namespace";
                     name: "Cl\u0061ss");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477)]
             public void AddNotInheritableClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -169,7 +169,7 @@ End Namespace";
                     modifiers: new DeclarationModifiers(isSealed: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477)]
             public void AddMustInheritClass()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -179,7 +179,7 @@ End Namespace";
                     modifiers: new DeclarationModifiers(isAbstract: true));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddStructure()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -190,7 +190,7 @@ End Namespace";
                     typeKind: TypeKind.Struct);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224)]
             public void AddSealedStructure()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -202,7 +202,7 @@ End Namespace";
                     typeKind: TypeKind.Struct);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddInterface()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -212,7 +212,7 @@ End Namespace";
                     typeKind: TypeKind.Interface);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544528)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544528)]
             public void AddEnum()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -222,7 +222,7 @@ End Namespace";
                     members: Members(CreateEnumField("F1", null)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544527)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544527)]
             public void AddEnumWithValues()
             {
                 var input = "Namespace [|N|]\n End Namespace";
@@ -232,7 +232,7 @@ End Namespace";
                     members: Members(CreateEnumField("F1", 1), CreateEnumField("F2", 2)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddEnumMember()
             {
                 var input = "Public Enum [|E|]\n F1 = 1\n F2 = 2\n End Enum";
@@ -241,7 +241,7 @@ End Namespace";
                     name: "F3");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddEnumMemberWithValue()
             {
                 var input = "Public Enum [|E|]\n F1 = 1\n F2\n End Enum";
@@ -250,7 +250,7 @@ End Namespace";
                     name: "F3", hasConstantValue: true, constantValue: 3);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544529)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544529)]
             public void AddDelegateType()
             {
                 var input = "Class [|C|]\n End Class";
@@ -260,7 +260,7 @@ End Namespace";
                     parameters: Parameters(Parameter(typeof(string), "s")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(546224)]
             public void AddSealedDelegateType()
             {
                 var input = "Class [|C|]\n End Class";
@@ -271,7 +271,7 @@ End Namespace";
                     parameters: Parameters(Parameter(typeof(string), "s")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddMethodToClass()
             {
                 var input = "Class [|C|]\n End Class";
@@ -280,7 +280,7 @@ End Namespace";
                     returnType: typeof(void));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddMethodToClassEscapedName()
             {
                 var input = "Class [|C|]\n End Class";
@@ -291,7 +291,7 @@ End Namespace";
                     returnType: typeof(void));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration), WorkItem(544477)]
             public void AddSharedMethodToStructure()
             {
                 var input = "Structure [|S|]\n End Structure";
@@ -302,7 +302,7 @@ End Namespace";
                     statements: "Return 0");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddNotOverridableOverridesMethod()
             {
                 var input = "Class [|C|]\n End Class";
@@ -314,7 +314,7 @@ End Namespace";
                     statements: "Return 0");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddMustOverrideMethod()
             {
                 var input = "MustInherit Class [|C|]\n End Class";
@@ -324,7 +324,7 @@ End Namespace";
                     returnType: typeof(void));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddMethodWithoutBody()
             {
                 var input = "Class [|C|]\n End Class";
@@ -334,7 +334,7 @@ End Namespace";
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddGenericMethod()
             {
                 var input = "Class [|C|]\n End Class";
@@ -345,7 +345,7 @@ End Namespace";
                     statements: "Return new T().GetHashCode()");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddVirtualMethod()
             {
                 var input = "Class [|C|]\n End Class";
@@ -357,7 +357,7 @@ End Namespace";
                     statements: "Return 0\n");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddShadowsMethod()
             {
                 var input = "Class [|C|]\n End Class";
@@ -370,7 +370,7 @@ End Namespace";
                     statements: "Return String.Empty\n");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddExplicitImplementation()
             {
                 var input = "Interface I\n Sub M(i As Integer)\n End Interface\n Class [|C|]\n Implements I\n End Class";
@@ -382,7 +382,7 @@ End Namespace";
                     explicitInterface: s => s.LookupSymbols(input.IndexOf('M'), null, "M").First() as IMethodSymbol);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddTrueFalseOperators()
             {
                 var input = @"
@@ -406,7 +406,7 @@ End Class
                     statements: "Return False");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddUnaryOperators()
             {
                 var input = @"
@@ -438,7 +438,7 @@ End Class
                     statements: "Return Nothing");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddBinaryOperators()
             {
                 var input = @"
@@ -514,7 +514,7 @@ End Class
                     statements: "Return Nothing");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddComparisonOperators()
             {
                 var input = @"
@@ -558,7 +558,7 @@ End Class
                     statements: "Return True");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddUnsupportedOperator()
             {
                 var input = "Class [|C|]\n End Class";
@@ -569,7 +569,7 @@ End Class
                     statements: "Return True");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddExplicitConversion()
             {
                 var input = "Class [|C|]\n End Class";
@@ -580,7 +580,7 @@ End Class
                     statements: "Return 0");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddImplicitConversion()
             {
                 var input = "Class [|C|]\n End Class";
@@ -592,7 +592,7 @@ End Class
                     statements: "Return 0");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddStatementsToSub()
             {
                 var input = "Class C\n [|Public Sub M\n Console.WriteLine(1)\n End Sub|]\n End Class";
@@ -600,7 +600,7 @@ End Class
                 TestAddStatements(input, expected, "Console.WriteLine(2)");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddStatementsToOperator()
             {
                 var input = "Class C\n [|Shared Operator +(arg As C) As C\n Return arg\n End Operator|]\n End Class";
@@ -608,7 +608,7 @@ End Class
                 TestAddStatements(input, expected, "Return Nothing");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddStatementsToPropertySetter()
             {
                 var input = "Imports System\n Class C\n WriteOnly Property P As String\n [|Set\n End Set|]\n End Property\n End Class";
@@ -616,7 +616,7 @@ End Class
                 TestAddStatements(input, expected, "Console.WriteLine(\"Setting the value\"");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddParametersToMethod()
             {
                 var input = "Class C\n Public [|Sub M()\n End Sub|]\n End Class";
@@ -626,7 +626,7 @@ End Class
             }
 
             [WorkItem(844460)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddParametersToPropertyBlock()
             {
                 var input = "Class C\n [|Public Property P As String\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property|]\n End Class";
@@ -636,7 +636,7 @@ End Class
             }
 
             [WorkItem(844460)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddParametersToPropertyStatement()
             {
                 var input = "Class C\n [|Public Property P As String|]\n Get\n Return String.Empty\n End Get\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -646,7 +646,7 @@ End Class
             }
 
             [WorkItem(844460)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddParametersToPropertyGetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n [|Get\n Return String.Empty\n End Get|]\n Set(value As String)\n End Set\n End Property\n End Class";
@@ -656,7 +656,7 @@ End Class
             }
 
             [WorkItem(844460)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddParametersToPropertySetter_ShouldNotSucceed()
             {
                 var input = "Class C\n Public Property P As String\n Get\n Return String.Empty\n End Get\n [|Set(value As String)\n End Set|]\n End Property\n End Class";
@@ -665,7 +665,7 @@ End Class
                     Parameters(Parameter(typeof(int), "num")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddParametersToOperator()
             {
                 var input = "Class C\n [|Shared Operator +(a As C) As C\n Return a\n End Operator|]\n End Class";
@@ -674,7 +674,7 @@ End Class
                     Parameters(Parameter("C", "b")));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAutoProperty()
             {
                 var input = "Class [|C|]\n End Class";
@@ -683,7 +683,7 @@ End Class
                     type: typeof(int));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddPropertyWithoutAccessorBodies()
             {
                 var input = "Class [|C|]\n End Class";
@@ -695,7 +695,7 @@ End Class
                     codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddIndexer()
             {
                 var input = "Class [|C|]\n End Class";
@@ -708,7 +708,7 @@ End Class
                     isIndexer: true);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToTypes()
             {
                 var input = "Class [|C|]\n End Class";
@@ -716,7 +716,7 @@ End Class
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromTypes()
             {
                 var input = @"
@@ -729,7 +729,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToMethods()
             {
                 var input = "Class C\n Public Sub [|M()|] \n End Sub \n End Class";
@@ -737,7 +737,7 @@ End Class";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromMethods()
             {
                 var input = @"
@@ -754,7 +754,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToFields()
             {
                 var input = "Class C\n [|Public F As Integer|]\n End Class";
@@ -762,7 +762,7 @@ End Class";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromFields()
             {
                 var input = @"
@@ -777,7 +777,7 @@ End Class";
                 TestRemoveAttribute<FieldDeclarationSyntax>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToProperties()
             {
                 var input = "Class C \n Public Property [|P|] As Integer \n End Class";
@@ -785,7 +785,7 @@ End Class";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromProperties()
             {
                 var input = @"
@@ -800,7 +800,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToPropertyAccessor()
             {
                 var input = "Class C \n Public ReadOnly Property P As Integer \n [|Get|] \n Return 10 \n End Get \n End Property \n  End Class";
@@ -808,7 +808,7 @@ End Class";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromPropertyAccessor()
             {
                 var input = @"
@@ -829,7 +829,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToEnums()
             {
                 var input = "Module M \n [|Enum C|] \n One \n Two \n End Enum\n End Module";
@@ -837,7 +837,7 @@ End Class";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromEnums()
             {
                 var input = @"
@@ -858,7 +858,7 @@ End Module";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToEnumMembers()
             {
                 var input = "Module M \n Enum C \n [|One|] \n Two \n End Enum\n End Module";
@@ -866,7 +866,7 @@ End Module";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromEnumMembers()
             {
                 var input = @"
@@ -887,7 +887,7 @@ End Module";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToModule()
             {
                 var input = "Module [|M|] \n End Module";
@@ -895,7 +895,7 @@ End Module";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromModule()
             {
                 var input = @"
@@ -908,7 +908,7 @@ End Module";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToOperator()
             {
                 var input = "Class C \n Public Shared Operator [|+|] (x As C, y As C) As C \n Return New C() \n End Operator \n End Class";
@@ -916,7 +916,7 @@ End Module";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromOperator()
             {
                 var input = @"
@@ -939,7 +939,7 @@ End Module";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToDelegate()
             {
                 var input = "Module M \n Delegate Sub [|D()|]\n End Module";
@@ -947,7 +947,7 @@ End Module";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromDelegate()
             {
                 var input = @"
@@ -962,7 +962,7 @@ End Module";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToParam()
             {
                 var input = "Class C \n Public Sub M([|x As Integer|]) \n End Sub \n End Class";
@@ -970,7 +970,7 @@ End Module";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeFromParam()
             {
                 var input = @"
@@ -986,7 +986,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeToCompilationUnit()
             {
                 var input = "[|Class C \n End Class \n Class D \n End Class|]";
@@ -994,7 +994,7 @@ End Class";
                 TestAddAttribute(input, expected, typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.AssemblyKeyword));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void AddAttributeWithWrongTarget()
             {
                 var input = "[|Class C \n End Class \n Class D \n End Class|]";
@@ -1002,7 +1002,7 @@ End Class";
                 Assert.Throws<AggregateException>(() => TestAddAttribute(input, expected, typeof(SerializableAttribute), VB.SyntaxFactory.Token(VB.SyntaxKind.ReturnKeyword)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeWithTrivia()
             {
                 // With trivia.
@@ -1016,7 +1016,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeWithTrivia_NewLine()
             {
                 // With trivia, redundant newline at end of attribute removed.
@@ -1030,7 +1030,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeWithMultipleAttributes()
             {
                 // Multiple attributes.
@@ -1045,7 +1045,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void RemoveAttributeWithMultipleAttributeLists()
             {
                 // Multiple attribute lists.
@@ -1063,7 +1063,7 @@ End Class";
                 TestRemoveAttribute<SyntaxNode>(input, expected, typeof(SerializableAttribute));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void TestUpdateModifiers()
             {
                 var input = @"Public Shared Class [|C|] ' Comment 1
@@ -1079,7 +1079,7 @@ End Class";
                 TestUpdateDeclaration<ClassStatementSyntax>(input, expected, modifiers: newModifiers);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void TestUpdateAccessibility()
             {
                 var input = @"' Comment 0
@@ -1093,7 +1093,7 @@ End Class";
                 TestUpdateDeclaration<ClassStatementSyntax>(input, expected, accessibility: Accessibility.ProtectedOrFriend);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void TestUpdateDeclarationType()
             {
                 var input = @"
@@ -1113,7 +1113,7 @@ End Class";
                 TestUpdateDeclaration<MethodStatementSyntax>(input, expected, getType: GetTypeSymbol(typeof(int)));
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void TestUpdateDeclarationMembers()
             {
                 var input = @"
@@ -1138,7 +1138,7 @@ End Class";
                 TestUpdateDeclaration<ClassBlockSyntax>(input, expected, getNewMembers: getMembers);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public void SortModules()
             {
                 var generationSource = "Public Class [|C|] \n End Class";
@@ -1147,7 +1147,7 @@ End Class";
                 TestGenerateFromSourceSymbol(generationSource, initial, expected);
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]
             public void SortOperators()
             {
                 var generationSource = @"
@@ -1274,7 +1274,7 @@ End Namespace";
             }
 
             [WorkItem(848357)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
             public void TestConstraints()
             {
                 var generationSource = @"

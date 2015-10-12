@@ -42,13 +42,13 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="CommandLine\Vbi.vb" />
+    <Compile Include="Hosting\CommandLine\Vbi.vb" />
     <Compile Include="VBScriptingResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VBScriptingResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="VisualBasicObjectFormatter.vb" />
+    <Compile Include="Hosting\ObjectFormatter\VisualBasicObjectFormatter.vb" />
     <Compile Include="VisualBasicScript.vb" />
     <Compile Include="VisualBasicScriptCompiler.vb" />
   </ItemGroup>

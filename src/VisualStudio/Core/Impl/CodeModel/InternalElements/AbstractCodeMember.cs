@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                     throw Exceptions.ThrowEUnexpected();
                 }
 
-                return FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(containingTypeNode);
+                return FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(containingTypeNode);
             }
         }
 

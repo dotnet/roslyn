@@ -11,7 +11,7 @@ Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     Public Class SmartTokenFormatter_FormatTokenTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub Test1()
             Dim code = "$$"
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
             ExpectException_Test(code, indentation:=0)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub Test2()
             Dim code = "$$Namespace"
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
             ExpectException_Test(code, indentation:=0)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub FirstTokenInParameterList1()
             Dim code = <code>Class C
@@ -39,7 +39,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             Test(code, indentation:=14)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub FirstTokenInParameterList2()
             Dim code = <code>Class C
@@ -51,7 +51,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             Test(code, indentation:=14)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub FirstTokenInTypeParameterList()
             Dim code = <code>Class C
@@ -63,7 +63,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             Test(code, indentation:=14)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub FirstTokenInArrayRank1()
             Dim code = <code>Class C
@@ -75,7 +75,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             Test(code, indentation:=24)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub FirstTokenInArrayRank2()
             Dim code = <code>Class C
@@ -87,28 +87,28 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             Test(code, indentation:=24)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub Attribute()
             Dim code = My.Resources.XmlLiterals.TokenFormatter2
             Test(code, indentation:=4)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub XmlLiterals1()
             Dim code = My.Resources.XmlLiterals.TokenFormatter1
             Test(code, indentation:=12)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub XmlLiterals2()
             Dim code = My.Resources.XmlLiterals.XmlTest1_TokenFormat
             Test(code, indentation:=19)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub EnterBetweenXmlLiterals()
             Dim code = My.Resources.XmlLiterals.XmlTest9
@@ -116,7 +116,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
         End Sub
 
         <WorkItem(542240)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub MissingEndStatement()
             Dim code = <code>Module Module1
@@ -131,13 +131,13 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
         End Sub
 
         <WorkItem(542240)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>
         Public Sub EmptyElement1()
             Test(My.Resources.XmlLiterals.EmptyElement1, indentation:=23)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub BlockIndentation()
             Dim code = <code>Class C
@@ -150,7 +150,7 @@ End Class
             ExpectException_Test(code, 4, FormattingOptions.IndentStyle.Block)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub NoIndentation()
             Dim code = <code>Class C
