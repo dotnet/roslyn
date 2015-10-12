@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 return false;
             }
 
-            // We want to find the single tracking span that encompasses all the edits made.  There 
+            // We want to find the single tracking span that encompasses all the edits made.  If there 
             // is no such tracking span (or there are multiple), then we consider the change invalid
             // and we don't return any changed text.  If there is only one, then we find the text in
             // the new document.
             //
-            // Note there may be multiple intersection spans in the case where user typing causes 
+            // Note there may be multiple intersecting spans in the case where user typing causes 
             // multiple edits to happen.  For example, if the user has "Sub" and replaces it with "fu<tab>"
             // Then there will be multiple edits due to the text change and then the case correction.
             // However, both edits will be encompassed in one tracking span.
