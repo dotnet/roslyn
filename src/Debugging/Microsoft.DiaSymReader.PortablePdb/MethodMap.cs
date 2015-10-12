@@ -177,28 +177,27 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 {
                     continue;
                 }
-                                
+
                 // sequence points:
-                var spReader = methodBody.GetSequencePointEnumerator();
                 DocumentHandle currentDocument = methodBody.Document;
 
                 int minLine = int.MaxValue;
                 int maxLine = int.MinValue;
-                while (spReader.MoveNext())
+                foreach (var sequencePoint in methodBody.GetSequencePoints())
                 {
-                    if (spReader.Current.IsHidden)
+                    if (sequencePoint.IsHidden)
                     {
                         continue;
                     }
 
-                    int startLine = spReader.Current.StartLine;
-                    int endLine = spReader.Current.EndLine;
+                    int startLine = sequencePoint.StartLine;
+                    int endLine = sequencePoint.EndLine;
 
-                    if (spReader.Current.Document != currentDocument)
+                    if (sequencePoint.Document != currentDocument)
                     {
                         yield return KeyValuePair.Create(currentDocument, new MethodLineExtent(methodDebugHandle, minLine, maxLine));
 
-                        currentDocument = spReader.Current.Document;
+                        currentDocument = sequencePoint.Document;
                         minLine = startLine;
                         maxLine = endLine;
                     }

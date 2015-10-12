@@ -545,15 +545,13 @@ namespace Roslyn.Test.MetadataUtilities
 
             var sb = new StringBuilder();
 
-            var importsReader = scope.GetImportDefinitionEnumerator();
-            while (importsReader.MoveNext())
+            foreach (var import in scope.GetImports())
             {
                 if (sb.Length > 0)
                 {
                     sb.Append(", ");
                 }
 
-                var import = importsReader.Current;
                 switch (import.Kind)
                 {
                     case ImportDefinitionKind.ImportNamespace:
@@ -1517,11 +1515,10 @@ namespace Roslyn.Test.MetadataUtilities
 
                 try
                 {
-                    var spReader = entry.GetSequencePointEnumerator();
-                    while (spReader.MoveNext())
+                    foreach (var sequencePoint in entry.GetSequencePoints())
                     {
                         _writer.Write("  ");
-                        _writer.WriteLine(SequencePoint(spReader.Current));
+                        _writer.WriteLine(sequencePoint);
                     }
                 }
                 catch (BadImageFormatException)

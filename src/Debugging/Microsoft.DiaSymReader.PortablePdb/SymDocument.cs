@@ -50,16 +50,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
                 // enumerate method sequence points:
                 var body = mdReader.GetMethodDebugInformation(extent.Method);
-                var spReader = body.GetSequencePointEnumerator();
-
-                while (spReader.MoveNext())
+                foreach (var sequencePoint in body.GetSequencePoints())
                 {
-                    if (spReader.Current.IsHidden || spReader.Current.Document != Handle)
+                    if (sequencePoint.IsHidden || sequencePoint.Document != Handle)
                     {
                         continue;
                     }
 
-                    int startLine = spReader.Current.StartLine;
+                    int startLine = sequencePoint.StartLine;
                     if (startLine >= line && startLine < result)
                     {
                         result = startLine;

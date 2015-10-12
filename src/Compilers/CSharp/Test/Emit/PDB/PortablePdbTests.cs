@@ -49,12 +49,9 @@ class C
 
                     var name = mdReader.GetString(method.Name);
 
-                    var spReader = methodDebugInfo.GetSequencePointEnumerator();
-
                     TextWriter writer = new StringWriter();
-                    while (spReader.MoveNext())
+                    foreach (var sp in methodDebugInfo.GetSequencePoints())
                     {
-                        var sp = spReader.Current;
                         if (sp.IsHidden)
                         {
                             writer.WriteLine($"{sp.Offset}: <hidden>");

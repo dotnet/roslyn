@@ -33,9 +33,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
             DebugHandle = handle;
         }
 
-        private SequencePointEnumerator GetSequencePointEnumerator()
+        private SequencePointCollection.Enumerator GetSequencePointEnumerator()
         {
-            return SymReader.MetadataReader.GetMethodDebugInformation(DebugHandle).GetSequencePointEnumerator();
+            return SymReader.MetadataReader.GetMethodDebugInformation(DebugHandle).GetSequencePoints().GetEnumerator();
         }
 
         private RootScopeData GetRootScopeData()
