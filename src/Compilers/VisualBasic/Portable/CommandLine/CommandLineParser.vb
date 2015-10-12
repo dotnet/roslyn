@@ -643,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             concurrentBuild = True
                             Continue For
 
-                        Case "deterministic+"
+                        Case "deterministic", "deterministic+"
                             If value IsNot Nothing Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
                                 Continue For
