@@ -295,7 +295,7 @@ End Class
                 "P",
                 "1",
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
@@ -331,7 +331,7 @@ End Class
                 "z = 1", ' VB only supports implicit declarations
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,

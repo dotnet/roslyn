@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string error;
             var result = context.CompileExpression("M(", out error);
             Assert.Null(result);
-            Assert.Equal(error, "(1,3): error CS1026: ) expected");
+            Assert.Equal(error, "error CS1026: ) expected");
         }
 
         /// <summary>
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(error);
             // Multiple semicolons: not supported.
             result = context.CompileExpression("x;;", out error);
-            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ';'");
+            Assert.Equal(error, "error CS1073: Unexpected token ';'");
             // // comments.
             result = context.CompileExpression("x;//", out error);
             Assert.Equal(error, "error CS0726: ';//' is not a valid format specifier");
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(error);
             // Trailing semicolon, no expression.
             result = context.CompileExpression(" ; ", out error);
-            Assert.Equal(error, "(1,2): error CS1733: Expected expression");
+            Assert.Equal(error, "error CS1733: Expected expression");
         }
 
         [Fact]
@@ -545,16 +545,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Format specifiers on assignment value.
             result = context.CompileAssignment("x", "null, y", out error);
             Assert.Null(result);
-            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
+            Assert.Equal(error, "error CS1073: Unexpected token ','");
             // Trailing semicolon, no format specifiers.
             result = context.CompileExpression("x; ", out error);
             CheckFormatSpecifiers(result);
             // Format specifiers, no expression.
             result = context.CompileExpression(",f", out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term ','");
+            Assert.Equal(error, "error CS1525: Invalid expression term ','");
             // Format specifiers before semicolon: not supported.
             result = context.CompileExpression("x,f;\t", out error);
-            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
+            Assert.Equal(error, "error CS1073: Unexpected token ','");
             // Format specifiers after semicolon: not supported.
             result = context.CompileExpression("x;,f", out error);
             Assert.Equal(error, "error CS0726: ';' is not a valid format specifier");
@@ -2021,7 +2021,7 @@ class C
             context.CompileExpression(
                 "@0xffff0000ffff0000ffff0000",
                 out error, testData);
-            Assert.Equal(error, "(1,1): error CS1021: Integral constant is too large");
+            Assert.Equal(error, "error CS1021: Integral constant is too large");
         }
 
         [WorkItem(986227)]
@@ -2699,7 +2699,7 @@ class C<T>
             // Currently generating errors but this seems unnecessary and
             // an extra burden for the user. Consider allowing names
             // inside the expression that shadow names outside.
-            Assert.Equal("(1,32): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+            Assert.Equal("error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
         }
 
         [Fact]
@@ -3629,7 +3629,7 @@ class C
                 "o.First()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -3843,7 +3843,7 @@ class C
                 "x.F0 + y.F0",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -3856,7 +3856,7 @@ class C
                 "y.F0",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -3869,7 +3869,7 @@ class C
                 "z.F1",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -4489,7 +4489,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
 
-            Assert.Equal("(1,1): error CS1525: Invalid expression term 'throw'", error);
+            Assert.Equal("error CS1525: Invalid expression term 'throw'", error);
         }
 
         [WorkItem(1016555)]
@@ -4519,7 +4519,7 @@ class C
                 expr: "(System.Func<object>)(() => 2))(",
                 error: out error,
                 testData: testData);
-            Assert.Equal("(1,1): error CS1073: Unexpected token ')'", error);
+            Assert.Equal("error CS1073: Unexpected token ')'", error);
         }
 
         [WorkItem(1015887)]
@@ -5306,14 +5306,14 @@ class C
                 "from c in \"ABC\" select c",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Equal(new AssemblyIdentity("System.Core"), missingAssemblyIdentities.Single());
-            Assert.Equal(error, "(1,11): error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?");
+            Assert.Equal(error, "error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?");
         }
 
         [WorkItem(1079762)]
@@ -5596,7 +5596,7 @@ public class C
                     expr,
                     DkmEvaluationFlags.TreatAsExpression,
                     NoAliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out actualError,
                     out actualMissingAssemblyIdentities,
@@ -5931,7 +5931,7 @@ public class C
             Assert.Equal("error CS7003: Unexpected use of an unbound generic name", error);
 
             context.CompileExpression("typeof(Action<>a)", out error);
-            Assert.Equal("(1,16): error CS1026: ) expected", error);
+            Assert.Equal("error CS1026: ) expected", error);
         }
 
         [WorkItem(1068138, "DevDiv")]
