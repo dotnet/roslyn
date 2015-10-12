@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.ICustomModifier.GetModifier(EmitContext context)
         {
-            Debug.Assert(this.Modifier.IsDefinition);
             return ((PEModuleBuilder)context.Module).Translate(this.Modifier, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
         }
     }

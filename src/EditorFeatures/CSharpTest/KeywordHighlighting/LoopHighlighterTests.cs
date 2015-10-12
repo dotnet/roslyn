@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new LoopHighlighter();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_1()
         {
             Test(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_2()
         {
             Test(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_3()
         {
             Test(
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample2_1()
         {
             Test(
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample2_2()
         {
             Test(
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample2_3()
         {
             Test(
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample2_4()
         {
             Test(
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample2_5()
         {
             Test(
@@ -170,7 +170,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample2_6()
         {
             Test(
@@ -198,7 +198,7 @@ while {|Cursor:(true)|};
     }
 }";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample3_1()
         {
             Test(
@@ -217,7 +217,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample3_2()
         {
             Test(
@@ -236,7 +236,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample3_3()
         {
             Test(
@@ -255,7 +255,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample4_1()
         {
             Test(
@@ -274,7 +274,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample4_2()
         {
             Test(
@@ -293,7 +293,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample4_3()
         {
             Test(
@@ -312,7 +312,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_1()
         {
             Test(
@@ -345,7 +345,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_2()
         {
             Test(
@@ -378,7 +378,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_3()
         {
             Test(
@@ -411,7 +411,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_4()
         {
             Test(
@@ -444,7 +444,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_5()
         {
             Test(
@@ -477,7 +477,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_6()
         {
             Test(
@@ -509,7 +509,7 @@ while {|Cursor:(true)|};
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_7()
         {
             Test(
@@ -542,7 +542,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_8()
         {
             Test(
@@ -577,7 +577,7 @@ while {|Cursor:(true)|};
 
         // TestNestedExample1 9-13 are in SwitchStatementHighlighterTests.cs
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_14()
         {
             Test(
@@ -610,7 +610,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample1_15()
         {
             Test(
@@ -643,7 +643,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_1()
         {
             Test(
@@ -672,7 +672,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_2()
         {
             Test(
@@ -701,7 +701,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_3()
         {
             Test(
@@ -730,7 +730,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_4()
         {
             Test(
@@ -759,7 +759,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_5()
         {
             Test(
@@ -788,7 +788,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_6()
         {
             Test(
@@ -817,7 +817,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_7()
         {
             Test(
@@ -845,7 +845,7 @@ while {|Cursor:(true)|};
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_8()
         {
             Test(
@@ -874,7 +874,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_9()
         {
             Test(
@@ -903,7 +903,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_10()
         {
             Test(
@@ -932,7 +932,7 @@ while {|Cursor:(true)|};
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestNestedExample2_11()
         {
             Test(

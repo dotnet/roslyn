@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // newline.  If so, we keep track of that so we'll appropriately indent later
                     // on. 
 
-                    var previousNonMissingToken = token1.GetPreviousToken(includeZeroWidth: false, includeSkipped: true);
+                    var previousNonMissingToken = token1.GetPreviousToken();
                     if (previousNonMissingToken.TrailingTrivia.Count > 0 &&
                         previousNonMissingToken.TrailingTrivia.Last().Kind() == SyntaxKind.EndOfLineTrivia)
                     {

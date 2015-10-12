@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New TryBlockHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestTryBlock1()
             Test(<Text>
 Class C
@@ -27,7 +27,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestTryBlock2()
             Test(<Text>
 Class C
@@ -44,7 +44,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestTryBlock3()
             Test(<Text>
 Class C
@@ -61,7 +61,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestTryBlock4()
             Test(<Text>
 Class C
@@ -78,7 +78,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestTryBlock5()
             Test(<Text>
 Class C
@@ -95,7 +95,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestTryBlock6()
             Test(<Text>
 Class C
@@ -112,7 +112,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestExitTryInCatchBlock()
             Test(<Text>
 Class C
@@ -129,7 +129,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestExitTryInCatchBlock2()
             Test(<Text>
 Class C
@@ -146,7 +146,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub NegativeTestExitTryInNestedTry()
             Test(<Text>
 Class C

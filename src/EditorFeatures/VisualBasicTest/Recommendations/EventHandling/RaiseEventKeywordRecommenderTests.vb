@@ -35,7 +35,7 @@ End Class</File>
             VerifyRecommendationsContain(code, "RaiseEvent")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(808406)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotRaiseEventInCustomEventWithRaiseEvent()

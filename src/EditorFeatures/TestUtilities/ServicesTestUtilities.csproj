@@ -32,6 +32,20 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
+      <Project>{f7712928-1175-47b3-8819-ee086753dee2}</Project>
+      <Name>TestUtilities.FX45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\EditorFeatures.csproj">
+      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="ReachFramework" />
@@ -51,11 +65,15 @@
     <Compile Include="DispatcherExtensions.cs" />
     <Compile Include="DirectoryExtensions.cs" />
     <Compile Include="ExceptionUtilities.cs" />
-    <Compile Include="Parallel\AsyncFactCommand.cs" />
-    <Compile Include="Parallel\AsyncTestClassCommand.cs" />
-    <Compile Include="Parallel\ExceptionCaptureCommand.cs" />
-    <Compile Include="Parallel\ParallelFixtureAttribute.cs" />
-    <Compile Include="Parallel\ParallelTestClassCommand.cs" />
+    <Compile Include="Threading\ConditionalStaFactAttribute.cs" />
+    <Compile Include="Threading\ConditionalWpfFactAttribute.cs" />
+    <Compile Include="Threading\StaFactAttribute.cs" />
+    <Compile Include="Threading\StaFactDiscoverer.cs" />
+    <Compile Include="Threading\StaTaskScheduler.cs" />
+    <Compile Include="Threading\StaTestCase.cs" />
+    <Compile Include="Threading\WpfFactAttribute.cs" />
+    <Compile Include="Threading\WpfFactDiscoverer.cs" />
+    <Compile Include="Threading\WpfTestCase.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="VisualStudioSendKeys.cs" />
   </ItemGroup>
@@ -82,6 +100,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">

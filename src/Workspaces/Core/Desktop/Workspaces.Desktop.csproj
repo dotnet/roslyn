@@ -67,9 +67,6 @@
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Scripting\Core\Resolvers\NuGetPackageResolver.cs">
-      <Link>InternalUtilities\NuGetPackageResolver.cs</Link>
-    </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />

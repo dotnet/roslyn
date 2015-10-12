@@ -222,6 +222,7 @@
     <EmbeddedResource Include="Semantics\LongTypeNameNative.vb.txt" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

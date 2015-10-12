@@ -293,35 +293,35 @@ using System.Linq;
             Test(codeInClass);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNamespaceInUsingDirective()
         {
             Test("using $$System;",
                 MainDescription("namespace System"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNamespaceInUsingDirective2()
         {
             Test("using System.Coll$$ections.Generic;",
                 MainDescription("namespace System.Collections"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNamespaceInUsingDirective3()
         {
             Test("using System.L$$inq;",
                 MainDescription("namespace System.Linq"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNamespaceInUsingDirectiveWithAlias()
         {
             Test("using Foo = Sys$$tem.Console;",
                 MainDescription("namespace System"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeInUsingDirectiveWithAlias()
         {
             Test("using Foo = System.Con$$sole;",
@@ -329,7 +329,7 @@ using System.Linq;
         }
 
         [WorkItem(991466)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestDocumentationInUsingDirectiveWithAlias()
         {
             var markup =
@@ -343,7 +343,7 @@ interface IFoo {  }";
         }
 
         [WorkItem(991466)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestDocumentationInUsingDirectiveWithAlias2()
         {
             var markup =
@@ -358,7 +358,7 @@ class C : I$$ { }";
         }
 
         [WorkItem(991466)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestDocumentationInUsingDirectiveWithAlias3()
         {
             var markup =
@@ -375,7 +375,7 @@ class C : I$$ { }";
                 Documentation("summary for interface IFoo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestThis()
         {
             var markup =
@@ -388,7 +388,7 @@ class C { string M() {  return thi$$s.ToString(); } }";
                 Documentation("summary for Class C"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestClassWithDocComment()
         {
             var markup =
@@ -401,7 +401,7 @@ class C { void M() { $$C obj; } }";
                 Documentation("Hello!"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestSingleLineDocComments()
         {
             // Tests chosen to maximize code coverage in DocumentationCommentCompiler.WriteFormattedSingleLineComment
@@ -442,7 +442,7 @@ class C { void M() { $$C obj; } }",
                 Documentation("Hello!"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMultiLineDocComments()
         {
             // Tests chosen to maximize code coverage in DocumentationCommentCompiler.WriteFormattedMultiLineComment
@@ -508,7 +508,7 @@ class C { void M() { $$C obj; } }",
                 Documentation("Hello!"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMethodWithDocComment()
         {
             var markup =
@@ -521,94 +521,94 @@ void M() { M$$() }";
                 Documentation("Hello!"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestInt32()
         {
             TestInClass(@"$$Int32 i;",
                 MainDescription("struct System.Int32"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestBuiltInInt()
         {
             TestInClass(@"$$int i;",
                 MainDescription("struct System.Int32"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestString()
         {
             TestInClass(@"$$String s;",
                 MainDescription("class System.String"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestBuiltInString()
         {
             TestInClass(@"$$string s;",
                 MainDescription("class System.String"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestBuiltInStringAtEndOfToken()
         {
             TestInClass(@"string$$ s;",
                 MainDescription("class System.String"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestBoolean()
         {
             TestInClass(@"$$Boolean b;",
                 MainDescription("struct System.Boolean"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestBuiltInBool()
         {
             TestInClass(@"$$bool b;",
                 MainDescription("struct System.Boolean"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestSingle()
         {
             TestInClass(@"$$Single s;",
                 MainDescription("struct System.Single"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestBuiltInFloat()
         {
             TestInClass(@"$$float f;",
                 MainDescription("struct System.Single"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestVoidIsInvalid()
         {
             TestInvalidTypeInClass(@"$$void M() { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestInvalidPointer1_931958()
         {
             TestInvalidTypeInClass(@"$$T* i;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestInvalidPointer2_931958()
         {
             TestInvalidTypeInClass(@"T$$* i;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestInvalidPointer3_931958()
         {
             TestInvalidTypeInClass(@"T*$$ i;");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestListOfString()
         {
             TestInClass(@"$$List<string> l;",
@@ -616,7 +616,7 @@ void M() { M$$() }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} string"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestListOfSomethingFromSource()
         {
             var markup =
@@ -630,14 +630,14 @@ public class GenericList<T> { Generic$$List<int> t; }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestListOfT()
         {
             TestWithUsings(@"class C<T> { $$List<T> l; }",
                 MainDescription("class System.Collections.Generic.List<T>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestDictionaryOfIntAndString()
         {
             TestInClass(@"$$Dictionary<int, string> d;",
@@ -647,7 +647,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
                           $"TValue {FeaturesResources.Is} string")));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestDictionaryOfTAndU()
         {
             TestWithUsings(@"class C<T, U> { $$Dictionary<T, U> d; }",
@@ -657,7 +657,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
                           $"TValue {FeaturesResources.Is} U")));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestIEnumerableOfInt()
         {
             TestInClass(@"$$IEnumerable<int> M() { yield break; }",
@@ -665,14 +665,14 @@ public class GenericList<T> { Generic$$List<int> t; }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestEventHandler()
         {
             TestInClass(@"event $$EventHandler e;",
                 MainDescription("delegate void System.EventHandler(object sender, System.EventArgs e)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter()
         {
             Test(@"class C<T> { $$T t; }",
@@ -680,7 +680,7 @@ public class GenericList<T> { Generic$$List<int> t; }";
         }
 
         [WorkItem(538636)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameterWithDocComment()
         {
             var markup =
@@ -694,35 +694,35 @@ class C<T> { $$T t; }";
                 Documentation("T is Type Parameter"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter1_Bug931949()
         {
             Test(@"class T1<T11> { $$T11 t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter2_Bug931949()
         {
             Test(@"class T1<T11> { T$$11 t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter3_Bug931949()
         {
             Test(@"class T1<T11> { T1$$1 t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameter4_Bug931949()
         {
             Test(@"class T1<T11> { T11$$ t; }",
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNullableOfInt()
         {
             TestInClass(@"$$Nullable<int> i; }",
@@ -730,77 +730,77 @@ class C<T> { $$T t; }";
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeDeclaredOnMethod1_Bug1946()
         {
             Test(@"class C { static void Meth1<T1>($$T1 i) where T1 : struct { T1 i; } }",
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeDeclaredOnMethod2_Bug1946()
         {
             Test(@"class C { static void Meth1<T1>(T1 i) where $$T1 : struct { T1 i; } }",
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeDeclaredOnMethod3_Bug1946()
         {
             Test(@"class C { static void Meth1<T1>(T1 i) where T1 : struct { $$T1 i; } }",
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Class()
         {
             Test(@"class C<T> where $$T : class { }",
                 MainDescription($"T {FeaturesResources.In} C<T> where T : class"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Struct()
         {
             Test(@"struct S<T> where $$T : class { }",
                 MainDescription($"T {FeaturesResources.In} S<T> where T : class"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Interface()
         {
             Test(@"interface I<T> where $$T : class { }",
                 MainDescription($"T {FeaturesResources.In} I<T> where T : class"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericTypeParameterConstraint_Delegate()
         {
             Test(@"delegate void D<T>() where $$T : class;",
                 MainDescription($"T {FeaturesResources.In} D<T> where T : class"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMinimallyQualifiedConstraint()
         {
             Test(@"class C<T> where $$T : IEnumerable<int>",
                 MainDescription($"T {FeaturesResources.In} C<T> where T : IEnumerable<int>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void FullyQualifiedConstraint()
         {
             Test(@"class C<T> where $$T : System.Collections.Generic.IEnumerable<int>",
                 MainDescription($"T {FeaturesResources.In} C<T> where T : System.Collections.Generic.IEnumerable<int>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMethodReferenceInSameMethod()
         {
             Test("class C { void M() { M$$(); } }",
                 MainDescription("void C.M()"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMethodReferenceInSameMethodWithDocComment()
         {
             var markup =
@@ -813,7 +813,7 @@ void M() { M$$(); }";
                 Documentation("Hello World"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFieldInMethodBuiltIn()
         {
             var markup =
@@ -828,55 +828,55 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) int C.field"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFieldInMethodBuiltIn2()
         {
             TestInClass("int field; void M() { int f = field$$; }",
                 MainDescription($"({FeaturesResources.Field}) int C.field"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFieldInMethodBuiltInWithFieldInitializer()
         {
             TestInClass("int field = 1; void M() { int f = field $$; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorBuiltIn()
         {
             TestInMethod("int x; x = x$$+1;",
                 MainDescription("int int.operator +(int left, int right)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorBuiltIn1()
         {
             TestInMethod("int x; x = x$$ + 1;",
                 MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorBuiltIn2()
         {
             TestInMethod("int x; x = x+$$x;",
                 MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorBuiltIn3()
         {
             TestInMethod("int x; x = x +$$ x;",
                 MainDescription("int int.operator +(int left, int right)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorBuiltIn4()
         {
             TestInMethod("int x; x = x + $$x;",
                 MainDescription($"({FeaturesResources.LocalVariable}) int x"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorCustomTypeBuiltIn()
         {
             var markup =
@@ -888,7 +888,7 @@ void M()
             Test(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOperatorCustomTypeOverload()
         {
             var markup =
@@ -902,7 +902,7 @@ void M()
                 MainDescription("C C.operator +(C a, C b)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFieldInMethodMinimal()
         {
             var markup =
@@ -917,7 +917,7 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) DateTime C.field"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFieldInMethodQualified()
         {
             var markup =
@@ -932,7 +932,7 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) System.IO.FileInfo C.file"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMemberOfStructFromSource()
         {
             var markup =
@@ -945,7 +945,7 @@ static class Test { int a = MyStruct.Some$$Field; }";
         }
 
         [WorkItem(538638)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMemberOfStructFromSourceWithDocComment()
         {
             var markup =
@@ -959,7 +959,7 @@ static class Test { int a = MyStruct.Some$$Field; }";
                 Documentation("My Field"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMemberOfStructInsideMethodFromSource()
         {
             var markup =
@@ -972,7 +972,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
         }
 
         [WorkItem(538638)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMemberOfStructInsideMethodFromSourceWithDocComment()
         {
             var markup =
@@ -986,14 +986,14 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 Documentation("My Field"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMetadataFieldMinimal()
         {
             TestInMethod(@"DateTime dt = DateTime.MaxValue$$",
                 MainDescription($"({FeaturesResources.Field}) DateTime DateTime.MaxValue"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMetadataFieldQualified1()
         {
             // NOTE: we qualify the field type, but not the type that contains the field in Dev10
@@ -1008,7 +1008,7 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
                 MainDescription($"({FeaturesResources.Field}) System.DateTime System.DateTime.MaxValue"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMetadataFieldQualified2()
         {
             Test(@"
@@ -1021,7 +1021,7 @@ class C {
                 MainDescription($"({FeaturesResources.Field}) System.DateTime System.DateTime.MaxValue"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMetadataFieldQualified3()
         {
             Test(@"
@@ -1035,7 +1035,7 @@ class C {
                 MainDescription($"({FeaturesResources.Field}) DateTime DateTime.MaxValue"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ConstructedGenericField()
         {
             Test(@"class C<T> { public T Field; }
@@ -1048,7 +1048,7 @@ class D {
                 MainDescription($"({FeaturesResources.Field}) int C<int>.Field"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void UnconstructedGenericField()
         {
             Test(@"
@@ -1062,21 +1062,21 @@ class C<T> {
                 MainDescription($"({FeaturesResources.Field}) T C<T>.Field"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestIntegerLiteral()
         {
             TestInMethod(@"int f = 37$$",
                 MainDescription("struct System.Int32"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTrueKeyword()
         {
             TestInMethod(@"bool f = true$$",
                 MainDescription("struct System.Boolean"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFalseKeyword()
         {
             TestInMethod(@"bool f = false$$",
@@ -1084,7 +1084,7 @@ class C<T> {
         }
 
         [WorkItem(756226)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestAwaitKeywordOnGenericTaskReturningAsync()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1100,7 +1100,7 @@ class C
         }
 
         [WorkItem(756226)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestAwaitKeywordInDeclarationStatement()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1116,7 +1116,7 @@ class C
         }
 
         [WorkItem(756226)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestAwaitKeywordOnTaskReturningAsync()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1131,7 +1131,7 @@ class C
         }
 
         [WorkItem(756226), WorkItem(756337)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNestedAwaitKeywords1()
         {
             var markup = @"using System;
@@ -1167,7 +1167,7 @@ class AsyncExample2
         }
 
         [WorkItem(756226)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNestedAwaitKeywords2()
         {
             var markup = @"using System;
@@ -1202,7 +1202,7 @@ class AsyncExample2
         }
 
         [WorkItem(756226), WorkItem(756337)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestAwaitablePrefixOnCustomAwaiter()
         {
             var markup = @"using System;
@@ -1229,7 +1229,7 @@ class MyAwaiter : INotifyCompletion
         }
 
         [WorkItem(756226), WorkItem(756337)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTaskType()
         {
             var markup = @"using System.Threading.Tasks;
@@ -1244,7 +1244,7 @@ class C
         }
 
         [WorkItem(756226), WorkItem(756337)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTaskOfTType()
         {
             var markup = @"using System;
@@ -1260,7 +1260,7 @@ class C
                          TypeParameterMap($"\r\nTResult {FeaturesResources.Is} int"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestStringLiteral()
         {
             TestInMethod(@"string f = ""Foo""$$",
@@ -1268,7 +1268,7 @@ class C
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestVerbatimStringLiteral()
         {
             TestInMethod(@"string f = @""cat""$$",
@@ -1276,7 +1276,7 @@ class C
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestInterpolatedStringLiteral()
         {
             TestInMethod(@"string f = $""cat""$$", MainDescription("class System.String"));
@@ -1286,7 +1286,7 @@ class C
         }
 
         [WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestVerbatimInterpolatedStringLiteral()
         {
             TestInMethod(@"string f = $@""cat""$$", MainDescription("class System.String"));
@@ -1295,14 +1295,14 @@ class C
             TestInMethod(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCharLiteral()
         {
             TestInMethod(@"string f = 'x'$$",
                 MainDescription("struct System.Char"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void DynamicKeyword()
         {
             TestInMethod(@"dyn$$amic dyn;",
@@ -1310,7 +1310,7 @@ class C
                 Documentation(FeaturesResources.RepresentsAnObjectWhoseOperations));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void DynamicField()
         {
             TestInClass(@"dynamic dyn;
@@ -1321,7 +1321,7 @@ void M()
                 MainDescription($"({FeaturesResources.Field}) dynamic C.dyn"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalProperty_Minimal()
         {
             TestInClass(@"DateTime Prop { get; set; }
@@ -1332,7 +1332,7 @@ void M()
                 MainDescription("DateTime C.Prop { get; set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalProperty_Minimal_PrivateSet()
         {
             TestInClass(@"public DateTime Prop { get; private set; }
@@ -1343,7 +1343,7 @@ void M()
                 MainDescription("DateTime C.Prop { get; private set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalProperty_Minimal_PrivateSet1()
         {
             TestInClass(@"protected internal int Prop { get; private set; }
@@ -1354,7 +1354,7 @@ void M()
                 MainDescription("int C.Prop { get; private set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalProperty_Qualified()
         {
             TestInClass(@"System.IO.FileInfo Prop { get; set; }
@@ -1365,21 +1365,21 @@ void M()
                 MainDescription("System.IO.FileInfo C.Prop { get; set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void NonLocalProperty_Minimal()
         {
             TestInMethod(@"DateTime.No$$w.ToString();",
                 MainDescription("DateTime DateTime.Now { get; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void NonLocalProperty_Qualified()
         {
             TestInMethod(@"System.IO.FileInfo f; f.Att$$ributes.ToString();",
                 MainDescription("System.IO.FileAttributes System.IO.FileSystemInfo.Attributes { get; set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ConstructedGenericProperty()
         {
             Test(@"
@@ -1395,7 +1395,7 @@ class D {
                 MainDescription("int C<int>.Property { get; set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void UnconstructedGenericProperty()
         {
             Test(@"
@@ -1409,42 +1409,42 @@ class C<T> {
                 MainDescription("T C<T>.Property { get; set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ValueInProperty()
         {
             TestInClass(@"public DateTime Property {set { foo = val$$ue; } }",
                 MainDescription($"({FeaturesResources.Parameter}) DateTime value"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void EnumTypeName()
         {
             TestInMethod(@"Consol$$eColor c",
                 MainDescription("enum System.ConsoleColor"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void EnumMemberNameFromMetadata()
         {
             TestInMethod(@"ConsoleColor c = ConsoleColor.Bla$$ck",
                 MainDescription("ConsoleColor.Black = 0"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void FlagsEnumMemberNameFromMetadata1()
         {
             TestInMethod(@"AttributeTargets a = AttributeTargets.Cl$$ass",
                 MainDescription("AttributeTargets.Class = 4"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void FlagsEnumMemberNameFromMetadata2()
         {
             TestInMethod(@"AttributeTargets a = AttributeTargets.A$$ll",
                 MainDescription("AttributeTargets.All = AttributeTargets.Assembly | AttributeTargets.Module | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Parameter | AttributeTargets.Delegate | AttributeTargets.ReturnValue | AttributeTargets.GenericParameter"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void EnumMemberNameFromSource1()
         {
             Test(@"
@@ -1465,7 +1465,7 @@ class C
     MainDescription("E.B = 1 << 1"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void EnumMemberNameFromSource2()
         {
             Test(@"
@@ -1486,28 +1486,28 @@ class C
     MainDescription("E.B = 1"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_InMethod_Minimal()
         {
             TestInClass(@"void M(DateTime dt) { d$$t.ToString();",
                 MainDescription($"({FeaturesResources.Parameter}) DateTime dt"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_InMethod_Qualified()
         {
             TestInClass(@"void M(System.IO.FileInfo fileInfo) { file$$Info.ToString();",
                 MainDescription($"({FeaturesResources.Parameter}) System.IO.FileInfo fileInfo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_FromReferenceToNamedParameter()
         {
             TestInMethod(@"Console.WriteLine(va$$lue: ""Hi"");",
                 MainDescription($"({FeaturesResources.Parameter}) string value"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_DefaultValue()
         {
             // NOTE: Dev10 doesn't show the default value, but it would be nice if we did.
@@ -1516,49 +1516,49 @@ class C
                 MainDescription($"({FeaturesResources.Parameter}) int param = 42"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_Params()
         {
             TestInClass(@"void M(params DateTime[] arg) { ar$$g.ToString(); }",
                 MainDescription($"({FeaturesResources.Parameter}) params DateTime[] arg"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_Ref()
         {
             TestInClass(@"void M(ref DateTime arg) { ar$$g.ToString(); }",
                 MainDescription($"({FeaturesResources.Parameter}) ref DateTime arg"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Parameter_Out()
         {
             TestInClass(@"void M(out DateTime arg) { ar$$g.ToString(); }",
                 MainDescription($"({FeaturesResources.Parameter}) out DateTime arg"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Local_Minimal()
         {
             TestInMethod(@"DateTime dt; d$$t.ToString();",
                 MainDescription($"({FeaturesResources.LocalVariable}) DateTime dt"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Local_Qualified()
         {
             TestInMethod(@"System.IO.FileInfo fileInfo; file$$Info.ToString();",
                 MainDescription($"({FeaturesResources.LocalVariable}) System.IO.FileInfo fileInfo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_MetadataOverload()
         {
             TestInMethod("Console.Write$$Line();",
                 MainDescription($"void Console.WriteLine() (+ 18 {FeaturesResources.Overloads})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_SimpleWithOverload()
         {
             TestInClass(@"
@@ -1567,7 +1567,7 @@ void Method(int i) { }",
                 MainDescription($"void C.Method() (+ 1 {FeaturesResources.Overload})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_MoreOverloads()
         {
             TestInClass(@"
@@ -1578,14 +1578,14 @@ void Method(System.IO.FileInfo fileInfo) { }",
                 MainDescription($"void C.Method(System.IO.FileInfo fileInfo) (+ 3 {FeaturesResources.Overloads})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_SimpleInSameClass()
         {
             TestInClass(@"DateTime GetDate(System.IO.FileInfo ft) { Get$$Date(null); }",
                 MainDescription("DateTime C.GetDate(System.IO.FileInfo ft)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_OptionalParameter()
         {
             TestInClass(@"
@@ -1594,7 +1594,7 @@ void Method(int i = 0) { }",
                 MainDescription("void C.Method([int i = 0])"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_OptionalDecimalParameter()
         {
             TestInClass(@"
@@ -1602,7 +1602,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription($"({FeaturesResources.Parameter}) decimal xyz = 10"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_Generic()
         {
             // Generic method don't get the instantiation info yet.  NOTE: We don't display
@@ -1614,7 +1614,7 @@ void Foo(decimal x$$yz = 10) { }",
             MainDescription("DateTime C.Foo<int, DateTime>(int arg)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_UnconstructedGeneric()
         {
             TestInClass(@"TOut Foo<TIn, TOut>(TIn arg) {
@@ -1624,7 +1624,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("TOut C.Foo<TIn, TOut>(TIn arg)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_Inferred()
         {
             TestInClass(@"void Foo<TIn>(TIn arg) {
@@ -1633,7 +1633,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo<int>(int arg)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_MultipleParams()
         {
             TestInClass(@"void Foo(DateTime dt, System.IO.FileInfo fi, int number) {
@@ -1642,7 +1642,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo(DateTime dt, System.IO.FileInfo fi, int number)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_OptionalParam()
         {
             // NOTE - Default values aren't actually returned by symbols yet.
@@ -1652,7 +1652,7 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo([int num = 42])"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Method_ParameterModifiers()
         {
             // NOTE - Default values aren't actually returned by symbols yet.
@@ -1662,14 +1662,14 @@ void Foo(decimal x$$yz = 10) { }",
                 MainDescription("void C.Foo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor()
         {
             TestInClass(@"public C() {} void M() { new C$$ ().ToString(); }",
                 MainDescription("C.C()"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor_Overloads()
         {
             TestInClass(@"
@@ -1687,7 +1687,7 @@ void M()
         /// <summary>
         /// Regression for 3923
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor_OverloadFromStringLiteral()
         {
             TestInMethod(@"new InvalidOperatio$$nException("""");",
@@ -1697,7 +1697,7 @@ void M()
         /// <summary>
         /// Regression for 3923
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor_UnknownType()
         {
             TestInvalidTypeInClass(@"void M() { new F$$oo(); }");
@@ -1706,28 +1706,28 @@ void M()
         /// <summary>
         /// Regression for 3923
         /// </summary>
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor_OverloadFromProperty()
         {
             TestInMethod(@"new InvalidOperatio$$nException(this.GetType().Name);",
                 MainDescription($"InvalidOperationException.InvalidOperationException(string message) (+ 2 {FeaturesResources.Overloads})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor_Metadata()
         {
             TestInMethod(@"new Argument$$NullException();",
                 MainDescription($"ArgumentNullException.ArgumentNullException() (+ 3 {FeaturesResources.Overloads})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Constructor_MetadataQualified()
         {
             TestInMethod(@"new System.IO.File$$Info(null);",
                 MainDescription("System.IO.FileInfo.FileInfo(string fileName)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void InterfaceProperty()
         {
             TestInMethod(@"
@@ -1738,7 +1738,7 @@ interface I
                 MainDescription("string I.Name { get; set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ExplicitInterfacePropertyImplementation()
         {
             TestInMethod(@"
@@ -1758,7 +1758,7 @@ class C : I
                 MainDescription("string C.Name { get; set; }"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Operator()
         {
             TestInClass(@"
@@ -1769,7 +1769,7 @@ void M(C left, C right) { return left +$$ right; }
         }
 
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void GenericMethodWithConstraintsAtDeclaration()
         {
             TestInClass(@"TOut F$$oo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn> {
@@ -1779,7 +1779,7 @@ void M(C left, C right) { return left +$$ right; }
         }
 
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void GenericMethodWithMultipleConstraintsAtDeclaration()
         {
             TestInClass(@"TOut Foo<TIn, TOut>(TIn arg) where TIn : Employee, new()
@@ -1792,7 +1792,7 @@ void M(C left, C right) { return left +$$ right; }
         }
 
         [WorkItem(792629, "generic type parameter constraints for methods in quick info")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void UnConstructedGenericMethodWithConstraintsAtInvocation()
         {
             TestInClass(@"TOut Foo<TIn, TOut>(TIn arg) where TIn : Employee
@@ -1804,7 +1804,7 @@ void M(C left, C right) { return left +$$ right; }
             MainDescription("TOut C.Foo<TIn, TOut>(TIn arg) where TIn : Employee"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void GenericTypeWithConstraintsAtDeclaration()
         {
             Test(@"public class Employee : IComparable<Employee>
@@ -1821,7 +1821,7 @@ class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<
             MainDescription("class EmployeeList<T> where T : Employee, System.IComparable<T>, new()"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void GenericType()
         {
             Test(@"
@@ -1833,7 +1833,7 @@ class T1<T11>
                 MainDescription($"T11 {FeaturesResources.In} T1<T11>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void GenericMethod()
         {
             TestInClass(@"
@@ -1845,7 +1845,7 @@ class T1<T11>
                 MainDescription($"T1 {FeaturesResources.In} C.Meth1<T1> where T1 : struct"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Var()
         {
             TestInMethod(@"
@@ -1855,7 +1855,7 @@ var y = $$x;
                 MainDescription($"({FeaturesResources.LocalVariable}) Exception x"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void NestedInGeneric()
         {
             TestInMethod(@"
@@ -1865,7 +1865,7 @@ var y = $$x;
                 TypeParameterMap($"\r\nT {FeaturesResources.Is} int"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void NestedGenericInGeneric()
         {
             Test(@"
@@ -1887,7 +1887,7 @@ var y = $$x;
                           $"U {FeaturesResources.Is} string")));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ObjectInitializer1()
         {
             TestInClass(@"
@@ -1904,7 +1904,7 @@ var y = $$x;
                 MainDescription($"({FeaturesResources.Field}) int test.z"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ObjectInitializer2()
         {
             TestWithUsings(@"
@@ -1924,7 +1924,7 @@ class C
                 MainDescription("struct System.Int32"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(537880)]
         public void TypeArgument()
         {
@@ -1940,7 +1940,7 @@ class C<T, Y>
                 MainDescription($"({FeaturesResources.LocalVariable}) C<int, DateTime> variable"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ForEachLoop_1()
         {
             TestInMethod(@"
@@ -1954,7 +1954,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int cc"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TryCatchFinally_1()
         {
             TestInMethod(@"
@@ -1972,7 +1972,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TryCatchFinally_2()
         {
             TestInMethod(@"
@@ -1991,7 +1991,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) Exception ex"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TryCatchFinally_3()
         {
             TestInMethod(@"
@@ -2010,7 +2010,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TryCatchFinally_4()
         {
             TestInMethod(@"
@@ -2029,7 +2029,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) int aa"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void GenericVariable()
         {
             Test(@"
@@ -2045,7 +2045,7 @@ bb = bb + 21;
                 MainDescription($"({FeaturesResources.LocalVariable}) C<int, DateTime> variable"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestInstantiation()
         {
             Test(@"
@@ -2060,7 +2060,7 @@ class Program<T>
                 MainDescription($"Dictionary<int, string>.Dictionary() (+ 5 {FeaturesResources.Overloads})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestUsingAlias_Bug4141()
         {
             Test(@"using X = A.C;
@@ -2072,7 +2072,7 @@ class D : X$$ { }
                 MainDescription(@"class A.C"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestFieldOnDeclaration()
         {
             TestInClass(@"
@@ -2081,7 +2081,7 @@ DateTime fie$$ld;",
         }
 
         [WorkItem(538767)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestGenericErrorFieldOnDeclaration()
         {
             TestInClass(@"
@@ -2090,7 +2090,7 @@ NonExistentType<int> fi$$eld;",
         }
 
         [WorkItem(538822)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestDelegateType()
         {
             TestInClass(@"
@@ -2102,7 +2102,7 @@ Fun$$c<int, string> field;",
         }
 
         [WorkItem(538824)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOnDelegateInvocation()
         {
             Test(@"
@@ -2120,7 +2120,7 @@ class Program
         }
 
         [WorkItem(539240)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOnArrayCreation1()
         {
             Test(@"
@@ -2134,7 +2134,7 @@ class Program
         }
 
         [WorkItem(539240)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestOnArrayCreation2()
         {
             Test(@"
@@ -2149,7 +2149,7 @@ class Program
         }
 
         [WorkItem(539841)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestIsNamedTypeAccessibleForErrorTypes()
         {
             Test(@"sealed class B<T1, T2> : A<B<T1, T2>>{
@@ -2158,7 +2158,7 @@ class Program
         }
 
         [WorkItem(540075)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType()
         {
             Test(@"using Foo = Foo;
@@ -2173,7 +2173,7 @@ class C
         }
 
         [WorkItem(540871)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestLiterals()
         {
             Test(@"class MyClass
@@ -2197,7 +2197,7 @@ class C
         }
 
         [WorkItem(541444)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorInForeach()
         {
             Test(@"
@@ -2215,7 +2215,7 @@ class C
         }
 
         [WorkItem(540438)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNoQuickInfoOnAnonymousDelegate()
         {
             Test(@"
@@ -2231,7 +2231,7 @@ class Program
         }
 
         [WorkItem(541678)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestQuickInfoOnEvent()
         {
             Test(@"
@@ -2258,7 +2258,7 @@ public class Publisher
         }
 
         [WorkItem(542157)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestEvent()
         {
             TestInMethod(@"System.Console.CancelKeyPres$$s += null;",
@@ -2266,7 +2266,7 @@ public class Publisher
         }
 
         [WorkItem(542157)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestEventPlusEqualsOperator()
         {
             TestInMethod(@"System.Console.CancelKeyPress +$$= null;",
@@ -2274,7 +2274,7 @@ public class Publisher
         }
 
         [WorkItem(542157)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestEventMinusEqualsOperator()
         {
             TestInMethod(@"System.Console.CancelKeyPress -$$= null;",
@@ -2282,7 +2282,7 @@ public class Publisher
         }
 
         [WorkItem(541885)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestQuickInfoOnExtensionMethod()
         {
             TestWithOptions(Options.Regular, @"
@@ -2310,7 +2310,7 @@ public static class MyExtensions
                 MainDescription($"({CSharpFeaturesResources.Extension}) bool int.In<int>(IEnumerable<int> items)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestQuickInfoOnExtensionMethodOverloads()
         {
             TestWithOptions(Options.Regular, @"
@@ -2335,7 +2335,7 @@ public static class Ex
                 MainDescription($"({CSharpFeaturesResources.Extension}) void string.TestExt<string>() (+ 2 {FeaturesResources.Overloads})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestQuickInfoOnExtensionMethodOverloads2()
         {
             TestWithOptions(Options.Regular, @"
@@ -2360,7 +2360,7 @@ public static class Ex
                 MainDescription($"({CSharpFeaturesResources.Extension}) void string.TestExt<string>() (+ 1 {FeaturesResources.Overload})"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query1()
         {
             Test(@"
@@ -2377,7 +2377,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query2()
         {
             Test(@"
@@ -2394,7 +2394,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query3()
         {
             Test(@"
@@ -2410,7 +2410,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) ? n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query4()
         {
             Test(@"
@@ -2426,7 +2426,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) ? n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query5()
         {
             Test(@"
@@ -2444,7 +2444,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) object n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query6()
         {
             Test(@"
@@ -2462,7 +2462,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) object n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query7()
         {
             Test(@"
@@ -2480,7 +2480,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query8()
         {
             Test(@"
@@ -2498,7 +2498,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int n"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query9()
         {
             Test(@"
@@ -2517,7 +2517,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) List<int> x"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query10()
         {
             Test(@"
@@ -2536,7 +2536,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) List<int> x"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query11()
         {
             Test(@"
@@ -2555,7 +2555,7 @@ class C
                 MainDescription($"({FeaturesResources.RangeVariable}) int y"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Query12()
         {
             Test(@"
@@ -2575,7 +2575,7 @@ class C
         }
 
         [WorkItem(543205)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorGlobal()
         {
             Test(@"extern alias global;
@@ -2591,7 +2591,7 @@ class myClass
                 MainDescription("<global namespace>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void DontRemoveAttributeSuffixAndProduceInvalidIdentifier1()
         {
             Test(@"
@@ -2604,7 +2604,7 @@ class classAttribute : Attribute
         }
 
         [WorkItem(544026)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void DontRemoveAttributeSuffix2()
         {
             Test(@"
@@ -2617,7 +2617,7 @@ class class1Attribute : Attribute
         }
 
         [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void AttributeQuickInfoBindsToClassTest()
         {
             Test(@"
@@ -2641,7 +2641,7 @@ class SomeAttribute : Attribute
         }
 
         [WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void AttributeConstructorQuickInfo()
         {
             Test(@"
@@ -2664,7 +2664,7 @@ class SomeAttribute : Attribute
                 Documentation("ctor comment"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestLabel()
         {
             TestInClass(@"void M() { Foo: int Foo; goto Foo$$; }",
@@ -2672,7 +2672,7 @@ class SomeAttribute : Attribute
         }
 
         [WorkItem(542613)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestUnboundGeneric()
         {
             Test(@"
@@ -2690,7 +2690,7 @@ class C
         }
 
         [WorkItem(543113)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestAnonymousTypeNew1()
         {
             Test(@"
@@ -2710,7 +2710,7 @@ $@"
         }
 
         [WorkItem(543873)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNestedAnonymousType()
         {
             // verify nested anonymous types are listed in the same order for different properties
@@ -2735,7 +2735,7 @@ $@"
     'b {FeaturesResources.Is} new {{ string Street, string Zip }}"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(543183)]
         public void TestAssignmentOperatorInAnonymousType()
         {
@@ -2749,7 +2749,7 @@ $@"
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(10731, "DevDiv_Projects/Roslyn")]
         public void TestErrorAnonymousTypeDoesntShow()
         {
@@ -2762,7 +2762,7 @@ $@"
     'a {FeaturesResources.Is} new {{ int N }}"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(543553)]
         public void TestArrayAssignedToVar()
         {
@@ -2778,7 +2778,7 @@ $@"
         }
 
         [WorkItem(529139)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ColorColorRangeVariable()
         {
             Test(@"
@@ -2804,7 +2804,7 @@ namespace N1
         }
 
         [WorkItem(543550)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfoOnOperator()
         {
             Test(@"using System.Collections.Generic;
@@ -2831,21 +2831,21 @@ class Program
                 MainDescription("IEnumerable<Program> Program.operator +(Program p1, Program p2)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantField()
         {
             Test("class C { const int $$F = 1;",
                 MainDescription($"({FeaturesResources.Constant}) int C.F = 1"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestMultipleConstantFields()
         {
             Test("class C { public const double X = 1.0, Y = 2.0, $$Z = 3.5;",
                 MainDescription($"({FeaturesResources.Constant}) double C.Z = 3.5"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantDependencies()
         {
             Test(@"class A
@@ -2860,7 +2860,7 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int A.X = B.Z + 1"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantCircularDependencies()
         {
             Test(@"class A
@@ -2875,7 +2875,7 @@ class B
         }
 
         [WorkItem(544620)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantOverflow()
         {
             Test(@"class B
@@ -2886,7 +2886,7 @@ class B
         }
 
         [WorkItem(544620)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantOverflowInUncheckedContext()
         {
             Test(@"class B
@@ -2896,7 +2896,7 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int B.Z = unchecked(int.MaxValue + 1)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestEnumInConstantField()
         {
             Test(@"public class EnumTest
@@ -2910,7 +2910,7 @@ class B
                 MainDescription($"({FeaturesResources.LocalConstant}) int x = (int)Days.Sun"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantInDefaultExpression()
         {
             Test(@"public class EnumTest
@@ -2924,14 +2924,14 @@ class B
                 MainDescription($"({FeaturesResources.LocalConstant}) Days x = default(Days)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantParameter()
         {
             Test("class C { void Bar(int $$b = 1); }",
                 MainDescription($"({FeaturesResources.Parameter}) int b = 1"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestConstantLocal()
         {
             Test("class C { void Bar() { const int $$loc = 1; }",
@@ -2939,7 +2939,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType1()
         {
             TestInMethod("var $$v1 = new Foo();",
@@ -2947,7 +2947,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType2()
         {
             TestInMethod("var $$v1 = v1;",
@@ -2955,7 +2955,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType3()
         {
             TestInMethod("var $$v1 = new Foo<Bar>();",
@@ -2963,7 +2963,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType4()
         {
             TestInMethod("var $$v1 = &(x => x);",
@@ -2971,7 +2971,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType5()
         {
             TestInMethod("var $$v1 = &v1",
@@ -2979,7 +2979,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType6()
         {
             TestInMethod("var $$v1 = new Foo[1]",
@@ -2987,7 +2987,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType7()
         {
             TestInClass("class C { void Method() { } void Foo() { var $$v1 = MethodGroup; } }",
@@ -2995,7 +2995,7 @@ class B
         }
 
         [WorkItem(544416)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestErrorType8()
         {
             TestInMethod("var $$v1 = Unknown",
@@ -3003,7 +3003,7 @@ class B
         }
 
         [WorkItem(545072)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestDelegateSpecialTypes()
         {
             Test("delegate void $$F(int x);",
@@ -3011,7 +3011,7 @@ class B
         }
 
         [WorkItem(545108)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNullPointerParameter()
         {
             Test("class C { unsafe void $$Foo(int* x = null) { } }",
@@ -3019,7 +3019,7 @@ class B
         }
 
         [WorkItem(545098)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestLetIdentifier1()
         {
             TestInMethod("var q = from e in \"\" let $$y = 1 let a = new { y } select a;",
@@ -3027,7 +3027,7 @@ class B
         }
 
         [WorkItem(545295)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestNullableDefaultValue()
         {
             Test("class Test { void $$Method(int? t1 = null) { } }",
@@ -3035,7 +3035,7 @@ class B
         }
 
         [WorkItem(529586)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestInvalidParameterInitializer()
         {
             Test(
@@ -3046,7 +3046,7 @@ class B
         }
 
         [WorkItem(545230)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestComplexConstLocal()
         {
             Test(
@@ -3064,7 +3064,7 @@ class B
         }
 
         [WorkItem(545230)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestComplexConstField()
         {
             Test(
@@ -3081,7 +3081,7 @@ class B
                 MainDescription($"({FeaturesResources.Constant}) int Program.a = true - false"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTypeParameterCrefDoesNotHaveQuickInfo()
         {
             Test(
@@ -3094,7 +3094,7 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCref1()
         {
             Test(
@@ -3108,7 +3108,7 @@ class B
                 MainDescription(@"void Program.Main(string[] args)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCref2()
         {
             Test(
@@ -3122,7 +3122,7 @@ class B
                 MainDescription(@"void Program.Main(string[] args)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCref3()
         {
             Test(
@@ -3135,7 +3135,7 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCref4()
         {
             Test(
@@ -3148,7 +3148,7 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCref5()
         {
             Test(
@@ -3162,7 +3162,7 @@ class B
         }
 
         [WorkItem(546849)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestIndexedProperty()
         {
             var markup = @"class Program
@@ -3209,7 +3209,7 @@ End Class";
         }
 
         [WorkItem(546918)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestUnconstructedGeneric()
         {
             Test(
@@ -3227,7 +3227,7 @@ End Class";
         }
 
         [WorkItem(546970)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestUnconstructedGenericInCRef()
         {
             Test(
@@ -3238,7 +3238,7 @@ class C<T> { }
                 MainDescription(@"class C<T>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestAwaitableMethod()
         {
             var markup = @"using System.Threading.Tasks;
@@ -3258,7 +3258,7 @@ class C
             VerifyWithMscorlib45(markup, new[] { MainDescription(description), Usage(documentation) });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ObsoleteItem()
         {
             var markup = @"
@@ -3276,7 +3276,7 @@ class Program
         }
 
         [WorkItem(751070)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void DynamicOperator()
         {
             var markup = @"
@@ -3296,7 +3296,7 @@ public class Test
             Test(markup, MainDescription("dynamic dynamic.operator ==(dynamic left, dynamic right)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TextOnlyDocComment()
         {
             Test(@"
@@ -3308,7 +3308,7 @@ class C$$
 }", Documentation("foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTrimConcatMultiLine()
         {
             Test(@"
@@ -3321,7 +3321,7 @@ class C$$
 }", Documentation("foo bar"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCref()
         {
             Test(@"
@@ -3334,7 +3334,7 @@ class C$$
 }", Documentation("C C"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ExcludeTextOutsideSummaryBlock()
         {
             Test(@"
@@ -3348,7 +3348,7 @@ class C$$
 }", Documentation("green"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void NewlineAfterPara()
         {
             Test(@"
@@ -3360,7 +3360,7 @@ class C$$
 }", Documentation("foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TextOnlyDocComment_Metadata()
         {
             var referenced = @"
@@ -3382,7 +3382,7 @@ class G
             TestWithMetadataReferenceHelper(code, referenced, "C#", "C#", Documentation("foo"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestTrimConcatMultiLine_Metadata()
         {
             var referenced = @"
@@ -3405,7 +3405,7 @@ class G
             TestWithMetadataReferenceHelper(code, referenced, "C#", "C#", Documentation("foo bar"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TestCref_Metadata()
         {
             var code = @"
@@ -3427,7 +3427,7 @@ public class C
             TestWithMetadataReferenceHelper(code, referenced, "C#", "C#", Documentation("C C"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ExcludeTextOutsideSummaryBlock_Metadata()
         {
             var code = @"
@@ -3451,7 +3451,7 @@ public class C
             TestWithMetadataReferenceHelper(code, referenced, "C#", "C#", Documentation("green"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Param()
         {
             Test(@"
@@ -3467,7 +3467,7 @@ public class C
 }", Documentation("First parameter of C.Foo<T>(string[], T)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Param_Metadata()
         {
             var code = @"
@@ -3493,7 +3493,7 @@ public class C
             TestWithMetadataReferenceHelper(code, referenced, "C#", "C#", Documentation("First parameter of C.Foo<T>(string[], T)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Param2()
         {
             Test(@"
@@ -3509,7 +3509,7 @@ public class C
 }", Documentation("Another parameter of C.Foo<T>(string[], T)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Param2_Metadata()
         {
             var code = @"
@@ -3535,7 +3535,7 @@ public class C
             TestWithMetadataReferenceHelper(code, referenced, "C#", "C#", Documentation("Another parameter of C.Foo<T>(string[], T)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void TypeParam()
         {
             Test(@"
@@ -3551,7 +3551,7 @@ public class C
 }", Documentation("A type parameter of C.Foo<T>(string[], T)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void UnboundCref()
         {
             Test(@"
@@ -3567,7 +3567,7 @@ public class C
 }", Documentation("A type parameter of foo<T>(string[], T)"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void CrefInConstructor()
         {
             Test(@"
@@ -3582,7 +3582,7 @@ public class TestClass
 }", Documentation("This sample shows how to specify the TestClass constructor as a cref attribute."));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void CrefInConstructorOverloaded()
         {
             Test(@"
@@ -3604,7 +3604,7 @@ public class TestClass
     }", Documentation("This sample shows how to specify the TestClass(int) constructor as a cref attribute."));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void CrefInGenericMethod1()
         {
             Test(@"
@@ -3619,7 +3619,7 @@ public class TestClass
     }", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void CrefInGenericMethod2()
         {
             Test(@"
@@ -3635,7 +3635,7 @@ public class TestClass
         }
 
         [WorkItem(813350)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void CrefInMethodOverloading1()
         {
             Test(@"
@@ -3661,7 +3661,7 @@ public class TestClass
         }
 
         [WorkItem(813350)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void CrefInMethodOverloading2()
         {
             Test(@"
@@ -3686,7 +3686,7 @@ public class TestClass
     }", Documentation("This sample shows how to call the TestClass.GetGenericValue<T>(T) method"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void CrefInGenericType()
         {
             Test(@"
@@ -3707,7 +3707,7 @@ public class TestClass
         }
 
         [WorkItem(812720)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ClassificationOfCrefsFromMetadata()
         {
             var code = @"
@@ -3744,7 +3744,7 @@ public class C
                         Text("method"))));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void FieldAvailableInBothLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -3769,7 +3769,7 @@ class C
             VerifyWithReferenceWorker(markup, new[] { MainDescription($"({FeaturesResources.Field}) int C.x"), Usage("") });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
@@ -3797,7 +3797,7 @@ class C
             VerifyWithReferenceWorker(markup, new[] { expectedDescription });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void BindSymbolInOtherFile()
         {
             var markup = @"<Workspace>
@@ -3825,7 +3825,7 @@ class C
             VerifyWithReferenceWorker(markup, new[] { expectedDescription });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void FieldUnavailableInTwoLinkedFiles()
         {
             var markup = @"<Workspace>
@@ -3858,7 +3858,7 @@ class C
             VerifyWithReferenceWorker(markup, new[] { expectedDescription });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
@@ -3892,7 +3892,7 @@ class C
         }
 
         [WorkItem(962353)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void NoValidSymbolsInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -3920,7 +3920,7 @@ class C
         }
 
         [WorkItem(1020944)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -3945,7 +3945,7 @@ class C
         }
 
         [WorkItem(1020944)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LocalWarningInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -3974,7 +3974,7 @@ class C
         }
 
         [WorkItem(1020944)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void LabelsValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -3999,7 +3999,7 @@ class C
         }
 
         [WorkItem(1020944)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void RangeVariablesValidInLinkedDocuments()
         {
             var markup = @"<Workspace>
@@ -4025,7 +4025,7 @@ class C
         }
 
         [WorkItem(1019766)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void PointerAccessibility()
         {
             var markup = @"class C
@@ -4042,7 +4042,7 @@ class C
         }
 
         [WorkItem(1114300)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void AwaitingTaskOfArrayType()
         {
             var markup = @"
@@ -4059,7 +4059,7 @@ class Program
         }
 
         [WorkItem(1114300)]
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void AwaitingTaskOfDynamic()
         {
             var markup = @"
@@ -4075,7 +4075,7 @@ class Program
             Test(markup, MainDescription("dynamic"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void MethodOverloadDifferencesIgnored()
         {
             var markup = @"<Workspace>
@@ -4105,7 +4105,7 @@ class C
             VerifyWithReferenceWorker(markup, MainDescription(expectedDescription));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void MethodOverloadDifferencesIgnored_ContainingType()
         {
             var markup = @"<Workspace>

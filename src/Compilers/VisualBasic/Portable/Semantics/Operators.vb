@@ -2893,7 +2893,7 @@ Next_i:
         End Sub
 
         ''' <summary>
-        ''' Returns True if we should stop climbing inheritence hierarchy.
+        ''' Returns True if we should stop climbing inheritance hierarchy.
         ''' </summary>
         Private Shared Function CollectUserDefinedOperators(
             type As TypeSymbol,

@@ -1288,7 +1288,7 @@ End Class
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>
-            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -1308,7 +1308,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -1321,11 +1321,11 @@ End Class
 
         <Fact()>
         Public Sub GetEntryPoint_Submission()
-            Dim source = <![CDATA[? 1 + 1]]>
-            Dim compilation = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateSubmission(
+            Dim source = "? 1 + 1"
+            Dim compilation = VisualBasicCompilation.CreateSubmission(
                 "sub",
                 references:={MscorlibRef},
-                syntaxTree:=Parse(source.Value, options:=TestOptions.Interactive))
+                syntaxTree:=Parse(source, options:=TestOptions.Script))
             compilation.VerifyDiagnostics()
 
             Dim scriptMethod = compilation.GetMember("Script.<Factory>")
@@ -1340,16 +1340,16 @@ End Class
 
         <Fact()>
         Public Sub GetEntryPoint_Submission_MainIgnored()
-            Dim source = <![CDATA[
+            Dim source = "
     Class A
         Shared Sub Main()
         End Sub
     End Class
-    ]]>
-            Dim compilation = Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.CreateSubmission(
-                "sub",
+"
+            Dim compilation = VisualBasicCompilation.CreateSubmission(
+                "Sub",
                 references:={MscorlibRef},
-                syntaxTree:=Parse(source.Value, options:=TestOptions.Interactive))
+                syntaxTree:=Parse(source, options:=TestOptions.Script))
             compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
             Dim scriptMethod = compilation.GetMember("Script.<Factory>")
@@ -1753,8 +1753,7 @@ End Namespace
             Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(hasValue).SpecialType)
             Assert.False(hasValue)
 
-            TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
 
             TestSubmissionResult(CreateSubmission("1", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
             ' TODO (https://github.com/dotnet/roslyn/issues/4763): '?' should be optional
@@ -1768,15 +1767,15 @@ Sub Foo()
 End Sub
 "), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
 
-            TestSubmissionResult(CreateSubmission("Imports System", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestSubmissionResult(CreateSubmission("Dim i As Integer", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestSubmissionResult(CreateSubmission("?System.Console.WriteLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Void, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("System.Console.ReadLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_String, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?System.Console.ReadLine()", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_String, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?Nothing", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Object, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?AddressOf System.Console.WriteLine", parseOptions:=TestOptions.Interactive), expectedType:=DirectCast(Nothing, SpecialType?), expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?Function(x) x", parseOptions:=TestOptions.Interactive), expectedType:=AddressOf IsDelegateType, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("Imports System", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            TestSubmissionResult(CreateSubmission("Dim i As Integer", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            TestSubmissionResult(CreateSubmission("?System.Console.WriteLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("System.Console.ReadLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_String, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?System.Console.ReadLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_String, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?Nothing", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Object, expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?AddressOf System.Console.WriteLine", parseOptions:=TestOptions.Script), expectedType:=DirectCast(Nothing, SpecialType?), expectedHasValue:=True)
+            TestSubmissionResult(CreateSubmission("?Function(x) x", parseOptions:=TestOptions.Script), expectedType:=AddressOf IsDelegateType, expectedHasValue:=True)
         End Sub
 
         Private Shared Sub TestSubmissionResult(s As VisualBasicCompilation, expectedType As SpecialType?, expectedHasValue As Boolean)

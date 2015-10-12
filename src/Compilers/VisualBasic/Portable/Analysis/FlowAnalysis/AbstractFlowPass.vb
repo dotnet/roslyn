@@ -964,7 +964,7 @@ lUnsplitAndFinish:
                 ' The region was a part of the expression, but was not property processed/visited during
                 ' analysis of expression and body; this *may* indicate a bug in flow analysis, otherwise 
                 ' it is the case when a struct-typed lvalue expression was never used inside the body AND 
-                ' the region was defined by nodew which were not part of initializers; thus, we never
+                ' the region was defined by nodes which were not part of initializers; thus, we never
                 ' emitted/visited the node
                 Debug.Assert(Me._regionPlace = AbstractFlowPass(Of LocalState).RegionPlace.Before)
                 Me.SetInvalidRegion()

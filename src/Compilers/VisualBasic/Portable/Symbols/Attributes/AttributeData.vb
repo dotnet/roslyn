@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '     // how to deal with CLS Compliant attributes present on both Modules and Assemblies ?
             '     // Also this might be a issue for other well known attributes too ?
             '     //
-            '     // For CLSCompliance - Ignore Module attributes for Assemblies and viceversa
+            '     // For CLSCompliance - Ignore Module attributes for Assemblies and vice-versa
 
             Select Case target.Kind
                 Case SymbolKind.Assembly

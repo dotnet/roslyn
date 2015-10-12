@@ -10,14 +10,14 @@ Imports Xunit
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class ImplementsKeywordRecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterClassDeclaration()
             VerifyRecommendationsContain(<File>
 Class Foo
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterClassDeclarationAndBlankLine()
             VerifyRecommendationsContain(<File>
 Class Foo
@@ -25,7 +25,7 @@ Class Foo
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterImplements()
             VerifyRecommendationsContain(<File>
 Class Foo
@@ -33,14 +33,14 @@ Implements IFooable
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsInStructure()
             VerifyRecommendationsContain(<File>
 Structure Foo
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterInherits()
             VerifyRecommendationsContain(<File>
 Class Foo
@@ -48,7 +48,7 @@ Inherits Base
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterMethodInClassImplementingInterface()
             VerifyRecommendationsContain(<File>
 Class Foo
@@ -57,7 +57,7 @@ Sub Foo() |
 |</File>, "Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsNotAfterMethodInClassNotImplementingInterface()
             VerifyRecommendationsMissing(<File>
 Class Foo
@@ -66,7 +66,7 @@ Sub Foo() |
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterPropertyName()
             VerifyRecommendationsContain(
 <File>
@@ -81,7 +81,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterPropertyOpenParen()
             VerifyRecommendationsMissing(
 <File>
@@ -96,7 +96,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterPropertyCloseParen()
             VerifyRecommendationsContain(
 <File>
@@ -111,7 +111,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterPropertyAs()
             VerifyRecommendationsMissing(
 <File>
@@ -126,7 +126,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterCompletePropertyAsClause()
             VerifyRecommendationsContain(
 <File>
@@ -141,7 +141,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterIncompletePropertyAsClauseInitializer()
             VerifyRecommendationsMissing(
 <File>
@@ -156,7 +156,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterCompletePropertyAsClauseInitializer()
             VerifyRecommendationsContain(
 <File>
@@ -171,7 +171,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterIncompletePropertyAsNewClause()
             VerifyRecommendationsMissing(
 <File>
@@ -186,7 +186,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterCompletePropertyAsNewClause()
             VerifyRecommendationsContain(
 <File>
@@ -201,7 +201,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterPropertyAsNewClauseOpenParen()
             VerifyRecommendationsMissing(
 <File>
@@ -216,7 +216,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterPropertyAsNewClauseCloseParen()
             VerifyRecommendationsContain(
 <File>
@@ -231,7 +231,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterPropertyAsNamespaceDot()
             VerifyRecommendationsMissing(
 <File>
@@ -246,7 +246,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterPropertyAsListOf()
             VerifyRecommendationsMissing(
 <File>
@@ -262,7 +262,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterPropertyAsListOfType()
             VerifyRecommendationsMissing(
 <File>
@@ -278,7 +278,7 @@ Class bar
         End Sub
 
         <WorkItem(543635)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterPropertyParameter()
             VerifyRecommendationsMissing(
 <File>
@@ -294,7 +294,7 @@ Class bar
         End Sub
 
         <WorkItem(543811)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterEventName()
             VerifyRecommendationsContain(
 <File>
@@ -309,7 +309,7 @@ Class C1
         End Sub
 
         <WorkItem(543811)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsAfterEventOpenParen()
             VerifyRecommendationsMissing(
 <File>
@@ -324,7 +324,7 @@ Class C1
         End Sub
 
         <WorkItem(543811)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterEventCloseParen()
             VerifyRecommendationsContain(
 <File>
@@ -339,7 +339,7 @@ Class C1
         End Sub
 
         <WorkItem(546404)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsAfterAsClause()
             VerifyRecommendationsContain(
 <File>
@@ -354,7 +354,7 @@ Class Bar
         End Sub
 
         <WorkItem(531254)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsInPartialClass1()
             VerifyRecommendationsContain(
 <File>
@@ -370,7 +370,7 @@ Partial Public Class Test
         End Sub
 
         <WorkItem(531254)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ImplementsInPartialClass2()
             VerifyRecommendationsMissing(
 <File>
@@ -385,7 +385,7 @@ Partial Public Class Test
         End Sub
 
         <WorkItem(531257)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsInInterface1()
             VerifyRecommendationsMissing(
 <File>
@@ -398,7 +398,7 @@ Public Interface ITest2
         End Sub
 
         <WorkItem(531257)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsInInterface2()
             VerifyRecommendationsMissing(
 <File>
@@ -412,7 +412,7 @@ Public Interface ITest2
         End Sub
 
         <WorkItem(531257)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoImplementsInModule()
             VerifyRecommendationsMissing(
 <File>
@@ -425,7 +425,7 @@ Public Module Test2
         End Sub
 
         <WorkItem(674791)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHash()
             VerifyRecommendationsMissing(<File>
 Imports System

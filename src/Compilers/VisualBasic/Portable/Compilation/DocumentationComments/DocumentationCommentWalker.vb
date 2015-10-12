@@ -251,10 +251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' We are done with this node
                                 Return
                             End If
-                            ' Otherview go to default visitor
+                            ' Otherwise go to default visitor
 
                         End If
-                        ' Otherview go to default visitor
+                        ' Otherwise go to default visitor
                     End If
 
                     MyBase.DefaultVisit(node)

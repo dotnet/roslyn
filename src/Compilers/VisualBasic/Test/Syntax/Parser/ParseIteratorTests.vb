@@ -369,9 +369,7 @@ End Class]]>.Value)
     <Fact>
     Public Sub ParseYieldInScriptingAndInteractive()
 
-        For Each mode In {SourceCodeKind.Script, SourceCodeKind.Interactive}
-
-            Dim tree = VisualBasicSyntaxTree.ParseText(<![CDATA[
+        Dim source = "
 Yield T                                     ' No
 Yield (T)                                   ' No
 Yield T + Yield (T)                         ' No, No
@@ -402,18 +400,17 @@ Iterator Function F()
     Yield T + Yield (T)                     ' Yes, No
     Dim i = Yield T + Yield (T)             ' No, No
     Return Yield T                          ' No
-End Function]]>.Value,
-                options:=VisualBasicParseOptions.Default.WithKind(mode))
+End Function"
 
-            Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
+        Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
 
-            Assert.Equal(6, yieldStatements.Count)
+        Dim yieldStatements = tree.GetRoot().DescendantNodes.OfType(Of YieldStatementSyntax).ToArray()
 
-            For Each yieldStatement In yieldStatements
-                Assert.True(IsInIteratorMethod(yieldStatement))
-            Next
+        Assert.Equal(6, yieldStatements.Count)
+
+        For Each yieldStatement In yieldStatements
+            Assert.True(IsInIteratorMethod(yieldStatement))
         Next
-
     End Sub
 
     Private Shared Function IsIteratorMethod(methodSyntax As MethodBlockBaseSyntax) As Boolean

@@ -31,6 +31,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             nextAction()
         End Sub
 
+        Protected Overrides Function TreatAsReturn(document As Document, position As Integer, cancellationToken As CancellationToken) As Boolean
+            ' No special handling in VB.
+            Return False
+        End Function
+
         Protected Overrides Sub FormatAndApply(document As Document, position As Integer, cancellationToken As CancellationToken)
             ' vb does automatic line commit
             ' no need to do explicit formatting

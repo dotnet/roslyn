@@ -3,7 +3,7 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
         <WorkItem(538886)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_Property1()
             Dim input =
 <Workspace>
@@ -34,7 +34,7 @@ namespace ConsoleApplication22
         End Sub
 
         <WorkItem(538886)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_Property2()
             Dim input =
 <Workspace>
@@ -65,7 +65,7 @@ namespace ConsoleApplication22
         End Sub
 
         <WorkItem(539022)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyCascadeThroughInterface1()
             Dim input =
 <Workspace>
@@ -87,7 +87,7 @@ namespace ConsoleApplication22
         End Sub
 
         <WorkItem(539022)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyCascadeThroughInterface2()
             Dim input =
 <Workspace>
@@ -109,7 +109,7 @@ namespace ConsoleApplication22
         End Sub
 
         <WorkItem(539047)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyThroughBase1()
             Dim input =
 <Workspace>
@@ -142,7 +142,7 @@ class C2 : C1
         End Sub
 
         <WorkItem(539047)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyThroughBase2()
             Dim input =
 <Workspace>
@@ -175,7 +175,7 @@ class C2 : C1
         End Sub
 
         <WorkItem(539047)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyThroughBase3()
             Dim input =
 <Workspace>
@@ -208,7 +208,7 @@ class C2 : C1
         End Sub
 
         <WorkItem(539047)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyThroughBase4()
             Dim input =
 <Workspace>
@@ -241,7 +241,7 @@ class C2 : C1
         End Sub
 
         <WorkItem(539523)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_ExplicitProperty1()
             Dim input =
 <Workspace>
@@ -266,7 +266,7 @@ public class A : DD
         End Sub
 
         <WorkItem(539523)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_ExplicitProperty2()
             Dim input =
 <Workspace>
@@ -291,7 +291,7 @@ public class A : DD
         End Sub
 
         <WorkItem(539885)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyFromGenericInterface1()
             Dim input =
 <Workspace>
@@ -328,7 +328,7 @@ public class M<T> : I1<T>, I3<T>
         End Sub
 
         <WorkItem(539885)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyFromGenericInterface2()
             Dim input =
 <Workspace>
@@ -365,7 +365,7 @@ public class M<T> : I1<T>, I3<T>
         End Sub
 
         <WorkItem(539885)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyFromGenericInterface3()
             Dim input =
 <Workspace>
@@ -402,7 +402,7 @@ public class M<T> : I1<T>, I3<T>
         End Sub
 
         <WorkItem(539885)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyFromGenericInterface4()
             Dim input =
 <Workspace>
@@ -439,7 +439,7 @@ public class M<T> : I1<T>, I3<T>
         End Sub
 
         <WorkItem(539885)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_PropertyFromGenericInterface5()
             Dim input =
 <Workspace>
@@ -476,7 +476,7 @@ public class M<T> : I1<T>, I3<T>
         End Sub
 
         <WorkItem(540440)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_PropertyFunctionValue1()
             Dim input =
 <Workspace>
@@ -497,7 +497,7 @@ End Module]]>
         End Sub
 
         <WorkItem(540440)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_PropertyFunctionValue2()
             Dim input =
 <Workspace>
@@ -518,7 +518,7 @@ End Module]]>
         End Sub
 
         <WorkItem(543125)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_AnonymousTypeProperties1()
             Dim input =
 <Workspace>
@@ -541,7 +541,7 @@ class C
         End Sub
 
         <WorkItem(543125)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_AnonymousTypeProperties2()
             Dim input =
 <Workspace>
@@ -564,7 +564,7 @@ class C
         End Sub
 
         <WorkItem(543125)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_AnonymousTypeProperties3()
             Dim input =
 <Workspace>
@@ -587,7 +587,7 @@ class C
         End Sub
 
         <WorkItem(543125)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_AnonymousTypeProperties4()
             Dim input =
 <Workspace>
@@ -610,7 +610,7 @@ class C
         End Sub
 
         <WorkItem(542881)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_AnonymousTypeProperties1()
             Dim input =
 <Workspace>
@@ -634,7 +634,7 @@ End Module
         End Sub
 
         <WorkItem(542881)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_AnonymousTypeProperties2()
             Dim input =
 <Workspace>
@@ -658,7 +658,7 @@ End Module
         End Sub
 
         <WorkItem(542881)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_AnonymousTypeProperties3()
             Dim input =
 <Workspace>
@@ -682,7 +682,7 @@ End Module
         End Sub
 
         <WorkItem(545576)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_CascadeBetweenPropertyAndField1()
             Dim input =
 <Workspace>
@@ -702,7 +702,7 @@ End Class
         End Sub
 
         <WorkItem(545576)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_CascadeBetweenPropertyAndField2()
             Dim input =
 <Workspace>
@@ -722,7 +722,7 @@ End Class
         End Sub
 
         <WorkItem(529765)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod1()
             Dim input =
 <Workspace>
@@ -755,7 +755,7 @@ class B : A
         End Sub
 
         <WorkItem(529765)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod2()
             Dim input =
 <Workspace>
@@ -788,7 +788,7 @@ class B : A
         End Sub
 
         <WorkItem(529765)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_CascadeBetweenParameterizedVBPropertyAndCSharpMethod3()
             Dim input =
 <Workspace>
@@ -821,7 +821,7 @@ class B : A
         End Sub
 
         <WorkItem(665876)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_DefaultProperties()
             Dim input =
 <Workspace>
@@ -857,7 +857,7 @@ End Class
         End Sub
 
         <WorkItem(665876)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub Basic_DefaultProperties2()
             Dim input =
 <Workspace>

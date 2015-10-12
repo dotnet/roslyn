@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class ActiveStatementTests
         Inherits RudeEditTestBase
 
-        <Fact>
+        <WpfFact>
         Public Sub Update_Inner()
             Dim src1 = "
 Class C
@@ -41,7 +41,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Foo(2)"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Update_Leaf()
             Dim src1 = "
 Class C
@@ -74,7 +74,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Update_Leaf_NewCommentAtEndOfActiveStatement()
             Dim src1 = "
 Class C
@@ -105,7 +105,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Update_Inner_NewCommentAtEndOfActiveStatement()
             Dim src1 = "
 Class C
@@ -134,7 +134,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Headers()
             Dim src1 = "
 Class C
@@ -233,7 +233,7 @@ End Class
         End Sub
 
 #Region "Delete"
-        <Fact>
+        <WpfFact>
         Public Sub Delete_Leaf_Method()
             Dim src1 = "
 Class C
@@ -263,7 +263,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Method))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Delete_All_SourceText()
             Dim src1 = "
 Class C
@@ -283,7 +283,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, Nothing, FeaturesResources.Class))
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub Delete_Inner()
             Dim src1 = " 
 Class C
@@ -316,7 +316,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()"))
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub Delete_Inner_MultipleParents()
             Dim src1 = "
 Class C 
@@ -435,7 +435,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "SyncLock Nothing"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Delete_Inner_ElseIf1()
             Dim src1 = <![CDATA[
 Class C 
@@ -476,7 +476,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Delete_Inner_ElseIf2()
             Dim src1 = <![CDATA[
 Class C 
@@ -513,7 +513,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then"))
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub Delete_Leaf()
             Dim src1 = "
 Class C
@@ -543,7 +543,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub Delete_Leaf_InTry()
             Dim src1 = "
 Class C
@@ -578,7 +578,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub Delete_Leaf_InTry2()
             Dim src1 = "
 Class C
@@ -616,7 +616,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub Delete_Inner_CommentActiveStatement()
             Dim src1 = "
 Class C
@@ -648,7 +648,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub Main()"))
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub Delete_Leaf_CommentActiveStatement()
             Dim src1 = "
 Class C
@@ -680,7 +680,7 @@ End Class
 #End Region
 
 #Region "Constructors"
-        <Fact>
+        <WpfFact>
         Public Sub Updated_Inner_Constructor()
             Dim src1 = "
 Class Program
@@ -720,7 +720,7 @@ End Class
         End Sub
 
         <WorkItem(741249)>
-        <Fact>
+        <WpfFact>
         Public Sub Updated_Leaf_Constructor()
             Dim src1 = "
 Class Program
@@ -758,7 +758,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Updated_Leaf_Constructor_Parameter()
             Dim src1 = "
 Class Program
@@ -797,7 +797,7 @@ End Class
                 Diagnostic(RudeEditKind.InitializerUpdate, "Optional a As Integer = 2", FeaturesResources.Parameter))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Updated_Leaf_Constructor_Parameter_DefaultValue()
             Dim src1 = "
 Class Foo
@@ -833,7 +833,7 @@ End Class
         End Sub
 
         <WorkItem(742334)>
-        <Fact>
+        <WpfFact>
         Public Sub Updated_Leaf_ConstructorChaining1()
             Dim src1 = "
 Class B 
@@ -868,7 +868,7 @@ End Class
         End Sub
 
         <WorkItem(742334)>
-        <Fact>
+        <WpfFact>
         Public Sub Updated_Leaf_ConstructorChaining2()
             Dim src1 = "
 Class Test
@@ -921,7 +921,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub InstanceConstructorWithoutInitializer()
             Dim src1 = "
 Class C
@@ -952,7 +952,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub InstanceConstructorWithInitializer_Internal_Update1()
             Dim src1 = "
 Class C 
@@ -999,7 +999,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "MyClass.New(False)"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub InstanceConstructorWithInitializer_Leaf_Update1()
             Dim src1 = "
 Class C
@@ -1028,7 +1028,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(755959)>
+        <WpfFact, WorkItem(755959)>
         Public Sub InstanceConstructorWithInitializer_Leaf_DeleteBaseCall()
             Dim src1 = "
 Class C
@@ -1056,7 +1056,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub InstanceConstructorWithInitializer_Leaf_InsertBaseCall()
             Dim src1 = "
 Class C
@@ -1088,7 +1088,7 @@ End Class
 
 #Region "Initializers"
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_Init()
             Dim src1 = "
 Class C
@@ -1115,7 +1115,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_AsNew()
             Dim src1 = "
 Class C
@@ -1142,7 +1142,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_SharedAsNew()
             Dim src1 = "
 Class C
@@ -1169,7 +1169,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_PropertyInitializer()
             Dim src1 = "
 Class C
@@ -1196,7 +1196,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_PropertyInitializerUntyped()
             Dim src1 = "
 Class C
@@ -1223,7 +1223,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_PropertyAsNewInitializer()
             Dim src1 = "
 Class C
@@ -1250,7 +1250,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_ArrayInitializer_Untyped()
             Dim src1 = "
 Class C
@@ -1276,7 +1276,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(836523)>
+        <WpfFact, WorkItem(836523)>
         Public Sub Initializer_Unedited_ArrayInitializer_Typed()
             Dim src1 = "
 Class C
@@ -1302,7 +1302,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub InstancePropertyInitializer_Update()
             Dim src1 = "
 Class C
@@ -1330,7 +1330,7 @@ End Class
         End Sub
 
 
-        <Fact>
+        <WpfFact>
         Public Sub InstancePropertyAsNewInitializer_Update()
             Dim src1 = "
 Class C
@@ -1357,7 +1357,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub InstancePropertyInitializer_Delete()
             Dim src1 = "
 Class C
@@ -1384,7 +1384,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_Update1()
             Dim src1 = "
 Class C
@@ -1412,7 +1412,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c = 2"))
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_Update2()
             Dim src1 = "
 Class C
@@ -1440,7 +1440,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "d = 3"))
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub FieldInitializer_AsNewToInit()
             Dim src1 = "
 Class C
@@ -1468,7 +1468,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b = 0"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub PropertyInitializer_AsNewToInit()
             Dim src1 = "
 Class C
@@ -1488,7 +1488,7 @@ End Class
                 Diagnostic(RudeEditKind.Insert, "As Integer", VBFeaturesResources.AsClause))
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_InitToAsNew()
             Dim src1 = "
 Class C
@@ -1516,7 +1516,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b As New Integer"))
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_AsNewMulti_Update1()
             Dim src1 = "
 Class C
@@ -1544,7 +1544,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c"))
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_AsNewMulti_Update2()
             Dim src1 = "
 Class C
@@ -1572,7 +1572,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "d"))
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_AsNewMulti_Update3()
             Dim src1 = "
 Class C
@@ -1603,7 +1603,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e"))
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_AsNewMulti_Update4()
             Dim src1 = "
 Class C
@@ -1636,7 +1636,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, "e As New D(2)", FeaturesResources.Field))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Initializer_AsNewMulti_WithLambda1()
             Dim src1 = "
 Class C
@@ -1655,7 +1655,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(815933)>
+        <WpfFact, WorkItem(815933)>
         Public Sub Initializer_AsNewMulti_WithLambda2()
             Dim src1 = "
 Class C
@@ -1676,7 +1676,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Initializer_AsNewMulti_WithLambda3()
             Dim src1 = "
 Class C
@@ -1695,7 +1695,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(849649)>
+        <WpfFact, WorkItem(849649)>
         Public Sub Initializer_Array_Update1()
             Dim src1 = "
 Class C
@@ -1723,7 +1723,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(2)"))
         End Sub
 
-        <Fact, WorkItem(849649)>
+        <WpfFact, WorkItem(849649)>
         Public Sub Initializer_Array_Update2()
             Dim src1 = "
 Class C
@@ -1751,7 +1751,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "d(2)"))
         End Sub
 
-        <Fact, WorkItem(849649)>
+        <WpfFact, WorkItem(849649)>
         Public Sub Initializer_Array_Update3()
             Dim src1 = "
 Class C
@@ -1787,7 +1787,7 @@ End Class
                 Diagnostic(RudeEditKind.TypeUpdate, "f(1,2)", FeaturesResources.Field))
         End Sub
 
-        <Fact, WorkItem(849649)>
+        <WpfFact, WorkItem(849649)>
         Public Sub Initializer_Array_WithLambda1()
             Dim src1 = "
 Class C
@@ -1807,7 +1807,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "3"))
         End Sub
 
-        <Fact, WorkItem(849649)>
+        <WpfFact, WorkItem(849649)>
         Public Sub Initializer_Array_WithLambda2()
             Dim src1 = "
 Class C
@@ -1828,7 +1828,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Initializer_Collection1()
             Dim src1 = "
 Class C
@@ -1847,7 +1847,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Initializer_Collection2()
             Dim src1 = "
 Class C
@@ -1870,7 +1870,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_InsertConst1()
             Dim src1 = "
 Class C
@@ -1891,7 +1891,7 @@ End Class
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", FeaturesResources.ConstField))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub LocalInitializer_InsertConst1()
             Dim src1 = "
 Class C
@@ -1915,7 +1915,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_InsertConst2()
             Dim src1 = "
 Class C
@@ -1936,7 +1936,7 @@ End Class
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.ConstField))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub LocalInitializer_InsertConst2()
             Dim src1 = "
 Class C
@@ -1960,7 +1960,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete1()
             Dim src1 = "
 Class C
@@ -1988,7 +1988,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub LocalInitializer_Delete1()
             Dim src1 = "
 Class C
@@ -2014,7 +2014,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete2()
             Dim src1 = "
 Class C
@@ -2044,7 +2044,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete3()
             Dim src1 = "
 Class C
@@ -2074,7 +2074,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.Field))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_AsNew_Single()
             Dim src1 = "
 Class C
@@ -2100,7 +2100,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_AsNew_Multi1()
             Dim src1 = "
 Class C
@@ -2127,7 +2127,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, "a,      c        As New D()", FeaturesResources.Field))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_AsNew_Multi2()
             Dim src1 = "
 Class C
@@ -2154,7 +2154,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, "a,      b        As New D()", FeaturesResources.Field))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_AsNew_WithLambda()
             Dim src1 = "
 Class C
@@ -2181,7 +2181,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_Array1()
             Dim src1 = "
 Class C
@@ -2208,7 +2208,7 @@ End Class
                 Diagnostic(RudeEditKind.Delete, "a,b As Integer", FeaturesResources.Field))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_Array2()
             Dim src1 = "
 Class C
@@ -2235,7 +2235,7 @@ End Class
                 Diagnostic(RudeEditKind.TypeUpdate, "c", FeaturesResources.Field))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_StaticInstanceMix1()
             Dim src1 = "
 Class C
@@ -2258,7 +2258,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_StaticInstanceMix2()
             Dim src1 = "
 Class C
@@ -2282,7 +2282,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_StaticInstanceMix3()
             Dim src1 = "
 Class C
@@ -2303,7 +2303,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FieldInitializer_Delete_ArrayInit()
             Dim src1 = "
 Class C
@@ -2326,7 +2326,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub PropertyInitializer_Delete_StaticInstanceMix()
             Dim src1 = "
 Class C
@@ -2347,7 +2347,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub PropertyFieldInitializer1()
             Dim src1 = "
 Class C
@@ -2370,7 +2370,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub PropertyFieldInitializer2()
             Dim src1 = "
 Class C
@@ -2397,7 +2397,7 @@ End Class
 #Region "SyncLock"
 
         <WorkItem(755749)>
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Insert_Leaf()
             Dim src1 = "
 Class Test
@@ -2421,7 +2421,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "SyncLock lockThis", VBFeaturesResources.SyncLockBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Insert_Leaf4()
             Dim src1 = "
 Class Test
@@ -2458,7 +2458,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "SyncLock e", VBFeaturesResources.SyncLockBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Insert_Leaf5()
             Dim src1 = "
 Class Test
@@ -2495,7 +2495,7 @@ End Class
         End Sub
 
         <WorkItem(755752)>
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Update_Leaf()
             Dim src1 = "
 Class Test
@@ -2521,7 +2521,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock ""test""", VBFeaturesResources.SyncLockStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Update_Leaf2()
             Dim src1 = "
 Class Test
@@ -2548,7 +2548,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Delete_Leaf()
             Dim src1 = "
 Class Test
@@ -2571,7 +2571,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Update_Lambda1()
             Dim src1 = "
 Class Test
@@ -2596,7 +2596,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SyncLock_Update_Lambda2()
             Dim src1 = "
 Class Test
@@ -2626,7 +2626,7 @@ End Class
 
 #Region "ForEach"
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Reorder_Leaf1()
             Dim src1 = "
 Class Test
@@ -2661,7 +2661,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Update_Leaf1()
             Dim src1 = "
 Class Test
@@ -2694,7 +2694,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Update_Leaf2()
             Dim src1 = "
 Class Test
@@ -2725,7 +2725,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each a In e1", VBFeaturesResources.ForEachBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Delete_Leaf1()
             Dim src1 = "
 Class Test
@@ -2757,7 +2757,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Delete_Leaf2()
             Dim src1 = "
 Class Test
@@ -2790,7 +2790,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Delete_Leaf3()
             Dim src1 = "
 Class Test
@@ -2821,7 +2821,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Lambda1()
             Dim src1 = "
 Class Test
@@ -2859,7 +2859,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", VBFeaturesResources.ForEachBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Update_Lambda1()
             Dim src1 = "
 Class Test
@@ -2884,7 +2884,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ForEach_Update_Lambda2()
             Dim src1 = "
 Class Test
@@ -2914,7 +2914,7 @@ End Class
 
 #Region "Using"
 
-        <Fact>
+        <WpfFact>
         Public Sub Using_Update_Leaf1()
             Dim src1 = "
 Class Test
@@ -2945,7 +2945,7 @@ End Class
             edits.VerifyRudeDiagnostics(active, Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", VBFeaturesResources.UsingBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Using_Lambda1()
             Dim src1 = "
 Class Test
@@ -2986,7 +2986,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", VBFeaturesResources.UsingBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Using_Update_Lambda1()
             Dim src1 = "
 Class Test
@@ -3011,7 +3011,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Using_Update_Lambda2()
             Dim src1 = "
 Class Test
@@ -3041,7 +3041,7 @@ End Class
 
 #Region "With"
 
-        <Fact>
+        <WpfFact>
         Public Sub With_Update_Leaf1()
             Dim src1 = "
 Class Test
@@ -3073,7 +3073,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", VBFeaturesResources.WithBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub With_Lambda1()
             Dim src1 = "
 Class Test
@@ -3114,7 +3114,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", VBFeaturesResources.WithBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub With_Update_Lambda1()
             Dim src1 = "
 Class Test
@@ -3139,7 +3139,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub With_Update_Lambda2()
             Dim src1 = "
 Class Test
@@ -3169,7 +3169,7 @@ End Class
 
 #Region "Try, Catch, Finally"
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Add_Inner()
             Dim src1 = "
 Class C
@@ -3204,7 +3204,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Try", VBFeaturesResources.TryBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Add_Leaf()
             Dim src1 = "
 Class C
@@ -3237,7 +3237,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Delete_Inner()
             Dim src1 = "
 Class C
@@ -3270,7 +3270,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo()", VBFeaturesResources.TryBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Delete_Leaf()
             Dim src1 = "
 Class C
@@ -3303,7 +3303,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Update_Inner()
             Dim src1 = "
 Class C
@@ -3340,7 +3340,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Try", VBFeaturesResources.TryBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Update_Inner2()
             Dim src1 = "
 Class C
@@ -3376,7 +3376,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TryFinally_Update_Inner()
             Dim src1 = "
 Class C
@@ -3412,7 +3412,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Update_Leaf()
             Dim src1 = "
 Class C
@@ -3447,7 +3447,136 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
+        Public Sub TryFinally_DeleteStatement_Inner()
+            Dim src1 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        Try
+            <AS:1>Console.WriteLine(1)</AS:1>
+        <ER:1.0>Finally
+            Console.WriteLine(2)
+        End Try</ER:1.0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        <AS:1>Try</AS:1>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+        End Sub
+
+        <WpfFact>
+        Public Sub TryFinally_DeleteStatement_Leaf()
+            Dim src1 = "
+Class C
+    Sub Main()
+        <ER:0.0>Try
+            Console.WriteLine(0)
+        Finally
+            <AS:0>Console.WriteLine(1)</AS:0>
+        End Try</ER:0.0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+        Try
+            Console.WriteLine(0)
+        <AS:0>Finally</AS:0>
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Finally", VBFeaturesResources.FinallyClause))
+        End Sub
+
+        <WpfFact>
+        Public Sub Try_DeleteStatement_Inner()
+            Dim src1 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        Try
+            <AS:1>Console.WriteLine(1)</AS:1>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+        <AS:0>Console.WriteLine(0)</AS:0>
+
+        <AS:1>Try</AS:1>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+        End Sub
+
+        <WpfFact>
+        Public Sub Try_DeleteStatement_Leaf()
+            Dim src1 = "
+Class C
+    Sub Main()
+
+        Try
+            <AS:0>Console.WriteLine(1)</AS:0>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub Main()
+
+        <AS:0>Try</AS:0>
+        Finally
+            Console.WriteLine(2)
+        End Try
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifyRudeDiagnostics(active)
+        End Sub
+
+        <WpfFact>
         Public Sub Catch_Add_Inner()
             Dim src1 = "
 Class C
@@ -3480,7 +3609,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Catch", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Catch_Add_Leaf()
             Dim src1 = "
 Class C
@@ -3515,7 +3644,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Catch", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Catch_Delete_Inner()
             Dim src1 = "
 Class C
@@ -3550,7 +3679,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo()", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Catch_Delete_Leaf()
             Dim src1 = "
 Class C
@@ -3583,7 +3712,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Console.WriteLine(1)", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Catch_Update_Inner()
             Dim src1 = "
 Class C
@@ -3620,7 +3749,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Catch_Update_Leaf()
             Dim src1 = "
 Class C
@@ -3657,7 +3786,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchFilter_Update_Inner()
             Dim src1 = "
 Class C
@@ -3695,7 +3824,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchFilter_Update_Leaf1()
             Dim src1 = "
 Class C
@@ -3732,7 +3861,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub CatchFilter_Update_Leaf2()
             Dim src1 = "
 Class C
@@ -3770,7 +3899,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.CatchClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Finally_Add_Inner()
             Dim src1 = "
 Class C
@@ -3804,7 +3933,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Finally", VBFeaturesResources.FinallyClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Finally_Add_Leaf()
             Dim src1 = "
 Class C
@@ -3837,7 +3966,7 @@ End Class
             edits.VerifyRudeDiagnostics(active, Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Finally", VBFeaturesResources.FinallyClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Finally_Delete_Inner()
             Dim src1 = "
 Class C
@@ -3871,7 +4000,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Foo()", VBFeaturesResources.FinallyClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Finally_Delete_Leaf()
             Dim src1 = "
 Class C
@@ -3906,7 +4035,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Console.WriteLine(1)", VBFeaturesResources.FinallyClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TryCatchFinally()
             Dim src1 = "
 Class C
@@ -3963,7 +4092,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Finally", VBFeaturesResources.FinallyClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TryCatchFinally_Regions()
             Dim src1 = "
 Class C
@@ -4007,7 +4136,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Lambda1()
             Dim src1 = "
 Class C
@@ -4044,7 +4173,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Lambda2()
             Dim src1 = "
 Class C
@@ -4085,7 +4214,7 @@ End Class
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Return 1 + Foo(x)", VBFeaturesResources.TryBlock))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Query_Join1()
             Dim src1 = "
 Class C
@@ -4126,7 +4255,7 @@ End Class
                 Diagnostic(RudeEditKind.RUDE_EDIT_COMPLEX_QUERY_EXPRESSION, "Join", FeaturesResources.Method))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Try_Query_Join2()
             Dim src1 = "
 Class C
@@ -4173,7 +4302,7 @@ End Class
 #End Region
 
 #Region "Lambdas"
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_SingleLineToMultiLine1()
             Dim src1 = "
 Class C
@@ -4197,7 +4326,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_SingleLineToMultiLine2()
             Dim src1 = "
 Class C
@@ -4221,7 +4350,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_MultiLineToSingleLine1()
             Dim src1 = "
 Class C
@@ -4245,7 +4374,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_MultiLineToSingleLine2()
             Dim src1 = "
 Class C
@@ -4269,7 +4398,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_MultiLineToSingleLine3()
             Dim src1 = "
 Class C
@@ -4293,7 +4422,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_ActiveStatementRemoved1()
             Dim src1 = "
 Class C
@@ -4323,7 +4452,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_ActiveStatementRemoved2()
             Dim src1 = "
 Class C
@@ -4351,7 +4480,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_ActiveStatementRemoved3()
             Dim src1 = "
 Class C
@@ -4392,7 +4521,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b)", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Lambdas_ActiveStatementRemoved4()
             Dim src1 = "
 Class C
@@ -4420,7 +4549,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", VBFeaturesResources.LambdaExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_ActiveStatementRemoved_WhereClause()
             Dim src1 = "
 Class C
@@ -4444,7 +4573,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.WhereClause))
         End Sub
 
-        <Fact, WorkItem(841361)>
+        <WpfFact, WorkItem(841361)>
         Public Sub Queries_ActiveStatementRemoved_LetClause()
             Dim src1 = "
 Class C
@@ -4471,7 +4600,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.LetClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_ActiveStatementRemoved_JoinClauseLeft()
             Dim src1 = "
 Class C
@@ -4498,7 +4627,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.JoinCondition))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_ActiveStatementRemoved_OrderBy1()
             Dim src1 = "
 Class C
@@ -4525,7 +4654,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.OrderingClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_ActiveStatementRemoved_OrderBy2()
             Dim src1 = "
 Class C
@@ -4552,7 +4681,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.OrderingClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub Queries_ActiveStatementRemoved_OrderBy3()
             Dim src1 = "
 Class C
@@ -4579,7 +4708,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.OrderingClause))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MisplacedActiveStatement1()
             Dim src1 = "
 <AS:1>Class C</AS:1>
@@ -4602,7 +4731,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(1359)>
+        <WpfFact, WorkItem(1359)>
         Public Sub Lambdas_LeafEdits_GeneralStatement()
             Dim src1 = "
 Class C
@@ -4624,7 +4753,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact, WorkItem(1359)>
+        <WpfFact, WorkItem(1359)>
         Public Sub Lambdas_LeafEdits_NestedLambda()
             Dim src1 = "
 Class C
@@ -4650,7 +4779,7 @@ End Class
 #End Region
 
 #Region "State Machines"
-        <Fact>
+        <WpfFact>
         Public Sub MethodToIteratorMethod_WithActiveStatement()
             Dim src1 = "
 Imports System
@@ -4679,7 +4808,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Yield 1", VBFeaturesResources.YieldStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToIteratorMethod_WithActiveStatementInLambda()
             Dim src1 = "
 Imports System
@@ -4709,7 +4838,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToIteratorMethod_WithoutActiveStatement()
             Dim src1 = "
 Imports System
@@ -4737,7 +4866,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithActiveStatement1()
             Dim src1 = "
 Imports System
@@ -4766,7 +4895,7 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Await", VBFeaturesResources.AwaitExpression))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithActiveStatement2()
             Dim src1 = "
 Imports System
@@ -4795,7 +4924,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithActiveStatement3()
             Dim src1 = "
 Imports System
@@ -4824,7 +4953,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithActiveStatementInLambda1()
             Dim src1 = "
 Imports System
@@ -4852,7 +4981,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithActiveStatementInLambda2()
             Dim src1 = "
 Imports System
@@ -4883,7 +5012,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithActiveStatementInLambda3()
             Dim src1 = "
 Imports System
@@ -4912,7 +5041,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Sub()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithActiveStatementInLambda4()
             Dim src1 = "
 Imports System
@@ -4941,7 +5070,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function()"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithoutActiveStatement1()
             Dim src1 = "
 Imports System
@@ -4969,7 +5098,7 @@ End Class
             edits.VerifyRudeDiagnostics(active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodToAsyncMethod_WithoutActiveStatement2()
             Dim src1 = "
 Imports System
@@ -4999,7 +5128,7 @@ End Class
 #End Region
 
 #Region "On Error"
-        <Fact>
+        <WpfFact>
         Public Sub MethodUpdate_OnError1()
             Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "label : <AS:0>Console.Write(1)</AS:0> : On Error GoTo label : End Sub : End Class"
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "label : <AS:0>Console.Write(2)</AS:0> : On Error GoTo label : End Sub : End Class"
@@ -5010,7 +5139,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error GoTo label", VBFeaturesResources.OnErrorStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodUpdate_OnError2()
             Dim src1 = "Class C" & vbLf & "<AS:0>Sub M()</AS:0>" & vbLf & "Console.Write(1) : On Error GoTo 0 : End Sub : End Class"
             Dim src2 = "Class C" & vbLf & "<AS:0>Sub M()</AS:0>" & vbLf & "Console.Write(2) : On Error GoTo 0 : End Sub : End Class"
@@ -5021,7 +5150,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error GoTo 0", VBFeaturesResources.OnErrorStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodUpdate_OnError3()
             Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(1) : <AS:0>On Error GoTo -1</AS:0> : End Sub : End Class"
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(2) : <AS:0>On Error GoTo -1</AS:0> : End Sub : End Class"
@@ -5032,7 +5161,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error GoTo -1", VBFeaturesResources.OnErrorStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodUpdate_OnError4()
             Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(1) : On Error Resume Next : <AS:0>End Sub</AS:0> : End Class"
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(2) : On Error Resume Next : <AS:0>End Sub</AS:0> : End Class"
@@ -5043,7 +5172,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error Resume Next", VBFeaturesResources.OnErrorStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodUpdate_Resume1()
             Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(1) : <AS:0>Resume</AS:0> : End Sub : End Class"
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(2) : <AS:0>Resume</AS:0> : End Sub : End Class"
@@ -5054,7 +5183,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Resume", VBFeaturesResources.ResumeStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodUpdate_Resume2()
             Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(1) : <AS:0>Resume Next</AS:0> : End Sub : End Class"
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "Console.Write(2) : <AS:0>Resume Next</AS:0> : End Sub : End Class"
@@ -5065,7 +5194,7 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Resume Next", VBFeaturesResources.ResumeStatement))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub MethodUpdate_Resume3()
             Dim src1 = "Class C" & vbLf & "Sub M()" & vbLf & "<AS:0>label :</AS:0> Console.Write(1) : Resume label : End Sub : End Class"
             Dim src2 = "Class C" & vbLf & "Sub M()" & vbLf & "<AS:0>label :</AS:0> Console.Write(2) : Resume label : End Sub : End Class"
@@ -5079,7 +5208,7 @@ End Class
 
 #Region "Unmodified Documents"
 
-        <Fact>
+        <WpfFact>
         Public Sub UnmodifiedDocument1()
             Dim src1 = "
 Module C
@@ -5114,7 +5243,7 @@ End Module"
             Extensions.VerifyUnchangedDocument(src2, active)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub UnmodifiedDocument_BadSpans1()
             Dim src1 = "
 Module C
@@ -5152,7 +5281,7 @@ End Module"
 
 #End Region
 
-        <Fact>
+        <WpfFact>
         Public Sub PartiallyExecutedActiveStatement()
             Dim src1 As String = "
 Class C
@@ -5188,7 +5317,7 @@ End Class
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub PartiallyExecutedActiveStatement_Delete()
             Dim src1 As String = "
 Class C

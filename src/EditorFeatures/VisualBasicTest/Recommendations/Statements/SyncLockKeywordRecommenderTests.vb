@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class SyncLockKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SyncLockInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "SyncLock")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SyncLockInMultiLineLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -26,7 +26,7 @@ End Sub
 
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SyncLockInSingleLineLambda()
             VerifyRecommendationsMissing(<ClassDeclaration>
@@ -34,7 +34,7 @@ Private _member = Sub() |
                                          </ClassDeclaration>, "SyncLock")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SyncLockInSingleLineFunctionLambda()
             VerifyRecommendationsMissing(<ClassDeclaration>
