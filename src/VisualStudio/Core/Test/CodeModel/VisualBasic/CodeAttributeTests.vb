@@ -774,7 +774,7 @@ End Class
 #End Region
 
 #Region "AddAttributeArgument tests"
-        <ConditionalWpfFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5841"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgument1()
             Dim code =
 <Code>

@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
             if (_table.TryGetValue(key, out handle))
             {
                 value = handle.ComAggregateObject;
-                return true;
+                return value != null;
             }
 
             value = null;
