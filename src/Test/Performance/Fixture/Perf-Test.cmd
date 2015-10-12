@@ -107,11 +107,11 @@ for %%f in (%TEST_ASSEMBLIES%) do (
         for %%g in (%RESULTS%\%RUNID%.*) do (ren %%g %%~nf%%~xg)
 
         if exist %RESULTS%\%%~nf.etl (
-            if defined PYTHONPATH (
+            if defined HELIX_PYTHONPATH (
                 if defined HELIX_SCRIPT_ROOT (
                     echo Zipping %%~nf.etl
                     pushd %RESULTS%
-                    %PYTHONPATH% %HELIX_SCRIPT_ROOT%\zip_script.py -zipFILE %%~nf.etl.zip %%~nf.etl
+                    %HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\zip_script.py -zipFile %%~nf.etl.zip %%~nf.etl
                     del %%~nf.etl
                     popd
                 )
@@ -129,11 +129,11 @@ rem ========================================================
 rem Upload Results if running under HELIX
 rem ========================================================
 if DEFINED HELIX_RESULTS_CONTAINER_URI (
-    if defined PYTHONPATH (
+    if defined HELIX_PYTHONPATH (
         if defined HELIX_SCRIPT_ROOT (
             for %%f in (%RESULTS%\*) do (
                 echo Uploading %%f
-                %PYTHONPATH% %HELIX_SCRIPT_ROOT%\upload_result.py -result %%f -result_name %%~nxf -upload_client_type Blob
+                %HELIX_PYTHONPATH% %HELIX_SCRIPT_ROOT%\upload_result.py -result %%f -result_name %%~nxf -upload_client_type Blob
             )
         )
     )
