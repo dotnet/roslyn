@@ -1822,15 +1822,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (token.IsMissing)
             {
-                // expression statement terminating semicolon might be missing in interactive code:
-                if (tree.Options.Kind != SourceCodeKind.Interactive ||
-                    globalStatement.Statement.Kind() != SyntaxKind.ExpressionStatement ||
-                    token.Kind() != SyntaxKind.SemicolonToken)
+                // expression statement terminating semicolon might be missing in script code:
+                if (tree.Options.Kind == SourceCodeKind.Regular ||
+                    !globalStatement.Statement.IsKind(SyntaxKind.ExpressionStatement) ||
+                    !token.IsKind(SyntaxKind.SemicolonToken))
                 {
                     return false;
                 }
 
-                token = token.GetPreviousToken(predicate: SyntaxToken.Any, stepInto: Microsoft.CodeAnalysis.SyntaxTrivia.Any);
+                token = token.GetPreviousToken(predicate: SyntaxToken.Any, stepInto: CodeAnalysis.SyntaxTrivia.Any);
                 if (token.IsMissing)
                 {
                     return false;

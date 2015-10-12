@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "Visual Basic Escaping Simplification tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyUnescapedIdentifier()
             Dim input =
 <Workspace>
@@ -35,7 +35,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifier()
             Dim input =
 <Workspace>
@@ -64,7 +64,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameWithUnescapedIdentifier()
             Dim input =
 <Workspace>
@@ -93,7 +93,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameWithEscapedIdentifier()
             Dim input =
 <Workspace>
@@ -122,7 +122,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierRem()
             Dim input =
 <Workspace>
@@ -152,7 +152,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierKeyword()
             Dim input =
 <Workspace>
@@ -182,7 +182,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameWithUnescapedIdentifierKeyword()
             Dim input =
 <Workspace>
@@ -211,7 +211,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameWithEscapedIdentifierKeyword()
             Dim input =
 <Workspace>
@@ -240,7 +240,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyUnescapedIdentifierMid_1()
             Dim input =
 <Workspace>
@@ -271,7 +271,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyUnescapedIdentifierMid_2()
             Dim input =
 <Workspace>
@@ -303,7 +303,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierMid_1()
             Dim input =
 <Workspace>
@@ -334,7 +334,7 @@ End Class
         End Sub
 
         <WorkItem(547117)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameWithUnescapedIdentifierMid()
             Dim input =
 <Workspace>
@@ -364,7 +364,7 @@ End Class
         End Sub
 
         <WorkItem(547117)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameWithEscapedIdentifierMid()
             Dim input =
 <Workspace>
@@ -393,7 +393,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameUnescapedIdentifierMid()
             Dim input =
 <Workspace>
@@ -426,7 +426,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierPreserve_1()
             Dim input =
 <Workspace>
@@ -455,7 +455,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierPreserve_2()
             Dim input =
 <Workspace>
@@ -484,7 +484,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyUnescapedIdentifierPreserve()
             Dim input =
 <Workspace>
@@ -513,7 +513,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameUnescapedIdentifierPreserve_1()
             Dim input =
 <Workspace>
@@ -542,7 +542,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameUnescapedIdentifierPreserve_2()
             Dim input =
 <Workspace>
@@ -571,7 +571,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyNameEscapedIdentifierPreserve()
             Dim input =
 <Workspace>
@@ -600,7 +600,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierNew_1()
             Dim input =
 <Workspace>
@@ -640,7 +640,7 @@ End Structure
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierNew_2()
             Dim input =
 <Workspace>
@@ -682,7 +682,7 @@ End Structure
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierNew_3()
             Dim input =
 <Workspace>
@@ -722,7 +722,7 @@ End Structure
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierNew_4()
             Dim input =
 <Workspace>
@@ -760,7 +760,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_1()
             Dim input =
 <Workspace>
@@ -800,7 +800,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_2()
             Dim input =
 <Workspace>
@@ -842,7 +842,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorOutsideOfQuery_3()
             Dim input =
 <Workspace>
@@ -891,7 +891,7 @@ End Module
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyEscapedIdentifierQueryOperatorInsideOfQuery_1()
             Dim input =
 <Workspace>
@@ -931,7 +931,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DoNotEscapeIdentifierWithEmptyValueText()
             Dim input =
 <Workspace>
@@ -962,7 +962,7 @@ End Module
 
 #Region "CSharp Escaping Simplification tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyUnescapedIdentifier()
             Dim input =
 <Workspace>
@@ -995,7 +995,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyEscapedIdentifier()
             Dim input =
 <Workspace>
@@ -1028,7 +1028,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyNameUnescapedIdentifier()
             Dim input =
 <Workspace>
@@ -1061,7 +1061,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyNameEscapedIdentifier()
             Dim input =
 <Workspace>
@@ -1094,7 +1094,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyEscapedTypenameAsIdentifier()
             Dim input =
 <Workspace>
@@ -1127,7 +1127,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyEscapedKeywordAsIdentifier()
             Dim input =
 <Workspace>
@@ -1160,7 +1160,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyNameEscapedTypenameAsIdentifier()
             Dim input =
 <Workspace>
@@ -1193,7 +1193,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierInQuery()
             Dim input =
 <Workspace>
@@ -1234,7 +1234,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierInNestedQuery_1()
             Dim input =
 <Workspace>
@@ -1283,7 +1283,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyEscapedContextualKeywordAsIdentifierOutsideQuery()
             Dim input =
 <Workspace>
@@ -1326,7 +1326,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyUnescapedUnambiguousAttributeName()
             Dim input =
 <Workspace>
@@ -1352,7 +1352,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyUnEscapedUnambiguousAttributeName2()
             Dim input =
 <Workspace>
@@ -1383,7 +1383,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyUnEscapedUnambiguousAttributeName3()
             Dim input =
 <Workspace>
@@ -1408,7 +1408,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyEscapedAmbiguousAttributeName()
             Dim input =
 <Workspace>

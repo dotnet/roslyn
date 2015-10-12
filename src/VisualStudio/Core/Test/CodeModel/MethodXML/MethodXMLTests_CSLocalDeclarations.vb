@@ -5,7 +5,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_NoInitializer()
             Dim definition =
     <Workspace>
@@ -33,7 +33,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithInitializer()
             Dim definition =
     <Workspace>
@@ -66,7 +66,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_EscapedKeywordName()
             Dim definition =
 <Workspace>
@@ -99,7 +99,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_ArrayNoInitializer()
             Dim definition =
     <Workspace>
@@ -129,7 +129,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_ArrayWithInitializer()
             Dim definition =
     <Workspace>
@@ -173,7 +173,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithBinaryPlusInitializer()
             Dim definition =
     <Workspace>
@@ -215,7 +215,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithBitwiseOrInitializer()
             Dim definition =
     <Workspace>
@@ -257,7 +257,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithBitwiseAndInitializer()
             Dim definition =
     <Workspace>
@@ -299,7 +299,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithCastInitializer()
             Dim definition =
     <Workspace>
@@ -337,7 +337,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithObjectCreationInitializer()
             Dim definition =
     <Workspace>
@@ -378,7 +378,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithParenthesizedInitializer()
             Dim definition =
     <Workspace>
@@ -424,7 +424,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithNullInitializer()
             Dim definition =
     <Workspace>
@@ -457,7 +457,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithNegativeInitializer()
             Dim definition =
     <Workspace>
@@ -490,7 +490,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithBooleanInitializer()
             Dim definition =
     <Workspace>
@@ -533,7 +533,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithStringInitializer()
             Dim definition =
     <Workspace>
@@ -566,7 +566,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithCharInitializer()
             Dim definition =
     <Workspace>
@@ -599,7 +599,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_WithArrayInitializer()
             Dim definition =
     <Workspace>
@@ -643,7 +643,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_DifferentBlocks()
             Dim definition =
     <Workspace>
@@ -695,7 +695,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSLocalDeclarations_TypeOfInitializer()
             Dim definition =
     <Workspace>

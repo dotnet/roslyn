@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1107492)>
         Public Sub TestProjectThatDoesntSupportCompilations()
             Dim workspaceDefinition =

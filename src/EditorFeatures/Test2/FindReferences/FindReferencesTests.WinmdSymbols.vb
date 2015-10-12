@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdCSInterfaceProjection()
             Dim input =
 <Workspace>
@@ -39,7 +39,7 @@ namespace SampleComponent
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdVBInterfaceProjection()
             Dim input =
 <Workspace>
@@ -79,7 +79,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdCSCollectionProjection()
             Dim input =
 <Workspace>
@@ -121,7 +121,7 @@ namespace SampleComponent
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdVBCollectionProjection()
             Dim input =
 <Workspace>
@@ -151,7 +151,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdCSEventProjection()
             Dim input =
 <Workspace>
@@ -211,7 +211,7 @@ namespace SampleComponent
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdVBEventProjection()
             Dim input =
 <Workspace>
@@ -264,7 +264,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdCSAllIsWellTest()
             Dim input =
 <Workspace>
@@ -468,7 +468,7 @@ namespace SampleComponent
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestWinmdVBAllIsWellTest()
             Dim input =
 <Workspace>

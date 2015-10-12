@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub Test_CSharpToVisualBasic1()
             Dim input =
                 <Workspace>
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub Test_VisualBasicToCSharp1()
             Dim input =
                 <Workspace>
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddImport
         End Sub
 
         <WorkItem(1083419)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub TestExtensionMethods1()
             Dim input =
                 <Workspace>
@@ -162,7 +162,7 @@ namespace CSAssembly1
         End Sub
 
         <WorkItem(1083419)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Sub TestExtensionMethods2()
             Dim input =
                 <Workspace>

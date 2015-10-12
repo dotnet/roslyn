@@ -13,7 +13,7 @@ Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
     Public Class PeekTests
-        <Fact, WorkItem(820706), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(820706), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub InvokeInEmptyFile()
             Dim result = GetPeekResultCollection(<Workspace>
                                                      <Project Language="C#" CommonReferences="true">
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             Assert.Null(result)
         End Sub
 
-        <Fact, WorkItem(827025), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(827025), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub WorksAcrossLanguages()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(<Workspace>
                                                                        <Project Language="C#" AssemblyName="Reference" CommonReferences="true">
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             End Using
         End Sub
 
-        <Fact, WorkItem(824336), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(824336), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub PeekDefinitionWhenInvokedOnLiteral()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(<Workspace>
                                                                        <Project Language="C#" CommonReferences="true">
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             End Using
         End Sub
 
-        <Fact, WorkItem(824331), WorkItem(820289), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(824331), WorkItem(820289), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub PeekDefinitionWhenExtensionMethodFromMetadata()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(<Workspace>
                                                                        <Project Language="C#" CommonReferences="true">
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
             End Using
         End Sub
 
-        <Fact, WorkItem(819660), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(819660), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub PeekDefinitionFromVisualBasicMetadataAsSource()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(<Workspace>
                                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -98,7 +98,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem(819602), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(819602), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub PeekDefinitionOnParamNameXmlDocComment()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(<Workspace>
                                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -119,7 +119,7 @@ End Class
         End Sub
 
 
-        <Fact, WorkItem(820363), Trait(Traits.Feature, Traits.Features.Peek)>
+        <WpfFact, WorkItem(820363), Trait(Traits.Feature, Traits.Features.Peek)>
         Public Sub PeekDefinitionOnLinqVariable()
             Using workspace = TestWorkspaceFactory.CreateWorkspace(<Workspace>
                                                                        <Project Language="Visual Basic" CommonReferences="true">
@@ -141,7 +141,7 @@ End Module
         End Sub
 
 
-        <Fact>
+        <WpfFact>
         <WorkItem(1091211)>
         Public Sub PeekAcrossProjectsInvolvingPortableReferences()
             Dim workspaceDefinition =

@@ -845,7 +845,7 @@ namespace Microsoft.Cci
                 try
                 {
                     Debug.Assert(BitConverter.IsLittleEndian);
-                    ((ISymUnmanagedWriter6)_symWriter).SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
+                    ((ISymUnmanagedWriter100)_symWriter).SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
                 }
                 catch (Exception ex)
                 {

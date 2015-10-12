@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Wrap binder from factory in a generic constraints specific binder 
                     // to avoid checking constraints when binding type names.
                     Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-                    binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+                    binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
                     var constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
                     Debug.Assert(constraints.Length == arity);

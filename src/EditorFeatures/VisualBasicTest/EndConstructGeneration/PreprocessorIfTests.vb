@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class PreprocessorIfTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ApplyAfterHashIf()
             VerifyStatementEndConstructApplied(
                 before:={"#If True Then"},
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={1, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DontApplyAfterHashIfWhenEndIfExists()
             VerifyStatementEndConstructNotApplied(
                 text:={"#If True Then",
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={0, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(537976)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(537976)>
         Public Sub DontApplyAfterHashElseIfWhenEndIfExists()
             VerifyStatementEndConstructNotApplied(
                 text:={"#If True Then",

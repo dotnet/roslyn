@@ -351,13 +351,13 @@ while(true) {}
         [Fact]
         public void AsyncExecuteFile_SourceKind()
         {
-            var file = Temp.CreateFile().WriteAllText("1+1").Path;
+            var file = Temp.CreateFile().WriteAllText("1 1").Path;
             var task = Host.ExecuteFileAsync(file);
             task.Wait();
             Assert.False(task.Result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.True(errorOut.StartsWith(file + "(1,4):", StringComparison.Ordinal), "Error output should start with file name, line and column");
+            Assert.True(errorOut.StartsWith(file + "(1,3):", StringComparison.Ordinal), "Error output should start with file name, line and column");
             Assert.True(errorOut.Contains("CS1002"), "Error output should include error CS1002");
         }
 

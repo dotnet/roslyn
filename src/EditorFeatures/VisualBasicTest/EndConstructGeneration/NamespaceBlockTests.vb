@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class NamespaceBlockTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterNamespace()
             VerifyStatementEndConstructApplied(
                 before:={"Namespace foo"},
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={1, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterNestedNamespace()
             VerifyStatementEndConstructApplied(
                 before:={"Namespace foo",
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyRecommit()
             VerifyStatementEndConstructNotApplied(
                 text:={"NameSpace Bar",
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidNSInMethod()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidNSInModule()
             VerifyStatementEndConstructNotApplied(
                 text:={"Module M",

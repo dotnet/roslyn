@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             return new ReturnStatementHighlighter();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_1()
         {
             Test(
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_2()
         {
             Test(
@@ -52,7 +52,7 @@ static double CalculateArea(double radius) {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_3()
         {
             Test(
@@ -72,7 +72,7 @@ static double CalculateArea(double radius) {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_4()
         {
             Test(
@@ -93,7 +93,7 @@ static double CalculateArea(double radius) {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_5()
         {
             Test(
@@ -114,7 +114,7 @@ static double CalculateArea(double radius) {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_6()
         {
             Test(
@@ -134,7 +134,7 @@ static double CalculateArea(double radius) {
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_7()
         {
             Test(
@@ -155,7 +155,7 @@ static double CalculateArea(double radius) {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_8()
         {
             Test(
@@ -176,7 +176,7 @@ static double CalculateArea(double radius) {
 ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public void TestExample1_9()
         {
             Test(

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New MultiLineLambdaExpressionHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda1()
             Test(<Text>
 Class C
@@ -22,7 +22,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda2()
             Test(<Text>
 Class C
@@ -34,7 +34,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda3()
             Test(<Text>
 Class C
@@ -46,7 +46,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda4()
             Test(<Text>
 Class C
@@ -58,7 +58,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineSubLambda1()
             Test(<Text>
 Class C
@@ -70,7 +70,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineSubLambda2()
             Test(<Text>
 Class C
@@ -82,7 +82,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineSubLambda3()
             Test(<Text>
 Class C
@@ -94,7 +94,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineSubLambda4()
             Test(<Text>
 Class C
@@ -106,7 +106,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineLambda_AsyncExample2_1()
             Test(
 <Text>
@@ -137,7 +137,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineLambda_AsyncExample2_2()
             Test(
 <Text>
@@ -168,7 +168,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineLambda_AsyncExample2_3()
             Test(
 <Text>
@@ -199,7 +199,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda_IteratorExample2_1()
             Test(
 <Text>
@@ -225,7 +225,7 @@ End Function
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda_IteratorExample2_2()
             Test(
 <Text>
@@ -251,7 +251,7 @@ End Function
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda_IteratorExample2_3()
             Test(
 <Text>
@@ -277,7 +277,7 @@ End Function
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda_IteratorExample2_4()
             Test(
 <Text>
@@ -303,7 +303,7 @@ End Function
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda_IteratorExample2_5()
             Test(
 <Text>
@@ -329,7 +329,7 @@ End Function
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineFunctionLambda_IteratorExample2_6()
             Test(
 <Text>

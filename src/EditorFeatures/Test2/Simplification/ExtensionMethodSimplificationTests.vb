@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
         Inherits AbstractSimplificationTests
 
 #Region "Visual Basic tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyExtensionMethodOnce()
             Dim input =
 <Workspace>
@@ -53,7 +53,7 @@ End Module
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyExtensionMethodChained()
             Dim input =
 <Workspace>
@@ -105,7 +105,7 @@ End Module
 
 
 #Region "CSharp tests"
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyExtensionMethodOnce()
             Dim input =
 <Workspace>
@@ -155,7 +155,7 @@ public static class ProgramExtensions
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyExtensionMethodChained()
             Dim input =
 <Workspace>

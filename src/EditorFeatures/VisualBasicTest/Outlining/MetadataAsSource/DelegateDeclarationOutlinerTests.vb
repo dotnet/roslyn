@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             Return outliner.GetOutliningSpans(node, CancellationToken.None).WhereNotNull()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub NoCommentsOrAttributes()
             Dim code =
 <code><![CDATA[
@@ -31,7 +31,7 @@ Delegate Sub Bar()
 
         Public Delegate Sub Bar(x As Int16)
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithAttributes()
             Dim code =
 <code><![CDATA[
@@ -52,7 +52,7 @@ Delegate Sub Bar()
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAndAttributes()
             Dim code =
 <code><![CDATA[
@@ -75,7 +75,7 @@ Delegate Sub Bar()
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub WithCommentsAttributesAndModifiers()
             Dim code =
 <code><![CDATA[

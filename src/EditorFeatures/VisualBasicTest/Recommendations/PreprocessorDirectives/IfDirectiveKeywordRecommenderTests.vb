@@ -9,19 +9,19 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class IfDirectiveKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashIfInFile()
             VerifyRecommendationsContain(<File>|</File>, "#If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashIfInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInEnumBlockMemberDeclaration()
             VerifyRecommendationsMissing(<File>

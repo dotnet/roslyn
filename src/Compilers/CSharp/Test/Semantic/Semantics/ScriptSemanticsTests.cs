@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string test = @"
 this[1]
 ";
-            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -86,7 +86,7 @@ this[1]
         [Fact]
         public void NoReferences()
         {
-            var submission = CSharpCompilation.CreateSubmission("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Interactive), returnType: typeof(int));
+            var submission = CSharpCompilation.CreateSubmission("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
             submission.VerifyDiagnostics(
                 // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // 1

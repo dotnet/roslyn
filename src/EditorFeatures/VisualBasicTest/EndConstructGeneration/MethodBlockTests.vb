@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class MethodBlockTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterSimpleSubDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterConstructorDeclaration()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterConstructorDeclarationForDesignerGeneratedClass()
             VerifyStatementEndConstructApplied(
                 before:={"<Microsoft.VisualBasic.CompilerServices.DesignerGenerated>",
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterConstructorDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterSimpleFunctionDeclarationWithTrailingComment()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub DoNotApplyForInterfaceFunction()
             VerifyStatementEndConstructNotApplied(
                 text:={"Interface IFoo",
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifySubInAModule()
             VerifyStatementEndConstructApplied(
                 before:={"Module C",
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifySubWithParameters()
             VerifyStatementEndConstructApplied(
                 before:={"Module C",
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyFuncWithParameters()
             VerifyStatementEndConstructApplied(
                 before:={"Module C",
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyFuncNamedWithKeyWord()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifySharedOperator()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyRecommit()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidLocation01()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WorkItem(528961)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidLocation02()
             VerifyStatementEndConstructApplied(
                 before:={"Sub S"},

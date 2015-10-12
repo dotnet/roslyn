@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocal()
             Dim input =
 <Workspace>
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocalInFieldInitializerLambda1()
             Dim input =
 <Workspace>
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocalInFieldInitializerLambda2()
             Dim input =
 <Workspace>
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocalCaseSensitivity()
             Dim input =
 <Workspace>
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocalCaseInsensitivity()
             Dim input =
 <Workspace>
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(530636)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocalInLambdaInField1()
             Dim input =
 <Workspace>
@@ -121,7 +121,7 @@ End Module
         End Sub
 
         <WorkItem(530636)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocalInLambdaInField2()
             Dim input =
 <Workspace>
@@ -136,7 +136,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(608210)>
         Public Sub TestLocalInPropertyInitializer()
             Dim input =
@@ -156,7 +156,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(2667, "https://github.com/dotnet/roslyn/issues/2667")>
         Public Sub TestLocalWithWithStatement()
             Dim input =
@@ -185,7 +185,7 @@ End Module
 
 
 #Region "FAR on collection initializers"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocal_CSharpNamedIdentifiersUsedInNestedColInit()
             Dim input =
 <Workspace>
@@ -207,7 +207,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocal_VBNamedIdentifiersUsedInNestedColInit()
             Dim input =
 <Workspace>
@@ -227,7 +227,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocal_CSharpNamedIdentifiersUsedInAVeryLongColInitExp()
             Dim input =
 <Workspace>
@@ -247,7 +247,7 @@ End Module
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocal_VBNamedIdentifiersUsedInAVeryLongColInitEx()
             Dim input =
 <Workspace>

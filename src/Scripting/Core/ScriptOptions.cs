@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             references: ImmutableArray<MetadataReference>.Empty,
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,
-            sourceResolver: SourceFileResolver.Default,
-            isInteractive: true);
+            sourceResolver: SourceFileResolver.Default);
 
         /// <summary>
         /// An array of <see cref="MetadataReference"/>s to be added to the script.
@@ -55,19 +54,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public string Path { get; private set; }
 
-        /// <summary>
-        /// True if the script is interactive. 
-        /// Interactive scripts may contain a final expression whose value is returned when the script is run.
-        /// </summary>
-        public bool IsInteractive { get; private set; }
-
         private ScriptOptions(
             string path,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<string> namespaces,
             MetadataReferenceResolver metadataResolver,
-            SourceReferenceResolver sourceResolver,
-            bool isInteractive)
+            SourceReferenceResolver sourceResolver)
         {
             Debug.Assert(path != null);
             Debug.Assert(!references.IsDefault);
@@ -80,7 +72,6 @@ namespace Microsoft.CodeAnalysis.Scripting
             Namespaces = namespaces;
             MetadataResolver = metadataResolver;
             SourceResolver = sourceResolver;
-            IsInteractive = isInteractive;
         }
 
         private ScriptOptions(ScriptOptions other) 
@@ -88,8 +79,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                    references: other.MetadataReferences,
                    namespaces: other.Namespaces,
                    metadataResolver: other.MetadataResolver,
-                   sourceResolver: other.SourceResolver,
-                   isInteractive: other.IsInteractive)
+                   sourceResolver: other.SourceResolver)
         {
         }
 
@@ -309,13 +299,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="namespaces"/> is null or contains a null reference.</exception>
         public ScriptOptions AddNamespaces(params string[] namespaces) => 
             AddNamespaces((IEnumerable<string>)namespaces);
-
-        /// <summary>
-        /// Create a new <see cref="ScriptOptions"/> with the interactive state specified.
-        /// Interactive scripts may contain a final expression whose value is returned when the script is run.
-        /// </summary>
-        public ScriptOptions WithIsInteractive(bool isInteractive) =>
-            IsInteractive == isInteractive ? this : new ScriptOptions(this) { IsInteractive = isInteractive };
 
         #region Parameter Validation
 
