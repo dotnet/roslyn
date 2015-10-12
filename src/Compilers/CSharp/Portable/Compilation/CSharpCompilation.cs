@@ -1207,46 +1207,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Imports declared by this submission (null if this isn't one).
         /// </summary>
-        internal Imports SubmissionImports
+        internal Imports GetSubmissionImports()
         {
-            get
+            Debug.Assert(this.IsSubmission);
+            Debug.Assert(_syntaxAndDeclarations.ExternalSyntaxTrees.Length <= 1);
+
+            // A submission may be empty or comprised of a single script file.
+            var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
+            if (tree == null)
             {
-                if (!this.IsSubmission)
-                {
-                    return null;
-                }
-
-                // A submission may be empty or comprised of a single script file.
-                var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
-                if (tree == null)
-                {
-                    return Imports.Empty;
-                }
-
-                var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
-                return binder.GetImports();
+                return Imports.Empty;
             }
+
+            var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
+            return binder.GetImports();
         }
 
         /// <summary>
         /// Imports from all previous submissions.
         /// </summary>
-        internal Imports PreviousSubmissionImports => _previousSubmissionImports.Value;
+        internal Imports GetPreviousSubmissionImports() => _previousSubmissionImports.Value;
 
         private Imports ExpandPreviousSubmissionImports()
         {
-            if (!this.IsSubmission)
-            {
-                return null;
-            }
+            Debug.Assert(this.IsSubmission);
 
             if (_previousSubmission == null)
             {
                 return Imports.Empty;
             }
 
-            return Imports.ExpandPreviousSubmissionImports(_previousSubmission.PreviousSubmissionImports, this).Concat(
-                Imports.ExpandPreviousSubmissionImports(_previousSubmission.SubmissionImports, this));
+            return Imports.ExpandPreviousSubmissionImports(_previousSubmission.GetPreviousSubmissionImports(), this).Concat(
+                Imports.ExpandPreviousSubmissionImports(_previousSubmission.GetSubmissionImports(), this));
         }
 
         internal AliasSymbol GlobalNamespaceAlias

@@ -404,6 +404,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         internal Imports Concat(Imports otherImports)
         {
+            Debug.Assert(otherImports != null);
+
             if (this == Empty)
             {
                 return otherImports;
@@ -418,9 +420,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var usingAliases = this.UsingAliases.SetItems(otherImports.UsingAliases); // NB: SetItems, rather than AddRange
             var usings = this.Usings.AddRange(otherImports.Usings).Distinct(UsingTargetComparer.Instance);
-            var externAliases = this.ExternAliases.AddRange(otherImports.ExternAliases).Distinct(ExternAliasNameComparer.Instance);
+            var externAliases = ConcatExternAliases(this.ExternAliases, otherImports.ExternAliases);
 
             return new Imports(this._compilation, usingAliases, usings, externAliases, diagnostics: null);
+        }
+
+        private static ImmutableArray<AliasAndExternAliasDirective> ConcatExternAliases(ImmutableArray<AliasAndExternAliasDirective> externs1, ImmutableArray<AliasAndExternAliasDirective> externs2)
+        {
+            if (externs1.Length == 0)
+            {
+                return externs2;
+            }
+
+            if (externs2.Length == 0)
+            {
+                return externs1;
+            }
+
+            var replacedExternAliases = PooledHashSet<string>.GetInstance();
+            replacedExternAliases.AddAll(externs2.Select(e => e.Alias.Name));
+            return externs1.WhereAsArray(e => !replacedExternAliases.Contains(e.Alias.Name)).AddRange(externs2);
         }
 
         private static ImmutableArray<AliasAndExternAliasDirective> BuildExternAliases(
@@ -834,23 +853,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int IEqualityComparer<NamespaceOrTypeAndUsingDirective>.GetHashCode(NamespaceOrTypeAndUsingDirective obj)
             {
                 return obj.NamespaceOrType.GetHashCode();
-            }
-        }
-
-        private class ExternAliasNameComparer : IEqualityComparer<AliasAndExternAliasDirective>
-        {
-            public static readonly IEqualityComparer<AliasAndExternAliasDirective> Instance = new ExternAliasNameComparer();
-
-            private ExternAliasNameComparer() { }
-
-            bool IEqualityComparer<AliasAndExternAliasDirective>.Equals(AliasAndExternAliasDirective x, AliasAndExternAliasDirective y)
-            {
-                return x.Alias.Name == y.Alias.Name;
-            }
-
-            int IEqualityComparer<AliasAndExternAliasDirective>.GetHashCode(AliasAndExternAliasDirective obj)
-            {
-                return obj.Alias.Name.GetHashCode();
             }
         }
     }

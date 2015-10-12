@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var isCurrentSubmission = submission == Compilation;
                 var considerUsings = !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing));
-                var submissionImports = considerUsings ? submission.SubmissionImports : Imports.Empty;
+                var submissionImports = considerUsings ? submission.GetSubmissionImports() : Imports.Empty;
 
                 // If a viable using alias and a matching member are both defined in the submission an error is reported elsewhere.
                 // Ignore the member in such case.
@@ -1518,7 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we are looking only for labels we do not need to search through the imports.
                 if ((options & LookupOptions.LabelsOnly) == 0 && !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing)))
                 {
-                    var submissionImports = submission.SubmissionImports;
+                    var submissionImports = submission.GetSubmissionImports();
                     if (!isCurrentSubmission)
                     {
                         submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);

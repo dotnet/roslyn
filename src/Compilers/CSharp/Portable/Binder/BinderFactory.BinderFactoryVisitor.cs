@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             result = compilation.PreviousSubmission == null
                                 ? new InContainerBinder(result, basesBeingResolved => scriptClassBinder.GetImports(basesBeingResolved))
                                 : new InContainerBinder(result, basesBeingResolved =>
-                                    compilation.PreviousSubmissionImports.Concat(scriptClassBinder.GetImports(basesBeingResolved)));
+                                    compilation.GetPreviousSubmissionImports().Concat(scriptClassBinder.GetImports(basesBeingResolved)));
                         }
 
                         result = new InContainerBinder(compilation.GlobalNamespace, result);
