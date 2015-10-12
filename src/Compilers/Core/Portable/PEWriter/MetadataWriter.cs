@@ -3789,7 +3789,10 @@ namespace Microsoft.Cci
                 heapSizes |= (HeapSizeFlag.EnCDeltas | HeapSizeFlag.DeletedMarks);
             }
 
-            const ulong sortedTables = 0x16003301fa00;
+            ulong sortedDebugTables = metadataSizes.PresentTablesMask & MetadataSizes.SortedDebugTables;
+
+            // Consider filtering out type system tables that are not present:
+            ulong sortedTables = sortedDebugTables | (metadataSizes.IsStandaloneDebugMetadata ? 0UL : 0x16003301fa00);
 
             writer.WriteUInt32(0); // reserved
             writer.WriteByte(module.Properties.MetadataFormatMajorVersion);

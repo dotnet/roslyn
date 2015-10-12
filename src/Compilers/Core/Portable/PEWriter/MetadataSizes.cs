@@ -21,6 +21,11 @@ namespace Microsoft.Cci
             1UL << (int)TableIndex.StateMachineMethod |
             1UL << (int)TableIndex.CustomDebugInformation;
 
+        public const ulong SortedDebugTables =
+            1UL << (int)TableIndex.LocalScope |
+            1UL << (int)TableIndex.StateMachineMethod |
+            1UL << (int)TableIndex.CustomDebugInformation;
+
         public readonly bool IsMinimalDelta;
 
         // EnC delta tables are stored as uncompressed metadata table stream

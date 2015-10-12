@@ -9,13 +9,13 @@ The format is based on the ECMA-335 Partition II metadata standard. The physical
 
 The ECMA-335-II standard is amended by an addition of the following tables to the “#~” metadata stream:
 
-* [Document](#DocumentTable)
-* [MethodBody](#MethodBodyTable)
+* [SourceDocument](#SourceDocumentTable)
+* [MethodDebugInformation](#MethodDebugInformationTable)
 * [LocalScope](#LocalScopeTable)
 * [LocalVariable](#LocalVariableTable)
 * [LocalConstant](#LocalConstantTable)
 * [ImportScope](#ImportScopeTable)
-* [AsyncMethod](#AsyncMethodTable)
+* [StateMachineMethod](#StateMachineMethodTable)
 * [CustomDebugInformation](#CustomDebugInformationTable)
     * [StateMachineHoistedLocalScopes](#StateMachineHoistedLocalScopes)
     * [DynamicLocalVariables](#DynamicLocalVariables)
@@ -29,7 +29,7 @@ Debugging metadata tables may be embedded into type system metadata (and part of
 
 When debugging metadata is generated to a separate data blob "#Pdb" and "#~" streams shall be present. The standalone debugging metadata may also include #Guid, #String and #Blob heaps, which have the same physical layout but are distict from the corresponding streams of the type system metadata.
 
-#### #Pdb stream
+#### <a name="PdbStream"></a>#Pdb stream
 
 The #Pdb stream has the following structure:
  
@@ -46,9 +46,9 @@ The #Pdb stream has the following structure:
  
 References to heaps (strings, blobs, guids) are references to heaps of the debugging metadata. The sizes of references to type system tables are determined using the algorithm described in ECMA-335-II Chapter 24.2.6, except their respective row counts are found in _TypeSystemTableRows_ field of the #Pdb stream.
 
-### <a name="DocumentTable"></a>Document Table: 0x30
+### <a name="SourceDocumentTable"></a>SourceDocument Table: 0x30
 
-The Document table has the following columns:
+The SourceDocument table has the following columns:
 * _Name_ (Blob heap index of [document name blob](#DocumentNameBlob))
 * _HashAlgorithm_ (Guid heap index)
 * _Hash_ (Blob heap index)
@@ -56,7 +56,7 @@ The Document table has the following columns:
 
 The table is not required to be sorted.
 
-There shall be no duplicate rows in the _Document_ table, based upon document name. 
+There shall be no duplicate rows in the _SourceDocument_ table, based upon document name. 
 
 _Name_ shall not be nil. It can however encode an empty name string.
 
@@ -77,7 +77,7 @@ The values for which _HashAlgorithm_ has defined meaning are listed in the follo
 
 Otherwise, the meaning of _Language_, _HashAlgorithm_ and _Hash_ values is undefined and the reader can interpret them arbitrarily.
 
-#### <a name="DocumentNameBlob"></a>Document Name Blob
+#### <a name="DocumentNameBlob"></a>SourceDocument Name Blob
 
 Document name blob is a sequence:
 
@@ -94,11 +94,11 @@ The document name is a concatenation of the _parts_ separated by the _separator_
 The representation is optimized for an efficient deserialization of the name into a UTF8 encoded string while minimizing the overall storage space for document names.
 - - -
 
-### <a name="MethodBodyTable"></a>MethodBody Table: 0x31
+### <a name="MethodDebugInformationTable"></a>MethodDebugInformation Table: 0x31
 
-MethodBody table is either empty (missing) or has exactly as many rows as MethodDef table and the following column:
+MethodDebugInformation table is either empty (missing) or has exactly as many rows as MethodDef table and the following column:
 
-* _Document_       (The row id of the document containing the first sequence point of the method, or 0 if the method doesn't have sequence points)
+* _Document_ (The row id of the document containing the first sequence point of the method, or 0 if the method doesn't have sequence points)
 * _SequencePoints_ (Blob heap index, 0 if the method doesn’t have sequence points, encoding: [sequence points blob](#SequencePointsBlob))
 
 The table is a logical extension of MethodDef table (adding a column to the table) and as such can be indexed by MethodDef row id.
@@ -163,9 +163,9 @@ _LocalSignature_ stores the row id of the local signature of the method. This in
 | component    | value stored                       | integer representation         |
 |:-------------|:-----------------------------------|:-------------------------------|
 | _δILOffset_  | 0                                  | unsigned compressed            |
-| _Document_   | Document row id                    | unsigned compressed            |
+| _Document_   | SourceDocument row id              | unsigned compressed            |
 
-Each _SequencePointRecord_ represents a single sequence point. The sequence point inherits the value of _Document_ property from the previous record (_SequencePointRecord_ or _document-record_) or from the _Document_ field of the _MethodBody_ table if it's the first sequence point. The value of _IL Offset_ is calculated using the value of the previous sequence point (if any) and the value stored in the record. 
+Each _SequencePointRecord_ represents a single sequence point. The sequence point inherits the value of _Document_ property from the previous record (_SequencePointRecord_ or _document-record_) or from the _Document_ field of the _MethodDebugInformation_ table if it's the first sequence point. The value of _IL Offset_ is calculated using the value of the previous sequence point (if any) and the value stored in the record. 
 
 The values of _Start Line_, _Start Column_, _End Line_ and _End Column_ of a non-hidden sequence point are calculated based upon the values of the previous non-hidden sequence point (if any) and the data stored in the record.
 
@@ -333,35 +333,20 @@ The exact import semantics are language specific.
 
 The blob may be empty. An empty import scope may still be target of custom debug information record.
 
-### <a name="AsyncMethodTable"></a>AsyncMethod Table: 0x36
+### <a name="StateMachineMethodTable"></a>StateMachineMethod Table: 0x36
 
-The AsyncMethod table has the following columns:
+The StateMachineMethod table has the following columns:
 
+* _MoveNextMethod_ (MethodDef row id)
 * _KickoffMethod_ (MethodDef row id)
 
-* _CatchHandlerOffset_ (integer [0..0x80000000], encoding: uint32)
+The table associates the kickoff implementation method of an async or an iterator method (the method that initializes and starts the state machine) with the MoveNext method that implements the state transition.
 
-	0 if the handler is not present, otherwise IL offset + 1.
+The table is required to be sorted by _MoveNextMethod_ column.
 
-* _Awaits_ (Blob heap index, encoding: [awaits blob](#AwaitsBlob))
+There shall be no duplicate rows in the StateMachineMethod table, based upon _MoveNextMethod_.
 
-The table is required to be sorted by _KickoffMethod_ column.
-
-There shall be no duplicate rows in the AsyncMethod table, based upon _KickoffMethod_.
-
-#### <a name="AwaitsBlob"></a>Awaits Blob
-Structure:
-
-	Blob ::= Await+
-	Await ::= yield-offset resume-offset resume-method
-
-Each entry corresponds to an await expression in the async method.
-
-| terminal      | encoding                    | description|
-|:--------------|:----------------------------|:-----------|
-| yield-offset  | compressed unsigned integer | TODO|
-| resume-offset	| compressed unsigned integer | TODO|
-| resume-method	| compressed unsigned integer | TODO (MethodDef row id)|
+There shall be no duplicate rows in the StateMachineMethod table, based upon _KickoffMethod_.
 
 ### <a name="CustomDebugInformationTable"></a>CustomDebugInformation Table: 0x37
 The CustomDebugInformation table has the following columns:
@@ -369,6 +354,8 @@ The CustomDebugInformation table has the following columns:
 * _Parent_ ([HasCustomDebugInformation](#HasCustomDebugInformation) coded index)
 * _Kind_ (Guid heap index)
 * _Value_ (Blob heap index)
+
+The table is required to be sorted by _Parent_.
 
 Kind is an id defined by the tool producing the information.
 
