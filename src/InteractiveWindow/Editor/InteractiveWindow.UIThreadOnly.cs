@@ -2512,7 +2512,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var text = GetText(spans);
                 var blocks = GetTextBlocks(spans);
-                var rtf = (_rtfBuilderService as IRtfBuilderService2).GenerateRtf(spans, CancellationToken.None);
+                var rtf = ((IRtfBuilderService2)_rtfBuilderService).GenerateRtf(spans, CancellationToken.None);
                 var data = new DataObject();
                 data.SetData(DataFormats.StringFormat, text);
                 data.SetData(DataFormats.Text, text);
