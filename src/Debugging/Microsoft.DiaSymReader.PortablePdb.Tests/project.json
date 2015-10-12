@@ -1,7 +1,7 @@
-{
+﻿{
   "supports": {
-    "net46.app": { },
-    "dnxcore50.app": { }
+    "net46.app": {},
+    "dnxcore50.app": {}
   },
   "dependencies": {
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
@@ -20,7 +20,8 @@
     "System.Text.Encoding": "4.0.10",
     "System.Threading": "4.0.10",
     "System.Threading.Tasks": "4.0.10",
-    "xunit": "2.1.0-beta4-build3109"
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
     "dotnet": {
