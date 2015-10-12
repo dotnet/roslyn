@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class CallSiteConflictResolutionTests
-        <Fact(skip:="535068")>
+        <WpfFact(skip:="535068")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542103)>
         <WorkItem(535068)>
@@ -37,7 +37,7 @@ End Module
             End Using
         End Sub
 
-        <Fact(Skip:="535068")>
+        <WpfFact(Skip:="535068")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542821)>
         <WorkItem(535068)>
@@ -70,7 +70,7 @@ End Module
             End Using
         End Sub
 
-        <Fact(Skip:="535068")>
+        <WpfFact(Skip:="535068")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(542821)>
         <WorkItem(535068)>
@@ -103,7 +103,7 @@ End Module
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(539636)>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub QualifyConflictingMethodInvocation()

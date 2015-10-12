@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         #endregion Helpers
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryPrevious()
         {
             const string inputString = "1 ";
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryPreviousNotCircular()
         {
             //submit, submit, up, up, up
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryPreviousAfterSubmittingEntryFromHistory()
         {
             //submit, submit, submit, up, up, submit, up, up, up
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryPreviousAfterSubmittingNewEntryWhileNavigatingHistory()
         {
             //submit, submit, up, up, submit new, up, up, up
@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString1);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryNextNotCircular()
         {
             //submit, submit, down, up, down, down
@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(empty);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryNextAfterSubmittingEntryFromHistory()
         {
             //submit, submit, submit, up, up, submit, down, down, down
@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString2);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryNextAfterSubmittingNewEntryWhileNavigatingHistory()
         {
             //submit, submit, up, up, submit new, down, up
@@ -258,7 +258,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(inputString3);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckUncommittedInputAfterNavigatingHistory()
         {
             //submit, submit, up, up, submit new, down, up
@@ -278,7 +278,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertCurrentSubmission(uncommittedInput);
         }
 
-        [Fact]
+        [WpfFact]
         public void CheckHistoryPreviousAfterReset()
         {
             const string resetCommand1 = "#reset";
@@ -290,7 +290,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious();  AssertCurrentSubmission(resetCommand1);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryPrevious()
         {
             InsertAndExecuteInputs("1", "2", "3");
@@ -302,7 +302,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious();  AssertCurrentSubmission("1");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryNext()
         {
             InsertAndExecuteInputs("1", "2", "3");
@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext();      AssertCurrentSubmission("4");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryPreviousWithPattern_NoMatch()
         {
             InsertAndExecuteInputs("123", "12", "1");
@@ -330,7 +330,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious("4");   AssertCurrentSubmission("");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryPreviousWithPattern_PatternMaintained()
         {
             InsertAndExecuteInputs("123", "12", "1");
@@ -340,7 +340,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious("12");  AssertCurrentSubmission("123");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryPreviousWithPattern_PatternDropped()
         {
             InsertAndExecuteInputs("1", "2", "3");
@@ -350,7 +350,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious(null);  AssertCurrentSubmission("1");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryPreviousWithPattern_PatternChanged()
         {
             InsertAndExecuteInputs("10", "20", "15", "25");
@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryPrevious("2");   AssertCurrentSubmission("20");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryNextWithPattern_NoMatch()
         {
             InsertAndExecuteInputs("start", "1", "12", "123");
@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext("4");   AssertCurrentSubmission("end");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryNextWithPattern_PatternMaintained()
         {
             InsertAndExecuteInputs("start", "1", "12", "123");
@@ -391,7 +391,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext("12");  AssertCurrentSubmission("end");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryNextWithPattern_PatternDropped()
         {
             InsertAndExecuteInputs("start", "3", "2", "1");
@@ -407,7 +407,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext(null);  AssertCurrentSubmission("end");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryNextWithPattern_PatternChanged()
         {
             InsertAndExecuteInputs("start", "25", "15", "20", "10");
@@ -424,7 +424,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext("2");   AssertCurrentSubmission("end");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistorySearchPrevious()
         {
             InsertAndExecuteInputs("123", "12", "1");
@@ -436,7 +436,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistorySearchPreviousWithPattern()
         {
             InsertAndExecuteInputs("123", "12", "1");
@@ -447,7 +447,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("123");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistorySearchNextWithPattern()
         {
             InsertAndExecuteInputs("12", "123", "12", "1");
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchNext();    AssertCurrentSubmission("end");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryPreviousAndSearchPrevious()
         {
             InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
@@ -477,7 +477,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("200"); // No-op results in non-matching history entry after SearchPrevious.
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryPreviousAndSearchPrevious_ExplicitPattern()
         {
             InsertAndExecuteInputs("200", "100", "30", "20", "10", "2", "1");
@@ -491,7 +491,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistorySearchPrevious();    AssertCurrentSubmission("200"); // No-op results in non-matching history entry after SearchPrevious.
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryNextAndSearchNext()
         {
             InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");
@@ -512,7 +512,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             _operations.HistoryNext();          AssertCurrentSubmission("4");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestHistoryNextAndSearchNext_ExplicitPattern()
         {
             InsertAndExecuteInputs("1", "2", "10", "20", "30", "100", "200");

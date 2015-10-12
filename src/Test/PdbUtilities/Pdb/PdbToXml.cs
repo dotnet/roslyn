@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -21,6 +20,16 @@ using CDI = Microsoft.CodeAnalysis.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using ImportScope = Microsoft.CodeAnalysis.ImportScope;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
+
+// Point-in-time conflict between System.Reflection.Metadata and temporary internal Roslyn.Reflection.Metadata
+// Replace this with using System.Reflection.Metadata.Decoding and uncomment type parameters when switching
+// back to public System.Reflection.Metadata API. 
+using ArrayShape = Roslyn.Reflection.Metadata.Decoding.ArrayShape;
+using CustomModifier = Roslyn.Reflection.Metadata.Decoding.CustomModifier<string>;
+using MethodSignature = Roslyn.Reflection.Metadata.Decoding.MethodSignature<string>;
+using ISignatureTypeProvider = Roslyn.Reflection.Metadata.Decoding.ISignatureTypeProvider<string>;
+using PrimitiveTypeCode = Roslyn.Reflection.Metadata.Decoding.PrimitiveTypeCode;
+using SignatureDecoder = Roslyn.Reflection.Metadata.Decoding.SignatureDecoder;
 
 namespace Roslyn.Test.PdbUtilities
 {
@@ -1053,7 +1062,7 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private sealed class SignatureVisualizer : ISignatureTypeProvider<string>
+        private sealed class SignatureVisualizer : ISignatureTypeProvider/*<string>*/
         {
             private readonly MetadataReader _reader;
 
@@ -1074,7 +1083,7 @@ namespace Roslyn.Test.PdbUtilities
                 return elementType + "&";  
             }
 
-            public string GetFunctionPointerType(MethodSignature<string> signature)
+            public string GetFunctionPointerType(MethodSignature/*<string>*/ signature)
             {
                 // TODO:
                 return "method-ptr"; 
@@ -1096,7 +1105,7 @@ namespace Roslyn.Test.PdbUtilities
                 return "!" + index;
             }
 
-            public string GetModifiedType(string unmodifiedType, ImmutableArray<CustomModifier<string>> customModifiers)
+            public string GetModifiedType(string unmodifiedType, ImmutableArray<CustomModifier/*<string>*/> customModifiers)
             {
                 return string.Join(" ", customModifiers.Select(mod => (mod.IsRequired ? "modreq(" : "modopt(") + mod.Type + ")")) + 
                     unmodifiedType;

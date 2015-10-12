@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Partial Public Class VisualBasicNavigationBarTests
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000)>
         Public Sub EventsInInterfaces()
             AssertItemsAre(
                 <Workspace>
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("Foo", Glyph.EventPublic, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
         Public Sub EmptyStructure()
             AssertItemsAre(
                 <Workspace>
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("S", Glyph.StructureInternal, bolded:=True, children:={}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996)>
         Public Sub EmptyInterface()
             AssertItemsAre(
                 <Workspace>
@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                 Item("I", Glyph.InterfaceInternal, bolded:=True, children:={}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
         Public Sub UserDefinedOperators()
             AssertItemsAre(
                 <Workspace>
@@ -80,7 +80,7 @@ End Class
                     Item("Operator -", Glyph.Operator, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
         Public Sub SingleConversion()
             AssertItemsAre(
                 <Workspace>
@@ -100,7 +100,7 @@ End Class
                     Item("Narrowing Operator CType", Glyph.Operator, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(797455)>
         Public Sub MultipleConversions()
             AssertItemsAre(
                 <Workspace>
@@ -125,7 +125,7 @@ End Class
                     Item("Narrowing Operator CType(C) As String", Glyph.Operator, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544993)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544993)>
         Public Sub NestedClass()
             AssertItemsAre(
                 <Workspace>
@@ -144,7 +144,7 @@ End Class
                 Item("Nested (N.C)", Glyph.ClassPublic, bolded:=True))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544997)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544997)>
         Public Sub [Delegate]()
             AssertItemsAre(
                 <Workspace>
@@ -157,7 +157,7 @@ End Class
                 Item("Foo", Glyph.DelegateInternal, children:={}, bolded:=True))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544995), WorkItem(545283)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544995), WorkItem(545283)>
         Public Sub GenericType()
             AssertItemsAre(
                 <Workspace>
@@ -171,7 +171,7 @@ End Class
                 Item("C(Of In T)", Glyph.InterfaceInternal, bolded:=True))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
         Public Sub MethodGroupWithGenericMethod()
             AssertItemsAre(
                 <Workspace>
@@ -194,7 +194,7 @@ End Class
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545113)>
         Public Sub SingleGenericMethod()
             AssertItemsAre(
                 <Workspace>
@@ -213,7 +213,7 @@ End Class
                      Item("S(Of T)()", Glyph.MethodPublic, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545285)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545285)>
         Public Sub SingleGenericFunction()
             AssertItemsAre(
                 <Workspace>
@@ -232,7 +232,7 @@ End Class
                      Item("S(Of T)() As Integer", Glyph.MethodPublic, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub SingleNonGenericMethod()
             AssertItemsAre(
                 <Workspace>
@@ -251,7 +251,7 @@ End Class
                      Item("S", Glyph.MethodPublic, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544994)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544994)>
         Public Sub SelectedItemForNestedClass()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -268,7 +268,7 @@ End Class
                 Item("Nested (C)", Glyph.ClassPublic, bolded:=True), False, Nothing, False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(899330)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(899330)>
         Public Sub SelectedItemForNestedClassAlphabeticallyBeforeContainingClass()
             AssertSelectedItemsAre(
                 <Workspace>
@@ -285,7 +285,7 @@ End Class
                 Item("Nested (Z)", Glyph.ClassPublic, bolded:=True), False, Nothing, False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544990)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544990)>
         Public Sub Finalizer()
             AssertItemsAre(
                 <Workspace>
@@ -303,7 +303,7 @@ End Class
                     Item("Finalize", Glyph.MethodProtected, bolded:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544988)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544988)>
         Public Sub GenerateFinalizer()
             AssertGeneratedResultIs(
                 <Workspace>
@@ -324,7 +324,7 @@ End Class
                 </Result>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub GenerateConstructor()
             AssertGeneratedResultIs(
                 <Workspace>
@@ -345,7 +345,7 @@ End Class
                 </Result>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub GenerateConstructorInDesignerGeneratedFile()
             AssertGeneratedResultIs(
                 <Workspace>
@@ -379,7 +379,7 @@ End Class
                 </Result>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub GeneratePartialMethod()
             AssertGeneratedResultIs(
                 <Workspace>
@@ -406,7 +406,7 @@ End Class
                 </Result>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub PartialMethodInDifferentFile()
             AssertItemsAre(
                 <Workspace>
@@ -429,7 +429,7 @@ End Class
                      Item("Foo", Glyph.MethodPublic, grayed:=True)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544991)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544991)>
         Public Sub WithEventsField()
             AssertItemsAre(
                 <Workspace>
@@ -448,7 +448,7 @@ End Class
                      Item("CancelKeyPress", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589)>
         Public Sub WithEventsField_EventsFromInheritedInterfaces()
             AssertItemsAre(
                 <Workspace>
@@ -488,7 +488,7 @@ End Class
                      Item("I3Event", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Sub DoNotIncludeShadowedEvents()
             AssertItemsAre(
                 <Workspace>
@@ -529,7 +529,7 @@ End Class
                      Item("E", Glyph.EventPublic, hasNavigationSymbolId:=False)})) ' Only one E for WithEvents handling
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Sub EventList_EnsureInternalEventsInEventListAndInInheritedEventList()
             AssertItemsAre(
                 <Workspace>
@@ -559,7 +559,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Sub EventList_EnsurePrivateEventsInEventListButNotInInheritedEventList()
             AssertItemsAre(
                 <Workspace>
@@ -586,7 +586,7 @@ End Class
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(1185589), WorkItem(530506)>
         Public Sub EventList_TestAccessibilityThroughNestedAndDerivedTypes()
             AssertItemsAre(
                 <Workspace>
@@ -649,7 +649,7 @@ End Class
                      Item("E0", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub GenerateEventHandler()
             AssertGeneratedResultIs(
                 <Workspace>
@@ -673,7 +673,7 @@ End Class
                 </Result>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(529946)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(529946)>
         Public Sub GenerateEventHandlerWithEscapedName()
             AssertGeneratedResultIs(
                 <Workspace>
@@ -698,7 +698,7 @@ End Class
         End Sub
 
         <WorkItem(546152)>
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub GenerateEventHandlerWithRemName()
             AssertGeneratedResultIs(
                 <Workspace>
@@ -730,7 +730,7 @@ End Class
                 </Result>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub NoListedEventToGenerateWithInvalidTypeName()
             AssertItemsAre(
                 <Workspace>
@@ -749,7 +749,7 @@ End Class
                     bolded:=True))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(530657)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(530657)>
         Public Sub CodeGenerationItemsShouldNotAppearWhenWorkspaceDoesNotSupportDocumentChanges()
             Dim workspaceSupportsChangeDocument = False
             AssertItemsAre(
@@ -772,7 +772,7 @@ End Class
                 Item("M", Glyph.FieldPrivate, indent:=1, hasNavigationSymbolId:=False))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545220)>
         Public Sub [Enum]()
             AssertItemsAre(
                 <Workspace>
@@ -793,7 +793,7 @@ End Enum
                     bolded:=True))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub Events()
             AssertItemsAre(
                 <Workspace>
@@ -843,7 +843,7 @@ End Class
                      hasNavigationSymbolId:=False))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Sub NavigationBetweenFiles()
             AssertNavigationPoint(
                 <Workspace>
@@ -870,7 +870,7 @@ End Class
                 rightItemToSelectText:="TargetMethod")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(566752)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(566752)>
         Public Sub NavigationWithMethodWithLineContinuation()
             AssertNavigationPoint(
                 <Workspace>
@@ -892,7 +892,7 @@ End Class
                 rightItemToSelectText:="SomeNumbers")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(531586)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(531586)>
         Public Sub NavigationWithMethodWithNoTerminator()
             AssertNavigationPoint(
                 <Workspace>
@@ -909,7 +909,7 @@ End Class
                 rightItemToSelectText:="S")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(531586)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(531586)>
         Public Sub NavigationWithMethodWithDocumentationComment()
             AssertNavigationPoint(
                 <Workspace>
@@ -927,7 +927,7 @@ End Class
                 rightItemToSelectText:="S")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(567914)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(567914)>
         Public Sub NavigationWithMethodWithMultipleLineDeclaration()
             AssertNavigationPoint(
                 <Workspace>
@@ -948,7 +948,7 @@ End Class
                 rightItemToSelectText:="S")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
         Public Sub NavigationWithMethodContainingComment()
             AssertNavigationPoint(
                 <Workspace>
@@ -967,7 +967,7 @@ End Class
                 rightItemToSelectText:="S")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
         Public Sub NavigationWithMethodContainingBlankLineWithSpaces()
             AssertNavigationPoint(
                 <Workspace>
@@ -986,7 +986,7 @@ End Class
                 rightItemToSelectText:="S")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
         Public Sub NavigationWithMethodContainingBlankLineWithNoSpaces()
             AssertNavigationPoint(
                 <Workspace>
@@ -1006,7 +1006,7 @@ End Class
                 expectedVirtualSpace:=8)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(605074)>
         Public Sub NavigationWithMethodContainingBlankLineWithSomeSpaces()
             AssertNavigationPoint(
                 <Workspace>

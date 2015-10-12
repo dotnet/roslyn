@@ -182,20 +182,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return this.lexer.Options; }
         }
 
-        /// <summary>
-        /// Interactive code - global statements, member declarations and expressions allowed.
-        /// </summary>
-        public bool IsInteractive
+        public bool IsScript
         {
-            get { return Options.Kind == SourceCodeKind.Interactive; }
-        }
-
-        /// <summary>
-        /// Script or interactive - global statements, member declarations, and expressions allowed.
-        /// </summary>
-        public bool IsScriptOrInteractive
-        {
-            get { return (Options.Kind == SourceCodeKind.Script) || (Options.Kind == SourceCodeKind.Interactive); }
+            get { return Options.Kind == SourceCodeKind.Script; }
         }
 
         protected LexerMode Mode

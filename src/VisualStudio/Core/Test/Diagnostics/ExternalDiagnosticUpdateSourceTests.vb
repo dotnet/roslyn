@@ -16,7 +16,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class ExternalDiagnosticUpdateSourceTests
-        <Fact>
+        <WpfFact>
         Public Sub TestExternalDiagnostics_SupportGetDiagnostics()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim waiter = New Waiter()
@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestExternalDiagnostics_RaiseEvents()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim waiter = New Waiter()
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestExternalDiagnostics_DuplicatedError()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim waiter = New Waiter()
@@ -80,8 +80,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        <Fact>
-        Public Sub TestBuildStartEvent()
+        <WpfFact>
+        Public Async Function TestBuildStartEvent() As Task
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim waiter = New Waiter()
 
@@ -101,20 +101,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                waiter.CreateWaitTask().PumpingWait()
+                Await waiter.CreateWaitTask().ConfigureAwait(True)
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                waiter.CreateWaitTask().PumpingWait()
+                Await waiter.CreateWaitTask().ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
-        <Fact>
+        <WpfFact>
         Public Sub TestExternalBuildErrorCustomTags()
             Assert.Equal(1, ProjectExternalErrorReporter.CustomTags.Count)
             Assert.Equal(WellKnownDiagnosticTags.Telemetry, ProjectExternalErrorReporter.CustomTags(0))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestExternalBuildErrorProperties()
             Assert.Equal(1, ProjectExternalErrorReporter.Properties.Count)
 

@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Sub
 
         <WorkItem(1174405)>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub PrependDollarSign()
             Dim source = "
 Class C
@@ -36,7 +36,7 @@ End Class
         End Sub
 
         <WorkItem(1174405)>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub SymbolsAndPunctuation()
             Dim source = "
 Class C
@@ -47,7 +47,7 @@ End Class
         End Sub
 
         <WorkItem(1174405)>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub IdentifierThatLooksLikeCode()
             Dim source = "
 Class C

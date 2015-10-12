@@ -544,63 +544,63 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         suspendend = false;
 
                         // Create a new cancellation source to allow higher priority requests to suspend our analysis.
-                        cts = new CancellationTokenSource();
-
-                        // Link the cancellation source with client supplied cancellation source, so the public API callee can also cancel analysis.
-                        using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken))
+                        using (cts = new CancellationTokenSource())
                         {
-                            try
+                            // Link the cancellation source with client supplied cancellation source, so the public API callee can also cancel analysis.
+                            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken))
                             {
-                                // Core task to compute analyzer diagnostics.
-                                Func<Tuple<Task, CancellationTokenSource>> getComputeTask = () => Tuple.Create(
-                                    Task.Run(async () =>
-                                    {
-                                        try
+                                try
+                                {
+                                    // Core task to compute analyzer diagnostics.
+                                    Func<Tuple<Task, CancellationTokenSource>> getComputeTask = () => Tuple.Create(
+                                        Task.Run(async () =>
                                         {
-                                            AsyncQueue<CompilationEvent> eventQueue = null;
                                             try
                                             {
+                                                AsyncQueue<CompilationEvent> eventQueue = null;
+                                                try
+                                                {
                                                 // Get event queue with pending events to analyze.
                                                 eventQueue = getEventQueue();
 
                                                 // Execute analyzer driver on the given analysis scope with the given event queue.
                                                 await ComputeAnalyzerDiagnosticsCoreAsync(driver, eventQueue, analysisScope, cancellationToken: linkedCts.Token).ConfigureAwait(false);
+                                                }
+                                                finally
+                                                {
+                                                    FreeEventQueue(eventQueue);
+                                                }
                                             }
-                                            finally
+                                            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                                             {
-                                                FreeEventQueue(eventQueue);
+                                                throw ExceptionUtilities.Unreachable;
                                             }
-                                        }
-                                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                                        {
-                                            throw ExceptionUtilities.Unreachable;
-                                        }
-                                    },
-                                        linkedCts.Token),
-                                    cts);
+                                        },
+                                            linkedCts.Token),
+                                        cts);
 
-                                // Wait for higher priority tree document tasks to complete.
-                                computeTask = await SetActiveAnalysisTaskAsync(getComputeTask, analysisScope.FilterTreeOpt, newTaskToken, cancellationToken).ConfigureAwait(false);
+                                    // Wait for higher priority tree document tasks to complete.
+                                    computeTask = await SetActiveAnalysisTaskAsync(getComputeTask, analysisScope.FilterTreeOpt, newTaskToken, cancellationToken).ConfigureAwait(false);
 
-                                cancellationToken.ThrowIfCancellationRequested();
+                                    cancellationToken.ThrowIfCancellationRequested();
 
-                                await computeTask.ConfigureAwait(false);
-                            }
-                            catch (OperationCanceledException ex)
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-                                if (!cts.IsCancellationRequested)
-                                {
-                                    throw ex;
+                                    await computeTask.ConfigureAwait(false);
                                 }
+                                catch (OperationCanceledException ex)
+                                {
+                                    cancellationToken.ThrowIfCancellationRequested();
+                                    if (!cts.IsCancellationRequested)
+                                    {
+                                        throw ex;
+                                    }
 
-                                suspendend = true;
-                            }
-                            finally
-                            {
-                                ClearExecutingTask(computeTask, analysisScope.FilterTreeOpt);
-                                cts.Dispose();
-                                computeTask = null;
+                                    suspendend = true;
+                                }
+                                finally
+                                {
+                                    ClearExecutingTask(computeTask, analysisScope.FilterTreeOpt);
+                                    computeTask = null;
+                                }
                             }
                         }
                     } while (suspendend);

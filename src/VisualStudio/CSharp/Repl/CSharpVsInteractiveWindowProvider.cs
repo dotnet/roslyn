@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;                      
-using System.ComponentModel.Composition;    
+using System;
+using System.ComponentModel.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Editor.Interactive;
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
 
         protected override string Title
         {
-            // TODO: localize
+            // Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
             get { return "C# Interactive"; }
         }
 

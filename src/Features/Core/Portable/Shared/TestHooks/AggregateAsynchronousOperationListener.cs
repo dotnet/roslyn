@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Roslyn.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
@@ -29,18 +30,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             return new AggregateAsynchronousOperationListener(EmptyListeners, string.Empty);
         }
 
-        public IAsyncToken BeginAsyncOperation(string name, object tag)
+        public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
-            return _listener == null ? AsyncToken.Singleton : _listener.BeginAsyncOperation(name, tag);
-        }
-
-        private class AsyncToken : IAsyncToken
-        {
-            public static readonly AsyncToken Singleton = new AsyncToken();
-
-            public void Dispose()
-            {
-            }
+            return _listener == null ? EmptyAsyncToken.Instance : _listener.BeginAsyncOperation(name, tag, filePath, lineNumber);
         }
     }
 }

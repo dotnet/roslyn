@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 {
     public class FindReferencesCommandHandlerTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.FindReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public void TestFindReferencesSynchronousCall()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines("class C { C() { new C(); } }"))

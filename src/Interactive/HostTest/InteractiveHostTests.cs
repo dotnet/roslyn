@@ -351,13 +351,13 @@ while(true) {}
         [Fact]
         public void AsyncExecuteFile_SourceKind()
         {
-            var file = Temp.CreateFile().WriteAllText("1+1").Path;
+            var file = Temp.CreateFile().WriteAllText("1 1").Path;
             var task = Host.ExecuteFileAsync(file);
             task.Wait();
             Assert.False(task.Result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
-            Assert.True(errorOut.StartsWith(file + "(1,4):", StringComparison.Ordinal), "Error output should start with file name, line and column");
+            Assert.True(errorOut.StartsWith(file + "(1,3):", StringComparison.Ordinal), "Error output should start with file name, line and column");
             Assert.True(errorOut.Contains("CS1002"), "Error output should include error CS1002");
         }
 
@@ -841,11 +841,15 @@ new D().Y
             CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
             var rspFile = Temp.CreateFile();
             rspFile.WriteAllText("/rp:" + directory.Path);
-            var task = Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture));
-            task.Wait();
+
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
             Execute(
 $@"#r ""{assemblyName}.dll""
 typeof(C).Assembly.GetName()");
+
+            Assert.Equal("", ReadErrorOutputToEnd());
+
             var output = SplitLines(ReadOutputToEnd());
             Assert.Equal(2, output.Length);
             Assert.Equal("Loading context from '" + Path.GetFileName(rspFile.Path) + "'.", output[0]);

@@ -2827,7 +2827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scriptInitializer = new SynthesizedInteractiveInitializerMethod(this, diagnostics);
                 members.Add(scriptInitializer);
-                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(this, scriptInitializer.ReturnType, diagnostics);
+                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics);
                 members.Add(scriptEntryPoint);
             }
         }

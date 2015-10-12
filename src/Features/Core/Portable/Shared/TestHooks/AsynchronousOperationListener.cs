@@ -4,41 +4,47 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
         private readonly object _gate = new object();
-
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
-
+        private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
         private bool _trackActiveTokens;
-        private HashSet<DiagnosticAsyncToken> _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
 
         public AsynchronousOperationListener()
         {
-            _trackActiveTokens = Debugger.IsAttached;
+            TrackActiveTokens = Debugger.IsAttached;
+
+            // TODO: debugging only
+            TrackActiveTokens = true;
         }
 
-        public IAsyncToken BeginAsyncOperation(string name, object tag = null)
+        public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
             lock (_gate)
             {
+                IAsyncToken asyncToken;
                 if (_trackActiveTokens)
                 {
-                    var token = new DiagnosticAsyncToken(this, name, tag);
-                    _activeDiagnosticTokens.Add(token);
-                    return token;
+                    var token = new DiagnosticAsyncToken(this, name, tag, filePath, lineNumber);
+                    _diagnosticTokenList.Add(token);
+                    asyncToken = token;
                 }
                 else
                 {
-                    return new AsyncToken(this);
+                    asyncToken = new AsyncToken(this);
                 }
+
+                return asyncToken;
             }
         }
 
@@ -67,12 +73,21 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
                 if (_trackActiveTokens)
                 {
-                    var diagnosticAsyncToken = token as DiagnosticAsyncToken;
-
-                    if (diagnosticAsyncToken != null)
+                    int i = 0;
+                    bool removed = false;
+                    while (i < _diagnosticTokenList.Count)
                     {
-                        _activeDiagnosticTokens.Remove(diagnosticAsyncToken);
+                        if (_diagnosticTokenList[i] == token)
+                        {
+                            _diagnosticTokenList.RemoveAt(i);
+                            removed = true;
+                            break;
+                        }
+
+                        i++;
                     }
+
+                    Debug.Assert(removed, "IAsyncToken and Listener mismatch");
                 }
             }
         }
@@ -98,11 +113,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         public bool TrackActiveTokens
         {
-            get
-            {
-                return _trackActiveTokens;
-            }
-
+            get { return _trackActiveTokens; }
             set
             {
                 lock (_gate)
@@ -113,15 +124,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _trackActiveTokens = value;
-
-                    if (_trackActiveTokens)
-                    {
-                        _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
-                    }
-                    else
-                    {
-                        _activeDiagnosticTokens = null;
-                    }
+                    _diagnosticTokenList = _trackActiveTokens ? new List<DiagnosticAsyncToken>() : null;
                 }
             }
         }
@@ -140,12 +143,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             {
                 lock (_gate)
                 {
-                    if (_activeDiagnosticTokens == null)
+                    if (_diagnosticTokenList == null)
                     {
                         return ImmutableArray<DiagnosticAsyncToken>.Empty;
                     }
 
-                    return _activeDiagnosticTokens.ToImmutableArray();
+                    return _diagnosticTokenList.ToImmutableArray();
                 }
             }
         }

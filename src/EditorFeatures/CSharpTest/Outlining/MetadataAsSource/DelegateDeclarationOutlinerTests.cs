@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
             return outliner.GetOutliningSpans(node, CancellationToken.None).WhereNotNull();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void NoCommentsOrAttributes()
         {
             var tree = ParseCode(@"public delegate TResult Blah<in T, out TResult>(T arg);");
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
             Assert.Empty(GetRegions(delegateDecl));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void WithAttributes()
         {
             var tree = ParseCode(
@@ -49,7 +49,7 @@ public delegate TResult Blah<in T, out TResult>(T arg);");
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void WithCommentsAndAttributes()
         {
             var tree = ParseCode(
@@ -69,7 +69,7 @@ delegate TResult Blah<in T, out TResult>(T arg);");
             AssertRegion(expectedRegion, actualRegion);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void WithCommentsAttributesAndModifiers()
         {
             var tree = ParseCode(

@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateDefaultConstruc
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            // NOTE(DustinCa): Not supported in REPL for now.
-            if (document.SourceCodeKind == SourceCodeKind.Interactive)
+            // TODO: https://github.com/dotnet/roslyn/issues/5778
+            // Not supported in REPL for now.
+            if (document.Project.IsSubmission)
             {
                 return;
             }

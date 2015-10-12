@@ -2,11 +2,16 @@
 
 Imports System.ComponentModel.Composition.Hosting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class RaiseEventStatementSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
+
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
 
         Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
             Return New RaiseEventStatementSignatureHelpProvider()
@@ -14,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
 
 #Region "Regular tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestRaiseEvent()
             Dim markup = <a><![CDATA[
 Class C
@@ -33,7 +38,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestRaiseEvent_NoDerivedEvents()
             Dim markup = <a><![CDATA[
 Class B
@@ -57,7 +62,7 @@ End Class
         End Sub
 
         <WorkItem(543558)>
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestRaiseEvent_Shared()
             Dim markup = <a><![CDATA[
 Class C
@@ -76,7 +81,7 @@ End Class
             Test(markup, expectedOrderedItems)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub TestRaiseEvent_NoInstanceInSharedContext()
             Dim markup = <a><![CDATA[
 Class C

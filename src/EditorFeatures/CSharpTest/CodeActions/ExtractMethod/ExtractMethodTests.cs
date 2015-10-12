@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
         }
 
         [WorkItem(540799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestPartialSelection()
         {
             Test(
@@ -24,7 +24,7 @@ index: 0);
         }
 
         [WorkItem(540796)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestReadOfDataThatDoesNotFlowIn()
         {
             Test(
@@ -34,14 +34,14 @@ index: 0);
         }
 
         [WorkItem(540819)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestMissingOnGoto()
         {
             TestMissing(@"delegate int del ( int i ) ; class C { static void Main ( string [ ] args ) { del q = x => { [|goto label2 ; return x * x ;|] } ; label2 : return ; } } ");
         }
 
         [WorkItem(540819)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestOnStatementAfterUnconditionalGoto()
         {
             Test(
@@ -50,7 +50,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestMissingOnNamespace()
         {
             Test(
@@ -58,7 +58,7 @@ index: 0);
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestMissingOnType()
         {
             Test(
@@ -66,7 +66,7 @@ index: 0);
 @"class Program { void Main ( ) { {|Rename:NewMethod|} ( ) ; } private static void NewMethod ( ) { System . Console . WriteLine ( 4 ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestMissingOnBase()
         {
             Test(
@@ -75,7 +75,7 @@ index: 0);
         }
 
         [WorkItem(545623)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void TestOnActionInvocation()
         {
             Test(
@@ -84,7 +84,7 @@ index: 0);
         }
 
         [WorkItem(529841), WorkItem(714632)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void DisambiguateCallSiteIfNecessary1()
         {
             Test(
@@ -125,7 +125,7 @@ compareTokens: false);
         }
 
         [WorkItem(529841), WorkItem(714632)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void DisambiguateCallSiteIfNecessary2()
         {
             Test(
@@ -167,7 +167,7 @@ compareTokens: false);
 
         [WorkItem(530709)]
         [WorkItem(632182)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void DontOverparenthesize()
         {
             Test(
@@ -228,7 +228,7 @@ parseOptions: Options.Regular);
         }
 
         [WorkItem(632182)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void DontOverparenthesizeGenerics()
         {
             Test(
@@ -289,7 +289,7 @@ parseOptions: Options.Regular);
         }
 
         [WorkItem(984831)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void PreserveCommentsBeforeDeclaration_1()
         {
             Test(
@@ -333,7 +333,7 @@ compareTokens: false);
         }
 
         [WorkItem(984831)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void PreserveCommentsBeforeDeclaration_2()
         {
             Test(
@@ -385,7 +385,7 @@ compareTokens: false);
         }
 
         [WorkItem(984831)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)]
         public void PreserveCommentsBeforeDeclaration_3()
         {
             Test(
