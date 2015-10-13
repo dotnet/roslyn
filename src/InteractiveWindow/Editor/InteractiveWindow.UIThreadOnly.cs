@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
+using Roslyn.Utilities;                                       
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private int _currentOutputProjectionSpan;
             private int _outputTrackingCaretPosition = -1;
 
-            private readonly IRtfBuilderService _rtfBuilderService;
+            private readonly IRtfBuilderService2 _rtfBuilderService;
 
             // Read-only regions protecting initial span of the corresponding buffers:
             private readonly IReadOnlyRegion[] _standardInputProtection = new IReadOnlyRegion[2];
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _factory = factory;
-                _rtfBuilderService = rtfBuilderService;
+                _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
                 _smartIndenterService = smartIndenterService;
                 Evaluator = evaluator;
@@ -2512,7 +2512,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var text = GetText(spans);
                 var blocks = GetTextBlocks(spans);
-                var rtf = ((IRtfBuilderService2)_rtfBuilderService).GenerateRtf(spans, CancellationToken.None);
+                var rtf = _rtfBuilderService.GenerateRtf(spans, CancellationToken.None);
                 var data = new DataObject();
                 data.SetData(DataFormats.StringFormat, text);
                 data.SetData(DataFormats.Text, text);
