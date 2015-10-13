@@ -3168,7 +3168,7 @@ static class Test
     static async Task M1();
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,23): error CS1994: The 'async' modifier can only be used in methods that have a statement body
+                // (6,23): error CS1994: The 'async' modifier can only be used in methods that have a body
                 //     static async Task M1();
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
         }
@@ -3184,7 +3184,7 @@ static class Test
     static async Task M1(__arglist);
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (6,23): error CS1994: The 'async' modifier can only be used in methods that have a statement body
+                // (6,23): error CS1994: The 'async' modifier can only be used in methods that have a body
                 //     static async Task M1(__arglist);
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
         }
@@ -3476,7 +3476,7 @@ class Test
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (4,32): error CS1994: The 'async' modifier can only be used in methods that have a statement body.
+                // (4,32): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     public async abstract void M1();
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1"));
         }
