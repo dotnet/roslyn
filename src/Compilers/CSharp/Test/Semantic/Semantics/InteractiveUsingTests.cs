@@ -176,7 +176,7 @@ using J = I;
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         public void AliasHiding()
         {
             var sub1 = CreateSubmission("using A = System.Int32; typeof(A)");
@@ -485,7 +485,7 @@ t = typeof(File); // global using exposed
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         public void ConsumePreviousSubmissionUsings_Valid()
         {
             const string libSource = @"
