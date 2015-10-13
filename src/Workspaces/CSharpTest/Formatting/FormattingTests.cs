@@ -6387,6 +6387,7 @@ class Program
             AssertFormat(expected, code, changedOptionSet: changingOptions);
         }
 
+        [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
         {
@@ -6404,6 +6405,29 @@ class Program
 	{
 		return // Note the missing semicolon
 	} // The tab here should stay a tab
+}", changedOptionSet: optionSet);
+        }
+
+        [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormattingCodeWithMissingTokensShouldRespectFormatTabsOption2()
+        {
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+
+            AssertFormat(@"struct Foo
+{
+	private readonly string bar;
+
+	public Foo(readonly string bar)
+	{
+	}
+}", @"struct Foo
+{
+	private readonly string bar;
+
+	public Foo(readonly string bar)
+	{
+	}
 }", changedOptionSet: optionSet);
         }
 

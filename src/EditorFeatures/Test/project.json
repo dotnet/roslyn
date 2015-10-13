@@ -1,4 +1,4 @@
-{
+﻿{
   "dependencies": {
     "BasicUndo": "0.9.3",
     "Microsoft.Composition": "1.0.27",
@@ -9,12 +9,13 @@
     "System.Runtime": "4.0.20",
     "System.Runtime.Extensions": "4.0.10",
     "System.Threading": "4.0.10",
-    "xunit": "2.1.0-beta4-build3109"
+    "xunit": "2.1.0",
+    "xunit.runner.console": "2.1.0"
   },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   },
   "runtimes": {
-    "win7-anycpu": { }
+    "win7-anycpu": {}
   }
 }

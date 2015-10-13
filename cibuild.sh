@@ -10,7 +10,7 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
-XUNIT_VERSION=2.1.0-beta4-build3109
+XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
@@ -59,7 +59,7 @@ done
 restore_nuget()
 {
 
-    local package_name="nuget.20.zip"
+    local package_name="nuget.21.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
