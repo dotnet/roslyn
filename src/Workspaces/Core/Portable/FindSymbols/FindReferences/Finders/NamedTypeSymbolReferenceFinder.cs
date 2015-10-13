@@ -20,14 +20,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return symbol.TypeKind != TypeKind.Error;
         }
 
-        protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
+        protected override Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
             INamedTypeSymbol symbol,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             List<ISymbol> result = null;
-
             if (symbol.AssociatedSymbol != null)
             {
                 result = Add(result, SpecializedCollections.SingletonEnumerable(symbol.AssociatedSymbol));
@@ -39,24 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             // cascade to destructor
             result = Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
 
-            result = Add(result, await DetermineLanguageCascadedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false));
-
-            return result ?? SpecializedCollections.EmptyList<ISymbol>();
-        }
-
-        private async Task<IEnumerable<ISymbol>> DetermineLanguageCascadedSymbolsAsync(INamedTypeSymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            var definitionProject = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-            if (definitionProject != null)
-            {
-                var referenceFinder = definitionProject.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
-                if (referenceFinder != null)
-                {
-                    return await referenceFinder.DetermineCascadedSymbolsAsync(symbol, definitionProject, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            return null;
+            return Task.FromResult<IEnumerable<ISymbol>>(result ?? SpecializedCollections.EmptyList<ISymbol>());
         }
 
         private List<ISymbol> Add(List<ISymbol> result, IEnumerable<ISymbol> enumerable)

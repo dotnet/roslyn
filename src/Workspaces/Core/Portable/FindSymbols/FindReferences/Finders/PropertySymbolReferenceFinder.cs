@@ -38,17 +38,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 result = result.Concat(symbol.SetMethod);
             }
 
-            var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
-            var service = project?.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
-            if (service != null)
-            {
-                var languageCascades = await service.DetermineCascadedSymbolsAsync(symbol, project, cancellationToken).ConfigureAwait(false);
-                if (languageCascades != null)
-                {
-                    result = result.Concat(languageCascades);
-                }
-            }
-
             return result;
         }
 
