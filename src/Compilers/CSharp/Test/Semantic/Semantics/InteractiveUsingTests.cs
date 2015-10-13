@@ -485,7 +485,6 @@ namespace NOuter
             CSharpCompilation prev = null;
             foreach (var submission in submissions)
             {
-                System.Console.WriteLine(submission);
                 var curr = CreateSubmission(submission, refs, previous: prev);
                 curr.VerifyDiagnostics();
                 prev = curr;
