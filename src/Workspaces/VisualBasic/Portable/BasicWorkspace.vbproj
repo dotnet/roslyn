@@ -151,6 +151,7 @@
     <Compile Include="Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="Extensions\TypeSyntaxGeneratorVisitor.vb" />
     <Compile Include="Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="FindSymbols\VisualBasicReferenceFinder.vb" />
     <Compile Include="Formatting\DefaultOperationProvider.vb" />
     <Compile Include="Formatting\Engine\AggregatedFormattingResult.vb" />
     <Compile Include="Formatting\Engine\FormattingResult.vb" />
