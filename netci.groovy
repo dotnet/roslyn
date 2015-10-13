@@ -125,8 +125,8 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
           'allowMembersOfWhitelistedOrgsAsAdmin'(true)
           'permitAll'(true)
           'extensions' {
-            'commitStatus' {
-              'context'(contextName.replace('_', '/').substring(7))
+            'org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus' {
+              'commitStatusContext'(contextName.replace('_', '/').substring(7))
             }
           }
         }
