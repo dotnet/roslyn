@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PortableTestUtils;
 
 using System;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
+using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp.UnitTests
 {
@@ -52,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp.UnitTests
         public void ReferenceSearchPaths_Sdk()
         {
             var cwd = Temp.CreateDirectory();
-            cwd.CreateFile("a.csx").WriteAllText(@"Console.Write(typeof(Data.DataSet).Name);");
+            cwd.CreateFile("a.csx").WriteAllText(@"Console.Write(typeof(DataSet).Name);");
 
-            var result = ProcessUtilities.Run(CsiPath, "/r:System.Data.dll a.csx", workingDirectory: cwd.Path);
+            var result = ProcessUtilities.Run(CsiPath, "/r:System.Data.dll /u:System.Data;System a.csx", workingDirectory: cwd.Path);
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("DataSet", result.Output);
             Assert.False(result.ContainsErrors);

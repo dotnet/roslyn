@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
     {
         internal CSharpInteractiveCompiler(string responseFile, string baseDirectory, string sdkDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, AppContext.BaseDirectory, baseDirectory, sdkDirectory, null, analyzerLoader)
+            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, AppContext.BaseDirectory, baseDirectory, sdkDirectory, null, analyzerLoader)
         {
         }
 

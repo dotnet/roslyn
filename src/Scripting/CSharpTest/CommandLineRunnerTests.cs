@@ -117,8 +117,8 @@ Attempted to divide by zero.
         public void Args_Interactive1()
         {
             var runner = CreateRunner(
-                args: new[] { "-", "arg1", "arg2", "arg3" },
-                input: "foreach (var arg in Args) Print(arg);");
+                args: new[] { "-i" },
+                input: "1+1");
 
             runner.RunInteractive();
 
@@ -127,10 +127,8 @@ $@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
-> foreach (var arg in Args) Print(arg);
-""arg1""
-""arg2""
-""arg3""
+> 1+1
+2
 > ", runner.Console.Out.ToString());
         }
 
@@ -138,78 +136,46 @@ Type ""#help"" for more information.
         public void Args_Interactive2()
         {
             var runner = CreateRunner(
-                args: new[] { "/u:System", "-", "--", "@arg1", "/arg2", "-arg3", "--arg4" },
+                args: new[] { "/u:System", "/i", "--", "@arg1", "/arg2", "-arg3", "--arg4" },
                 input: "foreach (var arg in Args) Print(arg);");
 
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
-> foreach (var arg in Args) Print(arg);
-""--""
-""@arg1""
-""/arg2""
-""-arg3""
-""--arg4""
-> ", runner.Console.Out.ToString());
+                $@"error CS2001: Source file '{Path.Combine(AppContext.BaseDirectory, "@arg1")}' could not be found.", 
+                runner.Console.Out.ToString());
         }
 
         [Fact]
-        public void Args_Interactive3()
+        public void Args_InteractiveWithScript1()
         {
-            var runner = CreateRunner(
-                args: new[] { "/u:System", "--", "-", "-", "@arg1", "/arg2", "-arg3", "--arg4" },
-                input: "foreach (var arg in Args) Print(arg);");
+            var script = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
 
-            runner.RunInteractive();
-
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
-> foreach (var arg in Args) Print(arg);
-""-""
-""@arg1""
-""/arg2""
-""-arg3""
-""--arg4""
-> ", runner.Console.Out.ToString());
-        }
-
-        [Fact]
-        public void Args_Interactive4()
-        {
-            var rsp = Temp.CreateFile(extension: ".rsp").WriteAllText(@"
+            var rsp = Temp.CreateFile(extension: ".rsp").WriteAllText($@"
 /u:System
--
+/i
+""{script.Path}""
 @arg1
 /arg2
 -arg3
 --arg4");
 
             var runner = CreateRunner(
-                args: new[] { $"@{rsp.Path}", "/arg5", "--", "/arg7" },
-                input: "foreach (var arg in Args) Print(arg);");
+                args: new[] { $@"@""{rsp.Path}""", "/arg5", "--", "/arg7" },
+                input: "1");
 
             runner.RunInteractive();
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-Type ""#help"" for more information.
-> foreach (var arg in Args) Print(arg);
-""@arg1""
+$@"""@arg1""
 ""/arg2""
 ""-arg3""
 ""--arg4""
 ""/arg5""
 ""--""
 ""/arg7""
+> 1
+1
 > ", runner.Console.Out.ToString());
         }
 
@@ -339,12 +305,13 @@ error CS2001: Source file '{Path.Combine(AppContext.BaseDirectory, "a + b")}' co
 $@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
-Usage: csi [options] [script-file.csx | -] [script-arguments]
+Usage: csi [option] ... [script-file.csx] [script-argument] ...
 
-If script-file.csx is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+Executes script-file.csx if specified, otherwise launches an interactive REPL (Read Eval Print Loop).
 
 Options:
   /help                          Display this usage message (alternative form: /?)
+  /i                             Drop to REPL after executing the specified script.
   /r:<file>                      Reference metadata from the specified assembly file (alternative form: /reference)
   /r:<file list>                 Reference metadata from the specified assembly files (alternative form: /reference)
   /lib:<path list>               List of directories where to look for libraries specified by #r directive. 

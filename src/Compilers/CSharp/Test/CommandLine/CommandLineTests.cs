@@ -79,6 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
+        private static CSharpCommandLineArguments ScriptParse(IEnumerable<string> args, string baseDirectory)
+        {
+            return CSharpCommandLineParser.ScriptRunner.Parse(args, baseDirectory, s_defaultSdkDirectory);
+        }
+
         private static CSharpCommandLineArguments FullParse(string commandLine, string baseDirectory, string sdkDirectory = null, string additionalReferenceDirectories = null)
         {
             sdkDirectory = sdkDirectory ?? s_defaultSdkDirectory;
@@ -157,7 +162,7 @@ d.cs
 
             var args = parser.Parse(new[] { "first.cs", "second.cs", "@a.rsp", "last.cs" }, basePath, s_defaultSdkDirectory);
             args.Errors.Verify();
-            Assert.False(args.IsInteractive);
+            Assert.False(args.IsScriptRunner);
 
             string[] resolvedSourceFiles = args.SourceFiles.Select(f => f.Path).ToArray();
             string[] references = args.MetadataReferences.Select(r => r.Reference).ToArray();
@@ -934,32 +939,32 @@ d.cs
         [Fact]
         public void ArgumentParsing()
         {
-            var parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "a + b" }, _baseDirectory, s_defaultSdkDirectory);
+            var parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "a + b" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "a + b; c" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "a + b; c" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/help" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/help" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(true, parsedArgs.DisplayHelp);
             Assert.Equal(false, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/?" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/?" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(true, parsedArgs.DisplayHelp);
             Assert.Equal(false, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "c.csx  /langversion:6" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c.csx  /langversion:6" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/langversion:-1", "c.csx", }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/langversion:-1", "c.csx", }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/langversion:-1'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:-1"));
@@ -967,12 +972,12 @@ d.cs
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(1, parsedArgs.SourceFiles.Length);
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "c.csx  /r:s=d /r:d.dll" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c.csx  /r:s=d /r:d.dll" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "@roslyn_test_non_existing_file" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "@roslyn_test_non_existing_file" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2011: Error opening response file 'D:\R0\Main\Binaries\Debug\dd'
                 Diagnostic(ErrorCode.ERR_OpenResponseFile).WithArguments(Path.Combine(_baseDirectory, @"roslyn_test_non_existing_file")));
@@ -980,34 +985,34 @@ d.cs
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(false, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "c /define:DEBUG" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "c /define:DEBUG" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "\\" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "\\" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/r:d.dll", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/r:d.dll", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/define:foo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/define:foo", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2007: Unrecognized option: '/define:foo'
                 Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/define:foo"));
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "\"/r d.dll\"" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "\"/r d.dll\"" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new[] { "/r: d.dll", "a.cs" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/r: d.dll", "a.cs" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.DisplayHelp);
             Assert.Equal(true, parsedArgs.SourceFiles.Any());
@@ -3258,19 +3263,19 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         {
             CSharpCommandLineArguments parsedArgs;
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new string[] { "/u:Foo.Bar" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Foo.Bar" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             AssertEx.Equal(new[] { "Foo.Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new string[] { "/u:Foo.Bar;Baz", "/using:System.Core;System" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Foo.Bar;Baz", "/using:System.Core;System" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             AssertEx.Equal(new[] { "Foo.Bar", "Baz", "System.Core", "System" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new string[] { "/u:Foo;;Bar" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:Foo;;Bar" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             AssertEx.Equal(new[] { "Foo", "Bar" }, parsedArgs.CompilationOptions.Usings.AsEnumerable());
 
-            parsedArgs = CSharpCommandLineParser.Interactive.Parse(new string[] { "/u:" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new string[] { "/u:" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2006: Command-line syntax error: Missing '<namespace>' for '/u:' option
                 Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<namespace>", "/u:"));
@@ -7819,6 +7824,50 @@ class C {
             Assert.Equal(
                 new[] { @"a,;s.dll", @"b,;s.dll" },
                 args.MetadataReferences.Select(x => x.Reference));
+        }
+
+        [Fact]
+        public void CommandLine_ScriptRunner1()
+        {
+            var args = ScriptParse(new[] { "--", "script.csx", "b", "c" }, baseDirectory: @"C:\");
+            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "--", "@script.csx", "b", "c" }, baseDirectory: @"C:\");
+            AssertEx.Equal(new[] { @"C:\@script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "--", "-script.csx", "b", "c" }, baseDirectory: @"C:\");
+            AssertEx.Equal(new[] { @"C:\-script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "script.csx", "--", "b", "c" }, baseDirectory: @"C:\");
+            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "--", "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "script.csx", "a", "b", "c" }, baseDirectory: @"C:\");
+            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "a", "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "script.csx", "a", "--", "b", "c" }, baseDirectory: @"C:\");
+            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "a", "--", "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "-i", "script.csx", "a", "b", "c" }, baseDirectory: @"C:\");
+            Assert.True(args.InteractiveMode);
+            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "a", "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "-i", "--", "script.csx", "a", "b", "c" }, baseDirectory: @"C:\");
+            Assert.True(args.InteractiveMode);
+            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { "a", "b", "c" }, args.ScriptArguments);
+
+            args = ScriptParse(new[] { "-i", "--", "--", "--" }, baseDirectory: @"C:\");
+            Assert.True(args.InteractiveMode);
+            AssertEx.Equal(new[] { @"C:\--" }, args.SourceFiles.Select(f => f.Path));
+            Assert.True(args.SourceFiles[0].IsScript);
+            AssertEx.Equal(new[] { "--" }, args.ScriptArguments);
         }
 
         [WorkItem(1211823, "DevDiv")]

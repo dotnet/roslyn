@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
             Dim flattenedArgs As List(Of String) = New List(Of String)()
-            Dim scriptArgs As List(Of String) = If(IsInteractive, New List(Of String)(), Nothing)
+            Dim scriptArgs As List(Of String) = If(IsScriptRunner, New List(Of String)(), Nothing)
 
             ' normalized paths to directories containing response files:
             Dim responsePaths As New List(Of String)
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
-            If Not IsInteractive Then
+            If Not IsScriptRunner Then
                 For Each arg In flattenedArgs
                     Dim name As String = Nothing
                     Dim value As String = Nothing
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
                 End Select
 
-                If IsInteractive Then
+                If IsScriptRunner Then
                     Select Case name
                         Case "loadpath", "loadpaths"
                             If String.IsNullOrEmpty(value) Then
@@ -1095,7 +1095,7 @@ lVbRuntimePlus:
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            If Not IsInteractive AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
+            If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
                 ' VB displays help when there is nothing specified on the command line
                 If flattenedArgs.Any Then
                     AddDiagnostic(diagnostics, ERRID.ERR_NoSources)
@@ -1173,7 +1173,7 @@ lVbRuntimePlus:
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
-            If Not IsInteractive AndAlso
+            If Not IsScriptRunner AndAlso
                 Not hasSourceFiles AndAlso
                 Not managedResources.IsEmpty() AndAlso
                 outputFileName = Nothing AndAlso
@@ -1241,7 +1241,7 @@ lVbRuntimePlus:
 
             Return New VisualBasicCommandLineArguments With
             {
-                .IsInteractive = IsInteractive,
+                .IsScriptRunner = IsScriptRunner,
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
                 .Utf8Output = utf8output,
@@ -1267,7 +1267,7 @@ lVbRuntimePlus:
                 .DisplayHelp = displayHelp,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
-                .ParseOptions = If(IsInteractive, scriptParseOptions, parseOptions),
+                .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),
                 .EmitOptions = emitOptions,
                 .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
@@ -2090,7 +2090,7 @@ lVbRuntimePlus:
             End If
 
             If kind.IsNetModule() Then
-                Debug.Assert(Not IsInteractive)
+                Debug.Assert(Not IsScriptRunner)
 
                 compilationName = moduleAssemblyName
             Else

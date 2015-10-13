@@ -68,13 +68,18 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         private int RunInteractiveCore(ErrorLogger errorLogger)
         {
-            Debug.Assert(_compiler.Arguments.IsInteractive);
+            Debug.Assert(_compiler.Arguments.IsScriptRunner);
 
             var sourceFiles = _compiler.Arguments.SourceFiles;
 
             if (sourceFiles.IsEmpty && _compiler.Arguments.DisplayLogo)
             {
                 _compiler.PrintLogo(_console.Out);
+
+                if (!_compiler.Arguments.DisplayHelp)
+                {
+                    _console.Out.WriteLine(ScriptingResources.HelpPrompt);
+                }
             }
 
             if (_compiler.Arguments.DisplayHelp)
@@ -110,9 +115,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             var cancellationToken = new CancellationToken();
 
-            if (scriptPathOpt == null)
+            if (_compiler.Arguments.InteractiveMode)
             {
-                RunInteractiveLoop(scriptOptions, cancellationToken);
+                RunInteractiveLoop(scriptOptions, code?.ToString(), cancellationToken);
                 return CommonCompiler.Succeeded;
             }
             else
@@ -143,8 +148,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: importedNamespaces,
                 metadataResolver: metadataResolver,
-                sourceResolver: sourceResolver,
-                isInteractive: scriptPathOpt == null);
+                sourceResolver: sourceResolver);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
@@ -185,14 +189,20 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private void RunInteractiveLoop(ScriptOptions options, CancellationToken cancellationToken)
+        private void RunInteractiveLoop(ScriptOptions options, string initialScriptCodeOpt, CancellationToken cancellationToken)
         {
-            _console.Out.WriteLine(ScriptingResources.HelpPrompt);
-
             var globals = new InteractiveScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            ScriptState <object> state = null;
+            ScriptState<object> state = null;
+
+            if (initialScriptCodeOpt != null)
+            {
+                var script = Script.CreateInitialScript<object>(_scriptCompiler, initialScriptCodeOpt, options, globals.GetType(), assemblyLoaderOpt: null);
+
+                Compilation compilation;
+                TryBuildAndRun(script, globals, ref state, out compilation, cancellationToken);
+            }
 
             while (true)
             {
@@ -249,32 +259,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     newScript = state.Script.ContinueWith(code, options);
                 }
 
-                var newCompilation = newScript.GetCompilation();
-
-                try
+                Compilation newCompilation;
+                if (!TryBuildAndRun(newScript, globals, ref state, out newCompilation, cancellationToken))
                 {
-                    newScript.Build(cancellationToken);
-
-                    // display warnings:
-                    DisplayDiagnostics(newCompilation.GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Warning));
-                }
-                catch (CompilationErrorException e)
-                {
-                    DisplayDiagnostics(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
-                    continue;
-                }
-
-                try
-                {
-                    var task = (state == null) ?
-                        newScript.RunAsync(globals, cancellationToken) :
-                        newScript.ContinueAsync(state, cancellationToken);
-
-                    state = task.GetAwaiter().GetResult();
-                }
-                catch (Exception e)
-                {
-                    DisplayException(e);
                     continue;
                 }
 
@@ -292,6 +279,40 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     }
                 }
             }
+        }
+
+        private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, out Compilation newCompilation, CancellationToken cancellationToken)
+        {
+            newCompilation = newScript.GetCompilation();
+
+            try
+            {
+                newScript.Build(cancellationToken);
+
+                // display warnings:
+                DisplayDiagnostics(newCompilation.GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Warning));
+            }
+            catch (CompilationErrorException e)
+            {
+                DisplayDiagnostics(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
+                return false;
+            }
+
+            try
+            {
+                var task = (state == null) ?
+                    newScript.RunAsync(globals, cancellationToken) :
+                    newScript.ContinueAsync(state, cancellationToken);
+
+                state = task.GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                DisplayException(e);
+                return false;
+            }
+
+            return true;
         }
 
         private void DisplayException(Exception e)

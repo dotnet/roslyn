@@ -17,24 +17,19 @@ namespace Microsoft.CodeAnalysis
     public abstract class CommandLineParser
     {
         private readonly CommonMessageProvider _messageProvider;
-        private readonly bool _isInteractive;
+        internal readonly bool IsScriptRunner;
         private static readonly char[] s_searchPatternTrimChars = new char[] { '\t', '\n', '\v', '\f', '\r', ' ', '\x0085', '\x00a0' };
 
         internal CommandLineParser(CommonMessageProvider messageProvider, bool isInteractive)
         {
             Debug.Assert(messageProvider != null);
             _messageProvider = messageProvider;
-            _isInteractive = isInteractive;
+            IsScriptRunner = isInteractive;
         }
 
         internal CommonMessageProvider MessageProvider
         {
             get { return _messageProvider; }
-        }
-
-        public bool IsInteractive
-        {
-            get { return _isInteractive; }
         }
 
         protected abstract string RegularFileExtension { get; }
@@ -297,27 +292,16 @@ namespace Microsoft.CodeAnalysis
                 {
                     // The order of the following two checks matters.
                     //
-                    // Command line:               Script/REPL:    Script args:
+                    // Command line:               Script:    Script args:
                     //   csi -- script.csx a b c   script.csx      ["a", "b", "c"]
                     //   csi script.csx -- a b c   script.csx      ["--", "a", "b", "c"]
-                    //   csi script.csx - a b c    script.csx      ["-", "a", "b", "c"]
                     //   csi -- @script.csx a b c  @script.csx     ["a", "b", "c"]
-                    //   csi - a b c               REPL            ["a", "b", "c"]
-                    //   csi -- - a b c            REPL            ["a", "b", "c"]
-                    //   csi - -- a b c            REPL            ["--", "a", "b", "c"]
                     //
                     if (sourceFileSeen)
                     {
                         // csi/vbi: at most one script can be specified on command line, anything else is a script arg:
                         parsingScriptArgs = true;
                         scriptArgsOpt.Add(arg);
-                        continue;
-                    }
-
-                    if (arg == "-")
-                    {
-                        // csi/vbi: "-" indicates REPL, the following arguments are accessible thru Args global
-                        parsingScriptArgs = true;
                         continue;
                     }
 
@@ -871,7 +855,7 @@ namespace Microsoft.CodeAnalysis
             string extension = PathUtilities.GetExtension(resolvedPath);
 
             bool isScriptFile;
-            if (IsInteractive)
+            if (IsScriptRunner)
             {
                 isScriptFile = !string.Equals(extension, RegularFileExtension, StringComparison.OrdinalIgnoreCase);
             }
@@ -887,7 +871,7 @@ namespace Microsoft.CodeAnalysis
 
         internal IEnumerable<CommandLineSourceFile> ParseFileArgument(string arg, string baseDirectory, IList<Diagnostic> errors)
         {
-            Debug.Assert(IsInteractive || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
+            Debug.Assert(IsScriptRunner || !arg.StartsWith("-", StringComparison.Ordinal) && !arg.StartsWith("@", StringComparison.Ordinal));
 
             // We remove all doubles quotes from a file name. So that, for example:
             //   "Path With Spaces"\foo.cs

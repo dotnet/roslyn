@@ -7,12 +7,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -20,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
 
-        public static CSharpCommandLineParser Interactive { get; } = new CSharpCommandLineParser(isInteractive: true);
+        internal static CSharpCommandLineParser ScriptRunner { get; } = new CSharpCommandLineParser(scriptRunner: true);
 
-        internal CSharpCommandLineParser(bool isInteractive = false)
-            : base(CSharp.MessageProvider.Instance, isInteractive)
+        internal CSharpCommandLineParser(bool scriptRunner = false)
+            : base(CSharp.MessageProvider.Instance, scriptRunner)
         {
         }
 
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             List<Diagnostic> diagnostics = new List<Diagnostic>();
             List<string> flattenedArgs = new List<string>();
-            List<string> scriptArgs = IsInteractive ? new List<string>() : null;
+            List<string> scriptArgs = IsScriptRunner ? new List<string>() : null;
             FlattenArgs(args, diagnostics, flattenedArgs, scriptArgs, baseDirectory);
 
             string appConfigPath = null;
@@ -114,10 +112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             string touchedFilesPath = null;
             var sqmSessionGuid = Guid.Empty;
             bool optionsEnded = false;
+            bool interactiveMode = false;
 
             // Process ruleset files first so that diagnostic severity settings specified on the command line via
             // /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
-            if (!IsInteractive)
+            if (!IsScriptRunner)
             {
                 foreach (string arg in flattenedArgs)
                 {
@@ -190,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 }
 
-                if (IsInteractive)
+                if (IsScriptRunner)
                 {
                     switch (name)
                     {
@@ -199,6 +198,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // Indicates that the remaining arguments should not be treated as options.
                             optionsEnded = true;
+                            continue;
+
+                        case "i":
+                        case "i+":
+                            if (value != null) break;
+                            interactiveMode = true;
+                            continue;
+
+                        case "i-":
+                            if (value != null) break;
+                            interactiveMode = false;
                             continue;
 
                         case "loadpath":
@@ -1039,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnosticOptions[o.Key] = o.Value;
             }
 
-            if (!IsInteractive && !sourceFilesSpecified && (outputKind.IsNetModule() || !resourcesOrModulesSpecified))
+            if (!IsScriptRunner && !sourceFilesSpecified && (outputKind.IsNetModule() || !resourcesOrModulesSpecified))
             {
                 AddDiagnostic(diagnostics, diagnosticOptions, ErrorCode.WRN_NoSources);
             }
@@ -1141,7 +1151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new CSharpCommandLineArguments
             {
-                IsInteractive = IsInteractive,
+                IsScriptRunner = IsScriptRunner,
+                InteractiveMode = interactiveMode || IsScriptRunner && sourceFiles.Count == 0,
                 BaseDirectory = baseDirectory,
                 Errors = diagnostics.AsImmutable(),
                 Utf8Output = utf8output,
@@ -1170,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DisplayHelp = displayHelp,
                 ManifestResources = managedResources.AsImmutable(),
                 CompilationOptions = options,
-                ParseOptions = IsInteractive ? scriptParseOptions : parseOptions,
+                ParseOptions = IsScriptRunner ? scriptParseOptions : parseOptions,
                 EmitOptions = emitOptions,
                 ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 TouchedFilesPath = touchedFilesPath,
@@ -1248,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // names from the files containing their entrypoints and libraries derive their names from 
                 // their first input files.
 
-                if (!IsInteractive && !sourceFilesSpecified)
+                if (!IsScriptRunner && !sourceFilesSpecified)
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_OutputNeedsName);
                     simpleName = null;
@@ -1282,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (outputKind.IsNetModule())
             {
-                Debug.Assert(!IsInteractive);
+                Debug.Assert(!IsScriptRunner);
 
                 compilationName = moduleAssemblyName;
             }

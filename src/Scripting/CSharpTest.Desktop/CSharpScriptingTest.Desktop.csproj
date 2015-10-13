@@ -62,6 +62,7 @@
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
+      <Aliases>global,PortableTestUtils</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\CoreTest\ScriptingTest.csproj">
       <Project>{2dae4406-7a89-4b5f-95c3-bc5472ce47ce}</Project>

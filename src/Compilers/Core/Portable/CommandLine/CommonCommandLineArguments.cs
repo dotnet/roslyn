@@ -21,7 +21,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class CommandLineArguments
     {
-        internal bool IsInteractive { get; set; }
+        internal bool IsScriptRunner { get; set; }
+
+        /// <summary>
+        /// Drop to an interactive loop. If a script is specified in <see cref="SourceFiles"/> executes the script first.
+        /// </summary>
+        public bool InteractiveMode { get; internal set; }
 
         /// <summary>
         /// Directory used to resolve relative paths stored in the arguments.

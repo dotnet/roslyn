@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public string Path { get; private set; }
 
-        /// <summary>
-        /// True if the script is interactive. 
-        /// Interactive scripts may contain a final expression whose value is returned when the script is run.
-        /// </summary>
-        public bool IsInteractive { get; private set; }
-
         internal ScriptOptions(
             string path,
             ImmutableArray<MetadataReference> references,
