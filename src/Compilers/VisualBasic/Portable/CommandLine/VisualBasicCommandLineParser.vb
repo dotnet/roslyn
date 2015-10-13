@@ -25,14 +25,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Public Shared ReadOnly Property Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
+        Friend Shared ReadOnly Property ScriptRunner As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isScriptRunner:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
         ''' </summary>
-        ''' <param name="isInteractive">An optional parameter indicating whether to create a interactive command line parser.</param>
-        Friend Sub New(Optional isInteractive As Boolean = False)
-            MyBase.New(VisualBasic.MessageProvider.Instance, isInteractive)
+        ''' <param name="isScriptRunner">An optional parameter indicating whether to create a interactive command line parser.</param>
+        Friend Sub New(Optional isScriptRunner As Boolean = False)
+            MyBase.New(VisualBasic.MessageProvider.Instance, isScriptRunner)
         End Sub
 
         Private Const s_win32Manifest As String = "win32manifest"
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
             Dim flattenedArgs As List(Of String) = New List(Of String)()
-            Dim scriptArgs As List(Of String) = If(IsInteractive, New List(Of String)(), Nothing)
+            Dim scriptArgs As List(Of String) = If(IsScriptRunner, New List(Of String)(), Nothing)
 
             ' normalized paths to directories containing response files:
             Dim responsePaths As New List(Of String)
@@ -117,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
             Dim sdkPaths As New List(Of String)()
             Dim libPaths As New List(Of String)()
+            Dim sourcePaths As New List(Of String)()
             Dim keyFileSearchPaths = New List(Of String)()
             Dim globalImports = New List(Of GlobalImport)
             Dim rootNamespace As String = ""
@@ -151,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
-            If Not IsInteractive Then
+            If Not IsScriptRunner Then
                 For Each arg In flattenedArgs
                     Dim name As String = Nothing
                     Dim value As String = Nothing
@@ -377,6 +378,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         Continue For
+
+                    Case "lib", "libpath", "libpaths"
+                        If String.IsNullOrEmpty(value) Then
+                            AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+                            Continue For
+                        End If
+
+                        libPaths.AddRange(ParseSeparatedPaths(value))
+                        Continue For
+
 #If DEBUG Then
                     Case "attachdebugger"
                         Debugger.Launch()
@@ -384,11 +395,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
                 End Select
 
-                If IsInteractive Then
+                If IsScriptRunner Then
                     Select Case name
-                        Case "rp", "referencepath"
-                            ' TODO: should it really go to /libpath?
-                            libPaths.AddRange(ParseSeparatedPaths(value))
+                        Case "loadpath", "loadpaths"
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<path_list>")
+                                Continue For
+                            End If
+
+                            sourcePaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
                     End Select
                 Else
@@ -494,15 +509,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case "netcf"
                             ' Do nothing as we no longer have any use for implementing this switch and 
                             ' want to avoid failing with any warnings/errors
-                            Continue For
-
-                        Case "libpath"
-                            If String.IsNullOrEmpty(value) Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "libpath", ":<path_list>")
-                                Continue For
-                            End If
-
-                            libPaths.AddRange(ParseSeparatedPaths(value))
                             Continue For
 
                         Case "sdkpath"
@@ -643,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             concurrentBuild = True
                             Continue For
 
-                        Case "deterministic+"
+                        Case "deterministic", "deterministic+"
                             If value IsNot Nothing Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, name)
                                 Continue For
@@ -1089,7 +1095,7 @@ lVbRuntimePlus:
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            If Not IsInteractive AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
+            If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() AndAlso outputKind.IsApplication Then
                 ' VB displays help when there is nothing specified on the command line
                 If flattenedArgs.Any Then
                     AddDiagnostic(diagnostics, ERRID.ERR_NoSources)
@@ -1167,7 +1173,7 @@ lVbRuntimePlus:
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
-            If Not IsInteractive AndAlso
+            If Not IsScriptRunner AndAlso
                 Not hasSourceFiles AndAlso
                 Not managedResources.IsEmpty() AndAlso
                 outputFileName = Nothing AndAlso
@@ -1235,7 +1241,7 @@ lVbRuntimePlus:
 
             Return New VisualBasicCommandLineArguments With
             {
-                .IsInteractive = IsInteractive,
+                .IsScriptRunner = IsScriptRunner,
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
                 .Utf8Output = utf8output,
@@ -1251,6 +1257,7 @@ lVbRuntimePlus:
                 .AnalyzerReferences = analyzers.AsImmutable(),
                 .AdditionalFiles = additionalFiles.AsImmutable(),
                 .ReferencePaths = searchPaths,
+                .SourcePaths = sourcePaths.AsImmutable(),
                 .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                 .Win32ResourceFile = win32ResourceFile,
                 .Win32Icon = win32IconFile,
@@ -1260,7 +1267,7 @@ lVbRuntimePlus:
                 .DisplayHelp = displayHelp,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
-                .ParseOptions = If(IsInteractive, scriptParseOptions, parseOptions),
+                .ParseOptions = If(IsScriptRunner, scriptParseOptions, parseOptions),
                 .EmitOptions = emitOptions,
                 .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
@@ -2083,7 +2090,7 @@ lVbRuntimePlus:
             End If
 
             If kind.IsNetModule() Then
-                Debug.Assert(Not IsInteractive)
+                Debug.Assert(Not IsScriptRunner)
 
                 compilationName = moduleAssemblyName
             Else

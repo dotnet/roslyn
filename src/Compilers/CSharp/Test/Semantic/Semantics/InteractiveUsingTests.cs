@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Using()
         {
-            var sub = CreateSubmission("using System;typeof(String)");
+            var sub = CreateSubmission("using System; typeof(String)");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SpecialType.System_String, GetSpeculativeType(sub, "String").SpecialType);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Alias()
         {
-            var sub = CreateSubmission("using I = System.Int32;");
+            var sub = CreateSubmission("using I = System.Int32; typeof(I)");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SpecialType.System_Int32, GetSpeculativeType(sub, "I").SpecialType);
@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UsingStatic()
         {
-            var sub = CreateSubmission("using static System.Environment;");
+            var sub = CreateSubmission("using static System.Environment; NewLine");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SymbolKind.Property, GetSpeculativeSymbol(sub, "NewLine").Kind);
         }
 
         [WorkItem(5450, "https://github.com/dotnet/roslyn/issues/5450")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5450")]
+        [Fact]
         public void GlobalUsings()
         {
             var sub1 = CreateSubmission(
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4811")]
+        [Fact]
         public void AliasCurrentSubmission()
         {
             const string source = @"
@@ -89,10 +89,11 @@ class Type { }
             Assert.Equal(typeSymbol, model.GetSymbolInfo(syntax.Name).Symbol);
 
             Assert.Equal(typeSymbol, GetSpeculativeType(sub, "Type"));
+            Assert.Equal(typeSymbol, GetSpeculativeType(sub, "T"));
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4811")]
+        [Fact]
         public void AliasPreviousSubmission()
         {
             var sub1 = CreateSubmission("class A { }");
@@ -102,7 +103,7 @@ class Type { }
             CreateSubmission("using A1 = A;", previous: sub3).VerifyDiagnostics();
             CreateSubmission("using B1 = B;", previous: sub3).VerifyDiagnostics();
 
-            var sub4 = CreateSubmission("using C1 = C;", previous: sub3);
+            var sub4 = CreateSubmission("using C1 = C; typeof(C1)", previous: sub3);
             sub4.VerifyDiagnostics();
 
             var typeSymbol = sub3.ScriptClass.GetMember("C");
@@ -175,24 +176,24 @@ using J = I;
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         public void AliasHiding()
         {
-            var sub1 = CreateSubmission("using A = System.Int32;");
+            var sub1 = CreateSubmission("using A = System.Int32; typeof(A)");
             Assert.Equal(SpecialType.System_Int32, GetSpeculativeType(sub1, "A").SpecialType);
 
-            var sub2 = CreateSubmission("using A = System.Int16;", previous: sub1);
+            var sub2 = CreateSubmission("using A = System.Int16; typeof(A)", previous: sub1);
             Assert.Equal(SpecialType.System_Int16, GetSpeculativeType(sub2, "A").SpecialType);
 
             var sub3 = CreateSubmission("class A { }", previous: sub2);
             Assert.Equal(sub3.ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
 
-            var sub4 = CreateSubmission("using A = System.Int64;", previous: sub3);
+            var sub4 = CreateSubmission("using A = System.Int64; typeof(A)", previous: sub3);
             Assert.Equal(SpecialType.System_Int64, GetSpeculativeType(sub4, "A").SpecialType);
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4811")]
+        [Fact]
         public void UsingStaticCurrentSubmission()
         {
             const string source = @"
@@ -211,7 +212,7 @@ class Type
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/4811")]
+        [Fact]
         public void UsingStaticPreviousSubmission()
         {
             var sub1 = CreateSubmission("class A { public static int AA; }");
@@ -319,15 +320,15 @@ namespace B
 
             var options = TestOptions.DebugDll.WithUsings("B");
 
-            var sub1 = CreateSubmission("using A;", new[] { lib1 }, options);
+            var sub1 = CreateSubmission("using A; typeof(A1) == typeof(B1)", new[] { lib1 }, options);
             sub1.VerifyDiagnostics();
 
-            var sub2 = CreateSubmission("typeof(A1) == typeof(A2) && typeof(B1) == typeof(B2)", new[] { lib1, lib2 }, options: options, previous: sub1);
+            var sub2 = CreateSubmission("typeof(A1) == typeof(B1) && typeof(A2) == typeof(B2)", new[] { lib1, lib2 }, options: options, previous: sub1);
             sub2.VerifyDiagnostics();
         }
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5423")]
+        [Fact]
         void UsingsFromLoadedScript()
         {
             const string scriptSource = @"
@@ -442,6 +443,95 @@ t = typeof(File); // global using exposed
             compilation.VerifyDiagnostics();
         }
 
+        [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        public void ConsumePreviousSubmissionUsings_Valid()
+        {
+            const string libSource = @"
+namespace NOuter
+{
+    public class Test { }
+
+    namespace NInner
+    {
+        public static class COuter
+        {
+            public static void M() { }
+
+            public static class CInner
+            {
+                public static void N() { }
+            }
+        }
+    }
+}
+";
+
+            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var refs = new[] { lib };
+
+            var submissions = new[]
+            {
+                "using NOuter;",
+                "typeof(Test)",
+                "using NI = NOuter.NInner;",
+                "typeof(NI.COuter)",
+                "using static NI.COuter;",
+                "M()",
+                "using static NI.COuter.CInner;",
+                "N()",
+            };
+
+            CSharpCompilation prev = null;
+            foreach (var submission in submissions)
+            {
+                var curr = CreateSubmission(submission, refs, previous: prev);
+                curr.VerifyDiagnostics();
+                prev = curr;
+            }
+        }
+
+        [Fact]
+        public void ConsumePreviousSubmissionUsings_Invalid()
+        {
+            const string libSource = @"
+namespace NOuter
+{
+    public class COuter { }
+
+    namespace NInner
+    {
+        public static class CInner
+        {
+        }
+    }
+}
+";
+
+            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var refs = new[] { lib };
+
+            CreateSubmission("using NInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,7): error CS0246: The type or namespace name 'NInner' could not be found (are you missing a using directive or an assembly reference?)
+                // using NInner;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 7));
+
+            CreateSubmission("using NI = NInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,12): error CS0246: The type or namespace name 'NInner' could not be found (are you missing a using directive or an assembly reference?)
+                // using NI = NInner;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 12));
+
+            CreateSubmission("using static COuter;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,14): error CS0246: The type or namespace name 'COuter' could not be found (are you missing a using directive or an assembly reference?)
+                // using static COuter;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "COuter").WithArguments("COuter").WithLocation(1, 14));
+
+            CreateSubmission("using static NInner.CInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
+                // (1,14): error CS0246: The type or namespace name 'NInner' could not be found (are you missing a using directive or an assembly reference?)
+                // using static NInner.CInner;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "NInner").WithArguments("NInner").WithLocation(1, 14));
+        }
+        
         private static Symbol GetSpeculativeSymbol(CSharpCompilation comp, string name)
         {
             var tree = comp.SyntaxTrees.Single();

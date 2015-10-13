@@ -65,7 +65,6 @@ Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(System.Collections.
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(params Microsoft.CodeAnalysis.MetadataReference[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(params System.Reflection.Assembly[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.AddReferences(params string[] references) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.IsInteractive.get -> bool
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.MetadataReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.MetadataReference>
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.MetadataResolver.get -> Microsoft.CodeAnalysis.MetadataReferenceResolver
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.Namespaces.get -> System.Collections.Immutable.ImmutableArray<string>
@@ -79,7 +78,6 @@ Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithDefaultMetadataResolution(par
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithDefaultSourceResolution(System.Collections.Generic.IEnumerable<string> searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithDefaultSourceResolution(System.Collections.Immutable.ImmutableArray<string> searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithDefaultSourceResolution(params string[] searchPaths) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithIsInteractive(bool isInteractive) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithNamespaces(System.Collections.Generic.IEnumerable<string> namespaces) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithNamespaces(System.Collections.Immutable.ImmutableArray<string> namespaces) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithNamespaces(params string[] namespaces) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions

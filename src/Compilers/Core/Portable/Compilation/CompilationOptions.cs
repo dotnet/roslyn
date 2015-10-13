@@ -326,6 +326,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal abstract ImmutableArray<string> GetImports();
+
         /// <summary>
         /// Creates a new options instance with the specified general diagnostic option.
         /// </summary>

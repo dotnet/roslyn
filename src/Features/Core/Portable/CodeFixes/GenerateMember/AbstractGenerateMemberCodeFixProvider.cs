@@ -15,8 +15,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
     {
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            // NOTE(DustinCa): Not supported in REPL for now.
-            if (context.Document.SourceCodeKind == SourceCodeKind.Interactive)
+            // TODO: https://github.com/dotnet/roslyn/issues/5777
+            // Not supported in REPL for now.
+            if (context.Project.IsSubmission)
             {
                 return;
             }

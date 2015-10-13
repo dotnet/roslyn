@@ -117,10 +117,10 @@ End Class"
                 Dim errorMessage As String = Nothing
                 ' A is ambiguous since there were no explicit references to AS1 or AS2.
                 context.CompileExpression("New A()", errorMessage)
-                Assert.Equal(errorMessage, "(1,6): error BC30554: 'A' is ambiguous.")
+                Assert.Equal(errorMessage, "error BC30554: 'A' is ambiguous.")
                 ' Ideally, B should be resolved to BS1.
                 context.CompileExpression("New B()", errorMessage)
-                Assert.Equal(errorMessage, "(1,6): error BC30554: 'B' is ambiguous.")
+                Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
 
                 ' Compile expression with method context.
                 Dim previous = New VisualBasicMetadataContext(typeBlocks, context)
@@ -137,7 +137,7 @@ End Class"
                 Assert.Equal(previous.Compilation, context.Compilation) ' re-use type context compilation
                 ' Ideally, B should be resolved to BS1.
                 context.CompileExpression("New B()", errorMessage)
-                Assert.Equal(errorMessage, "(1,6): error BC30554: 'B' is ambiguous.")
+                Assert.Equal(errorMessage, "error BC30554: 'B' is ambiguous.")
             End Using
         End Sub
 
@@ -231,22 +231,22 @@ End Class"
                 Dim testData As CompilationTestData = Nothing
                 Dim errorMessage As String = Nothing
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New N.C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+                Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
 
                 GetContextState(runtime, "B.Main", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
                 contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)
 
                 ' Duplicate type in namespace, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C1()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "(1,6): error BC30560: 'C1' is ambiguous in the namespace 'N'.")
+                Assert.Equal(errorMessage, "error BC30560: 'C1' is ambiguous in the namespace 'N'.")
 
                 ' Duplicate type in global namespace, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "New C2()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.Equal(errorMessage, "(1,6): error BC30554: 'C2' is ambiguous.")
+                Assert.Equal(errorMessage, "error BC30554: 'C2' is ambiguous.")
 
                 ' Duplicate extension method, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray(Of [Alias]).Empty, contextFactory, getMetaDataBytesPtr:=Nothing, errorMessage:=errorMessage, testData:=testData)
-                Assert.True(errorMessage.StartsWith("(1,4): error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:"))
+                Assert.True(errorMessage.StartsWith("error BC30521: Overload resolution failed because no accessible 'F' is most specific for these arguments:"))
 
                 ' Same tests as above but in library that does not directly reference duplicates.
                 GetContextState(runtime, "A", blocks, moduleVersionId, symReader, typeToken, localSignatureToken)
@@ -370,7 +370,7 @@ End Class"
                     localSignatureToken:=localSignatureToken)
                 Dim errorMessage As String = Nothing
                 context.CompileExpression("F()", errorMessage)
-                Assert.Equal(errorMessage, "(1,2): error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
+                Assert.Equal(errorMessage, "error BC30562: 'F' is ambiguous between declarations in Modules 'N.M, N.M'.")
 
                 Dim testData As New CompilationTestData()
                 Dim contextFactory = CreateMethodContextFactory(moduleVersionId, symReader, methodToken, localSignatureToken)

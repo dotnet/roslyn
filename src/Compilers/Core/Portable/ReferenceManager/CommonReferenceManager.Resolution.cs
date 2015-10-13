@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Index into an array of assemblies or an array of modules, depending on <see cref="Kind"/>.
+            /// Index into an array of assemblies (not including the assembly being built) or an array of modules, depending on <see cref="Kind"/>.
             /// </summary>
             public int Index
             {

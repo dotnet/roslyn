@@ -2390,7 +2390,10 @@ namespace Class____foo____Library1
             Assert.Equal("", result.Errors);
         }
 
-        [Fact(Skip = "5572"), WorkItem(5572, "https://github.com/dotnet/roslyn/issues/5572")]
+        private static readonly TimeSpan s_fiveSec = TimeSpan.FromSeconds(5);
+        private static readonly int s_fiveSecMillis = (int)s_fiveSec.TotalMilliseconds;
+
+        [Fact]
         public void MutexStopsServerStarting()
         {
             var pipename = Guid.NewGuid().ToString("N");
@@ -2407,9 +2410,8 @@ namespace Class____foo____Library1
                     var result = ProcessUtilities.StartProcess(_compilerServerExecutable,
                                                                $"-pipename:{pipename}");
 
-                    // Note: can't use async because Mutexes are thread-affinitive
-                    Thread.Sleep(TimeSpan.FromMilliseconds(500));
-                    var exited = result.HasExited;
+                    // Wait up to 5 seconds for the process to exit
+                    var exited = result.WaitForExit(s_fiveSecMillis);
                     if (!exited)
                     {
                         result.Kill();
@@ -2423,24 +2425,48 @@ namespace Class____foo____Library1
             }
         }
 
-        [Fact(Skip = "5572"), WorkItem(5572, "https://github.com/dotnet/roslyn/issues/5572")]
-        public async Task ServerWithSamePipeNameExits()
+        [Fact]
+        public void ServerWithSamePipeNameExits()
         {
             var pipename = Guid.NewGuid().ToString("N");
             var args = $"-pipename:{pipename}";
 
             var server1 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
 
-            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+            // Wait up to 5 seconds for server1 to start
+            var start = DateTime.Now;
+            while (true)
+            {
+                Mutex ignore;
+                if (Mutex.TryOpenExisting($"{pipename}.server", out ignore))
+                {
+                    break;
+                }
+
+                if (DateTime.Now.Subtract(start) >= s_fiveSec)
+                {
+                    Assert.True(false, "server took more than 5 seconds to start, please investigate");
+                }
+            }
+            // Server 1 should now be running normally. Server2 will only exit if Server1
+            // is running
+            Assert.False(server1.HasExited);
 
             var server2 = ProcessUtilities.StartProcess(_compilerServerExecutable, args);
 
-            await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+            var exited2 = server2.WaitForExit(s_fiveSecMillis);
 
+            // Server2 exiting shouldn't affect server1
             Assert.False(server1.HasExited);
-            Assert.True(server2.HasExited);
-            Assert.False(server1.HasExited);
-            server1.Kill();
+            if (!server1.HasExited)
+            {
+                server1.Kill();
+            }
+            if (!server2.HasExited)
+            {
+                server2.Kill();
+            }
+            Assert.True(exited2);
         }
     }
 }

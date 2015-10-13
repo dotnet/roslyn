@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class IfKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfInMultiLineLambda()
             VerifyRecommendationsContain(<MethodBody>
@@ -24,14 +24,14 @@ Dim x = Sub()
         End Sub</MethodBody>, "If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfInSingleLineLambda()
             VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub() |</MethodBody>, "If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterElseInMultiLine1()
             VerifyRecommendationsContain(<MethodBody>
@@ -40,7 +40,7 @@ Else |
 End If</MethodBody>, "If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterElseInMultiLine2()
             VerifyRecommendationsContain(<MethodBody>
@@ -50,13 +50,13 @@ Else |
 End If</MethodBody>, "If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterElseInSingleLineIf()
             VerifyRecommendationsContain(<MethodBody>If True Then Stop Else |</MethodBody>, "If")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IfAfterExternalSourceDirective()
             VerifyRecommendationsContain(

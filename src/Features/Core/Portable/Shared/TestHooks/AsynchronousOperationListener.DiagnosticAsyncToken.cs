@@ -1,36 +1,47 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using System.IO;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal partial class AsynchronousOperationListener
     {
-        protected internal class DiagnosticAsyncToken : AsyncToken
+        /// <summary>
+        /// Stores the source information for an <see cref="IAsyncToken"/> value.  Helpful when 
+        /// tracking down tokens which aren't properly disposed.
+        /// </summary>
+        protected internal sealed class DiagnosticAsyncToken : AsyncToken
         {
-            private readonly string _name;
-            private readonly object _tag;
-            private Task _task;
+            public string Name { get; }
+            public string FilePath { get; }
+            public int LineNumber { get; }
+            public object Tag { get; }
+            public string StackTrace { get; }
+            public Task Task { get; set; }
 
-            private readonly string _stackTrace;
-            private string _completesAsyncOperationStackTrace;
-
-            public DiagnosticAsyncToken(AsynchronousOperationListener listener, string name, object tag)
+            public DiagnosticAsyncToken(
+                AsynchronousOperationListener listener, 
+                string name, 
+                object tag,
+                string filePath,
+                int lineNumber)
                 : base(listener)
             {
-                _name = name;
-                _tag = tag;
-
-                _stackTrace = PortableShim.StackTrace.GetString();
+                Name = Name;
+                Tag = tag;
+                FilePath = filePath;
+                LineNumber = lineNumber;
+                StackTrace = PortableShim.StackTrace.GetString();
             }
 
             internal void AssociateWithTask(Task task)
             {
-                _task = task;
-
-                _completesAsyncOperationStackTrace = PortableShim.StackTrace.GetString();
+                Task = task;
             }
+
+            public override string ToString() => $"{Name} {Path.GetFileName(FilePath)} {LineNumber}";
         }
     }
 }

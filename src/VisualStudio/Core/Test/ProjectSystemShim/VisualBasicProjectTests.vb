@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicProjectTests
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         Public Sub RenameProjectUpdatesWorkspace()
             Using environment = New TestEnvironment()

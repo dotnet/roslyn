@@ -18,7 +18,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionCancellationTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestCancellation()
             ' Run without cancelling.
             Dim updates As Integer = Me.Cancel(Integer.MaxValue, False)
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             End While
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Sub TestInLinkedFiles()
             Dim definition =
 <Workspace>

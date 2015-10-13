@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLambdaParameterDefinition()
             Dim input =
 <Workspace>
@@ -24,7 +24,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLambdaParameterReferencesInDifferentLambdas1()
             Dim input =
 <Workspace>
@@ -53,7 +53,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLambdaParameterReferencesInDifferentLambdas2()
             Dim input =
 <Workspace>
@@ -82,7 +82,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLambdaParameterReferencesInDifferentLambdas3()
             Dim input =
 <Workspace>
@@ -111,7 +111,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLambdaParameterReferencesInDifferentLambdas4()
             Dim input =
 <Workspace>
@@ -140,7 +140,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLambdaParameterReferencesInDifferentLambdas5()
             Dim input =
 <Workspace>

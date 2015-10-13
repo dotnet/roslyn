@@ -87,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         IgnoreCorLibraryDuplicatedTypes = 1 << 26,
 
+        /// <summary>
+        /// When binding imports in scripts/submissions, using aliases (other than from the current submission)
+        /// are considered but other imports are not.
+        /// </summary>
+        InScriptUsing = 1 << 27,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

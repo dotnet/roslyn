@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 GetUniqueName(),
                 references: (references != null) ? new[] { MscorlibRef_v4_0_30316_17626 }.Concat(references) : new[] { MscorlibRef_v4_0_30316_17626 },
                 options: options,
-                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Interactive),
+                syntaxTree: Parse(code, options: parseOptions ?? TestOptions.Script),
                 previousSubmission: previous,
                 returnType: returnType,
                 hostObjectType: hostObjectType);

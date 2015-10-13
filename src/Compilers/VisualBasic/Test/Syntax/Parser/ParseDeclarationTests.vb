@@ -1009,13 +1009,11 @@ Namespace N
 End Namespace
 "
 
-        Dim expectedDiagnostics = <errors><![CDATA[
+        Parse(source, TestOptions.Script).AssertTheseDiagnostics(<errors><![CDATA[
 BC36965: You cannot declare Namespace in script code
 Namespace N
 ~~~~~~~~~
-]]></errors>
-        Parse(source, TestOptions.Script).AssertTheseDiagnostics(expectedDiagnostics)
-        Parse(source, TestOptions.Interactive).AssertTheseDiagnostics(expectedDiagnostics)
+]]></errors>)
     End Sub
 
 #End Region
