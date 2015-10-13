@@ -115,18 +115,18 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
     configure { node ->
       node / 'triggers' << {
         'org.jenkinsci.plugins.ghprb.GhprbTrigger'('plugin': 'ghprb@1.29') {
-          'admin'('Microsoft')
+          'adminList'('Microsoft')
           'useGitHubHooks'(true)
           'configVersion'(3)
           'triggerPhrase'("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
           'onlyTriggerPhrase'(triggerOnly)
           'autoCloseFailedPullRequests'(false)
-          'orgWhitelist'('Microsoft')
+          'orgslist'('Microsoft')
           'allowMembersOfWhitelistedOrgsAsAdmin'(true)
           'permitAll'(true)
           'extensions' {
-            'commitStatus' {
-              'context'(contextName.replace('_', '/').substring(7))
+            'org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus' {
+              'commitStatusContext'(contextName.replace('_', '/').substring(7))
             }
           }
         }
