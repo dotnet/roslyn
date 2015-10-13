@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             // we only check if the specified name is a valid CLR namespace name, it might not be a valid C#/VB namespace name:
             var options = ScriptOptions.Default.
-                AddNamespaces("").
-                AddNamespaces("blah.").
-                AddNamespaces("b\0lah").
-                AddNamespaces(".blah").
-                AddNamespaces("b\0lah").
-                AddNamespaces(".blah");
+                AddImports("").
+                AddImports("blah.").
+                AddImports("b\0lah").
+                AddImports(".blah").
+                AddImports("b\0lah").
+                AddImports(".blah");
 
-            AssertEx.Equal(new[] { "", "blah.", "b\0lah", ".blah", "b\0lah", ".blah" }, options.Namespaces);
+            AssertEx.Equal(new[] { "", "blah.", "b\0lah", ".blah", "b\0lah", ".blah" }, options.Imports);
         }
 
         [Fact]
@@ -115,20 +115,20 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var options = ScriptOptions.Default;
            
-            AssertEx.ThrowsArgumentNull("namespaces", () => options.AddNamespaces((string[])null));
-            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.AddNamespaces(new string[] { null } ));
+            AssertEx.ThrowsArgumentNull("namespaces", () => options.AddImports((string[])null));
+            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.AddImports(new string[] { null } ));
 
-            AssertEx.ThrowsArgumentNull("namespaces", () => options.AddNamespaces((IEnumerable<string>)null));
-            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.AddNamespaces((IEnumerable<string>)new string[] { null }));
+            AssertEx.ThrowsArgumentNull("namespaces", () => options.AddImports((IEnumerable<string>)null));
+            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.AddImports((IEnumerable<string>)new string[] { null }));
 
-            AssertEx.ThrowsArgumentNull("namespaces", () => options.AddNamespaces(default(ImmutableArray<string>)));
-            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.AddNamespaces(ImmutableArray.Create((string)null)));
+            AssertEx.ThrowsArgumentNull("namespaces", () => options.AddImports(default(ImmutableArray<string>)));
+            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.AddImports(ImmutableArray.Create((string)null)));
 
             // we only check if the specified name is a valid CLR namespace name, it might not be a valid C#/VB namespace name:
-            options.AddNamespaces("");
-            options.AddNamespaces("blah.");
-            options.AddNamespaces("b\0lah");
-            options.AddNamespaces(".blah");
+            options.AddImports("");
+            options.AddImports("blah.");
+            options.AddImports("b\0lah");
+            options.AddImports(".blah");
         }
 
         [Fact]
@@ -136,20 +136,20 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         {
             var options = ScriptOptions.Default;
 
-            AssertEx.ThrowsArgumentNull("namespaces", () => options.WithNamespaces((string[])null));
-            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.WithNamespaces(new string[] { null }));
+            AssertEx.ThrowsArgumentNull("namespaces", () => options.WithImports((string[])null));
+            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.WithImports(new string[] { null }));
 
-            AssertEx.ThrowsArgumentNull("namespaces", () => options.WithNamespaces((IEnumerable<string>)null));
-            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.WithNamespaces((IEnumerable<string>)new string[] { null }));
+            AssertEx.ThrowsArgumentNull("namespaces", () => options.WithImports((IEnumerable<string>)null));
+            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.WithImports((IEnumerable<string>)new string[] { null }));
 
-            AssertEx.ThrowsArgumentNull("namespaces", () => options.WithNamespaces(default(ImmutableArray<string>)));
-            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.WithNamespaces(ImmutableArray.Create((string)null)));
+            AssertEx.ThrowsArgumentNull("namespaces", () => options.WithImports(default(ImmutableArray<string>)));
+            AssertEx.ThrowsArgumentNull("namespaces[0]", () => options.WithImports(ImmutableArray.Create((string)null)));
 
             // we only check if the specified name is a valid CLR namespace name, it might not be a valid C#/VB namespace name:
-            options.WithNamespaces("");
-            options.WithNamespaces("blah.");
-            options.WithNamespaces("b\0lah");
-            options.WithNamespaces(".blah");
+            options.WithImports("");
+            options.WithImports("blah.");
+            options.WithImports("b\0lah");
+            options.WithImports(".blah");
         }
 
 #if TODO // provide simple resolver APIs

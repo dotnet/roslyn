@@ -211,7 +211,7 @@ new object[] { new[] { a, c }, new[] { b, d } }
                 AddReferences(
                     typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).GetTypeInfo().Assembly,
                     typeof(System.Dynamic.ExpandoObject).GetTypeInfo().Assembly).
-                AddNamespaces(
+                AddImports(
                     "System.Dynamic");
 
             var script = CSharpScript.Create(@"
@@ -448,7 +448,7 @@ Environment.ProcessorCount
         [Fact]
         public void CompilationChain_GlobalImports()
         {
-            var options = ScriptOptions.Default.AddNamespaces("System");
+            var options = ScriptOptions.Default.AddImports("System");
 
             var state = CSharpScript.RunAsync("Environment.ProcessorCount", options);
             Assert.Equal(Environment.ProcessorCount, state.Result.ReturnValue);
@@ -1072,7 +1072,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
         {
             var options = ScriptOptions.Default.
                 AddReferences(typeof(Task).GetTypeInfo().Assembly).
-                AddNamespaces("System.Threading.Tasks");
+                AddImports("System.Threading.Tasks");
 
             var state = 
                 CSharpScript.RunAsync("int i = 0;", options).
@@ -1090,7 +1090,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
         {
             var options = ScriptOptions.Default.
                 AddReferences(typeof(Task).GetTypeInfo().Assembly).
-                AddNamespaces("System.Threading.Tasks");
+                AddImports("System.Threading.Tasks");
 
             var state =
                 CSharpScript.Create("int i = 0;", options).
@@ -1131,7 +1131,7 @@ new Metadata.ICSPropImpl()
             string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
 
             var script = CSharpScript.Create($@"#r ""..\{fileName}""", 
-                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+                ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
 
             script.GetCompilation().VerifyDiagnostics();
         }
@@ -1146,7 +1146,7 @@ new Metadata.ICSPropImpl()
             string dir = Path.Combine(root, "foo", "bar", "baz");
 
             var script = CSharpScript.Create($@"#r ""\{unrooted}""",
-                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+                ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
 
             script.GetCompilation().VerifyDiagnostics();
         }
@@ -1172,7 +1172,7 @@ d
         public void Usings1()
         {
             var options = ScriptOptions.Default.
-                AddNamespaces("System", "System.Linq").
+                AddImports("System", "System.Linq").
                 AddReferences(typeof(Enumerable).GetTypeInfo().Assembly);
 
             object result = CSharpScript.EvaluateAsync("new int[] { 1, 2, 3 }.First()", options).Result;
@@ -1184,13 +1184,13 @@ d
         public void Usings2()
         {
             var options = ScriptOptions.Default.
-                 AddNamespaces("System", "System.Linq").
+                 AddImports("System", "System.Linq").
                  AddReferences(typeof(Enumerable).GetTypeInfo().Assembly);
 
             var s1 = CSharpScript.RunAsync("new int[] { 1, 2, 3 }.First()", options);
             Assert.Equal(1, s1.Result.ReturnValue);
 
-            var s2 = s1.ContinueWith("new List<int>()", options.AddNamespaces("System.Collections.Generic"));
+            var s2 = s1.ContinueWith("new List<int>()", options.AddImports("System.Collections.Generic"));
             Assert.IsType<List<int>>(s2.Result.ReturnValue);
         }
 
@@ -1198,7 +1198,7 @@ d
         public void AddNamespaces_Errors()
         {
             // no immediate error, error is reported if the namespace can't be found when compiling:
-            var options = ScriptOptions.Default.AddNamespaces("?1", "?2");
+            var options = ScriptOptions.Default.AddImports("?1", "?2");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS0246: The type or namespace name '?1' could not be found (are you missing a using directive or an assembly reference?)
@@ -1206,19 +1206,19 @@ d
                 // error CS0246: The type or namespace name '?2' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("?2"));
 
-            options = ScriptOptions.Default.AddNamespaces("");
+            options = ScriptOptions.Default.AddImports("");
             
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            options = ScriptOptions.Default.AddNamespaces(".abc");
+            options = ScriptOptions.Default.AddImports(".abc");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: '.abc'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ".abc"));
 
-            options = ScriptOptions.Default.AddNamespaces("a\0bc");
+            options = ScriptOptions.Default.AddImports("a\0bc");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: '.abc'.

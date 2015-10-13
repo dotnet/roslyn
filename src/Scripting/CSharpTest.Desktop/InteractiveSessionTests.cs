@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
         [Fact]
         public async Task CompilationChain_GlobalImportsRebinding()
         {
-            var options = ScriptOptions.Default.AddNamespaces("System.Diagnostics");
+            var options = ScriptOptions.Default.AddImports("System.Diagnostics");
 
             var s0 = await CSharpScript.RunAsync("", options);
 
@@ -106,7 +106,7 @@ Process.GetCurrentProcess()");
         [Fact]
         public void SearchPaths1()
         {
-            var options = ScriptOptions.Default.WithDefaultMetadataResolution(RuntimeEnvironment.GetRuntimeDirectory());
+            var options = ScriptOptions.Default.WithMetadataResolver(ScriptMetadataResolver.Default.WithSearchPaths(RuntimeEnvironment.GetRuntimeDirectory()));
 
             var result = CSharpScript.EvaluateAsync($@"
 #r ""System.Data.dll""
@@ -149,7 +149,7 @@ new System.Data.DataSet()
         public async Task SearchPaths_BaseDirectory()
         {
             var options = ScriptOptions.Default.
-                WithCustomMetadataResolution(new TestMetadataReferenceResolver(
+                WithMetadataResolver(new TestMetadataReferenceResolver(
                     pathResolver: new VirtualizedRelativePathResolver(existingFullPaths: new[] { @"C:\dir\x.dll" }, baseDirectory: @"C:\foo\bar"),
                     files: new Dictionary<string, PortableExecutableReference> { { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef } }));
 
@@ -158,9 +158,9 @@ new System.Data.DataSet()
 using System.Linq;
 
 var x = from a in new[] { 1, 2 ,3 } select a + 1;
-", options.WithPath(@"C:\dir\a.csx"));
+", options.WithFilePath(@"C:\dir\a.csx"));
 
-            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null));
+            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithFilePath(null));
 
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
@@ -212,7 +212,7 @@ new System.Windows.Forms.Form()
         public void References2()
         {
             var options = ScriptOptions.Default.
-                WithDefaultMetadataResolution(RuntimeEnvironment.GetRuntimeDirectory()).
+                WithMetadataResolver(ScriptMetadataResolver.Default.WithSearchPaths(RuntimeEnvironment.GetRuntimeDirectory())).
                 AddReferences("System.Core", "System.dll").
                 AddReferences(typeof(System.Data.DataSet).Assembly);
 

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
 {
     public sealed class CSharpObjectFormatter : ObjectFormatter
     {
-        public static readonly CSharpObjectFormatter Instance = new CSharpObjectFormatter();
+        public static CSharpObjectFormatter Instance { get; } = new CSharpObjectFormatter();
 
         private CSharpObjectFormatter()
         {
