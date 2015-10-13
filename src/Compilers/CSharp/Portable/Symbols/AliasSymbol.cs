@@ -99,10 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal AliasSymbol ToNewSubmission(CSharpCompilation compilation)
         {
-            Debug.Assert(compilation != null, $"{nameof(compilation)} was null");
-            Debug.Assert(_binder != null, $"{nameof(_binder)} was null");
-            Debug.Assert(_binder.Compilation != null, $"{nameof(_binder)}.{nameof(_binder.Compilation)} was null");
-            Debug.Assert(_aliasTarget != null, $"{nameof(_aliasTarget)} was null");
+            if (compilation == null) throw new System.Exception($"{nameof(compilation)} was null");
+            if (_binder == null) throw new System.Exception($"{nameof(_binder)} was null");
+            if (_binder.Compilation == null) throw new System.Exception($"{nameof(_binder)}.{nameof(_binder.Compilation)} was null");
+            if (_aliasTarget == null) throw new System.Exception($"{nameof(_aliasTarget)} was null");
+            if (!_state.HasComplete(CompletionPart.AliasTarget)) throw new System.Exception($"Invalid state {_state}");
+            if (!_binder.Compilation.IsSubmission) throw new System.Exception($"Compilation is not a submission");
 
             Debug.Assert(_state.HasComplete(CompletionPart.AliasTarget));
             Debug.Assert(_binder.Compilation.IsSubmission);
