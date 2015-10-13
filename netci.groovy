@@ -112,19 +112,22 @@ static void addPushTrigger(def myJob) {
 
 static void addPullRequestTrigger(def myJob, String contextName, String opsysName, String triggerKeyword = 'this', Boolean triggerOnly = false) {
   myJob.with {
-    triggers {
-      pullRequest {
-        admin('Microsoft')
-        useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
-        onlyTriggerPhrase(triggerOnly)
-        autoCloseFailedPullRequests(false)
-        orgWhitelist('Microsoft')
-        allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(true)
-        extensions {
-          commitStatus {
-            context(contextName.replace('_', '/').substring(7))
+    configure { node ->
+      node / 'triggers' << {
+        'org.jenkinsci.plugins.ghprb.GhprbTrigger'('plugin': 'ghprb@1.29') {
+          'admin'('Microsoft')
+          'useGitHubHooks'(true)
+          'configVersion'(3)
+          'triggerPhrase'("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+          'onlyTriggerPhrase'(triggerOnly)
+          'autoCloseFailedPullRequests'(false)
+          'orgWhitelist'('Microsoft')
+          'allowMembersOfWhitelistedOrgsAsAdmin'(true)
+          'permitAll'(true)
+          'extensions' {
+            'commitStatus' {
+              'context'(contextName.replace('_', '/').substring(7))
+            }
           }
         }
       }
