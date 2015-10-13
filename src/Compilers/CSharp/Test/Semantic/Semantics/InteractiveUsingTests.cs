@@ -176,7 +176,7 @@ using J = I;
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5927")]
         public void AliasHiding()
         {
             var sub1 = CreateSubmission("using A = System.Int32; typeof(A)");
@@ -373,17 +373,43 @@ t = typeof(C); // declaration exposed
         }
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5423")]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         void UsingsToLoadedScript()
         {
             const string scriptSource = @"
+using System.Collections.Generic;
+using AL = System.Collections.ArrayList;
+using static System.Math;
+
+class D { }
+
 System.Type t;
 
+// Previous submission
+GetCommandLineArgs(); // using static not exposed
+t = typeof(StringBuilder); // using not exposed
+t = typeof(P); // using alias not exposed
+t = typeof(B); // declaration exposed
+
+// Current submission
 GetTempPath(); // using static not exposed
 t = typeof(File); // using not exposed
 t = typeof(F); // using alias not exposed
-
 t = typeof(C); // declaration exposed
+
+// Current file - all available
+Sin(1);
+t = typeof(List<int>);
+t = typeof(AL);
+t = typeof(D);
+";
+
+            const string previousSubmissionSource = @"
+using static System.Environment;
+using System.Text;
+using P = System.IO.Path;
+
+class B { }
 ";
 
             const string submissionSource = @"
@@ -403,18 +429,33 @@ class C { }
 
             var compilation = CreateSubmission(
                 submissionSource,
-                options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver));
+                options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver),
+                previous: CreateSubmission(previousSubmissionSource));
 
             compilation.VerifyDiagnostics(
-                // a.csx(4,1): error CS0103: The name 'GetTempPath' does not exist in the current context
+                // Previous submission
+
+                // a.csx(11,1): error CS0103: The name 'GetCommandLineArgs' does not exist in the current context
+                // GetCommandLineArgs(); // using static not exposed
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "GetCommandLineArgs").WithArguments("GetCommandLineArgs").WithLocation(11, 1),
+                // a.csx(12,12): error CS0246: The type or namespace name 'StringBuilder' could not be found (are you missing a using directive or an assembly reference?)
+                // t = typeof(StringBuilder); // using not exposed
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "StringBuilder").WithArguments("StringBuilder").WithLocation(12, 12),
+                // a.csx(13,12): error CS0246: The type or namespace name 'P' could not be found (are you missing a using directive or an assembly reference?)
+                // t = typeof(P); // using alias not exposed
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "P").WithArguments("P").WithLocation(13, 12),
+
+                // Current submission
+
+                // a.csx(17,1): error CS0103: The name 'GetTempPath' does not exist in the current context
                 // GetTempPath(); // using static not exposed
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "GetTempPath").WithArguments("GetTempPath").WithLocation(4, 1),
-                // a.csx(5,12): error CS0246: The type or namespace name 'File' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "GetTempPath").WithArguments("GetTempPath").WithLocation(17, 1),
+                // a.csx(18,12): error CS0246: The type or namespace name 'File' could not be found (are you missing a using directive or an assembly reference?)
                 // t = typeof(File); // using not exposed
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "File").WithArguments("File").WithLocation(5, 12),
-                // a.csx(6,12): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "File").WithArguments("File").WithLocation(18, 12),
+                // a.csx(19,12): error CS0246: The type or namespace name 'F' could not be found (are you missing a using directive or an assembly reference?)
                 // t = typeof(F); // using alias not exposed
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "F").WithArguments("F").WithLocation(19, 12));
         }
 
         [Fact]
@@ -444,7 +485,7 @@ t = typeof(File); // global using exposed
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5927")]
         public void ConsumePreviousSubmissionUsings_Valid()
         {
             const string libSource = @"

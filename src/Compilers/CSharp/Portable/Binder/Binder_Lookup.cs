@@ -246,7 +246,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var isCurrentSubmission = submission == Compilation;
                 var considerUsings = !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing));
-                var submissionImports = considerUsings ? submission.GetSubmissionImports() : Imports.Empty;
+
+                Imports submissionImports;
+                if (!considerUsings)
+                {
+                    submissionImports = Imports.Empty;
+                }
+                else if (!this.Flags.Includes(BinderFlags.InLoadedSyntaxTree))
+                {
+                    submissionImports = submission.GetSubmissionImports();
+                }
+                else if (isCurrentSubmission)
+                {
+                    submissionImports = this.GetImports(basesBeingResolved);
+                }
+                else
+                {
+                    submissionImports = Imports.Empty;
+                }
 
                 // If a viable using alias and a matching member are both defined in the submission an error is reported elsewhere.
                 // Ignore the member in such case.
