@@ -1403,5 +1403,29 @@ public class C : A {
             Assert.False(project2.HasCompleteReferencesAsync().Result);
             Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
         }
+
+        [Fact]
+        public void TestFrozenPartialProjectAlwaysIsIncomplete()
+        {
+            var workspace = new AdhocWorkspace();
+            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+
+            var project2 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+
+            var document = workspace.AddDocument(project2.Id, "Test.cs", SourceText.From(""));
+
+            // Nothing should have incomplete references, and everything should build
+            var frozenSolution = document.WithFrozenPartialSemanticsAsync(CancellationToken.None).Result.Project.Solution;
+
+            Assert.True(frozenSolution.GetProject(project1.Id).HasCompleteReferencesAsync().Result);
+            Assert.True(frozenSolution.GetProject(project2.Id).HasCompleteReferencesAsync().Result);
+        }
     }
 }
