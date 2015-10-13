@@ -27,7 +27,6 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.Accept<T
 override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.EndOfDirectiveToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.HashToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.IsActive.get -> bool
-static Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser.Interactive.get -> Microsoft.CodeAnalysis.CSharp.CSharpCommandLineParser
 static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateSubmission(string assemblyName, Microsoft.CodeAnalysis.SyntaxTree syntaxTree = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null, Microsoft.CodeAnalysis.Compilation previousSubmission = null, System.Type returnType = null, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxToken

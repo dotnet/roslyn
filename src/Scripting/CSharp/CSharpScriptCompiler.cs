@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     platform: Platform.AnyCpu,
                     warningLevel: 4,
                     xmlReferenceResolver: null, // don't support XML file references in interactive (permissions & doc comment includes)
-                    sourceReferenceResolver: SourceFileResolver.Default,
+                    sourceReferenceResolver: script.Options.SourceResolver,
                     metadataReferenceResolver: script.Options.MetadataResolver,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default
                 ),
