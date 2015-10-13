@@ -142,7 +142,6 @@ class Program
         public void InGlobalStatement()
         {
             const string text = @"$$";
-            VerifyKeyword(SourceCodeKind.Interactive, text);
             VerifyKeyword(SourceCodeKind.Script, text);
         } 
     }

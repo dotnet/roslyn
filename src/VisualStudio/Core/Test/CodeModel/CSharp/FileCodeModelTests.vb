@@ -443,6 +443,26 @@ class C : B, IFoo, IBar
             TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IFoo", "IBar"}})
         End Sub
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddClass_Stress()
+            Dim code =
+<Code>
+class B { }
+interface $$IFoo { }
+interface IBar { }
+</Code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    For i = 1 To 100
+                        Dim name = $"C{i}"
+                        Dim newClass = fileCodeModel.AddClass(name, Position:=-1, Bases:="B", ImplementedInterfaces:={"IFoo", "IBar"})
+                        Assert.NotNull(newClass)
+                        Assert.Equal(name, newClass.Name)
+                    Next
+                End Sub)
+        End Sub
+
 #End Region
 
 #Region "AddDelegate tests"

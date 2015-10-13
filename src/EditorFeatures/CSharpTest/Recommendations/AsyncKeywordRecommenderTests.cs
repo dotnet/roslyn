@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public void MethodDeclarationInGlobalStatement1()
         {
             const string text = @"$$";
-            VerifyKeyword(SourceCodeKind.Interactive, text);
             VerifyKeyword(SourceCodeKind.Script, text);
         }
 
@@ -46,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public void MethodDeclarationInGlobalStatement2()
         {
             const string text = @"public $$";
-            VerifyKeyword(SourceCodeKind.Interactive, text);
             VerifyKeyword(SourceCodeKind.Script, text);
         }  
 

@@ -1635,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             InContainerBinder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports();
+            var imports = binder.GetImports(basesBeingResolved: null);
             var alias = imports.UsingAliases[declarationSyntax.Alias.Name.Identifier.ValueText];
 
             if ((object)alias.Alias == null)
@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports();
+            var imports = binder.GetImports(basesBeingResolved: null);
 
             // TODO: If this becomes a bottleneck, put the extern aliases in a dictionary, as for using aliases.
             foreach (var alias in imports.ExternAliases)

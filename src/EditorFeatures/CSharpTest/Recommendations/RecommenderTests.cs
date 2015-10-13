@@ -172,11 +172,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 case SourceCodeKind.Regular:
                     VerifyWorker(text, absent: false);
                     break;
+
                 case SourceCodeKind.Script:
                     VerifyWorker(text, absent: false, options: Options.Script);
-                    break;
-                case SourceCodeKind.Interactive:
-                    VerifyWorker(text, absent: false, options: Options.Interactive);
                     break;
             }
         }
@@ -197,9 +195,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                     break;
                 case SourceCodeKind.Script:
                     VerifyWorker(text, absent: true, options: Options.Script);
-                    break;
-                case SourceCodeKind.Interactive:
-                    VerifyWorker(text, absent: true, options: Options.Interactive);
                     break;
             }
         }

@@ -179,27 +179,27 @@ Next
 
             Dim s0 = VisualBasicCompilation.CreateSubmission("s0.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "Dim x = New With {.a = 1}", options:=TestOptions.Interactive),
+                                                      "Dim x = New With {.a = 1}", options:=TestOptions.Script),
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
             Dim s__ = VisualBasicCompilation.CreateSubmission("s__.dll",
                                                    syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                       "Dim y = New With {.b = 1}", options:=TestOptions.Interactive),
+                                                       "Dim y = New With {.b = 1}", options:=TestOptions.Script),
                                                    previousSubmission:=s0,
                                                    references:=references,
                                                    returnType:=GetType(Object))
 
             Dim s1 = VisualBasicCompilation.CreateSubmission("s1.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "Dim y = New With {.a = New With {.b = 1} }", options:=TestOptions.Interactive),
+                                                      "Dim y = New With {.a = New With {.b = 1} }", options:=TestOptions.Script),
                                                   previousSubmission:=s0,
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
             Dim s2 = VisualBasicCompilation.CreateSubmission("s2.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "? x.GetType() Is y.GetType()", options:=TestOptions.Interactive),
+                                                      "? x.GetType() Is y.GetType()", options:=TestOptions.Script),
                                                   previousSubmission:=s1,
                                                   references:=references,
                                                   returnType:=GetType(Object))
@@ -345,8 +345,8 @@ System.Console.Write("complete")
         End Sub
 
         <Fact>
-        Public Sub InteractiveEntryPoint()
-            Dim parseOptions = TestOptions.Interactive
+        Public Sub SubmissionEntryPoint()
+            Dim parseOptions = TestOptions.Script
             Dim references = {MscorlibRef_v4_0_30316_17626, SystemCoreRef, MsvbRef}
             Dim source0 = <![CDATA[
 System.Threading.Tasks.Task.Delay(100)

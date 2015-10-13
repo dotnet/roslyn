@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
             var namespaceToken = this.EatToken(SyntaxKind.NamespaceKeyword);
 
-            if (IsScriptOrInteractive)
+            if (IsScript)
             {
                 namespaceToken = this.AddError(namespaceToken, ErrorCode.ERR_NamespaceNotAllowedInScript);
             }
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(!IsInAsync);
 
             bool isGlobal = openBrace == null;
-            bool isGlobalScript = isGlobal && this.IsScriptOrInteractive;
+            bool isGlobalScript = isGlobal && this.IsScript;
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsNamespaceMemberStartOrStop;
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                                 var token = this.EatToken();
                                 token = this.AddError(token,
-                                    IsScriptOrInteractive ? ErrorCode.ERR_GlobalDefinitionOrStatementExpected : ErrorCode.ERR_EOFExpected);
+                                    IsScript ? ErrorCode.ERR_GlobalDefinitionOrStatementExpected : ErrorCode.ERR_EOFExpected);
 
                                 this.AddSkippedNamespaceText(ref openBrace, ref body, ref initialBadNodes, token);
                                 reportUnexpectedToken = true;
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 if (reportUnexpectedToken && !skippedToken.ContainsDiagnostics)
                                 {
                                     skippedToken = this.AddError(skippedToken,
-                                        IsScriptOrInteractive ? ErrorCode.ERR_GlobalDefinitionOrStatementExpected : ErrorCode.ERR_EOFExpected);
+                                        IsScript ? ErrorCode.ERR_GlobalDefinitionOrStatementExpected : ErrorCode.ERR_EOFExpected);
 
                                     // do not report the error multiple times for subsequent tokens:
                                     reportUnexpectedToken = false;
@@ -2230,7 +2230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            bool isGlobalScript = parentKind == SyntaxKind.CompilationUnit && this.IsScriptOrInteractive;
+            bool isGlobalScript = parentKind == SyntaxKind.CompilationUnit && this.IsScript;
             bool acceptStatement = isGlobalScript;
 
             // don't reuse members if they were previously declared under a different type keyword kind
@@ -2498,7 +2498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return incompleteMember;
                     }
                     else if (parentKind == SyntaxKind.NamespaceDeclaration ||
-                             parentKind == SyntaxKind.CompilationUnit && !IsScriptOrInteractive)
+                             parentKind == SyntaxKind.CompilationUnit && !IsScript)
                     {
                         return this.AddErrorToLastToken(incompleteMember, ErrorCode.ERR_NamespaceUnexpected);
                     }
@@ -4520,7 +4520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // the reported errors should take into consideration whether or not one expects them in the current context.
             bool variableDeclarationsExpected =
                 parentKind != SyntaxKind.NamespaceDeclaration &&
-                (parentKind != SyntaxKind.CompilationUnit || IsScriptOrInteractive);
+                (parentKind != SyntaxKind.CompilationUnit || IsScript);
 
             ParseVariableDeclarators(type, flags, variables, variableDeclarationsExpected);
         }
@@ -8022,7 +8022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private ExpressionStatementSyntax ParseExpressionStatement(ExpressionSyntax expression)
         {
             SyntaxToken semicolon;
-            if (IsInteractive && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
+            if (IsScript && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
             {
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
@@ -8231,7 +8231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAwaitExpressionStatement()
         {
-            return (this.IsScriptOrInteractive || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            return (this.IsScript || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
         }
 
         private bool IsAwaitExpression()

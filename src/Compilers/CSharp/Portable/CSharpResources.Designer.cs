@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;async&apos; modifier can only be used in methods that have a statement body..
+        ///   Looks up a localized string similar to The &apos;async&apos; modifier can only be used in methods that have a body..
         /// </summary>
         internal static string ERR_BadAsyncLacksBody {
             get {

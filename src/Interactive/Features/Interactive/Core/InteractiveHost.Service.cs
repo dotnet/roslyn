@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 Script script;
 
-                var scriptOptions = options.WithPath(path).WithIsInteractive(path == null);
+                var scriptOptions = options.WithPath(path);
 
                 if (previousScript != null)
                 {

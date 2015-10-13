@@ -73,25 +73,31 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 return false;
             }
 
+            // We want to find the single tracking span that encompasses all the edits made.  If there 
+            // is no such tracking span (or there are multiple), then we consider the change invalid
+            // and we don't return any changed text.  If there is only one, then we find the text in
+            // the new document.
+            //
+            // Note there may be multiple intersecting spans in the case where user typing causes 
+            // multiple edits to happen.  For example, if the user has "Sub" and replaces it with "fu<tab>"
+            // Then there will be multiple edits due to the text change and then the case correction.
+            // However, both edits will be encompassed in one tracking span.
             var spansTouchedInEdit = new NormalizedSpanCollection(args.Changes.Select(c => c.NewSpan));
             var intersection = NormalizedSpanCollection.Intersection(normalizedTrackingSpansAfterEdit, spansTouchedInEdit);
 
-            if (intersection.Count == 0)
+            var query = from trackingSpan in _trackingSpans
+                        let mappedSpan = trackingSpan.GetSpan(args.After)
+                        where intersection.All(intersectionSpan => mappedSpan.IntersectsWith(intersectionSpan))
+                        select trackingSpan;
+
+            var trackingSpansThatIntersect = query.ToList();
+            if (trackingSpansThatIntersect.Count != 1)
             {
-                // This edit didn't touch any spans, so ignore it
-                return false;
-            }
-            else if (intersection.Count > 1)
-            {
-                // TODO: figure out what the proper bail is in the new model
                 return false;
             }
 
-            // Good, we touched just one, so let's propagate it
-            var intersectionSpan = intersection.Single();
-            var singleTrackingSpanTouched = _trackingSpans.Single(ts => ts.GetSpan(args.After).IntersectsWith(intersectionSpan));
-
-            replacementText = singleTrackingSpanTouched.GetText(args.After);
+            var singleIntersectingTrackingSpan = trackingSpansThatIntersect.Single();
+            replacementText = singleIntersectingTrackingSpan.GetText(args.After);
             return true;
         }
 

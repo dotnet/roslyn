@@ -206,6 +206,7 @@ End Module
             Dim peekableSession As New Mock(Of IPeekSession)(MockBehavior.Strict)
             Dim triggerPoint = New SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value)
             peekableSession.Setup(Function(s) s.GetTriggerPoint(It.IsAny(Of ITextSnapshot))).Returns(triggerPoint)
+            peekableSession.SetupGet(Function(s) s.RelationshipName).Returns("IsDefinedBy")
 
             Dim items As New List(Of IPeekableItem)
 

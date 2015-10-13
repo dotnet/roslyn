@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
     public sealed class CSharpInteractiveEvaluator : InteractiveEvaluator
     {
         private static readonly CSharpParseOptions s_parseOptions =
-            new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Interactive);
+            new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Script);
 
         private const string InteractiveResponseFile = "CSharpInteractive.rsp";
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 
         protected override CommandLineParser CommandLineParser
         {
-            get { return CSharpCommandLineParser.Interactive; }
+            get { return CSharpCommandLineParser.ScriptRunner; }
         }
     }
 }

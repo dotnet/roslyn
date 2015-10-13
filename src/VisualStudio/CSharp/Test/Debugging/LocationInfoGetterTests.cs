@@ -489,7 +489,7 @@ $$}
 @"
 
 $$System.Console.WriteLine(""Hello"")
-", null, 0, new CSharpParseOptions(kind: SourceCodeKind.Interactive));
+", null, 0, new CSharpParseOptions(kind: SourceCodeKind.Script));
         }
     }
 }

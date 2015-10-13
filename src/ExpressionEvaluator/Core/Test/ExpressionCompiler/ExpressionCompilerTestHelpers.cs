@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 target,
                 expr,
                 ImmutableArray<Alias>.Empty,
-                formatter ?? DiagnosticFormatter.Instance,
+                formatter ?? DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
                 ImmutableArray<Alias>.Empty,
-                formatter ?? DiagnosticFormatter.Instance,
+                formatter ?? DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 expr,
                 compilationFlags,
                 aliases,
-                formatter ?? DiagnosticFormatter.Instance,
+                formatter ?? DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return ExpressionCompiler.CompileWithRetry(
                 metadataBlocks,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 (blocks, useReferencedModulesOnly) => context,
                 compile,
                 getMetaDataBytesPtr,
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             var r = ExpressionCompiler.CompileWithRetry(
                 metadataBlocks,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 createContext,
                 (context, diagnostics) =>
                 {
