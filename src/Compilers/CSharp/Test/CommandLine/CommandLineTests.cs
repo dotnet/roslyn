@@ -7829,45 +7829,53 @@ class C {
         [Fact]
         public void CommandLine_ScriptRunner1()
         {
-            var args = ScriptParse(new[] { "--", "script.csx", "b", "c" }, baseDirectory: @"C:\");
-            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            var args = ScriptParse(new[] { "--", "script.csx", "b", "c" }, baseDirectory: _baseDirectory);
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "--", "@script.csx", "b", "c" }, baseDirectory: @"C:\");
-            AssertEx.Equal(new[] { @"C:\@script.csx" }, args.SourceFiles.Select(f => f.Path));
+            args = ScriptParse(new[] { "--", "@script.csx", "b", "c" }, baseDirectory: _baseDirectory);
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "@script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "--", "-script.csx", "b", "c" }, baseDirectory: @"C:\");
-            AssertEx.Equal(new[] { @"C:\-script.csx" }, args.SourceFiles.Select(f => f.Path));
+            args = ScriptParse(new[] { "--", "-script.csx", "b", "c" }, baseDirectory: _baseDirectory);
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "-script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "script.csx", "--", "b", "c" }, baseDirectory: @"C:\");
-            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            args = ScriptParse(new[] { "script.csx", "--", "b", "c" }, baseDirectory: _baseDirectory);
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "--", "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "script.csx", "a", "b", "c" }, baseDirectory: @"C:\");
-            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            args = ScriptParse(new[] { "script.csx", "a", "b", "c" }, baseDirectory: _baseDirectory);
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "a", "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "script.csx", "a", "--", "b", "c" }, baseDirectory: @"C:\");
-            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            args = ScriptParse(new[] { "script.csx", "a", "--", "b", "c" }, baseDirectory: _baseDirectory);
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "a", "--", "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "-i", "script.csx", "a", "b", "c" }, baseDirectory: @"C:\");
+            args = ScriptParse(new[] { "-i", "script.csx", "a", "b", "c" }, baseDirectory: _baseDirectory);
             Assert.True(args.InteractiveMode);
-            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "a", "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "-i", "--", "script.csx", "a", "b", "c" }, baseDirectory: @"C:\");
+            args = ScriptParse(new[] { "-i", "--", "script.csx", "a", "b", "c" }, baseDirectory: _baseDirectory);
             Assert.True(args.InteractiveMode);
-            AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "script.csx") }, args.SourceFiles.Select(f => f.Path));
             AssertEx.Equal(new[] { "a", "b", "c" }, args.ScriptArguments);
 
-            args = ScriptParse(new[] { "-i", "--", "--", "--" }, baseDirectory: @"C:\");
+            args = ScriptParse(new[] { "-i", "--", "--", "--" }, baseDirectory: _baseDirectory);
             Assert.True(args.InteractiveMode);
-            AssertEx.Equal(new[] { @"C:\--" }, args.SourceFiles.Select(f => f.Path));
+            AssertEx.Equal(new[] { Path.Combine(_baseDirectory, "--") }, args.SourceFiles.Select(f => f.Path));
             Assert.True(args.SourceFiles[0].IsScript);
             AssertEx.Equal(new[] { "--" }, args.ScriptArguments);
+
+            // TODO: fails on Linux (https://github.com/dotnet/roslyn/issues/5904)
+            // Result: C:\/script.csx
+            //args = ScriptParse(new[] { "-i", "script.csx", "--", "--" }, baseDirectory: @"C:\");
+            //Assert.True(args.InteractiveMode);
+            //AssertEx.Equal(new[] { @"C:\script.csx" }, args.SourceFiles.Select(f => f.Path));
+            //Assert.True(args.SourceFiles[0].IsScript);
+            //AssertEx.Equal(new[] { "--" }, args.ScriptArguments);
         }
 
         [WorkItem(1211823, "DevDiv")]

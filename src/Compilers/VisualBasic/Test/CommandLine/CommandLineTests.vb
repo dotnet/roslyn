@@ -860,18 +860,6 @@ a.vb
             Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(True, parsedArgs.DisplayHelp)
             Assert.Equal(False, parsedArgs.SourceFiles.Any())
-            parsedArgs = InteractiveParse({"c.vbx  /langversion:10"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = InteractiveParse({"c.vbx", "/langversion:-1"}, _baseDirectory)
-            Assert.Equal(1, parsedArgs.Errors.Length)
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(1, parsedArgs.SourceFiles.Length)
-            parsedArgs = InteractiveParse({"c.vbx  /r:d /r:d.dll"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
             parsedArgs = InteractiveParse({"@dd"}, _baseDirectory)
             Assert.Equal(True, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
@@ -884,10 +872,6 @@ a.vb
             parsedArgs.Errors.Verify(
                 Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
 
-            Assert.Equal(False, parsedArgs.DisplayHelp)
-            Assert.Equal(True, parsedArgs.SourceFiles.Any())
-            parsedArgs = InteractiveParse({"c.vbx", "/r:d.dll", "/define:DEGUG"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
             parsedArgs = InteractiveParse({"""/r d.dll"""}, _baseDirectory)
@@ -3195,19 +3179,6 @@ End Class
             Assert.Equal("a", parsedArgs.CompilationOptions.CryptoKeyContainer)
             Assert.Equal(Nothing, parsedArgs.CompilationOptions.CryptoKeyFile)
 
-        End Sub
-
-        <Fact>
-        Public Sub ReferencePaths()
-            Dim parsedArgs As VisualBasicCommandLineArguments
-            parsedArgs = InteractiveParse({"/rp:a,b", "/referencePath:c", "a.vb"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
-            AssertEx.Equal({RuntimeEnvironment.GetRuntimeDirectory(),
-                            Path.Combine(_baseDirectory, "a"),
-                            Path.Combine(_baseDirectory, "b"),
-                            Path.Combine(_baseDirectory, "c")},
-                           parsedArgs.ReferencePaths,
-                           StringComparer.OrdinalIgnoreCase)
         End Sub
 
         <Fact, WorkItem(530088, "DevDiv")>
