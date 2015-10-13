@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -113,6 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return (_container?.Kind == SymbolKind.NamedType) && ((NamedTypeSymbol)_container).IsSubmissionClass; }
         }
 
+        private bool IsScriptClass
+        {
+            get { return (_container?.Kind == SymbolKind.NamedType) && ((NamedTypeSymbol)_container).IsScriptClass; }
+        }
+
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {
             var type = _container as NamedTypeSymbol;
@@ -153,6 +159,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
                 }
+            }
+        }
+
+        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            if (IsScriptClass)
+            {
+                return this.Compilation.GetSpecialType(SpecialType.System_Object);
+            }
+            else
+            {
+                // this path will eventually throw InvalidOperationException
+                return Next.GetIteratorElementType(node, diagnostics);
             }
         }
 
