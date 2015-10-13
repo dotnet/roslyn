@@ -128,7 +128,6 @@
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />
     <Compile Include="Binder\InMethodBinder.cs" />
-    <Compile Include="Binder\InteractiveUsingsBinder.cs" />
     <Compile Include="Binder\LocalBinderFactory.cs" />
     <Compile Include="Binder\LocalInProgressBinder.cs" />
     <Compile Include="Binder\LocalScopeBinder.cs" />
@@ -188,7 +187,6 @@
     <Compile Include="Binder\SwitchBinder.cs" />
     <Compile Include="Binder\SimpleLocalScopeBinder.cs" />
     <Compile Include="Binder\TypeofBinder.cs" />
-    <Compile Include="Binder\UsingsBinder.cs" />
     <Compile Include="Binder\UsingStatementBinder.cs" />
     <Compile Include="Binder\WhileBinder.cs" />
     <Compile Include="Binder\WithClassTypeParametersBinder.cs" />

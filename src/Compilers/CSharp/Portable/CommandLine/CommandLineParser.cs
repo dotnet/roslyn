@@ -572,6 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             optimize = false;
                             continue;
 
+                        case "deterministic":
                         case "deterministic+":
                             if (value != null)
                                 break;

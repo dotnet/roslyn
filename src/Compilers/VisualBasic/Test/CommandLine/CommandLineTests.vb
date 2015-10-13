@@ -1122,6 +1122,10 @@ a.vb
             ParsedArgs.Errors.Verify()
             Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
 
+            ParsedArgs = DefaultParse({"/deterministic", "a.vb"}, _baseDirectory)
+            ParsedArgs.Errors.Verify()
+            Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)
+
             ParsedArgs = DefaultParse({"/DETERMINISTIC+", "a.vb"}, _baseDirectory)
             ParsedArgs.Errors.Verify()
             Assert.Equal(True, ParsedArgs.CompilationOptions.Deterministic)

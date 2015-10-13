@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "xunit": "2.1.0-beta4-build3109",
-    "xunit.extensibility.execution": "2.1.0-beta4-build3109"
+    "xunit": "2.1.0",
+    "xunit.extensibility.execution": "2.1.0"
   },
   "frameworks": {
     "net46": { }

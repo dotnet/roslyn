@@ -1442,6 +1442,10 @@ d.cs
             parsedArgs.Errors.Verify();
             Assert.Equal(true, parsedArgs.CompilationOptions.Deterministic);
 
+            parsedArgs = DefaultParse(new[] { "/deterministic", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(true, parsedArgs.CompilationOptions.Deterministic);
+
             parsedArgs = DefaultParse(new[] { "/deterministic-", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(false, parsedArgs.CompilationOptions.Deterministic);
