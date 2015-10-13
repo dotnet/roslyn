@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal AliasSymbol ToNewSubmission(CSharpCompilation compilation)
         {
+            Debug.Assert(compilation != null, $"{nameof(compilation)} was null");
+            Debug.Assert(_binder != null, $"{nameof(_binder)} was null");
+            Debug.Assert(_binder.Compilation != null, $"{nameof(_binder)}.{nameof(_binder.Compilation)} was null");
+            Debug.Assert(_aliasTarget != null, $"{nameof(_aliasTarget)} was null");
+
             Debug.Assert(_state.HasComplete(CompletionPart.AliasTarget));
             Debug.Assert(_binder.Compilation.IsSubmission);
 
