@@ -176,9 +176,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Contract.Requires(location.IsInSource);
 
                         var document = solution.GetDocument(location.SourceTree, projectId);
-                        Contract.Requires(document != null);
-
-                        if (thisDocument == document)
+                        if (document == null || thisDocument == document)
                         {
                             continue;
                         }
@@ -416,9 +414,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
-                        foreach (var documentId in project.DocumentIds)
+                        foreach (var document in project.Documents)
                         {
-                            await EnqueueWorkItemAsync(project.GetDocument(documentId)).ConfigureAwait(false);
+                            await EnqueueWorkItemAsync(document).ConfigureAwait(false);
                         }
                     }
 
