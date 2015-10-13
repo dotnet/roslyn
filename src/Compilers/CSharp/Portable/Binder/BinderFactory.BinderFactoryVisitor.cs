@@ -801,6 +801,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //           + script class members and using aliases
                         //
 
+                        bool isSubmissionTree = compilation.IsSubmissionSyntaxTree(compilationUnit.SyntaxTree);
+                        if (!isSubmissionTree)
+                        {
+                            result = result.WithAdditionalFlags(BinderFlags.InLoadedSyntaxTree);
+                        }
+
                         // This is declared here so it can be captured.  It's initialized below.
                         InContainerBinder scriptClassBinder = null;
 
@@ -814,7 +820,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // NB: This binder has a full Imports object, but only the non-alias imports are
                             // ever consumed.  Aliases are actually checked in scriptClassBinder (below).
-                            result = compilation.PreviousSubmission == null
+                            // Note: #loaded trees don't consume previous submission imports.
+                            result = compilation.PreviousSubmission == null || !isSubmissionTree
                                 ? new InContainerBinder(result, basesBeingResolved => scriptClassBinder.GetImports(basesBeingResolved))
                                 : new InContainerBinder(result, basesBeingResolved =>
                                     compilation.GetPreviousSubmissionImports().Concat(scriptClassBinder.GetImports(basesBeingResolved)));

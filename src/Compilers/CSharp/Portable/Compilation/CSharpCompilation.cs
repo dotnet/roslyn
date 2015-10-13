@@ -1200,6 +1200,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return namespaceOrType as ImplicitNamedTypeSymbol;
         }
 
+        internal bool IsSubmissionSyntaxTree(SyntaxTree tree)
+        {
+            Debug.Assert(tree != null);
+            Debug.Assert(!this.IsSubmission || _syntaxAndDeclarations.ExternalSyntaxTrees.Length <= 1);
+            return this.IsSubmission && tree == _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
+        }
+
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
@@ -1223,7 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
-            return binder.GetImports();
+            return binder.GetImports(basesBeingResolved: null);
         }
 
         /// <summary>
@@ -1691,7 +1698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal Imports GetImports(SingleNamespaceDeclaration declaration)
         {
-            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports();
+            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports(basesBeingResolved: null);
         }
 
         private AliasSymbol CreateGlobalNamespaceAlias()

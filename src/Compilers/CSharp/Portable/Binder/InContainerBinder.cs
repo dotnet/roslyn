@@ -66,12 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal Imports GetImports()
-        {
-            return GetImports(basesBeingResolved: null);
-        }
-
-        internal Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        internal override Imports GetImports(ConsList<Symbol> basesBeingResolved)
         {
             Debug.Assert(_lazyImports != null || _computeImports != null, "Have neither imports nor a way to compute them.");
 
@@ -92,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImportChain importChain = this.Next.ImportChain;
                     if ((object)_container == null || _container.Kind == SymbolKind.Namespace)
                     {
-                        importChain = new ImportChain(GetImports(), importChain);
+                        importChain = new ImportChain(GetImports(basesBeingResolved: null), importChain);
                     }
 
                     Interlocked.CompareExchange(ref _lazyImportChain, importChain, null);
@@ -146,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (searchUsingsNotNamespace)
             {
-                this.GetImports().LookupExtensionMethodsInUsings(methods, name, arity, options, originalBinder);
+                this.GetImports(basesBeingResolved: null).LookupExtensionMethodsInUsings(methods, name, arity, options, originalBinder);
             }
             else if (_container?.Kind == SymbolKind.Namespace)
             {

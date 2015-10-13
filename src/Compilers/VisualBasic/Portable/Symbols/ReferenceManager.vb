@@ -285,6 +285,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim allAssemblyData As ImmutableArray(Of AssemblyData) = Nothing
 
                     Dim bindingResult() As BoundInputAssembly = Bind(explicitAssemblyData,
+                                                                     modules,
+                                                                     references,
+                                                                     referenceMap,
                                                                      compilation.Options.MetadataReferenceResolver,
                                                                      compilation.Options.MetadataImportOptions,
                                                                      allAssemblyData,
