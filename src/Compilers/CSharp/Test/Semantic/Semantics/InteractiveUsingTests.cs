@@ -373,7 +373,7 @@ t = typeof(C); // declaration exposed
         }
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
-        [Fact]
+        [ClrOnlyFact(ClrOnlyReason.Unknown)]
         void UsingsToLoadedScript()
         {
             const string scriptSource = @"
