@@ -970,8 +970,10 @@ End Class";
             protected override void Dispose(bool finalize)
             {
                 base.Dispose(finalize);
-                Assert.False(_workspaceWaiter.HasPendingWork);
-                Assert.False(_solutionCrawlerWaiter.HasPendingWork);
+
+                // Bug https://github.com/dotnet/roslyn/issues/5915
+                // Assert.False(_workspaceWaiter.HasPendingWork);
+                // Assert.False(_solutionCrawlerWaiter.HasPendingWork);
             }
         }
 
