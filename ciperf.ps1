@@ -165,7 +165,7 @@ function CreateXUnitFixture(
 
     $PackagesPath = Join-Path -Path $StagingPath -ChildPath Packages
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
-    & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
+    & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0023 -Source https://www.myget.org/F/dotnet-buildtools/
 
     if ([System.String]::IsNullOrEmpty($UnzippedBaseDirectory)) {
         $IncludeBaseDirectory = $false
@@ -351,7 +351,7 @@ try {
     $FixturesStagingPath = Join-Path -Path $HelixStage -ChildPath fixtures
 
     # Look for xunit-performance.zip in the appropriate fixtures folder and create it if it doesn't already exist
-    $XunitFixtureUri = GetXUnitFixtureUri -BlobName "$Repository/$Branch/fixtures/xunit-performance1.0.0-alpha-build0013/xunit-performance.zip" -StorageContext $StorageContext -StorageContainer $StorageContainer -StorageContainerRSAS $StorageContainerRSAS -FixturesStagingPath $FixturesStagingPath
+    $XunitFixtureUri = GetXUnitFixtureUri -BlobName "$Repository/$Branch/fixtures/xunit-performance1.0.0-alpha-build0023/xunit-performance.zip" -StorageContext $StorageContext -StorageContainer $StorageContainer -StorageContainerRSAS $StorageContainerRSAS -FixturesStagingPath $FixturesStagingPath
 
     Write-Host "Creating work item list"
 

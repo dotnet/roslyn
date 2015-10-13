@@ -60,7 +60,7 @@ if not exist %XUNIT% (
     if exist ..\..\nuget.exe (
         echo Note: xunit fixture not found. Trying to create it.
         set XUNIT_PACKAGES=%TEMP%\xunit%RANDOM%
-        ..\..\nuget.exe install -OutputDirectory !XUNIT_PACKAGES! -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0013 -Source https://www.myget.org/F/dotnet-buildtools/
+        ..\..\nuget.exe install -OutputDirectory !XUNIT_PACKAGES! -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0023 -Source https://www.myget.org/F/dotnet-buildtools/
 
         xcopy /s /i /y !XUNIT_PACKAGES!\xunit.runner.console\tools\* %XUNIT%
         xcopy /s /i /y !XUNIT_PACKAGES!\Microsoft.DotNet.xunit.performance.runner.Windows\tools\* %XUNIT%
