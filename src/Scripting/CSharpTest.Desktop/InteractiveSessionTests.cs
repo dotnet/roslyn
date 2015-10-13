@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PortableTestUtils;
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ using Microsoft.CodeAnalysis.Scripting.CSharp;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Roslyn.Test.Utilities;
 using Xunit;
+using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
+using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
@@ -244,7 +247,6 @@ System.Collections.IEnumerable w = new Window();
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Window()").WithArguments("System.Windows.Window", "System.Collections.IEnumerable"));
         }
 
-        [WorkItem(529637)]
         [Fact]
         public void AssemblyResolution()
         {
