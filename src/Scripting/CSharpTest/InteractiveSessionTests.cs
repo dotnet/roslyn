@@ -528,7 +528,7 @@ Environment.ProcessorCount
         public void CompilationChain_UsingNotHidingHostObjectMembers()
         {
             var result =
-                CSharpScript.RunAsync("using System;", OptionsWithFacades, globals: new C1()).
+                CSharpScript.RunAsync("using System;", globals: new C1()).
                 ContinueWith("Environment").
                 Result.ReturnValue;
 

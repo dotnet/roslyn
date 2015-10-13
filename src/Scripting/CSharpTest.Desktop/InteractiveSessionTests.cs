@@ -227,30 +227,6 @@ System.Diagnostics.Process.GetCurrentProcess()
         }
 
         [Fact]
-        public void MissingDependency()
-        {
-            var source = @"
-#r ""WindowsBase""
-#r ""PresentationCore""
-#r ""PresentationFramework""
-
-using System.Windows;
-System.Collections.IEnumerable w = new Window();
-";
-
-            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync(source),
-                // (7,36): error CS0012: The type 'System.ComponentModel.ISupportInitialize' is defined in an assembly that is not referenced. You must add a reference to assembly 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.ComponentModel.ISupportInitialize", "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0012: The type 'System.Windows.Markup.IQueryAmbient' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.Windows.Markup.IQueryAmbient", "System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0266: Cannot implicitly convert type 'System.Windows.Window' to 'System.Collections.IEnumerable'. An explicit conversion exists (are you missing a cast?)
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Window()").WithArguments("System.Windows.Window", "System.Collections.IEnumerable"));
-        }
-
-        [Fact]
         public void AssemblyResolution()
         {
             var s0 = CSharpScript.RunAsync("var x = new { a = 3 }; x");
