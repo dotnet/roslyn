@@ -987,7 +987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
 
                         Case "reportanalyzer"
-                                    reportAnalyzer = True
+                            reportAnalyzer = True
                             Continue For
 
                         Case "nostdlib"

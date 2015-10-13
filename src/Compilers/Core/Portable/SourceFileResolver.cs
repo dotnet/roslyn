@@ -61,6 +61,12 @@ namespace Microsoft.CodeAnalysis
                         throw new ArgumentException(CodeAnalysisResources.EmptyKeyInPathMap, nameof(pathMap));
                     }
 
+                    var value = kv.Value;
+                    if (value == null || value.Length == 0)
+                    {
+                        throw new ArgumentException(CodeAnalysisResources.EmptyValueInPathMap, nameof(pathMap));
+                    }
+
                     if (IsPathSeparator(key[key.Length - 1]))
                     {
                         throw new ArgumentException(CodeAnalysisResources.KeyInPathMapEndsWithSeparator, nameof(pathMap));
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis
             return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : NormalizePathPrefix(normalizedPath, _pathMap);
         }
 
-        private string NormalizePathPrefix(string normalizedPath, ImmutableArray<KeyValuePair<string, string>> pathMap)
+        private static string NormalizePathPrefix(string normalizedPath, ImmutableArray<KeyValuePair<string, string>> pathMap)
         {
             // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
             // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
