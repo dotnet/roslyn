@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
@@ -80,6 +81,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly OutputBuffer _buffer;
 
+            private IWaitIndicator _waitIndicator;
+
             public readonly ITextBuffer OutputBuffer;
             public readonly ITextBuffer StandardInputBuffer;
             public ITextBuffer CurrentLanguageBuffer { get; private set; }
@@ -134,13 +137,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 IRtfBuilderService rtfBuilderService,
                 IIntellisenseSessionStackMapService intellisenseSessionStackMap,
                 ISmartIndentationService smartIndenterService,
-                IInteractiveEvaluator evaluator)
+                IInteractiveEvaluator evaluator,
+                IWaitIndicator waitIndicator)
             {
                 _window = window;
                 _factory = factory;
                 _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
                 _smartIndenterService = smartIndenterService;
+                _waitIndicator = waitIndicator;
                 Evaluator = evaluator;
 
                 var replContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName);
@@ -2512,14 +2517,43 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var text = GetText(spans);
                 var blocks = GetTextBlocks(spans);
-                var rtf = _rtfBuilderService.GenerateRtf(spans, CancellationToken.None);
+                string rtf = null;
+                try
+                {
+                    rtf = GenerateRtf(spans);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore cancellation when doing a copy. The user may not even want RTF text so preventing the normal text from being copied would be overkill.
+                }
                 var data = new DataObject();
                 data.SetData(DataFormats.StringFormat, text);
                 data.SetData(DataFormats.Text, text);
                 data.SetData(DataFormats.UnicodeText, text);
-                data.SetData(DataFormats.Rtf, rtf);
+                if (rtf != null)
+                {
+                    data.SetData(DataFormats.Rtf, rtf);
+                }
                 data.SetData(ClipboardFormat, blocks);
                 return data;
+            }
+
+            private string GenerateRtf(NormalizedSnapshotSpanCollection spans)
+            {
+                // This behavior is consistent with VS editor. 
+                // Don't generate RTF for large spans (since it is expensive and probably not wanted).
+                int length = spans.Sum((span) => span.Length);
+                if (length < 1000000)
+                {                                           
+                    using (var dialog = WaitHelper.Wait(_waitIndicator, InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage))
+                    {
+                        return _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken);
+                    }
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             /// <summary>
