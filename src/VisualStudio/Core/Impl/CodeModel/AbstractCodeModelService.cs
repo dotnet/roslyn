@@ -519,7 +519,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract SyntaxNode SetName(SyntaxNode node, string name);
 
         public abstract string GetFullName(SyntaxNode node, SemanticModel semanticModel);
-        public abstract string GetFullName(ISymbol symbol);
 
         public abstract string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
@@ -567,6 +566,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // Update the node keys.
             nodeKeyValidation.RestoreKeys();
         }
+
+        public abstract bool IsValidExternalSymbol(ISymbol symbol);
+        public abstract string GetExternalSymbolName(ISymbol symbol);
+        public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
         public VirtualTreePoint? GetStartPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
         {

@@ -55,7 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
                 foreach (var member in typeSymbol.GetMembers())
                 {
-                    childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, member));
+                    if (this.CodeModelService.IsValidExternalSymbol(member))
+                    {
+                        childrenBuilder.Add(this.State.CodeModelService.CreateExternalCodeElement(this.State, _projectId, member));
+                    }
                 }
 
                 foreach (var typeMember in typeSymbol.GetTypeMembers())
