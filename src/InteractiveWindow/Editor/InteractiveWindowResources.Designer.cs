@@ -367,7 +367,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Formatting selection.
+        ///   Looks up a localized string similar to Generating Rich Text Format representation from selection..
         /// </summary>
         internal static string WaitMessage {
             get {

@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;                                       
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly OutputBuffer _buffer;
 
-            private IWaitIndicator _waitIndicator;
+            private readonly IWaitIndicator _waitIndicator;
 
             public readonly ITextBuffer OutputBuffer;
             public readonly ITextBuffer StandardInputBuffer;
@@ -2545,8 +2545,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 int length = spans.Sum((span) => span.Length);
                 if (length < 1000000)
                 {                                           
-                    using (var dialog = WaitHelper.Wait(_waitIndicator, InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage))
-                    {
+                    using (var dialog = _waitIndicator.StartWait(InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage, allowCancel: true))
+                    {                           
                         return _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken);
                     }
                 }

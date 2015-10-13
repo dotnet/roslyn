@@ -223,6 +223,6 @@
     <value>Copy</value>
   </data>
   <data name="WaitMessage" xml:space="preserve">
-    <value>Formatting selection</value>
+    <value>Generating Rich Text Format representation from selection.</value>
   </data>
 </root>
