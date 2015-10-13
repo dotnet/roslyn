@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -453,12 +454,19 @@ WriteLine(5);
         }
 
         [Fact]
+        public void AddReference_Path()
+        {
+            Assert.False(Execute("new System.Data.DataSet()"));
+            Assert.True(LoadReference(Assembly.Load(new AssemblyName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")).Location));
+            Assert.True(Execute("new System.Data.DataSet()"));
+        }
+
+        [Fact]
         public void AddReference_PartialName()
         {
-            Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
-
-            Assert.True(LoadReference("System"));
-            Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
+            Assert.False(Execute("new System.Data.DataSet()"));
+            Assert.True(LoadReference("System.Data"));
+            Assert.True(Execute("new System.Data.DataSet()"));
         }
 
         [Fact]
@@ -476,10 +484,9 @@ WriteLine(5);
         [Fact]
         public void AddReference_FullName()
         {
-            Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
-
-            Assert.True(LoadReference(typeof(Process).Assembly.FullName));
-            Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
+            Assert.False(Execute("new System.Data.DataSet()"));
+            Assert.True(LoadReference("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
+            Assert.True(Execute("new System.Data.DataSet()"));
         }
                 
         [ConditionalFact(typeof(Framework35Installed), Skip="https://github.com/dotnet/roslyn/issues/5167")]
@@ -514,15 +521,6 @@ WriteLine(5);
             Assert.Equal("", ReadErrorOutputToEnd().Trim());
             Assert.Equal("", ReadOutputToEnd().Trim());
             Assert.True(result);
-        }
-
-        [Fact]
-        public void AddReference_Path()
-        {
-            Assert.False(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
-
-            Assert.True(LoadReference(typeof(Process).Assembly.Location));
-            Assert.True(Execute("System.Diagnostics.Process.GetCurrentProcess().HasExited"));
         }
 
         // Caused by submission not inheriting references.
@@ -840,7 +838,7 @@ new D().Y
             var assemblyName = GetUniqueName();
             CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
             var rspFile = Temp.CreateFile();
-            rspFile.WriteAllText("/rp:" + directory.Path);
+            rspFile.WriteAllText("/lib:" + directory.Path);
 
             Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 

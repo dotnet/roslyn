@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
         }
 
         public override ObjectFormatter ObjectFormatter => CSharpObjectFormatter.Instance;
-        public override CommandLineParser CommandLineParser => CSharpCommandLineParser.Interactive;
+        public override CommandLineParser CommandLineParser => CSharpCommandLineParser.ScriptRunner;
         public override DiagnosticFormatter DiagnosticFormatter => CSharpDiagnosticFormatter.Instance;
 
         public override string Logo

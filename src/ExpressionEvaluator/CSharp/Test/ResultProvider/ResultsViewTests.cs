@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
-using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using BindingFlags = System.Reflection.BindingFlags;
@@ -1643,6 +1644,70 @@ class C
                 Verify(children,
                     EvalResult("[0]", "6", "int", "new System.Collections.Generic.Mscorlib_CollectionDebugView<int>(U).Items[0]"),
                     EvalResult("Raw View", null, "", "U, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
+            }
+        }
+
+        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
+        [Fact]
+        public void IEnumerableOfAnonymousType()
+        {
+            var code =
+@"using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    static void M(List<int> list)
+    {
+        var result = from x in list from y in list where x > 0 select new { x, y };
+    }
+}";
+            var assembly = GetAssembly(code);
+            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(assembly);
+            using (ReflectionUtilities.LoadAssemblies(assemblies))
+            {
+                var runtime = new DkmClrRuntimeInstance(assemblies);
+                var anonymousType = assembly.GetType("<>f__AnonymousType0`2").MakeGenericType(typeof(int), typeof(int));
+                var type = typeof(Enumerable).GetNestedType("WhereSelectEnumerableIterator`2", BindingFlags.NonPublic).MakeGenericType(anonymousType, anonymousType);
+                var displayClass = assembly.GetType("C+<>c");
+                var instance = displayClass.Instantiate();
+                var ctor = type.GetConstructors().Single();
+                var parameters = ctor.GetParameters();
+                var listType = typeof(List<>).MakeGenericType(anonymousType);
+                var source = listType.Instantiate();
+                listType.GetMethod("Add").Invoke(source, new[] { anonymousType.Instantiate(1, 1) });
+                var predicate = Delegate.CreateDelegate(parameters[1].ParameterType, instance, displayClass.GetMethod("<M>b__0_2", BindingFlags.Instance | BindingFlags.NonPublic));
+                var selector = Delegate.CreateDelegate(parameters[2].ParameterType, instance, displayClass.GetMethod("<M>b__0_3", BindingFlags.Instance | BindingFlags.NonPublic));
+                var value = CreateDkmClrValue(
+                    value: type.Instantiate(source, predicate, selector),
+                    type: runtime.GetType((TypeImpl)type));
+                var expr = "from x in my_list from y in my_list where x > 0 select new { x, y }";
+                var typeName = "System.Linq.Enumerable.WhereSelectEnumerableIterator<<>f__AnonymousType0<int, int>, <>f__AnonymousType0<int, int>>";
+
+                var name = expr + ";";
+                var evalResult = FormatResult(name, value);
+                Verify(evalResult,
+                    EvalResult(name, $"{{{typeName}}}", typeName, expr, DkmEvaluationResultFlags.Expandable));
+                var resultsViewRow = GetChildren(evalResult).Last();
+                Verify(GetChildren(resultsViewRow),
+                    EvalResult(
+                        "[0]",
+                        "{{ x = 1, y = 1 }}",
+                        "<>f__AnonymousType0<int, int>",
+                        $"new System.Linq.SystemCore_EnumerableDebugView<<>f__AnonymousType0<int, int>>({expr}).Items[0]",
+                        DkmEvaluationResultFlags.Expandable));
+
+                name = expr + ", results";
+                evalResult = FormatResult(name, value, inspectionContext: CreateDkmInspectionContext(DkmEvaluationFlags.ResultsOnly));
+                Verify(evalResult,
+                    EvalResult(name, $"{{{typeName}}}", typeName, name, DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+                Verify(GetChildren(evalResult),
+                    EvalResult(
+                        "[0]",
+                        "{{ x = 1, y = 1 }}",
+                        "<>f__AnonymousType0<int, int>",
+                        $"new System.Linq.SystemCore_EnumerableDebugView<<>f__AnonymousType0<int, int>>({expr}).Items[0]",
+                        DkmEvaluationResultFlags.Expandable));
             }
         }
 

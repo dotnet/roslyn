@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias WORKSPACES;
 
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+    using RelativePathResolver = WORKSPACES::Microsoft.CodeAnalysis.RelativePathResolver;
+
     public partial class TestWorkspaceFactory
     {
         /// <summary>
@@ -470,12 +473,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             // TODO: Allow these to be specified.
             var languageServices = workspace.Services.GetLanguageServices(language);
+            var metadataService = workspace.Services.GetService<IMetadataService>();
             var compilationOptions = languageServices.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             compilationOptions = compilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
                                                    .WithGeneralDiagnosticOption(reportDiagnostic)
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
-                                                   .WithMetadataReferenceResolver(RuntimeMetadataReferenceResolver.Default)
+                                                   .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, null)))
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
             if (language == LanguageNames.VisualBasic)
