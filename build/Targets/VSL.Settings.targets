@@ -154,9 +154,9 @@
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
-    <CscToolExe>csc.exe</CscToolExe>
+    <CscToolExe>csc.cmd</CscToolExe>
     <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
-    <VbcToolExe>vbc.exe</VbcToolExe>
+    <VbcToolExe>vbc.cmd</VbcToolExe>
   </PropertyGroup>
 
   <!-- Common project settings -->
