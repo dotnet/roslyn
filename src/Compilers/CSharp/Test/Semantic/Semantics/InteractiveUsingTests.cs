@@ -373,7 +373,7 @@ t = typeof(C); // declaration exposed
         }
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [Fact]
         void UsingsToLoadedScript()
         {
             const string scriptSource = @"
@@ -485,7 +485,7 @@ t = typeof(File); // global using exposed
         }
 
         [WorkItem(4811, "https://github.com/dotnet/roslyn/issues/4811")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5927")]
+        [Fact]
         public void ConsumePreviousSubmissionUsings_Valid()
         {
             const string libSource = @"
