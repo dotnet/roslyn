@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return actions.Count > 0 ? new CodeRefactoring(provider, actions) : null;
         }
 
-        protected void TestActionsOnLinkedFiles(
+        protected async Task TestActionsOnLinkedFiles(
             TestWorkspace workspace,
             string expectedText,
             int index,
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             var operations = VerifyInputsAndGetOperations(index, actions);
 
-            VerifyPreviewContents(workspace, expectedPreviewContents, operations);
+            await VerifyPreviewContents(workspace, expectedPreviewContents, operations).ConfigureAwait(true);
 
             var applyChangesOperation = operations.OfType<ApplyChangesOperation>().First();
             applyChangesOperation.Apply(workspace, CancellationToken.None);
@@ -84,12 +85,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        private static void VerifyPreviewContents(TestWorkspace workspace, string expectedPreviewContents, IEnumerable<CodeActionOperation> operations)
+        private static async Task VerifyPreviewContents(TestWorkspace workspace, string expectedPreviewContents, IEnumerable<CodeActionOperation> operations)
         {
             if (expectedPreviewContents != null)
             {
                 var editHandler = workspace.ExportProvider.GetExportedValue<ICodeActionEditHandlerService>();
-                var content = editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().PumpingWaitResult();
+                var content = await editHandler.GetPreviews(workspace, operations, CancellationToken.None).TakeNextPreviewAsync().ConfigureAwait(true);
                 var diffView = content as IWpfDifferenceViewer;
                 Assert.NotNull(diffView);
                 var previewContents = diffView.RightView.TextBuffer.AsTextContainer().CurrentText.ToString();

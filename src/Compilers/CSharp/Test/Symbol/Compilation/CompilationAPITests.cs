@@ -1386,7 +1386,7 @@ class A
             var source = @"1 + 1";
             var compilation = CSharpCompilation.CreateSubmission("sub",
                 references: new[] { MscorlibRef },
-                syntaxTree: Parse(source, options: TestOptions.Interactive));
+                syntaxTree: Parse(source, options: TestOptions.Script));
             compilation.VerifyDiagnostics();
 
             var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Factory>");
@@ -1410,7 +1410,7 @@ class A
 ";
             var compilation = CSharpCompilation.CreateSubmission("sub",
                 references: new[] { MscorlibRef },
-                syntaxTree: Parse(source, options: TestOptions.Interactive));
+                syntaxTree: Parse(source, options: TestOptions.Script));
             compilation.VerifyDiagnostics(
                 // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
                 //     static void Main() { }
@@ -1973,16 +1973,15 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(out hasValue).SpecialType);
             Assert.False(hasValue);
 
-            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Int32, expectedHasValue: true);
-            TestSubmissionResult(CreateSubmission("1;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("void foo() { }", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("using System;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("int i;", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine();", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: false);
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions: TestOptions.Interactive), expectedType: SpecialType.System_Void, expectedHasValue: true);
-            TestSubmissionResult(CreateSubmission("null", parseOptions: TestOptions.Interactive), expectedType: null, expectedHasValue: true);
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine", parseOptions: TestOptions.Interactive), expectedType: null, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("1", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Int32, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("1;", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("void foo() { }", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("using System;", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("int i;", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine();", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: false);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions: TestOptions.Script), expectedType: SpecialType.System_Void, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("null", parseOptions: TestOptions.Script), expectedType: null, expectedHasValue: true);
+            TestSubmissionResult(CreateSubmission("System.Console.WriteLine", parseOptions: TestOptions.Script), expectedType: null, expectedHasValue: true);
         }
 
         /// <summary>

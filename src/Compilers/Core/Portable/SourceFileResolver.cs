@@ -155,7 +155,8 @@ namespace Microsoft.CodeAnalysis
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&
-                (_pathMap.IsDefaultOrEmpty ? other._pathMap.IsDefaultOrEmpty : _pathMap.SequenceEqual(other._pathMap));
+                (_pathMap.IsDefaultOrEmpty == other._pathMap.IsDefaultOrEmpty &&
+                    (_pathMap.IsDefaultOrEmpty || _pathMap.SequenceEqual(other._pathMap)));
         }
 
         public override int GetHashCode()

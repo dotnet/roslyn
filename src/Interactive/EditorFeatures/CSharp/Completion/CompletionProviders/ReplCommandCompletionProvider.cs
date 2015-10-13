@@ -65,33 +65,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders
             var position = context.Position;
             var cancellationToken = context.CancellationToken;
 
-            if (document != null && document.SourceCodeKind == SourceCodeKind.Interactive)
+            // the provider might be invoked in non-interactive context:
+            Workspace ws;
+            if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container, out ws))
             {
-                // the provider might be invoked in non-interactive context:
-                Workspace ws;
-                if (Workspace.TryGetWorkspace(document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container, out ws))
+                var workspace = ws as InteractiveWorkspace;
+                if (workspace != null)
                 {
-                    var workspace = ws as InteractiveWorkspace;
-                    if (workspace != null)
+                    var window = workspace.Engine.CurrentWindow;
+                    var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (tree.IsBeforeFirstToken(position, cancellationToken) &&
+                        tree.IsPreProcessorKeywordContext(position, cancellationToken))
                     {
-                        var window = workspace.Engine.CurrentWindow;
-                        var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                        var filterSpan = await this.GetTextChangeSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-                        if (tree.IsBeforeFirstToken(position, cancellationToken) &&
-                            tree.IsPreProcessorKeywordContext(position, cancellationToken))
+                        IInteractiveWindowCommands commands = window.GetInteractiveCommands();
+                        if (commands != null)
                         {
-                            var filterSpan = await this.GetTextChangeSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-                            IInteractiveWindowCommands commands = window.GetInteractiveCommands();
-                            if (commands != null)
+                            foreach (var command in commands.GetCommands())
                             {
-                                foreach (var command in commands.GetCommands())
+                                foreach (var commandName in command.Names)
                                 {
-                                    foreach (var commandName in command.Names)
-                                    {
-                                        context.AddItem(new CompletionItem(
-                                            this, commandName, filterSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
-                                    }
+                                    context.AddItem(new CompletionItem(
+                                        this, commandName, filterSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
                                 }
                             }
                         }

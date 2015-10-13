@@ -21,7 +21,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class CommandLineArguments
     {
-        internal bool IsInteractive { get; set; }
+        internal bool IsScriptRunner { get; set; }
+
+        /// <summary>
+        /// Drop to an interactive loop. If a script is specified in <see cref="SourceFiles"/> executes the script first.
+        /// </summary>
+        public bool InteractiveMode { get; internal set; }
 
         /// <summary>
         /// Directory used to resolve relative paths stored in the arguments.
@@ -49,6 +54,11 @@ namespace Microsoft.CodeAnalysis
         /// Sequence of absolute paths used to search for references.
         /// </summary>
         public ImmutableArray<string> ReferencePaths { get; internal set; }
+
+        /// <summary>
+        /// Sequence of absolute paths used to search for sources specified as #load directives.
+        /// </summary>
+        public ImmutableArray<string> SourcePaths { get; internal set; }
 
         /// <summary>
         /// Sequence of absolute paths used to search for key files.
@@ -182,7 +192,7 @@ namespace Microsoft.CodeAnalysis
         public SourceHashAlgorithm ChecksumAlgorithm { get; internal set; }
 
         /// <summary>
-        /// Arguments following script argument separator "--" or null if <see cref="IsInteractive"/> is false.
+        /// Arguments following a script file or separator "--". Null if the command line parser is not interactive.
         /// </summary>
         public ImmutableArray<string> ScriptArguments { get; internal set; }
 

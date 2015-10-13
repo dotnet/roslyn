@@ -1,6 +1,7 @@
 {
   "dependencies": {
-    "xunit": "1.9.2"
+    "xunit": "2.1.0",
+    "xunit.extensibility.execution": "2.1.0"
   },
   "frameworks": {
     "net46": { }

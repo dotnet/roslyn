@@ -2,13 +2,14 @@
 
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
 {
     public class OutliningSpanTests
     {
-        [Fact]
+        [WpfFact]
         public void TestProperties()
         {
             var span = TextSpan.FromBounds(0, 1);
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             Assert.Equal(autoCollapse, outliningRegion.AutoCollapse);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestToStringWithHintSpan()
         {
             var span = TextSpan.FromBounds(0, 1);
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Outlining
             Assert.Equal("{Span=[0..1), HintSpan=[2..3), BannerText=\"Foo\", AutoCollapse=True, IsDefaultCollapsed=False}", outliningRegion.ToString());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestToStringWithoutHintSpan()
         {
             var span = TextSpan.FromBounds(0, 1);

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComme
             Return VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub SimpleTagCompletion()
 
             Dim text = <File><![CDATA[
@@ -35,7 +35,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub NestedTagCompletion()
 
             Dim text = <File><![CDATA[
@@ -55,7 +55,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub CompleteBeforeIncompleteTag()
 
             Dim text = <File><![CDATA[
@@ -73,7 +73,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub NotEmptyElement()
 
             Dim text = <File><![CDATA[
@@ -89,7 +89,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub NotAlreadyCompleteTag()
 
             Dim text = <File><![CDATA[
@@ -105,7 +105,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub NotAlreadyCompleteTag2()
 
             Dim text = <File><![CDATA[
@@ -125,7 +125,7 @@ End Class]]></File>
             Verify(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), ">"c)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub NotOutsideDocComment()
 
             Dim text = <File><![CDATA[
@@ -142,7 +142,7 @@ End Class]]></File>
         End Sub
 
         <WorkItem(638235)>
-        <Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)>
         Public Sub NotCloseClosedTag()
             Dim text = <File><![CDATA[
 ''' <summary>

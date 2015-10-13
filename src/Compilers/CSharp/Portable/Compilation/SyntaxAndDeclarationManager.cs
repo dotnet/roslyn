@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref DeclarationTable declTable)
         {
             var sourceCodeKind = tree.Options.Kind;
-            if (sourceCodeKind == SourceCodeKind.Interactive || sourceCodeKind == SourceCodeKind.Script)
+            if (sourceCodeKind == SourceCodeKind.Script)
             {
                 AppendAllLoadedSyntaxTrees(treesBuilder, tree, scriptClassName, resolver, messageProvider, isSubmission, ordinalMapBuilder, loadDirectiveMapBuilder, loadedSyntaxTreeMapBuilder, declMapBuilder, ref declTable);
             }
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableDictionary<string, SyntaxTree> loadedSyntaxTreeMap)
         {
             var sourceCodeKind = tree.Options.Kind;
-            if (sourceCodeKind == SourceCodeKind.Interactive || sourceCodeKind == SourceCodeKind.Script)
+            if (sourceCodeKind == SourceCodeKind.Script)
             {
                 ImmutableArray<LoadDirective> loadDirectives;
                 if (loadDirectiveMap.TryGetValue(tree, out loadDirectives))

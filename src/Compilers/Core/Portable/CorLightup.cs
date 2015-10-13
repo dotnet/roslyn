@@ -49,6 +49,18 @@ namespace Roslyn.Utilities
                 }
             }
 
+            private static class _RuntimeEnvironment
+            {
+                internal static readonly Type TypeOpt = ReflectionUtilities.TryGetType("System.Runtime.InteropServices.RuntimeEnvironment, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+
+                internal static readonly Func<string> GetRuntimeDirectoryOpt = TypeOpt?
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("GetRuntimeDirectory", SpecializedCollections.EmptyArray<Type>())?
+                    .CreateDelegate<Func<string>>();
+            }
+
+            internal static string TryGetRuntimeDirectory() => _RuntimeEnvironment.GetRuntimeDirectoryOpt?.Invoke();
+
             private static class _Assembly
             {
                 internal static readonly Type Type = typeof(Assembly);

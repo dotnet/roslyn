@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     expr,
                     DkmEvaluationFlags.TreatAsExpression,
                     NoAliases,
-                    VisualBasicDiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     resultProperties,
                     errorMessage,
                     missingAssemblyIdentities,

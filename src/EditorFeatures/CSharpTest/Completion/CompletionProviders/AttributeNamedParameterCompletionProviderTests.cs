@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,12 +11,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class AttributeNamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public AttributeNamedParameterCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override CompletionListProvider CreateCompletionProvider()
         {
             return new AttributeNamedParameterCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -37,7 +42,7 @@ public class TestAttribute : Attribute
             VerifySendEnterThroughToEnter(markup, "Color =", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitCharacterTest()
         {
             const string markup = @"
@@ -58,7 +63,7 @@ public class TestAttribute : Attribute
             VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SimpleAttributeUsage()
         {
             var markup = @"
@@ -79,7 +84,7 @@ public class TestAttribute : Attribute
             VerifyItemExists(markup, "Color =");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterComma()
         {
             var markup = @"
@@ -102,7 +107,7 @@ public class TestAttribute : Attribute
         }
 
         [WorkItem(544345)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExistingItemsAreFiltered()
         {
             var markup = @"
@@ -125,7 +130,7 @@ public class TestAttribute : Attribute
             VerifyItemIsAbsent(markup, "Color =");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AttributeConstructor()
         {
             var markup = @"
@@ -144,7 +149,7 @@ class Foo
             VerifyItemExists(markup, "a:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AttributeConstructorAfterComma()
         {
             var markup = @"
@@ -164,7 +169,7 @@ class Foo
         }
 
         [WorkItem(545426)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestPropertiesInScript()
         {
             var markup = @"
@@ -187,7 +192,7 @@ class Foo
         }
 
         [WorkItem(1075278)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInComment()
         {
             var markup = @"

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
                 End Function)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestEmptyFile()
             Dim workspace =
 <Workspace>
@@ -32,7 +32,7 @@ $$
             Test(workspace, shouldSucceed:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithSingleClass()
             Dim workspace =
 <Workspace>
@@ -46,7 +46,7 @@ class [|$$C|] { }
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithSingleClassImplementation()
             Dim workspace =
 <Workspace>
@@ -61,7 +61,7 @@ interface $$I { }
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithTwoClassImplementations()
             Dim workspace =
 <Workspace>
@@ -77,7 +77,7 @@ interface $$I { }
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithOneMethodImplementation()
             Dim workspace =
 <Workspace>
@@ -92,7 +92,7 @@ interface I { void $$M(); }
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithTwoMethodImplementations()
             Dim workspace =
 <Workspace>
@@ -108,7 +108,7 @@ interface I { void $$M(); }
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithNonInheritedImplementation()
             Dim workspace =
 <Workspace>
@@ -124,7 +124,7 @@ interface I { void $$M(); }
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithInterfaceMemberFromMetdataAtUseSite()
             Dim workspace =
 <Workspace>
@@ -147,7 +147,7 @@ class C : IDisposable
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithSimpleMethod()
             Dim workspace =
 <Workspace>
@@ -164,7 +164,7 @@ class C
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithOverridableMethodOnBase()
             Dim workspace =
 <Workspace>
@@ -186,7 +186,7 @@ class D : C
             Test(workspace)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         Public Sub TestWithOverridableMethodOnImplementation()
             ' Our philosophy is to only show derived in this case, since we know the implementation of 
             ' D could never call C.M here

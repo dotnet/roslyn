@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -85,6 +86,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.
             var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
             vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
+
+            vsWindow.InteractiveWindow.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, true);
 
             EventHandler closeEventDelegate = null;
             closeEventDelegate = (sender, e) =>

@@ -1,17 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PortableTestUtils;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
+using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
@@ -152,14 +158,14 @@ new System.Data.DataSet()
 using System.Linq;
 
 var x = from a in new[] { 1, 2 ,3 } select a + 1;
-", options.WithPath(@"C:\dir\a.csx").WithIsInteractive(false));
+", options.WithPath(@"C:\dir\a.csx"));
 
-            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null).WithIsInteractive(true));
+            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithPath(null));
 
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
 
-        [Fact]
+        [Fact(Skip = "xunit2")]
         public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(
@@ -221,31 +227,6 @@ System.Diagnostics.Process.GetCurrentProcess()
         }
 
         [Fact]
-        public void MissingDependency()
-        {
-            var source = @"
-#r ""WindowsBase""
-#r ""PresentationCore""
-#r ""PresentationFramework""
-
-using System.Windows;
-System.Collections.IEnumerable w = new Window();
-";
-
-            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync(source),
-                // (7,36): error CS0012: The type 'System.ComponentModel.ISupportInitialize' is defined in an assembly that is not referenced. You must add a reference to assembly 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.ComponentModel.ISupportInitialize", "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0012: The type 'System.Windows.Markup.IQueryAmbient' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.Windows.Markup.IQueryAmbient", "System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0266: Cannot implicitly convert type 'System.Windows.Window' to 'System.Collections.IEnumerable'. An explicit conversion exists (are you missing a cast?)
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Window()").WithArguments("System.Windows.Window", "System.Collections.IEnumerable"));
-        }
-
-        [WorkItem(529637)]
-        [Fact]
         public void AssemblyResolution()
         {
             var s0 = CSharpScript.RunAsync("var x = new { a = 3 }; x");
@@ -296,16 +277,16 @@ System.Collections.IEnumerable w = new Window();
                 AddReferences(typeof(C).Assembly, typeof(C).Assembly);
 
             var s0 = await CSharpScript.RunAsync<int>("x", options, new C());
+            var c0 = s0.Script.GetCompilation();
 
             // includes corlib, host type assembly by default:
             AssertEx.Equal(new[] 
             {
                 typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(C).Assembly.Location,
-                Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")).Location, // TODO: remove
                 typeof(C).Assembly.Location,
                 typeof(C).Assembly.Location,
-            }, s0.Script.GetCompilation().ExternalReferences.SelectAsArray(m => m.Display));
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
 
             Assert.Equal(1, s0.ReturnValue);
 
@@ -315,6 +296,47 @@ System.Collections.IEnumerable w = new Window();
 x            
 ");
             Assert.Equal(1, s1.ReturnValue);
+        }
+
+        [Fact]
+        public async Task MissingRefrencesAutoResolution()  
+        {
+            var portableLib = CSharpCompilation.Create(
+                "PortableLib",                                                
+                new[] { SyntaxFactory.ParseSyntaxTree("public class C {}") }, 
+                new[] { SystemRuntimePP7Ref },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var portableLibRef = portableLib.ToMetadataReference();
+
+            var loader = new InteractiveAssemblyLoader();
+            loader.RegisterDependency(Assembly.Load(portableLib.EmitToArray().ToArray()));
+
+            var s0 = await CSharpScript.Create("new C()", options: ScriptOptions.Default.AddReferences(portableLibRef), assemblyLoader: loader).RunAsync();
+            var c0 = s0.Script.GetCompilation();
+
+            // includes corlib, host type assembly by default:
+            AssertEx.Equal(new[]
+            {
+                typeof(object).GetTypeInfo().Assembly.Location,
+                "PortableLib"
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
+
+            // System.Runtime, 4.0.0.0 depends on all the assemblies below:
+            AssertEx.Equal(new[]
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "PortableLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Data.SqlXml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+            }, c0.GetBoundReferenceManager().GetReferencedAssemblies().Select(a => a.Value.Identity.GetDisplayName()));
         }
     }
 }
