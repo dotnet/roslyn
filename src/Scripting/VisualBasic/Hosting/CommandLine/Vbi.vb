@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
         Inherits VisualBasicCompiler
 
         Friend Sub New(responseFile As String, baseDirectory As String, args As String(), analyzerLoader As IAnalyzerAssemblyLoader)
-            MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, AppContext.BaseDirectory, baseDirectory, Nothing, Nothing, analyzerLoader)
+            MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, AppContext.BaseDirectory, baseDirectory, Nothing, Nothing, analyzerLoader)
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver

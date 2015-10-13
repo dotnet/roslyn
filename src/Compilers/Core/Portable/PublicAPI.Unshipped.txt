@@ -1,6 +1,7 @@
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", bool elasticTrivia = false) -> TNode
+Microsoft.CodeAnalysis.CommandLineArguments.InteractiveMode.get -> bool
 Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get -> System.Collections.Immutable.ImmutableArray<string>
-Microsoft.CodeAnalysis.CommandLineParser.IsInteractive.get -> bool
+Microsoft.CodeAnalysis.CommandLineArguments.SourcePaths.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Compilation.GetSubmissionResultType(out bool hasValue) -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.Compilation.PreviousSubmission.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.Compilation.ScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol

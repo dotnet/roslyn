@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public string Path { get; private set; }
 
-        private ScriptOptions(
+        internal ScriptOptions(
             string path,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<string> namespaces,
