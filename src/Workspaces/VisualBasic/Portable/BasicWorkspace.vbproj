@@ -239,6 +239,7 @@
     <Compile Include="Utilities\NameSyntaxIterator.vb" />
     <Compile Include="Utilities\PossibleDeclarationTypes.vb" />
     <Compile Include="Utilities\SpeculationAnalyzer.vb" />
+    <Compile Include="Utilities\SymbolExtensions.vb" />
     <Compile Include="Utilities\SyntaxKindSet.vb" />
     <Compile Include="Utilities\TokenComparer.vb" />
     <Compile Include="Utilities\TypeSyntaxComparer.vb" />

@@ -3,11 +3,21 @@ Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.FindSymbols.Finders
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.FindSymbols
     <ExportLanguageService(GetType(ILanguageServiceReferenceFinder), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicReferenceFinder
         Implements ILanguageServiceReferenceFinder
+
+        Public Async Function DetermineCascadedSymbolsAsync([property] As IPropertySymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
+            Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
+            Dim relatedSymbol = [property].FindRelatedExplicitlyDeclaredSymbol(compilation)
+
+            Return If([property].Equals(relatedSymbol),
+                SpecializedCollections.EmptyEnumerable(Of ISymbol),
+                SpecializedCollections.SingletonEnumerable(relatedSymbol))
+        End Function
 
         Public Async Function DetermineCascadedSymbolsAsync(namedType As INamedTypeSymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
             Debug.Assert(project.Language = LanguageNames.VisualBasic)
