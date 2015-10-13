@@ -10,7 +10,7 @@ Friend Class MockVbi
     Inherits VisualBasicCompiler
 
     Public Sub New(responseFile As String, baseDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Interactive, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing, New SimpleAnalyzerAssemblyLoader())
+        MyBase.New(VisualBasicCommandLineParser.ScriptRunner, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Nothing, New SimpleAnalyzerAssemblyLoader())
     End Sub
 
     Protected Overrides Sub CompilerSpecificSqm(sqm As IVsSqmMulti, sqmSession As UInteger)

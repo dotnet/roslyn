@@ -408,6 +408,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=other.MetadataImportOptions)
         End Sub
 
+        Friend Overrides Function GetImports() As ImmutableArray(Of String)
+            ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         ''' <summary>
         ''' Gets the global imports collection.
         ''' </summary>

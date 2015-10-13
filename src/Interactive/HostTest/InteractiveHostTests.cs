@@ -840,7 +840,7 @@ new D().Y
             var assemblyName = GetUniqueName();
             CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
             var rspFile = Temp.CreateFile();
-            rspFile.WriteAllText("/rp:" + directory.Path);
+            rspFile.WriteAllText("/lib:" + directory.Path);
 
             Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 
