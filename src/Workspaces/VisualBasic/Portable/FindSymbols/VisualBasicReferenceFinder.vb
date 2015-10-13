@@ -12,7 +12,17 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
     Friend Class VisualBasicReferenceFinder
         Implements ILanguageServiceReferenceFinder
 
-        Public Async Function DetermineCascadedSymbolsAsync([property] As IPropertySymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
+        Public Function DetermineCascadedSymbolsAsync(symbol As ISymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
+            If symbol.Kind = SymbolKind.Property Then
+                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, IPropertySymbol), project, cancellationToken)
+            ElseIf symbol.Kind = SymbolKind.NamedType Then
+                Return DetermineCascadedSymbolsAsync(DirectCast(symbol, INamedTypeSymbol), project, cancellationToken)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Private Async Function DetermineCascadedSymbolsAsync([property] As IPropertySymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim relatedSymbol = [property].FindRelatedExplicitlyDeclaredSymbol(compilation)
 
@@ -21,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
                 SpecializedCollections.SingletonEnumerable(relatedSymbol))
         End Function
 
-        Public Async Function DetermineCascadedSymbolsAsync(namedType As INamedTypeSymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol)) Implements ILanguageServiceReferenceFinder.DetermineCascadedSymbolsAsync
+        Private Async Function DetermineCascadedSymbolsAsync(namedType As INamedTypeSymbol, project As Project, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
             Dim compilation = Await project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
 
             ' If this is a WinForms project, then the VB 'my' feature may have synthesized 
