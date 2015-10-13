@@ -2015,6 +2015,13 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Default<Compilation>();
         }
 
+        internal Task<bool> HasCompleteReferencesAsync(Project project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? this.GetCompilationTracker(project.Id).HasCompleteReferencesAsync(this, cancellationToken)
+                : SpecializedTasks.False;
+        }
+
         private static readonly ConditionalWeakTable<MetadataReference, ProjectId> s_metadataReferenceToProjectMap =
             new ConditionalWeakTable<MetadataReference, ProjectId>();
 

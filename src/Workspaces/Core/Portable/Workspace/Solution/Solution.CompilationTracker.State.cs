@@ -39,13 +39,18 @@ namespace Microsoft.CodeAnalysis
                 public ValueSource<Compilation> Compilation { get; }
 
                 /// <summary>
+                /// Specifies if there are references that got dropped in the production of <see cref="FinalCompilation"/>. This can return
+                /// null if the state isn't at the point where it would know, and it's necessary to transition to <see cref="FinalState"/> to figure that out.
+                /// </summary>
+                public virtual bool? HasCompleteReferences => null;
+
+                /// <summary>
                 /// The final compilation if available, otherwise an empty <see cref="ValueSource{Compilation}"/>.
                 /// </summary>
                 public virtual ValueSource<Compilation> FinalCompilation
                 {
                     get { return ConstantValueSource<Compilation>.Empty; }
                 }
-
 
                 protected State(ValueSource<Compilation> compilation, Compilation declarationOnlyCompilation)
                 {
@@ -130,14 +135,19 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private sealed class FinalState : State
             {
+                private readonly bool hasCompleteReferences;
+
                 public override ValueSource<Compilation> FinalCompilation
                 {
                     get { return this.Compilation; }
                 }
 
-                public FinalState(ValueSource<Compilation> finalCompilationSource)
+                public override bool? HasCompleteReferences => hasCompleteReferences;
+
+                public FinalState(ValueSource<Compilation> finalCompilationSource, bool hasCompleteReferences)
                     : base(finalCompilationSource, finalCompilationSource.GetValue().Clone().RemoveAllReferences())
                 {
+                    this.hasCompleteReferences = hasCompleteReferences;
                 }
             }
         }

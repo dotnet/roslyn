@@ -1362,5 +1362,46 @@ public class C : A {
 
             Assert.Equal(Encoding.UTF32, newDoc.GetTextAsync().Result.Encoding);
         }
+
+        [Fact]
+        public void TestProjectWithNoBrokenReferencesHasNoIncompleteReferences()
+        {
+            var workspace = new AdhocWorkspace();
+            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            var project2 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+
+            // Nothing should have incomplete references, and everything should build
+            Assert.True(project1.HasCompleteReferencesAsync().Result);
+            Assert.True(project2.HasCompleteReferencesAsync().Result);
+            Assert.Single(project2.GetCompilationAsync().Result.ExternalReferences);
+        }
+
+        [Fact]
+        public void TestProjectWithBrokenCrossLanguageReferenceHasIncompleteReferences()
+        {
+            var workspace = new AdhocWorkspace();
+            var project1 = workspace.AddProject("CSharpProject", LanguageNames.CSharp);
+            workspace.AddDocument(project1.Id, "Broken.cs", SourceText.From("class "));
+
+            var project2 = workspace.AddProject(
+                ProjectInfo.Create(
+                    ProjectId.CreateNewId(),
+                    VersionStamp.Create(),
+                    "VisualBasicProject",
+                    "VisualBasicProject",
+                    LanguageNames.VisualBasic,
+                    projectReferences: new[] { new ProjectReference(project1.Id) }));
+
+            Assert.True(project1.HasCompleteReferencesAsync().Result);
+            Assert.False(project2.HasCompleteReferencesAsync().Result);
+            Assert.Empty(project2.GetCompilationAsync().Result.ExternalReferences);
+        }
     }
 }
