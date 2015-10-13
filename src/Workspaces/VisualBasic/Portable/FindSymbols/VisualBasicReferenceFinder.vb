@@ -31,9 +31,9 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
         End Function
 
         Private Function GetMatchingMyPropertySymbols(namedType As INamedTypeSymbol,
-                                                               compilation As VisualBasicCompilation,
-                                                               [namespace] As INamespaceSymbol,
-                                                               cancellationToken As CancellationToken) As IEnumerable(Of IPropertySymbol)
+                                                      compilation As VisualBasicCompilation,
+                                                      [namespace] As INamespaceSymbol,
+                                                      cancellationToken As CancellationToken) As IEnumerable(Of IPropertySymbol)
             Return From childNamespace In [namespace].GetNamespaceMembers()
                    Where childNamespace.IsMyNamespace(compilation)
                    From type In childNamespace.GetAllTypes(cancellationToken)
