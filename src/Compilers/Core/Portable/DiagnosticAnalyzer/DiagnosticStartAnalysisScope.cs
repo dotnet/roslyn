@@ -518,10 +518,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<AnalyzerAction> _codeBlockStartActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
-        private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+        private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
 
         internal static readonly AnalyzerActions Empty = new AnalyzerActions();
@@ -592,6 +592,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
         }
 
+        internal ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions
+        {
+            get { return _operationBlockActions; }
+        }
+
+        internal ImmutableArray<OperationBlockAnalyzerAction> OperationBlockEndActions
+        {
+            get { return _operationBlockEndActions; }
+        }
+
+        internal ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions
+        {
+            get { return _operationBlockStartActions; }
+        }
+
         internal ImmutableArray<OperationAnalyzerAction> OperationActions
         {
             get { return this._operationActions; }
@@ -650,6 +665,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddOperationBlockStartAction(OperationBlockStartAnalyzerAction action)
         {
             _operationBlockStartActions = _operationBlockStartActions.Add(action);
+        }
+
+        internal void AddOperationBlockAction(OperationBlockAnalyzerAction action)
+        {
+            _operationBlockActions = _operationBlockActions.Add(action);
+        }
+
+        internal void AddOperationBlockEndAction(OperationBlockAnalyzerAction action)
+        {
+            _operationBlockEndActions = _operationBlockEndActions.Add(action);
         }
 
         internal void AddOperationAction(OperationAnalyzerAction action)

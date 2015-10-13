@@ -911,6 +911,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // execute the code block actions before the code block end actions.
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockEndActionsByAnalyzer;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> _lazyCodeBlockActionsByAnalyzer;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockStartAnalyzerAction>> _lazyOperationBlockStartActionsByAnalyzer;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockActionsByAnalyzer;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockEndActionsByAnalyzer;
 
         private static readonly ObjectPool<DeclarationAnalysisData> s_declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
 
@@ -1007,47 +1010,47 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> CodeBlockStartActionsByAnalyzer
         {
-            get
-            {
-                if (_lazyCodeBlockStartActionsByAnalyzer == null)
-                {
-                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> codeBlockStartActionsByAnalyzer;
-                    var codeBlockStartActions = this.analyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>();
-                    if (codeBlockStartActions.Any())
-                    {
-                        var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>>();
-                        var actionsByAnalyzer = codeBlockStartActions.GroupBy(action => action.Analyzer);
-                        foreach (var analyzerAndActions in actionsByAnalyzer)
-                        {
-                            builder.Add(analyzerAndActions.Key, analyzerAndActions.ToImmutableArrayOrEmpty());
-                        }
-
-                        codeBlockStartActionsByAnalyzer = builder.ToImmutable();
-                    }
-                    else
-                    {
-                        codeBlockStartActionsByAnalyzer = ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>>.Empty;
-                    }
-
-                    Interlocked.CompareExchange(ref _lazyCodeBlockStartActionsByAnalyzer, codeBlockStartActionsByAnalyzer, null);
-                }
-
-                return _lazyCodeBlockStartActionsByAnalyzer;
-            }
+            get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockStartActionsByAnalyzer, this.analyzerActions.GetCodeBlockStartActions<TLanguageKindEnum>()); }
         }
 
-        private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> GetCodeBlockActionsByAnalyzer(
-            ref ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> lazyCodeBlockActionsByAnalyzer,
-            ImmutableArray<CodeBlockAnalyzerAction> codeBlockActions)
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> CodeBlockEndActionsByAnalyzer
+        {
+            get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockEndActionsByAnalyzer, this.analyzerActions.CodeBlockEndActions); }
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> CodeBlockActionsByAnalyzer
+        {
+            get { return GetBlockActionsByAnalyzer(ref _lazyCodeBlockActionsByAnalyzer, this.analyzerActions.CodeBlockActions); }
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockStartAnalyzerAction>> OperationBlockStartActionsByAnalyzer
+        {
+            get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockStartActionsByAnalyzer, this.analyzerActions.OperationBlockStartActions); }
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> OperationBlockEndActionsByAnalyzer
+        {
+            get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockEndActionsByAnalyzer, this.analyzerActions.OperationBlockEndActions); }
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> OperationBlockActionsByAnalyzer
+        {
+            get { return GetBlockActionsByAnalyzer(ref _lazyOperationBlockActionsByAnalyzer, this.analyzerActions.OperationBlockActions); }
+        }
+
+        private static ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>> GetBlockActionsByAnalyzer<ActionType>(
+            ref ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>> lazyCodeBlockActionsByAnalyzer,
+            ImmutableArray<ActionType> codeBlockActions) where ActionType : AnalyzerAction
         {
             if (lazyCodeBlockActionsByAnalyzer == null)
             {
-                ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> codeBlockActionsByAnalyzer;
+                ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>> codeBlockActionsByAnalyzer;
                 if (!codeBlockActions.IsEmpty)
                 {
-                    var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>>();
+                    var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<ActionType>>();
                     var actionsByAnalyzer = codeBlockActions.GroupBy(action => action.Analyzer);
                     foreach (var analyzerAndActions in actionsByAnalyzer)
                     {
@@ -1058,23 +1061,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    codeBlockActionsByAnalyzer = ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>>.Empty;
+                    codeBlockActionsByAnalyzer = ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ActionType>>.Empty;
                 }
 
                 Interlocked.CompareExchange(ref lazyCodeBlockActionsByAnalyzer, codeBlockActionsByAnalyzer, null);
             }
 
             return lazyCodeBlockActionsByAnalyzer;
-        }
-
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> CodeBlockEndActionsByAnalyzer
-        {
-            get { return GetCodeBlockActionsByAnalyzer(ref _lazyCodeBlockEndActionsByAnalyzer, this.analyzerActions.CodeBlockEndActions); }
-        }
-
-        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockAnalyzerAction>> CodeBlockActionsByAnalyzer
-        {
-            get { return GetCodeBlockActionsByAnalyzer(ref _lazyCodeBlockActionsByAnalyzer, this.analyzerActions.CodeBlockActions); }
         }
 
         private bool ShouldExecuteSyntaxNodeActions(AnalysisScope analysisScope)
@@ -1112,6 +1105,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
+        private bool ShouldExecuteOperationBlockActions(AnalysisScope analysisScope, ISymbol symbol)
+        {
+            if (AnalyzerExecutor.CanHaveExecutableCodeBlock(symbol))
+            {
+                foreach (var analyzer in analysisScope.Analyzers)
+                {
+                    if (this.OperationBlockStartActionsByAnalyzer.ContainsKey(analyzer) ||
+                        this.OperationBlockActionsByAnalyzer.ContainsKey(analyzer))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         protected override void ExecuteDeclaringReferenceActions(
             SymbolDeclaredCompilationEvent symbolEvent,
             AnalysisScope analysisScope,
@@ -1122,8 +1132,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var executeSyntaxNodeActions = ShouldExecuteSyntaxNodeActions(analysisScope);
             var executeCodeBlockActions = ShouldExecuteCodeBlockActions(analysisScope, symbol);
             var executeOperationActions = ShouldExecuteOperationActions(analysisScope);
+            var executeOperationBlockActions = ShouldExecuteOperationBlockActions(analysisScope, symbol);
 
-            if (executeSyntaxNodeActions || executeOperationActions || executeCodeBlockActions)
+            if (executeSyntaxNodeActions || executeOperationActions || executeCodeBlockActions || executeOperationBlockActions)
             {
                 foreach (var decl in symbolEvent.DeclaringSyntaxReferences)
                 {
@@ -1131,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (analysisScope.FilterTreeOpt == null || analysisScope.FilterTreeOpt == decl.SyntaxTree)
                     {
-                        ExecuteDeclaringReferenceActions(decl, symbolEvent, analysisScope, analysisStateOpt, executeSyntaxNodeActions, executeOperationActions, executeCodeBlockActions, cancellationToken);
+                        ExecuteDeclaringReferenceActions(decl, symbolEvent, analysisScope, analysisStateOpt, executeSyntaxNodeActions, executeOperationActions, executeCodeBlockActions, executeOperationBlockActions, cancellationToken);
                     }
                 }
             }
@@ -1254,6 +1265,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool shouldExecuteSyntaxNodeActions,
             bool shouldExecuteOperationActions,
             bool shouldExecuteCodeBlockActions,
+            bool shouldExecuteOperationBlockActions,
             CancellationToken cancellationToken)
         {
             Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteOperationActions || shouldExecuteCodeBlockActions);
@@ -1293,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Execute code block actions.
-            if (shouldExecuteCodeBlockActions || shouldExecuteOperationActions)
+            if (shouldExecuteCodeBlockActions || shouldExecuteOperationActions || shouldExecuteOperationBlockActions)
             {
                 // Compute the executable code blocks of interest.
                 var executableCodeBlocks = ImmutableArray<SyntaxNode>.Empty;
@@ -1356,6 +1368,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> CodeBlockStartActions;
             public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockActions;
             public ImmutableArray<CodeBlockAnalyzerAction> CodeBlockEndActions;
+            public ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions;
+            public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions;
+            public ImmutableArray<OperationBlockAnalyzerAction> OpererationBlockEndActions;
         }
 
         private IEnumerable<CodeBlockAnalyzerActions> GetCodeBlockActions(AnalysisScope analysisScope)
@@ -1380,6 +1395,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
                 }
 
+                ImmutableArray<OperationBlockStartAnalyzerAction> operationBlockStartActions;
+                if (!this.OperationBlockStartActionsByAnalyzer.TryGetValue(analyzer, out operationBlockStartActions))
+                {
+                    operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
+                }
+
+                ImmutableArray<OperationBlockAnalyzerAction> operationBlockActions;
+                if (!this.OperationBlockActionsByAnalyzer.TryGetValue(analyzer, out operationBlockActions))
+                {
+                    operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+                }
+
+                ImmutableArray<OperationBlockAnalyzerAction> operationBlockEndActions;
+                if (!this.OperationBlockEndActionsByAnalyzer.TryGetValue(analyzer, out operationBlockEndActions))
+                {
+                    operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+                }
+
                 if (!codeBlockStartActions.IsEmpty || !codeBlockActions.IsEmpty || !codeBlockEndActions.IsEmpty)
                 {
                     yield return
@@ -1388,7 +1421,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             Analyzer = analyzer,
                             CodeBlockStartActions = codeBlockStartActions,
                             CodeBlockActions = codeBlockActions,
-                            CodeBlockEndActions = codeBlockEndActions
+                            CodeBlockEndActions = codeBlockEndActions,
+                            OperationBlockStartActions = operationBlockStartActions,
+                            OperationBlockActions = operationBlockActions,
+                            OpererationBlockEndActions = operationBlockEndActions
                         };
                 }
             }
