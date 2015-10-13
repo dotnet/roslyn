@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -207,6 +208,58 @@ class C
                 Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(19, 9),
                 Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(20, 9),
                 Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(22, 21)
+                );
+        }
+
+        [Fact]
+        public void FieldCouldBeReadOnlyCSharp()
+        {
+            const string source = @"
+class C
+{
+    int F1;
+    const int F2 = 2;
+    readonly int F3;
+    int F4;
+    int F5;
+    int F6 = 6;
+    int F7;
+
+    public C()
+    {
+        F1 = 1;
+        F3 = 3;
+        F4 = 4;
+        F5 = 5;
+    }
+
+    public void M0()
+    {
+        int x = F1;
+        x = F2;
+        x = F3;
+        x = F4;
+        x = F5;
+        x = F6;
+        x = F7;
+
+        F4 = 4;
+        F7 = 7;
+        M1(out F1);
+    }
+
+    public void M1(out int x)
+    {
+        x = 10;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F1").WithLocation(4, 9),
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 9),
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 9)
                 );
         }
     }

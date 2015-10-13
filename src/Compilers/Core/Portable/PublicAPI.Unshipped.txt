@@ -142,7 +142,6 @@ Microsoft.CodeAnalysis.Semantics.IArgument.Value.get -> Microsoft.CodeAnalysis.S
 Microsoft.CodeAnalysis.Semantics.IArgument.InConversion.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IArgument.OutConversion.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IReferenceExpression
-Microsoft.CodeAnalysis.Semantics.IReferenceExpression.ReferenceKind.get -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression.ArrayReference.get -> Microsoft.CodeAnalysis.Semantics.IExpression
 Microsoft.CodeAnalysis.Semantics.IArrayElementReferenceExpression.Indices.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.IExpression>
@@ -170,19 +169,6 @@ Microsoft.CodeAnalysis.Semantics.IMethodReferenceExpression.Method.get -> Micros
 Microsoft.CodeAnalysis.Semantics.IMethodReferenceExpression.IsVirtual.get -> bool
 Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression
 Microsoft.CodeAnalysis.Semantics.IPropertyReferenceExpression.Property.get -> Microsoft.CodeAnalysis.IPropertySymbol
-Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.Local = 0 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.Parameter = 1 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.SyntheticLocal = 2 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.ArrayElement = 3 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.PointerIndirection = 4 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.Field = 5 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.Method = 6 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.PropertyGet = 7 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.PropertySet = 8 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.Property = 9 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.ConstantField = 10 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
-Microsoft.CodeAnalysis.Semantics.ReferenceKind.LateBoundMember = 11 -> Microsoft.CodeAnalysis.Semantics.ReferenceKind
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.UsesOperatorMethod.get -> bool
 Microsoft.CodeAnalysis.Semantics.IHasOperatorExpression.Operator.get -> Microsoft.CodeAnalysis.IMethodSymbol
@@ -607,7 +593,7 @@ Microsoft.CodeAnalysis.Semantics.OperationKind.ArrayElementReferenceExpression =
 Microsoft.CodeAnalysis.Semantics.OperationKind.PointerIndirectionReferenceExpression = 28 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.LocalReferenceExpression = 29 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.ParameterReferenceExpression = 30 -> Microsoft.CodeAnalysis.Semantics.OperationKind
-Microsoft.CodeAnalysis.Semantics.OperationKind.TemporaryReferenceExpression = 31 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Semantics.OperationKind.SyntheticLocalReferenceExpression = 31 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.FieldReferenceExpression = 32 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.MethodReferenceExpression = 33 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.PropertyReferenceExpression = 34 -> Microsoft.CodeAnalysis.Semantics.OperationKind
@@ -638,6 +624,27 @@ Microsoft.CodeAnalysis.Semantics.OperationKind.EndStatement = 58 -> Microsoft.Co
 Microsoft.CodeAnalysis.Semantics.OperationKind.WithStatement = 59 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.ConditionalAccessExpression = 60 -> Microsoft.CodeAnalysis.Semantics.OperationKind
 Microsoft.CodeAnalysis.Semantics.OperationKind.IncrementExpression = 61 -> Microsoft.CodeAnalysis.Semantics.OperationKind
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlock.get -> Microsoft.CodeAnalysis.Semantics.IOperation
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlockAnalysisContext(Microsoft.CodeAnalysis.Semantics.IOperation operationBlock, Microsoft.CodeAnalysis.ISymbol owningSymbol, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlock.get -> Microsoft.CodeAnalysis.Semantics.IOperation
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlockStartAnalysisContext(Microsoft.CodeAnalysis.Semantics.IOperation operationBlock, Microsoft.CodeAnalysis.ISymbol owningSymbol, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OwningSymbol.get -> Microsoft.CodeAnalysis.ISymbol
+abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.Semantics.OperationKind[] operationKinds) -> void
+abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Operation.get -> Microsoft.CodeAnalysis.Semantics.IOperation
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Options.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
+Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.OperationAnalysisContext(Microsoft.CodeAnalysis.Semantics.IOperation operation, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions options, System.Action<Microsoft.CodeAnalysis.Diagnostic> reportDiagnostic, System.Func<Microsoft.CodeAnalysis.Diagnostic, bool> isSupportedDiagnostic, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.Semantics.OperationExtensions
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.Semantics.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Semantics.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.Semantics.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Semantics.IOperation>

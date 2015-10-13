@@ -127,6 +127,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _scope.RegisterSyntaxNodeAction(_analyzer, action, syntaxKinds);
         }
+
+        public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            _scope.RegisterOperationBlockStartAction(_analyzer, action);
+        }
+
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             this._scope.RegisterOperationAction(this._analyzer, action, operationKinds);
@@ -327,6 +333,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerActions> _analyzerActions = new Dictionary<DiagnosticAnalyzer, AnalyzerActions>();
 
@@ -465,6 +473,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _syntaxNodeActions = _syntaxNodeActions.Add(analyzerAction);
         }
 
+        public void RegisterOperationBlockStartAction(DiagnosticAnalyzer analyzer, Action<OperationBlockStartAnalysisContext> action)
+        {
+            OperationBlockStartAnalyzerAction analyzerAction = new OperationBlockStartAnalyzerAction(action, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).AddOperationBlockStartAction(analyzerAction);
+            _operationBlockStartActions = _operationBlockStartActions.Add(analyzerAction);
+        }
+
         public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
@@ -504,6 +519,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockStartAnalyzerAction> _operationBlockStartActions = ImmutableArray<OperationBlockStartAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
+        private ImmutableArray<OperationBlockAnalyzerAction> _operationBlockActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
         private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
 
         internal static readonly AnalyzerActions Empty = new AnalyzerActions();
@@ -627,6 +645,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal void AddSyntaxNodeAction<TLanguageKindEnum>(SyntaxNodeAnalyzerAction<TLanguageKindEnum> action) where TLanguageKindEnum : struct
         {
             _syntaxNodeActions = _syntaxNodeActions.Add(action);
+        }
+
+        internal void AddOperationBlockStartAction(OperationBlockStartAnalyzerAction action)
+        {
+            _operationBlockStartActions = _operationBlockStartActions.Add(action);
         }
 
         internal void AddOperationAction(OperationAnalyzerAction action)

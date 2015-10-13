@@ -31,6 +31,7 @@
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
     <Compile Include="Diagnostics\EmptyArrayOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\OperationTestAnalyzer.cs" />
+    <Compile Include="Diagnostics\SystemLanguageAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />

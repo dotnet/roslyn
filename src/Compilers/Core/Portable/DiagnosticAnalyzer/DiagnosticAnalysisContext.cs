@@ -255,6 +255,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action);
 
         /// <summary>
+        /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
+        /// An operation block start action can register other actions and/or collect state information to be used in diagnostic analysis,
+        /// but cannot itself report any <see cref="Diagnostic"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
+        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+
+        /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
         /// A syntax tree action reports <see cref="Diagnostic"/>s about the <see cref="SyntaxTree"/> of a document.
         /// </summary>
@@ -591,6 +599,140 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _codeBlock = codeBlock;
             _owningSymbol = owningSymbol;
             _semanticModel = semanticModel;
+            _options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            _cancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Report a <see cref="Diagnostic"/> about a code block.
+        /// </summary>
+        /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            lock (_reportDiagnostic)
+            {
+                _reportDiagnostic(diagnostic);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Context for an operation block start action.
+    /// An operation block start action can use an <see cref="OperationBlockStartAnalysisContext"/> to register actions to be executed
+    /// at any of:
+    /// <list type="bullet">
+    /// <item>
+    /// <description>completion of semantic analysis of a method body or an expression appearing outside a method body, or</description>
+    /// </item>
+    /// <item>
+    /// <description>completion of semantic analysis of an operation.</description>
+    /// </item>
+    /// </list>
+    /// </summary>
+    public abstract class OperationBlockStartAnalysisContext
+    {
+        private readonly IOperation _codeBlock;
+        private readonly ISymbol _owningSymbol;
+        private readonly AnalyzerOptions _options;
+        private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// Method body or expression subject to analysis.
+        /// </summary>
+        public IOperation CodeBlock => _codeBlock;
+
+        /// <summary>
+        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// </summary>
+        public ISymbol OwningSymbol => _owningSymbol;
+
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options => _options;
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken => _cancellationToken;
+
+        protected OperationBlockStartAnalysisContext(IOperation codeBlock, ISymbol owningSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
+        {
+            _codeBlock = codeBlock;
+            _owningSymbol = owningSymbol;
+            _options = options;
+            _cancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body.
+        /// A code block end action reports <see cref="Diagnostic"/>s about code blocks.
+        /// </summary>
+        /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
+        public abstract void RegisterOperationBlockEndAction(Action<OperationBlockAnalysisContext> action);
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an operation with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or operation block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
+        }
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or operation block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+    }
+
+    /// <summary>
+    /// Context for an operation block action or operation block end action.
+    /// An operation block action or operation block end action can use an <see cref="OperationAnalysisContext"/> to report <see cref="Diagnostic"/>s about an operation block.
+    /// </summary>
+    public struct OperationBlockAnalysisContext
+    {
+        private readonly IOperation _operationBlock;
+        private readonly ISymbol _owningSymbol;
+        private readonly AnalyzerOptions _options;
+        private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// Code block that is the subject of the analysis.
+        /// </summary>
+        public IOperation CodeBlock => _operationBlock;
+
+        /// <summary>
+        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// </summary>
+        public ISymbol OwningSymbol => _owningSymbol;
+        
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options => _options;
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken => _cancellationToken;
+
+        public OperationBlockAnalysisContext(IOperation operationBlock, ISymbol owningSymbol, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        {
+            _operationBlock = operationBlock;
+            _owningSymbol = owningSymbol;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;

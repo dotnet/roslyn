@@ -597,6 +597,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             blockActions.Free();
         }
 
+        private void ExecuteOperationBlockActions(
+           PooledHashSet<OperationAnalyzerAction> operationActions,
+           IOperation operation,
+           Action<Diagnostic> addDiagnostic,
+           CodeBlockAnalyzerStateData analyzerStateOpt)
+        {
+            foreach (var operationAction in operationActions)
+            {
+                if (ShouldExecuteAction(analyzerStateOpt, operationAction))
+                {
+                    ExecuteAndCatchIfThrows(operationAction.Analyzer,
+                        () => operationAction.Action(new OperationAnalysisContext(operation, _analyzerOptions, addDiagnostic,
+                            d => IsSupportedDiagnostic(operationAction.Analyzer, d), _cancellationToken)));
+
+                    analyzerStateOpt?.ProcessedActions.Add(operationAction);
+                }
+            }
+
+            operationActions.Free();
+        }
+
         internal static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
             IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
             where TLanguageKindEnum : struct
