@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
                 var compiler = new CSharpInteractiveCompiler(
                     responseFile: responseFile,
                     baseDirectory: Directory.GetCurrentDirectory(), 
-                    sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory(),
+                    sdkDirectoryOpt: CorLightup.Desktop.TryGetRuntimeDirectory(),
                     args: args,
                     analyzerLoader: new NotImplementedAnalyzerLoader());
 

@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static CSharpCommandLineParser Default { get; } = new CSharpCommandLineParser();
 
-        internal static CSharpCommandLineParser ScriptRunner { get; } = new CSharpCommandLineParser(scriptRunner: true);
+        internal static CSharpCommandLineParser ScriptRunner { get; } = new CSharpCommandLineParser(isScriptRunner: true);
 
-        internal CSharpCommandLineParser(bool scriptRunner = false)
-            : base(CSharp.MessageProvider.Instance, scriptRunner)
+        internal CSharpCommandLineParser(bool isScriptRunner = false)
+            : base(CSharp.MessageProvider.Instance, isScriptRunner)
         {
         }
 

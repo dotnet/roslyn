@@ -25,14 +25,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Public Shared ReadOnly Property Interactive As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isInteractive:=True)
+        Friend Shared ReadOnly Property ScriptRunner As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isScriptRunner:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
         ''' </summary>
-        ''' <param name="isInteractive">An optional parameter indicating whether to create a interactive command line parser.</param>
-        Friend Sub New(Optional isInteractive As Boolean = False)
-            MyBase.New(VisualBasic.MessageProvider.Instance, isInteractive)
+        ''' <param name="isScriptRunner">An optional parameter indicating whether to create a interactive command line parser.</param>
+        Friend Sub New(Optional isScriptRunner As Boolean = False)
+            MyBase.New(VisualBasic.MessageProvider.Instance, isScriptRunner)
         End Sub
 
         Private Const s_win32Manifest As String = "win32manifest"

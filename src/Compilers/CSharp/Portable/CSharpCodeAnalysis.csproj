@@ -221,9 +221,9 @@
     <Compile Include="CodeGen\EmitOperators.cs" />
     <Compile Include="CodeGen\EmitStatement.cs" />
     <Compile Include="CodeGen\Optimizer.cs" />
-    <Compile Include="CommandLine\CommandLineArguments.cs" />
+    <Compile Include="CommandLine\CSharpCommandLineArguments.cs" />
     <Compile Include="CommandLine\CommandLineDiagnosticFormatter.cs" />
-    <Compile Include="CommandLine\CommandLineParser.cs" />
+    <Compile Include="CommandLine\CSharpCommandLineParser.cs" />
     <Compile Include="CommandLine\CSharpCompiler.cs" />
     <Compile Include="Compilation\AttributeSemanticModel.cs" />
     <Compile Include="Compilation\AwaitExpressionInfo.cs" />
@@ -868,6 +868,7 @@
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
