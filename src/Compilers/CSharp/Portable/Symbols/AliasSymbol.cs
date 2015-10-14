@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation == null) throw new System.Exception($"{nameof(compilation)} was null");
             if (_binder == null) throw new System.Exception($"{nameof(_binder)} was null");
             if (_binder.Compilation == null) throw new System.Exception($"{nameof(_binder)}.{nameof(_binder.Compilation)} was null");
-            if (_aliasTarget == null) throw new System.Exception($"{nameof(_aliasTarget)} was null");
-            if (!_state.HasComplete(CompletionPart.AliasTarget)) throw new System.Exception($"Invalid state {_state}");
             if (!_binder.Compilation.IsSubmission) throw new System.Exception($"Compilation is not a submission");
+            if (!_state.HasComplete(CompletionPart.AliasTarget)) throw new System.Exception($"Invalid state {_state}");
+            if (_aliasTarget == null) throw new System.Exception($"{nameof(_aliasTarget)} was null");
 
             Debug.Assert(_state.HasComplete(CompletionPart.AliasTarget));
             Debug.Assert(_binder.Compilation.IsSubmission);
