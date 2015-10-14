@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
     Public NotInheritable Class VisualBasicObjectFormatter
         Inherits ObjectFormatter
 
-        Public Shared ReadOnly Instance As VisualBasicObjectFormatter = New VisualBasicObjectFormatter()
+        Public Shared ReadOnly Property Instance As VisualBasicObjectFormatter = New VisualBasicObjectFormatter()
 
         Private Sub New()
         End Sub

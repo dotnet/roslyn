@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             // TODO: report diagnostics
             diagnostics.Free();
 
-            var tree = SyntaxFactory.ParseSyntaxTree(script.Code, s_defaultOptions, script.Options.Path);
+            var tree = SyntaxFactory.ParseSyntaxTree(script.Code, s_defaultOptions, script.Options.FilePath);
 
             string assemblyName, submissionTypeName;
             script.Builder.GenerateSubmissionId(out assemblyName, out submissionTypeName);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     outputKind: OutputKind.DynamicallyLinkedLibrary,
                     mainTypeName: null,
                     scriptClassName: submissionTypeName,
-                    usings: script.Options.Namespaces,
+                    usings: script.Options.Imports,
                     optimizationLevel: OptimizationLevel.Debug, // TODO
                     checkOverflow: false,                       // TODO
                     allowUnsafe: true,                          // TODO
