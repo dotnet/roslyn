@@ -71,6 +71,7 @@
     <Compile Include="AutomaticCompletion\Sessions\StringLiteralCompletionSession.vb" />
     <Compile Include="AutomaticCompletion\VisualBasicBraceCompletions.vb" />
     <Compile Include="AutomaticCompletion\VisualBasicBraceCompletionSessionProvider.vb" />
+    <Compile Include="AutomaticEndConstructCorrection\AbstractCorrector.vb" />
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructCorrector.Session.vb" />
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructCorrector.vb" />
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructSet.vb" />
