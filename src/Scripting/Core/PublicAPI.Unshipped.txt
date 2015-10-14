@@ -110,7 +110,7 @@ override Microsoft.CodeAnalysis.Scripting.Script<T>.ReturnType.get -> System.Typ
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.Equals(object other) -> bool
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.GetHashCode() -> int
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveMissingAssemblies.get -> bool
-override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveMissingAssembly(Microsoft.CodeAnalysis.AssemblyIdentity identity) -> Microsoft.CodeAnalysis.PortableExecutableReference
+override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveMissingAssembly(Microsoft.CodeAnalysis.MetadataReference definition, Microsoft.CodeAnalysis.AssemblyIdentity referenceIdentity) -> Microsoft.CodeAnalysis.PortableExecutableReference
 override Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.ResolveReference(string reference, string baseFilePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.PortableExecutableReference>
 override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Scripting.ScriptSourceResolver.GetHashCode() -> int

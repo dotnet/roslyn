@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public override bool ResolveMissingAssemblies => _resolver.ResolveMissingAssemblies;
 
-        public override PortableExecutableReference ResolveMissingAssembly(AssemblyIdentity identity)
-            => _resolver.ResolveMissingAssembly(identity);
+        public override PortableExecutableReference ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
+            => _resolver.ResolveMissingAssembly(definition, referenceIdentity);
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
             => _resolver.ResolveReference(reference, baseFilePath, properties);
