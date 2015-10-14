@@ -180,15 +180,19 @@ using J = I;
         public void AliasHiding()
         {
             var sub1 = CreateSubmission("using A = System.Int32; typeof(A)");
+            sub1.VerifyDiagnostics(); // Force alias target resolution
             Assert.Equal(SpecialType.System_Int32, GetSpeculativeType(sub1, "A").SpecialType);
 
             var sub2 = CreateSubmission("using A = System.Int16; typeof(A)", previous: sub1);
+            sub2.VerifyDiagnostics(); // Force alias target resolution
             Assert.Equal(SpecialType.System_Int16, GetSpeculativeType(sub2, "A").SpecialType);
 
             var sub3 = CreateSubmission("class A { }", previous: sub2);
+            sub3.VerifyDiagnostics();
             Assert.Equal(sub3.ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
 
             var sub4 = CreateSubmission("using A = System.Int64; typeof(A)", previous: sub3);
+            sub4.VerifyDiagnostics(); // Force alias target resolution
             Assert.Equal(SpecialType.System_Int64, GetSpeculativeType(sub4, "A").SpecialType);
         }
 
@@ -373,7 +377,7 @@ t = typeof(C); // declaration exposed
         }
 
         [WorkItem(5423, "https://github.com/dotnet/roslyn/issues/5423")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/5423")]
+        [Fact]
         void UsingsToLoadedScript()
         {
             const string scriptSource = @"
