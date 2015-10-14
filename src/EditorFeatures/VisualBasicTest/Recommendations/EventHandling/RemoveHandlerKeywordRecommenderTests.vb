@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.EventHandling
     Public Class RemoveHandlerKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerHelpText()
             VerifyRecommendationDescriptionTextIs(<MethodBody>|</MethodBody>, "RemoveHandler",
@@ -11,13 +11,13 @@ $"{VBFeaturesResources.RemovehandlerStatement}
 RemoveHandler {Event1}, {Handler}")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "RemoveHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
@@ -25,25 +25,25 @@ Dim x
 |</MethodBody>, "RemoveHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerMissingInClassBlock()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "RemoveHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerInSingleLineLambda()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "RemoveHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerInSingleLineFunctionLambda()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "RemoveHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(808406)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub RemoveHandlerInCustomEvent()
@@ -57,7 +57,7 @@ End Class</File>
             VerifyRecommendationsContain(code, "RemoveHandler")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(808406)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotRemoveHandlerInCustomEventWithRemoveHandler()

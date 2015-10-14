@@ -3530,11 +3530,14 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInLock" xml:space="preserve">
     <value>Cannot await in the body of a lock statement</value>
   </data>
+  <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
+    <value>The 'await' operator cannot be used in a static script variable initializer.</value>
+  </data>
   <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
     <value>Cannot await in an unsafe context</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
-    <value>The 'async' modifier can only be used in methods that have a statement body.</value>
+    <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
@@ -4233,9 +4236,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
   </data>
-  <data name="ThisCompilationNotInteractive" xml:space="preserve">
-    <value>This compilation doesn't represent an interactive submission.</value>
-  </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
   </data>
@@ -4647,9 +4647,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="CouldNotFindFile" xml:space="preserve">
     <value>Could not find file.</value>
     <comment>File path referenced in source (#load) could not be resolved.</comment>
-  </data>
-  <data name="CannotHavePreviousSubmission" xml:space="preserve">
-    <value>Cannot have a previousSubmission when not a submission.</value>
   </data>
   <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
     <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>

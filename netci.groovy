@@ -18,7 +18,7 @@ static void addConcurrentBuild(def myJob, String category) {
     throttleConcurrentBuilds {
       throttleDisabled(false)
       maxTotal(0)
-      maxPerNode(1)
+      maxPerNode(4)
       categories([category])
     }
   }
@@ -45,7 +45,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(60)
+        absolute(90)
         abortBuild()
       }
       timestamps()
@@ -116,12 +116,12 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W+(${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
         onlyTriggerPhrase(triggerOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(true)
+        permitAll(false)
         extensions {
           commitStatus {
             context(contextName.replace('_', '/').substring(7))
@@ -149,27 +149,30 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn')
+                  label('windows-roslyn || windows-roslyn-internal')
                   steps {
                     batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
                   }
                 }
+                addConcurrentBuild(myJob, 'roslyn/win/unit')
                 break;
               case 'linux':
                 myJob.with {
                   label('ubuntu-fast')
                   steps {
-                    shell("./cibuild.sh")
+                    shell("./cibuild.sh --nocache --debug")
                   }
                 }
+                addConcurrentBuild(myJob, 'roslyn/lin/unit')
                 break;
               case 'mac':
                 myJob.with {
                   label('mac-roslyn')
                   steps {
-                    shell("./cibuild.sh")
+                    shell("./cibuild.sh --nocache --debug")
                   }
                 }
+                addConcurrentBuild(myJob, 'roslyn/mac/unit')
                 break;
             }
 
@@ -177,7 +180,6 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             addWrappers(myJob)
 
             addUnitPublisher(myJob)
-            addConcurrentBuild(myJob, 'roslyn-internal_unit')
 
             if (branchName == 'prtest') {
               switch (buildTarget) {

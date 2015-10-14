@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class InvalidIdentifierTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToInvalidIdentifier()
             Using result = RenameEngineResult.Create(
@@ -23,7 +23,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingToInvalidIdentifier2()
             Using result = RenameEngineResult.Create(
@@ -42,7 +42,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename), WorkItem(545164)>
         Public Sub RenamingToUnderscoreAttribute()
             Using result = RenameEngineResult.Create(

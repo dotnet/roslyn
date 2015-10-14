@@ -35,10 +35,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             // Compute fix all occurrences code fix for the given fix all context.
             // Bring up a cancellable wait dialog.
-            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage);
+            bool userCancelled;
+            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage, out userCancelled);
             if (codeAction == null)
             {
-                return null;
+                return userCancelled ? null : fixAllContext.Solution;
             }
 
             fixAllContext.CancellationToken.ThrowIfCancellationRequested();
@@ -49,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         {
             // Compute fix all occurrences code fix for the given fix all context.
             // Bring up a cancellable wait dialog.
-            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage);
+            bool userCancelled;
+            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage, out userCancelled);
             if (codeAction == null)
             {
                 return null;
@@ -58,8 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return await GetFixAllOperationsAsync(codeAction, fixAllContext, fixAllTitle, showPreviewChangesDialog).ConfigureAwait(false);
         }
 
-        private CodeAction GetFixAllCodeAction(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage)
+        private CodeAction GetFixAllCodeAction(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage, out bool userCancelled)
         {
+            userCancelled = false;
+
             // Compute fix all occurrences code fix for the given fix all context.
             // Bring up a cancellable wait dialog.
             CodeAction codeAction = null;
@@ -92,7 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
                     });
 
-                var cancelled = result == WaitIndicatorResult.Canceled || codeAction == null;
+                userCancelled = result == WaitIndicatorResult.Canceled;
+                var cancelled = userCancelled || codeAction == null;
 
                 if (cancelled)
                 {

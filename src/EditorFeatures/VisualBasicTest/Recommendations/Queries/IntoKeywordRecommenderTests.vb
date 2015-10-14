@@ -11,7 +11,7 @@ Imports Xunit
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class IntoKeywordRecommenderTests
         <WorkItem(543191)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IntoAfterAnonymousObjectCreationExpr()
             Dim method = <MethodBody>
                             Dim q1 = From num In New Integer() {4, 5} Group By i1 = New With {.Key = num} |
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
         End Sub
 
         <WorkItem(543193)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IntoAfterExprRangeVariableInGroupBy()
             Dim method = <MethodBody>
                             Dim q1 = From num In New Integer() {4, 5} Group By num |
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
         End Sub
 
         <WorkItem(543214)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IntoImmediatelyAfterAnonymousObjectCreationExpr()
             Dim method = <MethodBody>
                             Dim q1 = From num In New Integer() {4, 5} Group By i1 = New With {.Key = num}|
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
         End Sub
 
         <WorkItem(543232)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IntoAfterNestedAggregateFromClause()
             VerifyRecommendationsContain(<MethodBody>Dim q1 = Aggregate i1 In arr From i4 In arr |</MethodBody>, "Into")
         End Sub

@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -303,15 +298,15 @@ Imports System
 
         <Fact>
         Public Sub UnusedImportInteractive()
-            Dim tree = Parse("Imports System", options:=TestOptions.Interactive)
-            Dim compilation = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef_v4_0_30316_17626})
+            Dim tree = Parse("Imports System", options:=TestOptions.Script)
+            Dim compilation = VisualBasicCompilation.CreateScriptCompilation("sub1", tree, {MscorlibRef_v4_0_30316_17626})
             compilation.AssertNoDiagnostics(suppressInfos:=False)
         End Sub
 
         <Fact()>
         Public Sub UnusedImportScript()
             Dim tree = Parse("Imports System", options:=TestOptions.Script)
-            Dim compilation = CreateCompilationWithMscorlib(tree)
+            Dim compilation = CreateCompilationWithMscorlib45({tree})
             compilation.AssertTheseDiagnostics(
                 <errors>
 BC50001: Unused import statement.

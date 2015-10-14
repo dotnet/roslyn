@@ -212,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsComCallWithRefOmitted(MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt)
         {
-            if ((object)method.ContainingType == null || !method.ContainingType.IsComImport) return false;
+            if (method.ParameterCount != arguments.Length ||
+                (object)method.ContainingType == null || 
+                !method.ContainingType.IsComImport) return false;
+
             for (int i = 0; i < arguments.Length; i++)
             {
                 if (method.Parameters[i].RefKind != RefKind.None && (argumentRefKindsOpt.IsDefault || argumentRefKindsOpt[i] == RefKind.None)) return true;

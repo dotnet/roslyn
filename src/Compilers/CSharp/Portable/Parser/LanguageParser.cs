@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
             var namespaceToken = this.EatToken(SyntaxKind.NamespaceKeyword);
 
-            if (IsScript || IsInteractive)
+            if (IsScript)
             {
                 namespaceToken = this.AddError(namespaceToken, ErrorCode.ERR_NamespaceNotAllowedInScript);
             }
@@ -8022,7 +8022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private ExpressionStatementSyntax ParseExpressionStatement(ExpressionSyntax expression)
         {
             SyntaxToken semicolon;
-            if (IsInteractive && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
+            if (IsScript && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
             {
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
@@ -8231,7 +8231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAwaitExpressionStatement()
         {
-            return (this.IsInteractive || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            return (this.IsScript || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
         }
 
         private bool IsAwaitExpression()

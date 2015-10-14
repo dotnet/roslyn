@@ -6,7 +6,7 @@ Imports Microsoft.VisualStudio.Language.CallHierarchy
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
     Public Class CallHierarchyTests
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub TestScopes()
             Dim input =
 <Workspace>
@@ -72,7 +72,7 @@ public class DSSS
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "GetFive"), {"D.bar()"}, CallHierarchySearchScope.CurrentDocument, documents)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub VBMethod()
             Dim input =
 <Workspace>
@@ -92,7 +92,7 @@ End Class
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.CallsTo, "Foo"), {"C.Foo()"})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub VBInterface()
             Dim input =
 <Workspace>
@@ -117,7 +117,7 @@ End Interface
             testState.VerifyResult(root, String.Format(EditorFeaturesResources.ImplementsArg, "Foo"), {"C.Foo()"})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub TestInterfaceScopes()
             Dim input =
 <Workspace>
@@ -174,7 +174,7 @@ public class D : I
         End Sub
 
         <WorkItem(981869)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub CallHierarchyCrossProjectNavigation()
             Dim input =
 <Workspace>
@@ -213,7 +213,7 @@ class CSharpIt : IChangeSignatureOptionsService
         End Sub
 
         <WorkItem(844613)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub MustInheritMethodInclusionToOverrides()
             Dim input =
 <Workspace>
@@ -240,7 +240,7 @@ End Class
         End Sub
 
         <WorkItem(1022864)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub NavigateCrossProject()
             Dim input =
     <Workspace>
@@ -273,7 +273,7 @@ class D : C
         End Sub
 
         <WorkItem(1022864)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub UseDocumentIdWhenNavigating()
             Dim input =
     <Workspace>
@@ -312,7 +312,7 @@ namespace N
         End Sub
 
         <WorkItem(1098507)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub DisplayErrorWhenNotOnMemberCS()
             Dim input =
     <Workspace>
@@ -334,7 +334,7 @@ cla$$ss C
         End Sub
 
         <WorkItem(1098507)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub DisplayErrorWhenNotOnMemberVB()
             Dim input =
     <Workspace>

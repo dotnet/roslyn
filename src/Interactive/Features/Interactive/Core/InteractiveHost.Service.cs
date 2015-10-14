@@ -41,9 +41,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             private InteractiveAssemblyLoader _assemblyLoader;
             private MetadataShadowCopyProvider _metadataFileProvider;
             private ReplServiceProvider _replServiceProvider;
-
-            private readonly InteractiveHostObject _hostObject;
-            private ObjectFormattingOptions _formattingOptions;
+            private InteractiveScriptGlobals _globals;
 
             // Session is not thread-safe by itself, and the compilation
             // and execution of scripts are asynchronous operations.
@@ -105,15 +103,6 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public Service()
             {
-                _formattingOptions = new ObjectFormattingOptions(
-                    memberFormat: MemberDisplayFormat.Inline,
-                    quoteStrings: true,
-                    useHexadecimalNumbers: false,
-                    maxOutputLength: 200,
-                    memberIndentation: "  ");
-
-                _hostObject = new InteractiveHostObject();
-
                 var initialState = new EvaluationState(
                     scriptState: null,
                     scriptOptions: ScriptOptions.Default,
@@ -166,6 +155,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _assemblyLoader = new InteractiveAssemblyLoader(_metadataFileProvider);
 
                 _replServiceProvider = (ReplServiceProvider)Activator.CreateInstance(replServiceProviderType);
+
+                _globals = new InteractiveScriptGlobals(Console.Out, _replServiceProvider.ObjectFormatter);
             }
 
             private MetadataReferenceResolver CreateMetadataReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
@@ -347,11 +338,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 {
                     Directory.SetCurrentDirectory(baseDirectory);
 
-                    _hostObject.ReferencePaths.Clear();
-                    _hostObject.ReferencePaths.AddRange(referenceSearchPaths);
+                    _globals.ReferencePaths.Clear();
+                    _globals.ReferencePaths.AddRange(referenceSearchPaths);
 
-                    _hostObject.SourcePaths.Clear();
-                    _hostObject.SourcePaths.AddRange(sourceSearchPaths);
+                    _globals.SourcePaths.Clear();
+                    _globals.SourcePaths.AddRange(sourceSearchPaths);
                 }
                 finally
                 {
@@ -471,18 +462,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private void DisplaySubmissionResult(ScriptState<object> state)
             {
-                bool hasValue;
-                var resultType = state.Script.GetCompilation().GetSubmissionResultType(out hasValue);
-                if (hasValue)
+                if (state.Script.HasReturnValue())
                 {
-                    if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                    {
-                        Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.VoidDisplayString);
-                    }
-                    else
-                    {
-                        Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.FormatObject(state.ReturnValue, _formattingOptions));
-                    }
+                    _globals.Print(state.ReturnValue);
                 }
             }
 
@@ -504,8 +486,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             private EvaluationState CompleteExecution(EvaluationState state, RemoteAsyncOperation<RemoteExecutionResult> operation, bool success)
             {
                 // send any updates to the host object and current directory back to the client:
-                var currentSourcePaths = _hostObject.SourcePaths.List.ToArray();
-                var currentReferencePaths = _hostObject.ReferencePaths.List.ToArray();
+                var currentSourcePaths = _globals.SourcePaths.ToArray();
+                var currentReferencePaths = _globals.ReferencePaths.ToArray();
                 var currentWorkingDirectory = Directory.GetCurrentDirectory();
 
                 var changedSourcePaths = currentSourcePaths.SequenceEqual(state.SourceSearchPaths) ? null : currentSourcePaths;
@@ -527,12 +509,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 ScriptOptions newOptions = state.ScriptOptions;
                 if (changedReferencePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomMetadataResolution(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithMetadataResolver(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
                 }
 
                 if (changedSourcePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomSourceResolution(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithSourceResolver(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
                 }
 
                 return new EvaluationState(
@@ -571,7 +553,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             // TODO (tomat): testing only
             public void SetTestObjectFormattingOptions()
             {
-                _formattingOptions = new ObjectFormattingOptions(
+                _globals.PrintOptions = new ObjectFormattingOptions(
                     memberFormat: MemberDisplayFormat.Inline,
                     quoteStrings: true,
                     useHexadecimalNumbers: false,
@@ -625,10 +607,10 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                             var metadataResolver = CreateMetadataReferenceResolver(args.ReferencePaths, rspDirectory);
 
-                            _hostObject.ReferencePaths.Clear();
-                            _hostObject.ReferencePaths.AddRange(args.ReferencePaths);
+                            _globals.ReferencePaths.Clear();
+                            _globals.ReferencePaths.AddRange(args.ReferencePaths);
 
-                            _hostObject.SourcePaths.Clear();
+                            _globals.SourcePaths.Clear();
 
                             var metadataReferences = new List<PortableExecutableReference>();
                             foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
@@ -759,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 Script script;
 
-                var scriptOptions = options.WithPath(path).WithIsInteractive(path == null);
+                var scriptOptions = options.WithFilePath(path);
 
                 if (previousScript != null)
                 {
@@ -767,17 +749,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
                 else
                 {
-                    script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _hostObject.GetType(), _assemblyLoader);
+                    script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _globals.GetType(), _assemblyLoader);
                 }
 
-                // force build so exception is thrown now if errors are found.
-                try
+                var diagnostics = script.Build();
+                if (diagnostics.HasAnyErrors())
                 {
-                    script.Build();
-                }
-                catch (CompilationErrorException e)
-                {
-                    DisplayInteractiveErrors(e.Diagnostics, Console.Error);
+                    DisplayInteractiveErrors(diagnostics, Console.Error);
                     return null;
                 }
 
@@ -881,7 +859,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     try
                     {
                         var task = (stateOpt == null) ?
-                            script.RunAsync(_hostObject, CancellationToken.None) :
+                            script.RunAsync(_globals, CancellationToken.None) :
                             script.ContinueAsync(stateOpt, CancellationToken.None);
 
                         return await task.ConfigureAwait(false);

@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
     Public Class GraphProviderTests
         <WorkItem(1078048)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub GetContainsGraphQueries()
             Dim context = CreateGraphContext(GraphContextDirection.Contains, Array.Empty(Of GraphCategory)())
             Dim queries = AbstractGraphProvider.GetGraphQueries(context)
@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         End Sub
 
         <WorkItem(1078048)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Sub GetContainsGraphQueriesWithTarget()
             Dim context = CreateGraphContext(GraphContextDirection.Target, {CodeLinkCategories.Contains})
             Dim queries = AbstractGraphProvider.GetGraphQueries(context)

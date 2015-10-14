@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis
                         if (referencedProject.IsSubmission)
                         {
                             var compilation = solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).WaitAndGetResult(cancellationToken);
-                            inProgressCompilation = inProgressCompilation.WithPreviousSubmission(compilation);
+                            inProgressCompilation = inProgressCompilation.WithCompilationScriptInfo(inProgressCompilation.ScriptCompilationInfo.WithPreviousScriptCompilation(compilation));
                         }
                         else
                         {
@@ -591,7 +591,9 @@ namespace Microsoft.CodeAnalysis
 
                                 var previousSubmissionCompilation =
                                     await solution.GetCompilationAsync(projectReference.ProjectId, cancellationToken).ConfigureAwait(false);
-                                compilation = compilation.WithPreviousSubmission(previousSubmissionCompilation);
+
+                                compilation = compilation.WithCompilationScriptInfo(
+                                    compilation.ScriptCompilationInfo.WithPreviousScriptCompilation(previousSubmissionCompilation));
                             }
                             else
                             {

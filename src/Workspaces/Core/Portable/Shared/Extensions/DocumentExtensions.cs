@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
         {
-            return document.Project.LanguageServices.GetService<TLanguageService>();
+            return document?.Project?.LanguageServices?.GetService<TLanguageService>();
         }
 
         public static bool IsOpen(this Document document)

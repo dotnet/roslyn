@@ -148,11 +148,11 @@ End Class"
             Dim context = CreateMethodContext(runtime, "C._Closure$__1-0._Lambda$__0")
             Dim errorMessage As String = Nothing
             context.CompileExpression("If(x, y)", errorMessage)
-            Assert.Equal(errorMessage, "(1,8): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.")
+            Assert.Equal(errorMessage, "error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.")
             ' Shared method.
             context = CreateMethodContext(runtime, "C._Closure$__2-0._Lambda$__0")
             context.CompileExpression("x + z", errorMessage)
-            Assert.Equal(errorMessage, "(1,6): error BC30451: 'z' is not declared. It may be inaccessible due to its protection level.")
+            Assert.Equal(errorMessage, "error BC30451: 'z' is not declared. It may be inaccessible due to its protection level.")
         End Sub
 
         <Fact>

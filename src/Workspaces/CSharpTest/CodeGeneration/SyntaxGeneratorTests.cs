@@ -314,6 +314,18 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestArrayCreationExpressions()
+        {
+            VerifySyntax<ArrayCreationExpressionSyntax>(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), _g.LiteralExpression(10)),
+                "new x[10]");
+
+            VerifySyntax<ArrayCreationExpressionSyntax>(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), new SyntaxNode[] { _g.IdentifierName("y"), _g.IdentifierName("z") }),
+                "new x[]{y, z}");
+        }
+
+        [Fact]
         public void TestObjectCreationExpressions()
         {
             VerifySyntax<ObjectCreationExpressionSyntax>(

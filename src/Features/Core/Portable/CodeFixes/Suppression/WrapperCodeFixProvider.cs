@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         private readonly ImmutableArray<string> _originalDiagnosticIds;
         private readonly ISuppressionFixProvider _suppressionFixProvider;
 
-        public WrapperCodeFixProvider(ISuppressionFixProvider suppressionFixProvider, ImmutableArray<Diagnostic> originalDiagnostics)
+        public WrapperCodeFixProvider(ISuppressionFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds)
         {
             _suppressionFixProvider = suppressionFixProvider;
-            _originalDiagnosticIds = originalDiagnostics.Select(d => d.Id).Distinct().ToImmutableArray();
+            _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
         }
 
         public ISuppressionFixProvider SuppressionFixProvider => _suppressionFixProvider;

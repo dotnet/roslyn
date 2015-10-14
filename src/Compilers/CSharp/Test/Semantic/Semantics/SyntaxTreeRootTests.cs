@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             var arbitraryTree = SyntaxFactory.SyntaxTree(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Wooh")));
             var parsedTree = SyntaxFactory.ParseSyntaxTree("");
             Assert.Throws<ArgumentException>(() => CSharpCompilation.Create("Grrr", syntaxTrees: new[] { arbitraryTree }));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("Wah").AddSyntaxTrees(arbitraryTree));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("Wah").AddSyntaxTrees(arbitraryTree));
             Assert.Throws<ArgumentException>(() => CSharpCompilation.Create("Bahh", syntaxTrees: new[] { parsedTree }).ReplaceSyntaxTree(parsedTree, arbitraryTree));
             Assert.Throws<ArgumentException>(() => CSharpCompilation.Create("Woo").GetSemanticModel(arbitraryTree));
         }

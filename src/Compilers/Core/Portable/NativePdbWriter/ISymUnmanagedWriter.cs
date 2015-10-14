@@ -152,6 +152,14 @@ namespace Microsoft.Cci
 
         // ISymUnmanagedWriter6
         void InitializeDeterministic([MarshalAs(UnmanagedType.IUnknown)] object emitter, [MarshalAs(UnmanagedType.IUnknown)] object stream);
+    }
+
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("B473C610-C958-4C3D-99A0-F2BA0A38807C"), SuppressUnmanagedCodeSecurity]
+    interface ISymUnmanagedWriter100 : ISymUnmanagedWriter6
+    {
+        //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4, ISymUnmanagedWriter5, ISymUnmanagedWriter6
+        void _VtblGap1_34();
+
         void SetSignature(uint sig, Guid sig70);
     }
 

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestCSharpLanguageDebugInfoCreateNameResolver()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(" "))
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestSimpleNameInClass()
         {
             var text =
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
             Test(text, "Foo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestSimpleNameInNamespace()
         {
             var text =
@@ -85,7 +85,7 @@ namespace N
             Test(text, "Foo(a)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestSimpleNameInGenericClassNamespace()
         {
             var text =
@@ -114,7 +114,7 @@ namespace N
             Test(text, "Foo(a)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestGenericNameInClassNamespace()
         {
             var text =
@@ -148,7 +148,7 @@ namespace N
             Test(text, "Foo<T>(a)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestOverloadsInSingleClass()
         {
             var text =
@@ -174,7 +174,7 @@ namespace N
             Test(text, "Foo(i)", "C.Foo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestMethodsInMultipleClasses()
         {
             var text =
@@ -210,7 +210,7 @@ namespace N1
             Test(text, "Foo(i)", "N1.C.Foo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestMethodsWithDifferentArityInMultipleClasses()
         {
             var text =
@@ -250,7 +250,7 @@ namespace N1
             Test(text, "Foo<T>(i)", "N1.C.Foo<T>(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestOverloadsWithMultipleParametersInSingleClass()
         {
             var text =
@@ -292,7 +292,7 @@ namespace N1
             Test(text, "Foo(__arglist)", "C.Foo(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void AccessorTests()
         {
             var text =
@@ -307,7 +307,7 @@ namespace N1
             Test(text, "Property3", "C.Property3");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void NegativeTests()
         {
             var text =
@@ -357,7 +357,7 @@ abstract class C
             Test(text, "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestInstanceConstructors()
         {
             var text =
@@ -398,7 +398,7 @@ class G<T>
             Test(text, "Finalize", "G<T>.~G()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestStaticConstructors()
         {
             var text =
@@ -421,7 +421,7 @@ class G<T>
             Test(text, "C.cctor()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestAllConstructors()
         {
             var text =
@@ -446,7 +446,7 @@ class G<T>
             Test(text, "C(i)", "C.C(int)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestPartialMethods()
         {
             var text =
@@ -473,7 +473,7 @@ class G<T>
             Test(text, "M4", "C.M4()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestLeadingAndTrailingText()
         {
             var text =
@@ -492,7 +492,7 @@ class G<T>
             Test(text, "/*comment*/Foo(/* params */); /* comment", "C.Foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestEscapedKeywords()
         {
             var text =
@@ -511,7 +511,7 @@ class @foreach
             Test(text, "false");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestAliasQualifiedNames()
         {
             var text =
@@ -527,7 +527,7 @@ class C
             Test(text, "C.Foo(A::Q)", "C.Foo(D)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestNestedTypesAndNamespaces()
         {
             var text =
@@ -574,7 +574,7 @@ class C
             Test(text, "N5.C.Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)]
         public void TestInterfaces()
         {
             var text =

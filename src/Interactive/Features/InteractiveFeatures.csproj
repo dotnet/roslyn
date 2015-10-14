@@ -80,7 +80,6 @@
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interactive\Core\InteractiveHostObject.cs" />
     <Compile Include="Interactive\Core\InteractiveHostOptions.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.InitializedRemoteService.cs" />
@@ -92,10 +91,6 @@
     <Compile Include="Interactive\Core\ProcessExtensions.cs" />
     <Compile Include="Interactive\Core\RemoteExecutionResult.cs" />
     <Compile Include="Interactive\Core\InteractiveHost.RemoteService.cs" />
-    <Compile Include="Interactive\Core\HostObject\SearchPaths.cs" />
-    <Compile Include="Interactive\Core\HostObject\SynchronizedVersionedList.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Interactive\Core\InteractiveHost.LazyRemoteService.cs" />
   </ItemGroup>
   <ItemGroup>

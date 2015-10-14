@@ -82,8 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 Debug.Assert(Me.HasCompilationUnitRoot)
 
-                Return (Options.Kind = SourceCodeKind.Interactive OrElse Options.Kind = SourceCodeKind.Script) AndAlso
-                        GetCompilationUnitRoot().GetReferenceDirectives().Count > 0
+                Return Options.Kind = SourceCodeKind.Script AndAlso GetCompilationUnitRoot().GetReferenceDirectives().Count > 0
             End Get
         End Property
 

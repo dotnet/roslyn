@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New MethodDeclarationHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample1_1()
             Test(<Text>
 Public Class C1
@@ -21,7 +21,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample1_2()
             Test(<Text>
 Public Class C1
@@ -32,7 +32,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample1_3()
             Test(<Text>
 Public Class C1
@@ -43,7 +43,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample2_1()
             Test(<Text>
 Public Class C1
@@ -53,7 +53,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample2_2()
             Test(<Text>
 Public Class C1
@@ -63,7 +63,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample2_3()
             Test(<Text>
 Public Class C1
@@ -73,7 +73,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample3_1()
             Test(<Text>
 Public Class C1
@@ -84,7 +84,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample3_2()
             Test(<Text>
 Public Class C1
@@ -95,7 +95,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample3_3()
             Test(<Text>
 Public Class C1
@@ -106,7 +106,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample4_1()
             Test(<Text>
 Public Class C1
@@ -116,7 +116,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample4_2()
             Test(<Text>
 Public Class C1
@@ -126,7 +126,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethodExample4_3()
             Test(<Text>
 Public Class C1
@@ -136,7 +136,7 @@ Public Class C1
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_AsyncExample1_1()
             Test(
 <Text>
@@ -167,7 +167,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_AsyncExample1_2()
             Test(
 <Text>
@@ -198,7 +198,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_AsyncExample1_3()
             Test(
 <Text>
@@ -229,7 +229,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_AsyncExample1_4()
             Test(
 <Text>
@@ -260,7 +260,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_AsyncExample1_5()
             Test(
 <Text>
@@ -291,7 +291,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_AsyncExample1_6()
             Test(
 <Text>
@@ -322,7 +322,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_Async_NestedAwaits1()
             Test(
 <Text>
@@ -338,7 +338,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_Async_NestedAwaits2()
             Test(
 <Text>
@@ -354,7 +354,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_Async_NestedAwaits3()
             Test(
 <Text>
@@ -370,7 +370,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_IteratorExample1_1()
             Test(
 <Text>
@@ -396,7 +396,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_IteratorExample1_2()
             Test(
 <Text>
@@ -422,7 +422,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_IteratorExample1_3()
             Test(
 <Text>
@@ -448,7 +448,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_IteratorExample1_4()
             Test(
 <Text>
@@ -474,7 +474,7 @@ End Class
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMethod_IteratorExample1_5()
             Test(
 <Text>

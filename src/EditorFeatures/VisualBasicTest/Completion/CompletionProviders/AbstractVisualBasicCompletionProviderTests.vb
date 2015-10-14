@@ -10,6 +10,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
         Inherits AbstractCompletionProviderTests(Of VisualBasicTestWorkspaceFixture)
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Protected Overrides Sub VerifyWorker(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?)
             ' Script/interactive support removed for now.
             ' TODO: Reenable these when interactive is back in the product.

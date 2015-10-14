@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Interactive
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic
 Imports Microsoft.CodeAnalysis.Scripting.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
         Public Overrides ReadOnly Property CommandLineParser As CommandLineParser
             Get
-                Return VisualBasicCommandLineParser.Interactive
+                Return VisualBasicCommandLineParser.ScriptRunner
             End Get
         End Property
 

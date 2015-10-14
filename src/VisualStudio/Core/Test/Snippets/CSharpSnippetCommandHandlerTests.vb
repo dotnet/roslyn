@@ -7,7 +7,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Public Class CSharpSnippetCommandHandlerTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabAtEndOfWord_NoActiveSession_ExpansionInserted()
             Dim markup = "public class$$ Foo"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabAtEndOfPreprocessor_NoActiveSession_ExpansionInserted()
             Dim markup = "#if$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -35,7 +35,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabAtEndOfWord_NoActiveSession_ExpansionNotInsertedCausesInsertedTab()
             Dim markup = "class$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabAtEndOfWord_ActiveSession()
             Dim markup = "class$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp, startActiveSession:=True)
@@ -61,7 +61,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabInMiddleOfWordCreatesSession()
             Dim markup = "cla$$ss"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -73,7 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabInWhiteSpaceDoesNotCreateSession()
             Dim markup = "class $$ Foo"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabWithSelectionDoesNotCreateSession()
             Dim markup = <Markup><![CDATA[class SomeClass
 {
@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_BackTab_ActiveSession()
             Dim markup = "    $$class Foo {}"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp, startActiveSession:=True)
@@ -119,7 +119,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_BackTab_NoActiveSession()
             Dim markup = "    $$class Foo {}"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -130,7 +130,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Return_ActiveSession()
             Dim markup = "$$    class Foo {}"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp, startActiveSession:=True)
@@ -140,7 +140,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Return_NoActiveSession()
             Dim markup = "$$    class Foo {}"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -150,7 +150,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Escape_ActiveSession()
             Dim markup = "$$    class Foo {}"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp, startActiveSession:=True)
@@ -162,7 +162,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Escape_NoActiveSession()
             Dim markup = "$$    class Foo {}"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.CSharp)
@@ -173,7 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabInsideComment_NoExpansionInserted()
             Dim markup = <Markup><![CDATA[class C
 {
@@ -191,7 +191,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabInsideString_NoExpansionInserted()
             Dim markup = <Markup><![CDATA[class C
 {
@@ -209,7 +209,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_Tab()
             Dim markup = "for$$"
             Dim testState = SnippetTestState.CreateSubmissionTestState(markup, LanguageNames.CSharp)
@@ -222,7 +222,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_InsertSnippetCommand()
             Dim markup = "for$$"
 
@@ -251,7 +251,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets), Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub SnippetCommandHandler_Interactive_SurroundWithCommand()
             Dim markup = "for$$"
 
