@@ -13,12 +13,12 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 {
     [ExportLanguageService(typeof(IRemoveUnnecessaryImportsService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpRemoveUnnecessaryImportsService : IRemoveUnnecessaryImportsService, IEqualityComparer<UsingDirectiveSyntax>
+    internal partial class CSharpRemoveUnnecessaryImportsService :
+        AbstractRemoveUnnecessaryImportsService<UsingDirectiveSyntax>, IRemoveUnnecessaryImportsService
     {
         public static IEnumerable<SyntaxNode> GetUnnecessaryImports(SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken)
         {
@@ -55,22 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         {
             using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
             {
-                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                var unnecessaryImports = new HashSet<UsingDirectiveSyntax>(GetUnnecessaryImportsOrEmpty(model, root, cancellationToken), this);
-                foreach (var current in document.GetLinkedDocuments())
-                {
-                    var currentModel = await current.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var currentRoot = await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                    unnecessaryImports.IntersectWith(GetUnnecessaryImportsOrEmpty(currentModel, currentRoot, cancellationToken));
-                }
-
+                var unnecessaryImports = await GetCommonUnnecessaryImportsOfAllContextAsync(document, cancellationToken).ConfigureAwait(false);
                 if (unnecessaryImports == null || unnecessaryImports.Any(import => import.OverlapsHiddenPosition(cancellationToken)))
                 {
                     return document;
                 }
+
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var oldRoot = (CompilationUnitSyntax)root;
                 var newRoot = (CompilationUnitSyntax)new Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot);
@@ -84,10 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             }
         }
 
-        private static IEnumerable<UsingDirectiveSyntax> GetUnnecessaryImportsOrEmpty(SemanticModel model, SyntaxNode root, CancellationToken cancellationToken)
+        protected override IEnumerable<UsingDirectiveSyntax> GetUnusedUsings(SemanticModel model, SyntaxNode root, CancellationToken cancellationToken)
         {
-            var imports = GetUnnecessaryImports(model, root, cancellationToken) ?? SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-            return imports.Cast<UsingDirectiveSyntax>();
+            return GetUnnecessaryImports(model, root, cancellationToken) as IEnumerable<UsingDirectiveSyntax>;
         }
 
         private SyntaxNode FormatResult(Document document, CompilationUnitSyntax newRoot, CancellationToken cancellationToken)
@@ -128,16 +118,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         private int GetEndPosition(SyntaxNode container, SyntaxList<MemberDeclarationSyntax> list)
         {
             return list.Count > 0 ? list[0].SpanStart : container.Span.End;
-        }
-
-        bool IEqualityComparer<UsingDirectiveSyntax>.Equals(UsingDirectiveSyntax x, UsingDirectiveSyntax y)
-        {
-            return x.Span == y.Span;
-        }
-
-        int IEqualityComparer<UsingDirectiveSyntax>.GetHashCode(UsingDirectiveSyntax obj)
-        {
-            return obj.Span.GetHashCode();
         }
     }
 }
