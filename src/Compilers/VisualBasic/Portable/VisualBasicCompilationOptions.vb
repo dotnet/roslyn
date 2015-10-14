@@ -829,6 +829,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.Platform = value}
         End Function
 
+        Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
+            Return Me.WithDeterministic(deterministic)
+        End Function
+
         Protected Overrides Function CommonWithGeneralDiagnosticOption(value As ReportDiagnostic) As CompilationOptions
             Return Me.WithGeneralDiagnosticOption(value)
         End Function
