@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.Test.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Win32;
 using Roslyn.Test.Utilities;
 using System;
@@ -53,16 +54,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             else
             {
                 path = Path.Combine(MSBuildDirectory, exeName);
-                if (File.Exists(path))
-                {
-                    var currentAssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version;
-                    var loadedAssemblyVersion = Assembly.LoadFile(path).GetName().Version;
-                    if (currentAssemblyVersion == loadedAssemblyVersion)
-                    {
-                        return path;
-                    }
-                }
-                return null;
+                return File.Exists(path) ? path : null;
             }
         }
 

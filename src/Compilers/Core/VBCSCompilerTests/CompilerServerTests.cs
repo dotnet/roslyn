@@ -48,11 +48,12 @@ Module Module1
     End Sub
 End Module")
         };
-        ExecutingTestUtils.TempExecutionEnvironment executionEnvironment = null;
+
+        ExecutingTestUtils.TempExecutionEnvironment _executionEnvironment = null;
 
         public CompilerServerUnitTests()
         {
-            executionEnvironment = new ExecutingTestUtils.TempExecutionEnvironment();
+            _executionEnvironment = new ExecutingTestUtils.TempExecutionEnvironment();
         }
 
         public override void Dispose()
@@ -159,7 +160,7 @@ End Module")
         // kill it after each test.
         private void KillCompilerServer()
         {
-            KillProcess(executionEnvironment.compilerServerExecutable);
+            KillProcess(_executionEnvironment.compilerServerExecutable);
             KillProcess(ExecutingTestUtils.s_compilerServerExecutableSrc);
         }
 
@@ -230,9 +231,9 @@ End Module")
         public void FallbackToCsc()
         {
             // Delete VBCSCompiler.exe so /shared is forced to fall back to csc.exe
-            File.Delete(executionEnvironment.compilerServerExecutable);
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /nologo hello.cs", executionEnvironment.tempDirectory, s_helloWorldSrcCs);
-            VerifyResultAndOutput(result, executionEnvironment.tempDirectory, "Hello, world.\r\n");
+            File.Delete(_executionEnvironment.compilerServerExecutable);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /nologo hello.cs", _executionEnvironment.tempDirectory, s_helloWorldSrcCs);
+            VerifyResultAndOutput(result, _executionEnvironment.tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact]
@@ -241,8 +242,8 @@ End Module")
             var files = new Dictionary<string, string> { { "hello.cs", "♕" } };
 
             // Delete VBCSCompiler.exe so /shared is forced to fall back to csc.exe
-            File.Delete(executionEnvironment.compilerServerExecutable);
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /nologo hello.cs", executionEnvironment.tempDirectory, files);
+            File.Delete(_executionEnvironment.compilerServerExecutable);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /nologo hello.cs", _executionEnvironment.tempDirectory, files);
             Assert.Equal(result.ExitCode, 1);
             Assert.True(result.ContainsErrors);
             Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
@@ -251,15 +252,15 @@ End Module")
         [Fact]
         public void CscFallBackOutputUtf8()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
 
             // Delete VBCSCompiler.exe so /shared is forced to fall back to csc.exe
-            File.Delete(executionEnvironment.compilerServerExecutable);
+            File.Delete(_executionEnvironment.compilerServerExecutable);
 
             var result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /shared /utf8output /nologo /t:library {1} > {2}",
-                executionEnvironment.csharpCompilerClientExecutable,
+                _executionEnvironment.csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -271,15 +272,15 @@ End Module")
         [Fact]
         public void VbcFallbackNoUtf8()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
 
             // Delete VBCSCompiler.exe so /shared is forced to fall back to csc.exe
-            File.Delete(executionEnvironment.compilerServerExecutable);
+            File.Delete(_executionEnvironment.compilerServerExecutable);
 
             var result = ProcessUtilities.Run(
-                executionEnvironment.basicCompilerClientExecutable,
+                _executionEnvironment.basicCompilerClientExecutable,
                 "/shared /nologo test.vb",
-                executionEnvironment.tempDirectory.Path);
+                _executionEnvironment.tempDirectory.Path);
 
             Assert.Equal(result.ExitCode, 1);
             Assert.True(result.ContainsErrors);
@@ -292,15 +293,15 @@ End Module")
         [Fact]
         public void VbcFallbackUtf8()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
 
             // Delete VBCSCompiler.exe so /shared is forced to fall back to csc.exe
-            File.Delete(executionEnvironment.compilerServerExecutable);
+            File.Delete(_executionEnvironment.compilerServerExecutable);
 
             var result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /shared /utf8output /nologo /t:library {1} > {2}",
-                executionEnvironment.basicCompilerClientExecutable,
+                _executionEnvironment.basicCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -315,17 +316,17 @@ End Module")
         public void FallbackToVbc()
         {
             // Delete VBCSCompiler.exe so /shared is forced to fall back to vbc.exe
-            File.Delete(executionEnvironment.compilerServerExecutable);
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "/shared /nologo hello.vb", executionEnvironment.tempDirectory, s_helloWorldSrcVb);
-            VerifyResultAndOutput(result, executionEnvironment.tempDirectory, "Hello from VB\r\n");
+            File.Delete(_executionEnvironment.compilerServerExecutable);
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "/shared /nologo hello.vb", _executionEnvironment.tempDirectory, s_helloWorldSrcVb);
+            VerifyResultAndOutput(result, _executionEnvironment.tempDirectory, "Hello from VB\r\n");
         }
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldCS()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /nologo hello.cs", executionEnvironment.tempDirectory, s_helloWorldSrcCs);
-            VerifyResultAndOutput(result, executionEnvironment.tempDirectory, "Hello, world.\r\n");
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /nologo hello.cs", _executionEnvironment.tempDirectory, s_helloWorldSrcCs);
+            VerifyResultAndOutput(result, _executionEnvironment.tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact]
@@ -333,7 +334,7 @@ End Module")
         public void CompilerBinariesAreNotX86()
         {
             Assert.NotEqual(ProcessorArchitecture.X86,
-                AssemblyName.GetAssemblyName(executionEnvironment.compilerServerExecutable).ProcessorArchitecture);
+                AssemblyName.GetAssemblyName(_executionEnvironment.compilerServerExecutable).ProcessorArchitecture);
         }
 
         /// <summary>
@@ -348,9 +349,9 @@ End Module")
         public void Platformx86MscorlibCsc()
         {
             var files = new Dictionary<string, string> { { "c.cs", "class C {}" } };
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable,
                                                 "/shared /nologo /t:library /platform:x86 c.cs",
-                                                executionEnvironment.tempDirectory,
+                                                _executionEnvironment.tempDirectory,
                                                 files);
             VerifyResult(result);
         }
@@ -360,9 +361,9 @@ End Module")
         public void Platformx86MscorlibVbc()
         {
             var files = new Dictionary<string, string> { { "c.vb", "Class C\nEnd Class" } };
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable,
                                                 "/shared /nologo /t:library /platform:x86 c.vb",
-                                                executionEnvironment.tempDirectory,
+                                                _executionEnvironment.tempDirectory,
                                                 files);
             VerifyResult(result);
         }
@@ -371,33 +372,33 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibCS()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable,
                                                 "/shared /nologo /r:mscorlib.dll hello.cs",
-                                                executionEnvironment.tempDirectory,
+                                                _executionEnvironment.tempDirectory,
                                                 s_helloWorldSrcCs);
-            VerifyResultAndOutput(result, executionEnvironment.tempDirectory, "Hello, world.\r\n");
+            VerifyResultAndOutput(result, _executionEnvironment.tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldVB()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable,
                                                 "/shared /nologo /r:Microsoft.VisualBasic.dll hello.vb",
-                                                executionEnvironment.tempDirectory,
+                                                _executionEnvironment.tempDirectory,
                                                 s_helloWorldSrcVb);
-            VerifyResultAndOutput(result, executionEnvironment.tempDirectory, "Hello from VB\r\n");
+            VerifyResultAndOutput(result, _executionEnvironment.tempDirectory, "Hello from VB\r\n");
         }
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ExtraMSCorLibVB()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable,
                 "/shared /nologo /r:mscorlib.dll /r:Microsoft.VisualBasic.dll hello.vb",
-                executionEnvironment.tempDirectory,
+                _executionEnvironment.tempDirectory,
                 s_helloWorldSrcVb);
-            VerifyResultAndOutput(result, executionEnvironment.tempDirectory, "Hello from VB\r\n");
+            VerifyResultAndOutput(result, _executionEnvironment.tempDirectory, "Hello from VB\r\n");
         }
 
         [Fact]
@@ -414,14 +415,14 @@ class Hello
     { Console.WriteLine(""Hello, world."") }
 }"}};
 
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared hello.cs", executionEnvironment.tempDirectory, files);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared hello.cs", _executionEnvironment.tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
             Assert.Contains("hello.cs(5,42): error CS1002: ; expected\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "hello.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "hello.exe")));
         }
 
         [Fact]
@@ -439,7 +440,7 @@ Module Module1
     End Sub
 End Class"}};
 
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "/shared /r:Microsoft.VisualBasic.dll hellovb.vb", executionEnvironment.tempDirectory, files);
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "/shared /r:Microsoft.VisualBasic.dll hellovb.vb", _executionEnvironment.tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -447,35 +448,35 @@ End Class"}};
             Assert.Contains("hellovb.vb(7) : error BC30460: 'End Class' must be preceded by a matching 'Class'.\r\n", result.Output, StringComparison.Ordinal);
             Assert.Equal("", result.Errors);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "hello.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "hello.exe")));
         }
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingFileErrorCS()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared missingfile.cs", executionEnvironment.tempDirectory, new Dictionary<string, string>());
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared missingfile.cs", _executionEnvironment.tempDirectory, new Dictionary<string, string>());
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
             Assert.Contains("error CS2001: Source file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "missingfile.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "missingfile.exe")));
         }
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingReferenceErrorCS()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /r:missing.dll hello.cs", executionEnvironment.tempDirectory, s_helloWorldSrcCs);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /r:missing.dll hello.cs", _executionEnvironment.tempDirectory, s_helloWorldSrcCs);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
             Assert.Contains("error CS0006: Metadata file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "hello.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "hello.exe")));
         }
 
         [WorkItem(546067, "DevDiv")]
@@ -489,28 +490,28 @@ End Class"}};
                                                { "app.cs", "class Test { static void Main() {} }"},
                                            };
 
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /r:Lib.cs app.cs", executionEnvironment.tempDirectory, files);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /r:Lib.cs app.cs", _executionEnvironment.tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
             Assert.Contains("error CS0009: Metadata file", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "app.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "app.exe")));
         }
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void MissingFileErrorVB()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "/shared missingfile.vb", executionEnvironment.tempDirectory, new Dictionary<string, string>());
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "/shared missingfile.vb", _executionEnvironment.tempDirectory, new Dictionary<string, string>());
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
             Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
             Assert.Contains("error BC2001", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "missingfile.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "missingfile.exe")));
         }
 
         [Fact(), WorkItem(761131, "DevDiv")]
@@ -529,13 +530,13 @@ Module Module1
     End Sub
 End Module"}};
 
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "/shared /nologo /r:Microsoft.VisualBasic.dll /r:missing.dll hellovb.vb", executionEnvironment.tempDirectory, files);
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "/shared /nologo /r:Microsoft.VisualBasic.dll /r:missing.dll hellovb.vb", _executionEnvironment.tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
             Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "hellovb.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "hellovb.exe")));
         }
 
         [WorkItem(546067, "DevDiv")]
@@ -554,13 +555,13 @@ End Class" },
     End Sub
 End Module"}};
 
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "/shared /r:Lib.vb app.vb", executionEnvironment.tempDirectory, files);
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "/shared /r:Lib.vb app.vb", _executionEnvironment.tempDirectory, files);
 
             // Should output errors, but not create output file.
             Assert.Equal("", result.Errors);
             Assert.Contains("error BC31519", result.Output, StringComparison.Ordinal);
             Assert.Equal(1, result.ExitCode);
-            Assert.False(File.Exists(Path.Combine(executionEnvironment.tempDirectory.Path, "app.exe")));
+            Assert.False(File.Exists(Path.Combine(_executionEnvironment.tempDirectory.Path, "app.exe")));
         }
 
         [Fact()]
@@ -568,7 +569,7 @@ End Module"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ReferenceCachingVB()
         {
-            TempDirectory rootDirectory = executionEnvironment.tempDirectory.CreateDirectory("ReferenceCachingVB");
+            TempDirectory rootDirectory = _executionEnvironment.tempDirectory.CreateDirectory("ReferenceCachingVB");
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
@@ -585,7 +586,7 @@ End Class
 
             using (var tmpFile = GetResultFile(rootDirectory, "lib.dll"))
             {
-                var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "src1.vb /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
+                var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "src1.vb /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
@@ -602,7 +603,7 @@ Module Module1
     End Sub
 End Module
 "}};
-                    result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "hello1.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", rootDirectory, files);
+                    result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "hello1.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", rootDirectory, files);
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
@@ -623,7 +624,7 @@ Public Sub Main()
 End Sub
 End Module
 "}};
-                        result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "hello2.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello2.exe", rootDirectory, files);
+                        result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "hello2.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello2.exe", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -647,7 +648,7 @@ Public Class Library
 End Class
 "}};
 
-                        result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "src2.vb /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
+                        result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "src2.vb /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -664,7 +665,7 @@ Module Module1
     End Sub
 End Module
 "}};
-                            result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "hello3.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello3.exe", rootDirectory, files);
+                            result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "hello3.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
@@ -689,7 +690,7 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void ReferenceCachingCS()
         {
-            TempDirectory rootDirectory = executionEnvironment.tempDirectory.CreateDirectory("ReferenceCachingCS");
+            TempDirectory rootDirectory = _executionEnvironment.tempDirectory.CreateDirectory("ReferenceCachingCS");
 
             using (var tmpFile = GetResultFile(rootDirectory, "lib.dll"))
             {
@@ -704,7 +705,7 @@ public class Library
     { return ""library1""; }
 }"}};
 
-                var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "src1.cs /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
+                var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "src1.cs /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
@@ -720,7 +721,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-                    result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "hello1.cs /shared /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
+                    result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "hello1.cs /shared /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
@@ -742,7 +743,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello2 from {0}"", Library.GetString()); }
 }"}};
-                        result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "hello2.cs /shared /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
+                        result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "hello2.cs /shared /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -765,7 +766,7 @@ public class Library
     { return ""library3""; }
 }"}};
 
-                        result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "src2.cs /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
+                        result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "src2.cs /shared /nologo /t:library /out:lib.dll", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -781,7 +782,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
-                            result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "hello3.cs /shared /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
+                            result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "hello3.cs /shared /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
@@ -829,13 +830,13 @@ End Module", i));
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerCS(TempDirectory dir, int i)
         {
-            return ProcessUtilities.StartProcess(executionEnvironment.csharpCompilerClientExecutable, string.Format("/shared /nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
+            return ProcessUtilities.StartProcess(_executionEnvironment.csharpCompilerClientExecutable, string.Format("/shared /nologo hello{0}.cs /out:hellocs{0}.exe", i), dir.Path);
         }
 
         // Run compiler in directory set up by SetupDirectory
         private Process RunCompilerVB(TempDirectory dir, int i)
         {
-            return ProcessUtilities.StartProcess(executionEnvironment.basicCompilerClientExecutable, string.Format("/shared /nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
+            return ProcessUtilities.StartProcess(_executionEnvironment.basicCompilerClientExecutable, string.Format("/shared /nologo hello{0}.vb /r:Microsoft.VisualBasic.dll /out:hellovb{0}.exe", i), dir.Path);
         }
 
         // Run output in directory set up by SetupDirectory
@@ -960,7 +961,7 @@ EndGlobal
 { "HelloProj.csproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + executionEnvironment.buildTaskDll + @""" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _executionEnvironment.buildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">x86</Platform>
@@ -1044,7 +1045,7 @@ namespace HelloProj
 { "HelloLib.csproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + executionEnvironment.buildTaskDll + @""" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _executionEnvironment.buildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -1111,7 +1112,7 @@ namespace HelloLib
  { "VBLib.vbproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + executionEnvironment.buildTaskDll + @""" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + _executionEnvironment.buildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -1188,9 +1189,9 @@ End Class
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(ExecutingTestUtils.MSBuildExecutable, arguments, executionEnvironment.tempDirectory, SimpleMsBuildFiles);
+            var result = RunCommandLineCompiler(ExecutingTestUtils.MSBuildExecutable, arguments, _executionEnvironment.tempDirectory, SimpleMsBuildFiles);
 
-            using (var resultFile = GetResultFile(executionEnvironment.tempDirectory, @"bin\debug\helloproj.exe"))
+            using (var resultFile = GetResultFile(_executionEnvironment.tempDirectory, @"bin\debug\helloproj.exe"))
             {
                 // once we stop issuing BC40998 (NYI), we can start making stronger assertions
                 // about our output in the general case
@@ -1448,7 +1449,7 @@ End Class
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void UseLibVariableCS()
         {
-            var libDirectory = executionEnvironment.tempDirectory.CreateDirectory("LibraryDir");
+            var libDirectory = _executionEnvironment.tempDirectory.CreateDirectory("LibraryDir");
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
@@ -1461,9 +1462,9 @@ public class Library
     { return ""library1""; }
 }"}};
 
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable,
                                                 "src1.cs /shared /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
-                                                executionEnvironment.tempDirectory, files);
+                                                _executionEnvironment.tempDirectory, files);
 
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
@@ -1480,21 +1481,21 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-            result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "hello1.cs /shared /nologo /r:lib.dll /out:hello1.exe", executionEnvironment.tempDirectory, files,
+            result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "hello1.cs /shared /nologo /r:lib.dll /out:hello1.exe", _executionEnvironment.tempDirectory, files,
                                             additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
             Assert.Equal(0, result.ExitCode);
 
-            var resultFile = Temp.AddFile(GetResultFile(executionEnvironment.tempDirectory, "hello1.exe"));
+            var resultFile = Temp.AddFile(GetResultFile(_executionEnvironment.tempDirectory, "hello1.exe"));
         }
 
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void UseLibVariableVB()
         {
-            var libDirectory = executionEnvironment.tempDirectory.CreateDirectory("LibraryDir");
+            var libDirectory = _executionEnvironment.tempDirectory.CreateDirectory("LibraryDir");
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
@@ -1509,9 +1510,9 @@ Public Class Library
 End Class
 "}};
 
-            var result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable,
                                                 "src1.vb /shared /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
-                                                executionEnvironment.tempDirectory, files);
+                                                _executionEnvironment.tempDirectory, files);
 
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
@@ -1529,14 +1530,14 @@ Module Module1
     End Sub
 End Module
 "}};
-            result = RunCommandLineCompiler(executionEnvironment.basicCompilerClientExecutable, "hello1.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", executionEnvironment.tempDirectory, files,
+            result = RunCommandLineCompiler(_executionEnvironment.basicCompilerClientExecutable, "hello1.vb /shared /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", _executionEnvironment.tempDirectory, files,
                                             additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
             Assert.Equal(0, result.ExitCode);
 
-            var resultFile = Temp.AddFile(GetResultFile(executionEnvironment.tempDirectory, "hello1.exe"));
+            var resultFile = Temp.AddFile(GetResultFile(_executionEnvironment.tempDirectory, "hello1.exe"));
         }
 
         [WorkItem(545446, "DevDiv")]
@@ -1544,12 +1545,12 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_Off_Shared()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
 
             var result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /shared /nologo /t:library {1} > {2}",
-                executionEnvironment.csharpCompilerClientExecutable,
+                _executionEnvironment.csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -1563,11 +1564,11 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_Off_Share()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
 
             var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /nologo /shared /t:library {1} > {2}",
-                executionEnvironment.basicCompilerClientExecutable,
+                _executionEnvironment.basicCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -1585,11 +1586,11 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_On_Shared_CS()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
 
             var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /shared /utf8output /nologo /t:library {1} > {2}",
-                executionEnvironment.csharpCompilerClientExecutable,
+                _executionEnvironment.csharpCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -1603,11 +1604,11 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void Utf8Output_WithRedirecting_On_Shared_VB()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
 
             var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /utf8output /nologo /shared /t:library {1} > {2}",
-                executionEnvironment.basicCompilerClientExecutable,
+                _executionEnvironment.basicCompilerClientExecutable,
                 srcFile, tempOut.Path));
 
             Assert.Equal("", result.Output.Trim());
@@ -1625,8 +1626,8 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AssemblyIdentityComparer1()
         {
-            executionEnvironment.tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(TestResources.NetFX.v2_0_50727.mscorlib);
-            executionEnvironment.tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(TestResources.NetFX.v4_0_21006.mscorlib);
+            _executionEnvironment.tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(TestResources.NetFX.v2_0_50727.mscorlib);
+            _executionEnvironment.tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(TestResources.NetFX.v4_0_21006.mscorlib);
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
@@ -1641,15 +1642,15 @@ End Module
 }
 "}};
 
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable,
                                                 "ref_mscorlib2.cs /shared /nologo /nostdlib /noconfig /t:library /r:mscorlib20.dll",
-                                                executionEnvironment.tempDirectory, files);
+                                                _executionEnvironment.tempDirectory, files);
 
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
             Assert.Equal(0, result.ExitCode);
 
-            Temp.AddFile(GetResultFile(executionEnvironment.tempDirectory, "ref_mscorlib2.dll"));
+            Temp.AddFile(GetResultFile(_executionEnvironment.tempDirectory, "ref_mscorlib2.dll"));
 
             // Create EXE "main.exe"
             files = new Dictionary<string, string> {
@@ -1665,9 +1666,9 @@ class Program
     }
 }
 "}};
-            result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable,
+            result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable,
                                             "main.cs /shared /nologo /nostdlib /noconfig /r:mscorlib40.dll /r:ref_mscorlib2.dll",
-                                            executionEnvironment.tempDirectory, files);
+                                            _executionEnvironment.tempDirectory, files);
 
             Assert.Equal("", result.Output);
             Assert.Equal("", result.Errors);
@@ -1678,15 +1679,15 @@ class Program
         [Fact]
         public void Utf8OutputInRspFileCsc()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
-            var rspFile = executionEnvironment.tempDirectory.CreateFile("temp.rsp").WriteAllText(
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var rspFile = _executionEnvironment.tempDirectory.CreateFile("temp.rsp").WriteAllText(
                 string.Format("/utf8output /nologo /t:library {0}", srcFile));
 
             var result = ProcessUtilities.Run("cmd",
                 string.Format(
                     "/C {0} /shared /noconfig @{1} > {2}",
-                    executionEnvironment.csharpCompilerClientExecutable,
+                    _executionEnvironment.csharpCompilerClientExecutable,
                     rspFile,
                     tempOut));
 
@@ -1700,15 +1701,15 @@ class Program
         [Fact]
         public void Utf8OutputInRspFileVbc()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
-            var tempOut = executionEnvironment.tempDirectory.CreateFile("output.txt");
-            var rspFile = executionEnvironment.tempDirectory.CreateFile("temp.rsp").WriteAllText(
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = _executionEnvironment.tempDirectory.CreateFile("output.txt");
+            var rspFile = _executionEnvironment.tempDirectory.CreateFile("temp.rsp").WriteAllText(
                 string.Format("/utf8output /nologo /t:library {0}", srcFile));
 
             var result = ProcessUtilities.Run("cmd",
                 string.Format(
                     "/C {0} /shared /noconfig @{1} > {2}",
-                    executionEnvironment.basicCompilerClientExecutable,
+                    _executionEnvironment.basicCompilerClientExecutable,
                     rspFile,
                     tempOut));
 
@@ -1723,7 +1724,7 @@ class Program
         [Fact(Skip = "DevDiv 1095079"), WorkItem(1095079)]
         public async Task ServerRespectsAppConfig()
         {
-            var exeConfigPath = Path.Combine(executionEnvironment.compilerDirectory, ExecutingTestUtils.CompilerServerExeName + ".config");
+            var exeConfigPath = Path.Combine(_executionEnvironment.compilerDirectory, ExecutingTestUtils.CompilerServerExeName + ".config");
             var doc = new XmlDocument();
             using (XmlReader reader = XmlReader.Create(exeConfigPath, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
             {
@@ -1734,7 +1735,7 @@ class Program
             root.SelectSingleNode("appSettings/add/@value").Value = "1";
             doc.Save(exeConfigPath);
 
-            var proc = ProcessUtilities.StartProcess(executionEnvironment.compilerServerExecutable, "");
+            var proc = ProcessUtilities.StartProcess(_executionEnvironment.compilerServerExecutable, "");
             await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // Give 2s leeway
 
             var exited = proc.HasExited;
@@ -1748,7 +1749,7 @@ class Program
         [Fact]
         public void BadKeepAlive1()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive", executionEnvironment.tempDirectory.Path);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive", _executionEnvironment.tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
@@ -1759,7 +1760,7 @@ class Program
         [Fact]
         public void BadKeepAlive2()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive:foo", executionEnvironment.tempDirectory.Path);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive:foo", _executionEnvironment.tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
@@ -1770,7 +1771,7 @@ class Program
         [Fact]
         public void BadKeepAlive3()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive:-100", executionEnvironment.tempDirectory.Path);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive:-100", _executionEnvironment.tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
@@ -1781,7 +1782,7 @@ class Program
         [Fact]
         public void BadKeepAlive4()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive:9999999999", executionEnvironment.tempDirectory.Path);
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable, "/shared /keepalive:9999999999", _executionEnvironment.tempDirectory.Path);
 
             Assert.True(result.ContainsErrors);
             Assert.Equal(1, result.ExitCode);
@@ -1792,24 +1793,24 @@ class Program
         [Fact]
         public void SimpleKeepAlive()
         {
-            var result = RunCommandLineCompiler(executionEnvironment.csharpCompilerClientExecutable,
+            var result = RunCommandLineCompiler(_executionEnvironment.csharpCompilerClientExecutable,
                                                 $"/nologo /shared /keepalive:1 hello.cs",
-                                                executionEnvironment.tempDirectory,
+                                                _executionEnvironment.tempDirectory,
                                                 s_helloWorldSrcCs);
-            VerifyResultAndOutput(result, executionEnvironment.tempDirectory, "Hello, world.\r\n");
+            VerifyResultAndOutput(result, _executionEnvironment.tempDirectory, "Hello, world.\r\n");
         }
 
         [Fact, WorkItem(1024619, "DevDiv")]
         public void Bug1024619_01()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("").Path;
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.cs").WriteAllText("").Path;
 
-            executionEnvironment.tempDirectory.CreateDirectory("Temp");
-            var tmp = Path.Combine(executionEnvironment.tempDirectory.Path, "Temp");
+            _executionEnvironment.tempDirectory.CreateDirectory("Temp");
+            var tmp = Path.Combine(_executionEnvironment.tempDirectory.Path, "Temp");
 
             var result = ProcessUtilities.Run("cmd",
                 string.Format("/C \"SET TMP={2} && {0} /shared /nologo /t:library {1}\"",
-                executionEnvironment.csharpCompilerClientExecutable,
+                _executionEnvironment.csharpCompilerClientExecutable,
                 srcFile, tmp));
 
             Assert.Equal(0, result.ExitCode);
@@ -1818,7 +1819,7 @@ class Program
 
             result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /nologo /t:library {1}",
-                executionEnvironment.csharpCompilerClientExecutable,
+                _executionEnvironment.csharpCompilerClientExecutable,
                 srcFile));
 
             Assert.Equal("", result.Output.Trim());
@@ -1828,14 +1829,14 @@ class Program
         [Fact, WorkItem(1024619, "DevDiv")]
         public void Bug1024619_02()
         {
-            var srcFile = executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText("").Path;
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile("test.vb").WriteAllText("").Path;
 
-            executionEnvironment.tempDirectory.CreateDirectory("Temp");
-            var tmp = Path.Combine(executionEnvironment.tempDirectory.Path, "Temp");
+            _executionEnvironment.tempDirectory.CreateDirectory("Temp");
+            var tmp = Path.Combine(_executionEnvironment.tempDirectory.Path, "Temp");
 
             var result = ProcessUtilities.Run("cmd",
                 string.Format("/C \"SET TMP={2} && {0} /shared /nologo /t:library {1}\"",
-                executionEnvironment.basicCompilerClientExecutable,
+                _executionEnvironment.basicCompilerClientExecutable,
                 srcFile, tmp));
 
             Assert.Equal(0, result.ExitCode);
@@ -1844,7 +1845,7 @@ class Program
 
             result = ProcessUtilities.Run("cmd",
                 string.Format("/C {0} /shared /nologo /t:library {1}",
-                executionEnvironment.basicCompilerClientExecutable,
+                _executionEnvironment.basicCompilerClientExecutable,
                 srcFile));
 
             Assert.Equal("", result.Output.Trim());
@@ -1855,8 +1856,8 @@ class Program
         public void ExecuteCscBuildTaskWithServer()
         {
             var csc = new Csc();
-            var srcFile = executionEnvironment.tempDirectory.CreateFile(s_helloWorldSrcCs[0].Key).WriteAllText(s_helloWorldSrcCs[0].Value).Path;
-            var exeFile = Path.Combine(executionEnvironment.tempDirectory.Path, "hello.exe");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile(s_helloWorldSrcCs[0].Key).WriteAllText(s_helloWorldSrcCs[0].Value).Path;
+            var exeFile = Path.Combine(_executionEnvironment.tempDirectory.Path, "hello.exe");
 
             var engine = new MockEngine();
             csc.BuildEngine = engine;
@@ -1884,8 +1885,8 @@ class Program
         public void ExecuteVbcBuildTaskWithServer()
         {
             var vbc = new Vbc();
-            var srcFile = executionEnvironment.tempDirectory.CreateFile(s_helloWorldSrcVb[0].Key).WriteAllText(s_helloWorldSrcVb[0].Value).Path;
-            var exeFile = Path.Combine(executionEnvironment.tempDirectory.Path, "hello.exe");
+            var srcFile = _executionEnvironment.tempDirectory.CreateFile(s_helloWorldSrcVb[0].Key).WriteAllText(s_helloWorldSrcVb[0].Value).Path;
+            var exeFile = Path.Combine(_executionEnvironment.tempDirectory.Path, "hello.exe");
 
             var engine = new MockEngine();
             vbc.BuildEngine = engine;
@@ -1912,7 +1913,7 @@ class Program
         [Fact]
         public void ServerExitsWhenRunWithNoArgs()
         {
-            var result = ProcessUtilities.Run(executionEnvironment.compilerServerExecutable, "");
+            var result = ProcessUtilities.Run(_executionEnvironment.compilerServerExecutable, "");
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("", result.Output);
@@ -1921,11 +1922,11 @@ class Program
         [Fact]
         public void OnlyStartsOneServer()
         {
-            var result = ProcessUtilities.Run(executionEnvironment.csharpCompilerClientExecutable, "/shared");
-            Assert.Equal(1, GetProcessesByFullPath(executionEnvironment.compilerServerExecutable).Count);
+            var result = ProcessUtilities.Run(_executionEnvironment.csharpCompilerClientExecutable, "/shared");
+            Assert.Equal(1, GetProcessesByFullPath(_executionEnvironment.compilerServerExecutable).Count);
 
-            result = ProcessUtilities.Run(executionEnvironment.csharpCompilerClientExecutable, "/shared");
-            Assert.Equal(1, GetProcessesByFullPath(executionEnvironment.compilerServerExecutable).Count);
+            result = ProcessUtilities.Run(_executionEnvironment.csharpCompilerClientExecutable, "/shared");
+            Assert.Equal(1, GetProcessesByFullPath(_executionEnvironment.compilerServerExecutable).Count);
         }
 
         // A dictionary with name and contents of all the files we want to create for the ReportAnalyzerMSBuild test.
@@ -1976,7 +1977,7 @@ EndGlobal
 { "HelloLib.csproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + executionEnvironment.buildTaskDll + @""" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _executionEnvironment.buildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -2032,7 +2033,7 @@ EndGlobal
  { "VBLib.vbproj",
 @"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""4.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + executionEnvironment.buildTaskDll + @""" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""" + _executionEnvironment.buildTaskDll + @""" />
   <PropertyGroup>
     <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
     <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -2110,7 +2111,7 @@ End Class
         public void ReportAnalyzerMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
-            var result = RunCommandLineCompiler(ExecutingTestUtils.MSBuildExecutable, arguments, executionEnvironment.tempDirectory, ReportAnalyzerMsBuildFiles,
+            var result = RunCommandLineCompiler(ExecutingTestUtils.MSBuildExecutable, arguments, _executionEnvironment.tempDirectory, ReportAnalyzerMsBuildFiles,
                 new Dictionary<string, string>
                 { { "MyMSBuildToolsPath", Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location) } });
 
@@ -2121,7 +2122,7 @@ End Class
         [Fact(Skip = "failing msbuild")]
         public void SolutionWithPunctuation()
         {
-            var testDir = executionEnvironment.tempDirectory.CreateDirectory(@"SLN;!@(foo)'^1");
+            var testDir = _executionEnvironment.tempDirectory.CreateDirectory(@"SLN;!@(foo)'^1");
             var slnFile = testDir.CreateFile("Console;!@(foo)'^(Application1.sln").WriteAllText(
 @"
 Microsoft Visual Studio Solution File, Format Version 10.00
@@ -2154,7 +2155,7 @@ EndGlobal
             var appProjFile = appDir.CreateFile(@"Cons.ole;!@(foo)'^(Application1.csproj").WriteAllText(
 @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + executionEnvironment.buildTaskDll + @""" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _executionEnvironment.buildTaskDll + @""" />
     <PropertyGroup>
         <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
         <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -2222,7 +2223,7 @@ namespace Console____foo____Application1
             var libraryProjFile = libraryDir.CreateFile("Class;!@(foo)'^(Library1.csproj").WriteAllText(
 @"
 <Project DefaultTargets=""Build"" ToolsVersion=""3.5"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + executionEnvironment.buildTaskDll + @""" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""" + _executionEnvironment.buildTaskDll + @""" />
     <PropertyGroup>
         <Configuration Condition="" '$(Configuration)' == '' "">Debug</Configuration>
         <Platform Condition="" '$(Platform)' == '' "">AnyCPU</Platform>
@@ -2307,7 +2308,7 @@ namespace Class____foo____Library1
                 Assert.True(holdsMutex);
                 try
                 {
-                    var result = ProcessUtilities.StartProcess(executionEnvironment.compilerServerExecutable,
+                    var result = ProcessUtilities.StartProcess(_executionEnvironment.compilerServerExecutable,
                                                                $"-pipename:{pipename}");
 
                     // Wait up to 5 seconds for the process to exit
@@ -2331,7 +2332,7 @@ namespace Class____foo____Library1
             var pipename = Guid.NewGuid().ToString("N");
             var args = $"-pipename:{pipename}";
 
-            var server1 = ProcessUtilities.StartProcess(executionEnvironment.compilerServerExecutable, args);
+            var server1 = ProcessUtilities.StartProcess(_executionEnvironment.compilerServerExecutable, args);
 
             // Wait up to 5 seconds for server1 to start
             var start = DateTime.Now;
@@ -2352,7 +2353,7 @@ namespace Class____foo____Library1
             // is running
             Assert.False(server1.HasExited);
 
-            var server2 = ProcessUtilities.StartProcess(executionEnvironment.compilerServerExecutable, args);
+            var server2 = ProcessUtilities.StartProcess(_executionEnvironment.compilerServerExecutable, args);
 
             var exited2 = server2.WaitForExit(s_fiveSecMillis);
 
