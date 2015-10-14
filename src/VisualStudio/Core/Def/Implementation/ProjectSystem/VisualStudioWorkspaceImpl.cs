@@ -647,32 +647,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CloseDocumentCore(documentId);
         }
 
-        public bool TryGetInfoBarData(DocumentId documentId, out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
+        public bool TryGetInfoBarData(out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
         {
             frame = null;
             factory = null;
-            if (documentId == null)
+            var monitorSelectionService = ServiceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+            object value = null;
+
+            // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list or interactive window
+            if (monitorSelectionService != null &&
+               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value)))
             {
-                var monitorSelectionService = ServiceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-                object value = null;
-                if (monitorSelectionService != null &&
-                   (ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out value)) ||
-                    ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value))))
-                {
-                    frame = value as IVsWindowFrame;
-                }
-                else
-                {
-                    return false;
-                }
+                frame = value as IVsWindowFrame;
             }
             else
             {
-                var document = this.GetHostDocument(documentId);
-                if (!TryGetFrame(document, out frame))
-                {
-                    return false;
-                }
+                return false;
             }
 
             factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
