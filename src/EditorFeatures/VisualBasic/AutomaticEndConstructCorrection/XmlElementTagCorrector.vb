@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     Friend Class XmlElementTagCorrector
         Inherits AbstractCorrector
 
-        Public Sub New(subjectBuffer As ITextBuffer, _waitIndicator As IWaitIndicator)
-            MyBase.New(subjectBuffer, _waitIndicator)
+        Public Sub New(subjectBuffer As ITextBuffer, waitIndicator As IWaitIndicator)
+            MyBase.New(subjectBuffer, waitIndicator)
         End Sub
 
         Protected Overrides Function ShouldReplaceText(text As String) As Boolean

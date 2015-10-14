@@ -134,7 +134,9 @@
     <Compile Include="AutomaticCompletion\AutomaticLineEnderTests.vb" />
     <Compile Include="AutomaticCompletion\AutomaticParenthesesCompletion.vb" />
     <Compile Include="AutomaticCompletion\AutomaticStringLiteralCompletionTests.vb" />
+    <Compile Include="AutomaticEndConstructCorrection\AbstractCorrectorTests.vb" />
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructCorrectorTests.vb" />
+    <Compile Include="AutomaticEndConstructCorrection\XmlElementTagCorrectorTests.vb" />
     <Compile Include="BraceMatching\BraceHighlightingTests.vb" />
     <Compile Include="BraceMatching\VisualBasicBraceMatcherTests.vb" />
     <Compile Include="CaseCorrecting\CaseCorrectionServiceTests.vb" />
