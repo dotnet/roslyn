@@ -181,7 +181,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         _cancellationToken.ThrowIfCancellationRequested();
 
-
                         await Task.WhenAll(symbolTasks).ConfigureAwait(false);
                     }, _cancellationToken));
                 }
