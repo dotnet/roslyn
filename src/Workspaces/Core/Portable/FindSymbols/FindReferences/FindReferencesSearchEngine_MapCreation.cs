@@ -172,9 +172,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                         // Defer to the language to see if it wants to cascade here in some special way.
                         var symbolProject = _solution.GetProject(searchSymbol.ContainingAssembly);
-                        if (symbolProject != null)
+                        var service = symbolProject?.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
+                        if (service != null)
                         {
-                            var service = symbolProject.LanguageServices.GetService<ILanguageServiceReferenceFinder>();
                             symbols = await service.DetermineCascadedSymbolsAsync(searchSymbol, symbolProject, _cancellationToken).ConfigureAwait(false);
                             AddSymbolTasks(result, symbols, symbolTasks);
                         }
