@@ -161,11 +161,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         End Sub
 
         Public Function ImportsEquals(x As ImportsClauseSyntax, y As ImportsClauseSyntax) As Boolean Implements IEqualityComparer(Of ImportsClauseSyntax).Equals
-            Return x.ToString() = y.ToString()
+            Return x.Span = y.Span
         End Function
 
         Public Function ImportsGetHashCode(obj As ImportsClauseSyntax) As Integer Implements IEqualityComparer(Of ImportsClauseSyntax).GetHashCode
-            Return obj.ToString().GetHashCode()
+            Return obj.Span.GetHashCode()
         End Function
     End Class
 End Namespace

@@ -132,12 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
 
         bool IEqualityComparer<UsingDirectiveSyntax>.Equals(UsingDirectiveSyntax x, UsingDirectiveSyntax y)
         {
-            return x.ToString() == y.ToString();
+            return x.Span == y.Span;
         }
 
         int IEqualityComparer<UsingDirectiveSyntax>.GetHashCode(UsingDirectiveSyntax obj)
         {
-            return obj.ToString().GetHashCode();
+            return obj.Span.GetHashCode();
         }
     }
 }
