@@ -1758,24 +1758,24 @@ tryAgain:
             {
                 foreach (var methodImpl in Module.GetMethodImplementationsOrThrow(implementingTypeDef))
                 {
-                    EntityHandle methodBodyHandle;
+                    EntityHandle methodDebugHandle;
                     EntityHandle implementedMethodHandle;
-                    Module.GetMethodImplPropsOrThrow(methodImpl, out methodBodyHandle, out implementedMethodHandle);
+                    Module.GetMethodImplPropsOrThrow(methodImpl, out methodDebugHandle, out implementedMethodHandle);
 
                     // Though it is rare in practice, the spec allows the MethodImpl table to represent
                     // methods defined in the current module as MemberRefs rather than MethodDefs.
-                    if (methodBodyHandle.Kind == HandleKind.MemberReference)
+                    if (methodDebugHandle.Kind == HandleKind.MemberReference)
                     {
-                        MethodSymbol methodBodySymbol = GetMethodSymbolForMemberRef((MemberReferenceHandle)methodBodyHandle, implementingTypeSymbol);
+                        MethodSymbol methodBodySymbol = GetMethodSymbolForMemberRef((MemberReferenceHandle)methodDebugHandle, implementingTypeSymbol);
                         if (methodBodySymbol != null)
                         {
                             // Note: this might have a nil row ID, but that won't cause a problem
                             // since it will simply fail to be equal to the implementingMethodToken.
-                            methodBodyHandle = GetMethodHandle(methodBodySymbol);
+                            methodDebugHandle = GetMethodHandle(methodBodySymbol);
                         }
                     }
 
-                    if (methodBodyHandle == implementingMethodDef)
+                    if (methodDebugHandle == implementingMethodDef)
                     {
                         if (!implementedMethodHandle.IsNil)
                         {

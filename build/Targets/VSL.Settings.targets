@@ -98,7 +98,7 @@
     <NuGetCommandLineAssemblyVersion Condition="'$(NuGetCommandLineAssemblyVersion)' == ''">2.8.5</NuGetCommandLineAssemblyVersion>
     <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
     <MicrosoftCodeAnalysisAnalyzersAssemblyVersion Condition="'$(MicrosoftCodeAnalysisAnalyzersAssemblyVersion)' == ''">1.0.0</MicrosoftCodeAnalysisAnalyzersAssemblyVersion>
-    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-alpha-00015</SystemReflectionMetadataVersion>
+    <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)-beta-23413</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.2.0-rc</MicrosoftDiaSymReaderNativeVersion>
     <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
@@ -154,9 +154,9 @@
 
   <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
     <CscToolPath>$(BootstrapBuildPath)</CscToolPath>
-    <CscToolExe>csc.exe</CscToolExe>
+    <CscToolExe>csc.cmd</CscToolExe>
     <VbcToolPath>$(BootstrapBuildPath)</VbcToolPath>
-    <VbcToolExe>vbc.exe</VbcToolExe>
+    <VbcToolExe>vbc.cmd</VbcToolExe>
   </PropertyGroup>
 
   <!-- Common project settings -->

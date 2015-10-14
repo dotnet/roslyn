@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         Public Sub TestDefaultNamespaces()
             ' If this ever changes, it is important to ensure that the 
             ' IDE is also updated with the same default namespaces.
-            Assert.Empty(ScriptOptions.Default.Namespaces)
+            Assert.Empty(ScriptOptions.Default.Imports)
         End Sub
 
         ' TODO: port C# tests

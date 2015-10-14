@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var importedNamespaces = arguments.CompilationOptions.GetImports();
 
             return new ScriptOptions(
-                path: scriptPathOpt ?? "", 
+                filePath: scriptPathOpt ?? "", 
                 references: ImmutableArray.CreateRange(resolvedReferences),
                 namespaces: importedNamespaces,
                 metadataResolver: metadataResolver,

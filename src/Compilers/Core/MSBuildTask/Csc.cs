@@ -208,44 +208,44 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected internal override void AddResponseFileCommands(CommandLineBuilderExtension commandLine)
         {
-            commandLine.AppendSwitchIfNotNull("/lib:", this.AdditionalLibPaths, ",");
-            commandLine.AppendPlusOrMinusSwitch("/unsafe", this._store, "AllowUnsafeBlocks");
-            commandLine.AppendPlusOrMinusSwitch("/checked", this._store, "CheckForOverflowUnderflow");
-            commandLine.AppendSwitchWithSplitting("/nowarn:", this.DisabledWarnings, ",", ';', ',');
-            commandLine.AppendWhenTrue("/fullpaths", this._store, "GenerateFullPaths");
-            commandLine.AppendSwitchIfNotNull("/langversion:", this.LangVersion);
-            commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", this.ModuleAssemblyName);
-            commandLine.AppendSwitchIfNotNull("/pdb:", this.PdbFile);
-            commandLine.AppendPlusOrMinusSwitch("/nostdlib", this._store, "NoStandardLib");
-            commandLine.AppendSwitchIfNotNull("/platform:", this.PlatformWith32BitPreference);
-            commandLine.AppendSwitchIfNotNull("/errorreport:", this.ErrorReport);
-            commandLine.AppendSwitchWithInteger("/warn:", this._store, "WarningLevel");
-            commandLine.AppendSwitchIfNotNull("/doc:", this.DocumentationFile);
-            commandLine.AppendSwitchIfNotNull("/baseaddress:", this.BaseAddress);
-            commandLine.AppendSwitchUnquotedIfNotNull("/define:", this.GetDefineConstantsSwitch(this.DefineConstants));
-            commandLine.AppendSwitchIfNotNull("/win32res:", this.Win32Resource);
-            commandLine.AppendSwitchIfNotNull("/main:", this.MainEntryPoint);
-            commandLine.AppendSwitchIfNotNull("/appconfig:", this.ApplicationConfiguration);
-            commandLine.AppendWhenTrue("/errorendlocation", this._store, "ErrorEndLocation");
-            commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);
-            commandLine.AppendPlusOrMinusSwitch("/highentropyva", this._store, "HighEntropyVA");
+            commandLine.AppendSwitchIfNotNull("/lib:", AdditionalLibPaths, ",");
+            commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
+            commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
+            commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
+            commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
+            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
+            commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
+            commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
+            commandLine.AppendPlusOrMinusSwitch("/nostdlib", _store, nameof(NoStandardLib));
+            commandLine.AppendSwitchIfNotNull("/platform:", PlatformWith32BitPreference);
+            commandLine.AppendSwitchIfNotNull("/errorreport:", ErrorReport);
+            commandLine.AppendSwitchWithInteger("/warn:", _store, nameof(WarningLevel));
+            commandLine.AppendSwitchIfNotNull("/doc:", DocumentationFile);
+            commandLine.AppendSwitchIfNotNull("/baseaddress:", BaseAddress);
+            commandLine.AppendSwitchUnquotedIfNotNull("/define:", GetDefineConstantsSwitch(DefineConstants, Log));
+            commandLine.AppendSwitchIfNotNull("/win32res:", Win32Resource);
+            commandLine.AppendSwitchIfNotNull("/main:", MainEntryPoint);
+            commandLine.AppendSwitchIfNotNull("/appconfig:", ApplicationConfiguration);
+            commandLine.AppendWhenTrue("/errorendlocation", _store, nameof(ErrorEndLocation));
+            commandLine.AppendSwitchIfNotNull("/preferreduilang:", PreferredUILang);
+            commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;
-            if (this.HostObject != null)
+            if (HostObject != null)
             {
-                var csHost = this.HostObject as ICscHostObject;
+                var csHost = HostObject as ICscHostObject;
                 designTime = csHost.IsDesignTime();
             }
             if (!designTime)
             {
-                if (!string.IsNullOrWhiteSpace(this.VsSessionGuid))
+                if (!string.IsNullOrWhiteSpace(VsSessionGuid))
                 {
-                    commandLine.AppendSwitchIfNotNull("/sqmsessionguid:", this.VsSessionGuid);
+                    commandLine.AppendSwitchIfNotNull("/sqmsessionguid:", VsSessionGuid);
                 }
             }
 
-            this.AddReferencesToCommandLine(commandLine);
+            AddReferencesToCommandLine(commandLine, References);
 
             base.AddResponseFileCommands(commandLine);
 
@@ -264,16 +264,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             //      /warnaserror-
             // is just shorthand for:
             //      /warnaserror-:<all possible warnings>
-            commandLine.AppendSwitchWithSplitting("/warnaserror+:", this.WarningsAsErrors, ",", ';', ',');
-            commandLine.AppendSwitchWithSplitting("/warnaserror-:", this.WarningsNotAsErrors, ",", ';', ',');
+            commandLine.AppendSwitchWithSplitting("/warnaserror+:", WarningsAsErrors, ",", ';', ',');
+            commandLine.AppendSwitchWithSplitting("/warnaserror-:", WarningsNotAsErrors, ",", ';', ',');
 
             // It's a good idea for the response file to be the very last switch passed, just 
             // from a predictability perspective.  It also solves the problem that a dogfooder
             // ran into, which is described in an email thread attached to bug VSWhidbey 146883.
             // See also bugs 177762 and 118307 for additional bugs related to response file position.
-            if (this.ResponseFiles != null)
+            if (ResponseFiles != null)
             {
-                foreach (ITaskItem response in this.ResponseFiles)
+                foreach (ITaskItem response in ResponseFiles)
                 {
                     commandLine.AppendSwitchIfNotNull("@", response.ItemSpec);
                 }
@@ -294,14 +294,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// list of aliases, and if any of the aliases specified is the string "global",
         /// then we add that reference to the command-line without an alias.
         /// </summary>
-        private void AddReferencesToCommandLine
-            (
-            CommandLineBuilderExtension commandLine
-            )
+        internal static void AddReferencesToCommandLine(
+            CommandLineBuilderExtension commandLine,
+            ITaskItem[] references,
+            bool isInteractive = false)
         {
             // If there were no references passed in, don't add any /reference: switches
             // on the command-line.
-            if ((this.References == null) || (this.References.Length == 0))
+            if (references == null)
             {
                 return;
             }
@@ -309,22 +309,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // Loop through all the references passed in.  We'll be adding separate
             // /reference: switches for each reference, and in some cases even multiple
             // /reference: switches per reference.
-            foreach (ITaskItem reference in this.References)
+            foreach (ITaskItem reference in references)
             {
                 // See if there was an "Alias" attribute on the reference.
                 string aliasString = reference.GetMetadata("Aliases");
 
 
                 string switchName = "/reference:";
-                bool embed = Utilities.TryConvertItemMetadataToBool(reference,
-                                                                    "EmbedInteropTypes");
-
-                if (embed == true)
+                if (!isInteractive)
                 {
-                    switchName = "/link:";
-                }
+                    bool embed = Utilities.TryConvertItemMetadataToBool(reference,
+                                                                        "EmbedInteropTypes");
 
-                if ((aliasString == null) || (aliasString.Length == 0))
+                    if (embed)
+                    {
+                        switchName = "/link:";
+                    }
+                }
+                if (string.IsNullOrEmpty(aliasString))
                 {
                     // If there was no "Alias" attribute, just add this as a global reference.
                     commandLine.AppendSwitchIfNotNull(switchName, reference.ItemSpec);
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                         // The alias called "global" is special.  It means that we don't
                         // give it an alias on the command-line.
-                        if (String.Compare("global", trimmedAlias, StringComparison.OrdinalIgnoreCase) == 0)
+                        if (string.Compare("global", trimmedAlias, StringComparison.OrdinalIgnoreCase) == 0)
                         {
                             commandLine.AppendSwitchIfNotNull(switchName, reference.ItemSpec);
                         }
@@ -395,7 +397,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// other words, a constant is either defined or not defined ... it can't have
         /// an actual value.
         /// </summary>
-        internal string GetDefineConstantsSwitch(string originalDefineConstants)
+        internal static string GetDefineConstantsSwitch(string originalDefineConstants, TaskLoggingHelper log)
         {
             if (originalDefineConstants == null)
             {
@@ -424,7 +426,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
                 else if (singleIdentifier.Length > 0)
                 {
-                    Log.LogWarningWithCodeFromResources("Csc_InvalidParameterWarning", "/define:", singleIdentifier);
+                    log.LogWarningWithCodeFromResources("Csc_InvalidParameterWarning", "/define:", singleIdentifier);
                 }
             }
 
@@ -465,7 +467,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private bool InitializeHostCompiler(ICscHostObject cscHostObject)
         {
             bool success;
-            this.HostCompilerSupportsAllParameters = this.UseHostCompilerIfAvailable;
+            HostCompilerSupportsAllParameters = UseHostCompilerIfAvailable;
             string param = "Unknown";
 
             try
@@ -485,7 +487,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception e) when (!Utilities.IsCriticalException(e))
             {
-                if (this.HostCompilerSupportsAllParameters)
+                if (HostCompilerSupportsAllParameters)
                 {
                     // If the host compiler doesn't support everything we need, we're going to end up 
                     // shelling out to the command-line compiler anyway.  That means the command-line
@@ -513,7 +515,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 CheckHostObjectSupport(param = nameof(EmitDebugInformation), cscHostObject.SetEmitDebugInformation(EmitDebugInformation));
                 CheckHostObjectSupport(param = nameof(DebugType), cscHostObject.SetDebugType(DebugType));
 
-                CheckHostObjectSupport(param = nameof(DefineConstants), cscHostObject.SetDefineConstants(GetDefineConstantsSwitch(DefineConstants)));
+                CheckHostObjectSupport(param = nameof(DefineConstants), cscHostObject.SetDefineConstants(GetDefineConstantsSwitch(DefineConstants, Log)));
                 CheckHostObjectSupport(param = nameof(DelaySign), cscHostObject.SetDelaySign((_store["DelaySign"] != null), DelaySign));
                 CheckHostObjectSupport(param = nameof(DisabledWarnings), cscHostObject.SetDisabledWarnings(DisabledWarnings));
                 CheckHostObjectSupport(param = nameof(DocumentationFile), cscHostObject.SetDocumentationFile(DocumentationFile));
@@ -581,7 +583,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     // If we have been given a property that the host compiler doesn't support
                     // then we need to state that we are falling back to the command line compiler
-                    if (!String.IsNullOrEmpty(Win32Manifest))
+                    if (!string.IsNullOrEmpty(Win32Manifest))
                     {
                         CheckHostObjectSupport(param = nameof(Win32Manifest), resultFromHostObjectSetOperation: false);
                     }
@@ -599,7 +601,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     // If we have been given a property that the host compiler doesn't support
                     // then we need to state that we are falling back to the command line compiler
-                    if (!String.IsNullOrEmpty(ApplicationConfiguration))
+                    if (!string.IsNullOrEmpty(ApplicationConfiguration))
                     {
                         CheckHostObjectSupport(nameof(ApplicationConfiguration), resultFromHostObjectSetOperation: false);
                     }
@@ -610,14 +612,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // Null is supported because it means that option should be omitted, and compiler default used - obviously always valid.
                 // Explicitly specified name of current locale is also supported, since it is effectively a no-op.
                 // Other options are not supported since in-proc compiler always uses current locale.
-                if (!String.IsNullOrEmpty(PreferredUILang) && !String.Equals(PreferredUILang, System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrEmpty(PreferredUILang) && !string.Equals(PreferredUILang, System.Globalization.CultureInfo.CurrentUICulture.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     CheckHostObjectSupport(nameof(PreferredUILang), resultFromHostObjectSetOperation: false);
                 }
             }
             catch (Exception e) when (!Utilities.IsCriticalException(e))
             {
-                if (this.HostCompilerSupportsAllParameters)
+                if (HostCompilerSupportsAllParameters)
                 {
                     // If the host compiler doesn't support everything we need, we're going to end up 
                     // shelling out to the command-line compiler anyway.  That means the command-line
@@ -634,7 +636,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 success = cscHostObject.EndInitialization(out errorMessage, out errorCode);
 
-                if (this.HostCompilerSupportsAllParameters)
+                if (HostCompilerSupportsAllParameters)
                 {
                     // If the host compiler doesn't support everything we need, we're going to end up 
                     // shelling out to the command-line compiler anyway.  That means the command-line
@@ -669,7 +671,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <owner>RGoel</owner>
         protected override HostObjectInitializationStatus InitializeHostObject()
         {
-            if (this.HostObject != null)
+            if (HostObject != null)
             {
                 // When the host object was passed into the task, it was passed in as a generic
                 // "Object" (because ITask interface obviously can't have any Csc-specific stuff
@@ -680,7 +682,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 // NOTE: For compat reasons this must remain ICscHostObject
                 // we can dynamically test for smarter interfaces later..
-                using (RCWForCurrentContext<ICscHostObject> hostObject = new RCWForCurrentContext<ICscHostObject>(this.HostObject as ICscHostObject))
+                using (RCWForCurrentContext<ICscHostObject> hostObject = new RCWForCurrentContext<ICscHostObject>(HostObject as ICscHostObject))
                 {
                     ICscHostObject cscHostObject = hostObject.RCW;
 
@@ -738,9 +740,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <owner>RGoel</owner>
         protected override bool CallHostObjectToExecute()
         {
-            Debug.Assert(this.HostObject != null, "We should not be here if the host object has not been set.");
+            Debug.Assert(HostObject != null, "We should not be here if the host object has not been set.");
 
-            ICscHostObject cscHostObject = this.HostObject as ICscHostObject;
+            ICscHostObject cscHostObject = HostObject as ICscHostObject;
             Debug.Assert(cscHostObject != null, "Wrong kind of host object passed in!");
             return cscHostObject.Compile();
         }
