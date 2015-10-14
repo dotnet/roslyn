@@ -42,7 +42,6 @@
     <Import Include="System.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Benchmark.vb" />
     <Compile Include="CalibrationBenchmarks.vb" />
     <Compile Include="CompilationBenchmarks.vb" />
     <Compile Include="SyntaxBenchmarks.vb" />

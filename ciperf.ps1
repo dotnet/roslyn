@@ -89,7 +89,7 @@ param (
     [String] $JobId = $env:USERNAME + "_" + [System.DateTime]::UtcNow.ToString("yyyyMMddTHHmmss"),
     [String] $JobType = "CIPerf",
     [String] $Platform = "Windows",
-    [String] $Queue = "Windows"
+    [String] $Queue = "Windows.10.Amd64"
 )
 
 # Create a new SAS token, but don't include the leading question mark
@@ -164,7 +164,7 @@ function CreateXUnitFixture(
     ) {
 
     $PackagesPath = Join-Path -Path $StagingPath -ChildPath Packages
-    & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion xunit.runner.console -Version 2.1.0-beta4-build3109 -Source https://www.nuget.org/api/v2/
+    & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion xunit.extensibility.execution -Version 2.1.0 -Source https://www.nuget.org/api/v2/
     & $NuGetExe install -OutputDirectory $PackagesPath -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0023 -Source https://www.myget.org/F/dotnet-buildtools/
 
     if ([System.String]::IsNullOrEmpty($UnzippedBaseDirectory)) {
@@ -179,6 +179,12 @@ function CreateXUnitFixture(
 
     # Move the contents of all "Tools" folders into the root of the archive (overwriting any duplicates)
     (Get-ChildItem -Path $PackagesPath -Recurse -Directory -Include "Tools").FullName | Get-ChildItem | Move-Item -Destination $ToZipPath -Force
+
+    # Move extra files
+    @(
+        'xunit.extensibility.core\lib\dotnet\xunit.core.dll',
+        'xunit.extensibility.execution\lib\net45\xunit.execution.desktop.dll'
+    ) | ForEach-Object { Move-Item -Path (Join-Path -Path $PackagesPath -ChildPath $_) -Destination $ToZipPath }
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
@@ -199,7 +205,7 @@ function CreateAndUploadXunitFixture(
 
     $ZipFile = Join-Path $FixturesStagingPath -ChildPath (Split-Path $BlobName -Leaf)
 
-    CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $ZipFile -UnzippedBaseDirectory "xunit" | Out-Null
+    CreateXUnitFixture -StagingPath $FixturesStagingPath -ZipFile $ZipFile -UnzippedBaseDirectory "Performance" | Out-Null
 
     if (!$NoUpload) {
         Write-Host "Uploading xunit fixture"
@@ -359,7 +365,7 @@ try {
     [void] $sb.AppendLine("[")
 
     # Note:
-    # We are putting both the Drop (built binaries) and Fixtures (xunit) into the CorrelationPayload.
+    # We are putting both the Drop (built binaries) and Fixture (xunit) into the CorrelationPayload.
     # We do this because downloading and unziping the drop is expensive and we don't want to do that
     # on every work item. The Helix executor will look at the CorrelationId for a work item and, only
     # if it is new, will it download and unzip the CorrelationPayload. If the CorrelationId has been
@@ -370,12 +376,12 @@ try {
     # constructed so that they unzip into separate folders (by including the base directory in the
     # zip file)
     # The "work" payload is actually empty.
-    # The Command points to a batch file (or shell script for Linux) located inside the CorrelationPayload.
+    # The Command points to a script located inside the CorrelationPayload.
 
     if ($Platform -eq "Windows") {
         # The ~4 piece strips out the long path prefix
         # Note that the slashes need to be doubled for JSon encoding
-        $WorkItemCommand = "%HELIX_CORRELATION_PAYLOAD:~4%\\Performance\\Perf-Test.cmd"
+        $WorkItemCommand = "%HELIX_CORRELATION_PAYLOAD:~4%\\Perf-Test.cmd"
     } else {
         Write-Error "Unsupported platform."
         exit 1
@@ -384,7 +390,7 @@ try {
     foreach ($TestAssembly in $TestAssemblies) {
         $WorkItemId = $BlobRootName + "/" + $TestAssembly.BaseName
         Write-Host "  " $WorkItemId
-        if ($sb.Length -gt 3) { $sb.AppendLine(",") }
+        if ($sb.Length -gt 3) { [void] $sb.AppendLine(",") }
 
         [void] $sb.AppendLine("  {")
         [void] $sb.AppendLine("    ""Command"": ""$WorkItemCommand $TestAssembly"",")
@@ -428,7 +434,11 @@ try {
     [void] $sb.AppendLine("  ""QueueId"": ""$Queue"",")
     [void] $sb.AppendLine("  ""ResultsUri"": ""$ResultsUri"",")
     [void] $sb.AppendLine("  ""ResultsUriRSAS"": ""$ResultsUriRSAS"",")
-    [void] $sb.AppendLine("  ""ResultsUriWSAS"": ""$ResultsUriWSAS""")
+    [void] $sb.AppendLine("  ""ResultsUriWSAS"": ""$ResultsUriWSAS"",")
+    [void] $sb.AppendLine("  ""Creator"": ""$env:USERNAME"",")
+    [void] $sb.AppendLine("  ""Product"": ""$Repository"",")
+    [void] $sb.AppendLine("  ""Branch"": ""$Branch""")
+    # TODO: BuildNumber, Architecture and Configuration
     [void] $sb.AppendLine("}")
 
     $JobJson = Join-Path $HelixStage -ChildPath Job.json

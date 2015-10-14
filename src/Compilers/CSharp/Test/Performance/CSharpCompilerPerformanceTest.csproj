@@ -23,7 +23,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Benchmark.cs" />
     <Compile Include="CalibrationBenchmarks.cs" />
     <Compile Include="CompilationBenchmarks.cs" />
     <Compile Include="SyntaxBenchmarks.cs" />

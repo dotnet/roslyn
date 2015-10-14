@@ -30,15 +30,12 @@ if "%TEST_ASSEMBLIES%" == "" (
 )
 
 rem ========================================================
-rem Find the drop folder location.
+rem This script is running from the root of the drop.
 rem We could use HELIX_CORRELATION_PAYLOAD, but that usually
 rem has the extended path prefix \\?\ on it which breaks all
-rem sorts of scenarios. So, instead just move to the parent
-rem of the folder where this rem script is running.
-rem The 'for' loop here is used just to resolve the relative
-rem path.
+rem sorts of scenarios.
 rem ========================================================
-for /f %%i in ("%~dp0..") do set DROP=%%~fi
+for /f %%i in ("%~dp0.") do set DROP=%%~fi
 
 rem ========================================================
 rem Run the tests from the root of the drop directory.
@@ -50,38 +47,39 @@ pushd %DROP%
 rem ========================================================
 rem Prepare to run XUNIT tests
 rem ========================================================
-set XUNIT=xunit
-if not exist %XUNIT% (
+set FIXTURE=Performance
+if not exist %FIXTURE% (
 
     rem ===================================================
     rem Try to create the xunit fixture ourselves. This is
     rem useful for local runs.
     rem ===================================================
     if exist ..\..\nuget.exe (
-        echo Note: xunit fixture not found. Trying to create it.
-        set XUNIT_PACKAGES=%TEMP%\xunit%RANDOM%
-        ..\..\nuget.exe install -OutputDirectory !XUNIT_PACKAGES! -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0023 -Source https://www.myget.org/F/dotnet-buildtools/
+        echo Note: xunit performance fixture not found. Trying to create it.
+        set PACKAGES=%TEMP%\xunit%RANDOM%
+        ..\..\nuget.exe install -OutputDirectory !PACKAGES! -NonInteractive -ExcludeVersion xunit.extensibility.execution -Version 2.1.0 -Source https://www.nuget.org/api/v2/
+        ..\..\nuget.exe install -OutputDirectory !PACKAGES! -NonInteractive -ExcludeVersion Microsoft.DotNet.xunit.performance.runner.Windows -Version 1.0.0-alpha-build0023 -Source https://www.myget.org/F/dotnet-buildtools/
 
-        xcopy /s /i /y !XUNIT_PACKAGES!\xunit.runner.console\tools\* %XUNIT%
-        xcopy /s /i /y !XUNIT_PACKAGES!\Microsoft.DotNet.xunit.performance.runner.Windows\tools\* %XUNIT%
+        xcopy /s /i /y !PACKAGES!\xunit.runner.console\tools\* %FIXTURE%
+        xcopy /s /i /y !PACKAGES!\Microsoft.DotNet.xunit.performance.runner.Windows\tools\* %FIXTURE%
+        copy /y !PACKAGES!\xunit.extensibility.core\lib\dotnet\xunit.core.dll %FIXTURE%
+        copy /y !PACKAGES!\xunit.extensibility.execution\lib\net45\xunit.execution.desktop.dll %FIXTURE%
+
     ) else (
-        echo ERROR: xunit fixture not found
+        echo ERROR: xunit performance fixture not found
         popd
         goto :eof
     )
 )
 
-set XUNIT_CONSOLE=%XUNIT%\xunit.console.exe
-set XUNIT_RUNNER=%XUNIT%\xunit.performance.run.exe
-
-if not exist %XUNIT_CONSOLE% (
-    echo ERROR: %XUNIT_CONSOLE% not found
+if not exist %FIXTURE%\xunit.performance.run.exe (
+    echo ERROR: xunit.performance.run.exe not found
     popd
     goto :eof
 )
 
-if not exist %XUNIT_RUNNER% (
-    echo ERROR: %XUNIT_RUNNER% not found
+if not exist %FIXTURE%\xunit.console.exe (
+    echo ERROR: xunit.console.exe not found
     popd
     goto :eof
 )
@@ -99,12 +97,7 @@ for %%f in (%TEST_ASSEMBLIES%) do (
     if not exist %%f (
         echo ERROR: Cannot find %%f in %CD%
     ) else (
-        %XUNIT_RUNNER% %%f -verbose -runner %XUNIT_CONSOLE% -runnerargs "-verbose" -outdir %RESULTS% -runid %RUNID%
-
-        rem ====== Workaround for https://github.com/Microsoft/xunit-performance/issues/73
-        rem The output filename is tied to the runid. However, we want distinct output files
-        rem for each test assembly.
-        for %%g in (%RESULTS%\%RUNID%.*) do (ren %%g %%~nf%%~xg)
+        %FIXTURE%\xunit.performance.run.exe %%f -verbose -runnerargs "-verbose" -outdir %RESULTS% -outfile %%~nf -runid %RUNID%
 
         if exist %RESULTS%\%%~nf.etl (
             if defined HELIX_PYTHONPATH (

@@ -1,12 +1,11 @@
 ﻿{
   "dependencies": {
-    "xunit.runner.console": "2.1.0",
-    "Microsoft.DotNet.xunit.performance.runner.Windows": "1.0.0-alpha-build0023"
+    "Microsoft.DotNet.xunit.performance": "1.0.0-alpha-build0023"
   },
   "frameworks": {
     "net46": { }
   },
   "runtimes": {
-    "win-": { }
+    "win7-": { }
   }
 }
