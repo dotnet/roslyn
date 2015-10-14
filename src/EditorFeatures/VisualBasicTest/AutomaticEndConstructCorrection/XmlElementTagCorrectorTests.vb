@@ -26,7 +26,7 @@ End Structure
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Sub TestContinuousEdit1()
+        Public Sub TestContinuousEdit2()
             Dim code = <code><![CDATA[
 ''' <[|$$summary|]></[|summary|]>
 Structure A
