@@ -34,19 +34,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             End If
 
             Dim vbBuffers = subjectBuffers.Where(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType))
-            AddConstructPairTo(vbBuffers)
+            AddCorrectors(vbBuffers)
         End Sub
 
         Public Sub SubjectBuffersDisconnected(textView As IWpfTextView, reason As ConnectionReason, subjectBuffers As Collection(Of ITextBuffer)) Implements IWpfTextViewConnectionListener.SubjectBuffersDisconnected
             Dim vbBuffers = subjectBuffers.Where(Function(b) b.ContentType.IsOfType(ContentTypeNames.VisualBasicContentType))
-            RemoveConstructPairFrom(vbBuffers)
+            RemoveCorrectors(vbBuffers)
         End Sub
 
-        Private Sub AddConstructPairTo(buffers As IEnumerable(Of ITextBuffer))
+        Private Sub AddCorrectors(buffers As IEnumerable(Of ITextBuffer))
             buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Connect())
         End Sub
 
-        Private Sub RemoveConstructPairFrom(buffers As IEnumerable(Of ITextBuffer))
+        Private Sub RemoveCorrectors(buffers As IEnumerable(Of ITextBuffer))
             buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Disconnect())
 
             buffers.Where(
