@@ -87,6 +87,27 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         }
 
         [Fact]
+        public void Void()
+        {
+            var runner = CreateRunner(input:
+@"Print(1);
+Print(2)
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> Print(1);
+1
+> Print(2)
+2
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
         public void Exception()
         {
             var runner = CreateRunner(input:

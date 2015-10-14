@@ -2148,7 +2148,7 @@ switch (1)
     default:
         Console.WriteLine(2);
 }";
-            var submission = CSharpCompilation.CreateSubmission(
+            var submission = CSharpCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script),
                 references: new[] { MscorlibRef, SystemCoreRef });

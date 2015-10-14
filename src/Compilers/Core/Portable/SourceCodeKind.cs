@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The same as <see cref="Script"/>.
         /// </summary>
-        [Obsolete("Use Script instead", error: true)]
+        [Obsolete("Use Script instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         Interactive = 2,
     }
