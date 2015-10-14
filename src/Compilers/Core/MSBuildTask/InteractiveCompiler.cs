@@ -259,9 +259,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             commandLine.AppendFileNameIfNotNull(Source);
 
-            foreach (var scriptArgument in ScriptArguments)
+            if (ScriptArguments != null)
             {
-                commandLine.AppendTextUnquoted(scriptArgument);
+                foreach (var scriptArgument in ScriptArguments)
+                {
+                    commandLine.AppendTextUnquoted(scriptArgument);
+                }
             }
 
             if (ResponseFiles != null)

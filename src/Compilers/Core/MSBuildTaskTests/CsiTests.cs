@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csi = new Csi();
             csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
-            Assert.Equal("test.csx", csi.GenerateResponseFileContents());
+            Assert.Equal("/i- test.csx", csi.GenerateResponseFileContents());
         }
 
         [Fact]
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 var csi = new Csi();
                 csi.Features = s;
                 csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
-                Assert.Equal("/features:a /features:b test.csx", csi.GenerateResponseFileContents());
+                Assert.Equal("/i- /features:a /features:b test.csx", csi.GenerateResponseFileContents());
             };
 
             test("a;b");
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 var csi = new Csi();
                 csi.Features = cur;
                 csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
-                Assert.Equal("test.csx", csi.GenerateResponseFileContents());
+                Assert.Equal("/i- test.csx", csi.GenerateResponseFileContents());
             }
         }
     }
