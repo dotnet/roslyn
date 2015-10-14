@@ -649,23 +649,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public bool TryGetInfoBarData(DocumentId documentId, out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
         {
-            if (documentId == null)
-            {
-                frame = null;
-                factory = null;
-                return false;
-            }
-
-            var document = this.GetHostDocument(documentId);
-            if (TryGetFrame(document, out frame))
-            {
-                factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-                return frame != null && factory != null;
-            }
-
             frame = null;
             factory = null;
-            return false;
+            if (documentId == null)
+            {
+                var monitorSelectionService = ServiceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+                object value = null;
+                if (monitorSelectionService != null &&
+                   (ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out value)) ||
+                    ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value))))
+                {
+                    frame = value as IVsWindowFrame;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                var document = this.GetHostDocument(documentId);
+                if (!TryGetFrame(document, out frame))
+                {
+                    return false;
+                }
+            }
+
+            factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+            return frame != null && factory != null;
         }
 
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
