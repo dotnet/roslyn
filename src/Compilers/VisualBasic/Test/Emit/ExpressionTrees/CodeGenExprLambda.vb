@@ -8014,6 +8014,7 @@ Module Module1
         Public Field As String
 
         Public Sub Verify(expression As Expression(Of Action(Of Address)))
+            Console.WriteLine(expression.ToString())
             expression.Compile()(Me)
         End Sub
 
@@ -8048,7 +8049,11 @@ End Module
             CompileAndVerify(source,
                  additionalRefs:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
-                 expectedOutput:=<![CDATA[aa]]>).VerifyDiagnostics()
+                 expectedOutput:=<![CDATA[
+x => x.set_City(ItIs(s => IsNullOrEmpty(s)))
+x => x.set_City("aa")
+aa
+]]>).VerifyDiagnostics()
 
 
         End Sub
