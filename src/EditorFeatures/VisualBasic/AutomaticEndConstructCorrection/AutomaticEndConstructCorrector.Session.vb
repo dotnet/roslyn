@@ -7,12 +7,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     Partial Friend Class AbstractCorrector
         Private Class Session
             Private ReadOnly _subjectBuffer As ITextBuffer
+            Private ReadOnly _shouldReplaceText As Func(Of String, Boolean)
 
             Private _linkedSession As LinkedEditsTracker
 
-            Public Sub New(subjectBuffer As ITextBuffer)
+            Public Sub New(subjectBuffer As ITextBuffer, shouldReplaceText As Func(Of String, Boolean))
                 Me._subjectBuffer = subjectBuffer
-
+                Me._shouldReplaceText = shouldReplaceText
                 Me._linkedSession = Nothing
             End Sub
 
@@ -32,10 +33,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                     Return
                 End If
 
-                If AutomaticEndConstructSet.Contains(replacementText) Then
+                If _shouldReplaceText(replacementText) Then
                     Me._linkedSession.ApplyReplacementText(replacementText)
                 End If
-
             End Sub
 
             Public Function OnTextChange(e As TextContentChangedEventArgs) As Boolean
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                     Return False
                 End If
 
-                If AutomaticEndConstructSet.Contains(replacementText) Then
+                If _shouldReplaceText(replacementText) Then
                     Me._linkedSession.ApplyReplacementText(replacementText)
                 End If
 

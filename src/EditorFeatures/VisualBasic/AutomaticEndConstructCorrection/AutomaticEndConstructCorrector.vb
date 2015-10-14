@@ -18,34 +18,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             MyBase.New(subjectBuffer, waitIndicator)
         End Sub
 
+        Protected Overrides Function ShouldReplaceText(text As String) As Boolean
+            Return AutomaticEndConstructSet.Contains(text)
+        End Function
+
         Protected Overrides Function IsAllowableWordAtIndex(lineText As String, wordStartIndex As Integer, wordLength As Integer) As Boolean
             Dim textUnderPosition = lineText.Substring(wordStartIndex, wordLength)
 
             Return AutomaticEndConstructSet.Contains(textUnderPosition)
         End Function
 
-        Protected Overrides Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
-            Dim startToken = GetBeginToken(token.Parent)
-            If startToken.Kind = SyntaxKind.None Then
-                startToken = GetCorrespondingBeginToken(token)
-            End If
-
-            Dim endToken = GetCorrespondingEndToken(startToken)
-
-            Return {New LetterOnlyTrackingSpan(startToken.Span.ToSnapshotSpan(snapshot)), New LetterOnlyTrackingSpan(endToken.Span.ToSnapshotSpan(snapshot))}
-        End Function
-
-        Protected Overrides Function TryGetValidToken(bufferChanges As TextContentChangedEventArgs, ByRef token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
-            Dim changes = bufferChanges.Changes
-            Dim textChange = changes.Item(0)
-
+        Protected Overrides Function TryGetValidTokens(wordStartIndex As Integer,
+                                                       ByRef startToken As SyntaxToken,
+                                                       ByRef endToken As SyntaxToken,
+                                                       cancellationToken As CancellationToken) As Boolean
             Dim root = Me.PreviousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-            token = root.FindToken(textChange.OldPosition)
+            Dim token = root.FindToken(wordStartIndex)
 
             If Not IsChangeOnCorrectToken(token) Then
                 Return False
             End If
 
+            startToken = GetBeginToken(token.Parent)
+            If startToken.Kind = SyntaxKind.None Then
+                startToken = GetCorrespondingBeginToken(token)
+            End If
+
+            endToken = GetCorrespondingEndToken(startToken)
             Return True
         End Function
 

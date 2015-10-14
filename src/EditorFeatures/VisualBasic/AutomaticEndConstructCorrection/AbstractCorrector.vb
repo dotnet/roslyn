@@ -24,14 +24,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             _buffer = subjectBuffer
             _waitIndicator = waitIndicator
 
-            _session = New Session(subjectBuffer)
+            _session = New Session(subjectBuffer, AddressOf ShouldReplaceText)
             _previousDocument = Nothing
             _referencingViews = 0
         End Sub
 
         Protected MustOverride Function IsAllowableWordAtIndex(lineText As String, wordStartIndex As Integer, wordLength As Integer) As Boolean
-        Protected MustOverride Function TryGetValidToken(e As TextContentChangedEventArgs, ByRef token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
-        Protected MustOverride Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
+        Protected MustOverride Function TryGetValidTokens(wordStartIndex As Integer, ByRef startToken As SyntaxToken, ByRef endToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+        Protected MustOverride Function ShouldReplaceText(text As String) As Boolean
 
         Protected ReadOnly Property PreviousDocument As Document
             Get
@@ -62,6 +62,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 Return _referencingViews = 0
             End Get
         End Property
+
+        Protected Function CreateTrackingSpans(startToken As SyntaxToken, endToken As SyntaxToken, snapshot As ITextSnapshot) As IEnumerable(Of ITrackingSpan)
+            Return {CreateTrackingSpan(startToken, snapshot), New LetterOnlyTrackingSpan(endToken.Span.ToSnapshotSpan(snapshot))}
+        End Function
+
+        Private Function CreateTrackingSpan(token As SyntaxToken, snapshot As ITextSnapshot) As ITrackingSpan
+            Return New LetterOnlyTrackingSpan(token.Span.ToSnapshotSpan(snapshot))
+        End Function
 
         Private Sub OnTextBufferChanging(sender As Object, e As TextContentChangingEventArgs)
             If Me._session.Alive Then
@@ -99,22 +107,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 End If
             End If
 
-            If Not IsValidTextualChange(e, cancellationToken) Then
+            Dim wordStartIndex As Integer
+            If Not IsValidTextualChange(e, wordStartIndex, cancellationToken) Then
                 Return
             End If
 
-            Dim token As SyntaxToken = Nothing
-            If Not TryGetValidToken(e, token, cancellationToken) Then
+            Dim startToken, endToken As SyntaxToken
+            If Not TryGetValidTokens(wordStartIndex, startToken, endToken, cancellationToken) Then
                 Return
             End If
-            'If Not IsValidChange(e, token, cancellationToken) Then
-            '    Return
-            'End If
 
-            Me._session.Start(GetLinkedEditSpans(e.Before, token), e)
+            Me._session.Start(CreateTrackingSpans(startToken, endToken, e.Before), e)
         End Sub
 
-        Private Function IsValidTextualChange(bufferChanges As TextContentChangedEventArgs, cancellationToken As CancellationToken) As Boolean
+        Private Function IsValidTextualChange(bufferChanges As TextContentChangedEventArgs,
+                                              ByRef wordStartIndex As Integer,
+                                              cancellationToken As CancellationToken) As Boolean
             ' we will be very conservative when staring session
             Dim changes = bufferChanges.Changes
 
@@ -133,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 Return False
             End If
 
-            If Not IsChangeOnCorrectText(bufferChanges.Before, textChange.OldPosition) Then
+            If Not IsChangeOnCorrectText(bufferChanges.Before, textChange.OldPosition, wordStartIndex) Then
                 Return False
             End If
 
@@ -149,7 +157,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Return snapshot.GetLineNumberFromPosition(change.NewPosition) = snapshot.GetLineNumberFromPosition(change.NewEnd)
         End Function
 
-        Private Function IsChangeOnCorrectText(snapshot As ITextSnapshot, position As Integer) As Boolean
+        Private Function IsChangeOnCorrectText(snapshot As ITextSnapshot,
+                                               position As Integer,
+                                               ByRef wordStartIndex As Integer) As Boolean
             Dim line = snapshot.GetLineFromPosition(position)
 
             Dim lineText = line.GetText()
@@ -168,10 +178,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 End If
             End If
 
-            Dim wordStartIndex = GetStartIndexOfWord(lineText, positionInText)
-            Dim wordLength = GetEndIndexOfWord(lineText, positionInText) - wordStartIndex + 1
+            Dim wordStartIndexOnLine = GetStartIndexOfWord(lineText, positionInText)
+            Dim wordLength = GetEndIndexOfWord(lineText, positionInText) - wordStartIndexOnLine + 1
 
-            Return IsAllowableWordAtIndex(lineText, wordStartIndex, wordLength)
+            wordStartIndex = line.Start + wordStartIndexOnLine
+
+            Return IsAllowableWordAtIndex(lineText, wordStartIndexOnLine, wordLength)
         End Function
 
         Private Function GetStartIndexOfWord(text As String, position As Integer) As Integer
