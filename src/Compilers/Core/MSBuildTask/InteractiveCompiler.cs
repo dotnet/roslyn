@@ -230,7 +230,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return commandLineBuilder.ToString();
         }
 
-        protected override bool ValidateParameters() => ManagedCompiler.ListHasNoDuplicateItems(Sources, nameof(Sources), Log);
         #endregion
 
         /// <summary>

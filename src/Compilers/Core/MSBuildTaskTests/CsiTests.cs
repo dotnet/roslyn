@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             {
                 var csi = new Csi();
                 csi.Features = cur;
-                csi.Sources = MSBuildUtil.CreateTaskItems("test.csx");
+                csi.Source = MSBuildUtil.CreateTaskItem("test.csx");
                 Assert.Equal("test.csx", csi.GenerateResponseFileContents());
             }
         }
