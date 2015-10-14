@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
 
             _baseDirectory = baseDirectory;
             _searchPaths = searchPaths;
-            _pathMap = pathMap;
+            _pathMap = pathMap.NullToEmpty();
 
             // the keys in pathMap should not end with a path separator
             if (!pathMap.IsDefaultOrEmpty)
@@ -59,16 +59,16 @@ namespace Microsoft.CodeAnalysis
                     if (key == null || key.Length == 0)
                     {
                         throw new ArgumentException(CodeAnalysisResources.EmptyKeyInPathMap, nameof(pathMap));
-        }
+                    }
 
                     var value = kv.Value;
                     if (value == null || value.Length == 0)
-        {
+                    {
                         throw new ArgumentException(CodeAnalysisResources.EmptyValueInPathMap, nameof(pathMap));
-        }
+                    }
 
                     if (IsPathSeparator(key[key.Length - 1]))
-        {
+                    {
                         throw new ArgumentException(CodeAnalysisResources.KeyInPathMapEndsWithSeparator, nameof(pathMap));
                     }
                 }
@@ -159,8 +159,7 @@ namespace Microsoft.CodeAnalysis
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&
-                (_pathMap.IsDefaultOrEmpty == other._pathMap.IsDefaultOrEmpty &&
-                    (_pathMap.IsDefaultOrEmpty || _pathMap.SequenceEqual(other._pathMap)));
+                _pathMap.SequenceEqual(other._pathMap);
         }
 
         public override int GetHashCode()
