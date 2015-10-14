@@ -46,16 +46,32 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             RemoveCorrectors(vbBuffers)
         End Sub
 
+        Private ReadOnly createEndConstructCorrector As Func(Of ITextBuffer, AutomaticEndConstructCorrector) = Function(b As ITextBuffer) New AutomaticEndConstructCorrector(b, _waitIndicator)
+
         Private Sub AddCorrectors(buffers As IEnumerable(Of ITextBuffer))
-            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Connect())
+            AddCorrectors(buffers, createEndConstructCorrector)
+        End Sub
+
+        Private Sub AddCorrectors(Of T As {Class, ICorrector})(buffers As IEnumerable(Of ITextBuffer), createCorrector As Func(Of ITextBuffer, T))
+            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() createCorrector(b)).Connect())
         End Sub
 
         Private Sub RemoveCorrectors(buffers As IEnumerable(Of ITextBuffer))
-            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() New AutomaticEndConstructCorrector(b, _waitIndicator)).Disconnect())
+            RemoveCorrectors(buffers, createEndConstructCorrector)
+        End Sub
+
+        Private Sub RemoveCorrectors(Of T As {Class, ICorrector})(buffers As IEnumerable(Of ITextBuffer), createCorrector As Func(Of ITextBuffer, T))
+            buffers.Do(Sub(b) b.Properties.GetOrCreateSingletonProperty(Function() createCorrector(b)).Disconnect())
 
             buffers.Where(
-                Function(b) b.Properties.GetProperty(Of AutomaticEndConstructCorrector)(GetType(AutomaticEndConstructCorrector)).IsDisconnected).Do(
-                    Function(b) b.Properties.RemoveProperty(GetType(AutomaticEndConstructCorrector)))
+                Function(b) b.Properties.GetProperty(Of T)(GetType(T)).IsDisconnected).Do(
+                    Function(b) b.Properties.RemoveProperty(GetType(T)))
         End Sub
     End Class
+
+    Interface ICorrector
+        Sub Connect()
+        Sub Disconnect()
+        ReadOnly Property IsDisconnected As Boolean
+    End Interface
 End Namespace

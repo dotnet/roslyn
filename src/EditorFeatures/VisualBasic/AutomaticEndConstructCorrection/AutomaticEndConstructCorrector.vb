@@ -12,6 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
     ''' Tracks user's interaction with editor
     ''' </summary>
     Partial Friend Class AutomaticEndConstructCorrector
+        Implements ICorrector
+
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _session As Session
         Private ReadOnly _waitIndicator As IWaitIndicator
@@ -30,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             Me._referencingViews = 0
         End Sub
 
-        Public Sub Connect()
+        Public Sub Connect() Implements ICorrector.Connect
             If _referencingViews = 0 Then
                 AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
                 AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
@@ -39,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             _referencingViews = _referencingViews + 1
         End Sub
 
-        Public Sub Disconnect()
+        Public Sub Disconnect() Implements ICorrector.Disconnect
             If _referencingViews = 1 Then
                 RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
                 RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
@@ -48,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             _referencingViews = Math.Max(_referencingViews - 1, 0)
         End Sub
 
-        Public ReadOnly Property IsDisconnected As Boolean
+        Public ReadOnly Property IsDisconnected As Boolean Implements ICorrector.IsDisconnected
             Get
                 Return _referencingViews = 0
             End Get
