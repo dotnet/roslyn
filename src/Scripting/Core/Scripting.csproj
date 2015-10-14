@@ -110,8 +110,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
-    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+     <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />

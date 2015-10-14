@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim arbitraryTree = VisualBasicSyntaxTree.Create(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Wooh")))
             Dim parsedTree = VisualBasicSyntaxTree.ParseText("Class TheClass _ End Class")
             Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("Grrr", syntaxTrees:={arbitraryTree}))
-            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateSubmission("Wah").AddSyntaxTrees(arbitraryTree))
+            Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.CreateScriptCompilation("Wah").AddSyntaxTrees(arbitraryTree))
             Assert.Throws(Of ArgumentException)(Sub() VisualBasicCompilation.Create("Bah", syntaxTrees:={parsedTree}).ReplaceSyntaxTree(parsedTree, arbitraryTree))
             'FIXME: Assert.Throws(Of ArgumentException)(Function() VisualBasicCompilation.Create("Woo").GetSemanticModel(tree))
         End Sub
