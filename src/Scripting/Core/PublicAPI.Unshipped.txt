@@ -33,7 +33,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.ShadowCopy
 Microsoft.CodeAnalysis.Scripting.Hosting.ShadowCopy.FullPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.ShadowCopy.OriginalPath.get -> string
 Microsoft.CodeAnalysis.Scripting.Script
-Microsoft.CodeAnalysis.Scripting.Script.Build(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+Microsoft.CodeAnalysis.Scripting.Script.Build(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.Scripting.Script.Code.get -> string
 Microsoft.CodeAnalysis.Scripting.Script.ContinueWith(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null) -> Microsoft.CodeAnalysis.Scripting.Script<object>
 Microsoft.CodeAnalysis.Scripting.Script.ContinueWith<TResult>(string code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null) -> Microsoft.CodeAnalysis.Scripting.Script<TResult>

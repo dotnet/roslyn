@@ -3700,16 +3700,16 @@ o.F();";
 var o = new object();
 o.G().F();";
 
-            var s0 = CSharpCompilation.CreateSubmission(
+            var s0 = CSharpCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: parseOptions),
                 references: references);
             s0.VerifyDiagnostics();
 
-            var s1 = CSharpCompilation.CreateSubmission(
+            var s1 = CSharpCompilation.CreateScriptCompilation(
                 "s1.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source1, options: parseOptions),
-                previousSubmission: s0,
+                previousScriptCompilation: s0,
                 references: references);
             s1.VerifyDiagnostics();
         }
