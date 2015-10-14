@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrection
-    Partial Friend Class AutomaticEndConstructCorrector
+    Partial Friend Class AbstractCorrector
         Private Class Session
             Private ReadOnly _subjectBuffer As ITextBuffer
 
