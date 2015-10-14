@@ -12,8 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     <ExportLanguageService(GetType(IRemoveUnnecessaryImportsService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicRemoveUnnecessaryImportsService
+        Inherits AbstractRemoveUnnecessaryImportsService(Of ImportsClauseSyntax)
         Implements IRemoveUnnecessaryImportsService
-        Implements IEqualityComparer(Of ImportsClauseSyntax)
 
         Public Shared Function GetUnnecessaryImports(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
             Dim unnecessaryImports = DirectCast(GetIndividualUnnecessaryImports(model, root, cancellationToken), ISet(Of ImportsClauseSyntax))
@@ -34,20 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
         Public Async Function RemoveUnnecessaryImportsAsync(document As Document, cancellationToken As CancellationToken) As Task(Of Document) Implements IRemoveUnnecessaryImportsService.RemoveUnnecessaryImportsAsync
             Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
-                Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
-                Dim unnecessaryImports = New HashSet(Of ImportsClauseSyntax)(GetIndividualUnnecessaryImportsOrEmpty(model, root, cancellationToken), Me)
-                For Each current In document.GetLinkedDocuments()
-                    Dim currentModel = Await current.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-                    Dim currentRoot = Await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-
-                    unnecessaryImports.IntersectWith(GetIndividualUnnecessaryImportsOrEmpty(currentModel, currentRoot, cancellationToken))
-                Next
-
+                Dim unnecessaryImports = Await GetCommonUnnecessaryImportsOfAllContextAsync(document, cancellationToken).ConfigureAwait(False)
                 If unnecessaryImports Is Nothing OrElse unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then
                     Return document
                 End If
+
+                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
                 Dim newRoot = New Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot)
@@ -61,9 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             End Using
         End Function
 
-        Private Shared Function GetIndividualUnnecessaryImportsOrEmpty(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ImportsClauseSyntax)
-            Dim import = If(GetIndividualUnnecessaryImports(model, root, cancellationToken), SpecializedCollections.EmptyEnumerable(Of ImportsClauseSyntax))
-            Return import.Cast(Of ImportsClauseSyntax)
+        Protected Overrides Function GetUnusedUsings(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ImportsClauseSyntax)
+            Return DirectCast(GetIndividualUnnecessaryImports(model, root, cancellationToken), IEnumerable(Of ImportsClauseSyntax))
         End Function
 
         Private Shared Function GetIndividualUnnecessaryImports(semanticModel As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
@@ -159,13 +151,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 unnecessaryImports.Add(clause)
             End If
         End Sub
-
-        Public Function ImportsEquals(x As ImportsClauseSyntax, y As ImportsClauseSyntax) As Boolean Implements IEqualityComparer(Of ImportsClauseSyntax).Equals
-            Return x.Span = y.Span
-        End Function
-
-        Public Function ImportsGetHashCode(obj As ImportsClauseSyntax) As Integer Implements IEqualityComparer(Of ImportsClauseSyntax).GetHashCode
-            Return obj.Span.GetHashCode()
-        End Function
     End Class
 End Namespace
