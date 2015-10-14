@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             _referencingViews = 0
         End Sub
 
-        Protected MustOverride Function IsAllowableTextUnderPosition(lineText As String, startIndex As Integer, length As Integer) As Boolean
+        Protected MustOverride Function IsAllowableWordAtIndex(lineText As String, wordStartIndex As Integer, wordLength As Integer) As Boolean
         Protected MustOverride Function TryGetValidToken(e As TextContentChangedEventArgs, ByRef token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
         Protected MustOverride Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
 
@@ -168,10 +168,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 End If
             End If
 
-            Dim startIndex = GetStartIndexOfWord(lineText, positionInText)
-            Dim length = GetEndIndexOfWord(lineText, positionInText) - startIndex + 1
+            Dim wordStartIndex = GetStartIndexOfWord(lineText, positionInText)
+            Dim wordLength = GetEndIndexOfWord(lineText, positionInText) - wordStartIndex + 1
 
-            Return IsAllowableTextUnderPosition(lineText, startIndex, length)
+            Return IsAllowableWordAtIndex(lineText, wordStartIndex, wordLength)
         End Function
 
         Private Function GetStartIndexOfWord(text As String, position As Integer) As Integer

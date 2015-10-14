@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             MyBase.New(subjectBuffer, _waitIndicator)
         End Sub
 
-        Protected Overrides Function IsAllowableTextUnderPosition(lineText As String, startIndex As Integer, length As Integer) As Boolean
+        Protected Overrides Function IsAllowableWordAtIndex(lineText As String, wordStartIndex As Integer, wordLength As Integer) As Boolean
             Return False
         End Function
 
