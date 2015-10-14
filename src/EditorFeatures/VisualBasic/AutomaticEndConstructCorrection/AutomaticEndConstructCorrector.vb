@@ -18,7 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             MyBase.New(subjectBuffer, waitIndicator)
         End Sub
 
-        Protected Overrides Function IsAllowableTextUnderPosition(textUnderPosition As String) As Boolean
+        Protected Overrides Function IsAllowableTextUnderPosition(lineText As String, startIndex As Integer, length As Integer) As Boolean
+            Dim textUnderPosition = lineText.Substring(startIndex, length)
+
             Return AutomaticEndConstructSet.Contains(textUnderPosition)
         End Function
 

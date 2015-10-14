@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             _referencingViews = 0
         End Sub
 
-        Protected MustOverride Function IsAllowableTextUnderPosition(textUnderPosition As String) As Boolean
+        Protected MustOverride Function IsAllowableTextUnderPosition(lineText As String, startIndex As Integer, length As Integer) As Boolean
         Protected MustOverride Function TryGetValidToken(e As TextContentChangedEventArgs, ByRef token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
         Protected MustOverride Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
 
@@ -152,28 +152,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Private Function IsChangeOnCorrectText(snapshot As ITextSnapshot, position As Integer) As Boolean
             Dim line = snapshot.GetLineFromPosition(position)
 
-            Dim text = line.GetText()
+            Dim lineText = line.GetText()
             Dim positionInText = position - line.Start.Position
             Contract.ThrowIfFalse(positionInText >= 0)
 
-            If text.Length = 0 OrElse text.Length < positionInText Then
+            If lineText.Length = 0 OrElse lineText.Length < positionInText Then
                 Return False
             End If
 
-            If text.Length <= positionInText OrElse Not Char.IsLetter(text(positionInText)) Then
+            If lineText.Length <= positionInText OrElse Not Char.IsLetter(lineText(positionInText)) Then
                 positionInText = positionInText - 1
 
-                If Not Char.IsLetter(text(Math.Max(0, positionInText))) Then
+                If Not Char.IsLetter(lineText(Math.Max(0, positionInText))) Then
                     Return False
                 End If
             End If
 
-            Dim startIndex = GetStartIndexOfWord(text, positionInText)
-            Dim length = GetEndIndexOfWord(text, positionInText) - startIndex + 1
+            Dim startIndex = GetStartIndexOfWord(lineText, positionInText)
+            Dim length = GetEndIndexOfWord(lineText, positionInText) - startIndex + 1
 
-            Dim textUnderPosition = text.Substring(startIndex, length)
-
-            Return IsAllowableTextUnderPosition(textUnderPosition)
+            Return IsAllowableTextUnderPosition(lineText, startIndex, length)
         End Function
 
         Private Function GetStartIndexOfWord(text As String, position As Integer) As Integer
