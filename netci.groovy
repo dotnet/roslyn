@@ -149,7 +149,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn-internal')
+                  label('windows-roslyn || windows-roslyn-internal')
                   steps {
                     batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
                   }
