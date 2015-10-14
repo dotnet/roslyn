@@ -9,26 +9,22 @@ Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrection
     Friend Class XmlElementTagCorrector
-        Implements ICorrector
+        Inherits AbstractCorrector
 
-        Private _waitIndicator As IWaitIndicator
-        Private b As ITextBuffer
-
-        Public Sub New(b As ITextBuffer, _waitIndicator As IWaitIndicator)
-            Me.b = b
-            Me._waitIndicator = _waitIndicator
+        Public Sub New(subjectBuffer As ITextBuffer, _waitIndicator As IWaitIndicator)
+            MyBase.New(subjectBuffer, _waitIndicator)
         End Sub
 
-        Public ReadOnly Property IsDisconnected As Boolean Implements ICorrector.IsDisconnected
-            Get
-                Return True
-            End Get
-        End Property
+        Protected Overrides Function IsAllowableTextUnderPosition(textUnderPosition As String) As Boolean
+            Return False
+        End Function
 
-        Public Sub Connect() Implements ICorrector.Connect
-        End Sub
+        Protected Overrides Function TryGetValidToken(e As TextContentChangedEventArgs, ByRef token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
+            Return False
+        End Function
 
-        Public Sub Disconnect() Implements ICorrector.Disconnect
-        End Sub
+        Protected Overrides Function GetLinkedEditSpans(snapshot As ITextSnapshot, token As SyntaxToken) As IEnumerable(Of ITrackingSpan)
+            Return SpecializedCollections.EmptyEnumerable(Of ITrackingSpan)
+        End Function
     End Class
 End Namespace
