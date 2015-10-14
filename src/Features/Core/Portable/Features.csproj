@@ -462,7 +462,6 @@
     <Compile Include="Organizing\OrganizingService.cs" />
     <Compile Include="ProjectManagement\IProjectManagementService.cs" />
     <Compile Include="RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
-    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsService.cs" />
     <Compile Include="Shared\Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />

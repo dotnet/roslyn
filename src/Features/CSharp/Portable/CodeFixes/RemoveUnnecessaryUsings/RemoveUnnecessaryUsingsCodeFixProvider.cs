@@ -33,11 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedUsings
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-
-            var newDocument = service.RemoveUnnecessaryImports(document, model, root, cancellationToken);
+            var newDocument = await service.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
             if (newDocument == document || newDocument == null)
             {
                 return;

@@ -1,20 +1,19 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Internal.Log
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     <ExportLanguageService(GetType(IRemoveUnnecessaryImportsService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicRemoveUnnecessaryImportsService
         Implements IRemoveUnnecessaryImportsService
+        Implements IEqualityComparer(Of ImportsClauseSyntax)
 
         Public Shared Function GetUnnecessaryImports(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
             Dim unnecessaryImports = DirectCast(GetIndividualUnnecessaryImports(model, root, cancellationToken), ISet(Of ImportsClauseSyntax))
@@ -33,9 +32,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                     End Function).ToSet()
         End Function
 
-        Public Function RemoveUnnecessaryImports(document As Document, model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As Document Implements IRemoveUnnecessaryImportsService.RemoveUnnecessaryImports
+        Public Async Function RemoveUnnecessaryImportsAsync(document As Document, cancellationToken As CancellationToken) As Task(Of Document) Implements IRemoveUnnecessaryImportsService.RemoveUnnecessaryImportsAsync
             Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
-                Dim unnecessaryImports = DirectCast(GetIndividualUnnecessaryImports(model, root, cancellationToken), ISet(Of ImportsClauseSyntax))
+                Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+
+                Dim unnecessaryImports = New HashSet(Of ImportsClauseSyntax)(GetIndividualUnnecessaryImportsOrEmpty(model, root, cancellationToken), Me)
+                For Each current In document.GetLinkedDocuments()
+                    Dim currentModel = Await current.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
+                    Dim currentRoot = Await current.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+
+                    unnecessaryImports.IntersectWith(GetIndividualUnnecessaryImportsOrEmpty(currentModel, currentRoot, cancellationToken))
+                Next
+
                 If unnecessaryImports Is Nothing OrElse unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then
                     Return document
                 End If
@@ -44,8 +53,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Dim newRoot = New Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot)
                 newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
 
+                If cancellationToken.IsCancellationRequested Then
+                    Return Nothing
+                End If
+
                 Return document.WithSyntaxRoot(newRoot)
             End Using
+        End Function
+
+        Private Shared Function GetIndividualUnnecessaryImportsOrEmpty(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ImportsClauseSyntax)
+            Dim import = If(GetIndividualUnnecessaryImports(model, root, cancellationToken), SpecializedCollections.EmptyEnumerable(Of ImportsClauseSyntax))
+            Return import.Cast(Of ImportsClauseSyntax)
         End Function
 
         Private Shared Function GetIndividualUnnecessaryImports(semanticModel As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
@@ -141,5 +159,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 unnecessaryImports.Add(clause)
             End If
         End Sub
+
+        Public Function ImportsEquals(x As ImportsClauseSyntax, y As ImportsClauseSyntax) As Boolean Implements IEqualityComparer(Of ImportsClauseSyntax).Equals
+            Return x.ToString() = y.ToString()
+        End Function
+
+        Public Function ImportsGetHashCode(obj As ImportsClauseSyntax) As Integer Implements IEqualityComparer(Of ImportsClauseSyntax).GetHashCode
+            Return obj.ToString().GetHashCode()
+        End Function
     End Class
 End Namespace
