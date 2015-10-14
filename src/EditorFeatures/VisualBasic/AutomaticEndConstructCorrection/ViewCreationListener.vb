@@ -47,9 +47,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         End Sub
 
         Private ReadOnly createEndConstructCorrector As Func(Of ITextBuffer, AutomaticEndConstructCorrector) = Function(b As ITextBuffer) New AutomaticEndConstructCorrector(b, _waitIndicator)
+        Private ReadOnly createXmlElementTagCorrector As Func(Of ITextBuffer, XmlElementTagCorrector) = Function(b As ITextBuffer) New XmlElementTagCorrector(b, _waitIndicator)
 
         Private Sub AddCorrectors(buffers As IEnumerable(Of ITextBuffer))
             AddCorrectors(buffers, createEndConstructCorrector)
+            AddCorrectors(buffers, createXmlElementTagCorrector)
         End Sub
 
         Private Sub AddCorrectors(Of T As {Class, ICorrector})(buffers As IEnumerable(Of ITextBuffer), createCorrector As Func(Of ITextBuffer, T))
@@ -58,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
 
         Private Sub RemoveCorrectors(buffers As IEnumerable(Of ITextBuffer))
             RemoveCorrectors(buffers, createEndConstructCorrector)
+            RemoveCorrectors(buffers, createXmlElementTagCorrector)
         End Sub
 
         Private Sub RemoveCorrectors(Of T As {Class, ICorrector})(buffers As IEnumerable(Of ITextBuffer), createCorrector As Func(Of ITextBuffer, T))

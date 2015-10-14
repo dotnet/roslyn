@@ -76,6 +76,7 @@
     <Compile Include="AutomaticEndConstructCorrection\AutomaticEndConstructSet.vb" />
     <Compile Include="AutomaticEndConstructCorrection\LetterOnlyTrackingSpan.vb" />
     <Compile Include="AutomaticEndConstructCorrection\ViewCreationListener.vb" />
+    <Compile Include="AutomaticEndConstructCorrection\XmlElementTagCorrector.vb" />
     <Compile Include="BraceMatching\AbstractVisualBasicBraceMatcher.vb" />
     <Compile Include="BraceMatching\InterpolatedStringBraceMatcher.vb" />
     <Compile Include="BraceMatching\LessThanGreaterThanBraceMatcher.vb" />
