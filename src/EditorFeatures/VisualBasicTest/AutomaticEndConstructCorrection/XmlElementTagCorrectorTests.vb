@@ -5,10 +5,10 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrectio
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstructCorrection
-    Friend Class XmlElementTagCorrectorTests
+    Public Class XmlElementTagCorrectorTests
         Inherits AbstractCorrectorTests
 
-        Protected Overrides Function CreateCorrector(buffer As ITextBuffer, waitIndicator As TestWaitIndicator) As ICorrector
+        Friend Overrides Function CreateCorrector(buffer As ITextBuffer, waitIndicator As TestWaitIndicator) As ICorrector
             Return New XmlElementTagCorrector(buffer, waitIndicator)
         End Function
 
@@ -28,19 +28,7 @@ End Structure
         <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
         Public Sub TestContinuousEdit1()
             Dim code = <code><![CDATA[
-''' <[|summary|]></[|summary|]>
-Structure A
-End Structure
-]]></code>.Value
-
-            VerifyContinuousEdits(code, "see", Function(s) s, removeOriginalContent:=False)
-        End Sub
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.AutomaticEndConstructCorrection)>
-        Public Sub TestContinuousEdit2()
-            Dim code = <code><![CDATA[
-''' <[|summary|]></[|summary|]>
+''' <[|$$summary|]></[|summary|]>
 Structure A
 End Structure
 ]]></code>.Value

@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstructCorrection
-    Friend MustInherit Class AbstractCorrectorTests
-        Protected MustOverride Function CreateCorrector(buffer As ITextBuffer, waitIndicator As TestWaitIndicator) As ICorrector
+    Public MustInherit Class AbstractCorrectorTests
+        Friend MustOverride Function CreateCorrector(buffer As ITextBuffer, waitIndicator As TestWaitIndicator) As ICorrector
 
         Protected Sub VerifyContinuousEdits(codeWithMarker As String,
                                       type As String,

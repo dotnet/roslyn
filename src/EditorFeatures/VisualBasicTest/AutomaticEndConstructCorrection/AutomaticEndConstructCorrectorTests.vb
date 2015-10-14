@@ -5,10 +5,10 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrectio
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstructCorrection
-    Friend Class AutomaticEndConstructCorrectorTests
+    Public Class AutomaticEndConstructCorrectorTests
         Inherits AbstractCorrectorTests
 
-        Protected Overrides Function CreateCorrector(buffer As ITextBuffer, waitIndicator As TestWaitIndicator) As ICorrector
+        Friend Overrides Function CreateCorrector(buffer As ITextBuffer, waitIndicator As TestWaitIndicator) As ICorrector
             Return New AutomaticEndConstructCorrector(buffer, waitIndicator)
         End Function
 
