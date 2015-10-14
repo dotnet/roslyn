@@ -7992,5 +7992,130 @@ e2 => () => new MyStack`1() {Void Add(Int32)(42)}
 ]]>).VerifyDiagnostics()
         End Sub
 
+        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        Public Sub PropertyAssignment()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Public Interface IAddress
+        Property City As String
+    End Interface
+
+    Public Class Address
+        Implements IAddress
+
+        Public Property City As String Implements IAddress.City
+
+        Public Field As String
+
+        Public Sub Verify(expression As Expression(Of Action(Of Address)))
+            expression.Compile()(Me)
+        End Sub
+
+    End Class
+
+    Public Class Customer
+        Public Property Address As IAddress
+
+        Public Sub DoWork(newValue As String)
+            Address.City = newValue
+        End Sub
+    End Class
+
+    Public Function ItIs(Of TValue)(match As Expression(Of Func(Of TValue, Boolean))) As TValue
+    End Function
+
+    Sub Main()
+        Dim a As New Address
+
+        a.Verify(Sub(x) x.City = ItIs(Of String)(Function(s) String.IsNullOrEmpty(s)))
+
+        a.Verify(Sub(x) x.City = "aa")
+
+        System.Console.WriteLine(a.City)
+    End Sub
+
+End Module
+
+                            ]]></file>
+                         </compilation>
+
+            CompileAndVerify(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe,
+                 expectedOutput:=<![CDATA[aa]]>).VerifyDiagnostics()
+
+
+        End Sub
+
+        <Fact, WorkItem(4524, "https://github.com/dotnet/roslyn/issues/4524")>
+        Public Sub PropertyAssignmentCompound()
+
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Module Module1
+
+    Public Interface IAddress
+        Property City As String
+    End Interface
+
+    Public Class Address
+        Implements IAddress
+
+        Public Property City As String Implements IAddress.City
+
+        Public Field As String
+
+        Public Sub Verify(expression As Expression(Of Action(Of Address)))
+            expression.Compile()(Me)
+        End Sub
+
+    End Class
+
+    Public Class Customer
+        Public Property Address As IAddress
+
+        Public Sub DoWork(newValue As String)
+            Address.City = newValue
+        End Sub
+    End Class
+
+    Public Function ItIs(Of TValue)(match As Expression(Of Func(Of TValue, Boolean))) As TValue
+    End Function
+
+    Sub Main()
+        Dim a As New Address
+
+        a.Verify(Sub(x) x.City = ItIs(Of String)(Function(s) String.IsNullOrEmpty(s)))
+
+        a.Verify(Sub(x) x.City += "qq")
+
+        System.Console.WriteLine(a.City)
+    End Sub
+
+End Module
+
+                            ]]></file>
+                         </compilation>
+
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
+                 additionalRefs:={SystemCoreRef},
+                 options:=TestOptions.ReleaseExe)
+
+            compilation.VerifyDiagnostics(
+                    Diagnostic(ERRID.ERR_ExpressionTreeNotSupported, "x.City += ""qq""").WithLocation(39, 25)
+            )
+
+        End Sub
+
     End Class
 End Namespace
