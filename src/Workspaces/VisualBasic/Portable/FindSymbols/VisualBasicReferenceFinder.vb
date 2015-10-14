@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.FindSymbols
             ElseIf symbol.Kind = SymbolKind.NamedType Then
                 Return DetermineCascadedSymbolsAsync(DirectCast(symbol, INamedTypeSymbol), project, cancellationToken)
             Else
-                Return Nothing
+                Return Task.FromResult(Of IEnumerable(Of ISymbol))(Nothing)
             End If
         End Function
 
