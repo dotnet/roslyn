@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 foreach (var field in state.GetType().GetTypeInfo().DeclaredFields)
                 {
                     // TODO: synthesized fields of submissions shouldn't be public
-                    if (field.IsPublic && field.Name.Length > 0 && char.IsLetterOrDigit(field.Name[0]))
+                    if (field.IsPublic && field.Name.Length > 0 && (char.IsLetterOrDigit(field.Name[0]) || field.Name[0] == '_'))
                     {
                         result.Add(new ScriptVariable(state, field));
                     }

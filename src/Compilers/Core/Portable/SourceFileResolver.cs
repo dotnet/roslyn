@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Resolves references to source files specified in source code.
     /// </summary>
-    public class SourceFileResolver : SourceReferenceResolver
+    public class SourceFileResolver : SourceReferenceResolver, IEquatable<SourceFileResolver>
     {
         public static SourceFileResolver Default { get; } = new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
@@ -59,16 +59,16 @@ namespace Microsoft.CodeAnalysis
                     if (key == null || key.Length == 0)
                     {
                         throw new ArgumentException(CodeAnalysisResources.EmptyKeyInPathMap, nameof(pathMap));
-                    }
+        }
 
                     var value = kv.Value;
                     if (value == null || value.Length == 0)
-                    {
+        {
                         throw new ArgumentException(CodeAnalysisResources.EmptyValueInPathMap, nameof(pathMap));
-                    }
+        }
 
                     if (IsPathSeparator(key[key.Length - 1]))
-                    {
+        {
                         throw new ArgumentException(CodeAnalysisResources.KeyInPathMapEndsWithSeparator, nameof(pathMap));
                     }
                 }
@@ -151,7 +151,11 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var other = (SourceFileResolver)obj;
+            return Equals((SourceFileResolver)obj);
+        }
+
+        public bool Equals(SourceFileResolver other)
+        {
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&
