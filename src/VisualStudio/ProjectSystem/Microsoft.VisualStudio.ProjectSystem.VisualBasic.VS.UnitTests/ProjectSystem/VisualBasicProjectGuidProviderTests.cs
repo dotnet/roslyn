@@ -21,7 +21,8 @@ namespace Microsoft.VisualStudio.ProjectSystem
         {
             var provider = CreateInstance();
 
-            // Handshake between the project system and templates around the actual guid value
+            // Handshake between the project system and factory around the actual guid value so we do not test 
+            // for a specified guid, other than to confirm it's not empty
             Assert.NotEqual(Guid.Empty, provider.AddItemTemplatesGuid);
         }
 
@@ -30,7 +31,8 @@ namespace Microsoft.VisualStudio.ProjectSystem
         {
             var provider = CreateInstance();
 
-            // Handshake between the project system and factory around the actual guid value
+            // Handshake between the project system and factory around the actual guid value so we do not test 
+            // for a specified guid, other than to confirm it's not empty
             Assert.NotEqual(Guid.Empty, provider.ProjectTypeGuid);
         }
 
