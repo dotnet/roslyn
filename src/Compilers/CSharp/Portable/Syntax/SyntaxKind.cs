@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolationAlignmentClause = 8920,
         InterpolationFormatClause = 8921,
 
-        ShebangTrivia = 8922,
+        ShebangDirectiveTrivia = 8922,
         LoadDirectiveTrivia = 8923,
     }
 }

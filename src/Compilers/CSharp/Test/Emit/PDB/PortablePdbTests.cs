@@ -45,16 +45,13 @@ class C
                 foreach (var methodHandle in mdReader.MethodDefinitions)
                 {
                     var method = mdReader.GetMethodDefinition(methodHandle);
-                    var methodBody = pdbReader.GetMethodBody(methodHandle);
+                    var methodDebugInfo = pdbReader.GetMethodDebugInformation(methodHandle);
 
                     var name = mdReader.GetString(method.Name);
 
-                    var spReader = pdbReader.GetSequencePointsReader(methodBody.SequencePoints);
-
                     TextWriter writer = new StringWriter();
-                    while (spReader.MoveNext())
+                    foreach (var sp in methodDebugInfo.GetSequencePoints())
                     {
-                        var sp = spReader.Current;
                         if (sp.IsHidden)
                         {
                             writer.WriteLine($"{sp.Offset}: <hidden>");
@@ -66,7 +63,7 @@ class C
                     }
 
                     var spString = writer.ToString();
-                    var spBlob = pdbReader.GetBlobBytes(methodBody.SequencePoints);
+                    var spBlob = pdbReader.GetBlobBytes(methodDebugInfo.SequencePointsBlob);
 
                     switch (name)
                     {
@@ -83,7 +80,6 @@ class C
                             AssertEx.Equal(new byte[] 
                             {
                                 0x01, // local signature
-                                0x01, // document
 
                                 0x00, // IL offset
                                 0x00, // Delta Lines
@@ -132,7 +128,6 @@ class C
                             AssertEx.Equal(new byte[] 
                             {
                                 0x00, // local signature
-                                0x01, // document
 
                                 0x00, // delta IL offset
                                 0x00, // Delta Lines
