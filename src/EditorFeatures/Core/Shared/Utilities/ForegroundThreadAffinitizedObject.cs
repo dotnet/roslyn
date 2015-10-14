@@ -132,10 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void AssertIsForeground()
         {
-#if DEBUG
-            Debug.Assert(IsForeground());
-#endif
-
             Contract.ThrowIfFalse(IsForeground());
         }
 
