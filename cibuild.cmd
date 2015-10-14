@@ -31,6 +31,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 REM Build the compiler so we can self host it for the full build
 nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
 nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
+
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to laod because the compiler has binding redirects to the
 REM semantic version
@@ -38,6 +39,9 @@ msbuild /nologo /v:m /m /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p
 
 mkdir %RoslynRoot%Binaries\Bootstrap
 move Binaries\%BuildConfiguration%\* %RoslynRoot%Binaries\Bootstrap
+copy build\scripts\* %RoslynRoot%Binaries\Bootstrap
+
+REM Clean the previous build
 msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
@@ -50,6 +54,7 @@ if defined Perf (
 nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
 nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
 nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
+
 msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe

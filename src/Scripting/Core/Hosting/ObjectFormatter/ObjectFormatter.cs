@@ -23,7 +23,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
         }
 
-        public string FormatObject(object obj, ObjectFormattingOptions options = null)
+        public string FormatObject(object obj)
+        {
+            return new Formatter(this, null).FormatObject(obj);
+        }
+
+        internal string FormatObject(object obj, ObjectFormattingOptions options)
         {
             return new Formatter(this, options).FormatObject(obj);
         }

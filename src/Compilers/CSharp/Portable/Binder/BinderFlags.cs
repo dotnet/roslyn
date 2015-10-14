@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         InScriptUsing = 1 << 27,
 
+        /// <summary>
+        /// In a file that has been included in the compilation via #load.
+        /// </summary>
+        InLoadedSyntaxTree = 1 << 28,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,

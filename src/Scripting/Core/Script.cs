@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        public Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonEvaluateAsync(globals, cancellationToken);
 
         internal abstract Task<object> CommonEvaluateAsync(object globals, CancellationToken cancellationToken);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public Task<ScriptState> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal Task<ScriptState> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonContinueAsync(previousState, cancellationToken);
 
         internal abstract Task<ScriptState> CommonContinueAsync(ScriptState previousState, CancellationToken cancellationToken);
@@ -199,12 +199,6 @@ namespace Microsoft.CodeAnalysis.Scripting
                     {
                         var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
                         references.Add(globalsTypeAssembly);
-
-                        // TODO: remove
-                        var systemRuntimeFacade = MetadataReference.CreateFromAssemblyInternal(
-                            Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")));
-
-                        references.Add(systemRuntimeFacade);
                     }
 
                     if (languageRuntimeReferenceOpt != null)
@@ -239,7 +233,6 @@ namespace Microsoft.CodeAnalysis.Scripting
             finally
             {
                 references.Free();
-
             }
         }
     }
@@ -363,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        public new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
             RunAsync(globals, cancellationToken).GetEvaluationResultAsync();
 
         /// <summary>
@@ -420,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="previousState"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
-        public new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
+        internal new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
         {
             // The following validation and executor contruction may throw;
             // do so synchronously so that the exception is not wrapped in the task.

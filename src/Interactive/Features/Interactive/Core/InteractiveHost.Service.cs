@@ -518,12 +518,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 ScriptOptions newOptions = state.ScriptOptions;
                 if (changedReferencePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomMetadataResolution(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithMetadataResolver(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
                 }
 
                 if (changedSourcePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomSourceResolution(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithSourceResolver(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
                 }
 
                 return new EvaluationState(
@@ -750,7 +750,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 Script script;
 
-                var scriptOptions = options.WithPath(path);
+                var scriptOptions = options.WithFilePath(path);
 
                 if (previousScript != null)
                 {

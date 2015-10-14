@@ -695,25 +695,25 @@ End Module
             context.CompileExpression("Me", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
-                                "(1,2): error BC32001: 'Me' is not valid within a Module.",
-                                "(1,2): error BC30043: 'Me' is valid only within an instance method."
+                                "error BC32001: 'Me' is not valid within a Module.",
+                                "error BC30043: 'Me' is valid only within an instance method."
                             })
 
             testData = New CompilationTestData()
             context.CompileExpression("MyBase.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
-                                "(1,2): error BC32001: 'MyBase' is not valid within a Module.",
-                                "(1,2): error BC30043: 'MyBase' is valid only within an instance method."
+                                "error BC32001: 'MyBase' is not valid within a Module.",
+                                "error BC30043: 'MyBase' is valid only within an instance method."
                             })
 
             testData = New CompilationTestData()
             context.CompileExpression("MyClass.ToString()", errorMessage, testData)
             Assert.Contains(errorMessage,
                             {
-                                "(1,2): error BC30470: 'MyClass' cannot be used outside of a class.",
-                                "(1,2): error BC32001: 'MyClass' is not valid within a Module.",
-                                "(1,2): error BC30043: 'MyClass' is valid only within an instance method."
+                                "error BC30470: 'MyClass' cannot be used outside of a class.",
+                                "error BC32001: 'MyClass' is not valid within a Module.",
+                                "error BC30043: 'MyClass' is valid only within an instance method."
                             })
         End Sub
 

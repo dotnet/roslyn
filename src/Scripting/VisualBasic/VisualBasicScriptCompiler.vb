@@ -41,8 +41,8 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
         Private Shared Function GetGlobalImportsForCompilation(script As Script) As IEnumerable(Of GlobalImport)
             ' TODO: remember these per options instance so we don't need to reparse each submission
-            ' TODO: get imports out of compilation???
-            Return script.Options.Namespaces.Select(Function(n) GlobalImport.Parse(n))
+            ' TODO: get imports out of compilation??? https://github.com/dotnet/roslyn/issues/5854
+            Return script.Options.Imports.Select(Function(n) GlobalImport.Parse(n))
         End Function
 
         Public Overrides Function CreateSubmission(script As Script) As Compilation
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
             diagnostics.Free()
 
             ' parse:
-            Dim tree = VisualBasicSyntaxTree.ParseText(script.Code, s_defaultOptions, script.Options.Path)
+            Dim tree = VisualBasicSyntaxTree.ParseText(script.Code, s_defaultOptions, script.Options.FilePath)
 
             ' create compilation:
             Dim assemblyName As String = Nothing
