@@ -46,9 +46,9 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
         End Function
 
         Public Overrides Function CreateSubmission(script As Script) As Compilation
-            Dim previousSubmission As Compilation = Nothing
+            Dim previousSubmission As VisualBasicCompilation = Nothing
             If script.Previous IsNot Nothing Then
-                previousSubmission = script.Previous.GetCompilation()
+                previousSubmission = DirectCast(script.Previous.GetCompilation(), VisualBasicCompilation)
             End If
 
             Dim diagnostics = DiagnosticBag.GetInstance()
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
             Dim globalImports = GetGlobalImportsForCompilation(script)
 
-            Dim submission = VisualBasicCompilation.CreateSubmission(
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation(
                 assemblyName,
                 tree,
                 references,

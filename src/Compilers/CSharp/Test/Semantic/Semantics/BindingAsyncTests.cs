@@ -3144,7 +3144,7 @@ Task.FromResult(2);";
 @"using System.Threading.Tasks;
 Task.FromResult(1);
 Task.FromResult(2)";
-            var submission = CSharpCompilation.CreateSubmission(
+            var submission = CSharpCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references: new[] { MscorlibRef_v4_0_30316_17626 });
