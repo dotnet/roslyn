@@ -30,7 +30,7 @@
           Outputs="$(ToolsetPackagesSemaphore);
                    $(ToolsetCompilerPropsFilePath);
                    $(RoslynDiagnosticsPropsFilePath)"
-          Condition="'$(OS)' == 'Windows_NT'">
+          Condition="'$(OS)' == 'Windows_NT' AND '$(NuGetRestorePackages)' != 'false'">
     <Message Importance="High" Text="Restoring toolset packages..." />
 
     <!-- Run restore -->
