@@ -899,7 +899,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case SyntaxKind.OmittedArgument
                     Return String.Empty
                 Case SyntaxKind.Parameter
-                    Return DirectCast(node, ParameterSyntax).Identifier.Identifier.ToString()
+                    Return GetParameterName(node)
                 Case SyntaxKind.OptionStatement
                     Return GetNormalizedName(node)
                 Case SyntaxKind.SimpleImportsClause
