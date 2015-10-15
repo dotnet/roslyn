@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEndConstruct
                     context.RegisterCodeFix(
                         New MyCodeAction(
                             VBFeaturesResources.InsertTheMissingEndProper,
-                            Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent, PropertyBlockSyntax), c)),
+                            Function(c) GeneratePropertyEndConstructAsync(context.Document, DirectCast(endStatement.Parent.Parent, PropertyBlockSyntax), c)),
                         context.Diagnostics)
                     Return
                 End If
