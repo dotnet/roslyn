@@ -71,7 +71,7 @@ static void addUnitPublisher(def myJob) {
       'xunit'('plugin': 'xunit@1.97') {
       'types' {
         'XUnitDotNetTestType' {
-          'pattern'('**/*TestResults.xml')
+          'pattern'('**/xUnitResults/*.xml')
             'skipNoTestFiles'(false)
             'failIfNotNew'(true)
             'deleteOutputFiles'(true)

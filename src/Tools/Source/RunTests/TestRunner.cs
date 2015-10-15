@@ -115,19 +115,13 @@ namespace RunTests
             Console.WriteLine("================");
         }
 
-        private static readonly string[] UpgradedTests = new string[] {
-            "Microsoft.DiaSymReader.PortablePdb.UnitTests.dll",
-            "Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests.dll",
-            "Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests.dll"
-        };
-
         private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
             try
             { 
                 var assemblyName = Path.GetFileName(assemblyPath);
-                var extension = _useHtml ? ".TestResults.html" : ".TestResults.xml";
-                var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), Path.ChangeExtension(assemblyName, extension));
+                var extension = _useHtml ? "html" : "xml";
+                var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{extension}");
                 DeleteFile(resultsPath);
 
                 var builder = new StringBuilder();
@@ -138,7 +132,7 @@ namespace RunTests
                 var errorOutput = new StringBuilder();
                 var start = DateTime.UtcNow;
 
-                var xunitPath = UpgradedTests.Contains(assemblyName) ? Path.Combine($"{Path.GetDirectoryName(_xunitConsolePath)}", @"..\..\..\xunit.runner.console\2.1.0\tools", $"{Path.GetFileName(_xunitConsolePath)}") : _xunitConsolePath;
+                var xunitPath = _xunitConsolePath;
                 var processOutput = await ProcessRunner.RunProcessAsync(
                     xunitPath,
                     builder.ToString(),
