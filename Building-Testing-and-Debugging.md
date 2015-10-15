@@ -28,27 +28,6 @@ To debug suites use the *xunit.console.x86.exe* runner command which is included
 ## Contributing
 Please see [[Contributing Code]] for details on contributing changes back to the code.
 
-## Using earlier versions of Visual Studio 2015 
-
-The Roslyn build depends on Visual Studio APIs that change from release to release.  In order to use an older version of Visual Studio to load the source code you will need to use the appropriate branch.
-
-> Use git branch --list from the command line to see the possible branches, E.g:
-
-```
-git branch --list --all
-  master
-  remotes/origin/HEAD -> origin/master
-  remotes/origin/releases/Dev14CTP5
-```
-
-> Select the branch that matches your Visual Studio preview release, E.g:
-
-```
-git checkout releases/Dev14CTP5 
-```
-
-Note: PRs will only be accepted from the master branch.  
-
 ## Strong Name Verification
 Roslyn binaries are configured to be delay signed using the Microsoft strong name key.  We are using a new technique to allow these assemblies to be loaded - currently 'fakesign' - these assemblies do not need to have strong name signing disabled to be loaded.  However, they cannot be installed in the GAC neither can they be loaded from a partially trusted AppDomain.
 
