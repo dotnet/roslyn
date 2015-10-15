@@ -99,6 +99,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VbcCore", "src\Compilers\Vi
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TestUtilities.Shared", "src\Test\Utilities\Shared\TestUtilities.Shared.shproj", "{6FF42825-5464-4151-AC55-ED828168C192}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpCompilerPerformanceTest", "src\Compilers\CSharp\Test\Performance\CSharpCompilerPerformanceTest.csproj", "{ECBB1F28-2672-4344-8CB3-83882F291739}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTaskTests", "src\Compilers\Core\MSBuildTaskTests\MSBuildTaskTests.csproj", "{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2}"
 EndProject
 Global
