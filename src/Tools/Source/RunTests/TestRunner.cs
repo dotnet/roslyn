@@ -122,7 +122,13 @@ namespace RunTests
                 var assemblyName = Path.GetFileName(assemblyPath);
                 var extension = _useHtml ? "html" : "xml";
                 var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{extension}");
-                DeleteFile(resultsPath);
+
+                // NOTE: xUnit doesn't always create the log directory
+                Directory.CreateDirectory(resultsPath);
+
+                // NOTE: xUnit seems to have an occasional issue creating logs create
+                // an empty log just in case, so our runner will still fail.
+                File.Create(resultsPath).Close();
 
                 var builder = new StringBuilder();
                 builder.AppendFormat(@"""{0}""", assemblyPath);
