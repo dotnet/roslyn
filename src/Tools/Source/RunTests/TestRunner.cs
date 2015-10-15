@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -121,18 +121,19 @@ namespace RunTests
             { 
                 var assemblyName = Path.GetFileName(assemblyPath);
                 var extension = _useHtml ? "html" : "xml";
-                var resultsPath = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{extension}");
+                var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{extension}");
+                var resultsPath = Path.GetDirectoryName(resultsFile);
 
                 // NOTE: xUnit doesn't always create the log directory
                 Directory.CreateDirectory(resultsPath);
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.
-                File.Create(resultsPath).Close();
+                File.Create(resultsFile).Close();
 
                 var builder = new StringBuilder();
                 builder.AppendFormat(@"""{0}""", assemblyPath);
-                builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsPath);
+                builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsFile);
                 builder.Append(" -noshadow");
 
                 var errorOutput = new StringBuilder();
@@ -157,7 +158,7 @@ namespace RunTests
                     var all = string.Empty;
                     try
                     {
-                        all = File.ReadAllText(resultsPath).Trim();
+                        all = File.ReadAllText(resultsFile).Trim();
                     }
                     catch
                     {
@@ -171,7 +172,7 @@ namespace RunTests
                         Console.Write(string.Join(Environment.NewLine, output));
 
                         // Delete the output file.
-                        File.Delete(resultsPath);
+                        File.Delete(resultsFile);
                     }
 
                     errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
@@ -192,7 +193,7 @@ namespace RunTests
 
                     if (_useHtml && !noResultsData)
                     {
-                        Process.Start(resultsPath);
+                        Process.Start(resultsFile);
                     }
                 }
 
