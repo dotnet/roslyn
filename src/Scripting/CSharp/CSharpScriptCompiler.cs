@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
 
         public override Compilation CreateSubmission(Script script)
         {
-            Compilation previousSubmission = null;
+            CSharpCompilation previousSubmission = null;
             if (script.Previous != null)
             {
-                previousSubmission = script.Previous.GetCompilation();
+                previousSubmission = (CSharpCompilation)script.Previous.GetCompilation();
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             string assemblyName, submissionTypeName;
             script.Builder.GenerateSubmissionId(out assemblyName, out submissionTypeName);
 
-            var compilation = CSharpCompilation.CreateSubmission(
+            var compilation = CSharpCompilation.CreateScriptCompilation(
                 assemblyName,
                 tree,
                 references,

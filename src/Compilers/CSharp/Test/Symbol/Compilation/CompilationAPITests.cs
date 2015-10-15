@@ -1384,7 +1384,7 @@ class A
         public void GetEntryPoint_Submission()
         {
             var source = @"1 + 1";
-            var compilation = CSharpCompilation.CreateSubmission("sub",
+            var compilation = CSharpCompilation.CreateScriptCompilation("sub",
                 references: new[] { MscorlibRef },
                 syntaxTree: Parse(source, options: TestOptions.Script));
             compilation.VerifyDiagnostics();
@@ -1408,7 +1408,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CSharpCompilation.CreateSubmission("sub",
+            var compilation = CSharpCompilation.CreateScriptCompilation("sub",
                 references: new[] { MscorlibRef },
                 syntaxTree: Parse(source, options: TestOptions.Script));
             compilation.VerifyDiagnostics(
@@ -1566,16 +1566,6 @@ public class TestClass
 
             c2 = c1.WithOptions(new CSharpCompilationOptions(OutputKind.NetModule).WithAllowUnsafe(true));
             Assert.True(c1.ReferenceManagerEquals(c2));
-        }
-
-        [Fact]
-        public void ReferenceManagerReuse_WithPreviousSubmission()
-        {
-            var s1 = CSharpCompilation.CreateSubmission("s1");
-            var s2 = CSharpCompilation.CreateSubmission("s2");
-
-            var s3 = s2.WithPreviousSubmission(s1);
-            Assert.True(s2.ReferenceManagerEquals(s3));
         }
 
         [Fact]
@@ -1930,31 +1920,31 @@ public class C { public static FrameworkName Foo() { return null; }}";
             var ptr = typeof(int).MakePointerType();
             var byref = typeof(int).MakeByRefType();
 
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: genericParameter));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: open));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: typeof(void)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", returnType: byref));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: genericParameter));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: open));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: typeof(void)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", returnType: byref));
 
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: genericParameter));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: open));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: typeof(void)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: typeof(int)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: ptr));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", hostObjectType: byref));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: genericParameter));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: open));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: typeof(void)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: typeof(int)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: ptr));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", globalsType: byref));
 
-            var s0 = CSharpCompilation.CreateSubmission("a0", hostObjectType: typeof(List<int>));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a1", previousSubmission: s0, hostObjectType: typeof(List<bool>)));
+            var s0 = CSharpCompilation.CreateScriptCompilation("a0", globalsType: typeof(List<int>));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a1", previousScriptCompilation: s0, globalsType: typeof(List<bool>)));
 
             // invalid options:
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseExe));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithDelaySign(true)));
-            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateSubmission("a", options: TestOptions.ReleaseDll.WithDelaySign(false)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseExe));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.NetModule)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeApplication)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsApplication)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo.snk")));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithDelaySign(true)));
+            Assert.Throws<ArgumentException>(() => CSharpCompilation.CreateScriptCompilation("a", options: TestOptions.ReleaseDll.WithDelaySign(false)));
         }
 
         private static void TestSubmissionResult(CSharpCompilation s, SpecialType? expectedType, bool expectedHasValue)
@@ -1968,7 +1958,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
         [Fact]
         public void SubmissionResultType()
         {
-            var submission = CSharpCompilation.CreateSubmission("sub");
+            var submission = CSharpCompilation.CreateScriptCompilation("sub");
             bool hasValue;
             Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(out hasValue).SpecialType);
             Assert.False(hasValue);

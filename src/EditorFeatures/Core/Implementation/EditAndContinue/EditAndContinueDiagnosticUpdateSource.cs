@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             var argsByDocument = ImmutableArray.CreateRange(
                 from diagnostic in diagnostics
-                let document = solution.GetDocument(diagnostic.Location.SourceTree)
+                let document = solution.GetDocument(diagnostic.Location.SourceTree, projectId)
                 where document != null
                 let item = MakeDiagnosticData(projectId, document, solution, diagnostic)
                 group item by document.Id into itemsByDocumentId

@@ -2469,17 +2469,17 @@ End Function
 Dim o As New Object()
 ? o.G().F()"
 
-            Dim s0 = VisualBasicCompilation.CreateSubmission(
+            Dim s0 = VisualBasicCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree:=Parse(source0, TestOptions.Script),
                 references:=references)
             s0.VerifyDiagnostics()
             Assert.True(s0.SourceAssembly.MightContainExtensionMethods)
-            
-            Dim s1 = VisualBasicCompilation.CreateSubmission(
+
+            Dim s1 = VisualBasicCompilation.CreateScriptCompilation(
                 "s1.dll",
                 syntaxTree:=Parse(source1, TestOptions.Script),
-                previousSubmission:=s0,
+                previousScriptCompilation:=s0,
                 references:=references)
             s1.VerifyDiagnostics()
             Assert.True(s1.SourceAssembly.MightContainExtensionMethods)
