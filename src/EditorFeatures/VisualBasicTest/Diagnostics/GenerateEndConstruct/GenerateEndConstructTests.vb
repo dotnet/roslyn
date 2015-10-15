@@ -269,7 +269,7 @@ End Class</File>
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestWriteonlyProperty()
+        Public Sub TestWriteOnlyProperty()
             Dim text = <File>
 Class C
     WriteOnly Property P As Integer[||]
