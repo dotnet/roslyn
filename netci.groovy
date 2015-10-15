@@ -18,7 +18,7 @@ static void addConcurrentBuild(def myJob, String category) {
     throttleConcurrentBuilds {
       throttleDisabled(false)
       maxTotal(0)
-      maxPerNode(4)
+      maxPerNode(1)
       categories([category])
     }
   }
@@ -45,7 +45,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(90)
+        absolute(120)
         abortBuild()
       }
       timestamps()
@@ -121,7 +121,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(false)
+        permitAll(true)
         extensions {
           commitStatus {
             context(contextName.replace('_', '/').substring(7))
@@ -149,7 +149,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn || windows-roslyn-internal')
+                  label('windows-roslyn')
                   steps {
                     batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
                   }
