@@ -6,9 +6,7 @@ using Xunit;
 using System.Text;
 using System.IO;
 using Roslyn.Test.Utilities;
-using System.Security.Cryptography;
 using System.Collections.Immutable;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

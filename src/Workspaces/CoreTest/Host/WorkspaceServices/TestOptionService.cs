@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

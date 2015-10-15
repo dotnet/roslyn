@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 

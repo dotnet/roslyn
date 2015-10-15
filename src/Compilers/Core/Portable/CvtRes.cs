@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 using BYTE = System.Byte;
 using DWORD = System.UInt32;

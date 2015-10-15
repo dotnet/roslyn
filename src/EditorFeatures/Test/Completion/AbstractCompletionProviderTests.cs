@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Security;
 using System.Threading;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;

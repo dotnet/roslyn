@@ -5,12 +5,10 @@ using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {

@@ -3,7 +3,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;

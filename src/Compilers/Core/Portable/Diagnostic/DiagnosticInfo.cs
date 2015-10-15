@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis
 {

@@ -2,7 +2,6 @@
 
 using System.Diagnostics;
 using System.IO;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {

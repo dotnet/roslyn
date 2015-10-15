@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.InternalUtilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis

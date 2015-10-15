@@ -7,7 +7,6 @@ using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation;

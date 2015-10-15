@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Immutable;
-using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes

@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;

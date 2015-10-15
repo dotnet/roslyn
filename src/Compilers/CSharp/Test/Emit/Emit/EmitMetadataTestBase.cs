@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;

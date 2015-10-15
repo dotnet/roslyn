@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Security;
-using System.Xml;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis

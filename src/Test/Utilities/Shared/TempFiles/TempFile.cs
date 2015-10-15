@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using System.Text;
 using System.Diagnostics;
 using Roslyn.Utilities;

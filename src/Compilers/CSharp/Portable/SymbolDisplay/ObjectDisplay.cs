@@ -4,9 +4,16 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+
+/* Unmerged change from project 'CSharpResultProvider.NetFX20'
+Before:
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
 using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 using System.Reflection;
+After:
+using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
+*/
+using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

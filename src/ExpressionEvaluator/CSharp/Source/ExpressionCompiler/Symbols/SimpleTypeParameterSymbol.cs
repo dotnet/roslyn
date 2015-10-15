@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator

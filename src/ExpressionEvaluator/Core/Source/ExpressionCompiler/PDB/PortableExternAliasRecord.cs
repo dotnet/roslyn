@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {

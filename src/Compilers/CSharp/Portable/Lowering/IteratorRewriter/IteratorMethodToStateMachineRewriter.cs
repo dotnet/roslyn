@@ -2,13 +2,11 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

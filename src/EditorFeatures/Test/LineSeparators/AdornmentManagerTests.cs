@@ -7,8 +7,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;

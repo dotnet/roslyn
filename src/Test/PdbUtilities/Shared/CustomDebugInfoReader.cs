@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;

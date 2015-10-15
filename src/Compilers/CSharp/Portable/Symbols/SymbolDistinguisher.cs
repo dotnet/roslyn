@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

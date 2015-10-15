@@ -5,9 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests

@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp

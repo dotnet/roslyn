@@ -23,8 +23,6 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
 
-using Task = System.Threading.Tasks.Task;
-
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 {
     /// <summary>

@@ -2,7 +2,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {

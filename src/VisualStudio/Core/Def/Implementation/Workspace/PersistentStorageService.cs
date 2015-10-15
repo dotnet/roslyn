@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.Isam.Esent.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Esent;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;

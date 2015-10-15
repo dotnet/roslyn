@@ -2,7 +2,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
