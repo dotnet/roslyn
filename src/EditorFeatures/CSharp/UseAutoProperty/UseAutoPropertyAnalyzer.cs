@@ -73,8 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                 return memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression &&
                     memberAccessExpression.Name.Kind() == SyntaxKind.IdentifierName;
             }
+            else if (expression.IsKind(SyntaxKind.IdentifierName))
+            {
+                return true;
+            }
 
-            return expression.IsKind(SyntaxKind.IdentifierName);
+            return false;
         }
 
         protected override ExpressionSyntax GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken)

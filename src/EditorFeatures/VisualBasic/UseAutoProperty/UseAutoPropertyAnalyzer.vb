@@ -41,8 +41,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
                 Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
                     memberAccessExpression.Name.Kind() = SyntaxKind.IdentifierName
             End If
+            ElseIf expression.IsKind(SyntaxKind.IdentifierName)
+            Return True
+            End If
 
-            Return expression.IsKind(SyntaxKind.IdentifierName)
+            Return False
         End Function
 
         Protected Overrides Function GetGetterExpression(getMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
