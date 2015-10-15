@@ -316,45 +316,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Synthesized Members
 
-#if DEBUG
-        /// <summary>
-        /// The queue of synthesized members of a type should be deterministic, as the members are
-        /// emitted in the order in which they are added to the queue. Therefore for debug purposes
-        /// we have a custom version of ConcurrentQueue that detects attempted concurrent adds.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        private class ConcurrentQueue<T> : System.Collections.Concurrent.ConcurrentQueue<T>
-        {
-            // A count of the number of concurrent queue operations in progress. Should always be zero or one,
-            // as synthetic members should be added by the compiler to a given type in a well-defined sequential
-            // order.
-            int queueing;
-
-            // A short delay to increase the chance that concurrent Enqueue operation will be diagnosed.
-            static readonly TimeSpan shortDelay = new TimeSpan(2);
-
-            /// <summary>
-            ///     Adds an object to the end of the ConcurrentQueue.
-            /// </summary>
-            /// <param name="item">
-            ///     The object to add to the end of the ConcurrentQueue.
-            ///     The value can be a null reference for reference types.
-            /// </param>
-            public new void Enqueue(T item)
-            {
-                if (Interlocked.Increment(ref queueing) != 1)
-                {
-                    throw new System.InvalidOperationException("Concurrent use of " + nameof(SynthesizedDefinitions));
-                }
-                base.Enqueue(item);
-                // To increase the chance of catching concurrency issues, we add a delay to each queued item
-                // so that another thread has a chance to add at the same time.
-                System.Threading.Tasks.Task.Delay(shortDelay).Wait();
-                Interlocked.Decrement(ref queueing);
-            }
-        }
-#endif
-
         /// <summary>
         /// Captures the set of synthesized definitions that should be added to a type
         /// during emit process.
