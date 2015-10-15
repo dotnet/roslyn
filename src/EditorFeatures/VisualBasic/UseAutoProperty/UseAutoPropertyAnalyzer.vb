@@ -40,9 +40,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
                 Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
                     memberAccessExpression.Name.Kind() = SyntaxKind.IdentifierName
-            End If
             ElseIf expression.IsKind(SyntaxKind.IdentifierName)
-            Return True
+                Return True
             End If
 
             Return False
