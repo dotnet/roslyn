@@ -3,7 +3,9 @@ _This page contains instructions for building Roslyn on Windows. For special ins
 
 ## Required Software
 
-The Roslyn source code targets the latest public build of Visual Studio 2015.  At this time that is RTM.  In order to edit, build and test the source code install [Visual Studio 2015](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015) along with the Windows 10 Tools (inside the VS 2015 installer).
+- Visual Studio 2015 with the [Visual Studio Extensibility and Windows 10 tools optional components](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015) installed
+- To prevent unnecessary project.json changes, turn off NuGet package restore within Visual Studio
+  - Uncheck **Tools** -> **Options** -> **NuGet Package Manager** -> **General** -> **Automatically check for missing packages during build in Visual Studio**
 
 ## Getting the code
 
