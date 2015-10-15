@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // Note: we're raising changes here on the UI thread.  However, this doesn't actually
                 // mean we'll be notifying the editor.  Instead, these will be batched up in the 
                 // AsynchronousTagger's BatchChangeNotifier.  If we tell it about enough changes
-                // to a file, it will coalesce them into one large change to keep chattyness with
+                // to a file, it will coalesce them into one large change to keep chattiness with
                 // the editor down.
                 RaiseTagsChanged(bufferToChanges);
             }

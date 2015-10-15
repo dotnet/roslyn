@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 AssertIsForeground();
 
                 // Detach from the buffer; it is important that this is done before we start
-                // undoing transactions, since the undo's will cause buffer changes.
+                // undoing transactions, since the undo actions will cause buffer changes.
                 _subjectBuffer.ChangedLowPriority -= OnTextBufferChanged;
 
                 foreach (var view in _textViews)
