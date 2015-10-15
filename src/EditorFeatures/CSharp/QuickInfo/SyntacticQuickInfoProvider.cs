@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -59,12 +60,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 return null;
             }
 
-            // If the open brace is the first token of the node (like in the case of a block node or
-            // an accessor list node), then walk up one higher so we can show more useful context
-            // (like the method a block belongs to).
-            if (parent.GetFirstToken() == openBrace)
+            var spanStart = parent.SpanStart;
+            var spanEnd = openBrace.Span.End;
+
+            // If the parent is a scope block, check and include nearby comments around the open brace
+            // LeadingTrivia is preferred
+            if (parent.IsKind(SyntaxKind.Block) && parent.Parent.IsKind(SyntaxKind.Block))
             {
-                parent = parent.Parent;
+                MarkInterestedSpanNearbyScopeBlock(parent, openBrace, ref spanStart, ref spanEnd);
+            }
+            // If the parent is a child of a property/method declaration, object/array creation, or control flow node..
+            // then walk up one higher so we can show more useful context
+            else if (parent.GetFirstToken() == openBrace)
+            {
+                spanStart = parent.Parent.SpanStart;
             }
 
             // Now that we know what we want to display, create a small elision buffer with that
@@ -76,8 +85,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 return null;
             }
 
-            var span = new SnapshotSpan(textSnapshot, Span.FromBounds(parent.SpanStart, openBrace.Span.End));
+            var span = new SnapshotSpan(textSnapshot, Span.FromBounds(spanStart, spanEnd));
             return this.CreateElisionBufferDeferredContent(span);
+        }
+
+        private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
+        {
+            SyntaxTrivia nearbyTrivia;
+
+            if (openBrace.HasLeadingTrivia && FindFurthestNearbyComment(openBrace.LeadingTrivia.Reverse(), out nearbyTrivia))
+            {
+                spanStart = nearbyTrivia.SpanStart;
+                return;
+            }
+
+            var nextToken = block.FindToken(openBrace.FullSpan.End);
+            if (nextToken.HasLeadingTrivia && FindFurthestNearbyComment(nextToken.LeadingTrivia, out nearbyTrivia))
+            {
+                spanEnd = nearbyTrivia.Span.End;
+                return;
+            }
+        }
+
+        private static bool FindFurthestNearbyComment(IEnumerable<SyntaxTrivia> triviaSearchList, out SyntaxTrivia nearbyTrivia)
+        {
+            var searchList = triviaSearchList.SkipWhile(IsIndentation).ToArray();
+
+            if (searchList.Length == 0)
+            {
+                nearbyTrivia = default(SyntaxTrivia);
+                return false;
+            }
+
+            nearbyTrivia = searchList[0];
+            if (nearbyTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+            {
+                return true;
+            }
+
+            // In case of line comments that are potentially
+            // stacked like this, crawl and find the furthest
+            var further = searchList[0];
+            for ( var i = 0; further.IsKind(SyntaxKind.SingleLineCommentTrivia); )
+            {
+                nearbyTrivia = further;
+                i++;
+
+                for ( int skipped = 0; i < searchList.Length && IsIndentation(searchList[i], skipped); )
+                {
+                    skipped++;
+                    i++;
+                }
+
+                if (i < searchList.Length)
+                {
+                    further = searchList[i];
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return nearbyTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+        }
+
+        private static bool IsIndentation(SyntaxTrivia trivia, int skipped)
+        {
+            // At most one empty line when there are no indentation
+            // but in 99% times there should be indentation as we are just testing against scope blocks.
+            return skipped < 2 && (trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia));
         }
     }
 }

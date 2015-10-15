@@ -34,6 +34,87 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             ExpectedContent("if (true)\r\n{"));
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_0()
+        {
+            TestInMethod(@"
+            if (true)
+            {
+                {
+                }$$
+            }
+",
+            ExpectedContent("{"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_1()
+        {
+            TestInMethod(@"
+            if (true)
+            {
+                // some
+                // comment
+                {
+                }$$
+            }
+",
+            ExpectedContent(
+@"// some
+// comment
+{"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_2()
+        {
+            TestInMethod(@"
+            if (true)
+            {
+                /* comment */
+                {
+                }$$
+            }
+",
+            ExpectedContent(
+@"/* comment */
+{"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_3()
+        {
+            TestInMethod(@"
+            if (true)
+            {
+                {
+                    // some
+                    // comment
+                }$$
+            }
+",
+            ExpectedContent(
+@"{
+    // some
+    // comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_4()
+        {
+            TestInMethod(@"
+            if (true)
+            {
+                {
+                    /* comment */
+                }$$
+            }
+",
+            ExpectedContent(
+@"{
+    /* comment */"));
+        }
+
         private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
             return new SyntacticQuickInfoProvider(
