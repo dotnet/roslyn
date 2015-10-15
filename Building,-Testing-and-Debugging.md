@@ -1,4 +1,4 @@
-# Building, Testing, and Debugging
+# Building, Testing and Debugging
 _This page contains instructions for building Roslyn on Windows. For special instructions on **building Roslyn on Linux** see [here](https://github.com/dotnet/roslyn/blob/master/docs/infrastructure/cross-platform.md)._
 
 ## Required Software
