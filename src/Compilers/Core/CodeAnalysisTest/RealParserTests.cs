@@ -394,10 +394,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             if (!RealParser.TryParseDouble(s, out actual)) actual = 1.0 / 0.0;
             if (!actual.Equals(expected))
             {
+#if DEBUG
                 throw new AssertFailureException($@"
 Error for double input ""{s}""
    expected {expected:G17}
    actual {actual:G17}");
+#else
+                throw new Exception($@"
+Error for double input ""{s}""
+   expected {expected:G17}
+   actual {actual:G17}");
+#endif
             }
         }
 
