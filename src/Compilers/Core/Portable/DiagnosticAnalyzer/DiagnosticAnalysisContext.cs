@@ -634,15 +634,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public abstract class OperationBlockStartAnalysisContext
     {
-        private readonly IOperation _codeBlock;
+        private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
         private readonly AnalyzerOptions _options;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Method body or expression subject to analysis.
+        /// Method body and/or expressions subject to analysis.
         /// </summary>
-        public IOperation CodeBlock => _codeBlock;
+        public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
         /// <see cref="ISymbol"/> for which the code block provides a definition or value.
@@ -659,9 +659,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        protected OperationBlockStartAnalysisContext(IOperation codeBlock, ISymbol owningSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected OperationBlockStartAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            _codeBlock = codeBlock;
+            _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
             _options = options;
             _cancellationToken = cancellationToken;
@@ -702,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public struct OperationBlockAnalysisContext
     {
-        private readonly IOperation _operationBlock;
+        private readonly ImmutableArray<IOperation> _operationBlocks;
         private readonly ISymbol _owningSymbol;
         private readonly AnalyzerOptions _options;
         private readonly Action<Diagnostic> _reportDiagnostic;
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Code block that is the subject of the analysis.
         /// </summary>
-        public IOperation CodeBlock => _operationBlock;
+        public ImmutableArray<IOperation> CodeBlock => _operationBlocks;
 
         /// <summary>
         /// <see cref="ISymbol"/> for which the code block provides a definition or value.
@@ -729,9 +729,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        public OperationBlockAnalysisContext(IOperation operationBlock, ISymbol owningSymbol, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        public OperationBlockAnalysisContext(ImmutableArray<IOperation> operationBlocks, ISymbol owningSymbol, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
         {
-            _operationBlock = operationBlock;
+            _operationBlocks = operationBlocks;
             _owningSymbol = owningSymbol;
             _options = options;
             _reportDiagnostic = reportDiagnostic;

@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             get { return ImmutableArray.Create(FieldCouldBeReadOnlyDescriptor); }
         }
 
+        bool control = true;
+
         public sealed override void Initialize(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(
@@ -42,14 +44,19 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                          {
                              IMethodSymbol containingMethod = operationBlockContext.OwningSymbol as IMethodSymbol;
 
+                             if (control) throw new System.InvalidOperationException("Executing operation block start!");
+
                              if (containingMethod != null)
                              {
                                  bool inConstructor = containingMethod.MethodKind == MethodKind.Constructor;
                                  ITypeSymbol inStaticConstructor = containingMethod.MethodKind == MethodKind.StaticConstructor ? containingMethod.ContainingType : null;
 
+                                 if (control) throw new System.InvalidOperationException("Executing operation block start with containing method!");
+
                                  operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
+                                        if (control) throw new System.InvalidOperationException("Executing operation action for assignment!");
                                         IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
                                         AssignTo(assignment.Target, inConstructor, inStaticConstructor, assignedToFields, mightBecomeReadOnlyFields);
                                     },
@@ -59,6 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                  compilationContext.RegisterOperationAction(
                                      (operationContext) =>
                                      {
+                                         if (control) throw new System.InvalidOperationException("Executing operation action for invocation!");
                                          IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
                                          foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
                                          {

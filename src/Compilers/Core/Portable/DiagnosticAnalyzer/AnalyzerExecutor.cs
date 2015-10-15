@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            ISymbol declaredSymbol,
            ImmutableArray<SyntaxNode> executableCodeBlocks,
            SemanticModel semanticModel,
-           ImmutableArray<IOperation> operations,
+           ImmutableArray<IOperation> operationBlocks,
            Func<SyntaxNode, TLanguageKindEnum> getKind,
            AnalysisState.BlockAnalyzerStateData<TBlockAction, TNodeStateData> analyzerStateOpt)
            where TLanguageKindEnum : struct
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 {
                                     var operationBlockScope = new HostOperationBlockStartAnalysisScope();
                                     var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(da.Analyzer,
-                                        operationBlockScope, operation, declaredSymbol, _analyzerOptions, _cancellationToken);
+                                        operationBlockScope, operationBlocks, declaredSymbol, _analyzerOptions, _cancellationToken);
                                     operationBlockStartAction.Action(operationStartContext);
                                     operationBlockEndActions.AddAll(operationBlockScope.OperationBlockEndActions);
                                     operationActions.AddRange(operationBlockScope.OperationActions);
@@ -627,14 +627,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
-                    ExecuteOperationActions(operations, operationActionsByKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
+                    ExecuteOperationActions(operationBlocks, operationActionsByKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
                 }
             }
 
             executableNodeActions.Free();
 
-            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, semanticModel, operation, addDiagnostic, analyzerStateOpt);
-            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, semanticModel, operation, addDiagnostic, analyzerStateOpt);
+            ExecuteBlockActions(blockActions, declaredNode, declaredSymbol, semanticModel, operationBlocks, addDiagnostic, analyzerStateOpt);
+            ExecuteBlockActions(blockEndActions, declaredNode, declaredSymbol, semanticModel, operationBlocks, addDiagnostic, analyzerStateOpt);
         }
 
         private void ExecuteBlockActions<TBlockAction, TNodeStateData>(
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             SemanticModel semanticModel,
-            IOperation operation,
+            ImmutableArray<IOperation> operationBlocks,
             Action<Diagnostic> addDiagnostic,
             AnalysisState.BlockAnalyzerStateData<TBlockAction, TNodeStateData> analyzerStateOpt)
             where TBlockAction : AnalyzerAction
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
                                 if (operationBlockAction != null)
                                 {
-                                    operationBlockAction.Action(new OperationBlockAnalysisContext(operation, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken));
+                                    operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken));
                                 }
                             }
                         });
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void ExecuteOperationBlockActions(
            PooledHashSet<OperationBlockAnalyzerAction> blockActions,
-           IOperation operation,
+           ImmutableArray<IOperation> operationBlocks,
            ISymbol declaredSymbol,
            Action<Diagnostic> addDiagnostic,
            CodeBlockAnalyzerStateData analyzerStateOpt)
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (ShouldExecuteAction(analyzerStateOpt, blockAction))
                 {
                     ExecuteAndCatchIfThrows(blockAction.Analyzer,
-                        () => blockAction.Action(new OperationBlockAnalysisContext(operation, declaredSymbol,_analyzerOptions, addDiagnostic,
+                        () => blockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol,_analyzerOptions, addDiagnostic,
                             d => IsSupportedDiagnostic(blockAction.Analyzer, d), _cancellationToken)));
 
                     analyzerStateOpt?.ProcessedActions.Add(blockAction);

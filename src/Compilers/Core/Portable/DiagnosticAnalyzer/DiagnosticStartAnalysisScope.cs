@@ -181,11 +181,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal AnalyzerOperationBlockStartAnalysisContext(DiagnosticAnalyzer analyzer,
                                                             HostOperationBlockStartAnalysisScope scope,
-                                                            IOperation codeBlock,
+                                                            ImmutableArray<IOperation> operationBlocks,
                                                             ISymbol owningSymbol,
                                                             AnalyzerOptions options,
                                                             CancellationToken cancellationToken)
-            : base(codeBlock, owningSymbol, options, cancellationToken)
+            : base(operationBlocks, owningSymbol, options, cancellationToken)
         {
             _analyzer = analyzer;
             _scope = scope;
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions
         {
-            get { return _operationBlockStartActions; }
+            get { if (!_operationBlockStartActions.IsEmpty) throw new InvalidOperationException("Getting an operation block start"); return _operationBlockStartActions; }
         }
 
         internal ImmutableArray<OperationAnalyzerAction> OperationActions
@@ -774,6 +774,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._codeBlockActions = _codeBlockActions.AddRange(otherActions._codeBlockActions);
             actions._syntaxNodeActions = _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions);
             actions._operationActions = _operationActions.AddRange(otherActions._operationActions);
+            actions._operationBlockStartActions = _operationBlockStartActions.AddRange(otherActions._operationBlockStartActions);
+            actions._operationBlockEndActions = _operationBlockEndActions.AddRange(otherActions._operationBlockEndActions);
+            actions._operationBlockActions = _operationBlockActions.AddRange(otherActions._operationBlockActions);
 
             return actions;
         }
