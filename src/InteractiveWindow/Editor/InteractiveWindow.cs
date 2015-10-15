@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -62,7 +63,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             IRtfBuilderService rtfBuilderService,
             IIntellisenseSessionStackMapService intellisenseSessionStackMap,
             ISmartIndentationService smartIndenterService,
-            IInteractiveEvaluator evaluator)
+            IInteractiveEvaluator evaluator,
+            IWaitIndicator waitIndicator)
         {
             if (evaluator == null)
             {
@@ -80,7 +82,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 rtfBuilderService,
                 intellisenseSessionStackMap,
                 smartIndenterService,
-                evaluator);
+                evaluator,
+                waitIndicator);
 
             evaluator.CurrentWindow = this;
 

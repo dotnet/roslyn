@@ -199,9 +199,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             if (initialScriptCodeOpt != null)
             {
                 var script = Script.CreateInitialScript<object>(_scriptCompiler, initialScriptCodeOpt, options, globals.GetType(), assemblyLoaderOpt: null);
-
-                Compilation compilation;
-                TryBuildAndRun(script, globals, ref state, out compilation, cancellationToken);
+                TryBuildAndRun(script, globals, ref state, cancellationToken);
             }
 
             while (true)
@@ -259,42 +257,24 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     newScript = state.Script.ContinueWith(code, options);
                 }
 
-                Compilation newCompilation;
-                if (!TryBuildAndRun(newScript, globals, ref state, out newCompilation, cancellationToken))
+                if (!TryBuildAndRun(newScript, globals, ref state, cancellationToken))
                 {
                     continue;
                 }
 
-                bool hasValue;
-                ITypeSymbol resultType = newCompilation.GetSubmissionResultType(out hasValue);
-                if (hasValue)
+                if (newScript.HasReturnValue())
                 {
-                    if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                    {
-                        _console.Out.WriteLine(_objectFormatter.VoidDisplayString);
-                    }
-                    else
-                    {
-                        globals.Print(state.ReturnValue);
-                    }
+                    globals.Print(state.ReturnValue);
                 }
             }
         }
 
-        private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, out Compilation newCompilation, CancellationToken cancellationToken)
+        private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, CancellationToken cancellationToken)
         {
-            newCompilation = newScript.GetCompilation();
-
-            try
+            var diagnostics = newScript.Build(cancellationToken);
+            DisplayDiagnostics(diagnostics);
+            if (diagnostics.HasAnyErrors())
             {
-                newScript.Build(cancellationToken);
-
-                // display warnings:
-                DisplayDiagnostics(newCompilation.GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Warning));
-            }
-            catch (CompilationErrorException e)
-            {
-                DisplayDiagnostics(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
                 return false;
             }
 

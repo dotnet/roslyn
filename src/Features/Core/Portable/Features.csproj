@@ -171,7 +171,6 @@
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
-    <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
     <Compile Include="Diagnostics\IDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptionsProvider.cs" />
@@ -193,7 +192,6 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticCategory.cs" />
     <Compile Include="Diagnostics\DiagnosticCustomTags.cs" />
-    <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticLogAggregator.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticLogger.cs" />
     <Compile Include="Diagnostics\DiagnosticProviderMetadata.cs" />
@@ -210,9 +208,7 @@
     <Compile Include="Diagnostics\IDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\IDiagnosticService.cs" />
     <Compile Include="Diagnostics\IDiagnosticUpdateSource.cs" />
-    <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\IWorkspaceDiagnosticAnalyzerProviderService.cs" />
-    <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
     <Compile Include="Diagnostics\ISupportLiveUpdate.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />

@@ -361,6 +361,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new options instance with the deterministic property set accordingly.
+        /// </summary>
+        public CompilationOptions WithDeterministic(bool deterministic)
+        {
+            return CommonWithDeterministic(deterministic);
+        }
+
+        /// <summary>
         /// Creates a new options instance with the specified output kind.
         /// </summary>
         public CompilationOptions WithOutputKind(OutputKind kind)
@@ -409,6 +417,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);

@@ -292,9 +292,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(Win32Resource)]; }
         }
 
+        public string PathMap
+        {
+            set { _store[nameof(PathMap)] = value; }
+            get { return (string)_store[nameof(PathMap)]; }
+        }
+
         /// <summary>
         /// If this property is true then the task will take every C# or VB
-        /// compilation which is queued by MSBuild and send it to the 
+        /// compilation which is queued by MSBuild and send it to the
         /// VBCSCompiler server instance, starting a new instance if necessary.
         /// If false, we will use the values from ToolPath/Exe.
         /// </summary>
@@ -304,9 +310,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(UseSharedCompilation), false); }
         }
 
-        // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the 
-        // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit 
-        // property is set. 
+        // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the
+        // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit
+        // property is set.
         internal string PlatformWith32BitPreference
         {
             get
@@ -462,7 +468,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// The return code of the compilation. Strangely, this isn't overridable from ToolTask, so we need 
+        /// The return code of the compilation. Strangely, this isn't overridable from ToolTask, so we need
         /// to create our own.
         /// </summary>
         [Output]
@@ -630,6 +636,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/nowin32manifest", _store, nameof(NoWin32Manifest));
             commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
             commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
+            commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
             commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", ErrorLog);
@@ -662,7 +669,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
-            { 
+            {
                 commandLine.AppendSwitchIfNotNull("/features:", feature.Trim());
             }
         }
@@ -706,7 +713,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Configure the debug switches which will be placed on the compiler command-line.
         /// The matrix of debug type and symbol inputs and the desired results is as follows:
-        /// 
+        ///
         /// Debug Symbols              DebugType   Desired Results
         ///          True               Full        /debug+ /debug:full
         ///          True               PdbOnly     /debug+ /debug:PdbOnly
@@ -721,7 +728,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///          Blank              None        /debug-
         /// Debug:   Blank              Blank       /debug+ //Microsoft.common.targets will set this
         /// Release: Blank              Blank       "Nothing for either switch"
-        /// 
+        ///
         /// The logic is as follows:
         /// If debugtype is none  set debugtype to empty and debugSymbols to false
         /// If debugType is blank  use the debugsymbols "as is"
@@ -820,11 +827,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected override bool HandleTaskExecutionErrors()
         {
             // For managed compilers, the compiler should emit the appropriate
-            // error messages before returning a non-zero exit code, so we don't 
+            // error messages before returning a non-zero exit code, so we don't
             // normally need to emit any additional messages now.
             //
             // If somehow the compiler DID return a non-zero exit code and didn't log an error, we'd like to log that exit code.
-            // We can only do this for the command line compiler: if the inproc compiler was used, 
+            // We can only do this for the command line compiler: if the inproc compiler was used,
             // we can't tell what if anything it logged as it logs directly to Visual Studio's output window.
             //
             if (!Log.HasLoggedErrors && UsedCommandLineTool)
@@ -911,16 +918,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// The IDE and command line compilers unfortunately differ in how win32 
-        /// manifests are specified.  In particular, the command line compiler offers a 
-        /// "/nowin32manifest" switch, while the IDE compiler does not offer analogous 
-        /// functionality. If this switch is omitted from the command line and no win32 
-        /// manifest is specified, the compiler will include a default win32 manifest 
-        /// named "default.win32manifest" found in the same directory as the compiler 
+        /// The IDE and command line compilers unfortunately differ in how win32
+        /// manifests are specified.  In particular, the command line compiler offers a
+        /// "/nowin32manifest" switch, while the IDE compiler does not offer analogous
+        /// functionality. If this switch is omitted from the command line and no win32
+        /// manifest is specified, the compiler will include a default win32 manifest
+        /// named "default.win32manifest" found in the same directory as the compiler
         /// executable. Again, the IDE compiler does not offer analogous support.
-        /// 
-        /// We'd like to imitate the command line compiler's behavior in the IDE, but 
-        /// it isn't aware of the default file, so we must compute the path to it if 
+        ///
+        /// We'd like to imitate the command line compiler's behavior in the IDE, but
+        /// it isn't aware of the default file, so we must compute the path to it if
         /// noDefaultWin32Manifest is false and no win32Manifest was provided by the
         /// project.
         ///

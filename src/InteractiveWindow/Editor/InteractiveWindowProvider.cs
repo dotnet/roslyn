@@ -3,6 +3,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -24,6 +25,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly IIntellisenseSessionStackMapService _intellisenseSessionStackMap;
         private readonly ISmartIndentationService _smartIndenterService;
         private readonly IInteractiveWindowEditorFactoryService _windowFactoryService;
+        private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public InteractiveWindowProvider(
@@ -35,7 +37,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             IRtfBuilderService rtfBuilderService,
             IIntellisenseSessionStackMapService intellisenseSessionStackMap,
             ISmartIndentationService smartIndenterService,
-            IInteractiveWindowEditorFactoryService windowFactoryService)
+            IInteractiveWindowEditorFactoryService windowFactoryService,
+            IWaitIndicator waitIndicator)
         {
             _contentTypeRegistry = contentTypeRegistry;
             _bufferFactory = bufferFactory;
@@ -46,6 +49,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _intellisenseSessionStackMap = intellisenseSessionStackMap;
             _smartIndenterService = smartIndenterService;
             _windowFactoryService = windowFactoryService;
+            _waitIndicator = waitIndicator;
         }
 
         public IInteractiveWindow CreateWindow(IInteractiveEvaluator evaluator)
@@ -65,7 +69,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _rtfBuilderService,
                 _intellisenseSessionStackMap,
                 _smartIndenterService,
-                evaluator);
+                evaluator,
+                _waitIndicator);
         }
     }
 }
