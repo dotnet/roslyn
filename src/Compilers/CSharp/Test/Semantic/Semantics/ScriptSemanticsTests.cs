@@ -86,7 +86,7 @@ this[1]
         [Fact]
         public void NoReferences()
         {
-            var submission = CSharpCompilation.CreateSubmission("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
+            var submission = CSharpCompilation.CreateScriptCompilation("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
             submission.VerifyDiagnostics(
                 // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // 1

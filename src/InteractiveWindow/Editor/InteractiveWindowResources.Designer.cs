@@ -365,5 +365,23 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
                 return ResourceManager.GetString("Usage", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generating Rich Text Format representation from selection..
+        /// </summary>
+        internal static string WaitMessage {
+            get {
+                return ResourceManager.GetString("WaitMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy.
+        /// </summary>
+        internal static string WaitTitle {
+            get {
+                return ResourceManager.GetString("WaitTitle", resourceCulture);
+            }
+        }
     }
 }

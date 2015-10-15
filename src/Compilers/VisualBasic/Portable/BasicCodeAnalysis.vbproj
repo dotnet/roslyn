@@ -361,6 +361,7 @@
     <Compile Include="Compilation\VisualBasicCompilationReference.vb" />
     <Compile Include="Compilation\VisualBasicCompilerDiagnosticAnalyzer.vb" />
     <Compile Include="Compilation\VisualBasicDiagnosticFilter.vb" />
+    <Compile Include="Compilation\VisualBasicScriptCompilationInfo.vb" />
     <Compile Include="Declarations\Declaration.vb" />
     <Compile Include="Declarations\DeclarationKind.vb" />
     <Compile Include="Declarations\DeclarationModifiers.vb" />

@@ -99,10 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal AliasSymbol ToNewSubmission(CSharpCompilation compilation)
         {
-            Debug.Assert(_state.HasComplete(CompletionPart.AliasTarget));
             Debug.Assert(_binder.Compilation.IsSubmission);
 
-            var previousTarget = _aliasTarget;
+            // We can pass basesBeingResolved: null because base type cycles can't cross
+            // submission boundaries - there's no way to depend on a subsequent submission.
+            var previousTarget = GetAliasTarget(basesBeingResolved: null);
             if (previousTarget.Kind != SymbolKind.Namespace)
             {
                 return this;
