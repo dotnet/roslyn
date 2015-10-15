@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         public async override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(Solution solution, ProjectId projectId, DocumentId documentId, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var diagnostics = await (new IDELatestDiagnosticGetter(this).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken)).ConfigureAwait(false);
+            var diagnostics = await (new IDELatestDiagnosticGetter(this, concurrent: documentId == null).GetDiagnosticsAsync(solution, projectId, documentId, cancellationToken)).ConfigureAwait(false);
             return FilterSuppressedDiagnostics(diagnostics, includeSuppressedDiagnostics);
         }
 
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     for (int i = 0; i < documents.Length; i++)
                     {
                         var document = documents[i];
-                        tasks[i] = Task.Run(async () => await AppendDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false), cancellationToken);
+                        tasks[i] = AppendDiagnosticsAsync(document, cancellationToken);
                     };
 
                     await Task.WhenAll(tasks).ConfigureAwait(false);

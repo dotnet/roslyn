@@ -128,6 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var solution = _workspace.CurrentSolution;
             foreach (var project in solution.Projects)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (shouldFixInProject(project))
                 {
                     var diagnostics = await _diagnosticService.GetDiagnosticsAsync(solution, project.Id, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -226,6 +228,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     return;
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 // Equivalence key determines what fix will be applied.
                 // Make sure we don't include any specific diagnostic ID, as we want all of the given diagnostics (which can have varied ID) to be fixed.
                 var equivalenceKey = isAddSuppression ?
@@ -240,6 +244,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 {
                     // Use the Fix multiple occurrences service to compute a bulk suppression fix for the specified document and project diagnostics,
                     // show a preview changes dialog and then apply the fix to the workspace.
+
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
                     if (!documentDiagnosticsPerLanguage.IsEmpty)
@@ -256,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                 equivalenceKey,
                                 title,
                                 waitDialogMessage,
-                                cancellationToken: CancellationToken.None);
+                                cancellationToken);
                             if (newSolution == null)
                             {
                                 // User cancelled or fixer threw an exception, so we just bail out.
@@ -281,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                                  equivalenceKey,
                                  title,
                                  waitDialogMessage,
-                                 CancellationToken.None);
+                                 cancellationToken);
                             if (newSolution == null)
                             {
                                 // User cancelled or fixer threw an exception, so we just bail out.
