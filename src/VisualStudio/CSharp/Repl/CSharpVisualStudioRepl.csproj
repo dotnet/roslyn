@@ -149,7 +149,6 @@
     <Compile Include="CSharpVsInteractiveWindowPackage.cs" />
     <Compile Include="CSharpVsInteractiveWindowCommandProvider.cs" />
     <Content Include="CSharpInteractive.rsp" />
-    <Content Include="Resources\CSharpInteractive.png" />
     <Content Include="Resources\ScriptFile.ico" />
     <Content Include="SeedUsings.csx" />
   </ItemGroup>
