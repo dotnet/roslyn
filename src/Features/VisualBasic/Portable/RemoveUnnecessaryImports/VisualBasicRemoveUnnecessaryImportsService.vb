@@ -1,19 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Internal.Log
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
     <ExportLanguageService(GetType(IRemoveUnnecessaryImportsService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicRemoveUnnecessaryImportsService
+        Inherits AbstractRemoveUnnecessaryImportsService(Of ImportsClauseSyntax)
         Implements IRemoveUnnecessaryImportsService
 
         Public Shared Function GetUnnecessaryImports(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
@@ -33,19 +32,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                     End Function).ToSet()
         End Function
 
-        Public Function RemoveUnnecessaryImports(document As Document, model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As Document Implements IRemoveUnnecessaryImportsService.RemoveUnnecessaryImports
+        Public Async Function RemoveUnnecessaryImportsAsync(document As Document, cancellationToken As CancellationToken) As Task(Of Document) Implements IRemoveUnnecessaryImportsService.RemoveUnnecessaryImportsAsync
             Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
-                Dim unnecessaryImports = DirectCast(GetIndividualUnnecessaryImports(model, root, cancellationToken), ISet(Of ImportsClauseSyntax))
+
+                Dim unnecessaryImports = Await GetCommonUnnecessaryImportsOfAllContextAsync(document, cancellationToken).ConfigureAwait(False)
                 If unnecessaryImports Is Nothing OrElse unnecessaryImports.Any(Function(import) import.OverlapsHiddenPosition(cancellationToken)) Then
                     Return document
                 End If
+
+                Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
                 Dim newRoot = New Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot)
                 newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
 
+                If cancellationToken.IsCancellationRequested Then
+                    Return Nothing
+                End If
+
                 Return document.WithSyntaxRoot(newRoot)
             End Using
+        End Function
+
+        Protected Overrides Function GetUnusedUsings(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ImportsClauseSyntax)
+            Return DirectCast(GetIndividualUnnecessaryImports(model, root, cancellationToken), IEnumerable(Of ImportsClauseSyntax))
         End Function
 
         Private Shared Function GetIndividualUnnecessaryImports(semanticModel As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode)
