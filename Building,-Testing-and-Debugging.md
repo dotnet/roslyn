@@ -29,4 +29,4 @@ To debug suites use the *xunit.console.x86.exe* runner command which is included
 Please see [[Contributing Code]] for details on contributing changes back to the code.
 
 ## Deploying and testing within Visual Studio
-There is not a supported way to deploy and test any changes you have made within Visual Studio itself. However, we're working adding support for this and will be coming soon.
+There is not a supported way to deploy and test any changes you have made within Visual Studio itself. We're currently working on adding support for this and will be coming soon.
