@@ -1,6 +1,9 @@
 # Building, Testing and Debugging
 _This page contains instructions for building Roslyn on Windows. For special instructions on **building Roslyn on Linux** see [here](https://github.com/dotnet/roslyn/blob/master/docs/infrastructure/cross-platform.md)._
 
+## Known Issues
+Please see the [known contributor issues](https://github.com/dotnet/roslyn/labels/Contributor-Known-Issue) that you might encounter contributing to Roslyn. If you issue isn't listed, please file it.
+
 ## Required Software
 
 - Visual Studio 2015 with the [Visual Studio Extensibility and Windows 10 tools optional components](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015) installed
