@@ -81,9 +81,9 @@ class C : Abracadabra
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"(?s)^.*$", ErrorId);
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"Abracadabra", ErrorId);
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"C : Abracadabra", ErrorId);
-            DiagnosticsHelper.VerifyDiagnostics(model, source, @"C : Abracadabr");
+            DiagnosticsHelper.VerifyDiagnostics(model, source, @"C : Abracadabr", ErrorId);
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"Abracadabra[\r\n]+", ErrorId);
-            DiagnosticsHelper.VerifyDiagnostics(model, source, @"bracadabra[\r\n]+");
+            DiagnosticsHelper.VerifyDiagnostics(model, source, @"bracadabra[\r\n]+", ErrorId);
         }
 
         [Fact, WorkItem(1066483)]

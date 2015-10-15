@@ -56,15 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                         if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments.ElementAt(0).Expression, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken, ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
                         }
                         else if (node.Expression.Kind() == SyntaxKind.IdentifierName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments.ElementAt(0).Expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else if (node.Expression.Kind() == SyntaxKind.GenericName)
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments.ElementAt(0).Expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                            newMemberAccess = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, argumentList.Arguments[0].Expression, (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
                         }
                         else
                         {

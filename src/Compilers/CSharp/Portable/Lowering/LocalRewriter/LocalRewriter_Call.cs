@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the actual expression we were storing and add it as an argument - this one does
                 // not need a temp. if there are any unclaimed stores before the found one, add them
                 // as side effects that precede this arg, they cannot happen later.
-                // NOTE: missing optional parameters are not filled yet and therefore nulls - no need to do anythng for them
+                // NOTE: missing optional parameters are not filled yet and therefore nulls - no need to do anything for them
                 if (argument?.Kind == BoundKind.Local)
                 {
                     var correspondingStore = -1;
@@ -874,8 +874,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parameter.IsOptional);
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
             BoundExpression defaultValue;
-
             SourceLocation callerSourceLocation;
+
+            // For compatibility with the native compiler we treat all bad imported constant
+            // values as default(T).  
+            if (defaultConstantValue != null && defaultConstantValue.IsBad)
+            {
+                defaultConstantValue = ConstantValue.Null;
+            }
 
             if (parameter.IsCallerLineNumber && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {

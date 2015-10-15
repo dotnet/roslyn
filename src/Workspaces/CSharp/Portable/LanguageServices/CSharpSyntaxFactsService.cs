@@ -555,20 +555,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.MemberBindingExpression))
-            {
-                if (node.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-                {
-                    return GetExpressionOfConditionalMemberAccessExpression(node.Parent);
-                }
-                if (node.IsParentKind(SyntaxKind.InvocationExpression) &&
-                    node.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-                {
-                    return GetExpressionOfConditionalMemberAccessExpression(node.Parent.Parent);
-                }
-            }
-
-            return (node as MemberAccessExpressionSyntax)?.Expression;
+            return node.IsKind(SyntaxKind.MemberBindingExpression)
+                ? GetExpressionOfConditionalMemberAccessExpression(node.GetParentConditionalAccessExpression()) 
+                : (node as MemberAccessExpressionSyntax)?.Expression;
         }
 
         public SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node)
@@ -724,7 +713,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (useFullSpan || node.Span.Contains(position))
                 {
-                    if ((node.Kind() != SyntaxKind.GlobalStatement) && (node is MemberDeclarationSyntax))
+                    var kind = node.Kind();
+                    if ((kind != SyntaxKind.GlobalStatement) && (kind != SyntaxKind.IncompleteMember) && (node is MemberDeclarationSyntax))
                     {
                         return node;
                     }
@@ -993,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var names = ArrayBuilder<string>.GetInstance();
             // containing type(s)
-            var parent = (SyntaxNode)node.GetAncestor<TypeDeclarationSyntax>() ?? node.Parent;
+            var parent = node.GetAncestor<TypeDeclarationSyntax>() ?? node.Parent;
             while (parent is TypeDeclarationSyntax)
             {
                 names.Push(GetName(parent, options));
@@ -1041,6 +1031,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     var identifier = ((IdentifierNameSyntax)node).Identifier;
                     return identifier.IsMissing ? missingTokenPlaceholder : identifier.Text;
+                case SyntaxKind.IncompleteMember:
+                    return missingTokenPlaceholder;
                 case SyntaxKind.NamespaceDeclaration:
                     return GetName(((NamespaceDeclarationSyntax)node).Name, options);
                 case SyntaxKind.QualifiedName:
@@ -1397,6 +1389,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             openBrace = default(SyntaxToken);
             return false;
+        }
+
+        public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
+            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
+            {
+                return trivia.FullSpan;
+            }
+
+            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                var triviaList = token.LeadingTrivia;
+                foreach (var triviaTok in triviaList.Reverse())
+                {
+                    if (triviaTok.Span.Contains(position))
+                    {
+                        return default(TextSpan);
+                    }
+
+                    if (triviaTok.Span.End < position)
+                    {
+                        if (!triviaTok.HasStructure)
+                        {
+                            return default(TextSpan);
+                        }
+
+                        var structure = triviaTok.GetStructure();
+                        if (structure is BranchingDirectiveTriviaSyntax)
+                        {
+                            var branch = (BranchingDirectiveTriviaSyntax)structure;
+                            return !branch.IsActive || !branch.BranchTaken ? TextSpan.FromBounds(branch.FullSpan.Start, position) : default(TextSpan);
+                        }
+                    }
+                }
+            }
+
+            return default(TextSpan);
         }
     }
 }

@@ -230,7 +230,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             AppDomain.Unload(loadDomain);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(x86))]
         public void TestAnalyzerLoading_Error()
         {
             var analyzerSource = @"
@@ -254,6 +254,13 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+
+            // The other app domain in 64-bit tries to load xunit.dll so to work around bug 4959
+            // (https://github.com/dotnet/roslyn/issues/4959) we are copying xunit to the test directory.
+            if (Environment.Is64BitProcess)
+            {
+                var xunit = dir.CopyFile(typeof(FactAttribute).Assembly.Location);
+            }
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",

@@ -359,7 +359,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return null;
                 }
                 var otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
-                return new ArrayTypeSymbol(_otherAssembly, otherElementType, otherModifiers, symbol.Rank);
+
+                if (symbol.IsSZArray)
+                {
+                    return ArrayTypeSymbol.CreateSZArray(_otherAssembly, otherElementType, otherModifiers);
+                }
+
+                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, otherElementType, symbol.Rank, symbol.Sizes, symbol.LowerBounds, otherModifiers);
             }
 
             public override Symbol VisitEvent(EventSymbol symbol)
@@ -432,8 +438,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     }
 
                     var otherTypeParameters = otherDef.GetAllTypeParameters();
-                    var otherTypeArguments = typeArguments.SelectAsArray((t, v) => (TypeSymbol)v.Visit(t), this);
-                    if (otherTypeArguments.Any(t => (object)t == null))
+                    bool translationFailed = false;
+
+                    var otherTypeArguments = typeArguments.SelectAsArray((t, v) =>
+                                                                            {
+                                                                                var newType = (TypeSymbol)v.Visit(t.Type);
+
+                                                                                if ((object)newType == null)
+                                                                                {
+                                                                                    // For a newly added type, there is no match in the previous generation, so it could be null.
+                                                                                    translationFailed = true;
+                                                                                    newType = t.Type;
+                                                                                }
+
+                                                                                return new TypeWithModifiers(newType, v.VisitCustomModifiers(t.CustomModifiers));
+                                                                            }, this);
+
+                    if (translationFailed)
                     {
                         // For a newly added type, there is no match in the previous generation, so it could be null.
                         return null;
@@ -614,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(type.CustomModifiers.IsEmpty);
                 Debug.Assert(other.CustomModifiers.IsEmpty);
 
-                return (type.Rank == other.Rank) &&
+                return type.HasSameShapeAs(other) &&
                     AreTypesEqual(type.ElementType, other.ElementType);
             }
 
@@ -662,6 +683,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreNamedTypesEqual(NamedTypeSymbol type, NamedTypeSymbol other)
             {
                 Debug.Assert(s_nameComparer.Equals(type.Name, other.Name));
+                // TODO: Test with overloads (from PE base class?) that have modifiers.
+                Debug.Assert(!type.HasTypeArgumentsCustomModifiers);
+                Debug.Assert(!other.HasTypeArgumentsCustomModifiers);
                 return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
             }
 
@@ -799,7 +823,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 var translatedElementType = (TypeSymbol)this.Visit(symbol.ElementType);
                 var translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers);
-                return new ArrayTypeSymbol(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, translatedModifiers, symbol.Rank);
+
+                if (symbol.IsSZArray)
+                {
+                    return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, translatedModifiers);
+                }
+
+                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, symbol.Rank, symbol.Sizes, symbol.LowerBounds, translatedModifiers);
             }
 
             public override Symbol VisitDynamicType(DynamicTypeSymbol symbol)
@@ -813,7 +843,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if ((object)originalDef != type)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => (TypeSymbol)v.Visit(t), this);
+                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => new TypeWithModifiers((TypeSymbol)v.Visit(t.Type), 
+                                                                                                                                                  v.VisitCustomModifiers(t.CustomModifiers)), 
+                                                                                                                 this);
 
                     var translatedOriginalDef = (NamedTypeSymbol)this.Visit(originalDef);
                     var typeMap = new TypeMap(translatedOriginalDef.GetAllTypeParameters(), translatedTypeArguments, allowAlpha: true);

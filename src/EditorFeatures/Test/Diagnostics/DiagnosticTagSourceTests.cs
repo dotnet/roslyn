@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public class DiagnosticTagSourceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void Test_TagSourceDiffer()
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFiles(new string[] { "class A { }", "class E { }" }, CSharpParseOptions.Default))

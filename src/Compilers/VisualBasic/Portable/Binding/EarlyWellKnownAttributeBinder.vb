@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         Dim boundMethodGroup = TryCast(boundExpression, BoundMethodGroup)
-                        If boundMethodGroup IsNot Nothing AndAlso boundMethodGroup.Methods.Count = 1 Then
+                        If boundMethodGroup IsNot Nothing AndAlso boundMethodGroup.Methods.Length = 1 Then
 
                             Dim method = boundMethodGroup.Methods(0)
 

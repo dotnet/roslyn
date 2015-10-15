@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_originalFileAttributeName As String = "OriginalFile"
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestNoErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, Nothing)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleDeclarationError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestLineDirective()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleBindingError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestMultipleErrorsAndWarnings()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestBindingAndDeclarationErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         ' Diagnostics are ordered by project-id
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromMultipleProjects()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromTurnedOff()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False, enabled:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub WarningsAsErrors()
             Dim test =
                 <Workspace>
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub DiagnosticsInNoCompilationProjects()
             Dim test =
                 <Workspace>
@@ -376,9 +376,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                                        mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
             Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
                                       ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
-                                      workspace, projId, docId, Nothing,
-                                      mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn,
-                                      originalFile, originalLine, originalColumn, originalLine, originalColumn,
+                                      workspace, projId, New DiagnosticDataLocation(docId, Nothing,
+                                        originalFile, originalLine, originalColumn, originalLine, originalColumn,
+                                        mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
                                       Nothing, Nothing, Nothing)
         End Function
 
@@ -391,8 +391,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        x.Severity = y.Severity AndAlso
                        x.ProjectId = y.ProjectId AndAlso
                        x.DocumentId = y.DocumentId AndAlso
-                       x.OriginalStartLine = y.OriginalStartLine AndAlso
-                       x.OriginalStartColumn = y.OriginalStartColumn
+                       Equals(x.DataLocation?.OriginalStartLine, y.DataLocation?.OriginalStartLine) AndAlso
+                       Equals(x.DataLocation?.OriginalStartColumn, y.DataLocation?.OriginalStartColumn)
             End Function
 
             Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
@@ -400,8 +400,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                        Hash.Combine(obj.Message,
                        Hash.Combine(obj.ProjectId,
                        Hash.Combine(obj.DocumentId,
-                       Hash.Combine(obj.OriginalStartLine,
-                       Hash.Combine(obj.OriginalStartColumn, obj.Severity))))))
+                       Hash.Combine(If(obj.DataLocation?.OriginalStartLine, 0),
+                       Hash.Combine(If(obj.DataLocation?.OriginalStartColumn, 0), obj.Severity))))))
             End Function
         End Class
     End Class

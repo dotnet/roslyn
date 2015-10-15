@@ -2390,13 +2390,7 @@ class Test
         c.GAB(ref c); // modopts A, B (inside and outside ref, respectively)
     }
 }";
-            // NOTE: dev11 accepts all of these signatures, even though they are not valid
-            // according to the CLI spec.  Roslyn has special handling to accept GA, but
-            // still rejects GAB.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
-                // (16,9): error CS0570: 'C.GAB(ref ?)' is not supported by the language
-                //         c.GAB(ref c);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "GAB").WithArguments("C.GAB(ref ?)"));
+            CompileAndVerify(CreateCompilationWithCustomILSource(csharp, il));
         }
 
         [WorkItem(545653, "DevDiv")]

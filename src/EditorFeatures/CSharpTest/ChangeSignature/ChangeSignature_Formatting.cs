@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_KeepCountsPerLine()
         {
             var markup = @"
@@ -39,7 +39,7 @@ class C
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_Method()
         {
             var markup = @"
@@ -66,7 +66,7 @@ class C
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_Constructor()
         {
             var markup = @"
@@ -93,7 +93,7 @@ class SomeClass
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_Indexer()
         {
             var markup = @"
@@ -126,7 +126,7 @@ class SomeClass
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_Delegate()
         {
             var markup = @"
@@ -161,7 +161,7 @@ class SomeClass
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_AnonymousMethod()
         {
             var markup = @"
@@ -198,7 +198,7 @@ class SomeClass
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_ConstructorInitializers()
         {
             var markup = @"
@@ -235,7 +235,7 @@ class D : B
             TestChangeSignatureViaCommand(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_Attribute()
         {
             var markup = @"
@@ -257,7 +257,7 @@ class CustomAttribute : System.Attribute
         }
 
         [WorkItem(946220)]
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void ChangeSignature_Formatting_LambdaAsArgument()
         {
             var markup = @"class C

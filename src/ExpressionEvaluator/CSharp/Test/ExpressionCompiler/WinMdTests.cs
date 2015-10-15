@@ -318,7 +318,7 @@ class C
                 "f.RenderSize",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -347,6 +347,7 @@ class C
             ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.SelectAsArray(m => m.MetadataBlock),
                 "c.Dispatcher",
+                ImmutableArray<Alias>.Empty,
                 (metadataBlocks, _) =>
                 {
                     return CreateMethodContext(runtime, "C.M");

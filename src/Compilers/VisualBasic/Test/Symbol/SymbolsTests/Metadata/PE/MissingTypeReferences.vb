@@ -308,8 +308,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Same(substitution, DirectCast(missing, SubstitutedErrorType).TypeSubstitution)
             Assert.Same(TC.ContainingAssembly, missing.ContainingAssembly)
 
-            Assert.Same(missing, missing.InternalSubstituteTypeParameters(wrongSubstitution))
-            Assert.Same(missing.OriginalDefinition, missing.OriginalDefinition.InternalSubstituteTypeParameters(wrongSubstitution))
+            Assert.Same(missing, missing.InternalSubstituteTypeParameters(wrongSubstitution).AsTypeSymbolOnly())
+            Assert.Same(missing.OriginalDefinition, missing.OriginalDefinition.InternalSubstituteTypeParameters(wrongSubstitution).AsTypeSymbolOnly())
 
             substitution = TypeSubstitution.Create(TC, {TC.TypeParameters(0), TC.TypeParameters(1)}.AsImmutableOrNull(),
                                                        ImmutableArray.Create(Of TypeSymbol)(TC.TypeParameters(1), TC.TypeParameters(0)))
@@ -325,19 +325,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             missing = MissingC4.Construct(substitution)
             Assert.NotEqual(MissingC4, missing)
 
-            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
             Assert.Same(missing, missing2)
 
             substitution = TypeSubstitution.Create(TC, {TC.TypeParameters(0)}.AsImmutableOrNull(),
                                                        ImmutableArray.Create(Of TypeSymbol)(MissingC4.TypeParameters(0)))
 
-            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
             Assert.Same(MissingC4, missing2)
 
             substitution = TypeSubstitution.Create(MissingC4, {MissingC4.TypeParameters(1)}.AsImmutableOrNull(),
                                                        ImmutableArray.Create(Of TypeSymbol)(TC.TypeParameters(1)))
 
-            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
             Assert.NotEqual(missing, missing2)
             Assert.NotEqual(MissingC4, missing2)
             Assert.Same(MissingC4, missing2.OriginalDefinition)
@@ -352,19 +352,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.Same(MissingC7, missing.OriginalDefinition)
             Assert.Same(MissingC7, missing.ConstructedFrom)
 
-            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
             Assert.Same(missing, missing2)
 
             substitution = TypeSubstitution.Create(TC, {TC.TypeParameters(0)}.AsImmutableOrNull(),
                                                        ImmutableArray.Create(Of TypeSymbol)(MissingC7.TypeParameters(0)))
 
-            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
             Assert.Same(MissingC7, missing2)
 
             substitution = TypeSubstitution.Create(MissingC7, {MissingC7.TypeParameters(1)}.AsImmutableOrNull(),
                                                        ImmutableArray.Create(Of TypeSymbol)(TC.TypeParameters(1)))
 
-            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            missing2 = DirectCast(missing.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
             Assert.NotEqual(missing, missing2)
             Assert.NotEqual(MissingC7, missing2)
             Assert.Same(MissingC7, missing2.OriginalDefinition)

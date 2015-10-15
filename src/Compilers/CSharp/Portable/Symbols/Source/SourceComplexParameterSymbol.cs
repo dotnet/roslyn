@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly SyntaxReference _syntaxRef;
         private readonly ParameterSyntaxKind _parameterSyntaxKind;
-        private readonly ImmutableArray<CustomModifier> _customModifiers;
-        private readonly bool _hasByRefBeforeCustomModifiers;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private ThreeState _lazyHasOptionalAttribute;
@@ -39,8 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             TypeSymbol parameterType,
             RefKind refKind,
-            ImmutableArray<CustomModifier> customModifiers,
-            bool hasByRefBeforeCustomModifiers,
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
@@ -50,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(owner, parameterType, ordinal, refKind, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
-            Debug.Assert(!customModifiers.IsDefault);
 
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
@@ -72,8 +67,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _lazyDefaultSyntaxValue = defaultSyntaxValue;
-            _customModifiers = customModifiers;
-            _hasByRefBeforeCustomModifiers = hasByRefBeforeCustomModifiers;
         }
 
         internal override SyntaxReference SyntaxReference
@@ -1027,15 +1020,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _customModifiers;
+                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal override ushort CountOfCustomModifiersPrecedingByRef
         {
             get
             {
-                return _hasByRefBeforeCustomModifiers;
+                return 0;
             }
         }
 
@@ -1045,6 +1038,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Force binding of default value.
             var unused = this.ExplicitDefaultConstantValue;
+        }
+    }
+
+    internal sealed class SourceComplexParameterSymbolWithCustomModifiers : SourceComplexParameterSymbol
+    {
+        private readonly ImmutableArray<CustomModifier> _customModifiers;
+        private readonly ushort _countOfCustomModifiersPrecedingByRef;
+
+        internal SourceComplexParameterSymbolWithCustomModifiers(
+            Symbol owner,
+            int ordinal,
+            TypeSymbol parameterType,
+            RefKind refKind,
+            ImmutableArray<CustomModifier> customModifiers,
+            ushort countOfCustomModifiersPrecedingByRef,
+            string name,
+            ImmutableArray<Location> locations,
+            SyntaxReference syntaxRef,
+            ConstantValue defaultSyntaxValue,
+            bool isParams,
+            bool isExtensionMethodThis)
+            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
+        {
+            Debug.Assert(!customModifiers.IsDefaultOrEmpty);
+
+            _customModifiers = customModifiers;
+            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
+
+            Debug.Assert(refKind != RefKind.None || _countOfCustomModifiersPrecedingByRef == 0);
+            Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length);
+        }
+
+        public override ImmutableArray<CustomModifier> CustomModifiers
+        {
+            get
+            {
+                return _customModifiers;
+            }
+        }
+
+        internal override ushort CountOfCustomModifiersPrecedingByRef
+        {
+            get
+            {
+                return _countOfCustomModifiersPrecedingByRef;
+            }
         }
     }
 }

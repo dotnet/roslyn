@@ -318,6 +318,9 @@
   <data name="UnsupportedHashAlgorithm" xml:space="preserve">
     <value>Unsupported hash algorithm.</value>
   </data>
+  <data name="InconsistentLanguageVersions" xml:space="preserve">
+    <value>Inconsistent language versions</value>
+  </data>
   <data name="CoffResourceInvalidRelocation" xml:space="preserve">
     <value>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</value>
   </data>
@@ -481,5 +484,8 @@
   </data>
   <data name="InvalidTree" xml:space="preserve">
     <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
+  </data>
+  <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
+    <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
   </data>
 </root>

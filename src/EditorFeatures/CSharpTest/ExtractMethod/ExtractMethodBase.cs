@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
         {
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(codeWithMarker))
             {
-                Assert.NotNull(Record.Exception((Assert.ThrowsDelegate)(() =>
+                Assert.NotNull(Record.Exception(() =>
                 {
                     var testDocument = workspace.Documents.Single();
                     var tree = ExtractMethod(workspace, testDocument);
-                })));
+                }));
             }
         }
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.NotNull(result);
             Assert.Equal(succeed, result.Succeeded || result.SucceededWithSuggestion);
 
-            return (SyntaxNode)result.Document.GetSyntaxRootAsync().Result;
+            return result.Document.GetSyntaxRootAsync().Result;
         }
 
         protected void TestSelection(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null)

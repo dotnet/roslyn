@@ -7894,6 +7894,32 @@ public class Test
                 );
         }
 
+        [Fact, WorkItem(4424, "https://github.com/dotnet/roslyn/issues/4424")]
+        public void TieBreakOnNumberOfDeclaredParameters_06()
+        {
+            string source1 = @"
+class Test
+{
+    static void Fn(string x = """", string y = """", params object[] p) 
+    { 
+        System.Console.WriteLine(1); 
+    }
+
+    static void Fn(string x, params object[] p)
+    { 
+        System.Console.WriteLine(2); 
+    }
+
+    static void Main()
+    { Fn(""Hello"", p: ""World""); }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"2");
+        }
+
         [Fact, WorkItem(1099752, "DevDiv"), WorkItem(2291, "https://github.com/dotnet/roslyn/issues/2291")]
         public void BetterErrorMessage_01()
         {
@@ -8147,5 +8173,111 @@ namespace ClassLibraryOverloadResolution
     Diagnostic(ErrorCode.ERR_AmbigCall, "Should").WithArguments("FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)", "Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)").WithLocation(34, 18)
                 );
         }
+
+        [Fact, WorkItem(4970, "https://github.com/dotnet/roslyn/issues/4970")]
+        public void GenericExtensionMethodWithConstraintsAsADelegate()
+        {
+            var source =
+@"
+using System;
+
+public interface IDetail<T>
+{
+
+}
+
+public interface IMaster<T>
+{
+
+}
+
+public class MyClass
+{
+    static void Main()
+    {
+        Principal aPrincipal = new Principal();
+        Test(aPrincipal.RemoveDetail);
+        Test(aPrincipal.RemoveDetail<Principal,Permission>);
+
+        Action<Permission> a;
+        a = aPrincipal.RemoveDetail;
+        a(null);
+        a = aPrincipal.RemoveDetail<Principal,Permission>;
+        a(null);
+    }
+
+    static void Test(Action<Permission> a)
+    {
+        a(null);
+    }    
+}
+
+public class Permission : IDetail<Principal>
+{
+
+}
+
+public class Principal : IMaster<Permission>
+{
+}
+
+public static class Class
+{
+    public static void RemoveDetail<TMaster, TChild>(this TMaster master, TChild child)
+        where TMaster : class, IMaster<TChild>
+        where TChild : class, IDetail<TMaster>
+    {
+        System.Console.WriteLine(""RemoveDetail"");
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options:TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"RemoveDetail
+RemoveDetail
+RemoveDetail
+RemoveDetail");
+        }
+
+        [Fact, WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")]
+        public void GetSymbolOnfo_Inaccessible()
+        {
+            var source =
+@"
+class C
+{
+    private void M(D d)
+    {
+        d.M(1);
+    }
+}
+
+class D
+{
+    private void M(int i) { }
+    private void M(double d) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+
+            compilation.VerifyDiagnostics(
+    // (6,11): error CS0122: 'D.M(int)' is inaccessible due to its protection level
+    //         d.M(1);
+    Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("D.M(int)").WithLocation(6, 11)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(callSyntax);
+
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason);
+            var candidates = symbolInfo.CandidateSymbols;
+            Assert.Equal(2, candidates.Length);
+            Assert.Equal("void D.M(System.Int32 i)", candidates[0].ToTestDisplayString());
+            Assert.Equal("void D.M(System.Double d)", candidates[1].ToTestDisplayString());
+        }
+
     }
 }

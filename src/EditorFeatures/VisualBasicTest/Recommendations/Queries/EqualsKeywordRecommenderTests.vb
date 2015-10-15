@@ -6,7 +6,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class EqualsKeywordRecommenderTests
         <WorkItem(543136)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EqualsAfterJoinInOnIdentifier()
             Dim method = <MethodBody>
                              Dim arr = New Integer() {4, 5}
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
         End Sub
 
         <WorkItem(543136)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EqualsAfterJoinInOnBinaryExpression()
             Dim method = <MethodBody>
                              Dim arr = New Integer() {4, 5}

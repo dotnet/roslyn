@@ -82,20 +82,6 @@
 "version"="42.42.42.42"
 "codeBase"="$PackageFolder$\Microsoft.CodeAnalysis.Workspaces.dll"
 
-[$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{61F3FC17-A4C1-43C7-B5A4-28EC69C2B2DE}]
-"name"="Roslyn.SyntaxVisualizer.Control"
-"publicKeyToken"="31bf3856ad364e35"
-"culture"="neutral"
-"version"="42.42.42.42"
-"codeBase"="$PackageFolder$\Roslyn.SyntaxVisualizer.Control.dll"
-
-[$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{32142B8B-4B9B-48A6-8DD9-30C279581098}]
-"name"="Roslyn.SyntaxVisualizer.DgmlHelper"
-"publicKeyToken"="31bf3856ad364e35"
-"culture"="neutral"
-"version"="42.42.42.42"
-"codeBase"="$PackageFolder$\Roslyn.SyntaxVisualizer.DgmlHelper.dll"
-
 [$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\{E53DF9E9-CA2D-4F64-9DA6-4CB504612A1E}]
 "name"=">Roslyn.Diagnostics.Analyzers.VisualBasic"
 "publicKeyToken"="31bf3856ad364e35"

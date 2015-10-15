@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestThisConstructorInitializerSameFile1()
             Dim input =
 <Workspace>
@@ -26,7 +26,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestThisConstructorInitializerSameFile2()
             Dim input =
 <Workspace>
@@ -50,7 +50,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestThisConstructorInitializerDifferentFile1()
             Dim input =
 <Workspace>
@@ -78,7 +78,7 @@ partial class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestThisConstructorInitializerDifferentFile2()
             Dim input =
 <Workspace>
@@ -106,7 +106,7 @@ partial class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestBaseConstructorInitializerSameFile1()
             Dim input =
 <Workspace>
@@ -133,7 +133,7 @@ class BaseType
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestBaseConstructorInitializerSameFile2()
             Dim input =
 <Workspace>
@@ -160,7 +160,7 @@ class BaseType
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestBaseConstructorInitializerDifferentFile1()
             Dim input =
 <Workspace>
@@ -188,7 +188,7 @@ class BaseType
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestBaseConstructorInitializerDifferentFile2()
             Dim input =
 <Workspace>
@@ -216,7 +216,7 @@ class BaseType
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestBaseConstructorInitializerDifferentFile3()
             Dim input =
 <Workspace>
@@ -250,7 +250,7 @@ class BaseType
         End Sub
 
         <WorkItem(541658)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttribute1()
             Dim input =
 <Workspace>
@@ -273,7 +273,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
         End Sub
 
         <WorkItem(541658)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttribute2()
             Dim input =
 <Workspace>
@@ -296,7 +296,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
         End Sub
 
         <WorkItem(541658)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttribute3()
             Dim input =
 <Workspace>
@@ -317,7 +317,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
         End Sub
 
         <WorkItem(541658)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttribute4()
             Dim input =
 <Workspace>
@@ -337,7 +337,7 @@ internal class {|Definition:$$AttClassAttribute|} : Attribute
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestThisAtEndOfFile()
             Dim input =
 <Workspace>
@@ -358,7 +358,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestConstructor_ThroughAlias1()
             Dim input =
 <Workspace>
@@ -384,7 +384,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias1()
             Dim input =
 <Workspace>
@@ -412,7 +412,7 @@ class Program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias2()
             Dim input =
 <Workspace>
@@ -443,7 +443,7 @@ class Program
         End Sub
 
         <WorkItem(542218)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias3()
             Dim input =
 <Workspace>
@@ -471,7 +471,7 @@ class Program
         End Sub
 
         <WorkItem(542218)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias4()
             Dim input =
 <Workspace>
@@ -499,7 +499,7 @@ class Program
         End Sub
 
         <WorkItem(542218)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias5()
             Dim input =
 <Workspace>
@@ -527,7 +527,7 @@ class Program
         End Sub
 
         <WorkItem(542218)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias6()
             Dim input =
 <Workspace>
@@ -555,7 +555,7 @@ class Program
         End Sub
 
         <WorkItem(542218)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias7()
             Dim input =
 <Workspace>
@@ -583,7 +583,7 @@ class Program
         End Sub
 
         <WorkItem(542218)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias8()
             Dim input =
 <Workspace>
@@ -611,7 +611,7 @@ class Program
         End Sub
 
         <WorkItem(542218)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias9()
             Dim input =
 <Workspace>
@@ -639,7 +639,7 @@ class Program
         End Sub
 
         <WorkItem(542979)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias10()
             Dim input =
 <Workspace>
@@ -660,7 +660,7 @@ class C { }
 
 #If False Then
         <WorkItem(10441)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAttributeConstructor_ThroughAlias11()
             Dim input =
 <Workspace>
@@ -681,7 +681,7 @@ class C { }
 #End If
 
         <WorkItem(542386)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestClassCalledNew1()
             Dim input =
 <Workspace>
@@ -707,7 +707,7 @@ End Class
         End Sub
 
         <WorkItem(531200)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpCascadeFromTypeToConstructorsAndDestructors()
             Dim input =
 <Workspace>
@@ -737,7 +737,7 @@ namespace Tester
         End Sub
 
         <WorkItem(531200)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestVBCascadeFromTypeToConstructorsAndDestructors()
             Dim input =
 <Workspace>
@@ -765,7 +765,7 @@ End Namespace
         End Sub
 
         <WorkItem(652809)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCSharpStaticCtorVsInstanceCtorReferences()
             Dim input =
 <Workspace>

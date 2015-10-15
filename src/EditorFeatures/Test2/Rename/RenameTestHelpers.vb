@@ -1,12 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
@@ -78,8 +79,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Assert.NotNull(result.LocalizedErrorMessage)
         End Sub
 
-        Public Sub VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String)
-            WaitForRename(workspace)
+        Public Async Function VerifyTagsAreCorrect(workspace As TestWorkspace, newIdentifierName As String) As Task
+            Await WaitForRename(workspace).ConfigureAwait(True)
             For Each document In workspace.Documents
                 For Each selectedSpan In document.SelectedSpans
                     Dim trackingSpan = document.InitialTextSnapshot.CreateTrackingSpan(selectedSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
@@ -99,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     End If
                 Next
             Next
-        End Sub
+        End Function
 
         Public Function CreateWorkspaceWithWaiter(workspace As XElement) As TestWorkspace
             Dim testWorkspace = TestWorkspaceFactory.CreateWorkspace(
@@ -109,11 +110,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return testWorkspace
         End Function
 
-        Public Sub WaitForRename(workspace As TestWorkspace)
-            workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter) _
-                .Select(Function(waiter) waiter.CreateWaitTask()) _
-                .PumpingWaitAll()
-        End Sub
+        Public Async Function WaitForRename(workspace As TestWorkspace) As Task
+            Dim waiters = workspace.ExportProvider.GetExportedValues(Of IAsynchronousOperationWaiter)
+            Await waiters.WaitAllAsync().ConfigureAwait(True)
+        End Function
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)
             Dim tracker = New RenameTrackingTaggerProvider(
@@ -127,21 +127,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Return tracker.CreateTagger(Of RenameTrackingTag)(document.GetTextBuffer())
         End Function
 
-        Public Sub VerifyNoRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument)
-            Dim tags = GetRenameTrackingTags(tagger, workspace, document)
+        Public Async Function VerifyNoRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument) As Task
+            Dim tags = Await GetRenameTrackingTags(tagger, workspace, document).ConfigureAwait(True)
             Assert.Equal(0, tags.Count())
-        End Sub
+        End Function
 
-
-        Public Sub VerifyRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument, expectedTagCount As Integer)
-            Dim tags = GetRenameTrackingTags(tagger, workspace, document)
+        Public Async Function VerifyRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument, expectedTagCount As Integer) As Task
+            Dim tags = Await GetRenameTrackingTags(tagger, workspace, document).ConfigureAwait(True)
             Assert.Equal(expectedTagCount, tags.Count())
-        End Sub
+        End Function
 
-        Public Function GetRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument) As IEnumerable(Of ITagSpan(Of RenameTrackingTag))
-            WaitForRename(workspace)
+        Public Async Function GetRenameTrackingTags(tagger As ITagger(Of RenameTrackingTag), workspace As TestWorkspace, document As TestHostDocument) As Task(Of IEnumerable(Of ITagSpan(Of RenameTrackingTag)))
+            Await WaitForRename(workspace).ConfigureAwait(True)
             Dim view = document.GetTextView()
-            Return tagger.GetTags(New NormalizedSnapshotSpanCollection(New SnapshotSpan(view.TextBuffer.CurrentSnapshot, New Span(0, view.TextBuffer.CurrentSnapshot.Length))))
+            Return tagger.GetTags(view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection())
         End Function
     End Module
 End Namespace

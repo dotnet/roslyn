@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitOpCode(ILOpCode.Readonly);
             }
 
-            if (arrayAccess.Indices.Length == 1)
+            if (((ArrayTypeSymbol)arrayAccess.Expression.Type).IsSZArray)
             {
                 _builder.EmitOpCode(ILOpCode.Ldelema);
                 var elementType = arrayAccess.Type;

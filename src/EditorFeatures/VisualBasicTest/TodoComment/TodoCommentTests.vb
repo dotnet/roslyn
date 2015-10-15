@@ -16,105 +16,105 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
     Public Class TodoCommentTests
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Colon()
             Dim code = <code>' [|TODO:test|]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Space()
             Dim code = <code>' [|TODO test|]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Underscore()
             Dim code = <code>' TODO_test</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Number()
             Dim code = <code>' TODO1 test</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Quote()
             Dim code = <code>' "TODO test"</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Middle()
             Dim code = <code>' Hello TODO test</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Document()
             Dim code = <code>'''        [|TODO test|]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Preprocessor1()
             Dim code = <code>#If DEBUG Then ' [|TODO test|]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Preprocessor2()
             Dim code = <code>#If DEBUG Then ''' [|TODO test|]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Region()
             Dim code = <code>#Region ' [|TODO test      |]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_EndRegion()
             Dim code = <code>#End Region        '        [|TODO test      |]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_TrailingSpan()
             Dim code = <code>'        [|TODO test                   |]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_REM()
             Dim code = <code>REM        [|TODO test                   |]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SingleLineTodoComment_Preprocessor_REM()
             Dim code = <code>#If Debug Then    REM        [|TODO test                   |]</code>
 
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub SinglelineDocumentComment_Multiline()
             Dim code = <code>
         ''' <summary>
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(606010)>
         Public Sub LeftRightSingleQuote()
             Dim code = <code>
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(606019)>
         Public Sub HalfFullTodo()
             Dim code = <code>
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(627723)>
         Public Sub SingleQuote_Invalid1()
             Dim code = <code>
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(627723)>
         Public Sub SingleQuote_Invalid2()
             Dim code = <code>
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
             Test(code)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(627723)>
         Public Sub SingleQuote_Invalid3()
             Dim code = <code>

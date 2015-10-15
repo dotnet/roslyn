@@ -2,9 +2,9 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -25,43 +24,82 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         internal abstract ICommandHandler CreateCommandHandler(IWaitIndicator waitIndicator, ITextUndoHistoryRegistry undoHistoryRegistry, IEditorOperationsFactoryService editorOperationsFactoryService, IAsyncCompletionService completionService);
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
-        protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTab = false)
+        protected void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
         {
-            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
-            {
-                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<TypeCharCommandArgs>;
+            Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<TypeCharCommandArgs>;
 
-                var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, DocumentationCommentCharacter);
-                var nextHandler = CreateInsertTextHandler(view, DocumentationCommentCharacter.ToString());
+                    var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, DocumentationCommentCharacter);
+                    var nextHandler = CreateInsertTextHandler(view, DocumentationCommentCharacter.ToString());
 
-                commandHandler.ExecuteCommand(commandArgs, nextHandler);
-            }, useTab);
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
         }
 
-        protected void VerifyPressingEnter(string initialMarkup, string expectedMarkup)
+        protected void VerifyPressingEnter(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
         {
-            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
-            {
-                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<ReturnKeyCommandArgs>;
+            Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<ReturnKeyCommandArgs>;
 
-                var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
-                var nextHandler = CreateInsertTextHandler(view, "\r\n");
+                    var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
+                    var nextHandler = CreateInsertTextHandler(view, "\r\n");
 
-                commandHandler.ExecuteCommand(commandArgs, nextHandler);
-            });
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
         }
 
-        protected void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup)
+        protected void VerifyInsertCommentCommand(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
         {
-            Verify(initialMarkup, expectedMarkup, (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
-            {
-                var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<InsertCommentCommandArgs>;
+            Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<InsertCommentCommandArgs>;
 
-                var commandArgs = new InsertCommentCommandArgs(view, view.TextBuffer);
-                Action nextHandler = delegate { };
+                    var commandArgs = new InsertCommentCommandArgs(view, view.TextBuffer);
+                    Action nextHandler = delegate { };
 
-                commandHandler.ExecuteCommand(commandArgs, nextHandler);
-            });
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
+        }
+
+        protected void VerifyOpenLineAbove(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
+        {
+            Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineAboveCommandArgs>;
+
+                    var commandArgs = new OpenLineAboveCommandArgs(view, view.TextBuffer);
+                    Action nextHandler = () =>
+                    {
+                        var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
+                        editorOperations.OpenLineAbove();
+                    };
+
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
+        }
+
+        protected void VerifyOpenLineBelow(string initialMarkup, string expectedMarkup, bool useTabs = false, bool autoGenerateXmlDocComments = true)
+        {
+            Verify(initialMarkup, expectedMarkup, useTabs, autoGenerateXmlDocComments,
+                execute: (view, undoHistoryRegistry, editorOperationsFactoryService, completionService) =>
+                {
+                    var commandHandler = CreateCommandHandler(TestWaitIndicator.Default, undoHistoryRegistry, editorOperationsFactoryService, completionService) as ICommandHandler<OpenLineBelowCommandArgs>;
+
+                    var commandArgs = new OpenLineBelowCommandArgs(view, view.TextBuffer);
+                    Action nextHandler = () =>
+                    {
+                        var editorOperations = editorOperationsFactoryService.GetEditorOperations(view);
+                        editorOperations.OpenLineBelow();
+                    };
+
+                    commandHandler.ExecuteCommand(commandArgs, nextHandler);
+                });
         }
 
         private Action CreateInsertTextHandler(ITextView textView, string text)
@@ -74,19 +112,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             };
         }
 
-        private void Verify(string initialMarkup, string expectedMarkup, Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute, bool useTab = false)
+        private void Verify(string initialMarkup, string expectedMarkup, bool useTabs, bool autoGenerateXmlDocComments,
+            Action<IWpfTextView, ITextUndoHistoryRegistry, IEditorOperationsFactoryService, IAsyncCompletionService> execute)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
+
+                Assert.True(testDocument.CursorPosition.HasValue, "No caret position set!");
+                var startCaretPosition = testDocument.CursorPosition.Value;
+
                 var view = testDocument.GetTextView();
+
+                if (testDocument.SelectedSpans.Any())
+                {
+                    var selectedSpan = testDocument.SelectedSpans[0];
+
+                    var isReversed = selectedSpan.Start == startCaretPosition
+                        ? true
+                        : false;
+
+                    view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
+                }
+
                 view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
-                if (useTab)
-                {
-                    var optionService = workspace.Services.GetService<IOptionService>();
-                    optionService.SetOptions(optionService.GetOptions().WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTab));
-                }
+                var options = workspace.Options;
+
+                options = options.WithChangedOption(FormattingOptions.UseTabs, testDocument.Project.Language, useTabs);
+                options = options.WithChangedOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, testDocument.Project.Language, autoGenerateXmlDocComments);
+
+                workspace.Options = options;
 
                 execute(
                     view,
@@ -100,9 +156,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
 
                 Assert.Equal(expectedCode, view.TextSnapshot.GetText());
 
-                var caretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == caretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
+                var endCaretPosition = view.Caret.Position.BufferPosition.Position;
+                Assert.True(expectedPosition == endCaretPosition,
+                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, endCaretPosition));
             }
         }
     }

@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -73,25 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 l => hostWorkspaceServices.GetLanguageServices(l).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType().TypeName);
         }
 
-        public static IList<Lazy<T, TMetadata>> SelectMatchingExtensions<T, TMetadata>(
-            this HostWorkspaceServices workspaceServices,
-            IEnumerable<Lazy<T, TMetadata>> items,
-            ITextBuffer textBuffer)
-            where TMetadata : ILanguageMetadata
-        {
-            return workspaceServices.SelectMatchingExtensions(items, textBuffer.ContentType);
-        }
-
-        public static IList<T> SelectMatchingExtensionValues<T, TMetadata>(
-            this HostWorkspaceServices workspaceServices,
-            IEnumerable<Lazy<T, TMetadata>> items,
-            ITextBuffer textBuffer)
-            where TMetadata : ILanguageMetadata
-        {
-            return SelectMatchingExtensions(workspaceServices, items, textBuffer).Select(lazy => lazy.Value).ToList();
-        }
-
-        public static IList<Lazy<T, TMetadata>> SelectMatchingExtensions<T, TMetadata>(
+        internal static IList<T> SelectMatchingExtensionValues<T, TMetadata>(
             this HostWorkspaceServices workspaceServices,
             IEnumerable<Lazy<T, TMetadata>> items,
             IContentType contentType)
@@ -99,10 +82,31 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             if (items == null)
             {
-                return SpecializedCollections.EmptyList<Lazy<T, TMetadata>>();
+                return SpecializedCollections.EmptyList<T>();
+            }
+            
+            return items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).
+                Select(lazy => lazy.Value).ToList();
+        }
+
+        internal static IList<T> SelectMatchingExtensionValues<T>(
+            this HostWorkspaceServices workspaceServices,
+            IEnumerable<Lazy<T, OrderableLanguageAndRoleMetadata>> items,
+            IContentType contentType,
+            ITextViewRoleSet roleSet)
+        {
+            if (items == null)
+            {
+                return SpecializedCollections.EmptyList<T>();
             }
 
-            return items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).ToList();
+            return items.Where(lazy =>
+                {
+                    var metadata = lazy.Metadata;
+                    return LanguageMatches(metadata.Language, contentType, workspaceServices) &&
+                        RolesMatch(metadata.Roles, roleSet);
+                }).
+                Select(lazy => lazy.Value).ToList();
         }
 
         private static bool LanguageMatches(
@@ -111,14 +115,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             HostWorkspaceServices workspaceServices)
         {
             var defaultContentType = GetDefaultContentTypeName(workspaceServices, language);
-            if (defaultContentType != null)
-            {
-                return contentType.IsOfType(defaultContentType);
-            }
-            else
-            {
-                return false;
-            }
+            return (defaultContentType != null) ? contentType.IsOfType(defaultContentType) : false;
+        }
+
+        private static bool RolesMatch(
+            IEnumerable<string> roles,
+            ITextViewRoleSet roleSet)
+        {
+            return (roles == null) || (roleSet == null) || roleSet.ContainsAll(roles);
         }
     }
 }

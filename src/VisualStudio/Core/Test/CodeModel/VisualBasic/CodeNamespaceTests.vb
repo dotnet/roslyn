@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "GetStartPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint1()
             Dim code =
 <Code>
@@ -40,7 +40,7 @@ Namespace $$N : End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint2()
             Dim code =
 <Code>
@@ -71,7 +71,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=13)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint3()
             Dim code =
 <Code>
@@ -102,7 +102,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=15)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint4()
             Dim code =
 <Code>
@@ -133,7 +133,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint5()
             Dim code =
 <Code>
@@ -167,7 +167,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint6()
             Dim code =
 <Code>
@@ -200,7 +200,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetStartPoint7()
             Dim code =
 <Code>
@@ -241,7 +241,7 @@ End Namespace
 
 #Region "GetEndPoint() tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint1()
             Dim code =
 <Code>
@@ -271,7 +271,7 @@ Namespace $$N : End Namespace
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint2()
             Dim code =
 <Code>
@@ -302,7 +302,7 @@ End Namespace
                      TextPoint(line:=2, lineOffset:=14, absoluteOffset:=26, lineLength:=13)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint3()
             Dim code =
 <Code>
@@ -334,7 +334,7 @@ End Namespace
                      TextPoint(line:=3, lineOffset:=14, absoluteOffset:=27, lineLength:=13)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint4()
             Dim code =
 <Code>
@@ -367,7 +367,7 @@ End Namespace
                      TextPoint(line:=4, lineOffset:=14, absoluteOffset:=52, lineLength:=13)))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub GetEndPoint5()
             Dim code =
 <Code>
@@ -406,7 +406,7 @@ End Namespace
 
 #Region "Remove tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Remove1()
             Dim code =
 <Code>
@@ -428,7 +428,7 @@ End Namespace
 #End Region
 
         <WorkItem(858153)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Children1()
             Dim code =
 <Code>

@@ -33,8 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
         Private Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
-            Dim fixedExpectations = expectedText.Replace(vbLf, vbCrLf)
+            Dim fixedExpectations = expectedText.Replace(vbCrLf, vbLf).Replace(vbLf, vbCrLf)
             Assert.Equal(fixedExpectations, normalized)
+        End Sub
+
+        Private Sub VerifySyntaxRaw(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
+            Assert.IsAssignableFrom(GetType(TSyntax), type)
+            Dim text = type.ToFullString()
+            Assert.Equal(expectedText, text)
         End Sub
 
         Private Function ParseCompilationUnit(text As String) As CompilationUnitSyntax
@@ -319,6 +325,17 @@ End Class
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.MemberAccessExpression(_g.ElementAccessExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), _g.IdentifierName("z")), "x(y).z")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.MemberAccessExpression(_g.AddExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), _g.IdentifierName("z")), "((x) + (y)).z")
             VerifySyntax(Of MemberAccessExpressionSyntax)(_g.MemberAccessExpression(_g.NegateExpression(_g.IdentifierName("x")), _g.IdentifierName("y")), "(-(x)).y")
+        End Sub
+
+        <Fact>
+        Public Sub TestArrayCreationExpressions()
+            VerifySyntax(Of ArrayCreationExpressionSyntax)(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), _g.LiteralExpression(10)),
+                "New x(10) {}")
+
+            VerifySyntax(Of ArrayCreationExpressionSyntax)(
+                _g.ArrayCreationExpression(_g.IdentifierName("x"), {_g.IdentifierName("y"), _g.IdentifierName("z")}),
+                "New x() {y, z}")
         End Sub
 
         <Fact>
@@ -1855,6 +1872,46 @@ Delegate Sub d()</x>.Value)
         End Sub
 
         <Fact>
+        <WorkItem(5066, "https://github.com/dotnet/roslyn/issues/5066")>
+        Public Sub TestAddAttributesOnAccessors()
+            Dim prop = _g.PropertyDeclaration("P", _g.IdentifierName("T"))
+
+            Dim evnt = DirectCast(SyntaxFactory.ParseCompilationUnit("
+Class C
+  Custom Event MyEvent As MyDelegate
+      AddHandler(ByVal value As MyDelegate)
+      End AddHandler
+ 
+      RemoveHandler(ByVal value As MyDelegate)
+      End RemoveHandler
+ 
+      RaiseEvent(ByVal message As String)
+      End RaiseEvent
+  End Event
+End Class
+").Members(0), ClassBlockSyntax).Members(0)
+
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.GetAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(prop, DeclarationKind.SetAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.AddAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RemoveAccessor))
+            CheckAddRemoveAttribute(_g.GetAccessor(evnt, DeclarationKind.RaiseAccessor))
+        End Sub
+
+        Private Sub CheckAddRemoveAttribute(declaration As SyntaxNode)
+            Dim initialAttributes = _g.GetAttributes(declaration)
+            Assert.Equal(0, initialAttributes.Count)
+
+            Dim withAttribute = _g.AddAttributes(declaration, _g.Attribute("a"))
+            Dim attrsAdded = _g.GetAttributes(withAttribute)
+            Assert.Equal(1, attrsAdded.Count)
+
+            Dim withoutAttribute = _g.RemoveNode(withAttribute, attrsAdded(0))
+            Dim attrsRemoved = _g.GetAttributes(withoutAttribute)
+            Assert.Equal(0, attrsRemoved.Count)
+        End Sub
+
+        <Fact>
         Public Sub TestAddRemoveAttributesPreservesTrivia()
             Dim cls = ParseCompilationUnit(
 <x>' comment
@@ -1897,6 +1954,88 @@ End Interface</x>.Value)
 #End Region
 
 #Region "Add/Insert/Remove/Get/Set members & elements"
+
+        <Fact>
+        Public Sub TestRemoveNodeInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim summary = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlElementSyntax)().First()
+            Dim newCu = _g.RemoveNode(cu, summary)
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+
+Public Class C
+End Class
+")
+        End Sub
+
+        <Fact>
+        Public Sub TestReplaceNodeInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim summary = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlElementSyntax)().First()
+            Dim summary2 = summary.WithContent(Nothing)
+            Dim newCu = _g.ReplaceNode(cu, summary, summary2)
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+'''<summary></summary>
+Public Class C
+End Class
+")
+        End Sub
+
+        <Fact>
+        Public Sub TestInsertNodeAfterInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim text = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlTextSyntax)().First()
+            Dim newCu = _g.InsertNodesAfter(cu, text, {text})
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+'''<summary> ...  ... </summary>
+Public Class C
+End Class
+")
+        End Sub
+
+        <Fact>
+        Public Sub TestInsertNodeBeforeInTrivia()
+            Dim code = "
+'''<summary> ... </summary>
+Public Class C
+End Class
+"
+            Dim cu = SyntaxFactory.ParseCompilationUnit(code)
+            Dim cls = cu.Members(0)
+            Dim text = cls.DescendantNodes(descendIntoTrivia:=True).OfType(Of XmlTextSyntax)().First()
+            Dim newCu = _g.InsertNodesBefore(cu, text, {text})
+            VerifySyntaxRaw(Of CompilationUnitSyntax)(
+                newCu,
+                "
+'''<summary> ...  ... </summary>
+Public Class C
+End Class
+")
+        End Sub
+
         <Fact>
         Public Sub TestDeclarationKind()
             Assert.Equal(DeclarationKind.CompilationUnit, _g.GetDeclarationKind(_g.CompilationUnit()))
@@ -2694,6 +2833,77 @@ End Structure</x>.Value)
     Inherits T
 
 End Interface</x>.Value)
+
+        End Sub
+
+        <Fact>
+        <WorkItem(5097, "https://github.com/dotnet/roslyn/issues/5097")>
+        Public Sub TestAddInterfaceWithEOLs()
+            Dim classC = SyntaxFactory.ParseCompilationUnit("
+Public Class C
+End Class").Members(0)
+
+            VerifySyntaxRaw(Of ClassBlockSyntax)(
+                _g.AddInterfaceType(classC, _g.IdentifierName("X")), "
+Public Class C
+ImplementsXEnd Class")
+
+            Dim interfaceI = SyntaxFactory.ParseCompilationUnit("
+Public Interface I
+End Interface").Members(0)
+
+            VerifySyntaxRaw(Of InterfaceBlockSyntax)(
+                _g.AddInterfaceType(interfaceI, _g.IdentifierName("X")), "
+Public Interface I
+InheritsXEnd Interface")
+
+            Dim classCX = SyntaxFactory.ParseCompilationUnit("
+Public Class C
+    Implements X
+End Class").Members(0)
+
+            VerifySyntaxRaw(Of ClassBlockSyntax)(
+                _g.AddInterfaceType(classCX, _g.IdentifierName("Y")), "
+Public Class C
+    Implements X,Y
+End Class")
+
+            Dim interfaceIX = SyntaxFactory.ParseCompilationUnit("
+Public Interface I
+    Inherits X
+End Interface").Members(0)
+
+            VerifySyntaxRaw(Of InterfaceBlockSyntax)(
+                _g.AddInterfaceType(interfaceIX, _g.IdentifierName("Y")), "
+Public Interface I
+    Inherits X,Y
+End Interface")
+
+            Dim classCXY = SyntaxFactory.ParseCompilationUnit("
+Public Class C
+    Implements X
+    Implements Y
+End Class").Members(0)
+
+            VerifySyntaxRaw(Of ClassBlockSyntax)(
+                _g.AddInterfaceType(classCXY, _g.IdentifierName("Z")), "
+Public Class C
+    Implements X
+    Implements Y
+ImplementsZEnd Class")
+
+            Dim interfaceIXY = SyntaxFactory.ParseCompilationUnit("
+Public Interface I
+    Inherits X
+    Inherits Y
+End Interface").Members(0)
+
+            VerifySyntaxRaw(Of InterfaceBlockSyntax)(
+                _g.AddInterfaceType(interfaceIXY, _g.IdentifierName("Z")), "
+Public Interface I
+    Inherits X
+    Inherits Y
+InheritsZEnd Interface")
 
         End Sub
 

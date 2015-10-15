@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
         {
             var type = typeMap.SubstituteType(_type);
-            return new EELocalConstantSymbol(method, _name, type, _value);
+            return new EELocalConstantSymbol(method, _name, type.Type, _value);
         }
 
         public override string Name

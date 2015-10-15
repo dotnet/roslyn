@@ -118,7 +118,7 @@ Module Module1
                 .AddDocument(docId, "testFile", tree.GetText());
 
             Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new VisualBasic.VisualBasicCompilationOptions(OutputKind.ConsoleApplication, embedVbCoreRuntime: true));
-            tree = (SyntaxTree)prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
+            tree = prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
             Compilation comp = prj.GetCompilationAsync().Result;
 
             SemanticModel semanticModel = comp.GetSemanticModel(tree);
@@ -189,7 +189,7 @@ static class Module1
                 .AddDocument(docId, "testFile", tree.GetText());
 
             Microsoft.CodeAnalysis.Project prj = sln.GetProject(prj1Id).WithCompilationOptions(new CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication));
-            tree = (SyntaxTree)prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
+            tree = prj.GetDocument(docId).GetSyntaxTreeAsync().Result;
             Compilation comp = prj.GetCompilationAsync().Result;
 
             SemanticModel semanticModel = comp.GetSemanticModel(tree);

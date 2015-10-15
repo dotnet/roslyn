@@ -2211,6 +2211,12 @@ ProduceBoundNode:
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     Else
+                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
+                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
+                            ' Already reported some errors, let's not report a general inference error
+                            Return
+                        End If
+
                         If Not includeMethodNameInErrorMessages Then
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicit1, ERRID.ERR_TypeInferenceFailure1))
                         ElseIf candidateIsExtension Then
@@ -2334,7 +2340,7 @@ ProduceBoundNode:
                         ElseIf allowExpandedParamArrayForm Then
                             Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                            If arrayType.Rank <> 1 Then
+                            If Not arrayType.IsSZArray Then
                                 ' ERRID_ParamArrayWrongType
                                 ReportDiagnostic(diagnostics, diagnosticLocation, ERRID.ERR_ParamArrayWrongType)
                                 someArgumentsBad = True
@@ -3098,50 +3104,51 @@ ProduceBoundNode:
                     End If
                 End If
 
-                ' Only consider optional parameters when the constant value is good.  Bad constant values are ignored and result in an 
-                ' argument mismatch error.
-                If Not defaultConstantValue.IsBad Then
+                ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
+                ' is a possible outcome of running an obfuscator over a valid DLL 
+                If defaultConstantValue.IsBad Then
+                    defaultConstantValue = ConstantValue.Null
+                End If
 
-                    Dim defaultSpecialType = defaultConstantValue.SpecialType
-                    Dim defaultArgumentType As TypeSymbol = Nothing
+                Dim defaultSpecialType = defaultConstantValue.SpecialType
+                Dim defaultArgumentType As TypeSymbol = Nothing
 
-                    ' Constant has a type.
-                    Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
+                ' Constant has a type.
+                Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
 
-                    If param.HasOptionCompare Then
+                If param.HasOptionCompare Then
 
-                        ' If the argument has the OptionCompareAttribute
-                        ' then use the setting for Option Compare [Binary|Text]
-                        ' Other languages will use the default value specified.
+                    ' If the argument has the OptionCompareAttribute
+                    ' then use the setting for Option Compare [Binary|Text]
+                    ' Other languages will use the default value specified.
 
-                        If Me.OptionCompareText Then
-                            defaultConstantValue = ConstantValue.Create(1)
-                        Else
-                            defaultConstantValue = ConstantValue.Default(SpecialType.System_Int32)
-                        End If
-
-                        If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = SpecialType.System_Int32 Then
-                            defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                        Else
-                            defaultArgumentType = GetSpecialType(SpecialType.System_Int32, syntax, diagnostics)
-                        End If
-
-                    ElseIf defaultSpecialType <> SpecialType.None Then
-                        If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
-                            ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
-                            ' use the parameter's enum type.
-                            defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                        Else
-                            'Use the primitive type.
-                            defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
-                        End If
+                    If Me.OptionCompareText Then
+                        defaultConstantValue = ConstantValue.Create(1)
                     Else
-                        ' No type in constant.  Constant should be nothing
-                        Debug.Assert(defaultConstantValue.IsNothing)
+                        defaultConstantValue = ConstantValue.Default(SpecialType.System_Int32)
                     End If
 
-                    defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
+                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = SpecialType.System_Int32 Then
+                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
+                    Else
+                        defaultArgumentType = GetSpecialType(SpecialType.System_Int32, syntax, diagnostics)
+                    End If
+
+                ElseIf defaultSpecialType <> SpecialType.None Then
+                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
+                        ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
+                        ' use the parameter's enum type.
+                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
+                    Else
+                        'Use the primitive type.
+                        defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
+                    End If
+                Else
+                    ' No type in constant.  Constant should be nothing
+                    Debug.Assert(defaultConstantValue.IsNothing)
                 End If
+
+                defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
 
             ElseIf param.IsOptional Then
 

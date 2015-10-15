@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
     Partial Public Class RemoveUnnecessaryCastTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInDocument()
@@ -167,10 +167,10 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInProject()
@@ -304,10 +304,10 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Sub TestFixAllInSolution()
@@ -441,7 +441,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Test(input, expected, isLine:=False, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
+            Test(input, expected, compareTokens:=False, fixAllActionEquivalenceKey:=Nothing)
         End Sub
     End Class
 End Namespace

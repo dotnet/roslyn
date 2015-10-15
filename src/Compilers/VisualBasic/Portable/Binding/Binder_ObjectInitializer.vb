@@ -628,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The temporary diagnostic bag is needed to collect diagnostics until it is known that the accessed symbol
             ' is a field or property, and if so, if it is shared or not.
             ' The temporary error messages should only be shown if binding the member access itself failed, or the bound
-            ' member access is usable for the initialization (non shared, writeable field or property).
+            ' member access is usable for the initialization (non shared, writable field or property).
             ' Otherwise more specific diagnostics will be shown .
             Dim memberBindingDiagnostics = DiagnosticBag.GetInstance
 

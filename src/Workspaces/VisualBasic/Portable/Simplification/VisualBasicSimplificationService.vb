@@ -51,9 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
         Public Overrides Function Expand(token As SyntaxToken, semanticModel As SemanticModel, expandInsideNode As Func(Of SyntaxNode, Boolean), cancellationToken As CancellationToken) As SyntaxToken
             Using Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken)
-                Dim vbSemanticModel = DirectCast(semanticModel, SemanticModel)
-                Dim rewriter = New Expander(vbSemanticModel, expandInsideNode, cancellationToken)
-                Return TryEscapeIdentifierToken(rewriter.VisitToken(token), vbSemanticModel)
+                Dim rewriter = New Expander(semanticModel, expandInsideNode, cancellationToken)
+                Return TryEscapeIdentifierToken(rewriter.VisitToken(token), semanticModel)
             End Using
         End Function
 
@@ -128,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 nodeToSpeculate = asNewClauseNode.CopyAnnotationsTo(nodeToSpeculate)
             End If
 
-            speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(originalNode, nodeToSpeculate, DirectCast(originalSemanticModel, SemanticModel))
+            speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(originalNode, nodeToSpeculate, originalSemanticModel)
 
             If isAsNewClause Then
                 nodeToSpeculate = speculativeModel.SyntaxTree.GetRoot()

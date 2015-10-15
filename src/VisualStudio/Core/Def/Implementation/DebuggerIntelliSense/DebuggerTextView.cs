@@ -52,12 +52,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         /// </summary>
         public IBufferGraph BufferGraph
         {
-            get; private set;
+            get;
         }
 
         public bool IsImmediateWindow
         {
-            get; private set;
+            get;
         }
 
         public ITextCaret Caret

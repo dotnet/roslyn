@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -19,11 +21,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             private readonly AbstractDiagnosticsTaggerProvider<TTag> _owner;
             private readonly ITextBuffer _subjectBuffer;
 
+            private int refCount;
             private bool _disposed;
 
             private readonly Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>> _idToProviderAndTagger = new Dictionary<object, ValueTuple<TaggerProvider, IAccurateTagger<TTag>>>();
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+            private readonly CancellationTokenSource _initialDiagnosticsCancellationSource = new CancellationTokenSource();
 
             public AggregatingTagger(
                 AbstractDiagnosticsTaggerProvider<TTag> owner,
@@ -37,33 +42,74 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 // we have an underlying tagger responsible for asynchrounously handling diagnostics
                 // from the owner of that diagnostic update.
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                // Kick off a background task to collect the initial set of diagnostics.
+                var cancellationToken = _initialDiagnosticsCancellationSource.Token;
+                var asyncToken = _owner._listener.BeginAsyncOperation(GetType() + ".GetInitialDiagnostics");
+                var task = Task.Run(() => GetInitialDiagnostics(cancellationToken), cancellationToken);
+                task.CompletesAsyncOperation(asyncToken);
+            }
+
+            private void GetInitialDiagnostics(CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Also, collect the initial set of diagnostics to show.
+                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                if (document != null)
+                {
+                    var project = document.Project;
+                    var workspace = project.Solution.Workspace;
+                    foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
+                    {
+                        var diagnostics = _owner._diagnosticService.GetDiagnostics(updateArgs.Workspace, updateArgs.ProjectId, updateArgs.DocumentId, updateArgs.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken);
+                        OnDiagnosticsUpdated(new DiagnosticsUpdatedArgs(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty()));
+                    }
+                }
+            }
+
+            public void OnTaggerCreated()
+            {
+                this.AssertIsForeground();
+                Debug.Assert(refCount >= 0);
+                Debug.Assert(!_disposed);
+
+                refCount++;
             }
 
             public void Dispose()
             {
                 this.AssertIsForeground();
+                Debug.Assert(refCount > 0);
+                Debug.Assert(!_disposed);
 
-                _disposed = true;
-                
-                // Stop listening to diagnostic changes from the diagnostic service.
-                _owner._diagnosticService.DiagnosticsUpdated -= OnDiagnosticsUpdated;
+                refCount--;
 
-                // Disconnect us from our underlying taggers and make sure they're
-                // released as well.
-                foreach (var kvp in _idToProviderAndTagger)
+                if (refCount == 0)
                 {
-                    var tagger = kvp.Value.Item2;
+                    _disposed = true;
 
-                    tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
-                    var disposable = tagger as IDisposable;
-                    if (disposable != null)
+                    // Stop listening to diagnostic changes from the diagnostic service.
+                    _owner._diagnosticService.DiagnosticsUpdated -= OnDiagnosticsUpdated;
+                    _initialDiagnosticsCancellationSource.Cancel();
+
+                    // Disconnect us from our underlying taggers and make sure they're
+                    // released as well.
+                    foreach (var kvp in _idToProviderAndTagger)
                     {
-                        disposable.Dispose();
-                    }
-                }
+                        var tagger = kvp.Value.Item2;
 
-                _idToProviderAndTagger.Clear();
-                _owner.RemoveTagger(this, _subjectBuffer);
+                        tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
+                        var disposable = tagger as IDisposable;
+                        if (disposable != null)
+                        {
+                            disposable.Dispose();
+                        }
+                    }
+
+                    _idToProviderAndTagger.Clear();
+                    _owner.RemoveTagger(this, _subjectBuffer);
+                }
             }
 
             private void RegisterNotification(Action action)
@@ -73,6 +119,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            {
+                OnDiagnosticsUpdated(e);
+            }
+
+            private void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e)
             {
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
@@ -115,16 +166,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 if (this.IsForeground())
                 {
-                    OnDiagnosticsUpdatedOnForeground(sender, e, sourceText, editorSnapshot);
+                    OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot);
                 }
                 else
                 {
-                    RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(sender, e, sourceText, editorSnapshot));
+                    RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot));
                 }
             }
 
             private void OnDiagnosticsUpdatedOnForeground(
-                object sender, DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
+                DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {
                 this.AssertIsForeground();
                 if (_disposed)

@@ -2,7 +2,6 @@
 
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             var element = new CodeEnum(state, fileCodeModel, nodeKey, nodeKind);
             var result = (EnvDTE.CodeEnum)ComAggregate.CreateAggregatedObject(element);
 
-            fileCodeModel.OnElementCreated(nodeKey, (EnvDTE.CodeElement)result);
+            fileCodeModel.OnCodeElementCreated(nodeKey, (EnvDTE.CodeElement)result);
 
             return result;
         }

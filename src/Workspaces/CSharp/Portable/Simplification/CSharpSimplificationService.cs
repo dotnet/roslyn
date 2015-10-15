@@ -62,10 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ExpandToken, cancellationToken))
             {
-                var csharpSemanticModel = (SemanticModel)semanticModel;
-                var rewriter = new Expander(csharpSemanticModel, expandInsideNode, false, cancellationToken);
+                var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
 
-                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, csharpSemanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
                 SyntaxToken rewrittenTokenWithElasticTrivia;
                 if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out rewrittenTokenWithElasticTrivia))
                 {
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             var syntaxNodeToSpeculate = nodeToSpeculate;
             Contract.ThrowIfNull(syntaxNodeToSpeculate);
             Contract.ThrowIfFalse(SpeculationAnalyzer.CanSpeculateOnNode(nodeToSpeculate));
-            return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(originalNode, syntaxNodeToSpeculate, (SemanticModel)originalSemanticModel);
+            return SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(originalNode, syntaxNodeToSpeculate, originalSemanticModel);
         }
 
         protected override ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)

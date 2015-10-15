@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 {
     public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleQuery()
         {
             Test(
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System ; using System . Collections . Generic ; using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = from x in args select x} } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleWhere()
         {
             Test(

@@ -18,7 +18,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
-    [Export(typeof(IDiagnosticUpdateSource))]
     [Export(typeof(ExternalErrorDiagnosticUpdateSource))]
     internal class ExternalErrorDiagnosticUpdateSource : IDiagnosticUpdateSource
     {
@@ -36,8 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public ExternalErrorDiagnosticUpdateSource(
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
+            IDiagnosticUpdateSourceRegistrationService registrationService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) :
-                this(workspace, diagnosticService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ErrorList))
+                this(workspace, diagnosticService, registrationService, new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ErrorList))
         {
             Contract.Requires(!KnownUIContexts.SolutionBuildingContext.IsActive);
             KnownUIContexts.SolutionBuildingContext.UIContextChanged += OnSolutionBuild;
@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         internal ExternalErrorDiagnosticUpdateSource(
             Workspace workspace,
             IDiagnosticAnalyzerService diagnosticService,
+            IDiagnosticUpdateSourceRegistrationService registrationService,
             IAsynchronousOperationListener listener)
         {
             // use queue to serialize work. no lock needed
@@ -61,6 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _diagnosticService = diagnosticService;
 
             _notificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
+
+            registrationService.Register(this);
         }
 
         public event EventHandler<bool> BuildStarted;
@@ -375,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool SupportGetDiagnostics { get { return false; } }
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(
-            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+            Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ImmutableArray<DiagnosticData>.Empty;
         }
@@ -584,16 +587,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var workspace = data.Workspace as VisualStudioWorkspaceImpl;
                 if (workspace == null)
                 {
-                    return ValueTuple.Create(data.MappedStartLine, data.MappedStartColumn);
+                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }
 
                 var containedDocument = workspace.GetHostDocument(data.DocumentId) as ContainedDocument;
                 if (containedDocument == null)
                 {
-                    return ValueTuple.Create(data.MappedStartLine, data.MappedStartColumn);
+                    return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }
 
-                return ValueTuple.Create(data.OriginalStartLine, data.OriginalStartColumn);
+                return ValueTuple.Create(data.DataLocation?.OriginalStartLine ?? 0, data.DataLocation?.OriginalStartColumn ?? 0);
             }
 
             private bool IsNull<T>(T item) where T : class

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class SyntaxBinderTests : CompilingTestBase
+    public partial class LambdaTests : CompilingTestBase
     {
         [Fact, WorkItem(608181, "DevDiv")]
         public void BadInvocationInLambda()
@@ -1294,6 +1294,148 @@ class Program
             var symbolInfo = semanticModel.GetSymbolInfo(node);
 
             Assert.Equal("Program a", symbolInfo.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(3826, "https://github.com/dotnet/roslyn/issues/3826")]
+        public void ExpressionTreeSelfAssignmentShouldError()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int, int>> x = y => y = y;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (9,45): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         Expression<Func<int, int>> x = y => y = y;
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "y = y").WithLocation(9, 45),
+                // (9,45): error CS0832: An expression tree may not contain an assignment operator
+                //         Expression<Func<int, int>> x = y => y = y;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "y = y").WithLocation(9, 45));
+        }
+
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
+        public void ReturnInferenceCache_Dynamic_vs_Object_01()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        IEnumerable<dynamic> dynX = null;
+
+        // CS1061 'object' does not contain a definition for 'Text'...
+        // tooltip on 'var' shows IColumn instead of IEnumerable<dynamic>
+        var result = dynX.Select(_ => _.Text);
+    }
+
+    public static IColumn Select<TResult>(this IColumn source, Func<object, TResult> selector)
+    {
+        throw new NotImplementedException();
+    }
+
+    public static IEnumerable<S> Select<T, S>(this IEnumerable<T> source, Func<T, S> selector)
+    {
+        System.Console.WriteLine(""Select<T, S>"");
+        return null;
+    }
+}
+
+public interface IColumn { }
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
+        }
+
+        [Fact, WorkItem(5363, "https://github.com/dotnet/roslyn/issues/5363")]
+        public void ReturnInferenceCache_Dynamic_vs_Object_02()
+        {
+            var source =
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        IEnumerable<dynamic> dynX = null;
+
+        // CS1061 'object' does not contain a definition for 'Text'...
+        // tooltip on 'var' shows IColumn instead of IEnumerable<dynamic>
+        var result = dynX.Select(_ => _.Text);
+    }
+
+    public static IEnumerable<S> Select<T, S>(this IEnumerable<T> source, Func<T, S> selector)
+    {
+        System.Console.WriteLine(""Select<T, S>"");
+        return null;
+    }
+
+    public static IColumn Select<TResult>(this IColumn source, Func<object, TResult> selector)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public interface IColumn { }
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
+        }
+
+        [Fact, WorkItem(4527, "https://github.com/dotnet/roslyn/issues/4527")]
+        public void AnonymousMethodExpressionWithoutParameterList()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+namespace RoslynAsyncDelegate
+{
+    class Program
+    {
+        static EventHandler MyEvent;
+
+        static void Main(string[] args)
+        {
+           MyEvent += async delegate { await Task.Delay(0); };
+        }
+    }
+}
+
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.AnonymousMethodExpression)).Single();
+
+            Assert.Equal("async delegate { await Task.Delay(0); }", node1.ToString());
+
+            Assert.Equal("void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)", model.GetTypeInfo(node1).ConvertedType.GetMembers("Invoke").Single().ToTestDisplayString());
+
+            var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
+
+            Assert.Equal("System.Object <sender>", lambdaParameters[0].ToTestDisplayString());
+            Assert.Equal("System.EventArgs <e>", lambdaParameters[1].ToTestDisplayString());
+
+            CompileAndVerify(compilation);
         }
     }
 }

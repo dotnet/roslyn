@@ -194,6 +194,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.NewLinesForBracesInMethods, value); }
         }
 
+        public int NewLines_Braces_Property
+        {
+            get { return GetBooleanOption(CSharpFormattingOptions.NewLinesForBracesInProperties); }
+            set { SetBooleanOption(CSharpFormattingOptions.NewLinesForBracesInProperties, value); }
+        }
+
+        public int NewLines_Braces_Accessor
+        {
+            get { return GetBooleanOption(CSharpFormattingOptions.NewLinesForBracesInAccessors); }
+            set { SetBooleanOption(CSharpFormattingOptions.NewLinesForBracesInAccessors, value); }
+        }
+
         public int NewLines_Braces_ObjectInitializer
         {
             get { return GetBooleanOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers); }

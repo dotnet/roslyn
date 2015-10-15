@@ -99,6 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected MethodSymbol topLevelMethod;
 
+        protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
+
         protected override void Free()
         {
             _usedVariables.Free();
@@ -169,6 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = new NeverEmptyStructTypeCache();
         }
 
+        protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
+        {
+            return _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException;
+        }
+
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
             this.Diagnostics.Clear();
@@ -219,18 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<PendingBranch> RemoveReturns()
         {
             var result = base.RemoveReturns();
-            if ((object)currentMethodOrLambda != null && currentMethodOrLambda.IsAsync)
-            {
-                bool foundAwait = false;
-                foreach (var pending in result)
-                {
-                    if (pending.Branch != null && pending.Branch.Kind == BoundKind.AwaitExpression)
-                    {
-                        foundAwait = true;
-                        break;
-                    }
-                }
 
+            if ((object)currentMethodOrLambda != null &&
+                currentMethodOrLambda.IsAsync &&
+                !currentMethodOrLambda.IsImplicitlyDeclared)
+            {
+                var foundAwait = result.Any(pending => pending.Branch != null && pending.Branch.Kind == BoundKind.AwaitExpression);
                 if (!foundAwait)
                 {
                     Diagnostics.Add(ErrorCode.WRN_AsyncLacksAwaits, currentMethodOrLambda.Locations[0]);
@@ -300,11 +301,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static void Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics, bool requireOutParamsAssigned = true)
         {
             var walker = new DataFlowPass(compilation, member, node, requireOutParamsAssigned: requireOutParamsAssigned);
+
+            if (diagnostics != null)
+            {
+                walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
+            }
+
             try
             {
                 bool badRegion = false;
                 walker.Analyze(ref badRegion, diagnostics);
                 Debug.Assert(!badRegion);
+            }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+            {
+                ex.AddAnError(diagnostics);
             }
             finally
             {

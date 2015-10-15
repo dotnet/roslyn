@@ -428,9 +428,9 @@ static class Program
                 // (9,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool x = s.Foo is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "s.Foo is Action").WithLocation(9, 18),
-                // (12,20): error CS1061: 'int' does not contain a definition for 'Foo' and no extension method 'Foo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                // (12,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool y = i.Foo is Action;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Foo").WithArguments("int", "Foo").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "i.Foo is Action").WithLocation(12, 18),
                 // (9,18): error CS0165: Use of unassigned local variable 's'
                 //         bool x = s.Foo is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(9, 18),
@@ -937,26 +937,27 @@ static class S2
 }";
             var compilation = CompileAndVerify(source);
             compilation.VerifyIL("N.C.M",
-@"{
+@"
+{
   // Code size       73 (0x49)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  ldftn      ""void N.S1.F1(object, object)""
   IL_0008:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_000d:  call       ""void N.S1.M1(object, System.Action<object>)""
   IL_0012:  ldarg.0
-  IL_0013:  dup
+  IL_0013:  ldarg.0
   IL_0014:  ldftn      ""void S2.F2(object, object)""
   IL_001a:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_001f:  call       ""void N.S1.M1(object, System.Action<object>)""
   IL_0024:  ldarg.0
-  IL_0025:  dup
+  IL_0025:  ldarg.0
   IL_0026:  ldftn      ""void N.S1.F3(object, object)""
   IL_002c:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_0031:  call       ""void S2.M2(object, System.Action<object>)""
   IL_0036:  ldarg.0
-  IL_0037:  dup
+  IL_0037:  ldarg.0
   IL_0038:  ldftn      ""void S2.F4(object, object)""
   IL_003e:  newobj     ""System.Action<object>..ctor(object, System.IntPtr)""
   IL_0043:  call       ""void S2.M2(object, System.Action<object>)""
@@ -2463,7 +2464,7 @@ static class S
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
                 var intType = compilation.GetSpecialType(SpecialType.System_Int32);
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var arrayType = new ArrayTypeSymbol(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
+                var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
 
                 // Non-generic method.
                 var method = type.GetMember<MethodSymbol>("M1");
@@ -3681,14 +3682,14 @@ class C
 }
 var o = new object();
 o.F();";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact]
+        [Fact]
         public void InteractiveExtensionMethods()
         {
-            var parseOptions = TestOptions.Interactive;
+            var parseOptions = TestOptions.Script;
             var references = new[] { MscorlibRef, SystemCoreRef };
             var source0 =
 @"static object F(this object o) { return 0; }
@@ -3698,15 +3699,17 @@ o.F();";
 @"static object G(this object o) { return 1; }
 var o = new object();
 o.G().F();";
-            var s0 = CSharpCompilation.CreateSubmission(
+
+            var s0 = CSharpCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: parseOptions),
                 references: references);
             s0.VerifyDiagnostics();
-            var s1 = CSharpCompilation.CreateSubmission(
+
+            var s1 = CSharpCompilation.CreateScriptCompilation(
                 "s1.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source1, options: parseOptions),
-                previousSubmission: s0,
+                previousScriptCompilation: s0,
                 references: references);
             s1.VerifyDiagnostics();
         }

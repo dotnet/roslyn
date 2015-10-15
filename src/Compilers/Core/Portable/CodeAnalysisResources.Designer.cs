@@ -478,6 +478,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inconsistent language versions.
+        /// </summary>
+        internal static string InconsistentLanguageVersions {
+            get {
+                return ResourceManager.GetString("InconsistentLanguageVersions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;in-memory assembly&gt;.
         /// </summary>
         internal static string InMemoryAssembly {
@@ -915,6 +924,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ResourceDataProviderShouldReturnNonNullStream {
             get {
                 return ResourceManager.GetString("ResourceDataProviderShouldReturnNonNullStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resource stream ended at {0} bytes, expected {1} bytes..
+        /// </summary>
+        internal static string ResourceStreamEndedUnexpectedly {
+            get {
+                return ResourceManager.GetString("ResourceStreamEndedUnexpectedly", resourceCulture);
             }
         }
         

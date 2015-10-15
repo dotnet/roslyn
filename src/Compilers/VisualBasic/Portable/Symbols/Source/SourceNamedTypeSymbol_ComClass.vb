@@ -837,7 +837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Throw ExceptionUtilities.Unreachable
                 End Function
 
-                Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+                Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
                     Throw ExceptionUtilities.Unreachable
                 End Function
 
@@ -926,6 +926,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Friend Overrides ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
                     Get
                         Return ImmutableArray(Of TypeSymbol).Empty
+                    End Get
+                End Property
+
+                Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+                    Get
+                        Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
+                    End Get
+                End Property
+
+                Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+                    Get
+                        Return False
                     End Get
                 End Property
 
@@ -1018,11 +1030,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Else
                         Dim parameters(clone.ParameterCount - 1) As ParameterSymbol
 
-                        For i As Integer = 0 To parameters.Count - 1
+                        For i As Integer = 0 To parameters.Length - 1
                             parameters(i) = New SynthesizedComParameter(Me, clone.Parameters(i))
                         Next
 
-                        _parameters = parameters.AsImmutableOrNull()
+                        _parameters = parameters.AsImmutable()
                     End If
                 End Sub
 
@@ -1520,9 +1532,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
-                Friend Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+                Friend Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
                     Get
-                        Return _clonedFrom.HasByRefBeforeCustomModifiers
+                        Return _clonedFrom.CountOfCustomModifiersPrecedingByRef
                     End Get
                 End Property
 
@@ -1630,11 +1642,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Else
                         Dim parameters(clone.ParameterCount - 1) As ParameterSymbol
 
-                        For i As Integer = 0 To parameters.Count - 1
+                        For i As Integer = 0 To parameters.Length - 1
                             parameters(i) = New SynthesizedComParameter(Me, clone.Parameters(i))
                         Next
 
-                        _parameters = parameters.AsImmutableOrNull()
+                        _parameters = parameters.AsImmutable()
                     End If
                 End Sub
 

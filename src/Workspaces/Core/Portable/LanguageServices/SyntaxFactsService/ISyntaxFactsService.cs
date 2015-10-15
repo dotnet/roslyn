@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
         SyntaxNode GetMethodLevelMember(SyntaxNode root, int memberId);
+        TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Given a <see cref="SyntaxNode"/>, return the <see cref="TextSpan"/> representing the span of the member body

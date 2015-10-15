@@ -33,7 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
         End Sub
 
         <WorkItem(876520)>
-        <Fact>
+        <WpfFact>
         Public Sub TestBreakpointSpansMultipleMethods()
             ' Normal case: debugger passing BP spans "sub Foo() end sub"
             TestSpanWithLength(<text>

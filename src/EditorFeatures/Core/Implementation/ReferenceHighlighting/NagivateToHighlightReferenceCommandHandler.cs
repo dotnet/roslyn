@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                     return;
                 }
 
-                var spans = GetTags(tagAggregator, new SnapshotSpan(args.TextView.TextSnapshot, 0, args.TextView.TextSnapshot.Length)).ToList();
+                var spans = GetTags(tagAggregator, args.TextView.TextSnapshot.GetFullSpan()).ToList();
 
                 Contract.ThrowIfFalse(spans.Any(), "We should have at least found the tag under the cursor!");
 

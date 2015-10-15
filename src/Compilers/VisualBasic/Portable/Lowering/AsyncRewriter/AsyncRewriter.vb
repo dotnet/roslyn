@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._builderType = Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder)
 
                 Case AsyncMethodKind.GenericTaskFunction
-                    Me._resultType = DirectCast(Me.Method.ReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap)
+                    Me._resultType = DirectCast(Me.Method.ReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap).Type
                     Me._builderType = Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T).Construct(Me._resultType)
 
                 Case Else
@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' TODO: Do we want to extend support of this constant 
                     '       folding to non-literal expressions?
                     Return New CapturedConstantExpression(expression.ConstantValueOpt,
-                                                          expression.Type.InternalSubstituteTypeParameters(typeMap))
+                                                          expression.Type.InternalSubstituteTypeParameters(typeMap).Type)
 
                 Case BoundKind.Local
                     Return CaptureLocalSymbol(typeMap, DirectCast(expression, BoundLocal).LocalSymbol, initializers)

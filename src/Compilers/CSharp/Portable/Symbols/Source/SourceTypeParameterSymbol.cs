@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var map = _map.TypeMap;
             Debug.Assert(map != null);
 
-            var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
+            var constraintTypes = map.SubstituteTypesWithoutModifiers(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, true, this.DeclaringCompilation, diagnostics);
         }
 

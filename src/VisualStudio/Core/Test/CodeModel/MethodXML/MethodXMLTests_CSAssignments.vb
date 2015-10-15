@@ -5,7 +5,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_FieldWithThis()
             Dim definition =
     <Workspace>
@@ -50,7 +50,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_FieldWithoutThis()
             Dim definition =
     <Workspace>
@@ -95,7 +95,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_FieldWithObjectCreation()
             Dim definition =
     <Workspace>
@@ -140,7 +140,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_FieldWithEnumMember()
             Dim definition =
     <Workspace>
@@ -190,7 +190,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_PropertyWithThis()
             Dim definition =
     <Workspace>
@@ -235,7 +235,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_PropertyWithoutThis()
             Dim definition =
     <Workspace>
@@ -280,7 +280,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_FieldThroughPropertyWithThis()
             Dim definition =
     <Workspace>
@@ -331,7 +331,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_FieldThroughPropertyWithoutThis()
             Dim definition =
     <Workspace>
@@ -382,7 +382,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_AssignLocalsWithField()
             Dim definition =
     <Workspace>
@@ -437,7 +437,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_CompoundAdd()
             Dim definition =
     <Workspace>
@@ -487,7 +487,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_CompoundSubtract()
             Dim definition =
     <Workspace>
@@ -522,7 +522,7 @@ public class C
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_ArrayElementAccess()
             Dim definition =
     <Workspace>
@@ -612,7 +612,7 @@ public class C
         End Sub
 
         <WorkItem(743120)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_PropertyOffParameter()
             Dim definition =
     <Workspace>
@@ -658,7 +658,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_NullableValue()
             Dim definition =
     <Workspace>
@@ -702,7 +702,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_ClosedGeneric1()
             Dim definition =
     <Workspace>
@@ -738,7 +738,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_ClosedGeneric2()
             Dim definition =
     <Workspace>
@@ -774,7 +774,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_ClosedGeneric3()
             Dim definition =
     <Workspace>
@@ -810,7 +810,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_ClosedGeneric4()
             Dim definition =
     <Workspace>
@@ -846,7 +846,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_Pointer1()
             Dim definition =
     <Workspace>
@@ -872,7 +872,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_Pointer2()
             Dim definition =
     <Workspace>
@@ -906,7 +906,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_Pointer3()
             Dim definition =
     <Workspace>
@@ -940,7 +940,7 @@ public class C
         End Sub
 
         <WorkItem(831374)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_TypeConfluence()
             Dim definition =
     <Workspace>
@@ -976,7 +976,7 @@ class C
         End Sub
 
         <WorkItem(887584)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_EscapedNames()
             Dim definition =
     <Workspace>
@@ -1032,7 +1032,7 @@ class C
         End Sub
 
         <WorkItem(1126037)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_ControlChar()
             Dim definition =
     <Workspace>
@@ -1083,7 +1083,7 @@ class C
         End Sub
 
         <WorkItem(4312, "https://github.com/dotnet/roslyn/issues/4312")>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_PropertyAssignedWithEmptyArray()
             Dim definition =
     <Workspace>
@@ -1143,7 +1143,7 @@ class C
         End Sub
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_RoundTrippedDoubles()
             Dim definition =
     <Workspace>
@@ -1177,7 +1177,7 @@ class C
         End Sub
 
         <WorkItem(4149, "https://github.com/dotnet/roslyn/issues/4149")>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub CSAssignments_RoundTrippedSingles()
             Dim definition =
     <Workspace>

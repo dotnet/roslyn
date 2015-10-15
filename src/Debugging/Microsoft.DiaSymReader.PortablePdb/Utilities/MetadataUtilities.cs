@@ -38,8 +38,6 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return (MetadataTokens.GetRowNumber(typeHandle) << 2) | tag;
         }
 
-        // TODO: move to SRM
-
         internal static BlobHandle GetCustomDebugInformation(this MetadataReader reader, EntityHandle parent, Guid kind)
         {
             foreach (var cdiHandle in reader.GetCustomDebugInformation(parent))
@@ -53,16 +51,6 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
 
             return default(BlobHandle);
-        }
-
-        internal static MethodBodyHandle ToMethodBodyHandle(this MethodDefinitionHandle handle)
-        {
-            return (MethodBodyHandle)MetadataTokens.Handle(((int)TableIndex.MethodBody << 24) | MetadataTokens.GetRowNumber(handle));
-        }
-
-        internal static MethodDefinitionHandle ToMethodDefinitionHandle(this MethodBodyHandle handle)
-        {
-            return MetadataTokens.MethodDefinitionHandle(MetadataTokens.GetRowNumber(handle));
         }
     }
 }

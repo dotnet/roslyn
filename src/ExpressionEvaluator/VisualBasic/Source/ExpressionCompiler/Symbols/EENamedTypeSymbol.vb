@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+        Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
             Throw ExceptionUtilities.Unreachable
         End Function
 

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
@@ -178,7 +179,7 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Returns a sequence of all blobs that reprsent the content of the builder.
+        /// Returns a sequence of all blobs that represent the content of the builder.
         /// </summary>
         /// <exception cref="InvalidOperationException">Content is not available, the builder has been linked with another one.</exception>
         public Blobs GetBlobs()
@@ -663,7 +664,8 @@ namespace Microsoft.Cci
         /// <exception cref="ArgumentNullException"><paramref name="source"/> is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="byteCount"/> is negative.</exception>
         /// <exception cref="InvalidOperationException">Builder is not writable, it has been linked with another one.</exception>
-        public void WriteBytes(Stream source, int byteCount)
+        /// <returns>Bytes successfully written from the <paramref name="source" />.</returns>
+        public int TryWriteBytes(Stream source, int byteCount)
         {
             if (source == null)
             {
@@ -675,17 +677,36 @@ namespace Microsoft.Cci
                 throw new ArgumentOutOfRangeException(nameof(byteCount));
             }
 
+            if (byteCount == 0)
+            {
+                return 0;
+            }
+
+            int bytesRead = 0;
             int bytesToCurrent = Math.Min(FreeBytes, byteCount);
 
-            int bytesRead = source.Read(_buffer, Length, bytesToCurrent);
-            AddLength(bytesRead);
+            if (bytesToCurrent > 0)
+            {
+                bytesRead = source.TryReadAll(_buffer, Length, bytesToCurrent);
+                AddLength(bytesRead);
+
+                if (bytesRead != bytesToCurrent)
+                {
+                    return bytesRead;
+                }
+            }
 
             int remaining = byteCount - bytesToCurrent;
-            if (remaining > 0 && bytesRead == bytesToCurrent)
+            if (remaining > 0)
             {
                 Expand(remaining);
-                AddLength(source.Read(_buffer, 0, remaining));
+                bytesRead = source.TryReadAll(_buffer, 0, remaining);
+                AddLength(bytesRead);
+
+                bytesRead += bytesToCurrent;
             }
+
+            return bytesRead;
         }
 
         /// <exception cref="ArgumentNullException"><paramref name="buffer"/> is null.</exception>

@@ -307,6 +307,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinator_WaitForHigherPriorityOperationsAsync,
 
         CSharp_Interactive_Window,
-        VisualBasic_Interactive_Window
+        VisualBasic_Interactive_Window,
+
+        NonFatalWatson,
+        GlobalOperationRegistration,
     }
 }

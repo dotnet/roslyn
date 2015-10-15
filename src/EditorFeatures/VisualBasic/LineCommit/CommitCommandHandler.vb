@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Dim buffer = args.SubjectBuffer
                     Dim snapshot = buffer.CurrentSnapshot
 
-                    Dim wholeFile = New SnapshotSpan(snapshot, 0, snapshot.Length)
+                    Dim wholeFile = snapshot.GetFullSpan()
                     Dim commitBufferManager = _bufferManagerFactory.CreateForBuffer(buffer)
                     commitBufferManager.ExpandDirtyRegion(wholeFile)
                     commitBufferManager.CommitDirty(isExplicitFormat:=True, cancellationToken:=waitContext.CancellationToken)

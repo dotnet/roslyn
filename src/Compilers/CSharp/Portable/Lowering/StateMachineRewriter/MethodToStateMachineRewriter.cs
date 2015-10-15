@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (!proxies.TryGetValue(local, out proxy))
                 {
-                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type)), isReusable: true);
+                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type), isReusable: true);
 
                     proxies.Add(local, proxy);
                 }
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (needsSacrificialEvaluation)
             {
-                var type = TypeMap.SubstituteType(local.Type);
+                var type = TypeMap.SubstituteType(local.Type).Type;
                 var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
                 Debug.Assert(type == replacement.Type);
                 return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, refKind: RefKind.Ref));

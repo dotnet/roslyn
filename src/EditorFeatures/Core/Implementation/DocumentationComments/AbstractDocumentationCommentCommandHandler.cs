@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -21,7 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
     internal abstract class AbstractDocumentationCommentCommandHandler<TDocumentationComment, TMemberNode> :
         ICommandHandler<TypeCharCommandArgs>,
         ICommandHandler<ReturnKeyCommandArgs>,
-        ICommandHandler<InsertCommentCommandArgs>
+        ICommandHandler<InsertCommentCommandArgs>,
+        ICommandHandler<OpenLineAboveCommandArgs>,
+        ICommandHandler<OpenLineBelowCommandArgs>
         where TDocumentationComment : SyntaxNode, IStructuredTriviaSyntax
         where TMemberNode : SyntaxNode
     {
@@ -216,14 +219,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             ITextView textView,
             CancellationToken cancellationToken)
         {
-            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
-            {
-                return false;
-            }
+            // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
+            // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
+            // on ENTER inside an existing XML doc comment.
 
-            if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+            if (subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
             {
-                return true;
+                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+                {
+                    return true;
+                }
             }
 
             if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
@@ -371,17 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 return false;
             }
 
-            var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
-            var previousLineOffset = previousLine.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-            var currentLineOffset = currentLine.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
-            var indentText = currentLineOffset < previousLineOffset
-                ? (previousLineOffset - currentLineOffset).CreateIndentationString(subjectBuffer.GetOption(FormattingOptions.UseTabs), tabSize)
-                : string.Empty;
-
-            var newText = indentText + ExteriorTriviaText + " ";
-            subjectBuffer.Insert(position, newText);
-
-            textView.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(position + newText.Length));
+            InsertExteriorTrivia(textView, subjectBuffer, currentLine, previousLine);
 
             return true;
         }
@@ -487,34 +482,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
-            if (caretPosition < 0)
+            int originalPosition = -1;
+
+            // The original position should be a position that is consistent with the syntax tree, even
+            // after Enter is pressed. Thus, we use the start of the first selection if there is one.
+            // Otherwise, getting the tokens to the right or the left might return unexpected results.
+
+            if (args.TextView.Selection.SelectedSpans.Count > 0)
+            {
+                var selectedSpan = args.TextView.Selection
+                    .GetSnapshotSpansOnBuffer(args.SubjectBuffer)
+                    .FirstOrNullable();
+
+                originalPosition = selectedSpan != null
+                    ? selectedSpan.Value.Start
+                    : args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+            }
+
+            if (originalPosition < 0)
             {
                 nextHandler();
                 return;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                nextHandler();
-                return;
-            }
-
-            var text = document
-                .GetTextAsync(CancellationToken.None)
-                .WaitAndGetResult(CancellationToken.None);
-
-            var currentLine = text.Lines.GetLineFromPosition(caretPosition);
-            var currentLineText = currentLine.ToString();
-            var offset = currentLineText.GetFirstNonWhitespaceOffset();
-            if (offset == null)
-            {
-                nextHandler();
-                return;
-            }
-
-            if (currentLineText.IndexOf(ExteriorTriviaText, StringComparison.Ordinal) != offset)
+            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition))
             {
                 nextHandler();
                 return;
@@ -536,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
                 editorOperations.InsertNewLine();
 
-                CompleteComment(args.SubjectBuffer, args.TextView, caretPosition, InsertOnEnterTyped, CancellationToken.None);
+                CompleteComment(args.SubjectBuffer, args.TextView, originalPosition, InsertOnEnterTyped, CancellationToken.None);
 
                 // Since we're wrapping the ENTER key undo transaction, we always complete
                 // the transaction -- even if we didn't generate anything.
@@ -586,6 +577,168 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                         nextHandler();
                     }
                 });
+        }
+
+        public CommandState GetCommandState(OpenLineAboveCommandArgs args, Func<CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler)
+        {
+            // Check to see if the current line starts with exterior trivia. If so, we'll take over.
+            // If not, let the nextHandler run.
+
+            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+            if (caretPosition < 0)
+            {
+                nextHandler();
+                return;
+            }
+
+            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, caretPosition))
+            {
+                nextHandler();
+                return;
+            }
+
+            // Allow nextHandler() to run and then insert exterior trivia if necessary.
+            nextHandler();
+
+            InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
+        }
+
+        public CommandState GetCommandState(OpenLineBelowCommandArgs args, Func<CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(OpenLineBelowCommandArgs args, Action nextHandler)
+        {
+            // Check to see if the current line starts with exterior trivia. If so, we'll take over.
+            // If not, let the nextHandler run.
+
+            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+            if (caretPosition < 0)
+            {
+                nextHandler();
+                return;
+            }
+
+            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, caretPosition))
+            {
+                nextHandler();
+                return;
+            }
+
+            // Allow nextHandler() to run and the insert exterior trivia if necessary.
+            nextHandler();
+
+            InsertExteriorTriviaIfNeeded(args.TextView, args.SubjectBuffer);
+        }
+
+        private void InsertExteriorTriviaIfNeeded(ITextView view, ITextBuffer subjectBuffer)
+        {
+            var caretPosition = view.GetCaretPoint(subjectBuffer) ?? -1;
+            if (caretPosition < 0)
+            {
+                return;
+            }
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return;
+            }
+
+            var text = document
+                .GetTextAsync(CancellationToken.None)
+                .WaitAndGetResult(CancellationToken.None);
+
+            // We only insert exterior trivia if the current line does not start with exterior trivia
+            // and the previous line does.
+
+            var currentLine = text.Lines.GetLineFromPosition(caretPosition);
+            if (currentLine.LineNumber <= 0)
+            {
+                return;
+            }
+
+            var previousLine = text.Lines[currentLine.LineNumber - 1];
+
+            if (LineStartsWithExteriorTrivia(currentLine) || !LineStartsWithExteriorTrivia(previousLine))
+            {
+                return;
+            }
+
+            InsertExteriorTrivia(view, subjectBuffer, currentLine, previousLine);
+        }
+
+        private void InsertExteriorTrivia(ITextView view, ITextBuffer subjectBuffer, TextLine currentLine, TextLine previousLine)
+        {
+            var insertionText = CreateInsertionTextFromPreviousLine(previousLine, subjectBuffer);
+
+            var firstNonWhitespaceOffset = currentLine.GetFirstNonWhitespaceOffset();
+            var replaceSpan = firstNonWhitespaceOffset != null
+                ? TextSpan.FromBounds(currentLine.Start, currentLine.Start + firstNonWhitespaceOffset.Value)
+                : currentLine.Span;
+
+            subjectBuffer.Replace(replaceSpan.ToSpan(), insertionText);
+
+            view.TryMoveCaretToAndEnsureVisible(subjectBuffer.CurrentSnapshot.GetPoint(replaceSpan.Start + insertionText.Length));
+        }
+
+        private string CreateInsertionTextFromPreviousLine(TextLine previousLine, ITextBuffer subjectBuffer)
+        {
+            var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
+            var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
+
+            var previousLineText = previousLine.ToString();
+            var firstNonWhitespaceColumn = previousLineText.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
+
+            var trimmedPreviousLine = previousLineText.Trim();
+            Debug.Assert(trimmedPreviousLine.StartsWith(ExteriorTriviaText), "Unexpected: previous line does not begin with doc comment exterior trivia.");
+
+            // skip exterior trivia.
+            trimmedPreviousLine = trimmedPreviousLine.Substring(3);
+
+            var firstNonWhitespaceOffsetInPreviousXmlText = trimmedPreviousLine.GetFirstNonWhitespaceOffset();
+
+            var extraIndent = firstNonWhitespaceOffsetInPreviousXmlText != null
+                ? trimmedPreviousLine.Substring(0, firstNonWhitespaceOffsetInPreviousXmlText.Value)
+                : " ";
+
+            return firstNonWhitespaceColumn.CreateIndentationString(useTabs, tabSize) + ExteriorTriviaText + extraIndent;
+        }
+
+        private bool CurrentLineStartsWithExteriorTrivia(ITextBuffer subjectBuffer, int position)
+        {
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
+
+            var text = document
+                .GetTextAsync(CancellationToken.None)
+                .WaitAndGetResult(CancellationToken.None);
+
+            var currentLine = text.Lines.GetLineFromPosition(position);
+
+            return LineStartsWithExteriorTrivia(currentLine);
+        }
+
+        private bool LineStartsWithExteriorTrivia(TextLine line)
+        {
+            var lineText = line.ToString();
+
+            var lineOffset = lineText.GetFirstNonWhitespaceOffset() ?? -1;
+            if (lineOffset < 0)
+            {
+                return false;
+            }
+
+            return string.CompareOrdinal(lineText, lineOffset, ExteriorTriviaText, 0, ExteriorTriviaText.Length) == 0;
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using Roslyn.Utilities;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -14,7 +15,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
     {
         [PreserveSig]
         public unsafe int GetReaderForFile(
-            [MarshalAs(UnmanagedType.Interface)]object importer, 
+            [MarshalAs(UnmanagedType.Interface)]object importer,
             [MarshalAs(UnmanagedType.LPWStr)]string fileName,
             [MarshalAs(UnmanagedType.LPWStr)]string searchPath,
             [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedReader reader)
@@ -36,7 +37,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             try
             {
                 // TODO: use memory mapped files?
-                bytes = File.ReadAllBytes(fileName);
+                bytes = PortableShim.File.ReadAllBytes(fileName);
             }
             catch
             {

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
@@ -138,11 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             history.Redo(count);
         }
 
-        public void AssertNoTag()
+        public async Task AssertNoTag()
         {
-            WaitForAsyncOperations();
+            await WaitForAsyncOperationsAsync().ConfigureAwait(true);
 
-            var tags = _tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(_view.TextBuffer.CurrentSnapshot, new Span(0, _view.TextBuffer.CurrentSnapshot.Length))));
+            var tags = _tagger.GetTags(_view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
 
             Assert.Equal(0, tags.Count());
         }
@@ -154,11 +156,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             return DiagnosticProviderTestUtilities.GetDocumentDiagnostics(analyzer, document, document.GetSyntaxRootAsync(CancellationToken.None).Result.FullSpan).ToList();
         }
 
-        public void AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
+        public async Task AssertTag(string expectedFromName, string expectedToName, bool invokeAction = false)
         {
-            WaitForAsyncOperations();
+            await WaitForAsyncOperationsAsync().ConfigureAwait(true);
 
-            var tags = _tagger.GetTags(new NormalizedSnapshotSpanCollection(new SnapshotSpan(_view.TextBuffer.CurrentSnapshot, new Span(0, _view.TextBuffer.CurrentSnapshot.Length))));
+            var tags = _tagger.GetTags(_view.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
 
             // There should only ever be one tag
             Assert.Equal(1, tags.Count());
@@ -204,11 +206,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
             Assert.NotNull(_notificationMessage);
         }
 
-        private void WaitForAsyncOperations()
+        private async Task WaitForAsyncOperationsAsync()
         {
             var waiters = Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            var tasks = waiters.Select(w => w.CreateWaitTask()).ToList();
-            tasks.PumpingWaitAll();
+            await waiters.WaitAllAsync().ConfigureAwait(true);
         }
 
         public void Dispose()

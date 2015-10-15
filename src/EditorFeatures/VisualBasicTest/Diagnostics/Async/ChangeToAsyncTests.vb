@@ -4,11 +4,11 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.AddAsync
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Public Class ChangeToAsyncTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsChangeToAsync)>
         Public Sub CantAwaitAsyncSub1()
             Dim initial =
     <ModuleDeclaration>

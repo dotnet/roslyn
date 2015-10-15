@@ -27,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 End If
 
                 token = token.GetPreviousToken()
-
             Loop
 
             Return token

@@ -10,8 +10,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class DeclarationParsingTests
+    public class DeclarationParsingTests : ParsingTests
     {
+        protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
+        {
+            return SyntaxFactory.ParseSyntaxTree(text);
+        }
+
         private CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null)
         {
             return SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
@@ -5226,6 +5231,82 @@ unsafe struct s
 ";
             var file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
+        }
+
+        [Fact]
+        [WorkItem(4826, "https://github.com/dotnet/roslyn/pull/4826")]
+        public void NonAccessorAfterIncompleteProperty()
+        {
+            UsingTree(@"
+class C
+{
+    int A { get { return this.
+    public int B;
+}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.ReturnStatement);
+                                    {
+                                        N(SyntaxKind.ReturnKeyword);
+                                        N(SyntaxKind.SimpleMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.ThisExpression);
+                                            N(SyntaxKind.ThisKeyword);
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            N(SyntaxKind.IdentifierToken);
+                                        }
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
         }
     }
 }

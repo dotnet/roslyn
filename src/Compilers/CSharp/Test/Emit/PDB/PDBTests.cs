@@ -3,9 +3,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -135,6 +139,7 @@ public class C
                     win32Resources: null,
                     manifestResources: null,
                     options: null,
+                    debugEntryPoint: null,
                     getHostDiagnostics: null,
                     testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
@@ -362,6 +367,93 @@ public class C
   </methods>
 </symbols>
 ");
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_DLL()
+        {
+            var source = @"class C { static void F() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var f = c.GetMember<MethodSymbol>("C.F");
+
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""F"" />
+  <methods/>
+</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+
+            Assert.Equal(0, peEntryPointToken);
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_EXE()
+        {
+            var source = @"class M { static void Main() { } } class C { static void F<S>() { } }";
+
+            var c = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var f = c.GetMember<MethodSymbol>("C.F");
+
+            c.VerifyPdb(@"
+<symbols>
+  <entryPoint declaringType=""C"" methodName=""F"" />
+  <methods/>
+</symbols>", debugEntryPoint: f, options: PdbToXmlOptions.ExcludeScopes | PdbToXmlOptions.ExcludeSequencePoints | PdbToXmlOptions.ExcludeCustomDebugInformation);
+
+            var peReader = new PEReader(c.EmitToArray(debugEntryPoint: f));
+            int peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress;
+
+            var mdReader = peReader.GetMetadataReader();
+            var methodDef = mdReader.GetMethodDefinition((MethodDefinitionHandle)MetadataTokens.Handle(peEntryPointToken));
+            Assert.Equal("Main", mdReader.GetString(methodDef.Name));
+        }
+
+        [Fact]
+        public void CustomDebugEntryPoint_Errors()
+        {
+            var source1 = @"class C { static void F() { } } class D<T> { static void G<S>() {} }";
+            var source2 = @"class C { static void F() { } }";
+
+            var c1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var c2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+
+            var f1 = c1.GetMember<MethodSymbol>("C.F");
+            var f2 = c2.GetMember<MethodSymbol>("C.F");
+            var g = c1.GetMember<MethodSymbol>("D.G");
+            var d = c1.GetMember<NamedTypeSymbol>("D");
+            Assert.NotNull(f1);
+            Assert.NotNull(f2);
+            Assert.NotNull(g);
+            Assert.NotNull(d);
+
+            var stInt = c1.GetSpecialType(SpecialType.System_Int32);
+            var d_t_g_int = g.Construct(stInt);
+            var d_int = d.Construct(stInt);
+            var d_int_g = d_int.GetMember<MethodSymbol>("G");
+            var d_int_g_int = d_int_g.Construct(stInt);
+
+            var result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: f2);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_t_g_int);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
+
+            result = c1.Emit(new MemoryStream(), new MemoryStream(), debugEntryPoint: d_int_g_int);
+            result.Diagnostics.Verify(
+                // error CS8096: Debug entry point must be a definition of a source method in the current compilation.
+                Diagnostic(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition));
         }
 
         #endregion
@@ -1361,8 +1453,7 @@ class C
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.M", @"
-<symbols>
+            c.VerifyPdb("C.M", @"<symbols>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -1371,7 +1462,6 @@ class C
         </using>
         <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -1382,15 +1472,14 @@ class C
         <entry offset=""0x6"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""41"" />
         <entry offset=""0xd"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
         <entry offset=""0xe"" startLine=""7"" startColumn=""16"" endLine=""7"" endColumn=""19"" />
-        <entry offset=""0x14"" hidden=""true"" />
+        <entry offset=""0x12"" hidden=""true"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x16"">
-        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x16"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0x14"">
+        <local name=""i"" il_index=""0"" il_start=""0x0"" il_end=""0x14"" attributes=""0"" />
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         #endregion
@@ -3655,8 +3744,7 @@ unsafe class C
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.UnsafeDebugExe);
-            c.VerifyPdb(@"
-<symbols>
+            c.VerifyPdb(@"<symbols>
   <entryPoint declaringType=""C"" methodName=""Main"" />
   <methods>
     <method containingType=""C"" name=""Main"">
@@ -3668,8 +3756,6 @@ unsafe class C
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""79"" />
           <slot kind=""temp"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
       <sequencePoints>
@@ -3679,16 +3765,16 @@ unsafe class C
         <entry offset=""0x15"" startLine=""12"" startColumn=""16"" endLine=""12"" endColumn=""28"" />
         <entry offset=""0x31"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" />
         <entry offset=""0x32"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""20"" />
-        <entry offset=""0x3f"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
-        <entry offset=""0x40"" hidden=""true"" />
-        <entry offset=""0x43"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
-        <entry offset=""0x51"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
+        <entry offset=""0x39"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0x3a"" hidden=""true"" />
+        <entry offset=""0x3d"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""31"" />
+        <entry offset=""0x4b"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x52"">
+      <scope startOffset=""0x0"" endOffset=""0x4c"">
         <namespace name=""System"" />
-        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x52"" attributes=""0"" />
-        <scope startOffset=""0x15"" endOffset=""0x43"">
-          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x43"" attributes=""0"" />
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x4c"" attributes=""0"" />
+        <scope startOffset=""0x15"" endOffset=""0x3d"">
+          <local name=""p"" il_index=""1"" il_start=""0x15"" il_end=""0x3d"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -4221,7 +4307,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb(@"
 <symbols>
@@ -4238,7 +4324,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact, WorkItem(546862, "DevDiv")]
@@ -4278,7 +4364,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb(@"
 <symbols>
@@ -4293,7 +4379,7 @@ public class T
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]

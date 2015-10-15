@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     Public Class FormattingEngineTests_Venus
         Inherits FormattingTestBase
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub SimpleOneLineNugget()
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -35,7 +35,7 @@ End Module</Code>
             AssertFormatWithBaseIndentAfterReplacingLfToCrLf(code.Value, expected.Value, baseIndentation:=3)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         <WorkItem(530138)>
         Public Sub SimpleScriptBlock()
             Dim code = <Code>Imports System
@@ -67,7 +67,7 @@ End Module</Code>
             AssertFormatWithBaseIndentAfterReplacingLfToCrLf(code.Value, expected.Value, baseIndentation:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub SimpleMultiLineNugget()
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -105,7 +105,7 @@ End Module</Code>
         End Sub
 
         <WorkItem(576526)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub SimpleQueryWithinNugget()
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -143,7 +143,7 @@ End Module</Code>
             AssertFormatWithBaseIndentAfterReplacingLfToCrLf(code.Value, expected.Value, baseIndentation:=7)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub SingleLineFunctionLambdaInNugget()
             Dim code = <Code>Imports System
 Imports System.Collections.Generic
@@ -178,7 +178,7 @@ End Module</Code>
             AssertFormatWithBaseIndentAfterReplacingLfToCrLf(code.Value, expected.Value, baseIndentation:=7)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Formatting), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub MultiLineFunctionLambdaInNugget()
             Dim code = <Code>Imports System
 Imports System.Collections.Generic

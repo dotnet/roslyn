@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (syntax != null && symbol is CodeGenerationSymbol)
             {
-                return (TSyntaxNode)syntax.WithAdditionalAnnotations(
+                return syntax.WithAdditionalAnnotations(
                     ((CodeGenerationSymbol)symbol).GetAnnotations());
             }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public static TSyntaxNode AddCleanupAnnotationsTo<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode
         {
-            return (TSyntaxNode)node.WithAdditionalAnnotations(Formatter.Annotation);
+            return node.WithAdditionalAnnotations(Formatter.Annotation);
         }
 
         public static void CheckNodeType<TSyntaxNode1>(SyntaxNode node, string argumentName)

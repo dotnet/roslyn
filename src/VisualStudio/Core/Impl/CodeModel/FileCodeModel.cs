@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly ITextManagerAdapter _textManagerAdapter;
 
-        private readonly ElementTable _elementTable;
+        private readonly CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement> _codeElementTable;
 
         // These are used during batching.
         private bool _batchMode;
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _documentId = documentId;
             _textManagerAdapter = textManagerAdapter;
 
-            _elementTable = new ElementTable();
+            _codeElementTable = new CleanableWeakComHandleTable<SyntaxNodeKey, EnvDTE.CodeElement>();
 
             _batchMode = false;
             _batchDocument = null;
@@ -175,88 +175,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             throw Exceptions.ThrowEUnexpected();
         }
 
-        private void AddElement(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
+        internal void UpdateCodeElementNodeKey(AbstractKeyedCodeElement keyedElement, SyntaxNodeKey oldNodeKey, SyntaxNodeKey newNodeKey)
         {
-            _elementTable.Add(nodeKey, element);
-        }
-
-        private void RemoveElement(SyntaxNodeKey nodeKey)
-        {
-            _elementTable.Remove(nodeKey);
-        }
-
-        /// <summary>
-        /// This function re-adds a code element to the table, taking care not to duplicate
-        /// an element (i.e., making sure that no two elements with the same key-ordinal
-        /// appear in the same element chain in the table).  To resolve any conflict, each
-        /// node with the given key is examined positionally, and the existing order is
-        /// maintained as closely as possible -- but it is still possible the code element
-        /// references to duplicate elements can get "bumped" by odd edits -- nothing we
-        /// can do about this.
-        /// </summary>
-        internal void ResetElementNodeKey(AbstractKeyedCodeElement element, SyntaxNodeKey nodeKey)
-        {
-            EnvDTE.CodeElement elementInTable;
-            _elementTable.Remove(element.NodeKey, out elementInTable);
-
-            var abstractElementInTable = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(elementInTable);
-            if (!object.Equals(abstractElementInTable, element))
+            EnvDTE.CodeElement codeElement;
+            if (!_codeElementTable.TryGetValue(oldNodeKey, out codeElement))
             {
-                Debug.Fail("Found a different element with the same key!");
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Could not find {oldNodeKey} in Code Model element table.");
             }
 
-            abstractElementInTable.NodeKey = nodeKey;
+            _codeElementTable.Remove(oldNodeKey);
 
-            _elementTable.Add(nodeKey, elementInTable);
+            var managedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(codeElement);
+            if (!object.Equals(managedElement, keyedElement))
+            {
+                throw new InvalidOperationException($"Unexpected failure in Code Model while updating node keys {oldNodeKey} -> {newNodeKey}");
+            }
+
+            _codeElementTable.Add(newNodeKey, codeElement);
         }
 
-        internal void OnElementCreated(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
+        internal void OnCodeElementCreated(SyntaxNodeKey nodeKey, EnvDTE.CodeElement element)
         {
-            AddElement(nodeKey, element);
+            _codeElementTable.Add(nodeKey, element);
         }
 
-        internal T CreateCodeElement<T>(SyntaxNode node)
+        internal T GetOrCreateCodeElement<T>(SyntaxNode node)
         {
             var nodeKey = CodeModelService.TryGetNodeKey(node);
 
             if (!nodeKey.IsEmpty)
             {
-                // Check if the node exists in the parse tree.
-                // Note that in designer spew the nodes don't get created right away so we skip this check.
-                if (!IsBatchOpen && CodeModelService.LookupNode(nodeKey, GetSyntaxTree()) == null)
+                // Since the node already has a key, check to see if a code element already
+                // exists for it. If so, return that element it it's still valid; otherwise,
+                // remove it from the table.
+
+                EnvDTE.CodeElement codeElement;
+                if (_codeElementTable.TryGetValue(nodeKey, out codeElement))
                 {
-                    throw Exceptions.ThrowEFail();
-                }
-
-                // See if the element exists.
-                var previousElement = _elementTable.TryGetValue(nodeKey);
-
-                // Here's our element... possibly.  It must be valid -- if it isn't,
-                // we need to remove it.
-                if (previousElement != null)
-                {
-                    var previousElementImpl = ComAggregate.TryGetManagedObject<AbstractCodeElement>(previousElement);
-
-                    if (previousElementImpl.IsValidNode())
+                    if (codeElement != null)
                     {
-                        if (previousElement is T)
+                        var element = ComAggregate.TryGetManagedObject<AbstractCodeElement>(codeElement);
+                        if (element.IsValidNode())
                         {
-                            return (T)previousElement;
-                        }
-                        else
-                        {
-                            Debug.Fail("Called asked for the wrong type!");
-                            throw new InvalidOperationException();
+                            if (codeElement is T)
+                            {
+                                return (T)codeElement;
+                            }
+
+                            throw new InvalidOperationException($"Found a valid code element for {nodeKey}, but it is not of type, {typeof(T).ToString()}");
                         }
                     }
-                    else
-                    {
-                        // This guy is no longer valid, so yank it out.  No sense
-                        // continuing to look for a match, either.
-                        RemoveElement(nodeKey);
-                    }
                 }
+
+                // Go ahead and remove the nodeKey from the table. At this point, we'll be creating a new one.
+                _codeElementTable.Remove(nodeKey);
             }
 
             return (T)CodeModelService.CreateInternalCodeElement(this.State, this, node);
@@ -541,6 +513,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var column = point.LineCharOffset - 1;
             var line = GetDocument().GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Lines[lineNumber];
             var position = line.Start + column;
+
             return position;
         }
 
@@ -615,15 +588,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return CodeModelService.CreateInternalCodeElement(State, this, node);
             }
 
-            return CreateCodeElement<EnvDTE.CodeElement>(node);
+            return GetOrCreateCodeElement<EnvDTE.CodeElement>(node);
         }
 
         public EnvDTE.CodeElements CodeElements
         {
-            get
-            {
-                return NamespaceCollection.Create(this.State, this, this, SyntaxNodeKey.Empty);
-            }
+            get { return NamespaceCollection.Create(this.State, this, this, SyntaxNodeKey.Empty); }
         }
 
         public EnvDTE.ProjectItem Parent
@@ -706,8 +676,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         foreach (var elementAndPath in elementAndPaths)
                         {
                             // make sure the element is there.
-                            var existingElement = _elementTable.TryGetValue(elementAndPath.Item1.NodeKey);
-                            if (existingElement != null)
+                            EnvDTE.CodeElement existingElement;
+                            if (_codeElementTable.TryGetValue(elementAndPath.Item1.NodeKey, out existingElement))
                             {
                                 elementAndPath.Item1.ReacquireNodeKey(elementAndPath.Item2, CancellationToken.None);
                             }
@@ -784,10 +754,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var currentNodeKeys = new List<GlobalNodeKey>();
 
-            foreach (var element in _elementTable)
+            foreach (var element in _codeElementTable.Values)
             {
                 var keyedElement = ComAggregate.TryGetManagedObject<AbstractKeyedCodeElement>(element);
-
                 if (keyedElement == null)
                 {
                     continue;
@@ -797,7 +766,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (keyedElement.TryLookupNode(out node))
                 {
                     var nodeKey = keyedElement.NodeKey;
-                    currentNodeKeys.Add(new GlobalNodeKey(nodeKey, new Roslyn.Utilities.SyntaxPath(node)));
+                    currentNodeKeys.Add(new GlobalNodeKey(nodeKey, new SyntaxPath(node)));
                 }
             }
 
@@ -814,13 +783,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private void ResetElementKey(GlobalNodeKey globalNodeKey)
         {
-            var element = _elementTable.TryGetValue(globalNodeKey.NodeKey);
-
             // Failure to find the element is not an error -- it just means the code
             // element didn't exist...
-            if (element != null)
+
+            EnvDTE.CodeElement element;
+            if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out element))
             {
-                ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element).ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
+                if (keyedElement != null)
+                {
+                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default(CancellationToken));
+                }
             }
         }
     }

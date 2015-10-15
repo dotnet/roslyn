@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { d, b, a, c, e };
 
             // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(extensions));
+            ExtensionOrderer.CheckForCycles(extensions);
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("abcde", order);
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { d, b, a, c, e };
 
             // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(extensions));
+            ExtensionOrderer.CheckForCycles(extensions);
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("edcba", order);
         }
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var extensions = new List<Lazy<Extension, ExtensionMetadata>>() { d, b, a, c, e };
 
             // ExtensionOrderer.CheckForCycles() will throw ArgumentException if cycle is detected.
-            Assert.DoesNotThrow(() => ExtensionOrderer.CheckForCycles(extensions));
+            ExtensionOrderer.CheckForCycles(extensions);
             var order = ExtensionOrderer.Order(extensions);
             VerifyOrder("abcde", order);
         }

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpSyntaxTree
     {
-        private partial class ParsedSyntaxTree : CSharpSyntaxTree
+        private class ParsedSyntaxTree : CSharpSyntaxTree
         {
             private readonly CSharpParseOptions _options;
             private readonly string _path;
@@ -98,11 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override SyntaxReference GetReference(SyntaxNode node)
             {
                 return new SimpleSyntaxReference(node);
-            }
-
-            public override string ToString()
-            {
-                return this.GetText(CancellationToken.None).ToString();
             }
 
             public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)

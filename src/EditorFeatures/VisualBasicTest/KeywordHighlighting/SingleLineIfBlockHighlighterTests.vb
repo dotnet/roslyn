@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New SingleLineIfBlockHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestSinglelineIf1()
             Test(<Text><![CDATA[
 Class C
@@ -20,7 +20,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestSinglelineIf2()
             Test(<Text><![CDATA[
 Class C
@@ -30,7 +30,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestSinglelineIf3()
             Test(<Text><![CDATA[
 Class C
@@ -40,7 +40,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestSinglelineIfNestedInMultilineIf1()
             Test(<Text><![CDATA[
 Class C
@@ -56,7 +56,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestSinglelineIfNestedInMultilineIf2()
             Test(<Text><![CDATA[
 Class C
@@ -72,7 +72,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestSinglelineIfNestedInMultilineIf3()
             Test(<Text><![CDATA[
 Class C

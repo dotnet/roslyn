@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 
 #Region "Remove tests"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Remove1()
             Dim code =
 <Code>
@@ -35,7 +35,7 @@ namespace Foo
 #End Region
 
         <WorkItem(858153)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub Children1()
             Dim code =
 <Code>
@@ -51,6 +51,23 @@ namespace N$$
                          IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
                          IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
                          IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
+        End Sub
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TypeDescriptor_GetProperties()
+            Dim code =
+<Code>
+namespace $$N
+{
+}
+</Code>
+
+            Dim expectedPropertyNames =
+                {"DTE", "Collection", "Name", "FullName", "ProjectItem", "Kind", "IsCodeType",
+                 "InfoLocation", "Children", "Language", "StartPoint", "EndPoint", "ExtenderNames",
+                 "ExtenderCATID", "Parent", "Members", "DocComment", "Comment"}
+
+            TestPropertyDescriptors(code, expectedPropertyNames)
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

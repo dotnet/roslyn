@@ -325,6 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
+            // in order to call string.Format(...) anyway.
+            if (castType?.SpecialType == SpecialType.System_Object &&
+                cast.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation))
+            {
+                return true;
+            }
+
             if (speculationAnalyzer.ReplacementChangesSemantics())
             {
                 return false;
@@ -451,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         // We should not remove the cast to "float?".
                         // However, cast to "int?" is unnecessary and should be removable.
-                        return expressionToCastType.IsImplicit && !((ITypeSymbol)expressionType).IsNullable();
+                        return expressionToCastType.IsImplicit && !expressionType.IsNullable();
                     }
                     else if (expressionToCastType.IsImplicit && expressionToCastType.IsNumeric && !castToOuterType.IsIdentity)
                     {

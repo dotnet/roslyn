@@ -206,11 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundStatement = binder.BindStatement(statementNode, diagnostics);
 
             // the result of the last global expression is assigned to the result storage for submission result:
-            if (binder.Compilation.IsSubmission && isLast && boundStatement.Kind == BoundKind.ExpressionStatement && !boundStatement.HasAnyErrors)
+            if (binder.Compilation.IsSubmission && isLast && !boundStatement.HasAnyErrors)
             {
                 // insert an implicit conversion for the submission return type (if needed):
-                var expression = ((BoundExpressionStatement)boundStatement).Expression;
-                if ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void)
+                var expression = InitializerRewriter.GetTrailingScriptExpression(boundStatement);
+                if (expression != null &&
+                    ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void))
                 {
                     var submissionResultType = scriptInitializer.ResultType;
                     expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);

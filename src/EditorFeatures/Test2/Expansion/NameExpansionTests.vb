@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 #Region "C# Tests"
 
         <WorkItem(604392)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub NoExpansionForPropertyNamesOfObjectInitializers()
             Dim input =
 <Workspace>
@@ -51,7 +51,7 @@ class C
         End Sub
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_SimpleIdentifierAliasExpansion_AliasBinds()
             Dim input =
 <Workspace>
@@ -107,7 +107,7 @@ namespace LongNamespace
         End Sub
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub CSharp_SimpleIdentifierAliasExpansion_AliasDoesNotBind()
             Dim input =
 <Workspace>
@@ -149,7 +149,7 @@ namespace NS
         End Sub
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_SimpleIdentifierAliasExpansion_AliasBinds()
             Dim input =
 <Workspace>
@@ -203,7 +203,7 @@ End Namespace
         End Sub
 
         <WorkItem(1913, "https://github.com/dotnet/roslyn/issues/1913")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/2805"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/2805"), Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Sub VisualBasic_SimpleIdentifierAliasExpansion_AliasDoesNotBind()
             Dim input =
 <Workspace>

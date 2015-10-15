@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -8,11 +9,11 @@ using System.Diagnostics;
 namespace Roslyn.Utilities
 {
     // Note that this is not threadsafe for concurrent reading and writing.
-    internal sealed class MultiDictionary<K, V>
+    internal sealed class MultiDictionary<K, V> : IEnumerable<KeyValuePair<K, MultiDictionary<K,V>.ValueSet>>
     {
-        public struct ValueSet
+        public struct ValueSet : IEnumerable<V>
         {
-            public struct Enumerator
+            public struct Enumerator : IEnumerator<V>
             {
                 private readonly V _value;
                 private ImmutableHashSet<V>.Enumerator _values;
@@ -46,6 +47,17 @@ namespace Roslyn.Utilities
                         Debug.Assert(_count == v.Count);
                     }
                 }
+
+                public void Dispose()
+                {
+                }
+
+                public void Reset()
+                {
+                    throw new NotSupportedException();
+                }
+
+                object IEnumerator.Current => this.Current;
 
                 // Note that this property is not guaranteed to throw either before MoveNext()
                 // has been called or after the end of the set has been reached.
@@ -101,6 +113,16 @@ namespace Roslyn.Utilities
             public ValueSet(object value)
             {
                 _value = value;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+
+            IEnumerator<V> IEnumerable<V>.GetEnumerator()
+            {
+                return GetEnumerator();
             }
 
             public Enumerator GetEnumerator()
@@ -177,6 +199,11 @@ namespace Roslyn.Utilities
         {
             ValueSet set;
             _dictionary[k] = _dictionary.TryGetValue(k, out set) ? set.Add(v) : new ValueSet(v);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public IEnumerator<KeyValuePair<K, ValueSet>> GetEnumerator()

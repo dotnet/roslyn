@@ -21,13 +21,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void EmptyFile()
         {
             Check(string.Empty, string.Empty, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void SingleUsingStatement()
         {
             var initial = @"using A;";
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void AliasesAtBottom()
         {
             var initial =
@@ -54,7 +54,7 @@ using D = E;
             Check(initial, final, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void UsingStaticsBetweenUsingsAndAliases()
         {
             var initial =
@@ -79,7 +79,7 @@ using D = E;
             Check(initial, final, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void NestedStatements()
         {
             var initial =
@@ -164,7 +164,7 @@ namespace N3
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void SpecialCaseSystem()
         {
             var initial =
@@ -182,7 +182,7 @@ using M2;
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void SpecialCaseSystemWithUsingStatic()
         {
             var initial =
@@ -204,7 +204,7 @@ using static Microsoft.Win32.Registry;
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotSpecialCaseSystem()
         {
             var initial =
@@ -223,7 +223,7 @@ using System.Linq;
             Check(initial, final, false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotSpecialCaseSystemWithUsingStatics()
         {
             var initial =
@@ -244,7 +244,7 @@ using static System.BitConverter;";
             Check(initial, final, false);
         }
 
-        [Fact(Skip = "752024"), Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact(Skip = "752024"), Trait(Traits.Feature, Traits.Features.Organizing)]
         public void MissingSemicolons()
         {
             var initial =
@@ -259,7 +259,7 @@ using C";
             Check(initial, final, true);
         }
 
-        [Fact(Skip = "752024"), Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact(Skip = "752024"), Trait(Traits.Feature, Traits.Features.Organizing)]
         public void MissingNamesAndSemicolons()
         {
             var initial =
@@ -275,7 +275,7 @@ using B
             Check(initial, final, true);
         }
 
-        [Fact(Skip = "752024"), Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact(Skip = "752024"), Trait(Traits.Feature, Traits.Features.Organizing)]
         public void MissingEverything()
         {
             var initial =
@@ -323,7 +323,7 @@ using F = X.Y
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void IndentationAfterSorting()
         {
             var initial =
@@ -357,7 +357,7 @@ namespace X.Y.Z { }";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotTouchCommentsAtBeginningOfFile1()
         {
             var initial =
@@ -383,7 +383,7 @@ namespace B { }";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotTouchCommentsAtBeginningOfFile2()
         {
             var initial =
@@ -409,7 +409,7 @@ namespace B { }";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotTouchCommentsAtBeginningOfFile3()
         {
             var initial =
@@ -436,7 +436,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoTouchCommentsAtBeginningOfFile1()
         {
             var initial =
@@ -461,7 +461,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoTouchCommentsAtBeginningOfFile2()
         {
             var initial =
@@ -486,7 +486,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoTouchCommentsAtBeginningOfFile3()
         {
             var initial =
@@ -511,7 +511,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void CommentsNotAtTheStartOfTheFile1()
         {
             var initial =
@@ -536,7 +536,7 @@ namespace B { }";
         }
 
         [WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void CommentsNotAtTheStartOfTheFile2()
         {
             var initial =
@@ -562,7 +562,7 @@ namespace B { }";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotSortIfEndIfBlocks()
         {
             var initial =
@@ -583,7 +583,7 @@ namespace D { }";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void ExternAliases()
         {
             var initial =
@@ -663,7 +663,7 @@ namespace C
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DuplicateUsings()
         {
             var initial =
@@ -675,7 +675,7 @@ using A;";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void InlineComments()
         {
             var initial =
@@ -695,7 +695,7 @@ using A;";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void AllOnOneLine()
         {
             var initial =
@@ -709,7 +709,7 @@ using C; ";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void InsideRegionBlock()
         {
             var initial =
@@ -736,7 +736,7 @@ class Class1
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void NestedRegionBlock()
         {
             var initial =
@@ -751,7 +751,7 @@ using B;";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void MultipleRegionBlocks()
         {
             var initial =
@@ -768,7 +768,7 @@ using B;
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void InterleavedNewlines()
         {
             var initial =
@@ -790,7 +790,7 @@ class D { }";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void InsideIfEndIfBlock()
         {
             var initial =
@@ -810,7 +810,7 @@ using C;
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void IfEndIfBlockAbove()
         {
             var initial =
@@ -827,7 +827,7 @@ using E;";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void IfEndIfBlockMiddle()
         {
             var initial =
@@ -847,7 +847,7 @@ using G;";
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void IfEndIfBlockBelow()
         {
             var initial =
@@ -864,7 +864,7 @@ using F;
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void Korean()
         {
             var initial =
@@ -903,7 +903,7 @@ using 하;
             Check(initial, final, true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotSpecialCaseSystem1()
         {
             var initial =
@@ -932,7 +932,7 @@ using SystemZ;
             Check(initial, final, specialCaseSystem: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void DoNotSpecialCaseSystem2()
         {
             var initial =
@@ -975,7 +975,7 @@ using Z = System.Int32;
             Check(initial, final, specialCaseSystem: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void CaseSensitivity1()
         {
             var initial =
@@ -1068,7 +1068,7 @@ using ああ;
             Check(initial, final, specialCaseSystem: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Organizing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
         public void CaseSensitivity2()
         {
             var initial =

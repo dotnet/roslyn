@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Text;
@@ -11,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders.XmlDocCommentCompletion
 {
-    internal abstract class AbstractDocCommentCompletionProvider : AbstractCompletionProvider, ICustomCommitCompletionProvider
+    internal abstract class AbstractDocCommentCompletionProvider : CompletionListProvider, ICustomCommitCompletionProvider
     {
         private readonly Dictionary<string, string[]> _tagMap =
             new Dictionary<string, string[]>
@@ -41,6 +44,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
                 new[] { "include", "file", "file=\"", "\"" },
                 new[] { "include", "path", "path=\"", "\"" }
             };
+
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        {
+            if (!context.Options.GetOption(CompletionOptions.ShowXmlDocCommentCompletion))
+            {
+                return;
+            }
+
+            var items = await GetItemsWorkerAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            if (items != null)
+            {
+                context.AddItems(items);
+            }
+        }
+
+        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
 
         protected CompletionItem GetItem(string n, TextSpan span)
         {

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -10,10 +11,11 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -25,7 +27,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
-using Roslyn.Utilities;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
@@ -169,7 +170,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (lineText.Trim() == string.Empty)
                 {
                     indentCaretOnCommit = true;
-                    indentDepth = lineText.Length;
+
+                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    if (document != null)
+                    {
+                        var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
+                        var tabSize = optionService.GetOption(FormattingOptions.TabSize, document.Project.Language);
+                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize);
+                    }
+                    else
+                    {
+                        // If we don't have a document, then just guess the typical default TabSize value.
+                        indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, tabSize: 4);
+                    }
+
                     SubjectBuffer.Delete(new Span(line.Start.Position, line.Length));
                     endSnapshotSpan = SubjectBuffer.CurrentSnapshot.GetSpan(new Span(line.Start.Position, 0));
                 }
@@ -259,23 +273,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             // and the navigation location will be at column 0 on a blank line. We must now
             // position the caret in virtual space.
 
-            if (indentCaretOnCommit)
-            {
-                int lineLength;
-                pBuffer.GetLengthOfLine(ts[0].iStartLine, out lineLength);
+            int lineLength;
+            pBuffer.GetLengthOfLine(ts[0].iStartLine, out lineLength);
 
-                string lineText;
-                pBuffer.GetLineText(ts[0].iStartLine, 0, ts[0].iStartLine, lineLength, out lineText);
+            string endLineText;
+            pBuffer.GetLineText(ts[0].iStartLine, 0, ts[0].iStartLine, lineLength, out endLineText);
 
-                if (lineText == string.Empty)
-                {
-                    int endLinePosition;
-                    pBuffer.GetPositionOfLine(ts[0].iStartLine, out endLinePosition);
-                    TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(TextView.TextSnapshot.GetPoint(endLinePosition), indentDepth));
-                }
-            }
+            int endLinePosition;
+            pBuffer.GetPositionOfLine(ts[0].iStartLine, out endLinePosition);
+
+            PositionCaretForEditingInternal(endLineText, endLinePosition);
 
             return VSConstants.S_OK;
+        }
+
+        /// <summary>
+        /// Internal for testing purposes. All real caret positioning logic takes place here. <see cref="PositionCaretForEditing"/>
+        /// only extracts the <paramref name="endLineText"/> and <paramref name="endLinePosition"/> from the provided <see cref="IVsTextLines"/>.
+        /// Tests can call this method directly to avoid producing an IVsTextLines.
+        /// </summary>
+        /// <param name="endLineText"></param>
+        /// <param name="endLinePosition"></param>
+        internal void PositionCaretForEditingInternal(string endLineText, int endLinePosition)
+        {
+            if (indentCaretOnCommit && endLineText == string.Empty)
+            {
+                TextView.TryMoveCaretToAndEnsureVisible(new VirtualSnapshotPoint(TextView.TextSnapshot.GetPoint(endLinePosition), indentDepth));
+            }
         }
 
         public virtual bool TryHandleTab()
@@ -342,6 +366,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public virtual bool TryInsertExpansion(int startPositionInSubjectBuffer, int endPositionInSubjectBuffer)
         {
+            var textViewModel = TextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(TextView.IsClosed);
+                return false;
+            }
+
             int startLine = 0;
             int startIndex = 0;
             int endLine = 0;
@@ -354,13 +385,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             SnapshotSpan dataBufferSpan;
             if (!TryGetSpanOnHigherBuffer(
                 SubjectBuffer.CurrentSnapshot.GetSpan(startPositionInSubjectBuffer, endPositionInSubjectBuffer - startPositionInSubjectBuffer),
-                TextView.TextViewModel.DataBuffer,
+                textViewModel.DataBuffer,
                 out dataBufferSpan))
             {
                 return false;
             }
 
-            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextViewModel.DataBuffer);
+            var buffer = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer);
             var expansion = buffer as IVsExpansion;
             if (buffer == null || expansion == null)
             {
@@ -423,6 +454,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public int OnItemChosen(string pszTitle, string pszPath)
         {
+            var textViewModel = TextView.TextViewModel;
+            if (textViewModel == null)
+            {
+                Debug.Assert(TextView.IsClosed);
+                return VSConstants.E_FAIL;
+            }
+
             var hr = VSConstants.S_OK;
 
             try
@@ -433,7 +471,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 textSpan.iEndLine = textSpan.iStartLine;
                 textSpan.iEndIndex = textSpan.iStartIndex;
 
-                IVsExpansion expansion = EditorAdaptersFactoryService.GetBufferAdapter(TextView.TextViewModel.DataBuffer) as IVsExpansion;
+                IVsExpansion expansion = EditorAdaptersFactoryService.GetBufferAdapter(textViewModel.DataBuffer) as IVsExpansion;
                 earlyEndExpansionHappened = false;
                 hr = expansion.InsertNamedExpansion(pszTitle, pszPath, textSpan, this, LanguageServiceGuid, fShowDisambiguationUI: 0, pSession: out ExpansionSession);
 
@@ -531,9 +569,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             {
                 var notificationService = workspace.Services.GetService<INotificationService>();
                 notificationService.SendNotification(
-                    string.Join(Environment.NewLine, failedReferenceAdditions),
-                    string.Format(ServicesVSResources.ReferencesNotFound, Environment.NewLine),
-                    NotificationSeverity.Warning);
+                    string.Format(ServicesVSResources.ReferencesNotFound, Environment.NewLine)
+                    + Environment.NewLine + Environment.NewLine
+                    + string.Join(Environment.NewLine, failedReferenceAdditions),
+                    severity: NotificationSeverity.Warning);
             }
         }
 

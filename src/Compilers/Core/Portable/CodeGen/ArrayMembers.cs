@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsModified => false;
 
-        public bool HasByRefBeforeCustomModifiers => false;
+        public ushort CountOfCustomModifiersPrecedingByRef => 0;
 
         public virtual Cci.ITypeReference GetType(EmitContext context)
             => context.Module.GetPlatformType(Cci.PlatformType.SystemInt32, context);

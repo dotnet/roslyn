@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return returnCode;
         }
 
-        internal override MetadataFileReferenceProvider GetMetadataProvider()
+        internal override Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
             return CompilerRequestHandler.AssemblyReferenceProvider;
         }
@@ -67,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_WARNINGLEVEL, (uint)Arguments.CompilationOptions.WarningLevel);
 
             //Project complexity # of source files, # of references
-            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SOURCES, (uint)Arguments.SourceFiles.Count());
-            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_REFERENCES, (uint)Arguments.ReferencePaths.Count());
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_SOURCES, (uint)Arguments.SourceFiles.Length);
+            sqm.SetDatapoint(sqmSession, SqmServiceProvider.DATAID_SQM_ROSLYN_REFERENCES, (uint)Arguments.ReferencePaths.Length);
         }
     }
 }

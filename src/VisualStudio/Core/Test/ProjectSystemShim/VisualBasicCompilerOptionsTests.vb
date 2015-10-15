@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualBasicCompilerOptions
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(867840)>
         Public Sub ConditionalCompilationOptionsIncludesTargetAndVersion()
@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(530980)>
         Public Sub DocumentationModeSetToDiagnoseIfProducingDocFile()
@@ -47,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(530980)>
         Public Sub DocumentationModeSetToParseIfNotProducingDocFile()
@@ -67,7 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <Fact()>
+        <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
         <WorkItem(1092636)>
         <WorkItem(1040247)>

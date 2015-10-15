@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
         End Function
 
         <WorkItem(545692)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub Test_EnumsWithConflictingNames1()
             Dim input =
                 <Workspace>
@@ -61,7 +61,7 @@ End Class
         End Sub
 
         <WorkItem(545743)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub Test_EnumsWithConflictingNames2()
             Dim input =
                 <Workspace>
@@ -103,7 +103,7 @@ End Class
         End Sub
 
         <WorkItem(545788), WorkItem(715013)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub Test_EnumsWithConflictingNames3()
             Dim input =
                 <Workspace>
@@ -150,7 +150,7 @@ End Class
         End Sub
 
         <WorkItem(545699)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub Test_OptionalWithNoDefaultValue()
             Dim input =
                 <Workspace>
@@ -189,7 +189,7 @@ End Class
         End Sub
 
         <WorkItem(545820)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub Test_IndexerWithNoRequiredParameters()
             Dim input =
                 <Workspace>
@@ -228,7 +228,7 @@ End Class
         End Sub
 
         <WorkItem(545868)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub Test_ConflictingParameterNames1()
             Dim input =
                 <Workspace>
@@ -265,7 +265,7 @@ End Class
         End Sub
 
         <WorkItem(545868)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub Test_ConflictingParameterNames2()
             Dim input =
                 <Workspace>

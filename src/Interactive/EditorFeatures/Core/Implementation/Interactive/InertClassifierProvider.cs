@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var classifier = classifierAggregator.GetClassifier(textView);
             try
             {
-                var classifications = classifier.GetClassificationSpans(textBuffer.CurrentSnapshot.GetSpan());
+                var classifications = classifier.GetClassificationSpans(textBuffer.CurrentSnapshot.GetFullSpan());
                 textBuffer.Properties.AddProperty(s_classificationsKey, classifications);
             }
             finally

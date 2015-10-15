@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
     ''' </summary>    
     Partial Friend MustInherit Class MethodToClassRewriter(Of TProxy)
-        Inherits BoundTreeRewriter
+        Inherits BoundTreeRewriterWithStackGuard
 
         ''' <summary>
         ''' For each captured variable, the corresponding field of its frame
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return type
             End If
 
-            Return type.InternalSubstituteTypeParameters(Me.TypeMap)
+            Return type.InternalSubstituteTypeParameters(Me.TypeMap).Type
         End Function
 
         Public NotOverridable Overrides Function VisitMethodInfo(node As BoundMethodInfo) As BoundNode
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If substitution IsNot Nothing Then
                 Dim newMethod As MethodSymbol = method.OriginalDefinition
 
-                Dim newContainer As TypeSymbol = method.ContainingType.InternalSubstituteTypeParameters(substitution)
+                Dim newContainer As TypeSymbol = method.ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly()
                 Dim substitutedContainer = TryCast(newContainer, SubstitutedNamedType)
                 If substitutedContainer IsNot Nothing Then
                     newMethod = DirectCast(substitutedContainer.GetMemberForDefinition(newMethod), MethodSymbol)
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If substitution IsNot Nothing Then
                 Dim newProperty As PropertySymbol = [property].OriginalDefinition
 
-                Dim newContainer As TypeSymbol = [property].ContainingType.InternalSubstituteTypeParameters(substitution)
+                Dim newContainer As TypeSymbol = [property].ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly()
                 Dim substitutedContainer = TryCast(newContainer, SubstitutedNamedType)
                 If substitutedContainer IsNot Nothing Then
                     newProperty = DirectCast(substitutedContainer.GetMemberForDefinition(newProperty), PropertySymbol)
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If substitution IsNot Nothing Then
                 Dim newField As FieldSymbol = field.OriginalDefinition
 
-                Dim newContainer As TypeSymbol = field.ContainingType.InternalSubstituteTypeParameters(substitution)
+                Dim newContainer As TypeSymbol = field.ContainingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly()
                 Dim substitutedContainer = TryCast(newContainer, SubstitutedNamedType)
                 If substitutedContainer IsNot Nothing Then
                     newField = DirectCast(substitutedContainer.GetMemberForDefinition(newField), FieldSymbol)

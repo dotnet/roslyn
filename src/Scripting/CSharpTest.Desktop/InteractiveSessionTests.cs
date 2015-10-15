@@ -1,84 +1,69 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias PortableTestUtils;
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq;
 using System.Reflection;
-using System.Threading;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
+using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
+
+#pragma warning disable RS0003 // Do not directly await a Task
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
 {
     public class InteractiveSessionTests : TestBase
     {
-        private class TestMetadataReferenceProvider : Microsoft.CodeAnalysis.MetadataFileReferenceProvider
-        {
-            public Func<DocumentationProvider> MakeDocumentationProvider;
-            private readonly Dictionary<string, AssemblyMetadata> _cache = new Dictionary<string, AssemblyMetadata>();
-
-            public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
-            {
-                AssemblyMetadata metadata;
-                if (_cache.TryGetValue(fullPath, out metadata))
-                {
-                    return metadata.GetReference(MakeDocumentationProvider());
-                }
-
-                _cache.Add(fullPath, metadata = AssemblyMetadata.CreateFromFile(fullPath));
-                return metadata.GetReference(MakeDocumentationProvider());
-            }
-        }
-
         [Fact]
-        public void CompilationChain_GlobalImportsRebinding()
+        public async Task CompilationChain_GlobalImportsRebinding()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
-            session.ImportNamespace("System.Diagnostics");
+            var options = ScriptOptions.Default.AddImports("System.Diagnostics");
 
-            ScriptingTestHelpers.AssertCompilationError(session, @"
-Process.GetCurrentProcess()",
+            var s0 = await CSharpScript.RunAsync("", options);
+
+            ScriptingTestHelpers.AssertCompilationError(s0, @"Process.GetCurrentProcess()",
                 // (2,1): error CS0103: The name 'Process' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Process").WithArguments("Process"));
 
-            session.Execute(@"
-#r """ + typeof(Process).Assembly.Location + @"""");
+            var s1 = s0.ContinueWithAsync($"#r \"{typeof(Process).Assembly.Location}\"");
+            var s2 = s1.ContinueWith("Process.GetCurrentProcess()");
 
-            session.Execute(@"
-Process.GetCurrentProcess()");
+            Assert.NotNull(s2.Result);
         }
 
         [Fact]
-        public void CompilationChain_UsingRebinding_AddReference()
+        public async Task CompilationChain_UsingRebinding_AddReference()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
+            var s0 = await CSharpScript.RunAsync("using System.Diagnostics;");
 
-            session.Execute(@"using System.Diagnostics;");
+            var newOptions = s0.Script.Options.AddReferences(typeof(Process).Assembly);
 
-            session.AddReference(typeof(Process).Assembly);
+            var s1 = s0.ContinueWithAsync(@"Process.GetCurrentProcess()", newOptions);
 
-            session.Execute(@"Process.GetCurrentProcess()");
+            Assert.NotNull(s1.Result);
         }
 
         [Fact]
-        public void CompilationChain_UsingRebinding_Directive()
+        public async Task CompilationChain_UsingRebinding_Directive()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
+            var s0 = await CSharpScript.RunAsync("using System.Diagnostics;");
 
-            session.Execute(@"using System.Diagnostics;");
-
-            session.Execute(@"
-#r """ + typeof(Process).Assembly.Location + @"""
+            var s1 = s0.ContinueWithAsync($@"
+#r ""{typeof(Process).Assembly.Location}""
 Process.GetCurrentProcess()");
+
+            Assert.NotNull(s1.Result);
         }
 
         //
@@ -90,178 +75,45 @@ Process.GetCurrentProcess()");
         [Fact]
         public void CompilationChain_SubmissionSlots()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
-            session.Execute("using System;");
-            session.Execute("using static System.Environment;");
-            session.Execute("int x; x = 1;");
-            session.Execute("using static System.Math;");
-            session.Execute("int foo(int a) { return a + 1; } ");
+            var s = 
+                CSharpScript.RunAsync("using System;").
+                ContinueWith("using static System.Environment;").
+                ContinueWith("int x; x = 1;").
+                ContinueWith("using static System.Math;").
+                ContinueWith("int foo(int a) { return a + 1; } ");
 
 #if false
             Assert.True(session.executionState.submissions.Length >= 2, "Expected two submissions");
             session.executionState.submissions.Aggregate(0, (i, sub) => { Assert.Equal(i < 2, sub != null); return i + 1; });
 #endif
-            object result;
-
-            // TODO (tomat): Version is a type and property, but we are not looking for a type, so can we disambiguate?
-            ScriptingTestHelpers.AssertCompilationError(session, "Version",
+            ScriptingTestHelpers.AssertCompilationError(s, "Version",
                 // (1,1): error CS0229: Ambiguity between 'System.Version' and 'System.Environment.Version'
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Version").WithArguments("System.Version", "System.Environment.Version")
-            );
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Version").WithArguments("System.Version", "System.Environment.Version"));
 
-            result = session.Execute("new System.Collections.Generic.List<Version>()");
-            Assert.True(result is List<Version>, "Expected List<Version>");
+            s = s.ContinueWith("new System.Collections.Generic.List<Version>()");
+            Assert.IsType<List<Version>>(s.Result.ReturnValue);
 
-            result = session.Execute("Environment.Version");
-            Assert.Equal(Environment.Version, result);
+            s = s.ContinueWith("Environment.Version");
+            Assert.Equal(Environment.Version, s.Result.ReturnValue);
 
-            result = session.Execute("foo(x)");
-            Assert.Equal(2, result);
+            s = s.ContinueWith("foo(x)");
+            Assert.Equal(2, s.Result.ReturnValue);
 
-            result = session.Execute("Sin(0)");
-            Assert.Equal(0.0, result);
+            s = s.ContinueWith("Sin(0)");
+            Assert.Equal(0.0, s.Result.ReturnValue);
         }
-
-        // Simulates a sensible override of object.Equals.
-        private class TestDocumentationProviderEquals : DocumentationProvider
-        {
-            protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return "";
-            }
-
-            public override bool Equals(object obj)
-            {
-                return obj != null && this.GetType() == obj.GetType();
-            }
-
-            public override int GetHashCode()
-            {
-                return GetType().GetHashCode();
-            }
-        }
-
-        // Simulates no override of object.Equals.
-        private class TestDocumentationProviderNoEquals : DocumentationProvider
-        {
-            protected internal override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                return "";
-            }
-
-            public override bool Equals(object obj)
-            {
-                return ReferenceEquals(this, obj);
-            }
-
-            public override int GetHashCode()
-            {
-                return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
-            }
-        }
-
-        [WorkItem(546173)]
-        [Fact]
-        public void CompilationChain_SystemObject_OrderDependency1()
-        {
-            CompilationChain_SystemObject_NotEquals();
-            CompilationChain_SystemObject_Equals();
-        }
-
-        [WorkItem(546173)]
-        [Fact]
-        public void CompilationChain_SystemObject_OrderDependency2()
-        {
-            CompilationChain_SystemObject_Equals();
-            CompilationChain_SystemObject_NotEquals();
-        }
-
-        [WorkItem(545665)]
-        [Fact]
-        public void CompilationChain_SystemObject_NotEquals()
-        {
-            // As in VS/ETA, make a new list of references for each submission.
-
-            var options = new CSharpParseOptions(kind: SourceCodeKind.Interactive, documentationMode: DocumentationMode.None);
-            var provider = new TestMetadataReferenceProvider() { MakeDocumentationProvider = () => new TestDocumentationProviderNoEquals() };
-
-            var s1 = CSharpCompilation.CreateSubmission("s1.dll",
-                                                  syntaxTree: SyntaxFactory.ParseSyntaxTree("struct S { }", options),
-                                                  references: MakeReferencesViaCommandLine(provider),
-                                                  returnType: typeof(object));
-            s1.GetDiagnostics().Verify();
-
-            var s2 = CSharpCompilation.CreateSubmission("s2.dll",
-                                                  syntaxTree: SyntaxFactory.ParseSyntaxTree("System.Collections.IEnumerable Iterator() { yield return new S(); }", options),
-                                                  previousSubmission: s1,
-                                                  references: MakeReferencesViaCommandLine(provider),
-                                                  returnType: typeof(object));
-
-            Assert.NotEqual(s1.GetSpecialType(SpecialType.System_Object), s2.GetSpecialType(SpecialType.System_Object));
-
-            s2.GetDiagnostics().Verify(
-                // (1,58): error CS0029: Cannot implicitly convert type 'S' to 'object'
-                // System.Collections.IEnumerable Iterator() { yield return new S(); }
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new S()").WithArguments("S", "object"));
-        }
-
-        [WorkItem(545665)]
-        [Fact]
-        public void CompilationChain_SystemObject_Equals()
-        {
-            // As in VS/ETA, make a new list of references for each submission.
-
-            var options = new CSharpParseOptions(kind: SourceCodeKind.Interactive, documentationMode: DocumentationMode.None);
-            var provider = new TestMetadataReferenceProvider() { MakeDocumentationProvider = () => new TestDocumentationProviderEquals() };
-
-            var s1 = CSharpCompilation.CreateSubmission("s1.dll",
-                syntaxTree: SyntaxFactory.ParseSyntaxTree("struct S { }", options),
-                references: MakeReferencesViaCommandLine(provider),
-                returnType: typeof(object));
-            s1.GetDiagnostics().Verify();
-
-            var s2 = CSharpCompilation.CreateSubmission("s2.dll",
-                syntaxTree: SyntaxFactory.ParseSyntaxTree("System.Collections.IEnumerable Iterator() { yield return new S(); }", options),
-                previousSubmission: s1,
-                references: MakeReferencesViaCommandLine(provider),
-                returnType: typeof(object));
-
-            s2.GetDiagnostics().Verify();
-
-            Assert.Equal(s1.GetSpecialType(SpecialType.System_Object), s2.GetSpecialType(SpecialType.System_Object));
-        }
-
-        /// <summary>
-        /// NOTE: We're going through the command line parser to mimic the approach of visual studio and the ETA.
-        /// Crucially, this CommandLineArguments will use the provided TestMetadataReferenceProvider to attach a fresh
-        /// DocumentationProvider to each reference.
-        /// </summary>
-        private static IEnumerable<MetadataReference> MakeReferencesViaCommandLine(TestMetadataReferenceProvider metadataReferenceProvider)
-        {
-            var commandLineArguments = CSharpCommandLineParser.Interactive.Parse(
-                new[] { "/r:" + typeof(Script).Assembly.Location }, //get corlib by default
-                Directory.GetDirectoryRoot("."), //NOTE: any absolute path will do - we're not going to use this.
-                RuntimeEnvironment.GetRuntimeDirectory());
-            var references = commandLineArguments.ResolveMetadataReferences(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, metadataReferenceProvider));
-            return references;
-        }
-
 
         [Fact]
         public void SearchPaths1()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
+            var options = ScriptOptions.Default.WithMetadataResolver(ScriptMetadataResolver.Default.WithSearchPaths(RuntimeEnvironment.GetRuntimeDirectory()));
 
-            session.SetReferenceSearchPaths(RuntimeEnvironment.GetRuntimeDirectory());
-
-            object result = session.Execute(@"
+            var result = CSharpScript.EvaluateAsync($@"
 #r ""System.Data.dll""
 #r ""System""
-#r """ + typeof(System.Xml.Serialization.IXmlSerializable).GetTypeInfo().Assembly.Location + @"""
+#r ""{typeof(System.Xml.Serialization.IXmlSerializable).GetTypeInfo().Assembly.Location}""
 new System.Data.DataSet()
-");
+", options).Result;
 
             Assert.True(result is System.Data.DataSet, "Expected DataSet");
         }
@@ -272,174 +124,114 @@ new System.Data.DataSet()
         [Fact]
         public void SearchPaths_RemoveDefault()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
-
             // remove default paths:
-            session.SetReferenceSearchPaths();
+            var options = ScriptOptions.Default;
 
-            ScriptingTestHelpers.AssertCompilationError(session, @"
+            var source = @"
 #r ""System.Data.dll""
 new System.Data.DataSet()
-",
+";
+
+            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync(source, options),
                 // (2,1): error CS0006: Metadata file 'System.Data.dll' could not be found
                 // #r "System.Data.dll"
                 Diagnostic(ErrorCode.ERR_NoMetadataFile, @"#r ""System.Data.dll""").WithArguments("System.Data.dll"),
                 // (3,12): error CS0234: The type or namespace name 'Data' does not exist in the namespace 'System' (are you missing an assembly reference?)
                 // new System.Data.DataSet()
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Data").WithArguments("Data", "System")
-            );
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Data").WithArguments("Data", "System"));
         }
 
-        private class MetadataReferenceProvider : Microsoft.CodeAnalysis.MetadataFileReferenceProvider
-        {
-            private readonly Dictionary<string, PortableExecutableReference> _metadata;
-
-            public MetadataReferenceProvider(Dictionary<string, PortableExecutableReference> metadata)
-            {
-                _metadata = metadata;
-                metadata.Add(typeof(object).Assembly.Location, (PortableExecutableReference)MscorlibRef);
-            }
-
-            public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
-            {
-                return _metadata[fullPath];
-            }
-        }
-
+        
         /// <summary>
         /// Look at base directory (or directory containing #r) before search paths.
         /// </summary>
         [Fact]
-        public void SearchPaths_BaseDirectory()
+        public async Task SearchPaths_BaseDirectory()
         {
-            var engine = new CSharpScriptEngine(new MetadataReferenceProvider(new Dictionary<string, PortableExecutableReference>
-            {
-                { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef }
-            }));
+            var options = ScriptOptions.Default.
+                WithMetadataResolver(new TestMetadataReferenceResolver(
+                    pathResolver: new VirtualizedRelativePathResolver(existingFullPaths: new[] { @"C:\dir\x.dll" }, baseDirectory: @"C:\foo\bar"),
+                    files: new Dictionary<string, PortableExecutableReference> { { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef } }));
 
-            engine.MetadataReferenceResolver = new VirtualizedFileReferenceResolver(
-                existingFullPaths: new[]
-                {
-                    @"C:\dir\x.dll"
-                },
-                baseDirectory: @"C:\foo\bar"
-            );
-
-            var session = engine.CreateSession();
-
-            var source = @"
+            var script = CSharpScript.Create(@"
 #r ""x.dll""
 using System.Linq;
 
-var x = from a in new[] { 1,2,3 }
-        select a + 1;
-";
+var x = from a in new[] { 1, 2 ,3 } select a + 1;
+", options.WithFilePath(@"C:\dir\a.csx"));
 
-            var submission = session.CompileSubmission<object>(source, @"C:\dir\a.csx", isInteractive: false);
-            submission.Execute();
+            var state = await script.RunAsync().ContinueWith<IEnumerable<int>>("x", options.WithFilePath(null));
+
+            AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
 
-        [Fact]
-        public void References1()
+        [Fact(Skip = "xunit2")]
+        public async Task References1()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
-            session.AddReference(typeof(Process).Assembly.FullName);
-            session.AddReference(typeof(System.Linq.Expressions.Expression).Assembly);
+            var options0 = ScriptOptions.Default.AddReferences(
+                typeof(Process).Assembly, 
+                typeof(System.Linq.Expressions.Expression).Assembly);
 
-            var process = (Process)session.Execute(@"
-#r """ + typeof(System.Data.DataSet).Assembly.Location + @"""
+            var s0 = await CSharpScript.RunAsync<Process>($@"
+#r ""{typeof(System.Data.DataSet).Assembly.Location}""
 #r ""System""
-#r """ + typeof(System.Xml.Serialization.IXmlSerializable).Assembly.Location + @"""
+#r ""{typeof(System.Xml.Serialization.IXmlSerializable).Assembly.Location}""
 new System.Data.DataSet();
 System.Linq.Expressions.Expression.Constant(123);
 System.Diagnostics.Process.GetCurrentProcess()
-");
+", options0);
 
-            Assert.NotNull(process);
+            Assert.NotNull(s0.ReturnValue);
 
-            session.AddReference(typeof(System.Xml.XmlDocument).Assembly);
+            var options1 = options0.AddReferences(typeof(System.Xml.XmlDocument).Assembly);
 
-            var xmlDoc = (System.Xml.XmlDocument)session.Execute(@"
+            var s1 = await s0.ContinueWithAsync<System.Xml.XmlDocument>(@"
 new System.Xml.XmlDocument()
-");
+", options1);
 
-            Assert.NotNull(xmlDoc);
+            Assert.NotNull(s1.ReturnValue);
 
-            session.AddReference("System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
+            var options2 = options1.AddReferences("System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
 
-            var color = session.Execute(@"
+            var s2 = await s1.ContinueWithAsync(@"
 System.Drawing.Color.Coral
-");
+", options2);
 
-            Assert.NotNull(color);
+            Assert.NotNull(s2.ReturnValue);
 
-            session.AddReference(typeof(System.Windows.Forms.Form).Assembly.Location);
+            var options3 = options2.AddReferences(typeof(System.Windows.Forms.Form).Assembly.Location);
 
-            var form = (System.Windows.Forms.Form)session.Execute(@"
-new System.Windows.Forms.Form();
-");
+            var s3 = await s2.ContinueWithAsync<System.Windows.Forms.Form>(@"
+new System.Windows.Forms.Form()
+", options3);
 
-            Assert.NotNull(form);
+            Assert.NotNull(s3.ReturnValue);
         }
 
         [Fact]
         public void References2()
         {
-            var engine = new CSharpScriptEngine();
+            var options = ScriptOptions.Default.
+                WithMetadataResolver(ScriptMetadataResolver.Default.WithSearchPaths(RuntimeEnvironment.GetRuntimeDirectory())).
+                AddReferences("System.Core", "System.dll").
+                AddReferences(typeof(System.Data.DataSet).Assembly);
 
-            engine.SetReferenceSearchPaths(RuntimeEnvironment.GetRuntimeDirectory());
-
-            engine.AddReference("System.Core");
-            engine.AddReference("System.dll");
-            engine.AddReference(typeof(System.Data.DataSet).Assembly);
-
-            var session = engine.CreateSession();
-
-            var process = (Process)session.Execute(@"
-#r """ + typeof(System.Xml.Serialization.IXmlSerializable).Assembly.Location + @"""
+            var process = CSharpScript.EvaluateAsync<Process>($@"
+#r ""{typeof(System.Xml.Serialization.IXmlSerializable).Assembly.Location}""
 new System.Data.DataSet();
 System.Linq.Expressions.Expression.Constant(123);
 System.Diagnostics.Process.GetCurrentProcess()
-");
+", options).Result;
 
             Assert.NotNull(process);
         }
 
         [Fact]
-        public void MissingDependency()
-        {
-            var engine = new CSharpScriptEngine();
-
-            ScriptingTestHelpers.AssertCompilationError(engine, @"
-#r ""WindowsBase""
-#r ""PresentationCore""
-#r ""PresentationFramework""
-
-using System.Windows;
-System.Collections.IEnumerable w = new Window();
-",
-                // (7,36): error CS0012: The type 'System.ComponentModel.ISupportInitialize' is defined in an assembly that is not referenced. You must add a reference to assembly 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.ComponentModel.ISupportInitialize", "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0012: The type 'System.Windows.Markup.IQueryAmbient' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "new Window()").WithArguments("System.Windows.Markup.IQueryAmbient", "System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-                // (7,36): error CS0266: Cannot implicitly convert type 'System.Windows.Window' to 'System.Collections.IEnumerable'. An explicit conversion exists (are you missing a cast?)
-                // System.Collections.IEnumerable w = new Window();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new Window()").WithArguments("System.Windows.Window", "System.Collections.IEnumerable"));
-        }
-
-        [WorkItem(529637)]
-        [Fact]
         public void AssemblyResolution()
         {
-            var engine = new CSharpScriptEngine();
-            var session = engine.CreateSession();
-            var instance = session.Execute("var x = new { a = 3 }; x");
-            var type = session.Execute("System.Type.GetType(x.GetType().AssemblyQualifiedName, true)");
-            Assert.Equal(instance.GetType(), type);
+            var s0 = CSharpScript.RunAsync("var x = new { a = 3 }; x");
+            var s1 = s0.ContinueWith<Type>("System.Type.GetType(x.GetType().AssemblyQualifiedName, true)");
+            Assert.Equal(s0.Result.ReturnValue.GetType(), s1.Result.ReturnValue);
         }
 
         [Fact]
@@ -462,15 +254,13 @@ System.Collections.IEnumerable w = new Window();
             AppDomain.CurrentDomain.AssemblyResolve += handler;
             try
             {
-                var engine = new CSharpScriptEngine();
-                var session = engine.CreateSession();
-                session.AddReference(badTypeRef);
+                var options = ScriptOptions.Default.AddReferences(badTypeRef);
 
                 // we shouldn't throw while compiling:
-                var submission = session.CompileSubmission<object>("new S1()");
+                var script = CSharpScript.Create("new S1()", options);
+                script.Build();
 
-                // we should throw while executing:
-                Assert.Throws<TypeLoadException>(() => submission.Execute());
+                Assert.Throws<TypeLoadException>(() => script.EvaluateAsync().GetAwaiter().GetResult());
             }
             finally
             {
@@ -481,28 +271,72 @@ System.Collections.IEnumerable w = new Window();
         public class C { public int x = 1; }
 
         [Fact]
-        public void HostObjectBinding_DuplicateReferences()
+        public async Task HostObjectBinding_DuplicateReferences()
         {
-            var engine = new CSharpScriptEngine();
-            var c = new C();
-            var session = engine.CreateSession(c);
+            var options = ScriptOptions.Default.
+                AddReferences(typeof(C).Assembly, typeof(C).Assembly);
 
-            session.AddReference(typeof(C).Assembly);
-            session.AddReference(typeof(C).Assembly);
+            var s0 = await CSharpScript.RunAsync<int>("x", options, new C());
+            var c0 = s0.Script.GetCompilation();
 
-            // includes mscorlib
-            Assert.Equal(3, session.References.Length);
+            // includes corlib, host type assembly by default:
+            AssertEx.Equal(new[] 
+            {
+                typeof(object).GetTypeInfo().Assembly.Location,
+                typeof(C).Assembly.Location,
+                typeof(C).Assembly.Location,
+                typeof(C).Assembly.Location,
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
 
-            int result = session.Execute<int>("x");
-            Assert.Equal(1, result);
+            Assert.Equal(1, s0.ReturnValue);
 
-            int result2 = session.Execute<int>(@"
-#r """ + typeof(C).Assembly.Location + @"""
-#r """ + typeof(C).Assembly.Location + @"""
+            var s1 = await s0.ContinueWithAsync($@"
+#r ""{typeof(C).Assembly.Location}""
+#r ""{typeof(C).Assembly.Location}""
 x            
 ");
+            Assert.Equal(1, s1.ReturnValue);
+        }
 
-            Assert.Equal(1, result);
+        [Fact]
+        public async Task MissingRefrencesAutoResolution()  
+        {
+            var portableLib = CSharpCompilation.Create(
+                "PortableLib",                                                
+                new[] { SyntaxFactory.ParseSyntaxTree("public class C {}") }, 
+                new[] { SystemRuntimePP7Ref },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var portableLibRef = portableLib.ToMetadataReference();
+
+            var loader = new InteractiveAssemblyLoader();
+            loader.RegisterDependency(Assembly.Load(portableLib.EmitToArray().ToArray()));
+
+            var s0 = await CSharpScript.Create("new C()", options: ScriptOptions.Default.AddReferences(portableLibRef), assemblyLoader: loader).RunAsync();
+            var c0 = s0.Script.GetCompilation();
+
+            // includes corlib, host type assembly by default:
+            AssertEx.Equal(new[]
+            {
+                typeof(object).GetTypeInfo().Assembly.Location,
+                "PortableLib"
+            }, c0.ExternalReferences.SelectAsArray(m => m.Display));
+
+            // System.Runtime, 4.0.0.0 depends on all the assemblies below:
+            AssertEx.Equal(new[]
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "PortableLib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Data.SqlXml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+            }, c0.GetBoundReferenceManager().GetReferencedAssemblies().Select(a => a.Value.Identity.GetDisplayName()));
         }
     }
 }

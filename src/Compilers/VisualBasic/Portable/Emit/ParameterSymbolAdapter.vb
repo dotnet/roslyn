@@ -29,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return moduleBeingBuilt.Translate(paramType, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
-        Private ReadOnly Property IParameterTypeInformationHasByRefBeforeCustomModifiers As Boolean Implements IParameterTypeInformation.HasByRefBeforeCustomModifiers
+        Private ReadOnly Property IParameterTypeInformationCountOfCustomModifiersPrecedingByRef As UShort Implements IParameterTypeInformation.CountOfCustomModifiersPrecedingByRef
             Get
-                Return Me.HasByRefBeforeCustomModifiers
+                Return Me.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

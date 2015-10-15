@@ -16,27 +16,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal class AnalysisScope
     {
-        public SyntaxTree FilterTreeOpt { get; private set; }
-        public TextSpan? FilterSpanOpt { get; private set; }
+        public SyntaxTree FilterTreeOpt { get; }
+        public TextSpan? FilterSpanOpt { get; }
 
-        public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; private set; }
+        public ImmutableArray<DiagnosticAnalyzer> Analyzers { get; }
 
         /// <summary>
         /// Syntax trees on which we need to perform syntax analysis.
         /// </summary>
-        public IEnumerable<SyntaxTree> SyntaxTrees { get; private set; }
+        public IEnumerable<SyntaxTree> SyntaxTrees { get; }
 
-        public bool ConcurrentAnalysis { get; private set; }
+        public bool ConcurrentAnalysis { get; }
 
         /// <summary>
         /// True if we need to categorize diagnostics into local and non-local diagnostics and track the analyzer reporting each diagnostic.
         /// </summary>
-        public bool CategorizeDiagnostics { get; private set; }
+        public bool CategorizeDiagnostics { get; }
 
         /// <summary>
         /// True if we need to perform only syntax analysis for a single tree.
         /// </summary>
-        public bool IsSyntaxOnlyTreeAnalysis { get; private set; }
+        public bool IsSyntaxOnlyTreeAnalysis { get; }
 
         /// <summary>
         /// True if we need to perform analysis for a single tree.
@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CategorizeDiagnostics = categorizeDiagnostics;
         }
 
-        public static bool ShouldSkipSymbolAnalysis(ISymbol symbol)
+        public static bool ShouldSkipSymbolAnalysis(SymbolDeclaredCompilationEvent symbolEvent)
         {
             // Skip symbol actions for implicitly declared symbols and non-source symbols.
-            return symbol.IsImplicitlyDeclared || symbol.DeclaringSyntaxReferences.All(s => s.SyntaxTree == null);
+            return symbolEvent.Symbol.IsImplicitlyDeclared || symbolEvent.DeclaringSyntaxReferences.All(s => s.SyntaxTree == null);
         }
 
         public static bool ShouldSkipDeclarationAnalysis(ISymbol symbol)

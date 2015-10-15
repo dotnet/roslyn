@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
     public class Csc2
     {
         public static int Main(string[] args)
-            => Program.Main(args.Concat(new[] { "/shared" }).ToArray());
+            => Program.Main(args, new[] {"/shared" });
     }
 }
