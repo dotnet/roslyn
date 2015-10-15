@@ -553,9 +553,18 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 WorkingDirectory = changedWorkingDirectory;
             }
 
-            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            if (!changedReferenceSearchPaths.IsDefault)
             {
                 ReferenceSearchPaths = changedReferenceSearchPaths;
+            }
+
+            if (!changedSourceSearchPaths.IsDefault)
+            {
+                SourceSearchPaths = changedSourceSearchPaths;
+            }
+
+            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            {
                 _metadataReferenceResolver = CreateMetadataReferenceResolver(_workspace.CurrentSolution.Services.MetadataService, ReferenceSearchPaths, WorkingDirectory);
 
                 if (optionsOpt != null)
@@ -566,7 +575,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             if (!changedSourceSearchPaths.IsDefault || changedWorkingDirectory != null)
             {
-                SourceSearchPaths = changedSourceSearchPaths;
                 _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
 
                 if (optionsOpt != null)
