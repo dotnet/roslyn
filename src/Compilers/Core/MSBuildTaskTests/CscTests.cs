@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
             csc.PathMap = "K1=V1,K2=V2";
-            Assert.Equal("/pathmap:\"K1=V1,K2=V2\" /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal("/pathmap:K1=V1,K2=V2 /out:test.exe test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");

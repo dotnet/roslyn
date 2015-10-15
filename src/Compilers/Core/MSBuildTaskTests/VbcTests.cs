@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             var vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.PathMap = "K1=V1,K2=V2";
-            Assert.Equal("/optionstrict:custom /pathmap:\"K1=V1,K2=V2\" /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+            Assert.Equal("/optionstrict:custom /pathmap:K1=V1,K2=V2 /out:test.exe test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
