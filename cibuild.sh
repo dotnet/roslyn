@@ -234,7 +234,8 @@ test_roslyn()
 
     for i in "${test_binaries[@]}"
     do
-        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
+        mkdir -p Binaries/$BUILD_CONFIGURATION/xUnitResults/
+        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/xUnitResults/$i.dll.xml -noshadow
         if [ $? -ne 0 ]; then
             any_failed=true
         fi
