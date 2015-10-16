@@ -125,25 +125,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
             // In case of line comments that are potentially
             // stacked like this, crawl and find the furthest
-            var further = searchList[0];
-            for ( var i = 0; further.IsKind(SyntaxKind.SingleLineCommentTrivia); )
+            for ( var i = 0; i < searchList.Length && searchList[i].IsKind(SyntaxKind.SingleLineCommentTrivia); )
             {
-                nearbyTrivia = further;
+                nearbyTrivia = searchList[i];
                 i++;
 
                 for ( int skipped = 0; i < searchList.Length && IsIndentation(searchList[i], skipped); )
                 {
                     skipped++;
                     i++;
-                }
-
-                if (i < searchList.Length)
-                {
-                    further = searchList[i];
-                }
-                else
-                {
-                    break;
                 }
             }
 
