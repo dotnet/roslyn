@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         }
 
         [DebuggerStepThrough]
+        public Tuple<string, string> ExcludedCode(string value)
+        {
+            return Tuple.Create(value, ClassificationTypeNames.ExcludedCode);
+        }
+
+        [DebuggerStepThrough]
         public Tuple<string, string> Identifier(string value)
         {
             return Tuple.Create(value, ClassificationTypeNames.Identifier);

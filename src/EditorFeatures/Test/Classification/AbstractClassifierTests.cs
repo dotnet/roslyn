@@ -1,7 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Classification;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
@@ -12,6 +16,41 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         protected AbstractClassifierTests()
         {
             this.ClassificationBuilder = new ClassificationBuilder();
+        }
+
+        public static void Validate(string allCode, Tuple<string, string>[] expected, List<ClassifiedSpan> actual)
+        {
+            actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
+
+            var max = Math.Max(expected.Length, actual.Count);
+            for (int i = 0; i < max; i++)
+            {
+                if (i >= expected.Length)
+                {
+                    AssertEx.Fail("Unexpected actual classification: {0}", GetText(actual[i]));
+                }
+                else if (i >= actual.Count)
+                {
+                    AssertEx.Fail("Missing classification for: {0}", GetText(expected[i]));
+                }
+
+                var tuple = expected[i];
+                var classification = actual[i];
+
+                var text = allCode.Substring(classification.TextSpan.Start, classification.TextSpan.Length);
+                Assert.Equal(tuple.Item1, text);
+                Assert.Equal(tuple.Item2, classification.ClassificationType);
+            }
+        }
+
+        protected static string GetText(Tuple<string, string> tuple)
+        {
+            return "(" + tuple.Item1 + ", " + tuple.Item2 + ")";
+        }
+
+        protected static string GetText(ClassifiedSpan tuple)
+        {
+            return "(" + tuple.TextSpan + ", " + tuple.ClassificationType + ")";
         }
 
         [DebuggerStepThrough]
@@ -78,6 +117,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         protected Tuple<string, string> PPText(string value)
         {
             return ClassificationBuilder.PPText(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> ExcludedCode(string value)
+        {
+            return ClassificationBuilder.ExcludedCode(value);
         }
 
         [DebuggerStepThrough]

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     this.Clear();
                 }
 
-                private void Clear()
+                public void Clear()
                 {
                     lock (_gate)
                     {

@@ -166,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
+    <Compile Include="Classification\ClassificationTests.vb" />
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
     <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
