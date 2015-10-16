@@ -37,6 +37,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+            Return Me.GetDeclaredBase(Nothing)
+        End Function
+
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
+        End Function
+
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
             Dim baseType = DeclaringCompilation.GetSpecialType(SpecialType.System_Object)
 
             ' check that System.Object is available. 
@@ -49,16 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return If(Me.TypeKind = TypeKind.Submission, Nothing, baseType)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
-            Return ImmutableArray(Of NamedTypeSymbol).Empty
-        End Function
-
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
         Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
-            Throw ExceptionUtilities.Unreachable
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
