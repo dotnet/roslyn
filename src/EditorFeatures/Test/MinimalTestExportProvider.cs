@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             // on the thread.
             var parts = Task.Run(async () => await discovery.CreatePartsAsync(assemblies).ConfigureAwait(false)).Result;
 
-            return ComposableCatalog.Create(resolver).AddParts(parts);
+            return ComposableCatalog.Create(resolver ?? Resolver.DefaultInstance).AddParts(parts);
         }
 
         public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types, Resolver resolver = null)
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             // on the thread.
             var parts = Task.Run(async () => await discovery.CreatePartsAsync(types).ConfigureAwait(false)).Result;
 
-            return ComposableCatalog.Create(resolver).AddParts(parts);
+            return ComposableCatalog.Create(resolver ?? Resolver.DefaultInstance).AddParts(parts);
         }
 
         public static Resolver CreateResolver()
