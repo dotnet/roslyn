@@ -2,8 +2,11 @@
 
 REM Parse Arguments.
 
+set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.24.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
+set BuildRestore=false
 :ParseArguments
 if "%1" == "" goto :DoneParsing
 if /I "%1" == "/?" call :Usage && exit /b 1
@@ -12,6 +15,7 @@ if /I "%1" == "/release" set BuildConfiguration=Release&&shift&& goto :ParseArgu
 if /I "%1" == "/test32" set Test64=false&&shift&& goto :ParseArguments
 if /I "%1" == "/test64" set Test64=true&&shift&& goto :ParseArguments
 if /I "%1" == "/perf" set Perf=true&&shift&& goto :ParseArguments
+if /I "%1" == "/restore" set BuildRestore=true&&shift&& goto :ParseArguments
 call :Usage && exit /b 1
 :DoneParsing
 
@@ -28,14 +32,21 @@ if defined Perf (
 
 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd.bat"
 
-REM Build the compiler so we can self host it for the full build
-nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
-nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
+REM Restore the NuGet packages 
+if "%BuildRestore%" == "true" (
+    nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
+    nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
+    nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
+    nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
+    nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
+) else (
+    powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%"
+)
 
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to laod because the compiler has binding redirects to the
 REM semantic version
-msbuild /nologo /v:m /m /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:Configuration=%BuildConfiguration%
+msbuild /nologo /v:m /m /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
 move Binaries\%BuildConfiguration%\* %RoslynRoot%Binaries\Bootstrap
