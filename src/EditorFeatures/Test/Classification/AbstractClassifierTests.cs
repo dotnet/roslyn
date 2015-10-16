@@ -149,6 +149,78 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             return ClassificationBuilder.Number(value);
         }
 
+        [DebuggerStepThrough]
+        protected Tuple<string, string> Module(string value)
+        {
+            return ClassificationBuilder.Module(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlName(string value)
+        {
+            return ClassificationBuilder.VBXmlName(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlText(string value)
+        {
+            return ClassificationBuilder.VBXmlText(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlProcessingInstruction(string value)
+        {
+            return ClassificationBuilder.VBXmlProcessingInstruction(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlEmbeddedExpression(string value)
+        {
+            return ClassificationBuilder.VBXmlEmbeddedExpression(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlDelimiter(string value)
+        {
+            return ClassificationBuilder.VBXmlDelimiter(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlComment(string value)
+        {
+            return ClassificationBuilder.VBXmlComment(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlCDataSection(string value)
+        {
+            return ClassificationBuilder.VBXmlCDataSection(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlAttributeValue(string value)
+        {
+            return ClassificationBuilder.VBXmlAttributeValue(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlAttributeQuotes(string value)
+        {
+            return ClassificationBuilder.VBXmlAttributeQuotes(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlAttributeName(string value)
+        {
+            return ClassificationBuilder.VBXmlAttributeName(value);
+        }
+
+        [DebuggerStepThrough]
+        protected Tuple<string, string> VBXmlEntityReference(string value)
+        {
+            return ClassificationBuilder.VBXmlEntityReference(value);
+        }
+
         protected ClassificationBuilder.PunctuationClassificationTypes Punctuation
         {
             get { return ClassificationBuilder.Punctuation; }

@@ -16,54 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             End Get
         End Property
 
-        Protected Function [Module](value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.Module(value)
-        End Function
-
-        Protected Function VBXmlName(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlName(value)
-        End Function
-
-        Protected Function VBXmlText(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlText(value)
-        End Function
-
-        Protected Function VBXmlProcessingInstruction(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlProcessingInstruction(value)
-        End Function
-
-        Protected Function VBXmlEmbeddedExpression(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlEmbeddedExpression(value)
-        End Function
-
-        Protected Function VBXmlDelimiter(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlDelimiter(value)
-        End Function
-
-        Protected Function VBXmlComment(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlComment(value)
-        End Function
-
-        Protected Function VBXmlCDataSection(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlCDataSection(value)
-        End Function
-
-        Protected Function VBXmlAttributeValue(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlAttributeValue(value)
-        End Function
-
-        Protected Function VBXmlAttributeQuotes(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlAttributeQuotes(value)
-        End Function
-
-        Protected Function VBXmlAttributeName(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlAttributeName(value)
-        End Function
-
-        Protected Function VBXmlEntityReference(value As String) As Tuple(Of String, String)
-            Return ClassificationBuilder.VBXmlEntityReference(value)
-        End Function
-
         Friend MustOverride Function GetClassificationSpans(code As String, textSpan As TextSpan) As IEnumerable(Of ClassifiedSpan)
 
         Protected Sub Test(
