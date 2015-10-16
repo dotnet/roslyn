@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
@@ -58,6 +59,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
             }
 
             return codeBlocks;
+        }
+
+        public async static Task<TextSpan> GetSpanFromPositionAsync(this Document document, int startLine, int startColumn, int endLine, int endColumn, CancellationToken cancellationToken)
+        {
+            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var startLinePosition = new LinePosition(startLine, startColumn);
+            var endLinePosition = new LinePosition(endLine, endColumn);
+            var linePositionSpan = new LinePositionSpan(start: startLinePosition, end: endLinePosition);
+            var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            return text.Lines.GetTextSpan(linePositionSpan);
         }
     }
 }

@@ -17,13 +17,11 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Roslyn.Utilities;
-
-using Task = System.Threading.Tasks.Task;
-
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 {
     /// <summary>
@@ -35,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IWpfTableControl _tableControl;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
@@ -46,6 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
+            ExternalErrorDiagnosticUpdateSource buildErrorDiagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandlerService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
@@ -53,6 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
+            _buildErrorDiagnosticService = buildErrorDiagnosticService;
             _codeFixService = codeFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _editHandlerService = editHandlerService;
@@ -122,18 +123,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> GetAllDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
+        private ImmutableArray<DiagnosticData> GetAllBuildDiagnostics(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+            var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
             var solution = _workspace.CurrentSolution;
-            foreach (var project in solution.Projects)
+            foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (shouldFixInProject(project))
+                var project = solution.GetProject(diagnosticsByProject.Key);
+                if (project != null && shouldFixInProject(project))
                 {
-                    var diagnostics = await _diagnosticService.GetDiagnosticsAsync(solution, project.Id, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    builder.AddRange(diagnostics.Where(d => d.Severity != DiagnosticSeverity.Hidden));
+                    builder.AddRange(diagnosticsByProject);
                 }
             }
 
@@ -157,11 +159,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             {
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry snapshots.
                 // Otherwise, get all diagnostics from the diagnostic service.
-                var diagnosticsToFixTask = selectedEntriesOnly ?
-                    _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken) :
-                    GetAllDiagnosticsAsync(shouldFixInProject, cancellationToken);
-
-                diagnosticsToFix = diagnosticsToFixTask.WaitAndGetResult(cancellationToken);
+                diagnosticsToFix = selectedEntriesOnly ?
+                    _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken).WaitAndGetResult(cancellationToken) :
+                    GetAllBuildDiagnostics(shouldFixInProject, cancellationToken);
             };
 
             var title = GetFixTitle(isAddSuppression);
@@ -229,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
-                
+
                 // Equivalence key determines what fix will be applied.
                 // Make sure we don't include any specific diagnostic ID, as we want all of the given diagnostics (which can have varied ID) to be fixed.
                 var equivalenceKey = isAddSuppression ?
@@ -435,14 +435,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private static CodeFixProvider GetSuppressionFixer(IEnumerable<Diagnostic> diagnostics, string language, ICodeFixService codeFixService)
         {
-            var allDiagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
-            foreach (var documentDiagnostics in diagnostics)
-            {
-                allDiagnosticsBuilder.AddRange(diagnostics);
-            }
-
             // Fetch the suppression fixer to apply the fix.
-            return codeFixService.GetSuppressionFixer(language, allDiagnosticsBuilder.ToImmutable());
+            return codeFixService.GetSuppressionFixer(language, diagnostics.ToImmutableArray());
         }
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)

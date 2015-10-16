@@ -229,6 +229,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         case ProjectGuids:
                             content = item.ProjectGuids;
                             return ((Guid[])content).Length > 0;
+                        case SuppressionStateColumnDefinition.ColumnName:
+                            content = data.IsSuppressed ? ServicesVSResources.SuppressionStateSuppressed : ServicesVSResources.SuppressionStateActive;
+                            return true;
                         default:
                             content = null;
                             return false;

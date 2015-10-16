@@ -5,15 +5,18 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -100,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             var hostDocument = hostProject.GetCurrentDocumentFromPath(error.bstrFileName);
-
+            
             var line = error.iLine;
             var column = error.iCol;
             var containedDocument = hostDocument as ContainedDocument;
@@ -224,10 +227,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             string mappedFilePath, int mappedStartLine, int mappedStartColumn, int mappedEndLine, int mappedEndColumn,
             string originalFilePath, int originalStartLine, int originalStartColumn, int originalEndLine, int originalEndColumn)
         {
+            var document = id != null ? _workspace.CurrentSolution.GetDocument(id) : null;
+            var sourceSpan = document != null ?
+                document.GetSpanFromPositionAsync(originalStartLine, originalStartColumn, originalEndLine, originalEndColumn, CancellationToken.None).WaitAndGetResult(CancellationToken.None) :
+                (TextSpan?)null;
+
             return new DiagnosticData(
                 id: errorId,
                 category: WellKnownDiagnosticTags.Build,
                 message: message,
+                title: message,
                 enuMessageForBingSearch: message, // Unfortunately, there is no way to get ENU text for this since this is an external error.
                 severity: severity,
                 defaultSeverity: severity,
@@ -238,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 workspace: _workspace,
                 projectId: _projectId,
                 location: new DiagnosticDataLocation(id,
-                    sourceSpan: null,
+                    sourceSpan: sourceSpan,
                     originalFilePath: originalFilePath,
                     originalStartLine: originalStartLine,
                     originalStartColumn: originalStartColumn,
