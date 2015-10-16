@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
-            return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, loggerOpt);
+            return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, arguments.PathMap, loggerOpt);
         }
 
         private int RunScript(ScriptOptions options, string code, ErrorLogger errorLogger, CancellationToken cancellationToken)
