@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal ImmutableArray<OperationBlockStartAnalyzerAction> OperationBlockStartActions
         {
-            get { if (!_operationBlockStartActions.IsEmpty) throw new InvalidOperationException("Getting an operation block start"); return _operationBlockStartActions; }
+            get { return _operationBlockStartActions; }
         }
 
         internal ImmutableArray<OperationAnalyzerAction> OperationActions

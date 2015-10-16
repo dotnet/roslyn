@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             bool shouldExecuteOperationBlockActions,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteOperationActions || shouldExecuteCodeBlockActions);
+            Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteOperationActions || shouldExecuteCodeBlockActions || shouldExecuteOperationBlockActions);
 
             var symbol = symbolEvent.Symbol;
             SemanticModel semanticModel = analysisStateOpt != null ?
@@ -1316,16 +1316,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         executableCodeBlocks = declInNode.ExecutableCodeBlocks;
 
                         // Execute operation actions.
-                        if (shouldExecuteOperationActions && executableCodeBlocks.Any())
+                        if ((shouldExecuteOperationActions || shouldExecuteOperationBlockActions) && executableCodeBlocks.Any())
                         {
                             var operationsToAnalyze = GetOperationsToAnalyze(executableCodeBlocks, semanticModel, cancellationToken);
-                            foreach (var analyzer in analysisScope.Analyzers)
+                            if (!operationsToAnalyze.IsEmpty)
                             {
-                                ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind;
-                                if (this.OperationActionsByAnalyzerAndKind.TryGetValue(analyzer, out operationActionsByKind))
+                                if (shouldExecuteOperationActions)
                                 {
-                                    analyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
-                                        analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt);
+                                    foreach (var analyzer in analysisScope.Analyzers)
+                                    {
+                                        ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind;
+                                        if (this.OperationActionsByAnalyzerAndKind.TryGetValue(analyzer, out operationActionsByKind))
+                                        {
+                                            analyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
+                                                analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt);
+                                        }
+                                    }
+                                }
+
+                                if (shouldExecuteOperationBlockActions)
+                                {
+                                    foreach (var analyzerActions in GetCodeBlockActions(analysisScope))
+                                    {
+                                        analyzerExecutor.ExecuteOperationBlockActions(
+                                            analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
+                                            analyzerActions.OpererationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
+                                            operationsToAnalyze, semanticModel, decl, analysisScope, analysisStateOpt);
+                                    }
                                 }
                             }
                         }
@@ -1413,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     operationBlockEndActions = ImmutableArray<OperationBlockAnalyzerAction>.Empty;
                 }
 
-                if (!codeBlockStartActions.IsEmpty || !codeBlockActions.IsEmpty || !codeBlockEndActions.IsEmpty)
+                if (!codeBlockStartActions.IsEmpty || !codeBlockActions.IsEmpty || !codeBlockEndActions.IsEmpty || !operationBlockStartActions.IsEmpty || !operationBlockActions.IsEmpty || !operationBlockEndActions.IsEmpty)
                 {
                     yield return
                         new CodeBlockAnalyzerActions
