@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_text == null)
             {
-                using (Gate.DisposableWait(cancellationToken))
+                using (await Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (_text == null)
                     {
