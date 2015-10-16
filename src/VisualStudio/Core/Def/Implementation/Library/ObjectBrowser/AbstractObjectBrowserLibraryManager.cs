@@ -7,7 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -19,9 +18,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 {
     internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLibraryManager, IDisposable
     {
-        internal NavInfoFactory NavInfoFactory { get; }
-
         internal readonly VisualStudioWorkspace Workspace;
+        internal readonly ILibraryService LibraryService;
 
         private readonly string _languageName;
         private readonly __SymbolToolLanguage _preferredLanguage;
@@ -39,10 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             _languageName = languageName;
             _preferredLanguage = preferredLanguage;
-            NavInfoFactory = new NavInfoFactory(libraryGuid, preferredLanguage);
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
             this.Workspace = componentModel.GetService<VisualStudioWorkspace>();
+            this.LibraryService = this.Workspace.Services.GetLanguageServices(languageName).GetService<ILibraryService>();
             this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
@@ -401,7 +399,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             SharedPools.Default<StringBuilder>().ClearAndFree(className);
 
             // TODO: Make sure we pass the right value for Visual Basic.
-            ppNavInfo = NavInfoFactory.Create(libraryName, referenceOwnerName, namespaceName.ToString(), className.ToString(), memberName);
+            ppNavInfo = this.LibraryService.NavInfo.Create(libraryName, referenceOwnerName, namespaceName.ToString(), className.ToString(), memberName);
 
             return VSConstants.S_OK;
         }
@@ -428,18 +426,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             if (symbolListItem is MemberListItem)
             {
-                return NavInfoFactory.CreateForMember(symbol, project, compilation, useExpandedHierarchy);
+                return this.LibraryService.NavInfo.CreateForMember(symbol, project, compilation, useExpandedHierarchy);
             }
             else if (symbolListItem is TypeListItem)
             {
-                return NavInfoFactory.CreateForType((INamedTypeSymbol)symbol, project, compilation, useExpandedHierarchy);
+                return this.LibraryService.NavInfo.CreateForType((INamedTypeSymbol)symbol, project, compilation, useExpandedHierarchy);
             }
             else if (symbolListItem is NamespaceListItem)
             {
-                return NavInfoFactory.CreateForNamespace((INamespaceSymbol)symbol, project, compilation, useExpandedHierarchy);
+                return this.LibraryService.NavInfo.CreateForNamespace((INamespaceSymbol)symbol, project, compilation, useExpandedHierarchy);
             }
 
-            return NavInfoFactory.CreateForProject(project);
+            return this.LibraryService.NavInfo.CreateForProject(project);
         }
 
         protected override bool TryQueryStatus(Guid commandGroup, uint commandId, ref OLECMDF commandFlags)

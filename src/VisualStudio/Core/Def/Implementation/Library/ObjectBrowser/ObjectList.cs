@@ -564,14 +564,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 var project = this.LibraryManager.GetProject(projectListItem.ProjectId);
                 if (project != null)
                 {
-                    return this.LibraryManager.NavInfoFactory.CreateForProject(project);
+                    return this.LibraryManager.LibraryService.NavInfo.CreateForProject(project);
                 }
             }
 
             var referenceListItem = listItem as ReferenceListItem;
             if (referenceListItem != null)
             {
-                return this.LibraryManager.NavInfoFactory.CreateForReference(referenceListItem.MetadataReference);
+                return this.LibraryManager.LibraryService.NavInfo.CreateForReference(referenceListItem.MetadataReference);
             }
 
             var symbolListItem = listItem as SymbolListItem;

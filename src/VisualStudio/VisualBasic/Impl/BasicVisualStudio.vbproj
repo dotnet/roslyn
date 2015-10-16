@@ -127,6 +127,8 @@
     <Compile Include="ObjectBrowser\DescriptionBuilder.vb" />
     <Compile Include="ObjectBrowser\ListItemFactory.vb" />
     <Compile Include="ObjectBrowser\ObjectBrowserLibraryManager.vb" />
+    <Compile Include="ObjectBrowser\VisualBasicLibraryService.vb" />
+    <Compile Include="ObjectBrowser\VisualBasicLibraryServiceFactory.vb" />
     <Compile Include="Options\AdvancedOptionPageStrings.vb" />
     <Compile Include="Options\AutomationObject.vb" />
     <Compile Include="Options\VisualBasicLanguageSettingsSerializer.vb" />
