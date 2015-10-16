@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Editor.Interactive
     /// interactive window which override the implementation of these commands in underlying
     /// interactive window.
     /// </summary>
-    public static class CSharpVBInteractiveCommandsContentTypes
+    internal static class CSharpVBInteractiveCommandsContentTypes
     {
         public const string CSharpVBInteractiveCommandContentTypeName = "Specialized CSharp and VB Interactive Command";
 
