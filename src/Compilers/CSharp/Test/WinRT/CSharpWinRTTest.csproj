@@ -55,8 +55,8 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
+    <None Include="xunit.runner.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

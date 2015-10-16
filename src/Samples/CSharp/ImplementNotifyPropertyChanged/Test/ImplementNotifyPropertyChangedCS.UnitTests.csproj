@@ -17,8 +17,10 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <None Include="App.config" />
     <None Include="project.json" />
+    <None Include="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup Label="Project References">
     <Reference Include="Microsoft.CodeAnalysis">

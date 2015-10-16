@@ -1,0 +1,9 @@
+﻿{
+  "appDomain": "denied",
+  "diagnosticMessages": false,
+  "methodDisplay": "classAndMethod",
+  "parallelizeAssembly": false,
+  "parallelizeTestCollections": false,
+  "preEnumerateTheories": true,
+  "shadowCopy": false
+}
