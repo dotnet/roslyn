@@ -7,7 +7,7 @@ Please see the [known contributor issues](https://github.com/dotnet/roslyn/label
 ## Required Software
 
 - Visual Studio 2015 with the [Visual Studio Extensibility and Windows 10 tools optional components](https://github.com/dotnet/roslyn/wiki/Getting-Started-on-Visual-Studio-2015) installed
-- To prevent unnecessary project.json changes, turn off NuGet package restore within Visual Studio
+- To prevent unnecessary project.json changes and slow builds, turn off NuGet package restore within Visual Studio
   - Uncheck **Tools** -> **Options** -> **NuGet Package Manager** -> **General** -> **Automatically check for missing packages during build in Visual Studio**
 
 ## Getting the code
