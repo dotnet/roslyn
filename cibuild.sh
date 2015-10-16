@@ -205,9 +205,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.3
+        MONO_TOOLSET_NAME=mono.mac.4
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.3
+        MONO_TOOLSET_NAME=mono.linux.4
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1
