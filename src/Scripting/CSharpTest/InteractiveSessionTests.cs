@@ -18,6 +18,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 {
+    using CodeAnalysis.Test.Utilities;
+    using static TestCompilationFactory;
+
     public class HostModel
     {
         public readonly int Foo;
@@ -1149,6 +1152,23 @@ new Metadata.ICSPropImpl()
                 ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
 
             script.GetCompilation().VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6015")]
+        public void UsingExternalAliasesForHiding()
+        {
+            string source = @"
+namespace N { public class C { } }
+public class D { }
+public class E { }
+";
+
+            var libRef = CreateCompilationWithMscorlib(source, "lib").EmitToImageReference();
+
+            var script = CSharpScript.Create(@"new C()", 
+                ScriptOptions.Default.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
+
+            script.Build().Verify();
         }
 
         #endregion
