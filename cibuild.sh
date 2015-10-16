@@ -221,25 +221,22 @@ test_roslyn()
 {
     local xunit_runner=~/.nuget/packages/xunit.runner.console/$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
-        Roslyn.Compilers.CSharp.CommandLine.UnitTests
-        Roslyn.Compilers.CSharp.Syntax.UnitTests
-        Roslyn.Compilers.CSharp.Semantic.UnitTests
-        Roslyn.Compilers.CSharp.Symbol.UnitTests
-        Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
+        Binaries/$BUILD_CONFIGURATION/Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll
+        Binaries/$BUILD_CONFIGURATION/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll
+        Binaries/$BUILD_CONFIGURATION/Roslyn.Compilers.CSharp.Semantic.UnitTests.dll
+        Binaries/$BUILD_CONFIGURATION/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll
+        Binaries/$BUILD_CONFIGURATION/Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll)
     local any_failed=false
 
     # Need to copy over the execution dependencies.  This isn't being done correctly
     # by msbuild at the moment. 
     cp ~/.nuget/packages/xunit.extensibility.execution/$XUNIT_VERSION/lib/net45/xunit.execution.desktop.* Binaries/$BUILD_CONFIGURATION
 
-    for i in "${test_binaries[@]}"
-    do
-        mkdir -p Binaries/$BUILD_CONFIGURATION/xUnitResults/
-        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/xUnitResults/$i.dll.xml -noshadow
-        if [ $? -ne 0 ]; then
-            any_failed=true
-        fi
-    done
+    mkdir -p Binaries/$BUILD_CONFIGURATION/xUnitResults/
+    mono $MONO_ARGS $xunit_runner ${test_binaries[@]} -xml Binaries/$BUILD_CONFIGURATION/xUnitResults/ResultsLog.xml -noshadow
+    if [ $? -ne 0 ]; then
+        any_failed=true
+    fi
 
     if [ "$any_failed" = "true" ]; then
         echo Unit test failed
