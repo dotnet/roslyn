@@ -216,88 +216,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 DataLocation?.OriginalStartColumn);
         }
 
-        public static Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(Project project, IEnumerable<DiagnosticData> datas, CancellationToken cancellationToken)
+        public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
         {
-            return ToDiagnosticsAsync(project, datas, documentIdToTree: null, cancellationToken: cancellationToken);
+            return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
         }
 
-        public static async Task<IEnumerable<Diagnostic>> ToDiagnosticsAsync(
-            Project project, IEnumerable<DiagnosticData> datas, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
+        public async Task<Diagnostic> ToDiagnosticAsync(Project project, CancellationToken cancellationToken)
         {
-            var result = new List<Diagnostic>();
-            foreach (var data in datas)
-            {
-                result.Add(await data.ToDiagnosticAsync(project, documentIdToTree, cancellationToken).ConfigureAwait(false));
-            }
-            return result;
-        }
-
-        public Task<Diagnostic> ToDiagnosticAsync(Project project, CancellationToken cancellationToken)
-        {
-            return ToDiagnosticAsync(project, documentIdToTree: null, cancellationToken: cancellationToken);
-        }
-
-        private async Task<Diagnostic> ToDiagnosticAsync(Project project, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
-        {
-            var location = await ConvertLocationAsync(project, this.DataLocation, documentIdToTree, cancellationToken).ConfigureAwait(false);
-            var additionalLocations = await ConvertLocationsAsync(project, this.AdditionalLocations, documentIdToTree, cancellationToken).ConfigureAwait(false);
+            var location = await this.DataLocation.ConvertLocationAsync(project, cancellationToken).ConfigureAwait(false);
+            var additionalLocations = await this.AdditionalLocations.ConvertLocationsAsync(project, cancellationToken).ConfigureAwait(false);
 
             return Diagnostic.Create(
                 this.Id, this.Category, this.Message, this.Severity, this.DefaultSeverity,
                 this.IsEnabledByDefault, this.WarningLevel, this.IsSuppressed, this.Title, this.Description, this.HelpLink,
                 location, additionalLocations, customTags: this.CustomTags, properties: this.Properties);
-        }
-
-        private static async Task<IList<Location>> ConvertLocationsAsync(
-            Project project, IReadOnlyCollection<DiagnosticDataLocation> additionalLocations, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
-        {
-            if (additionalLocations == null || additionalLocations.Count == 0)
-            {
-                return SpecializedCollections.EmptyList<Location>();
-            }
-
-            var result = new List<Location>();
-            foreach (var data in additionalLocations)
-            {
-                var location = await ConvertLocationAsync(project, data, documentIdToTree, cancellationToken).ConfigureAwait(false);
-                result.Add(location);
-            }
-
-            return result;
-        }
-
-        private static async Task<Location> ConvertLocationAsync(
-            Project project, DiagnosticDataLocation dataLocation, ImmutableDictionary<DocumentId, SyntaxTree> documentIdToTree, CancellationToken cancellationToken)
-        {
-            if (dataLocation?.DocumentId != null)
-            {
-                var document = project.GetDocument(dataLocation?.DocumentId);
-                if (document != null)
-                {
-                    if (document.SupportsSyntaxTree)
-                    {
-                        var syntaxTree = documentIdToTree != null
-                            ? documentIdToTree[document.Id]
-                            : await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        var span = dataLocation.SourceSpan ?? GetTextSpan(dataLocation, syntaxTree.GetText());
-                        return syntaxTree.GetLocation(span);
-                    }
-                    else if (dataLocation?.OriginalFilePath != null && dataLocation.SourceSpan != null)
-                    {
-                        var span = dataLocation.SourceSpan.Value;
-                        return Location.Create(dataLocation?.OriginalFilePath, span, new LinePositionSpan(
-                            new LinePosition(dataLocation.OriginalStartLine, dataLocation.OriginalStartColumn),
-                            new LinePosition(dataLocation.OriginalEndLine, dataLocation.OriginalEndColumn)));
-                    }
-                }
-            }
-
-            return Location.None;
-        }
-
-        public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-        {
-            return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
         }
 
         public static TextSpan GetTextSpan(DiagnosticDataLocation dataLocation, SourceText text)

@@ -45,7 +45,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(90)
+        absolute(120)
         abortBuild()
       }
       timestamps()
@@ -71,7 +71,7 @@ static void addUnitPublisher(def myJob) {
       'xunit'('plugin': 'xunit@1.97') {
       'types' {
         'XUnitDotNetTestType' {
-          'pattern'('**/*TestResults.xml')
+          'pattern'('**/xUnitResults/*.xml')
             'skipNoTestFiles'(false)
             'failIfNotNew'(true)
             'deleteOutputFiles'(true)
@@ -116,7 +116,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W+(${contextName}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
         onlyTriggerPhrase(triggerOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')

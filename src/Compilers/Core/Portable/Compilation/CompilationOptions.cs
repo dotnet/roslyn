@@ -326,6 +326,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal abstract ImmutableArray<string> GetImports();
+
         /// <summary>
         /// Creates a new options instance with the specified general diagnostic option.
         /// </summary>
@@ -356,6 +358,14 @@ namespace Microsoft.CodeAnalysis
         public CompilationOptions WithReportSuppressedDiagnostics(bool value)
         {
             return CommonWithReportSuppressedDiagnostics(value);
+        }
+
+        /// <summary>
+        /// Creates a new options instance with the deterministic property set accordingly.
+        /// </summary>
+        public CompilationOptions WithDeterministic(bool deterministic)
+        {
+            return CommonWithDeterministic(deterministic);
         }
 
         /// <summary>
@@ -407,6 +417,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);

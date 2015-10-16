@@ -547,7 +547,7 @@ public abstract class C
     await System.Threading.Tasks.Task.Delay(100);
     System.Console.Write(""complete"");
 }";
-            var s0 = CSharpCompilation.CreateSubmission(
+            var s0 = CSharpCompilation.CreateScriptCompilation(
                 "s0.dll",
                 SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references);

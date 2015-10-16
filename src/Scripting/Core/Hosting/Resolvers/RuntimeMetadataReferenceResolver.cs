@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal readonly NuGetPackageResolver PackageResolver;
         internal readonly GacFileResolver GacFileResolver;
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _fileReferenceProvider;
+        private static ImmutableArray<string> s_assemblyExtensions = ImmutableArray.Create(".dll", ".exe", ".winmd");
 
         internal RuntimeMetadataReferenceResolver(
             ImmutableArray<string> searchPaths,
@@ -42,6 +44,38 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             GacFileResolver = gacFileResolver;
             _fileReferenceProvider = fileReferenceProvider ?? 
                 new Func<string, MetadataReferenceProperties, PortableExecutableReference>((path, properties) => MetadataReference.CreateFromFile(path, properties));
+        }
+
+        public override bool ResolveMissingAssemblies => true;
+
+        public override PortableExecutableReference ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
+        {
+            // look in the GAC:
+            if (GacFileResolver != null && referenceIdentity.IsStrongName)
+            {
+                var path = GacFileResolver.Resolve(referenceIdentity.GetDisplayName());
+                if (path != null)
+                {
+                    return _fileReferenceProvider(path, MetadataReferenceProperties.Assembly);
+                }
+            }
+
+            // look in the directory of the requesting definition:
+            var definitionPath = (definition as PortableExecutableReference)?.FilePath;
+            if (definitionPath != null)
+            {
+                var pathWithoutExtension = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(definitionPath), referenceIdentity.Name);
+                foreach (var extension in s_assemblyExtensions)
+                {
+                    var fullPath = pathWithoutExtension + extension;
+                    if (File.Exists(fullPath))
+                    {
+                        return _fileReferenceProvider(fullPath, MetadataReferenceProperties.Assembly);
+                    }
+                }
+            }
+
+            return null;
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)

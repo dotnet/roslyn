@@ -3959,6 +3959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options = LookupOptions.Default;
                 }
 
+                binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
                 foreach (var scope in new ExtensionMethodScopes(binder))
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -3968,7 +3969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                              name,
                                                              arity,
                                                              options,
-                                                             isCallerSemanticModel: true);
+                                                             originalBinder: binder);
 
                     foreach (var method in extensionMethods)
                     {

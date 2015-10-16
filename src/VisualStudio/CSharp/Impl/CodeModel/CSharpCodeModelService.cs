@@ -816,7 +816,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return ((EventDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
                         ((EventDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.Parameter:
-                    return ((ParameterSyntax)node).Identifier.ToString();
+                    return GetParameterName(node);
                 case SyntaxKind.NamespaceDeclaration:
                     return ((NamespaceDeclarationSyntax)node).Name.ToString();
                 case SyntaxKind.OperatorDeclaration:

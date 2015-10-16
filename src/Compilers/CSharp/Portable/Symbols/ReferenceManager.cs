@@ -337,6 +337,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     BoundInputAssembly[] bindingResult = Bind(
                         explicitAssemblyData,
+                        modules,
+                        references,
+                        referenceMap,
                         compilation.Options.MetadataReferenceResolver,
                         compilation.Options.MetadataImportOptions,
                         out allAssemblyData,

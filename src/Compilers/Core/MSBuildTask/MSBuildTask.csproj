@@ -53,12 +53,14 @@
     <Compile Include="CanonicalError.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />
     <Compile Include="Csc.cs" />
+    <Compile Include="Csi.cs" />
     <Compile Include="ErrorString.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ErrorString.resx</DependentUpon>
     </Compile>
     <Compile Include="ICscHostObject5.cs" />
+    <Compile Include="InteractiveCompiler.cs" />
     <Compile Include="IVbcHostObject6.cs" />
     <Compile Include="ManagedCompiler.cs" />
     <Compile Include="NativeMethods.cs" />

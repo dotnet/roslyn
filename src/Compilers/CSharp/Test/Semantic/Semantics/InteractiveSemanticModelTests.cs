@@ -36,10 +36,10 @@ namespace Foo.Bar
             var classB = (root.Members[1] as NamespaceDeclarationSyntax).Members[0] as TypeDeclarationSyntax;
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(classB);
-            Assert.NotNull(symbol);
-            Assert.NotNull(symbol.BaseType);
-            Assert.Equal("Foo.Bar.B", symbol.ToTestDisplayString());
-            Assert.Equal("Foo.Bar.Script.C", symbol.BaseType.ToTestDisplayString());
+            var baseType = symbol?.BaseType;
+            Assert.NotNull(baseType);
+            Assert.Equal(TypeKind.Error, baseType.TypeKind);
+            Assert.Equal(LookupResultKind.Inaccessible, ((ErrorTypeSymbol)baseType).ResultKind); // Script class members are private.
         }
 
         [Fact]

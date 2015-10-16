@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private double GetValueDouble(string text)
         {
             double result;
-            if (!Double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out result))
+            if (!RealParser.TryParseDouble(text, out result))
             {
                 //we've already lexed the literal, so the error must be from overflow
                 this.AddError(MakeError(ErrorCode.ERR_FloatOverflow, "double"));
@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private float GetValueSingle(string text)
         {
             float result;
-            if (!Single.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out result))
+            if (!RealParser.TryParseFloat(text, out result))
             {
                 //we've already lexed the literal, so the error must be from overflow
                 this.AddError(MakeError(ErrorCode.ERR_FloatOverflow, "float"));
