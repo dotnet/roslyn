@@ -12817,6 +12817,7 @@ expectedOutput: "-100");
                 hasDeclarationErrors: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
+                semanticModelOpt: null,
                 cancellationToken: CancellationToken.None);
 
             // Add diagnostic to MethodBodyCompiler bag, as if

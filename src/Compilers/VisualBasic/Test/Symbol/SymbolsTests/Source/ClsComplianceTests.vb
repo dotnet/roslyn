@@ -2742,7 +2742,7 @@ BC40027: Return type of function 'P' is not CLS-compliant.
                         ~
 ]]></errors>)
 
-            CompilationUtils.AssertTheseDiagnostics(comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree1, filterSpanWithinTree:=Nothing, includeEarlierStages:=False),
+            CompilationUtils.AssertTheseDiagnostics(comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree1, includeEarlierStages:=False),
                                                <errors><![CDATA[
 BC40026: 'Compliant' is not CLS-compliant because it derives from 'NonCompliant', which is not CLS-compliant.
     Public Class Compliant

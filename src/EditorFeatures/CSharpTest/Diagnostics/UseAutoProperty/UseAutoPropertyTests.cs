@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
         {
             return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(
-                new UseAutoPropertyAnalyzer(), new UseAutoPropertyCodeFixProvider());
+                new CSharpUseAutoPropertyAnalyzer(), new CSharpUseAutoPropertyCodeFixProvider());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -142,22 +142,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public void TestFieldUseInRefArgument1()
         {
-            TestMissing(
-@"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref i); } }");
+            Test(
+@"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref i); } }",
+@"class Class { int P { get; set; } void M(ref int x) { M(ref {|Conflict:P|}); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public void TestFieldUseInRefArgument2()
         {
-            TestMissing(
-@"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref this.i); } }");
+            Test(
+@"class Class { [|int i|]; int P { get { return i; } } void M(ref int x) { M(ref this.i); } }",
+@"class Class { int P { get; set; } void M(ref int x) { M(ref this.{|Conflict:P|}); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public void TestFieldUseInOutArgument()
         {
-            TestMissing(
-@"class Class { [|int i|]; int P { get { return i; } } void M(out x) { M(out i); } }");
+            Test(
+@"class Class { [|int i|]; int P { get { return i; } } void M(out x) { M(out i); } }",
+@"class Class { int P { get; set; } void M(out x) { M(out {|Conflict:P|}); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]

@@ -82,8 +82,10 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // Now, rename all usages of the field to point at the property.  Except don't actually 
             // rename the field itself.  We want to be able to find it again post rename.
             var updatedSolution = await Renamer.RenameAsync(fieldLocations, propertySymbol.Name,
-                location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan),
-                symbols => HasConflict(symbols, propertySymbol, compilation, cancellationToken),
+                new RenameCallbacks(
+                    location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan),
+                    symbols => HasConflict(symbols, propertySymbol, compilation, cancellationToken),
+                    (doc, oldToken, newToken) => OnTokenRenamed(doc, oldToken, newToken)),
                 cancellationToken).ConfigureAwait(false);
 
             solution = updatedSolution;
@@ -132,6 +134,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 return updatedSolution;
             }
+        }
+
+        private SyntaxToken OnTokenRenamed(Document document, SyntaxToken oldToken, SyntaxToken newToken)
+        {
+            var service = document.GetLanguageService<IUseAutoPropertyService>();
+            return service == null
+                ? newToken
+                : service.OnTokenRenamed(oldToken, newToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(

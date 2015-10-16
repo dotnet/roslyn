@@ -102,29 +102,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ImmutableArray<Diagnostic> GetSyntaxDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
-            return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Parse, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
+            return Compilation.GetDiagnosticsForSemanticModel(
+                CompilationStage.Parse, this, span, includeEarlierStages: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
-            return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Declare, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
+            return Compilation.GetDiagnosticsForSemanticModel(
+                CompilationStage.Declare, this, span, includeEarlierStages: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
-            return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: false, cancellationToken: cancellationToken);
+            return Compilation.GetDiagnosticsForSemanticModel(
+                CompilationStage.Compile, this, span, includeEarlierStages: false, cancellationToken: cancellationToken);
         }
 
         public override ImmutableArray<Diagnostic> GetDiagnostics(TextSpan? span = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             VerifySpanForGetDiagnostics(span);
-            return Compilation.GetDiagnosticsForSyntaxTree(
-                CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, cancellationToken: cancellationToken);
+            return Compilation.GetDiagnosticsForSemanticModel(
+                CompilationStage.Compile, this, span, includeEarlierStages: true, cancellationToken: cancellationToken);
         }
 
         /// <summary>
