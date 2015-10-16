@@ -181,7 +181,7 @@ Use ```Ctrl+F``` / ```Ctrl+H``` to Find/Replace inside the Interactive Window.
 <hr/>
 
 ### <a name="repl"></a>Command-line REPL
-To play with the C# REPL outside of Visual Studio, open the **Developer Command Prompt for VS2015** and type the command ```csi``` to begin your interactive session.
+To play with the C# REPL outside of Visual Studio, open the **Developer Command Prompt for VS2015** and type the command ```csi``` to begin your interactive session. [Here](https://github.com/dotnet/roslyn/pull/5857) is a list of arguments that can be passed to csi.
 
 > **Note:** csi stands for "CSharp Interactive"
 
