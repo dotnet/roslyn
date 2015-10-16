@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             Action<CancellationToken> computeDiagnosticsToFix = cancellationToken =>
             {
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry snapshots.
-                // Otherwise, get all diagnostics from the diagnostic service.
+                // Otherwise, get all build diagnostics from the error list.
                 diagnosticsToFix = selectedEntriesOnly ?
                     _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken).WaitAndGetResult(cancellationToken) :
                     GetAllBuildDiagnostics(shouldFixInProject, cancellationToken);

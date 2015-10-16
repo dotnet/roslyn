@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
 
             var hostDocument = hostProject.GetCurrentDocumentFromPath(error.bstrFileName);
-            
+
             var line = error.iLine;
             var column = error.iCol;
             var containedDocument = hostDocument as ContainedDocument;
