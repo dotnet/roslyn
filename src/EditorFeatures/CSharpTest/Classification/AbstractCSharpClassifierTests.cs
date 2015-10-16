@@ -8,8 +8,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {

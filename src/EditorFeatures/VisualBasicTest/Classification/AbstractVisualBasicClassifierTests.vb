@@ -4,7 +4,6 @@ Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualStudio.Text.Classification
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public MustInherit Class AbstractVisualBasicClassifierTests
@@ -43,27 +42,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             ParamArray expected As Tuple(Of String, String)())
 
             Dim actual = GetClassificationSpans(allCode, span).ToList()
-            actual.Sort(Function(t1, t2) t1.TextSpan.Start - t2.TextSpan.Start)
 
-            For i = 0 To Math.Max(expected.Length, actual.Count) - 1
-                If i >= expected.Length Then
-                    AssertEx.Fail("Unexpected actual classification: " & GetText(actual(i)))
-                ElseIf i >= actual.Count Then
-                    AssertEx.Fail("Missing classification for: " & GetText(expected(i)))
-                End If
-
-                Dim tuple = expected(i)
-                Dim classification = actual(i)
-
-                Dim text = allCode.Substring(classification.TextSpan.Start, classification.TextSpan.Length)
-                Assert.Equal(tuple.Item1, text)
-                Assert.Equal(tuple.Item2, classification.ClassificationType)
-            Next
+            Validate(allCode, expected, actual)
         End Sub
-
-        Protected Function Classifications(ParamArray expected As Tuple(Of String, IClassificationType)()) As Tuple(Of String, IClassificationType)()
-            Return expected
-        End Function
 
         <DebuggerStepThrough()>
         Protected Sub Test(
