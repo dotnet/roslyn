@@ -16,7 +16,8 @@
     <Buttons>
       <Button guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" priority="0x8001" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
-        <Icon guid="ImageCatalogGuid" id="VBInteractiveWindow" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): RoslynImageCatalogGuid -> ImageCatalogGuid -->
+        <Icon guid="RoslynImageCatalogGuid" id="VBInteractiveWindow" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>Visual Basic Interactive</ButtonText>
@@ -60,5 +61,10 @@
     </GuidSymbol>
 
     <GuidSymbol name="guidVBProjectContext" value="{164B10B9-B200-11D0-8C61-00A0C91E29D5}" />
+  
+    <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): delete this -->
+    <GuidSymbol name="RoslynImageCatalogGuid" value="{ae27a6b0-e345-4288-96df-5eaf394ee369}">
+      <IDSymbol name="VBInteractiveWindow" value="3686" />
+    </GuidSymbol>
   </Symbols>
 </CommandTable>

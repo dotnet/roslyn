@@ -16,7 +16,8 @@
     <Buttons>
       <Button guid="guidCSharpInteractiveCommandSet" id="cmdidCSharpInteractiveToolWindow" priority="0x8000" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
-        <Icon guid="ImageCatalogGuid" id="CSInteractiveWindow" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): RoslynImageCatalogGuid -> ImageCatalogGuid -->
+        <Icon guid="RoslynImageCatalogGuid" id="CSInteractiveWindow" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>C# Interactive</ButtonText>
@@ -60,5 +61,10 @@
     </GuidSymbol>
 
     <GuidSymbol name="guidCSProjectContext" value="{FAE04EC1-301F-11D3-BF4B-00C04F79EFBC}" />
+      
+    <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): delete this -->
+    <GuidSymbol name="RoslynImageCatalogGuid" value="{ae27a6b0-e345-4288-96df-5eaf394ee369}">
+        <IDSymbol name="CSInteractiveWindow" value="3682" />
+    </GuidSymbol>
   </Symbols>
 </CommandTable>
