@@ -1817,6 +1817,50 @@ End Class
                  Unknown("i"))
         End Sub
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestParameter_ChangeTypeToTypeCharacter()
+            Dim code =
+<Code>
+Class C
+    Sub M(b As Boolean)
+    End Sub
+End Class
+</Code>
+
+            Dim changedCode =
+<Code>
+Class C
+    Sub M(b%)
+    End Sub
+End Class
+</Code>
+
+            Test(code, changedCode,
+                 TypeRefChange("b"))
+        End Sub
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestParameter_ChangeTypeFromTypeCharacter()
+            Dim code =
+<Code>
+Class C
+    Sub M(b%)
+    End Sub
+End Class
+</Code>
+
+            Dim changedCode =
+<Code>
+Class C
+    Sub M(b As Boolean)
+    End Sub
+End Class
+</Code>
+
+            Test(code, changedCode,
+                 TypeRefChange("b"))
+        End Sub
+
 #End Region
 
 #Region "Attribute Arguments"
