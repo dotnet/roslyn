@@ -30,7 +30,7 @@
         }
       },
       "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
-      "Microsoft.Net.Compilers/1.1.0-beta1": {},
+      "Microsoft.Net.Compilers/1.1.0-beta1-20150727-01": {},
       "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
         "compile": {
@@ -114,7 +114,7 @@
           "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll": {}
         }
       },
-      "Microsoft.Net.Compilers/1.1.0-beta1": {},
+      "Microsoft.Net.Compilers/1.1.0-beta1-20150727-01": {},
       "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
         "compile": {
@@ -1075,39 +1075,26 @@
         "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
-    "Microsoft.Net.Compilers/1.1.0-beta1": {
-      "sha512": "If6Kfw/iSiRVxEdUmXNULKTQj0ZoX3uzuh3/K3lrB/cFuIIu+2zf/BDT70JbnWzrELY/JlGydkCJqJ2a7vihhA==",
+    "Microsoft.Net.Compilers/1.1.0-beta1-20150727-01": {
+      "sha512": "rPa6sso1Eruoa/1hlUV1d19TFtHXyemVZRwjFyAffXLb9RoBE68Rl1hNHgWMwD8Vauwhl3BaohAssCmIG9Z3xw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "build/Microsoft.Net.Compilers.props",
         "Microsoft.Net.Compilers.nuspec",
-        "package/services/metadata/core-properties/5fd3b6f9332540b9bcc59cd42cb93e82.psmdcp",
+        "package/services/metadata/core-properties/4ce0f680aca94a61820b5dd3aa595e09.psmdcp",
         "ThirdPartyNotices.rtf",
         "tools/csc.exe",
-        "tools/csc.exe.config",
-        "tools/csc.rsp",
-        "tools/csi.exe",
-        "tools/csi.rsp",
         "tools/Microsoft.Build.Tasks.CodeAnalysis.dll",
         "tools/Microsoft.CodeAnalysis.CSharp.dll",
         "tools/Microsoft.CodeAnalysis.dll",
-        "tools/Microsoft.CodeAnalysis.Scripting.CSharp.dll",
-        "tools/Microsoft.CodeAnalysis.Scripting.dll",
         "tools/Microsoft.CodeAnalysis.VisualBasic.dll",
         "tools/Microsoft.CSharp.Core.targets",
         "tools/Microsoft.VisualBasic.Core.targets",
-        "tools/System.AppContext.dll",
         "tools/System.Collections.Immutable.dll",
-        "tools/System.Console.dll",
-        "tools/System.Diagnostics.StackTrace.dll",
-        "tools/System.IO.FileSystem.dll",
-        "tools/System.IO.FileSystem.Primitives.dll",
         "tools/System.Reflection.Metadata.dll",
         "tools/vbc.exe",
-        "tools/vbc.exe.config",
-        "tools/vbc.rsp",
         "tools/VBCSCompiler.exe",
         "tools/VBCSCompiler.exe.config"
       ]
@@ -1256,7 +1243,7 @@
       "Microsoft.Build.Mono.Debug >= 14.1.0-prerelease",
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.1.0-beta1-20150817-01",
       "Microsoft.DiaSymReader.Native >= 1.2.0-rc",
-      "Microsoft.Net.Compilers >= 1.1.0-beta1",
+      "Microsoft.Net.Compilers >= 1.1.0-beta1-20150727-01",
       "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150818-01",
       "xunit >= 2.1.0-beta4-build3109",
       "xunit.runner.console >= 2.1.0-beta4-build3109"
