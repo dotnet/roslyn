@@ -2,7 +2,7 @@
 Set up a box with [Visual Studio 2015](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx).
 
 ## Step 2:
-Be sure to select "Custom" when installing 
+Be sure to select "Custom" when installing (or modify your installation if already installed)
 
 ![image](http://i.imgur.com/YINeLkG.png)
 
