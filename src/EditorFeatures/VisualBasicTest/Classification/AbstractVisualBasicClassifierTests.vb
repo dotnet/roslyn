@@ -66,18 +66,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         Friend MustOverride Function GetClassificationSpans(code As String, textSpan As TextSpan) As IEnumerable(Of ClassifiedSpan)
 
-        Protected Function GetText(tuple As Tuple(Of String, String)) As String
-            Return "(" & tuple.Item1 & ", " & tuple.Item2 & ")"
-        End Function
-
-        Friend Function GetText(tuple As ClassifiedSpan) As String
-            Return "(" & tuple.TextSpan.ToString() & ", " & tuple.ClassificationType & ")"
-        End Function
-
-        Protected Function GetText(tuple As Tuple(Of Microsoft.VisualStudio.Text.Span, IClassificationType)) As String
-            Return "(" & tuple.Item1.ToString() & ", " & tuple.Item2.Classification & ")"
-        End Function
-
         Protected Sub Test(
             code As String,
             allCode As String,
