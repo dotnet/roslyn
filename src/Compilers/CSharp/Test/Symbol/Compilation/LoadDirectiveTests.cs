@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Xunit;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FileWithErrors()
         {
             var code = "#load \"a.csx\"";
-            var resolver = CreateResolver(
-                Script("a.csx", @"
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", @"
                     #load ""b.csx""
                     asdf();"));
             var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
@@ -71,21 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,1): error CS8099: Source file references are not supported.
                 // #load "test"
                 Diagnostic(ErrorCode.ERR_SourceFileReferencesNotSupported, @"#load ""test""").WithLocation(1, 1));
-        }
-
-        private static SourceReferenceResolver CreateResolver(params KeyValuePair<string, string>[] scripts)
-        {
-            var sources = new Dictionary<string, string>();
-            foreach (var script in scripts)
-            {
-                sources.Add(script.Key, script.Value);
-            }
-            return TestSourceReferenceResolver.Create(sources);
-        }
-
-        private static KeyValuePair<string, string> Script(string path, string source)
-        {
-            return new KeyValuePair<string, string>(path, source);
         }
     }
 }
