@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string pdbPath = null;
             bool noStdLib = false;
             string outputDirectory = baseDirectory;
+            ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string outputFileName = null;
             string documentationPath = null;
             string errorLogPath = null;
@@ -925,6 +926,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             printFullPaths = true;
                             continue;
 
+                        case "pathmap":
+                            // "/pathmap:K1=V1,K2=V2..."
+                            {
+                                if (value == null)
+                                    break;
+
+                                pathMap = pathMap.Concat(ParsePathMap(value));
+                            }
+                            continue;
+
                         case "filealign":
                             value = RemoveQuotesAndSlashes(value);
 
@@ -1154,6 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IsScriptRunner = IsScriptRunner,
                 InteractiveMode = interactiveMode || IsScriptRunner && sourceFiles.Count == 0,
                 BaseDirectory = baseDirectory,
+                PathMap = pathMap,
                 Errors = diagnostics.AsImmutable(),
                 Utf8Output = utf8output,
                 CompilationName = compilationName,

@@ -219,6 +219,15 @@
   <data name="AbsolutePathExpected" xml:space="preserve">
     <value>Absolute path expected.</value>
   </data>
+  <data name="EmptyKeyInPathMap" xml:space="preserve">
+    <value>A key in the pathMap is empty.</value>
+  </data>
+  <data name="EmptyValueInPathMap" xml:space="preserve">
+    <value>A value in the pathMap is empty.</value>
+  </data>
+  <data name="KeyInPathMapEndsWithSeparator" xml:space="preserve">
+    <value>A key in the pathMap ends with a path separator.</value>
+  </data>
   <data name="CompilationOptionsMustNotHaveErrors" xml:space="preserve">
     <value>Compilation options must not have errors.</value>
   </data>
