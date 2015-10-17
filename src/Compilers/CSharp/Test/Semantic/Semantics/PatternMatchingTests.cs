@@ -319,5 +319,137 @@ True for 10
 False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void PatternInExpressionBodiedMethod()
+        {
+            var source =
+@"using System;
+public class X
+{
+    static object o1 = 1;
+    static object o2 = 10;
+    static object o3 = 1.2;
+    static bool B1() => M(o1, (o1 is int x && x >= 5));
+    static bool B2 => M(o2, (o2 is int x && x >= 5));
+    static bool B3 => M(o3, (o3 is int x && x >= 5));
+    public static void Main()
+    {
+        var r = B1() | B2 | B3;
+    }
+    private static bool M(object o, bool result)
+    {
+        Console.WriteLine($""{result} for {o}"");
+        return result;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False for 1
+True for 10
+False for 1.2";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/206")] // need to diagnose this
+        public void PatternInExpressionBodiedLocalFunction()
+        {
+            var source =
+@"using System;
+public class X
+{
+    static object o1 = 1;
+    static object o2 = 10;
+    static object o3 = 1.2;
+    public static void Main()
+    {
+        bool B1() => M(o1, (o1 is int x && x >= 5));
+        bool B2() => M(o2, (o2 is int x && x >= 5));
+        bool B3() => M(o3, (o3 is int x && x >= 5));
+        var r = B1() | B2() | B3();
+    }
+    private static bool M(object o, bool result)
+    {
+        Console.WriteLine($""{result} for {o}"");
+        return result;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithFeature("localFunctions", "true"));
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False for 1
+True for 10
+False for 1.2";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/206")] // need to diagnose this
+        public void PatternInExpressionBodiedLambda()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o1 = 1;
+        object o2 = 10;
+        object o3 = 1.2;
+        Func<object, bool> B1 = o => M(o, (o is int x && x >= 5));
+        B(o1);
+        Func<bool> B2 = () => M(o2, (o2 is int x && x >= 5));
+        B2();
+        Func<bool> B3 = () => M(o3, (o3 is int x && x >= 5));
+        B3();
+    }
+    private static bool M(object o, bool result)
+    {
+        Console.WriteLine($""{result} for {o}"");
+        return result;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False for 1
+True for 10
+False for 1.2";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void PatternInBadPlaces()
+        {
+            var source =
+@"using System;
+[Obsolete("""" is string s ? s : """")]
+public class X
+{
+    public static void Main()
+    {
+    }
+    private static void M(string p = """" is object o ? o.ToString() : """")
+    {
+    }
+}
+";
+            Console.WriteLine(source);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+    // (2,28): error CS0103: The name 's' does not exist in the current context
+    // [Obsolete("" is string s ? s : "")]
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "s").WithArguments("s").WithLocation(2, 28),
+    // (8,55): error CS0103: The name 'o' does not exist in the current context
+    //     private static void M(string p = "" is object o ? o.ToString() : "")
+    Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(8, 55),
+    // (8,34): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'string'
+    //     private static void M(string p = "" is object o ? o.ToString() : "")
+    Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "string").WithLocation(8, 34)
+                );
+        }
     }
 }

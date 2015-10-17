@@ -3283,9 +3283,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Binds an expression-bodied member with expression e as either { return e;} or { e; }.
         /// </summary>
         internal BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax expressionBody,
-                                                    DiagnosticBag diagnostics)
+                                                      DiagnosticBag diagnostics)
         {
-            BoundExpression expression = this.BindValue(expressionBody.Expression, diagnostics, BindValueKind.RValue);
+            PatternVariableBinder patternBinder = new PatternVariableBinder(expressionBody, expressionBody.Expression, this);
+            BoundExpression expression = patternBinder.BindValue(expressionBody.Expression, diagnostics, BindValueKind.RValue);
+            expression = patternBinder.WrapWithPatternVariables(expression);
             return CreateBlockFromExpression(expressionBody, this.Locals, expressionBody.Expression, expression, diagnostics);
         }
 
@@ -3294,7 +3296,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundBlock BindLambdaExpressionAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
-            BoundExpression expression = this.BindValue(body, diagnostics, BindValueKind.RValue);
+            PatternVariableBinder patternBinder = new PatternVariableBinder(body, body, this);
+            BoundExpression expression = patternBinder.BindValue(body, diagnostics, BindValueKind.RValue);
+            expression = patternBinder.WrapWithPatternVariables(expression);
             return CreateBlockFromExpression(body, this.Locals, body, expression, diagnostics);
         }
 
