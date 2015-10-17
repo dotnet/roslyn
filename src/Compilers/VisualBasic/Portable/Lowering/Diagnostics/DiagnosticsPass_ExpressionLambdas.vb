@@ -142,7 +142,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitAssignmentOperator(node As BoundAssignmentOperator) As BoundNode
-            If Me.IsInExpressionLambda Then
+            'COMPAT: old compiler used to allow assignments to properties
+            '        we will continue allowing that too
+            'NOTE:   native vbc also allows compound assignments like += but generates incorrect code.
+            '        we are not going to support += assuming that it is not likely to be used in real scenarios.
+            If Me.IsInExpressionLambda AndAlso
+                    Not (node.Left.Kind = BoundKind.PropertyAccess AndAlso node.LeftOnTheRightOpt Is Nothing) Then
+
                 ' Do not support explicit assignments
                 GenerateExpressionTreeNotSupportedDiagnostic(node)
             End If

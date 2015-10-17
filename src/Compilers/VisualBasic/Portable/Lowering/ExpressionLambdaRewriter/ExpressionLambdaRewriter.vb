@@ -666,7 +666,7 @@ lSelect:
             ' All other cases are not supported, note that some cases of invalid
             ' sequences are handled in DiagnosticsPass, but we still want to catch
             ' here those sequences created in lowering
-            Return GenerateDiagnosticAndReturnDummyExpression(ERRID.ERR_ExpressionTreeNotSupported, value)
+            Return GenerateDiagnosticAndReturnDummyExpression(ERRID.ERR_ExpressionTreeNotSupported, node)
         End Function
 
         Private Function VisitArrayLength(node As BoundArrayLength) As BoundExpression
