@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -11,6 +12,11 @@ namespace Roslyn.Test.Utilities
     public sealed class TestSourceReferenceResolver : SourceReferenceResolver
     {
         public static readonly SourceReferenceResolver Default = new TestSourceReferenceResolver(sources: null);
+
+        public static SourceReferenceResolver Create(params KeyValuePair<string, string>[] sources)
+        {
+            return TestSourceReferenceResolver.Create(sources.ToDictionary(p => p.Key, p => p.Value));
+        }
 
         public static SourceReferenceResolver Create(Dictionary<string, string> sources = null)
         {
