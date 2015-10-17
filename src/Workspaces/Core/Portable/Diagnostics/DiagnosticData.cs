@@ -63,6 +63,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             OriginalEndLine = originalEndLine;
             OriginalEndColumn = originalEndColumn;
         }
+
+        internal DiagnosticDataLocation WithCalculatedSpan(TextSpan newSourceSpan)
+        {
+            Contract.ThrowIfTrue(this.SourceSpan.HasValue);
+
+            return new DiagnosticDataLocation(this.DocumentId,
+                newSourceSpan, this.OriginalFilePath,
+                this.OriginalStartLine, this.OriginalStartColumn,
+                this.OriginalEndLine, this.OriginalEndColumn,
+                this.MappedFilePath, this.MappedStartLine, this.MappedStartColumn,
+                this.MappedEndLine, this.MappedEndColumn);
+        }
     }
 
     internal sealed class DiagnosticData
@@ -219,6 +231,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
         {
             return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
+        }
+
+        public DiagnosticData WithCalculatedSpan(SourceText text)
+        {
+            Contract.ThrowIfNull(this.DocumentId);
+            Contract.ThrowIfNull(this.DataLocation);
+            Contract.ThrowIfTrue(HasTextSpan);
+
+            var span = GetTextSpan(this.DataLocation, text);
+            var newLocation = this.DataLocation.WithCalculatedSpan(span);
+            return new DiagnosticData(this.Id, this.Category, this.Message, this.ENUMessageForBingSearch,
+                this.Severity, this.DefaultSeverity, this.IsEnabledByDefault, this.WarningLevel, 
+                this.CustomTags, this.Properties, this.Workspace, this.ProjectId,
+                newLocation, this.AdditionalLocations, this.Title, this.Description, this.HelpLink, this.IsSuppressed);
         }
 
         public async Task<Diagnostic> ToDiagnosticAsync(Project project, CancellationToken cancellationToken)
