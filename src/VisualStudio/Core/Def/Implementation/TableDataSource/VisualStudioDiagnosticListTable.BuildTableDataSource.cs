@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSnapshot<DiagnosticData> CreateSnapshot(AbstractTableEntriesSource<DiagnosticData> source, int version, ImmutableArray<TableItem<DiagnosticData>> items, ImmutableArray<ITrackingPoint> trackingPoints)
             {
-                // Build doens't support tracking point.
+                // Build doesn't support tracking point.
                 return new TableEntriesSnapshot((DiagnosticTableEntriesSource)source, version, items);
             }
 

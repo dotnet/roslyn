@@ -721,7 +721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Next
             End If
 
-            ' if the renamed symbol is a type member, it's name should not coflict with a type parameter
+            ' if the renamed symbol is a type member, it's name should not conflict with a type parameter
             If renamedSymbol.ContainingType IsNot Nothing AndAlso renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol) Then
                 For Each typeParameter In renamedSymbol.ContainingType.TypeParameters
                     If CaseInsensitiveComparison.Equals(typeParameter.Name, renamedSymbol.Name) Then

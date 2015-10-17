@@ -2976,12 +2976,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         Public Sub TestBug927678()
             Dim val = StringFromLines(
                 "'This is not usually a ",
-                "'collapsable comment block",
+                "'collapsible comment block",
                 "x = 2")
 
             TestInMethod(val,
                          Comment("'This is not usually a "),
-                         Comment("'collapsable comment block"),
+                         Comment("'collapsible comment block"),
                          Identifier("x"),
                          Operators.Equals,
                          Number("2"))

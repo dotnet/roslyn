@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             if (_cache == null)
             {
-                // make sure this is deterministric
+                // make sure this is deterministic
                 var orderedItems = _documentIds.Select(d => d.ProjectId).Distinct().OrderBy(p => p.Id);
                 _cache = ProjectInfoCache.GetOrAdd(GetHashCode(workspace, orderedItems), orderedItems, c => new ProjectInfoCache(orderedItems.ToImmutableArray()));
             }

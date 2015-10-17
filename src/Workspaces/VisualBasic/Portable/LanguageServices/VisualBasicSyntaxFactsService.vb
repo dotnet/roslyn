@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetRefKindOfArgument(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.RefKind Implements ISyntaxFactsService.GetRefKindOfArgument
-            ' TODO(cyrusn): Consider the method this argument is passed to to determine this.
+            ' TODO(cyrusn): Consider the method this argument is passed to, to determine this.
             Return RefKind.None
         End Function
 

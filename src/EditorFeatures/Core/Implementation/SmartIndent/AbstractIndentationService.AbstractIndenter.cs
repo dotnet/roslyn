@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     }
 
                     // This line is inside an inactive region. Examine the 
-                    // first preceeding line not in an inactive region.
+                    // first preceding line not in an inactive region.
                     var disabledSpan = syntaxFacts.GetInactiveRegionSpanAroundPosition(this.Tree, actualLine.Extent.Start, CancellationToken);
                     if (disabledSpan != default(TextSpan))
                     {

@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
             else
             {
-                // nothing was commited, but we should insert the commit character.
+                // nothing was committed, but we should insert the commit character.
                 var textChange = new TextChange(new TextSpan(firstItem.FilterSpan.End, 0), commitChar.ToString());
                 text = text.WithChanges(textChange);
             }

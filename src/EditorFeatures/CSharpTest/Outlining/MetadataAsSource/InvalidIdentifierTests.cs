@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
 {
     /// <summary>
     /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
-    /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparsable code.
+    /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     /// </summary>
     public class InvalidIdentifierTests : AbstractOutlinerTests
     {

@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Debugger
         E_LAUNCH_NO_INTEROP = -2147221499,
         //
         // Summary:
-        //     Debugging isn't possible due to an incompatability within the CLR implementation.
+        //     Debugging isn't possible due to an incompatibility within the CLR implementation.
         E_LAUNCH_DEBUGGING_NOT_POSSIBLE = -2147221498,
         //
         // Summary:
@@ -1011,8 +1011,8 @@ namespace Microsoft.VisualStudio.Debugger
         E_THREAD_NOT_FOUND = -2147218175,
         //
         // Summary:
-        //     Cannot autoattach to the SQL Server, possibly because the firewall is configured
-        //     incorrectly or autoattach is forbidden by the operating system.
+        //     Cannot auto-attach to the SQL Server, possibly because the firewall is configured
+        //     incorrectly or auto-attach is forbidden by the operating system.
         E_CANNOT_AUTOATTACH_TO_SQLSERVER = -2147218174,
         E_OBJECT_OUT_OF_SYNC = -2147218173,
         E_PROCESS_ALREADY_CONTINUED = -2147218172,
@@ -1232,13 +1232,13 @@ namespace Microsoft.VisualStudio.Debugger
         E_XAPI_MANAGED_DISPATCHER_SIGNATURE_ERROR = -1898053600,
         //
         // Summary:
-        //     Method may only be called by components which load in the IDE process (copmonent
+        //     Method may only be called by components which load in the IDE process (component
         //     level > 100000).
         E_XAPI_CLIENT_ONLY_METHOD = -1898053599,
         //
         // Summary:
         //     Method may only be called by components which load in the remote debugger process
-        //     (copmonent level < 100000).
+        //     (component level < 100000).
         E_XAPI_SERVER_ONLY_METHOD = -1898053598,
         //
         // Summary:
@@ -1307,7 +1307,7 @@ namespace Microsoft.VisualStudio.Debugger
         E_WRONG_COMPONENT = -1842151410,
         //
         // Summary:
-        //     Operation is only permitted on the latest version of an editted method.
+        //     Operation is only permitted on the latest version of an edited method.
         E_WRONG_METHOD_VERSION = -1842151409,
         //
         // Summary:
@@ -1418,7 +1418,7 @@ namespace Microsoft.VisualStudio.Debugger
         E_UNKNOWN_CPU_INSTRUCTION = -1842151373,
         //
         // Summary:
-        //     An invliad runtime was specified for this operation.
+        //     An invalid runtime was specified for this operation.
         E_INVALID_RUNTIME = -1842151372,
         //
         // Summary:

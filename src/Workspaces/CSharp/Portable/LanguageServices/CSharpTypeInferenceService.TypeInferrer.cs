@@ -924,7 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.AmpersandEqualsToken:
                         // NOTE(cyrusn): |= and &= can be used for both ints and bools  However, in the
                         // case where there isn't enough information to determine which the user wanted,
-                        // i'm just defaulting to bool based on personal preference.
+                        // I'm just defaulting to bool based on personal preference.
                         return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
 

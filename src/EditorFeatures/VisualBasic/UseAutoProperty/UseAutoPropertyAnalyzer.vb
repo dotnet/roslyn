@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
         Protected Overrides Sub RegisterIneligibleFieldsAction(context As CompilationStartAnalysisContext, ineligibleFields As ConcurrentBag(Of IFieldSymbol))
             ' There are no syntactic constructs that make a field ineligible to be replaced with 
-            ' a property.  In C# you can't use a property in a ref/out positoin.  But that restriction
+            ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
         End Sub
 
@@ -111,8 +111,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
             ' the property doesn't have a setter currently. check all the types the field is 
             ' declared in.  If the field is written to outside of a constructor, then this 
-            ' field Is Not elegible for replacement with an auto prop.  We'd have to make 
-            ' the autoprop read/write, And that could be opening up the propert widely 
+            ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
+            ' the autoprop read/write, And that could be opening up the property widely 
             ' (in accessibility terms) in a way the user would not want.
             Dim containingType = field.ContainingType
             For Each ref In containingType.DeclaringSyntaxReferences

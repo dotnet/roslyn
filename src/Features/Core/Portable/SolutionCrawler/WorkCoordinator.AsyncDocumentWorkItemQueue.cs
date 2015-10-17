@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     // explicitly iterate so that we can use struct enumerator.
                     // Return the first normal priority work item we find.  If we don't
-                    // find any, then just return the first low pri item we saw.
+                    // find any, then just return the first low prio item we saw.
                     DocumentId lowPriorityDocumentId = null;
                     foreach (var pair in documentMap)
                     {
