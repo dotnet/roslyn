@@ -4,6 +4,10 @@
     "Microsoft.DiaSymReader": "1.0.6"
   },
   "frameworks": {
-    "net45": {}
+    "net45": { }
+  },
+  "runtimes": {
+    "win7-anycpu": { },
+    "ubuntu.14.04-anycpu": { }
   }
 }
