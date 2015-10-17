@@ -37,8 +37,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                      HashSet<IFieldSymbol> assignedToFields = new HashSet<IFieldSymbol>();
                      HashSet<IFieldSymbol> mightBecomeReadOnlyFields = new HashSet<IFieldSymbol>();
 
-                     bool disable = false;
-
                      compilationContext.RegisterOperationBlockStartAction(
                          (operationBlockContext) =>
                          {
@@ -92,11 +90,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                              foreach (IFieldSymbol couldBeReadOnlyField in mightBecomeReadOnlyFields)
                              {
                                  Report(compilationEndContext, couldBeReadOnlyField, FieldCouldBeReadOnlyDescriptor);
-
-                                 if (disable)
-                                 {
-                                     return;
-                                 }
                              }
                          });
                  });

@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerStateOpt?.ProcessedActions.Add(operationAction);
             }
         }
-
+        
         public void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
             IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
@@ -540,15 +540,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(startActions.Any() || endActions.Any() || actions.Any());
             Debug.Assert(!executableBlocks.IsEmpty);
             
-            // Compute the sets of code block end, code block, and stateful syntax node actions.
+            // Compute the sets of code block end, code block, and stateful node actions.
+
             var blockEndActions = PooledHashSet<TBlockAction>.GetInstance();
             var blockActions = PooledHashSet<TBlockAction>.GetInstance();
             var executableNodeActions = ArrayBuilder<TNodeAction>.GetInstance();
-            ImmutableArray<SyntaxNode> executableCodeBlocks = executableBlocks[0] is SyntaxNode ? (ImmutableArray<SyntaxNode>)(object)executableBlocks : ImmutableArray<SyntaxNode>.Empty;
             var syntaxNodeActions = executableNodeActions as ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>;
             var operationActions = executableNodeActions as ArrayBuilder<OperationAnalyzerAction>;
-            var codeBlockEndActions = blockEndActions as PooledHashSet<CodeBlockAnalyzerAction>;
-            var operationBlockEndActions = blockEndActions as PooledHashSet<OperationBlockAnalyzerAction>;
             ImmutableArray<IOperation> operationBlocks = executableBlocks[0] is IOperation ? (ImmutableArray<IOperation>)(object)executableBlocks : ImmutableArray<IOperation>.Empty;
 
             // Include the code block actions.
@@ -572,39 +570,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             try
             {
                 // Include the stateful actions.
-                foreach (var da in startActions)
+                foreach (var startAction in startActions)
                 {
-                    if (ShouldExecuteAction(analyzerStateOpt, da))
+                    if (ShouldExecuteAction(analyzerStateOpt, startAction))
                     {
-                        // Catch Exception from the start action.
-                        ExecuteAndCatchIfThrows(da.Analyzer, () =>
+                        var codeBlockStartAction = startAction as CodeBlockStartAnalyzerAction<TLanguageKindEnum>;
+                        if (codeBlockStartAction != null)
                         {
-                            var codeBlockStartAction = da as CodeBlockStartAnalyzerAction<TLanguageKindEnum>;
-                            if (codeBlockStartAction != null)
+                            var codeBlockEndActions = blockEndActions as PooledHashSet<CodeBlockAnalyzerAction>;
+                            // Catch Exception from the start action.
+                            ExecuteAndCatchIfThrows(startAction.Analyzer, () =>
                             {
                                 var codeBlockScope = new HostCodeBlockStartAnalysisScope<TLanguageKindEnum>();
-                                var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(da.Analyzer,
+                                var blockStartContext = new AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum>(startAction.Analyzer,
                                     codeBlockScope, declaredNode, declaredSymbol, semanticModel, _analyzerOptions, _cancellationToken);
                                 codeBlockStartAction.Action(blockStartContext);
                                 codeBlockEndActions.AddAll(codeBlockScope.CodeBlockEndActions);
                                 syntaxNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
-                            }
-                            else
+                            });
+                        }
+
+                        else
+                        {
+                            var operationBlockStartAction = startAction as OperationBlockStartAnalyzerAction;
+                            if (operationBlockStartAction != null)
                             {
-                                var operationBlockStartAction = da as OperationBlockStartAnalyzerAction;
-                                if (operationBlockStartAction != null)
+                                var operationBlockEndActions = blockEndActions as PooledHashSet<OperationBlockAnalyzerAction>;
+                                // Catch Exception from the start action.
+                                ExecuteAndCatchIfThrows(startAction.Analyzer, () =>
                                 {
                                     var operationBlockScope = new HostOperationBlockStartAnalysisScope();
-                                    var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(da.Analyzer,
+                                    var operationStartContext = new AnalyzerOperationBlockStartAnalysisContext(startAction.Analyzer,
                                         operationBlockScope, operationBlocks, declaredSymbol, _analyzerOptions, _cancellationToken);
                                     operationBlockStartAction.Action(operationStartContext);
                                     operationBlockEndActions.AddAll(operationBlockScope.OperationBlockEndActions);
                                     operationActions.AddRange(operationBlockScope.OperationActions);
-                                }
+                                });
                             }
-                        });
+                        }
 
-                        analyzerStateOpt?.ProcessedActions.Add(da);
+                        analyzerStateOpt?.ProcessedActions.Add(startAction);
                     }
                 }
             }
@@ -623,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (syntaxNodeActions != null)
                 {
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
-
+                    IEnumerable<SyntaxNode> executableCodeBlocks = (IEnumerable<SyntaxNode>)(object)executableBlocks;
                     var nodesToAnalyze = executableCodeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf());
                     ExecuteSyntaxNodeActions(nodesToAnalyze, executableNodeActionsByKind, semanticModel, getKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
                 }
@@ -655,77 +660,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (ShouldExecuteAction(analyzerStateOpt, blockAction))
                 {
-                    ExecuteAndCatchIfThrows(blockAction.Analyzer,
-                        () =>
-                        {
-                            Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(blockAction.Analyzer, d);
-                            var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
-                            if (blockAction != null)
+                    var codeBlockAction = blockAction as CodeBlockAnalyzerAction;
+                    Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(blockAction.Analyzer, d);
+                    if (codeBlockAction != null)
+                    {
+                        ExecuteAndCatchIfThrows(codeBlockAction.Analyzer,
+                            () =>
                             {
                                 codeBlockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken));
-                            }
-                            else
-                            {
-                                var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
-                                if (operationBlockAction != null)
+                            });
+                    }
+                    else
+                    {
+                        var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
+                        if (operationBlockAction != null)
+                        {
+                            ExecuteAndCatchIfThrows(operationBlockAction.Analyzer,
+                                () =>
                                 {
                                     operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken));
-                                }
-                            }
-                        });
-
+                                });
+                        }
+                    }
+                    
                     analyzerStateOpt?.ProcessedActions.Add(blockAction);
                 }
             }
 
             blockActions.Free();
         }
-
-        private void ExecuteCodeBlockActions(
-            PooledHashSet<CodeBlockAnalyzerAction> blockActions,
-            SyntaxNode declaredNode,
-            ISymbol declaredSymbol,
-            SemanticModel semanticModel,
-            Action<Diagnostic> addDiagnostic,
-            CodeBlockAnalyzerStateData analyzerStateOpt)
-        {
-            foreach (var blockAction in blockActions)
-            {
-                if (ShouldExecuteAction(analyzerStateOpt, blockAction))
-                {
-                    ExecuteAndCatchIfThrows(blockAction.Analyzer,
-                        () => blockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(blockAction.Analyzer, d), _cancellationToken)));
-
-                    analyzerStateOpt?.ProcessedActions.Add(blockAction);
-                }
-            }
-
-            blockActions.Free();
-        }
-
-        private void ExecuteOperationBlockActions(
-           PooledHashSet<OperationBlockAnalyzerAction> blockActions,
-           ImmutableArray<IOperation> operationBlocks,
-           ISymbol declaredSymbol,
-           Action<Diagnostic> addDiagnostic,
-           CodeBlockAnalyzerStateData analyzerStateOpt)
-        {
-            foreach (var blockAction in blockActions)
-            {
-                if (ShouldExecuteAction(analyzerStateOpt, blockAction))
-                {
-                    ExecuteAndCatchIfThrows(blockAction.Analyzer,
-                        () => blockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol,_analyzerOptions, addDiagnostic,
-                            d => IsSupportedDiagnostic(blockAction.Analyzer, d), _cancellationToken)));
-
-                    analyzerStateOpt?.ProcessedActions.Add(blockAction);
-                }
-            }
-
-            blockActions.Free();
-        }
-
+        
         internal static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
             IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
             where TLanguageKindEnum : struct

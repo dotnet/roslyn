@@ -262,5 +262,57 @@ class C
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 9)
                 );
         }
+
+        [Fact]
+        public void StaticFieldCouldBeReadOnlyCSharp()
+        {
+            const string source = @"
+class C
+{
+    static int F1;
+    static readonly int F2 = 2;
+    static readonly int F3;
+    static int F4;
+    static int F5;
+    static int F6 = 6;
+    static int F7;
+
+    static C()
+    {
+        F1 = 1;
+        F3 = 3;
+        F4 = 4;
+        F5 = 5;
+    }
+
+    public static void M0()
+    {
+        int x = F1;
+        x = F2;
+        x = F3;
+        x = F4;
+        x = F5;
+        x = F6;
+        x = F7;
+
+        F4 = 4;
+        F7 = 7;
+        M1(out F1);
+    }
+
+    public static void M1(out int x)
+    {
+        x = 10;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F1").WithLocation(4, 16),
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 16),
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 16)
+                );
+        }
     }
 }
