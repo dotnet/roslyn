@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta-20151016-11",
         "Microsoft.Build.Mono.Debug": "14.1.0-prerelease",
         "Microsoft.DiaSymReader.Native": "1.2.0-rc",
         "Microsoft.Net.Compilers": "1.1.0-rc1-20151014-05",
