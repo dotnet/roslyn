@@ -494,5 +494,51 @@ True for 10
 False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
+
+        [Fact(Skip = "pattern-based switch is not yet implemented")]
+        public void GeneralizedSwitchStatement()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X() };
+        foreach (var o in oa)
+        {
+            switch (o)
+            {
+                case 1:
+                    Console.WriteLine(""one"");
+                    break;
+                case int i:
+                    Console.WriteLine($""int {i}"");
+                    break;
+                case long i:
+                    Console.WriteLine($""long {i}"");
+                    break;
+                case double d:
+                    Console.WriteLine($""double {d}"");
+                    break;
+                case null:
+                    Console.WriteLine($""null"");
+                    break;
+                case object o:
+                    Console.WriteLine($""object {typeof(o).Name} {s}"");
+                    break;
+            }
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False for 1
+True for 10
+False for 1.2";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

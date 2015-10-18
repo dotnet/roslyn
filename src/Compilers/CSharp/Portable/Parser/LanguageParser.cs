@@ -7789,7 +7789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         else
                         {
                             var node = ParseExpressionOrPattern();
-                            if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword && node is ExpressionSyntax)
+                            if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword && node is ExpressionSyntax)
                             {
                                 // if there is a 'where' token, we treat a case expression as a constant pattern.
                                 node = _syntaxFactory.ConstantPattern((ExpressionSyntax)node);
@@ -7798,9 +7798,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 SyntaxToken with = null; ;
                                 ExpressionSyntax condition = null;
-                                if (this.CurrentToken.ContextualKind == SyntaxKind.WhereKeyword)
+                                if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
                                 {
-                                    with = this.EatContextualToken(SyntaxKind.WhereKeyword);
+                                    with = this.EatContextualToken(SyntaxKind.WhenKeyword);
                                     condition = ParseSubExpression(Precedence.Expression);
                                 }
                                 colon = this.EatToken(SyntaxKind.ColonToken);

@@ -2275,10 +2275,10 @@
         </summary>
       </PropertyComment>
     </Field>
-    <Field Name="WhereKeyword" Type="SyntaxToken" Optional="true">
-      <Kind Name="WhereKeyword"/>
+    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="WhenKeyword"/>
       <PropertyComment>
-        <summary>Gets the with keyword token.</summary>
+        <summary>Gets the when keyword token.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Condition" Type="ExpressionSyntax"  Optional="true">

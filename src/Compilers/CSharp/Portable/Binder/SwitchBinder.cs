@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class SwitchBinder : LocalScopeBinder
+    internal partial class SwitchBinder : LocalScopeBinder
     {
         private readonly SwitchStatementSyntax _switchSyntax;
         private TypeSymbol _switchGoverningType;
@@ -275,9 +276,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         # region "Switch statement binding methods"
 
-        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             Debug.Assert(_switchSyntax.Equals(node));
+
+            if (IsPatternSwitch(node))
+            {
+                return BindPatternSwitch(node, originalBinder, diagnostics);
+            }
 
             // Bind switch expression and set the switch governing type
             var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, diagnostics);

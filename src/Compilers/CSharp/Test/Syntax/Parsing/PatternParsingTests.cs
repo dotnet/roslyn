@@ -23,7 +23,7 @@ class C
         switch ((int) args[0][0])
         {
             case 1:
-            case 2 where args.Length == 2:
+            case 2 when args.Length == 2:
             case 1<<2:
             case string s:
             default:
@@ -35,8 +35,8 @@ class C
 ";
             CreateCompilationWithMscorlib(test).VerifyDiagnostics(
                 // (9,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
-                //             case 2 where args.Length == 2:
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case 2 where args.Length == 2:").WithArguments("pattern matching", "patterns").WithLocation(9, 13),
+                //             case 2 when args.Length == 2:
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case 2 when args.Length == 2:").WithArguments("pattern matching", "patterns").WithLocation(9, 13),
                 // (11,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //             case string s:
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case string s:").WithArguments("pattern matching", "patterns").WithLocation(11, 13),

@@ -189,6 +189,7 @@
     <Compile Include="Binder\SingleLookupResult.cs" />
     <Compile Include="Binder\SwitchBinder.cs" />
     <Compile Include="Binder\SimpleLocalScopeBinder.cs" />
+    <Compile Include="Binder\SwitchBinder_BindPatternSwitch.cs" />
     <Compile Include="Binder\TypeofBinder.cs" />
     <Compile Include="Binder\UsingsBinder.cs" />
     <Compile Include="Binder\UsingStatementBinder.cs" />
