@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers);
+            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.CountOfCustomModifiersPrecedingByRef);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)

@@ -1533,5 +1533,57 @@ End Class
 Overriden")
         End Sub
 
+        <Fact, WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")>
+        Public Sub ConcatModifiersAndByRef_05()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi beforefieldinit X.I
+{
+  .method public newslot abstract virtual 
+          instance void  A(uint32& modopt([mscorlib]System.Runtime.CompilerServices.IsImplicitlyDereferenced) x) cil managed
+  {
+  } // end of method I::A
+
+  .method public newslot abstract virtual 
+          instance void  B(uint32& x) cil managed
+  {
+  } // end of method I::B
+
+} // end of class X.I
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Imports X
+
+Class Module1
+    Shared Sub Main()
+        Dim x As I = new CI()
+        Dim y As UInteger = 0
+        x.A(y)
+        x.B(y)
+    End Sub
+End Class
+
+class CI 
+    Implements I 
+
+    public Sub A(Byref x As UInteger) Implements I.A
+        System.Console.WriteLine("Implemented A")
+    End Sub
+
+    public Sub B(Byref x As UInteger) Implements I.B
+        System.Console.WriteLine("Implemented B")
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Implemented A
+Implemented B")
+        End Sub
+
     End Class
 End Namespace
