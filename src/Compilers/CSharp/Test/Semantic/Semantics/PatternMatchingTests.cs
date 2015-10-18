@@ -437,7 +437,6 @@ public class X
     }
 }
 ";
-            Console.WriteLine(source);
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics(
     // (2,28): error CS0103: The name 's' does not exist in the current context
@@ -450,6 +449,50 @@ public class X
     //     private static void M(string p = "" is object o ? o.ToString() : "")
     Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "string").WithLocation(8, 34)
                 );
+        }
+
+        [Fact]
+        public void PatternInSwitchAndForeach()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o1 = 1;
+        object o2 = 10;
+        object o3 = 1.2;
+        object oa = new object[] { 1, 10, 1.2 };
+        foreach (var o in oa is object[] z ? z : new object[0])
+        {
+            switch (o is int x && x >= 5)
+            {
+                case true:
+                    M(o, true);
+                    break;
+                case false:
+                    M(o, false);
+                    break;
+                default:
+                    throw null;
+            }
+        }
+    }
+    private static bool M(object o, bool result)
+    {
+        Console.WriteLine($""{result} for {o}"");
+        return result;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"False for 1
+True for 10
+False for 1.2";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

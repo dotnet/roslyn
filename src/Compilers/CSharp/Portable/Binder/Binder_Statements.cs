@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind() != SyntaxKind.IfStatement)
             {
                 // Other statements do not, and require an enclosing bound node to store them.
-                PatternVariableBinder patternBinder = this as PatternVariableBinder;
+                PatternVariableBinder patternBinder = this as PatternVariableBinder ?? Next as PatternVariableBinder;
                 if (patternBinder != null && patternBinder.Syntax == node && !patternBinder.Locals.IsDefaultOrEmpty)
                 {
                     result = new BoundBlock(node, patternBinder.Locals, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(result), result.HasErrors);
@@ -2677,7 +2677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        private BoundSwitchStatement BindSwitchStatement(SwitchStatementSyntax node, DiagnosticBag diagnostics)
+        private BoundStatement BindSwitchStatement(SwitchStatementSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Binder switchBinder = this.GetBinder(node);
