@@ -39,3 +39,5 @@ foreach ($entry in $archive.Entries) {
         write-host "Unable to restore $($entry.FullName) $Error"
     }
 }
+
+rm $outFilePath
