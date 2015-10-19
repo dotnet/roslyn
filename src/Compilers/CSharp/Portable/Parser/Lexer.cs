@@ -2265,16 +2265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case '#':
                         if (_allowPreprocessorDirectives)
                         {
-                            if (_options.Kind == SourceCodeKind.Script && TextWindow.Position == 0 && TextWindow.PeekChar(1) == '!')
-                            {
-                                // #! single line comment
-                                this.AddTrivia(this.LexSingleLineComment(), ref triviaList);
-                            }
-                            else
-                            {
-                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
-                            }
-
+                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
                             break;
                         }
                         else
@@ -2796,7 +2787,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (TextWindow.PeekChar(1) == '/')
                     {
                         // normal single line comment
-                        trivia = LexSingleLineComment();
+                        this.ScanToEndOfLine();
+                        var text = TextWindow.GetText(false);
+                        trivia = SyntaxFactory.Comment(text);
                     }
 
                     break;
@@ -2826,13 +2819,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return trivia;
-        }
-
-        private CSharpSyntaxNode LexSingleLineComment()
-        {
-            this.ScanToEndOfLine();
-            var text = TextWindow.GetText(false);
-            return SyntaxFactory.Comment(text);
         }
 
         private CSharpSyntaxNode LexXmlDocComment(XmlDocCommentStyle style)
