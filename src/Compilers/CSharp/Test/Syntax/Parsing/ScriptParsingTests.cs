@@ -8432,37 +8432,43 @@ p class A
         [Fact]
         public void Shebang()
         {
-            var tree = ParseAndValidate("#!/usr/bin/env csi", TestOptions.Script);
+            var command = "/usr/bin/env csi";
+            var tree = ParseAndValidate($"#!{command}", TestOptions.Script);
             var root = tree.GetCompilationUnitRoot();
 
             Assert.Empty(root.ChildNodes());
             var eof = root.EndOfFileToken;
             Assert.Equal(SyntaxKind.EndOfFileToken, eof.Kind());
-            Assert.Equal(SyntaxKind.ShebangDirectiveTrivia, eof.GetLeadingTrivia().Single().Kind());
+            var trivia = eof.GetLeadingTrivia().Single();
+            TestShebang(trivia, command);
+            Assert.True(root.ContainsDirectives);
+            TestShebang(root.GetDirectives().Single(), command);
 
-            tree = ParseAndValidate("#! /usr/bin/env csi\r\n ", TestOptions.Script);
+            tree = ParseAndValidate($"#! {command}\r\n ", TestOptions.Script);
             root = tree.GetCompilationUnitRoot();
 
             Assert.Empty(root.ChildNodes());
             eof = root.EndOfFileToken;
             Assert.Equal(SyntaxKind.EndOfFileToken, eof.Kind());
             var leading = eof.GetLeadingTrivia().ToArray();
-            Assert.Equal(3, leading.Length);
+            Assert.Equal(2, leading.Length);
             Assert.Equal(SyntaxKind.ShebangDirectiveTrivia, leading[0].Kind());
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, leading[1].Kind());
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[2].Kind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[1].Kind());
+            TestShebang(leading[0], command);
+            Assert.True(root.ContainsDirectives);
+            TestShebang(root.GetDirectives().Single(), command);
 
             tree = ParseAndValidate(
-@"#!/usr/bin/env csi
+$@"#!{command}
 Console.WriteLine(""Hi!"");", TestOptions.Script);
             root = tree.GetCompilationUnitRoot();
 
             var statement = root.ChildNodes().Single();
             Assert.Equal(SyntaxKind.GlobalStatement, statement.Kind());
-            leading = statement.GetLeadingTrivia().ToArray();
-            Assert.Equal(2, leading.Length);
-            Assert.Equal(SyntaxKind.ShebangDirectiveTrivia, leading[0].Kind());
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, leading[1].Kind());
+            trivia = statement.GetLeadingTrivia().Single();
+            TestShebang(trivia, command);
+            Assert.True(root.ContainsDirectives);
+            TestShebang(root.GetDirectives().Single(), command);
         }
 
         [Fact]
@@ -8479,12 +8485,22 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
 
             ParseAndValidate("#!/bin/sh\r\n#!/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 2, Column = 1 });
+
+            ParseAndValidate("a #!/usr/bin/env csi", TestOptions.Script,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 1, Column = 3 });
         }
 
         [Fact]
         public void ShebangNoBang()
         {
             ParseAndValidate("#/usr/bin/env csi", TestOptions.Script,
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 1 });
+        }
+
+        [Fact]
+        public void ShebangSpaceBang()
+        {
+            ParseAndValidate("# !/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 1 });
         }
 
@@ -8505,6 +8521,28 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         {
             ParseAndValidate("#!/usr/bin/env csi", TestOptions.Regular,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPDirectiveExpected, Line = 1, Column = 1 });
+        }
+
+        private void TestShebang(SyntaxTrivia trivia, string expectedSkippedText)
+        {
+            Assert.True(trivia.IsDirective);
+            Assert.Equal(SyntaxKind.ShebangDirectiveTrivia, trivia.Kind());
+            Assert.True(trivia.HasStructure);
+            TestShebang((ShebangDirectiveTriviaSyntax)trivia.GetStructure(), expectedSkippedText);
+        }
+
+        private void TestShebang(DirectiveTriviaSyntax directive, string expectedSkippedText)
+        {
+            var shebang = (ShebangDirectiveTriviaSyntax)directive;
+            Assert.False(shebang.HasStructuredTrivia);
+            Assert.Equal(SyntaxKind.HashToken, shebang.HashToken.Kind());
+            Assert.Equal(SyntaxKind.ExclamationToken, shebang.ExclamationToken.Kind());
+            var endOfDirective = shebang.EndOfDirectiveToken;
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, endOfDirective.Kind());
+            Assert.Equal(0, endOfDirective.Span.Length);
+            var skippedText = endOfDirective.LeadingTrivia.Single();
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, skippedText.Kind());
+            Assert.Equal(expectedSkippedText, skippedText.ToString());
         }
 
         #endregion

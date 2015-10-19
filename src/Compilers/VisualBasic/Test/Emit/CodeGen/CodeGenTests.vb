@@ -13247,7 +13247,9 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6077")>
+        <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
             Dim source =
 $"
