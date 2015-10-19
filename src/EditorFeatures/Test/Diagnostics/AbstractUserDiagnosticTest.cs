@@ -104,7 +104,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 if (annotation == null)
                 {
                     var fixes = new List<CodeFix>();
-                    var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(a, d)), CancellationToken.None);
+                    var context = new CodeFixContext(document, diagnostic, (a, d) => fixes.Add(new CodeFix(document.Project, a, d)), CancellationToken.None);
+
                     fixer.RegisterCodeFixesAsync(context).Wait();
                     if (fixes.Any())
                     {
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     if (fixAllFix != null)
                     {
                         var diagnosticSpan = diagnostic.Location.IsInSource ? diagnostic.Location.SourceSpan : default(TextSpan);
-                        var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(fixAllFix, diagnostic)));
+                        var codeFix = new CodeFixCollection(fixAllProvider, diagnosticSpan, ImmutableArray.Create(new CodeFix(document.Project, fixAllFix, diagnostic)));
                         yield return Tuple.Create(diagnostic, codeFix);
                     }
                 }

@@ -1,6 +1,8 @@
-{
-  "dependencies": { },
+﻿{
+  "dependencies": {
+    "xunit.runner.console": "2.1.0"
+  },
   "frameworks": {
-    "net452": { }
+    "net452": {}
   }
 }

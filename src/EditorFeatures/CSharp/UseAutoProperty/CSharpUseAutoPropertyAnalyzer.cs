@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 
         private string GetFieldName(ExpressionSyntax expression)
         {
-            if (expression?.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            if (expression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {
                 var memberAccessExpression = (MemberAccessExpressionSyntax)expression;
                 if (memberAccessExpression.Expression.Kind() == SyntaxKind.ThisExpression && 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                     return ((IdentifierNameSyntax)memberAccessExpression.Name).Identifier.ValueText;
                 }
             }
-            else if (expression.Kind() == SyntaxKind.IdentifierName)
+            else if (expression.IsKind(SyntaxKind.IdentifierName))
             {
                 return ((IdentifierNameSyntax)expression).Identifier.ValueText;
             }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             if (statements?.Count == 1)
             {
                 var statement = statements.Value[0];
-                if (statement?.Kind() == SyntaxKind.ExpressionStatement)
+                if (statement.IsKind(SyntaxKind.ExpressionStatement))
                 {
                     var expressionStatement = (ExpressionStatementSyntax)statement;
                     if (expressionStatement.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)

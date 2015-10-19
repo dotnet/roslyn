@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             List<MetadataReference> resolved = new List<MetadataReference>();
             Arguments.ResolveMetadataReferences(commandLineReferenceResolver, diagnostics, this.MessageProvider, resolved);
 
-            if (Arguments.IsInteractive)
+            if (Arguments.IsScriptRunner)
             {
                 referenceDirectiveResolver = commandLineReferenceResolver;
             }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis
 
         private int RunCore(TextWriter consoleOutput, ErrorLogger errorLogger, CancellationToken cancellationToken)
         {
-            Debug.Assert(!Arguments.IsInteractive);
+            Debug.Assert(!Arguments.IsScriptRunner);
 
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -40,17 +40,6 @@
       <Name>CompilerTestResources</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.DiaSymReader">
-      <HintPath>..\..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -101,6 +90,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.EnC.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.PerformanceTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Syntax.UnitTests" />
@@ -109,6 +99,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.EnC.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.PerformanceTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Symbol.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Syntax.UnitTests" />
@@ -124,7 +115,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />  
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
   </ItemGroup>

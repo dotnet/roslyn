@@ -835,7 +835,7 @@ End Class
 </Code>
 
             Dim expectedCode =
-    <Code>
+<Code>
 Imports System
 
 &lt;AttributeUsage(AttributeTargets.All, AllowMultiple:=False)&gt;
@@ -846,24 +846,6 @@ End Class
 
             TestAddAttributeArgument(code, expectedCode, New AttributeArgumentData With {.Name = "AllowMultiple", .Value = "False", .Position = 1})
 
-        End Sub
-
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub AddAttributeArgumentStress()
-            Dim code =
-<Code>
-&lt;$$A&gt;
-Class C
-End Class
-</Code>
-
-            TestElement(code,
-                Sub(codeAttribute)
-                    For i = 1 To 100
-                        Dim value = i.ToString()
-                        Dim codeAttributeArgument = codeAttribute.AddArgument(value, Position:=1)
-                    Next
-                End Sub)
         End Sub
 #End Region
 

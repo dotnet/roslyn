@@ -891,7 +891,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")>
-        <WpfFact(Skip:="2544"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInaccessibleMemberOverrideCS()
             Dim workspace =
 <Workspace>

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private readonly bool _includeSuppressedDiagnostics;
 
         public TestDiagnosticAnalyzerDriver(Project project, DiagnosticAnalyzer workspaceAnalyzerOpt = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
-            : this (project, ImmutableArray.Create(workspaceAnalyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language)), onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics)
+            : this(project, ImmutableArray.Create(workspaceAnalyzerOpt ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(project.Language)), onAnalyzerException, logAnalyzerExceptionAsDiagnostics, includeSuppressedDiagnostics)
         { }
 
         public TestDiagnosticAnalyzerDriver(Project project, ImmutableArray<DiagnosticAnalyzer> workspaceAnalyzers, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null, bool logAnalyzerExceptionAsDiagnostics = false, bool includeSuppressedDiagnostics = false)
@@ -51,17 +51,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             if (getDocumentDiagnostics)
             {
                 var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, document.Id, _includeSuppressedDiagnostics).WaitAndGetResult(CancellationToken.None);
-                documentDiagnostics = DiagnosticData.ToDiagnosticsAsync(project, dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                documentDiagnostics = Microsoft.CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => d.HasTextSpan && d.TextSpan.IntersectsWith(span)), project, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             }
 
             if (getProjectDiagnostics)
             {
                 var dxs = _diagnosticAnalyzerService.GetDiagnosticsAsync(project.Solution, project.Id, includeSuppressedDiagnostics: _includeSuppressedDiagnostics).WaitAndGetResult(CancellationToken.None);
-                projectDiagnostics = DiagnosticData.ToDiagnosticsAsync(project, dxs.Where(d => !d.HasTextSpan), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                projectDiagnostics = Microsoft.CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => !d.HasTextSpan), project, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             }
 
-            var exceptionDiagnostics = DiagnosticData.ToDiagnosticsAsync(project, _exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-
+            var exceptionDiagnostics = Microsoft.CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(_exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(), project, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
             var allDiagnostics = documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
 
             if (!_includeSuppressedDiagnostics)

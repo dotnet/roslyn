@@ -4,20 +4,21 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
+    using static ParameterValidationHelpers;
+
     /// <summary>
     /// Options for creating and running scripts.
     /// </summary>
     public sealed class ScriptOptions
     {
         public static readonly ScriptOptions Default = new ScriptOptions(
-            path: "", 
+            filePath: "", 
             references: ImmutableArray<MetadataReference>.Empty,
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,
@@ -45,49 +46,49 @@ namespace Microsoft.CodeAnalysis.Scripting
         public SourceReferenceResolver SourceResolver { get; private set; }
 
         /// <summary>
-        /// The namespaces automatically imported by the script.
+        /// The namespaces, static classes and aliases imported by the script.
         /// </summary>
-        public ImmutableArray<string> Namespaces { get; private set; }
+        public ImmutableArray<string> Imports { get; private set; }
 
         /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
         /// </summary>
-        public string Path { get; private set; }
+        public string FilePath { get; private set; }
 
-        private ScriptOptions(
-            string path,
+        internal ScriptOptions(
+            string filePath,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<string> namespaces,
             MetadataReferenceResolver metadataResolver,
             SourceReferenceResolver sourceResolver)
         {
-            Debug.Assert(path != null);
+            Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
             Debug.Assert(!namespaces.IsDefault);
             Debug.Assert(metadataResolver != null);
             Debug.Assert(sourceResolver != null);
 
-            Path = path;
+            FilePath = filePath;
             MetadataReferences = references;
-            Namespaces = namespaces;
+            Imports = namespaces;
             MetadataResolver = metadataResolver;
             SourceResolver = sourceResolver;
         }
 
         private ScriptOptions(ScriptOptions other) 
-            : this(path: other.Path,
+            : this(filePath: other.FilePath,
                    references: other.MetadataReferences,
-                   namespaces: other.Namespaces,
+                   namespaces: other.Imports,
                    metadataResolver: other.MetadataResolver,
                    sourceResolver: other.SourceResolver)
         {
         }
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Path"/> changed.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="FilePath"/> changed.
         /// </summary>
-        public ScriptOptions WithPath(string path) =>
-            (Path == path) ? this : new ScriptOptions(this) { Path = path ?? "" };
+        public ScriptOptions WithFilePath(string filePath) =>
+            (FilePath == filePath) ? this : new ScriptOptions(this) { FilePath = filePath ?? "" };
 
         private static MetadataReference CreateUnresolvedReference(string reference) =>
             new UnresolvedMetadataReference(reference, MetadataReferenceProperties.Assembly);
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithReferences(ImmutableArray<MetadataReference> references) =>
+        private ScriptOptions WithReferences(ImmutableArray<MetadataReference> references) =>
             MetadataReferences.Equals(references) ? this : new ScriptOptions(this) { MetadataReferences = CheckImmutableArray(references, nameof(references)) };
 
         /// <summary>
@@ -182,193 +183,50 @@ namespace Microsoft.CodeAnalysis.Scripting
             AddReferences((IEnumerable<string>)references);
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with <see cref="MetadataResolver"/> set to the default metadata resolver for the current platform.
-        /// </summary>
-        /// <param name="searchPaths">Directories to be used by the default resolver when resolving assembly file names.</param>
-        /// <remarks>
-        /// The default resolver looks up references in specified <paramref name="searchPaths"/>, in NuGet packages and in Global Assembly Cache (if available on the current platform).
-        /// </remarks>
-        public ScriptOptions WithDefaultMetadataResolution(ImmutableArray<string> searchPaths)
-        {
-            var resolver = new RuntimeMetadataReferenceResolver(
-                ToImmutableArrayChecked(searchPaths, nameof(searchPaths)),
-                baseDirectory: null);
-
-            return new ScriptOptions(this) { MetadataResolver = resolver };
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with <see cref="MetadataResolver"/> set to the default metadata resolver for the current platform.
-        /// </summary>
-        /// <param name="searchPaths">Directories to be used by the default resolver when resolving assembly file names.</param>
-        /// <remarks>
-        /// The default resolver looks up references in specified <paramref name="searchPaths"/>, in NuGet packages and in Global Assembly Cache (if available on the current platform).
-        /// </remarks>
-        public ScriptOptions WithDefaultMetadataResolution(IEnumerable<string> searchPaths) =>
-            WithDefaultMetadataResolution(searchPaths.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with <see cref="MetadataResolver"/> set to the default metadata resolver for the current platform.
-        /// </summary>
-        /// <param name="searchPaths">Directories to be used by the default resolver when resolving assembly file names.</param>
-        /// <remarks>
-        /// The default resolver looks up references in specified <paramref name="searchPaths"/>, in NuGet packages and in Global Assembly Cache (if available on the current platform).
-        /// </remarks>
-        public ScriptOptions WithDefaultMetadataResolution(params string[] searchPaths) =>
-            WithDefaultMetadataResolution(searchPaths.AsImmutableOrEmpty());
-
-        /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="MetadataResolver"/>.
         /// </summary>
-        public ScriptOptions WithCustomMetadataResolution(MetadataReferenceResolver resolver) =>
+        public ScriptOptions WithMetadataResolver(MetadataReferenceResolver resolver) =>
             MetadataResolver == resolver ? this : new ScriptOptions(this) { MetadataResolver = resolver };
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with <see cref="SourceResolver"/> set to the default source resolver for the current platform.
-        /// </summary>
-        /// <param name="searchPaths">Directories to be used by the default resolver when resolving script file names.</param>
-        /// <remarks>
-        /// The default resolver looks up scripts in specified <paramref name="searchPaths"/> and in NuGet packages.
-        /// </remarks>
-        public ScriptOptions WithDefaultSourceResolution(ImmutableArray<string> searchPaths)
-        {
-            var resolver = new SourceFileResolver(
-                ToImmutableArrayChecked(searchPaths, nameof(searchPaths)),
-                baseDirectory: null);
-
-            return new ScriptOptions(this) { SourceResolver = resolver };
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with <see cref="SourceResolver"/> set to the default source resolver for the current platform.
-        /// </summary>
-        /// <param name="searchPaths">Directories to be used by the default resolver when resolving script file names.</param>
-        /// <remarks>
-        /// The default resolver looks up scripts in specified <paramref name="searchPaths"/> and in NuGet packages.
-        /// </remarks>
-        public ScriptOptions WithDefaultSourceResolution(IEnumerable<string> searchPaths) =>
-           WithDefaultSourceResolution(searchPaths.AsImmutableOrEmpty());
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with <see cref="SourceResolver"/> set to the default source resolver for the current platform.
-        /// </summary>
-        /// <param name="searchPaths">Directories to be used by the default resolver when resolving script file names.</param>
-        /// <remarks>
-        /// The default resolver looks up scripts in specified <paramref name="searchPaths"/> and in NuGet packages.
-        /// </remarks>
-        public ScriptOptions WithDefaultSourceResolution(params string[] searchPaths) =>
-           WithDefaultSourceResolution(searchPaths.AsImmutableOrEmpty());
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="SourceResolver"/>.
         /// </summary>
-        public ScriptOptions WithCustomSourceResolution(SourceReferenceResolver resolver) =>
+        public ScriptOptions WithSourceResolver(SourceReferenceResolver resolver) =>
             SourceResolver == resolver ? this : new ScriptOptions(this) { SourceResolver = resolver };
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the namespaces changed.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="namespaces"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithNamespaces(ImmutableArray<string> namespaces) =>
-            Namespaces.Equals(namespaces) ? this : new ScriptOptions(this) { Namespaces = CheckImmutableArray(namespaces, nameof(namespaces)) };
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        private ScriptOptions WithImports(ImmutableArray<string> imports) =>
+            Imports.Equals(imports) ? this : new ScriptOptions(this) { Imports = CheckImmutableArray(imports, nameof(imports)) };
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the namespaces changed.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="namespaces"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithNamespaces(IEnumerable<string> namespaces) => 
-            WithNamespaces(ToImmutableArrayChecked(namespaces, nameof(namespaces)));
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithImports(IEnumerable<string> imports) => 
+            WithImports(ToImmutableArrayChecked(imports, nameof(imports)));
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the namespaces changed.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="namespaces"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithNamespaces(params string[] namespaces) => 
-            WithNamespaces((IEnumerable<string>)namespaces);
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithImports(params string[] imports) => 
+            WithImports((IEnumerable<string>)imports);
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with namespaces added.
+        /// Creates a new <see cref="ScriptOptions"/> with <see cref="Imports"/> added.
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="namespaces"/> is null or contains a null reference.</exception>
-        public ScriptOptions AddNamespaces(IEnumerable<string> namespaces) => 
-            WithNamespaces(ConcatChecked(Namespaces, namespaces, nameof(namespaces)));
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions AddImports(IEnumerable<string> imports) => 
+            WithImports(ConcatChecked(Imports, imports, nameof(imports)));
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with namespaces added.
+        /// Creates a new <see cref="ScriptOptions"/> with <see cref="Imports"/> added.
         /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="namespaces"/> is null or contains a null reference.</exception>
-        public ScriptOptions AddNamespaces(params string[] namespaces) => 
-            AddNamespaces((IEnumerable<string>)namespaces);
-
-        #region Parameter Validation
-
-        private static ImmutableArray<T> CheckImmutableArray<T>(ImmutableArray<T> items, string parameterName)
-        {
-            if (items.IsDefault)
-            {
-                throw new ArgumentNullException(parameterName);
-            }
-
-            for (int i = 0; i < items.Length; i++)
-            {
-                if (items[i] == null)
-                {
-                    throw new ArgumentNullException($"{parameterName}[{i}]");
-                }
-            }
-
-            return items;
-        }
-
-        private static ImmutableArray<T> ToImmutableArrayChecked<T>(IEnumerable<T> items, string parameterName)
-            where T : class
-        {
-            var builder = ArrayBuilder<T>.GetInstance();
-            AddRangeChecked(builder, items, parameterName);
-            return builder.ToImmutableAndFree();
-        }
-
-        private static ImmutableArray<T> ConcatChecked<T>(ImmutableArray<T> existing, IEnumerable<T> items, string parameterName)
-            where T : class
-        {
-            var builder = ArrayBuilder<T>.GetInstance();
-            builder.AddRange(existing);
-            AddRangeChecked(builder, items, parameterName);
-            return builder.ToImmutableAndFree();
-        }
-
-        private static void AddRangeChecked<T>(ArrayBuilder<T> builder, IEnumerable<T> items, string parameterName)
-            where T : class
-        {
-            RequireNonNull(items, parameterName);
-
-            foreach (var item in items)
-            {
-                if (item == null)
-                {
-                    throw new ArgumentNullException($"{parameterName}[{builder.Count}]");
-                }
-
-                builder.Add(item);
-            }
-        }
-
-        private static IEnumerable<S> SelectChecked<T, S>(IEnumerable<T> items, string parameterName, Func<T, S> selector)
-            where T : class
-            where S : class
-        {
-            RequireNonNull(items, parameterName);
-            return items.Select(item => (item != null) ? selector(item) : null);
-        }
-
-        private static void RequireNonNull<T>(IEnumerable<T> items, string parameterName)
-        {
-            if (items == null || items is ImmutableArray<T> && ((ImmutableArray<T>)items).IsDefault)
-            {
-                throw new ArgumentNullException(parameterName);
-            }
-        }
-
-        #endregion
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions AddImports(params string[] imports) => 
+            AddImports((IEnumerable<string>)imports);
     }
 }

@@ -276,8 +276,8 @@ End Class"
 
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("b", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal(errorMessage, "(1) : error BC30451: 'b' is not declared. It may be inaccessible due to its protection level.")
+            context.CompileExpression("b", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal(errorMessage, "error BC30451: 'b' is not declared. It may be inaccessible due to its protection level.")
 
             testData = New CompilationTestData()
             context.CompileExpression("a(1)", errorMessage, testData)
@@ -1743,7 +1743,7 @@ End Class
 
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
-            context.CompileAssignment("o", "Nothing", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            context.CompileAssignment("o", "Nothing", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             Assert.Null(errorMessage) ' In regular code, there would be an error about modifying a lock local.
 
             testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1782,8 +1782,8 @@ End Class
                 methodName:="C.M")
 
             Dim errorMessage As String = Nothing
-            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30074: Constant cannot be the target of an assignment.", errorMessage)
+            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30074: Constant cannot be the target of an assignment.", errorMessage)
 
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -1831,8 +1831,8 @@ End Class
                 methodName:="C.M")
 
             Dim errorMessage As String = Nothing
-            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30074: Constant cannot be the target of an assignment.", errorMessage)
+            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30074: Constant cannot be the target of an assignment.", errorMessage)
 
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing

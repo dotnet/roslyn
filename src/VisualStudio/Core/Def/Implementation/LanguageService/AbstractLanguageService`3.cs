@@ -125,8 +125,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
+            ConditionallyCollapseOutliningRegions(textView, wpfTextView, optionsService, isOpenMetadataAsSource);
+
+            // If this is a metadata-to-source view, we want to consider the file read-only
+            IVsTextLines vsTextLines;
+            if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out vsTextLines)))
+            {
+                ((IVsTextBuffer)vsTextLines).SetStateFlags((uint)BUFFERSTATEFLAGS.BSF_USER_READONLY);
+
+                var runningDocumentTable = (IVsRunningDocumentTable)SystemServiceProvider.GetService(typeof(SVsRunningDocumentTable));
+                var runningDocumentTable4 = (IVsRunningDocumentTable4)runningDocumentTable;
+
+                if (runningDocumentTable4.IsMonikerValid(openDocument.FilePath))
+                {
+                    var cookie = runningDocumentTable4.GetDocumentCookie(openDocument.FilePath);
+                    runningDocumentTable.ModifyDocumentFlags(cookie, (uint)_VSRDTFLAGS.RDT_DontAddToMRU | (uint)_VSRDTFLAGS.RDT_CantSave, fSet: 1);
+                }
+            }
+        }
+
+        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, IOptionService optionsService, bool isOpenMetadataAsSource)
+        {
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
+            if (outliningManager == null)
+            {
+                return;
+            }
+
             if (!optionsService.GetOption(FeatureOnOffOptions.Outlining, this.RoslynLanguageName))
             {
                 outliningManager.Enabled = false;
@@ -163,22 +189,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                         viewEx.PersistOutliningState();
                     }
-                }
-            }
-
-            // If this is a metadata-to-source view, we want to consider the file read-only
-            IVsTextLines vsTextLines;
-            if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out vsTextLines)))
-            {
-                ((IVsTextBuffer)vsTextLines).SetStateFlags((uint)BUFFERSTATEFLAGS.BSF_USER_READONLY);
-
-                var runningDocumentTable = (IVsRunningDocumentTable)SystemServiceProvider.GetService(typeof(SVsRunningDocumentTable));
-                var runningDocumentTable4 = (IVsRunningDocumentTable4)runningDocumentTable;
-
-                if (runningDocumentTable4.IsMonikerValid(openDocument.FilePath))
-                {
-                    var cookie = runningDocumentTable4.GetDocumentCookie(openDocument.FilePath);
-                    runningDocumentTable.ModifyDocumentFlags(cookie, (uint)_VSRDTFLAGS.RDT_DontAddToMRU | (uint)_VSRDTFLAGS.RDT_CantSave, fSet: 1);
                 }
             }
         }

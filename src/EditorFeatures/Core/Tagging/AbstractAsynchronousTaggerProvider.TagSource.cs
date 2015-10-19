@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 Connect();
 
-                // Kick off a task to compte the initial set of tags.
+                // Kick off a task to compute the initial set of tags.
                 RecalculateTagsOnChanged(new TaggerEventArgs(TaggerDelay.Short));
             }
 

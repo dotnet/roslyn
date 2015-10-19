@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
-    public sealed class ObjectFormattingOptions
+    internal sealed class ObjectFormattingOptions
     {
         public static ObjectFormattingOptions Default { get; } = new ObjectFormattingOptions();
 

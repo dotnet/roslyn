@@ -658,6 +658,7 @@ class C
                     Next
                 End Sub)
         End Sub
+
 #End Region
 
 #Region "Delete tests"

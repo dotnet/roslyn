@@ -10,7 +10,7 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
-XUNIT_VERSION=2.1.0-beta4-build3109
+XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
@@ -58,8 +58,7 @@ done
 
 restore_nuget()
 {
-
-    local package_name="nuget.20.zip"
+    local package_name="nuget.25.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -206,9 +205,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.3
+        MONO_TOOLSET_NAME=mono.mac.4
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.3
+        MONO_TOOLSET_NAME=mono.linux.4
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1
@@ -235,7 +234,8 @@ test_roslyn()
 
     for i in "${test_binaries[@]}"
     do
-        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
+        mkdir -p Binaries/$BUILD_CONFIGURATION/xUnitResults/
+        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/xUnitResults/$i.dll.xml -noshadow
         if [ $? -ne 0 ]; then
             any_failed=true
         fi

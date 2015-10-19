@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
 
         ''' <summary>
         ''' Given a syntaxTree returns line separator spans. The operation may take fairly long time
-        ''' on a big syntaxTree so it is cancelable.
+        ''' on a big syntaxTree so it is cancellable.
         ''' </summary>
         Public Async Function GetLineSeparatorsAsync(document As Document,
                                           textSpan As TextSpan,

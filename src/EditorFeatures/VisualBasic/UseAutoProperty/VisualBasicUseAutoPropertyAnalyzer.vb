@@ -30,13 +30,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
         End Function
 
         Private Function GetFieldName(expression As ExpressionSyntax) As String
-            If expression?.Kind() = SyntaxKind.SimpleMemberAccessExpression Then
+            If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
                 If memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
                    memberAccessExpression.Name.Kind() = SyntaxKind.IdentifierName Then
                     Return DirectCast(memberAccessExpression.Name, IdentifierNameSyntax).Identifier.ValueText
                 End If
-            ElseIf expression.Kind() = SyntaxKind.IdentifierName
+            ElseIf expression.IsKind(SyntaxKind.IdentifierName) Then
                 Return DirectCast(expression, IdentifierNameSyntax).Identifier.ValueText
             End If
 
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Dim statements = setAccessor?.Statements
             If statements?.Count = 1 Then
                 Dim statement = statements.Value(0)
-                If statement?.Kind() = SyntaxKind.SimpleAssignmentStatement Then
+                If statement.IsKind(SyntaxKind.SimpleAssignmentStatement) Then
                     Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
                         ' Needs to be a something that could be a field of this type on the left.
@@ -124,8 +124,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
 
             ' the property doesn't have a setter currently. check all the types the field is 
             ' declared in.  If the field is written to outside of a constructor, then this 
-            ' field Is Not elegible for replacement with an auto prop.  We'd have to make 
-            ' the autoprop read/write, And that could be opening up the propert widely 
+            ' field Is Not eligible for replacement with an auto prop.  We'd have to make 
+            ' the autoprop read/write, And that could be opening up the property widely 
             ' (in accessibility terms) in a way the user would not want.
             Dim containingType = field.ContainingType
             For Each ref In containingType.DeclaringSyntaxReferences

@@ -435,6 +435,35 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <WpfFact>
+        Public Sub TestHelpKeyword()
+            Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
+                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
+                Dim projectId = documentId.ProjectId
+
+                Dim item1 = CreateItem(workspace, projectId, documentId, DiagnosticSeverity.Error, "http://link/")
+                Dim provider = New TestDiagnosticService(item1)
+
+                Dim tableManagerProvider = New TestTableManagerProvider()
+
+                Dim table = New VisualStudioDiagnosticListTable(workspace, provider, tableManagerProvider)
+                provider.RaiseDiagnosticsUpdated(workspace)
+
+                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticData))
+                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
+
+                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
+                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
+                Assert.Equal(1, snapshot.Count)
+
+                Dim keyword As Object = Nothing
+                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpKeyword, keyword))
+
+                Assert.Equal(item1.Id, keyword.ToString())
+            End Using
+        End Sub
+
+        <WpfFact>
         Public Sub TestBingHelpLink()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()

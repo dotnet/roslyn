@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary> 
         /// <remarks>
         /// If multiple script variables are defined in the script (in distinct submissions) returns the last one.
-        /// Namve lookup is case sensitive in C# scripts and case insensitive in VB scripts.
+        /// Name lookup is case sensitive in C# scripts and case insensitive in VB scripts.
         /// </remarks>
         /// <returns><see cref="ScriptVariable"/> or null, if no variable of the specified <paramref name="name"/> is defined in the script.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 foreach (var field in state.GetType().GetTypeInfo().DeclaredFields)
                 {
                     // TODO: synthesized fields of submissions shouldn't be public
-                    if (field.IsPublic && field.Name.Length > 0 && char.IsLetterOrDigit(field.Name[0]))
+                    if (field.IsPublic && field.Name.Length > 0 && (char.IsLetterOrDigit(field.Name[0]) || field.Name[0] == '_'))
                     {
                         result.Add(new ScriptVariable(state, field));
                     }

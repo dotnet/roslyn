@@ -287,6 +287,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         case StandardTableKeyNames.ErrorCodeToolTip:
                             content = GetHelpLinkToolTipText(data);
                             return content != null;
+                        case StandardTableKeyNames.HelpKeyword:
+                            content = data.Id;
+                            return content != null;
                         case StandardTableKeyNames.HelpLink:
                             content = GetHelpLink(data);
                             return content != null;
