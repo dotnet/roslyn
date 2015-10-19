@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateEvent
                 New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent.GenerateEventCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Sub TestGenerateEventInCSharpFileFromImplementsWithParameterList()
             Dim input =
         <Workspace>
@@ -47,7 +47,7 @@ public delegate void fooEventHandler(int x);
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         Public Sub TestGenerateEventInCSharpFileFromImplementsWithType()
             Dim input =
         <Workspace>
@@ -80,7 +80,7 @@ public interface i
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>
         <WorkItem(737021)>
         Public Sub TestGenerateEventInCSharpFileFromHandles()
             Dim input =

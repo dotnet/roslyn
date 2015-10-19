@@ -120,6 +120,7 @@ namespace Microsoft.Cci
 
             int moduleVersionIdOffsetInMetadataStream;
             int methodBodyStreamRva = textSectionRva + OffsetToILStream;
+            int pdbIdOffsetInPortablePdbStream;
 
             int entryPointToken;
             MetadataSizes metadataSizes;
@@ -133,6 +134,7 @@ namespace Microsoft.Cci
                 methodBodyStreamRva,
                 mdSizes => CalculateMappedFieldDataStreamRva(textSectionRva, mdSizes),
                 out moduleVersionIdOffsetInMetadataStream,
+                out pdbIdOffsetInPortablePdbStream,
                 out entryPointToken,
                 out metadataSizes);
 
@@ -180,6 +182,14 @@ namespace Microsoft.Cci
                 {
                     portablePdbContentId = new ContentId(Guid.NewGuid().ToByteArray(), BitConverter.GetBytes(_timeStamp));
                 }
+
+                // fill in the PDB id:
+                long previousPosition = portablePdbStream.Position;
+                CheckZeroDataInStream(portablePdbStream, pdbIdOffsetInPortablePdbStream, ContentId.Size);
+                portablePdbStream.Position = pdbIdOffsetInPortablePdbStream;
+                portablePdbStream.Write(portablePdbContentId.Guid, 0, portablePdbContentId.Guid.Length);
+                portablePdbStream.Write(portablePdbContentId.Stamp, 0, portablePdbContentId.Stamp.Length);
+                portablePdbStream.Position = previousPosition;
             }
             else
             {
@@ -1358,7 +1368,7 @@ namespace Microsoft.Cci
             else
             {
                 writer.WriteBytes(portablePdbContentId.Stamp);
-                writer.WriteUInt32('P' << 24 | 'M' << 16 | 0x00 << 8 | 0x01);
+                writer.WriteUInt32('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00);
             }
             
             // type: 

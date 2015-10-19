@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.ArrayStatements
     Public Class EraseKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Erase")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseAfterStatement()
             VerifyRecommendationsContain(<MethodBody>
@@ -23,19 +23,19 @@ Dim x
 |</MethodBody>, "Erase")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseMissingInClassBlock()
             VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "Erase")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseInSingleLineLambda()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() |</MethodBody>, "Erase")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub EraseNotInSingleLineFunctionLambda()
             VerifyRecommendationsMissing(<MethodBody>Dim x = Function() |</MethodBody>, "Erase")

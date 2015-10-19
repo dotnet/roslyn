@@ -416,7 +416,7 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0-beta-23413": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -531,6 +531,20 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.Loader.dll": {}
+        }
+      },
+      "System.Runtime.Numerics/4.0.1-beta-23401": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Runtime.Numerics.dll": {}
         }
       },
       "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
@@ -1437,7 +1451,7 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0-beta-23413": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -1552,6 +1566,20 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.Loader.dll": {}
+        }
+      },
+      "System.Runtime.Numerics/4.0.1-beta-23401": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Runtime.Numerics.dll": {}
         }
       },
       "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
@@ -2614,7 +2642,7 @@
           "lib/DNXCore50/System.Reflection.Extensions.dll": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-alpha-00015": {
+      "System.Reflection.Metadata/1.1.0-beta-23413": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -2729,6 +2757,20 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.Loader.dll": {}
+        }
+      },
+      "System.Runtime.Numerics/4.0.1-beta-23401": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Runtime.Numerics.dll": {}
         }
       },
       "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
@@ -4732,8 +4774,8 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.0-alpha-00015": {
-      "sha512": "80TohRwPpEugHMssnSC1lGL9RdgTkB8AaZ4F3VqTao+Gm1JKh/aPCKj1h+XNWlQcKgR/ITrxv1zi+S5OPCTylg==",
+    "System.Reflection.Metadata/1.1.0-beta-23413": {
+      "sha512": "MefYFSh9jQV+S3mwvlvY2WDVSfdyvaIpas3ugXuQMAKmGFch4AuoFRRYmpA0iK0FP1FCYvSzhQBydkqSCqXrgA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
@@ -4742,7 +4784,7 @@
         "lib/dotnet/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/7861ec343fe44de4be93046f2fd089b0.psmdcp",
+        "package/services/metadata/core-properties/f9d77df49aee46698d78faee45b96d9d.psmdcp",
         "System.Reflection.Metadata.nuspec"
       ]
     },
@@ -5030,6 +5072,37 @@
         "package/services/metadata/core-properties/0ca4f92d1927480594f71c5384c0c52d.psmdcp",
         "ref/dotnet/System.Runtime.Loader.dll",
         "System.Runtime.Loader.nuspec"
+      ]
+    },
+    "System.Runtime.Numerics/4.0.1-beta-23401": {
+      "sha512": "RF7EswqLB7/V+7LHKgmsH0hS6KcFotf9GfaKBgCWfNvAr66r6/bUTNzz9TYn0veMMGLOoItQ6DWA8IAAIFdnTw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/de/System.Runtime.Numerics.xml",
+        "lib/dotnet/es/System.Runtime.Numerics.xml",
+        "lib/dotnet/fr/System.Runtime.Numerics.xml",
+        "lib/dotnet/it/System.Runtime.Numerics.xml",
+        "lib/dotnet/ja/System.Runtime.Numerics.xml",
+        "lib/dotnet/ko/System.Runtime.Numerics.xml",
+        "lib/dotnet/ru/System.Runtime.Numerics.xml",
+        "lib/dotnet/System.Runtime.Numerics.dll",
+        "lib/dotnet/System.Runtime.Numerics.xml",
+        "lib/dotnet/zh-hans/System.Runtime.Numerics.xml",
+        "lib/dotnet/zh-hant/System.Runtime.Numerics.xml",
+        "lib/net45/_._",
+        "lib/netcore50/System.Runtime.Numerics.dll",
+        "lib/netcore50/System.Runtime.Numerics.xml",
+        "lib/win8/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/dd30b2ccdf7e4f9d9f37ea0b478b54a2.psmdcp",
+        "ref/dotnet/System.Runtime.Numerics.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Runtime.Numerics.dll",
+        "ref/win8/_._",
+        "ref/wpa81/_._",
+        "System.Runtime.Numerics.nuspec"
       ]
     },
     "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
@@ -5619,6 +5692,7 @@
       "System.Runtime.Handles >= 4.0.1-beta-23401",
       "System.Runtime.InteropServices >= 4.0.21-beta-23401",
       "System.Runtime.Loader >= 4.0.0-beta-23401",
+      "System.Runtime.Numerics >= 4.0.1-beta-23401",
       "System.Runtime.Serialization.Json >= 4.0.1-beta-23401",
       "System.Security.Cryptography.Algorithms >= 4.0.0-beta-23401",
       "System.Text.Encoding >= 4.0.11-beta-23401",

@@ -844,9 +844,6 @@ class Attr: System.Attribute
 
             // Script
             TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(parseOptions: TestOptions.Script);
-
-            // Interactive
-            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(parseOptions: TestOptions.Interactive);
         }
 
         private void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(CSharpParseOptions parseOptions)
@@ -878,9 +875,6 @@ class Attr: System.Attribute
 
             // Script
             TestDynamicAttributeInAliasContextHelper(parseOptions: TestOptions.Script);
-
-            // Interactive
-            TestDynamicAttributeInAliasContextHelper(parseOptions: TestOptions.Interactive);
         }
 
         private void TestDynamicAttributeInAliasContextHelper(CSharpParseOptions parseOptions)
@@ -943,9 +937,6 @@ public class Gen2<T> : X    // CS1980
         {
             // Script
             TestDynamicAttributeForSubmissionFieldHelper(parseOptions: TestOptions.Script);
-
-            // Interactive
-            TestDynamicAttributeForSubmissionFieldHelper(parseOptions: TestOptions.Interactive);
         }
 
         private void TestDynamicAttributeForSubmissionFieldHelper(CSharpParseOptions parseOptions)
@@ -1009,9 +1000,6 @@ X x = null;";
         {
             // Script
             TestDynamicAttributeForSubmissionGlobalStatementHelper(parseOptions: TestOptions.Script);
-
-            // Interactive
-            TestDynamicAttributeForSubmissionGlobalStatementHelper(parseOptions: TestOptions.Interactive);
         }
 
         private void TestDynamicAttributeForSubmissionGlobalStatementHelper(CSharpParseOptions parseOptions)

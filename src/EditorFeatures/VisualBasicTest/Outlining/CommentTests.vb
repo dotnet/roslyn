@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class CommentTests
         Inherits AbstractOutlinerTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestSimpleComment1()
             Dim tree = ParseLines("' Hello",
                                   "' VB!",
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestSimpleComment2()
             Dim tree = ParseLines("' Hello",
                                   "'",
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestSimpleComment3()
             Dim tree = ParseLines("' Hello",
                                   "",
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestSingleLineCommentGroupFollowedByDocumentationComment()
             Dim tree = ParseLines("' Hello",
                                   "",

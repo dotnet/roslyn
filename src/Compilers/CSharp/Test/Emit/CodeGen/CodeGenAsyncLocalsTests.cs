@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         public CodeGenAsyncLocalsTests()
         {
-            SynchronizationContext.SetSynchronizationContext(null);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)

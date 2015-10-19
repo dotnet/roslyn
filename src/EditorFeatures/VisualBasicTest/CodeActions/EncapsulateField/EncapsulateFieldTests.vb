@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulatePrivateFieldAndUpdateReferences()
             Dim text = <File>
 Class C
@@ -48,7 +48,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateDimField()
             Dim text = <File>
 Class C
@@ -81,7 +81,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateGenericField()
             Dim text = <File>
 Class C(Of T)
@@ -114,7 +114,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulatePublicFieldIgnoringReferences()
             Dim text = <File>
 Class C
@@ -146,7 +146,7 @@ End Class</File>.ConvertTestSourceTag()
             Test(text, expected, compareTokens:=False, index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulatePublicFieldUpdatingReferences()
             Dim text = <File>
 Class C
@@ -178,7 +178,7 @@ End Class</File>.ConvertTestSourceTag()
             Test(text, expected, compareTokens:=False, index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateMultiplePrivateFieldsWithReferences()
             Dim text = <File>
 Class C
@@ -221,7 +221,7 @@ End Class</File>.ConvertTestSourceTag()
             Test(text, expected, compareTokens:=False, index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateMultiplePublicFieldsWithReferences()
             Dim text = <File>
 Class C
@@ -266,7 +266,7 @@ End Class</File>.ConvertTestSourceTag()
             Test(text, expected, compareTokens:=False, index:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub NoSetterForConstField()
             Dim text = <File>
 Class Program
@@ -288,7 +288,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateEscapedIdentifier()
             Dim text = <File>
 Class C
@@ -313,7 +313,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateFieldNamedValue()
             Dim text = <File>
 Class C
@@ -338,7 +338,7 @@ End Class</File>.ConvertTestSourceTag()
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateFieldName__()
             Dim text = <File>
 Class D
@@ -365,7 +365,7 @@ End Class
         End Sub
 
         <WorkItem(694262)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub PreserveTrivia()
             Dim text = <File>
 Class AA
@@ -392,7 +392,7 @@ End Class
         End Sub
 
         <WorkItem(694241)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub NewPropertyNameIsUnique()
             Dim text = <File>
 Class AA
@@ -435,7 +435,7 @@ End Class
         End Sub
 
         <WorkItem(695046)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub AvailableNotJustOnVariableName()
             Dim text = <File>
 Class C
@@ -446,7 +446,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <WorkItem(705898)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub CopyAccessibility()
             Dim text = <File>
 Class C
@@ -471,7 +471,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <WorkItem(707080)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub BackingFieldStartsWithUnderscore()
             Dim text = <File>
 Public Class Class1
@@ -503,7 +503,7 @@ End Class</File>.ConvertTestSourceTag()
             Test(text, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateShadowingField()
             Dim text = <File>
 Class C
@@ -559,7 +559,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <WorkItem(1096007, "https://github.com/dotnet/roslyn/issues/282")>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub DoNotEncapsulateOutsideTypeDeclaration()
             Dim globalField = <File>
 Dim [|x|] = 1

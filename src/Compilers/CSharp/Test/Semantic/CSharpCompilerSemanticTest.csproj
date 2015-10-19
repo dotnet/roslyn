@@ -74,6 +74,7 @@
     <Compile Include="FlowAnalysis\RegionAnalysisTests.cs" />
     <Compile Include="FlowAnalysis\StructTests.cs" />
     <Compile Include="FlowAnalysis\TryLockUsingStatementTests.cs" />
+    <Compile Include="Semantics\ImportsTests.cs" />
     <Compile Include="Semantics\AccessCheckTests.cs" />
     <Compile Include="Semantics\AccessibilityTests.cs" />
     <Compile Include="Semantics\AmbiguousOverrideTests.cs" />
@@ -141,6 +142,7 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

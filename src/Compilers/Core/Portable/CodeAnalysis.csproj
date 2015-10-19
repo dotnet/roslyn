@@ -51,11 +51,13 @@
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
+    <Compile Include="Compilation\ScriptCompilationInfo.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerDriver.CompilationData.cs" />
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
+    <Compile Include="RealParser.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -686,7 +688,7 @@
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="vbc" />
     <InternalsVisibleTo Include="vbi" />
@@ -718,8 +720,8 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />

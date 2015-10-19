@@ -702,7 +702,7 @@ public class Outer<T, U>
                 "var dd = d;",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,

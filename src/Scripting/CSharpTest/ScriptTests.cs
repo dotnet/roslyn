@@ -3,13 +3,14 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
     public class ScriptTests : TestBase
     {
@@ -173,7 +174,7 @@ d.Do()"
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
-            //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.Scripting.CSharp.Test.ScriptTests+Globals'
+            //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.CSharp.Scripting.Test.ScriptTests+Globals'
             AssertEx.ThrowsArgumentException("globals", () => script.RunAsync(new object()));
         }
 
@@ -241,7 +242,6 @@ d.Do()"
             var script = 
                 CSharpScript.Create(
                     "var a = '1';",
-                    options: ScriptOptions.Default.WithReferences(InteractiveSessionTests.SystemRuntimeAssembly),
                     globalsType: globals.GetType()).
                 ContinueWith("var b = 2u;").
                 ContinueWith("var a = 3m;").

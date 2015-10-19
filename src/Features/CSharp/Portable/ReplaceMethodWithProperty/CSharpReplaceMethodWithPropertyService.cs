@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 }
 
                 // We use the callback form if "ReplaceNode" here because we want to see the
-                // invocation expressoin after any rewrites we already did when rewriting the
+                // invocation expression after any rewrites we already did when rewriting the
                 // 'get' references.
                 editor.ReplaceNode(invocation, (i, g) =>
                 {

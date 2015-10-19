@@ -5,7 +5,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
     Partial Public Class MethodXMLTests
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBInvocations_InvocationWithoutMe()
             Dim definition =
 <Workspace>
@@ -45,7 +45,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBInvocations_InvocationWithMe()
             Dim definition =
 <Workspace>
@@ -85,7 +85,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBInvocations_WithArrayInitializer1()
             Dim definition =
 <Workspace>
@@ -160,7 +160,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBInvocations_InvokeOnCast()
             Dim definition =
 <Workspace>
@@ -230,7 +230,7 @@ End Class
             Test(definition, expected)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBInvocations_InvokeFixInCast()
             Dim definition =
 <Workspace>
@@ -285,7 +285,7 @@ End Class
         End Sub
 
         <WorkItem(870422)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelMethodXml)>
         Public Sub VBAssignments_MethodCallWithoutTypeQualification()
             Dim definition =
 <Workspace>

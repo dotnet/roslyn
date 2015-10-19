@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Semantics
 {
     public class SpeculationAnalyzerTests : SpeculationAnalyzerTestsBase
     {
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerDifferentOverloads()
         {
             Test(@"
@@ -36,7 +36,7 @@ class Program
 }           ", "Vain(string.Empty)", true);
         }
 
-        [Fact, WorkItem(672396)]
+        [WpfFact, WorkItem(672396)]
         public void SpeculationAnalyzerExtensionMethodExplicitInvocation()
         {
             Test(@"
@@ -50,7 +50,7 @@ static class Program
 }           ", "Vain(5)", false);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerImplicitBaseClassConversion()
         {
             Test(@"
@@ -64,7 +64,7 @@ class Program
 }           ", "new InvalidOperationException()", false);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerImplicitNumericConversion()
         {
             Test(@"
@@ -77,7 +77,7 @@ class Program
 }           ", "5", false);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerImplicitUserConversion()
         {
             Test(@"
@@ -95,7 +95,7 @@ class Program
 }           ", "new From()", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerExplicitConversion()
         {
             Test(@"
@@ -110,7 +110,7 @@ class Program
 }           ", "ex1", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerArrayImplementingNonGenericInterface()
         {
             Test(@"
@@ -125,7 +125,7 @@ class Program
 }           ", "a.GetEnumerator()", false);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerVirtualMethodWithBaseConversion()
         {
             Test(@"
@@ -141,7 +141,7 @@ class Program
 }            ", "s.Flush()", false);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerNonVirtualMethodImplementingInterface()
         {
             Test(@"
@@ -160,7 +160,7 @@ class Program
 }           ", "c.CompareTo(null)", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerSealedClassImplementingInterface()
         {
             Test(@"
@@ -179,7 +179,7 @@ class Program
 }           ", "c.CompareTo(null)", false);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerValueTypeImplementingInterface()
         {
             Test(@"
@@ -194,7 +194,7 @@ class Program
 }           ", "d.CompareTo(6)", false);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerBinaryExpressionIntVsLong()
         {
             Test(@"
@@ -207,7 +207,7 @@ class Program
 }           ", "1+1", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerQueryExpressionSelectType()
         {
             Test(@"
@@ -221,7 +221,7 @@ class Program
 }           ", "from i in Enumerable.Range(0, 3) select i", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerQueryExpressionFromType()
         {
             Test(@"
@@ -235,7 +235,7 @@ class Program
 }           ", "from i in new int[0] select i", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerQueryExpressionGroupByType()
         {
             Test(@"
@@ -249,7 +249,7 @@ class Program
 }           ", "from i in Enumerable.Range(0, 3) group i by i", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerQueryExpressionOrderByType()
         {
             Test(@"
@@ -263,7 +263,7 @@ class Program
 }           ", "i", true);
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerDifferentAttributeConstructors()
         {
             Test(@"
@@ -284,7 +284,7 @@ class Program
             // which is not supported in SpeculationAnalyzer, but possible with GetSpeculativeSemanticModel API
         }
 
-        [Fact]
+        [WpfFact]
         public void SpeculationAnalyzerCollectionInitializers()
         {
             Test(@"
@@ -301,7 +301,7 @@ class Collection : IEnumerable
 }           ", "5", true);
         }
 
-        [Fact, WorkItem(1088815)]
+        [WpfFact, WorkItem(1088815)]
         public void SpeculationAnalyzerBrokenCode()
         {
             Test(@"

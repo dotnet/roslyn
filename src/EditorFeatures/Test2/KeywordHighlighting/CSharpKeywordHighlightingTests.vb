@@ -4,7 +4,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
     Public Class CSharpKeywordHighlightingTests
         Inherits AbstractKeywordHighlightingTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub VerifyNoHighlightsWhenOptionDisabled()
             VerifyHighlights(
                 <Workspace>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 optionIsEnabled:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub VerifyHighlightsWhenOptionEnabled()
             VerifyHighlights(
                 <Workspace>

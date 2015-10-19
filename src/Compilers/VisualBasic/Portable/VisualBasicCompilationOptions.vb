@@ -408,6 +408,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=other.MetadataImportOptions)
         End Sub
 
+        Friend Overrides Function GetImports() As ImmutableArray(Of String)
+            ' TODO: implement (only called from VBI) https://github.com/dotnet/roslyn/issues/5854
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
         ''' <summary>
         ''' Gets the global imports collection.
         ''' </summary>
@@ -822,6 +827,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.Platform = value}
+        End Function
+
+        Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
+            Return Me.WithDeterministic(deterministic)
         End Function
 
         Protected Overrides Function CommonWithGeneralDiagnosticOption(value As ReportDiagnostic) As CompilationOptions

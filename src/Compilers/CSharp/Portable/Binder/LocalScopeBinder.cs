@@ -232,22 +232,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)
         {
             var containingMethod = (MethodSymbol)this.ContainingMemberOrLambda;
-
             foreach (var statement in statements)
             {
-                var stmt = statement;
-                while (stmt.Kind() == SyntaxKind.LabeledStatement)
-                {
-                    var labeledStatement = (LabeledStatementSyntax)stmt;
-                    if (labels == null)
-                    {
-                        labels = ArrayBuilder<LabelSymbol>.GetInstance();
-                    }
+                BuildLabels(containingMethod, statement, ref labels);
+            }
+        }
 
-                    var labelSymbol = new SourceLabelSymbol(containingMethod, labeledStatement.Identifier);
-                    labels.Add(labelSymbol);
-                    stmt = labeledStatement.Statement;
+        internal static void BuildLabels(MethodSymbol containingMethod, StatementSyntax statement, ref ArrayBuilder<LabelSymbol> labels)
+        {
+            while (statement.Kind() == SyntaxKind.LabeledStatement)
+            {
+                var labeledStatement = (LabeledStatementSyntax)statement;
+                if (labels == null)
+                {
+                    labels = ArrayBuilder<LabelSymbol>.GetInstance();
                 }
+
+                var labelSymbol = new SourceLabelSymbol(containingMethod, labeledStatement.Identifier);
+                labels.Add(labelSymbol);
+                statement = labeledStatement.Statement;
             }
         }
 

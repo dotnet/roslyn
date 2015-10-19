@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return outliner.GetOutliningSpans(lambdaExpression, CancellationToken.None).WhereNotNull()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestInClassScope()
             Dim syntaxTree = ParseLines("Class Class1",
                                   "Dim r = Sub()",
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestInMethodScope()
             Dim syntaxTree = ParseLines("Class Class1",
                                   "Sub Method1()",
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestFunction()
             Dim syntaxTree = ParseLines("Class Class1",
                                   "Dim r = Function(x As Integer, y As List(Of String)) As Func(Of Integer, Func(Of String, Integer))",
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestInArgumentContext()
             Dim syntaxTree = ParseLines("Class Class1",
                                   "Sub Main()",
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestLambdaWithReturnType()
             Dim syntaxTree = ParseLines("Class C1",
                                  "  Sub M1()",

@@ -604,7 +604,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // When the queue is completed with a pending DequeueAsync return then a 
                         // TaskCanceledException will be thrown.  This just signals the queue is 
                         // complete and we should finish processing it.
-                        Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
+
+                        // This failure is being tracked by https://github.com/dotnet/roslyn/issues/5962
+                        // Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
                         break;
                     }
 

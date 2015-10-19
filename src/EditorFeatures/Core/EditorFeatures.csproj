@@ -117,6 +117,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
@@ -220,6 +221,7 @@
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
     <Compile Include="Extensibility\Completion\ICustomCommitCompletionProvider.cs" />
+    <Compile Include="Extensibility\Completion\ICustomCompletionItemFormatter.cs" />
     <Compile Include="Extensibility\Completion\SnippetCompletionProvider.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionPresenterNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionProviderNames.cs" />
@@ -650,6 +652,7 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />

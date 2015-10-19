@@ -7,4 +7,19 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
     internal interface IAsyncToken : IDisposable
     {
     }
+
+    internal sealed class EmptyAsyncToken : IAsyncToken
+    {
+        public static IAsyncToken Instance { get; } = new EmptyAsyncToken();
+
+        private EmptyAsyncToken()
+        {
+
+        }
+
+        public void Dispose()
+        {
+
+        }
+    }
 }

@@ -310,8 +310,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     _normalPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
 
-                    var projectItems = items
-                        .Select(i => i.With(null, i.ProjectId, _listener.BeginAsyncOperation("WorkItem")));
+                    var projectItems = items.Select(i => i.With(null, i.ProjectId, EmptyAsyncToken.Instance));
                     _lowPriorityProcessor.WaitUntilCompletion_ForTestingPurposesOnly(analyzers, items);
                 }
 

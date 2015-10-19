@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
 #If False Then
         ' TODO(jasonmal): Figure out how to enable these tests.
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ServiceNotCompletingShouldCallNextHandler()
             _endConstructServiceMock.Setup(Function(s) s.TryDo(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of Char))).Returns(False)
             _featureOptions.Setup(Function(s) s.GetOption(FeatureOnOffOptions.EndConstruct)).Returns(True)
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
             Assert.True(nextHandlerCalled)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub ServiceCompletingShouldCallNextHandler()
             _endConstructServiceMock.Setup(Function(s) s.TryDo(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of Char))).Returns(True)
             _featureOptions.Setup(Function(s) s.GetOption(FeatureOnOffOptions.EndConstruct)).Returns(True)
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 #End If
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(544556)>
         Public Sub EndConstruct_AfterCodeCleanup()
             Dim code = <code>Class C
@@ -68,7 +68,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {4, -1}, expected, {5, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(546798)>
         Public Sub EndConstruct_AfterCodeCleanup_FormatOnlyTouched()
             Dim code = <code>Class C1
@@ -87,7 +87,7 @@ End Class</code>.Value.Replace(vbLf, vbCrLf)
             VerifyAppliedAfterReturnUsingCommandHandler(code, {2, 29}, expected, {3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(531347)>
         Public Sub EndConstruct_AfterCodeCleanup_FormatOnly_WhenContainsDiagnostics()
             Dim code = <code>Module Program
@@ -113,7 +113,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)
         End Sub
 
         <WorkItem(628656)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub EndConstruct_NotOnLineFollowingToken()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",

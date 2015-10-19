@@ -84,5 +84,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return false;
         }
+
+        public static IEnumerable<Document> GetLinkedDocuments(this Document document)
+        {
+            var solution = document.Project.Solution;
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
+            {
+                yield return solution.GetDocument(linkedDocumentId);
+            }
+        }
     }
 }

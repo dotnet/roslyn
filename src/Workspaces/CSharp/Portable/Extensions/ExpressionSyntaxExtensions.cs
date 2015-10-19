@@ -1466,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (InsideNameOfExpression(name, semanticModel))
             {
-                // Nullable<T> can't be simplified to T? in nameof expresions.
+                // Nullable<T> can't be simplified to T? in nameof expressions.
                 return false;
             }
 

@@ -462,18 +462,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             private void DisplaySubmissionResult(ScriptState<object> state)
             {
-                bool hasValue;
-                var resultType = state.Script.GetCompilation().GetSubmissionResultType(out hasValue);
-                if (hasValue)
+                if (state.Script.HasReturnValue())
                 {
-                    if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                    {
-                        Console.Out.WriteLine(_replServiceProvider.ObjectFormatter.VoidDisplayString);
-                    }
-                    else
-                    {
-                        _globals.Print(state.ReturnValue);
-                    }
+                    _globals.Print(state.ReturnValue);
                 }
             }
 
@@ -518,12 +509,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 ScriptOptions newOptions = state.ScriptOptions;
                 if (changedReferencePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomMetadataResolution(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithMetadataResolver(CreateMetadataReferenceResolver(newReferencePaths, newWorkingDirectory));
                 }
 
                 if (changedSourcePaths != null || changedWorkingDirectory != null)
                 {
-                    newOptions = newOptions.WithCustomSourceResolution(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
+                    newOptions = newOptions.WithSourceResolver(CreateSourceReferenceResolver(newSourcePaths, newWorkingDirectory));
                 }
 
                 return new EvaluationState(
@@ -750,7 +741,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 Script script;
 
-                var scriptOptions = options.WithPath(path).WithIsInteractive(path == null);
+                var scriptOptions = options.WithFilePath(path);
 
                 if (previousScript != null)
                 {
@@ -761,14 +752,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                     script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _globals.GetType(), _assemblyLoader);
                 }
 
-                // force build so exception is thrown now if errors are found.
-                try
+                var diagnostics = script.Build();
+                if (diagnostics.HasAnyErrors())
                 {
-                    script.Build();
-                }
-                catch (CompilationErrorException e)
-                {
-                    DisplayInteractiveErrors(e.Diagnostics, Console.Error);
+                    DisplayInteractiveErrors(diagnostics, Console.Error);
                     return null;
                 }
 

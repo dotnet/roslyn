@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
         Private _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(
             TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithPart(GetType(StubVsEditorAdaptersFactoryService)))
 
-        <Fact>
+        <WpfFact>
         Public Sub TestListStructure()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(<text>
 Class C
@@ -55,7 +55,7 @@ Class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1036455)>
+        <WpfFact, WorkItem(1036455)>
         Public Sub TestListStructure_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
@@ -115,7 +115,7 @@ Class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestCheckedItems()
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(<text>
 Class C
@@ -158,7 +158,7 @@ Class C
             End Using
         End Sub
 
-        <Fact, WorkItem(1036455)>
+        <WpfFact, WorkItem(1036455)>
         Public Sub TestCheckedItems_AddedDeletedDocuments()
             Dim workspaceXml =
                 <Workspace>
@@ -197,7 +197,7 @@ Class C
                 Dim addedDocumentId2 = DocumentId.CreateNewId(docId.ProjectId)
                 Dim addedDocumentText = "// This file will be added!"
                 newSolution = newSolution.AddDocument(addedDocumentId1, "test4.cs", addedDocumentText)
-                newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be be unchecked and not added!")
+                newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
                 Dim previewEngine = New PreviewEngine(
                     "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,
@@ -238,7 +238,7 @@ Class C
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestLinkedFileChangesMergedAndDeduplicated()
 
             Dim workspaceXml = <Workspace>

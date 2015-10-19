@@ -11,7 +11,7 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class IfBlockTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterSimpleIfThen()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterLineIfNextToThen()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterLineIfWithMultipleStatements()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterLineIfNextToStatement()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifySingleLineIfWithMultiLineLambda()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifySingleLineIfThenElse()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyNestedIf()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536441)>
         Public Sub VerifyNestedSingleLineIf()
             VerifyStatementEndConstructApplied(
@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyAddingElseIf()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyIfWithImplicitLC()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={4, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyReCommitWithCode()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyReCommitWithoutCode()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={2, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyWithMultiLineChar()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={2, -1})
         End Sub
 
-        <Fact, WorkItem(539576), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, WorkItem(539576), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyWithSkippedTokens()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInvalidMissingEndIf()
             VerifyStatementEndConstructNotApplied(
                 text:={"Class C",
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={3, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyIfInInvalidCode()
             VerifyStatementEndConstructNotApplied(
                 text:={"If True Then",
@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 caret:={1, -1})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub VerifyInternationalCharacter()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",
@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WorkItem(540204)>
-        <Fact(skip:="528838"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        <WpfFact(skip:="528838"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub BugFix6380()
             VerifyStatementEndConstructApplied(
                 before:={<code>Imports System
@@ -346,7 +346,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)},
                 afterCaret:={8, 12})
         End Sub
 
-        <Fact(Skip:="890307"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544523)>
+        <WpfFact(Skip:="890307"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544523)>
         Public Sub VerifyRewriteOfIfWithColons()
             VerifyStatementEndConstructApplied(
                 before:={"Class C",
@@ -365,7 +365,7 @@ End Module</code>.Value.Replace(vbLf, vbCrLf)},
                 afterCaret:={3, 12})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530648)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530648)>
         Public Sub VerifyRewriteOfIfWithEmptyStatement()
             ' Verify the caret is at the beginning of line 3 here.  In VS, it will be moved to the
             ' correct virtual offset as part of the edit.  This is an edge case that we really just

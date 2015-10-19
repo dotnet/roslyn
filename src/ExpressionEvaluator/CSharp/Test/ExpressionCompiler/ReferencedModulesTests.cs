@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     "(new B()).F",
                     DkmEvaluationFlags.None,
                     NoAliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
                     out missingAssemblyIdentities,
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     "(new B()).F",
                     DkmEvaluationFlags.None,
                     NoAliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
                     out missingAssemblyIdentities,
@@ -404,7 +404,7 @@ public class B
 
                 // Duplicate extension method, at method scope.
                 ExpressionCompilerTestHelpers.CompileExpressionWithRetry(blocks, "x.F()", ImmutableArray<Alias>.Empty, contextFactory, getMetaDataBytesPtr: null, errorMessage: out errorMessage, testData: out testData);
-                Assert.Equal(errorMessage, "(1,3): error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
+                Assert.Equal(errorMessage, "error CS0121: The call is ambiguous between the following methods or properties: 'N.E.F(A)' and 'N.E.F(A)'");
 
                 // Same tests as above but in library that does not directly reference duplicates.
                 GetContextState(runtime, "A", out blocks, out moduleVersionId, out symReader, out typeToken, out localSignatureToken);
@@ -607,10 +607,10 @@ class C
                 options: TestOptions.DebugDll,
                 assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             compilation.VerifyDiagnostics(
-                // (5,31): error CS0433: The type 'Console' exists in both 'System.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                // error CS0433: The type 'Console' exists in both 'System.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 //         var t = typeof(System.Console);
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "Console").WithArguments("System.Console, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Console", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(5, 31),
-                // (6,49): error CS0433: The type 'ReadOnlyDictionary<K, V>' exists in both 'System.ObjectModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                // error CS0433: The type 'ReadOnlyDictionary<K, V>' exists in both 'System.ObjectModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 //         var o = (System.Collections.ObjectModel.ReadOnlyDictionary<object, object>)null;
                 Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "ReadOnlyDictionary<object, object>").WithArguments("System.ObjectModel, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "System.Collections.ObjectModel.ReadOnlyDictionary<K, V>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(6, 49));
 

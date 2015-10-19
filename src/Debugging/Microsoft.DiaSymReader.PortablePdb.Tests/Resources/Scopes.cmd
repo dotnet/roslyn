@@ -1,4 +1,4 @@
-csc /target:library /debug+ /features:pdb=portable /optimize- /features:deterministic Async.cs
-copy /y Async.pdb Async.pdbx
-del Async.pdb
+csc /target:library /debug:portable /optimize- /deterministic Scopes.cs
+copy /y Scopes.pdb Scopes.pdbx
+del Scopes.pdb
 
