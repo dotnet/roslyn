@@ -16,26 +16,32 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundSwitchStatement BindPatternSwitch(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
-            throw new NotImplementedException();
+            // Note that this is technically a lowering of the switch statement. We should instead
+            // be *binding* it here and *lowering* it later, in the lowering phase. The two are
+            // combined here for the purposes of prototyping the pattern-matching feature.
+            // The separation will be useful in
+            // the full implementation to simplify subsumption checking (no case is subsumed by the
+            // totality of previous cases).
+
+            var boundSwitchExpression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+
+            throw new NotImplementedException("switch binder for pattern matching");
         }
 
         private bool IsPatternSwitch(SwitchStatementSyntax node)
         {
-            return false;
-            //bool result = false;
+            foreach (var section in node.Sections)
+            {
+                foreach (var label in section.Labels)
+                {
+                    if (label.Kind() == SyntaxKind.CaseMatchLabel) return true;
+                }
+            }
 
-            //foreach (var section in node.Sections)
-            //{
-            //    foreach (var label in section.Labels)
-            //    {
-            //        if (label.Kind() == SyntaxKind.CaseMatchLabel) result = true;
-            //        CaseMatchLabelSyntax s;
-            //    }
-            //}
-            //// We transate all switch statements as a series of if-then-else for the prototype.
-            //// In the full implementation we should have unified handling of "traditional" and
-            //// pattern-based switch statements.
-            //return true;
+            // We transate all switch statements as a series of if-then-else for the prototype.
+            // In the full implementation we should have unified handling of "traditional" and
+            // pattern-based switch statements.
+            return Compilation.Feature("patterns") != null;
         }
     }
 }
