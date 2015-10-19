@@ -4,10 +4,10 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal static class Csi
     {

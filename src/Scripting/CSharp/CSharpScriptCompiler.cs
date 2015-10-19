@@ -3,9 +3,10 @@
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Scripting
 {
     internal sealed class CSharpScriptCompiler : ScriptCompiler
     {
