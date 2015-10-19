@@ -44,13 +44,13 @@ End Class
                 "Me.get_P()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData:=Nothing)
-            Assert.Equal("(1,2): error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
+            Assert.Equal("error BC30456: 'get_P' is not a member of 'C'.", errorMessage)
         End Sub
 
         <Fact>

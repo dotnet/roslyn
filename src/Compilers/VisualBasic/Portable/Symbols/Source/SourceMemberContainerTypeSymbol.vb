@@ -2772,7 +2772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim syntaxRef = SyntaxReferences.Single()
                 Dim scriptInitializer = New SynthesizedInteractiveInitializerMethod(syntaxRef, Me, diagnostics)
                 AddSymbolToMembers(scriptInitializer, members.Members)
-                Dim scriptEntryPoint = SynthesizedEntryPointSymbol.Create(Me, scriptInitializer.ReturnType, diagnostics)
+                Dim scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics)
                 AddSymbolToMembers(scriptEntryPoint, members.Members)
             End If
         End Sub

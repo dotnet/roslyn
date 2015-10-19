@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New MultiLineIfBlockHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineIf1()
             Test(<Text><![CDATA[
 Class C
@@ -26,7 +26,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineIf2()
             Test(<Text><![CDATA[
 Class C
@@ -42,7 +42,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineIf3()
             Test(<Text><![CDATA[
 Class C
@@ -58,7 +58,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineIf4()
             Test(<Text><![CDATA[
 Class C
@@ -74,7 +74,7 @@ End Sub
 End Class]]></Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineIf5()
             Test(<Text><![CDATA[
 Class C
@@ -91,7 +91,7 @@ End Class]]></Text>)
         End Sub
 
         <WorkItem(542614)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestMultilineIf6()
             Test(<Text><![CDATA[
 Imports System

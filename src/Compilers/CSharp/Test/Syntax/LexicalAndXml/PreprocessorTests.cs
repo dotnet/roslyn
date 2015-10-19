@@ -3830,7 +3830,7 @@ static void Main() { }
         public void TestLoadWithoutFile()
         {
             var text = "#load";
-            var node = Parse(text, SourceCodeKind.Interactive);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text, disallowErrors: false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_ExpectedPPFile);
             VerifyDirectivesSpecial(node, new DirectiveInfo
@@ -3845,7 +3845,7 @@ static void Main() { }
         public void TestLoadWithSemicolon()
         {
             var text = "#load \"\";";
-            var node = Parse(text, SourceCodeKind.Interactive);
+            var node = Parse(text, SourceCodeKind.Script);
             TestRoundTripping(node, text, disallowErrors: false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
             VerifyDirectivesSpecial(node, new DirectiveInfo

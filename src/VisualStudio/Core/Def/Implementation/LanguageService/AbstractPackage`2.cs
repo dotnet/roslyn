@@ -29,7 +29,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             base.Initialize();
 
-            _foregroundObject = ForegroundThreadAffinitizedObject.Initialize();
+            var defaultForegroundThreadData = ForegroundThreadData.CreateDefault();
+            ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = defaultForegroundThreadData;
+            _foregroundObject = new ForegroundThreadAffinitizedObject(defaultForegroundThreadData);
 
             foreach (var editorFactory in CreateEditorFactories())
             {

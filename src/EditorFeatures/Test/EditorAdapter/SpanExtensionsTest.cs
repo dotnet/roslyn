@@ -4,13 +4,14 @@ using System;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorAdapter
 {
     public class SpanExtensionsTest
     {
-        [Fact]
+        [WpfFact]
         public void ConvertToTextSpan()
         {
             Action<int, int> del = (start, length) =>

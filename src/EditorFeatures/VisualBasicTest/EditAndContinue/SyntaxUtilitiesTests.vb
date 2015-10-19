@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
             Next
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FindPartner1()
             Dim source1 = "
 Imports System

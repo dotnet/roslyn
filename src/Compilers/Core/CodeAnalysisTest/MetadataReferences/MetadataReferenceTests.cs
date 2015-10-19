@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var r = MetadataReference.CreateFromStream(new MemoryStream(TestResources.SymbolsTests.Metadata.InvalidPublicKey, writable: false));
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
 
-            Assert.Throws<BadImageFormatException>(((AssemblyMetadata)r.GetMetadata()).GetAssembly);
+            Assert.Throws<BadImageFormatException>((Func<object>)((AssemblyMetadata)r.GetMetadata()).GetAssembly);
         }
     }
 }

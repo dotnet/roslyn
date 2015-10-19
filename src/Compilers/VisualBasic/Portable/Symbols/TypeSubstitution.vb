@@ -866,6 +866,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New TypeWithModifiers(type, customModifiers).InternalSubstituteTypeParameters(Me).CustomModifiers
             End If
 
+            Return SubstituteCustomModifiers(customModifiers)
+        End Function
+
+        Function SubstituteCustomModifiers(customModifiers As ImmutableArray(Of CustomModifier)) As ImmutableArray(Of CustomModifier)
+
+            If customModifiers.IsDefaultOrEmpty Then
+                Return customModifiers
+            End If
+
+            For i As Integer = 0 To customModifiers.Length - 1
+                Dim modifier = DirectCast(customModifiers(i).Modifier, NamedTypeSymbol)
+                Dim substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
+
+                If modifier <> substituted Then
+                    Dim builder = ArrayBuilder(Of CustomModifier).GetInstance(customModifiers.Length)
+                    builder.AddRange(customModifiers, i)
+                    builder.Add(If(customModifiers(i).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
+
+                    For j As Integer = i + 1 To customModifiers.Length - 1
+                        modifier = DirectCast(customModifiers(j).Modifier, NamedTypeSymbol)
+                        substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
+
+                        If modifier <> substituted Then
+                            builder.Add(If(customModifiers(j).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
+                        Else
+                            builder.Add(customModifiers(j))
+                        End If
+                    Next
+
+                    Debug.Assert(builder.Count = customModifiers.Length)
+                    Return builder.ToImmutableAndFree()
+                End If
+            Next
+
             Return customModifiers
         End Function
 

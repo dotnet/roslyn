@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IForegroundNotificationService _foregroundNotificationService;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IDocumentTrackingService _documentTrackingService;
 
         public VisualStudioErrorReportingService(
             VisualStudioWorkspaceImpl workspace, IForegroundNotificationService foregroundNotificationService, IAsynchronousOperationListener listener)
@@ -29,20 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _workspace = workspace;
             _foregroundNotificationService = foregroundNotificationService;
             _listener = listener;
-
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
         }
 
         public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked)
         {
-            var documentId = _documentTrackingService.GetActiveDocument();
-
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
             _foregroundNotificationService.RegisterNotification(() =>
             {
                 IVsWindowFrame frame;
                 IVsInfoBarUIFactory factory;
-                if (_workspace.TryGetInfoBarData(documentId, out frame, out factory))
+                if (_workspace.TryGetInfoBarData(out frame, out factory))
                 {
                     CreateInfoBar(codefixName, OnEnableClicked, OnEnableAndIgnoreClicked, frame, factory);
                 }

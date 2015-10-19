@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.SwitchStatement:
                     // Note: Any nested statements in the switch will already have been hit on the
                     // way up.  Similarly, hitting a 'case' label will already have been taken care
-                    // of.  So i nthis case, we just set the bp on the "switch(expr)" itself.
+                    // of.  So in this case, we just set the bp on the "switch(expr)" itself.
                     var switchStatement = (SwitchStatementSyntax)statement;
                     return CreateSpan(switchStatement, switchStatement.CloseParenToken);
 
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     // Note: if the user was in the body of the 'try', then we would have hit its nested
                     // statement on the way up.  This means we must be on the "try" part.  In this case,
                     // just set the BP on the start of the block.  Note: if they were in a catch or
-                    // finally section, then then that will already have been taken care of above.
+                    // finally section, then that will already have been taken care of above.
                     var tryStatement = (TryStatementSyntax)statement;
                     return TryCreateSpanForStatement(tryStatement.Block, position);
 

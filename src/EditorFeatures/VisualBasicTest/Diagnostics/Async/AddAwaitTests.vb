@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
     Public Class AddAwaitTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub TaskNotAwaited()
             Test(
                 NewLines("Imports System \n Imports System.Threading.Tasks \n Module Program \n Async Sub MySub() \n [|Task.Delay(3)|] \n End Sub \n End Module"),
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Async
 )
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub TaskNotAwaited_WithLeadingTrivia()
             Dim initial =
 <File>
@@ -46,7 +46,7 @@ End Module
             Test(initial, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub BadAsyncReturnOperand1()
             Dim initial =
 <File>
@@ -85,7 +85,7 @@ End Module
             Test(initial, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub FunctionNotAwaited()
             Dim initial =
 <File>
@@ -125,7 +125,7 @@ End Module
             Test(initial, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub FunctionNotAwaited_WithLeadingTrivia()
             Dim initial =
 <File>
@@ -169,7 +169,7 @@ End Module
             Test(initial, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub SubLambdaNotAwaited()
             Dim initial =
 <File>
@@ -205,7 +205,7 @@ End Module
             Test(initial, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAwait)>
         Public Sub FunctionLambdaNotAwaited()
             Dim initial =
 <File>

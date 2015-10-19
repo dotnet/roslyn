@@ -1844,7 +1844,7 @@ namespace CSharpSyntaxGenerator
             }
             else
             {
-                // otherwise, if there there is a single optional node, use that..
+                // otherwise, if there is a single optional node, use that..
                 int nodeCount = nd.Fields.Count(f => IsNode(f.Type) && f.Type != "SyntaxToken");
                 if (nodeCount == 1)
                 {

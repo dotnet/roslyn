@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "this.$exception",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             context.CompileExpression(
                 "23#",
                 out error);
-            Assert.Equal(error, "(1,1): error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.");
+            Assert.Equal(error, "error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.");
         }
 
         [Fact]
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "s.F + 1",
                 DkmEvaluationFlags.TreatAsExpression,
                 aliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "a[b[1, 0]].F",
                 DkmEvaluationFlags.TreatAsExpression,
                 aliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -631,7 +631,7 @@ class C
                 target: "e",
                 expr: "$exception.InnerException ?? $exception",
                 aliases: aliases,
-                formatter: DiagnosticFormatter.Instance,
+                formatter: DebuggerDiagnosticFormatter.Instance,
                 resultProperties: out resultProperties,
                 error: out error,
                 missingAssemblyIdentities: out missingAssemblyIdentities,
@@ -1084,7 +1084,7 @@ class B
                     "o",
                     "$1",
                     aliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out error,
                     out missingAssemblyIdentities,

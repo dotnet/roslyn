@@ -1726,7 +1726,7 @@ End Module]]>,
     <error id="31165"/>
 </errors>)
         'Note that the characters after "<?xml " upto and including "</>" above
-        'are are full-width unicode characters (not ascii).
+        'are full-width unicode characters (not ascii).
     End Sub
 
     <WorkItem(927834, "DevDiv/Personal")>

@@ -125,15 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This compilation doesn&apos;t represent an interactive submission..
-        '''</summary>
-        Friend ReadOnly Property CompilationDoesNotRepresentInteractiveSubmission() As String
-            Get
-                Return ResourceManager.GetString("CompilationDoesNotRepresentInteractiveSubmission", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Compilation (Visual Basic): .
         '''</summary>
         Friend ReadOnly Property CompilationVisualBasic() As String
@@ -11713,7 +11704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to partial interafces.
+        '''  Looks up a localized string similar to partial interfaces.
         '''</summary>
         Friend ReadOnly Property FEATURE_PartialInterfaces() As String
             Get

@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser = New SynthesizedLocalOrdinalsDispenser()
         Private _uniqueNameId As Integer
 
-        ' label used when when return is emitted in a form of store/goto
+        ' label used when return is emitted in a form of store/goto
         Private Shared ReadOnly s_returnLabel As New Object
 
         Private _unhandledReturn As Boolean

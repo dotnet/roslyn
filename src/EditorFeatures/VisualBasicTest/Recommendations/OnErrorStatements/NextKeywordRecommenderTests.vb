@@ -9,19 +9,19 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OnErrorStatements
     Public Class NextKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterOnErrorResume()
             VerifyRecommendationsAreExactly(<MethodBody>On Error Resume |</MethodBody>, "Next")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextAfterResumeStatement()
             VerifyRecommendationsAreExactly(<MethodBody>Resume |</MethodBody>, "Next")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInLambdaAfterResume()
             ' On Error statements are never allowed within lambdas
@@ -31,7 +31,7 @@ Dim x = Sub()
 End Sub</MethodBody>, "Next")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NextNotInLambdaAfterOnErrorResume()
             ' On Error statements are never allowed within lambdas
@@ -42,7 +42,7 @@ End Sub</MethodBody>, "Next")
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <MethodBody>On Error Resume 
@@ -50,7 +50,7 @@ End Sub</MethodBody>, "Next")
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>On Error Resume _

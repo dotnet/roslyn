@@ -9,7 +9,7 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class ExplicitOptionsRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub OptionsAfterOptionExplicit()
             VerifyRecommendationsAreExactly(<File>Option Explicit |</File>, "On", "Off")

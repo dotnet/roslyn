@@ -66,11 +66,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+            Dim newCustomModifiers = If(substitution IsNot Nothing, substitution.SubstituteCustomModifiers(Me.CustomModifiers), Me.CustomModifiers)
             Dim newTypeWithModifiers As TypeWithModifiers = Me.Type.InternalSubstituteTypeParameters(substitution)
-            If Not newTypeWithModifiers.Is(Me.Type) Then
-                Return New TypeWithModifiers(newTypeWithModifiers.Type, Me.CustomModifiers.Concat(newTypeWithModifiers.CustomModifiers))
+            If Not newTypeWithModifiers.Is(Me.Type) OrElse newCustomModifiers <> Me.CustomModifiers Then
+                Return New TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers))
             Else
-                Return Me ' substitution had no effect on the type
+                Return Me ' substitution had no effect on the type or modifiers
             End If
         End Function
     End Structure

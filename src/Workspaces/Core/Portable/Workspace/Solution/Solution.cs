@@ -2120,7 +2120,7 @@ namespace Microsoft.CodeAnalysis
                 return result.Value;
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {
@@ -2140,7 +2140,7 @@ namespace Microsoft.CodeAnalysis
                 return ConvertTreesToDocuments(id, trees);
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {

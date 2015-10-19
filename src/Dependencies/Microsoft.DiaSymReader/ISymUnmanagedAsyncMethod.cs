@@ -12,13 +12,13 @@ namespace Microsoft.DiaSymReader
     public interface ISymUnmanagedAsyncMethod
     {
         [PreserveSig]
-        int IsAsyncMethod(out bool value);
+        int IsAsyncMethod([MarshalAs(UnmanagedType.Bool)]out bool value);
 
         [PreserveSig]
         int GetKickoffMethod(out int kickoffMethodToken);
 
         [PreserveSig]
-        int HasCatchHandlerILOffset(out bool offset);
+        int HasCatchHandlerILOffset([MarshalAs(UnmanagedType.Bool)]out bool offset);
 
         [PreserveSig]
         int GetCatchHandlerILOffset(out int offset);

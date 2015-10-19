@@ -147,11 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                 }
 
-                var shouldComplexifyNode =
-                    !isInConflictLambdaBody &&
-                    _skipRenameForComplexification == 0 &&
-                    !_isProcessingComplexifiedSpans &&
-                    _conflictLocations.Contains(node.Span);
+                var shouldComplexifyNode = ShouldComplexifyNode(node, isInConflictLambdaBody);
 
                 SyntaxNode result;
 
@@ -170,6 +166,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return result;
+            }
+
+            private bool ShouldComplexifyNode(SyntaxNode node, bool isInConflictLambdaBody)
+            {
+                return !isInConflictLambdaBody &&
+                       _skipRenameForComplexification == 0 &&
+                       !_isProcessingComplexifiedSpans &&
+                       _conflictLocations.Contains(node.Span) &&
+                       (node is AttributeSyntax ||
+                        node is AttributeArgumentSyntax ||
+                        node is ConstructorInitializerSyntax ||
+                        node is ExpressionSyntax ||
+                        node is FieldDeclarationSyntax ||
+                        node is StatementSyntax ||
+                        node is CrefSyntax ||
+                        node is XmlNameAttributeSyntax ||
+                        node is TypeConstraintSyntax ||
+                        node is BaseTypeSyntax);
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
@@ -875,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     }
                 }
 
-                // if the renamed symbol is a type member, it's name should not coflict with a type parameter
+                // if the renamed symbol is a type member, it's name should not conflict with a type parameter
                 if (renamedSymbol.ContainingType != null && renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol))
                 {
                     foreach (var typeParameter in renamedSymbol.ContainingType.TypeParameters)

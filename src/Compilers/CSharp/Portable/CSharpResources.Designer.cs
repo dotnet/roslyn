@@ -62,15 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot have a previousSubmission when not a submission..
-        /// </summary>
-        internal static string CannotHavePreviousSubmission {
-            get {
-                return ResourceManager.GetString("CannotHavePreviousSubmission", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -899,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;async&apos; modifier can only be used in methods that have a statement body..
+        ///   Looks up a localized string similar to The &apos;async&apos; modifier can only be used in methods that have a body..
         /// </summary>
         internal static string ERR_BadAsyncLacksBody {
             get {
@@ -1048,6 +1039,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadAwaitInQuery {
             get {
                 return ResourceManager.GetString("ERR_BadAwaitInQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;await&apos; operator cannot be used in a static script variable initializer..
+        /// </summary>
+        internal static string ERR_BadAwaitInStaticVariableInitializer {
+            get {
+                return ResourceManager.GetString("ERR_BadAwaitInStaticVariableInitializer", resourceCulture);
             }
         }
         
@@ -8198,7 +8198,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Auto-implemented property property &apos;{0}&apos; must be fully assigned before control is returned to the caller..
+        ///   Looks up a localized string similar to Auto-implemented property &apos;{0}&apos; must be fully assigned before control is returned to the caller..
         /// </summary>
         internal static string ERR_UnassignedThisAutoProperty {
             get {
@@ -9770,15 +9770,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TheStreamCannotBeWritten {
             get {
                 return ResourceManager.GetString("TheStreamCannotBeWritten", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This compilation doesn&apos;t represent an interactive submission..
-        /// </summary>
-        internal static string ThisCompilationNotInteractive {
-            get {
-                return ResourceManager.GetString("ThisCompilationNotInteractive", resourceCulture);
             }
         }
         

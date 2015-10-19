@@ -16,26 +16,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub EmptyFile()
             Check(<content></content>, <content></content>, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub SingleImportsStatement()
             Dim initial = <content>Imports A</content>
             Dim final = initial
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub MultipleClauses()
             Dim initial = <content>Imports C, B, A</content>
             Dim final = <content>Imports A, B, C</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub AliasesAtBottom()
             Dim initial =
 <content>Imports A = B
@@ -53,7 +53,7 @@ Imports D = E
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub MultipleStatementsMultipleClauses()
             Dim initial =
                 <content>Imports F
@@ -68,7 +68,7 @@ Imports F
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub SpecialCaseSystem()
             Dim initial =
 <content>Imports M2
@@ -85,7 +85,7 @@ Imports M2
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoNotSpecialCaseSystem()
             Dim initial =
 <content>Imports M2
@@ -103,7 +103,7 @@ Imports System.Linq
             Check(initial, final, False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub MissingNames()
             Dim initial =
     <content>Imports B
@@ -118,7 +118,7 @@ Imports B
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoNotTouchCommentsAtBeginningOfFile1()
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -143,7 +143,7 @@ namespace B { }</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoNotTouchCommentsAtBeginningOfFile2()
             Dim initial =
 <content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
@@ -168,7 +168,7 @@ namespace B { }</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoNotTouchCommentsAtBeginningOfFile3()
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -198,7 +198,7 @@ end namespace</content>
         End Sub
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoTouchCommentsAtBeginningOfFile1()
             Dim initial =
 <content>' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -222,7 +222,7 @@ namespace B { }</content>
         End Sub
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoTouchCommentsAtBeginningOfFile2()
             Dim initial =
 <content>'' Copyright (c) Microsoft Corporation.  All rights reserved. */
@@ -246,7 +246,7 @@ namespace B { }</content>
         End Sub
 
         <WorkItem(2480, "https://github.com/dotnet/roslyn/issues/2480")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoTouchCommentsAtBeginningOfFile3()
             Dim initial =
 <content>''' Copyright (c) Microsoft Corporation.  All rights reserved.
@@ -269,7 +269,7 @@ namespace B { }</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoNotSortIfEndIfBlocks()
             Dim initial =
 <content>Imports D
@@ -289,7 +289,7 @@ namespace D { }</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DuplicateUsings()
             Dim initial =
 <content>Imports A
@@ -300,7 +300,7 @@ Imports A</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub TrailingComments()
             Dim initial =
 <content>Imports D '/*03*/
@@ -319,7 +319,7 @@ Imports D '/*03*/
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub InsideRegionBlock()
             Dim initial =
     <content>#region Using directives
@@ -339,7 +339,7 @@ Imports C
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub NestedRegionBlock()
             Dim initial =
 <content>Imports C
@@ -353,7 +353,7 @@ Imports B</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub MultipleRegionBlocks()
             Dim initial =
     <content>#region Using directives
@@ -369,7 +369,7 @@ Imports B
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub InterleavedNewlines()
             Dim initial =
 <content>Imports B
@@ -392,7 +392,7 @@ end class</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub InsideIfEndIfBlock()
             Dim initial =
 <content>#if not X
@@ -411,7 +411,7 @@ Imports C
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub IfEndIfBlockAbove()
             Dim initial =
 <content>#if not X
@@ -427,7 +427,7 @@ Imports E</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub IfEndIfBlockMiddle()
             Dim initial =
 <content>Imports D
@@ -446,7 +446,7 @@ Imports G</content>
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub IfEndIfBlockBelow()
             Dim initial =
 <content>Imports D
@@ -462,7 +462,7 @@ Imports F
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub Korean()
             Dim initial =
     <content>Imports 하
@@ -500,7 +500,7 @@ Imports 하
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub DoNotSpecialCaseSystem1()
             Dim initial =
 <content>Imports B
@@ -528,7 +528,7 @@ Imports SystemZ
             Check(initial, final, False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         <WorkItem(538367)>
         Public Sub TestXml()
             Dim initial =
@@ -551,7 +551,7 @@ Imports <xmlns:zz="http://NextNamespace">
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub CaseSensitivity1()
             Dim initial =
 <content>Imports Bb
@@ -643,7 +643,7 @@ Imports ああ
             Check(initial, final, True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Organizing)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)>
         Public Sub CaseSensitivity2()
             Dim initial =
 <content>Imports あ

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
                 // Register to hear about diagnostics changing.  When we're notified about new
                 // diagnostics (and those diagnostics are for our buffer), we'll ensure that
-                // we have an underlying tagger responsible for asynchrounously handling diagnostics
+                // we have an underlying tagger responsible for asynchronously handling diagnostics
                 // from the owner of that diagnostic update.
                 _owner._diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     tagger.TagsChanged += OnUnderlyingTaggerTagsChanged;
                 }
 
-                // Let the provier know that there are new diagnostics.  It will then
+                // Let the provider know that there are new diagnostics.  It will then
                 // handle all the async processing of those diagnostics.
                 providerAndTagger.Item1.OnDiagnosticsUpdated(e, sourceText, editorSnapshot);
             }

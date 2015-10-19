@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _fieldName2index As Dictionary(Of String, Integer)
 
             ' field declaration bound node is created for fields with implicitly 
-            ' cpecified name to provide semantic info on those identifier;
+            ' specified name to provide semantic info on those identifier;
             ' the array builder is being created lazily if needed
             Private _fieldDeclarations As ArrayBuilder(Of BoundAnonymousTypePropertyAccess)
 

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
     public class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Brackets_1()
         {
             TestInMethod(@"

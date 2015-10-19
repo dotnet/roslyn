@@ -7,7 +7,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
 {
     public class ExpressionPrecedenceGenerationTests : AbstractCodeGenerationTests
     {
-        [Fact]
+        [WpfFact]
         public void TestAddMultiplyPrecedence1()
         {
             TestExpression(
@@ -20,7 +20,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(1 + 2) * 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddMultiplyPrecedence2()
         {
             TestExpression(
@@ -33,7 +33,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 * 2 + 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddMultiplyPrecedence3()
         {
             TestExpression(
@@ -46,7 +46,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 * (2 + 3)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAddMultiplyPrecedence4()
         {
             TestExpression(
@@ -59,7 +59,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 + 2 * 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBinaryAndOrPrecedence1()
         {
             TestExpression(
@@ -72,7 +72,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(1 Or 2) And 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBinaryAndOrPrecedence2()
         {
             TestExpression(
@@ -85,7 +85,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 And 2 Or 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBinaryAndOrPrecedence3()
         {
             TestExpression(
@@ -98,7 +98,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 And (2 Or 3)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestBinaryAndOrPrecedence4()
         {
             TestExpression(
@@ -111,7 +111,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 Or 2 And 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestLogicalAndOrPrecedence1()
         {
             TestExpression(
@@ -124,7 +124,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(1 OrElse 2) AndAlso 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestLogicalAndOrPrecedence2()
         {
             TestExpression(
@@ -137,7 +137,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 AndAlso 2 OrElse 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestLogicalAndOrPrecedence3()
         {
             TestExpression(
@@ -150,7 +150,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 AndAlso (2 OrElse 3)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestLogicalAndOrPrecedence4()
         {
             TestExpression(
@@ -163,7 +163,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "1 OrElse 2 AndAlso 3");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMemberAccessOffOfAdd1()
         {
             TestExpression(
@@ -176,7 +176,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(1 + 2).M");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestConditionalExpression1()
         {
             TestExpression(
@@ -189,7 +189,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 cs: "(E1 = E2) ? T : F");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestConditionalExpression2()
         {
             TestExpression(
@@ -205,7 +205,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 cs: "(E1 ? T1 : F1) + (E2 ? T2 : F2)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMemberAccessOffOfElementAccess()
         {
             TestExpression(
@@ -218,7 +218,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(1 + 2)(M)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMemberAccessOffOfIsExpression()
         {
             TestExpression(
@@ -231,7 +231,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(TypeOf a Is SomeType).M");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestIsOfMemberAccessExpression()
         {
             TestExpression(
@@ -244,7 +244,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "TypeOf a.M Is SomeType");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMemberAccessOffOfAsExpression()
         {
             TestExpression(
@@ -257,7 +257,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "TryCast(a, SomeType).M");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestAsOfMemberAccessExpression()
         {
             TestExpression(
@@ -270,7 +270,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "TryCast(a.M, SomeType)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMemberAccessOffOfNotExpression()
         {
             TestExpression(
@@ -282,7 +282,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(Not a).M");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNotOfMemberAccessExpression()
         {
             TestExpression(
@@ -294,7 +294,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "Not a.M");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMemberAccessOffOfCastExpression()
         {
             TestExpression(
@@ -307,7 +307,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "DirectCast(a, SomeType).M");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCastOfAddExpression()
         {
             TestExpression(
@@ -320,7 +320,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "DirectCast(a + b, SomeType)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNegateOfAddExpression()
         {
             TestExpression(
@@ -332,7 +332,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "-(a + b)");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestMemberAccessOffOfNegate()
         {
             TestExpression(
@@ -344,7 +344,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeGeneration
                 vb: "(-a).M");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestNegateOfMemberAccess()
         {
             TestExpression(f =>

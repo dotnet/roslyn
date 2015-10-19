@@ -32,7 +32,7 @@ End Class
                 expr:="$v",
                 aliases:=ImmutableArray(Of [Alias]).Empty,
                 errorMessage:=errorMessage)
-            Assert.Equal("(1,2): error BC30451: '$v' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: '$v' is not declared. It may be inaccessible due to its protection level.", errorMessage)
         End Sub
 
         <Fact>
@@ -48,13 +48,13 @@ End Class
                 "Global.$v",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData:=Nothing)
-            Assert.Equal("(1,2): error BC30456: '$v' is not a member of 'Global'.", errorMessage)
+            Assert.Equal("error BC30456: '$v' is not a member of 'Global'.", errorMessage)
         End Sub
 
         <Fact>
@@ -70,13 +70,13 @@ End Class
                 "Me.$v",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData:=Nothing)
-            Assert.Equal("(1,2): error BC30456: '$v' is not a member of 'C'.", errorMessage)
+            Assert.Equal("error BC30456: '$v' is not a member of 'C'.", errorMessage)
         End Sub
 
         <Fact>
@@ -449,7 +449,7 @@ End Class"
                 AssertEx.SetEqual(expectedNames, actualNames)
             Else
                 Assert.Equal(
-                    String.Format("(1,2): error BC30451: '{0}' is not declared. It may be inaccessible due to its protection level.", variableName),
+                    String.Format("error BC30451: '{0}' is not declared. It may be inaccessible due to its protection level.", variableName),
                     errorMessage)
             End If
         End Sub
@@ -464,7 +464,7 @@ End Class"
                 aliases:=ImmutableArray.Create(ReturnValueAlias()),
                 expr:="$ReturnValue(Of Object)",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1,14): error BC32045: '$ReturnValue' has no type parameters and so cannot have type arguments.", errorMessage)
+            Assert.Equal("error BC32045: '$ReturnValue' has no type parameters and so cannot have type arguments.", errorMessage)
 
             Const source = "
 Class C
@@ -553,7 +553,7 @@ End Class
                 "e",
                 "If($exception.InnerException, $exception)",
                 ImmutableArray.Create(ExceptionAlias()),
-                VisualBasicDiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
@@ -589,14 +589,14 @@ End Class
                 "$exception",
                 "Nothing",
                 ImmutableArray.Create(ExceptionAlias()),
-                VisualBasicDiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData)
             ' CONSIDER: ERR_LValueRequired would be clearer.
-            Assert.Equal("(1) : error BC30064: 'ReadOnly' variable cannot be the target of an assignment.", errorMessage)
+            Assert.Equal("error BC30064: 'ReadOnly' variable cannot be the target of an assignment.", errorMessage)
         End Sub
 
         <WorkItem(1100849)>
@@ -630,7 +630,7 @@ End Class
                 aliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,1): error BC30064: 'ReadOnly' variable cannot be the target of an assignment.")
+            Assert.Equal(errorMessage, "error BC30064: 'ReadOnly' variable cannot be the target of an assignment.")
             testData = New CompilationTestData()
             context.CompileExpression(
                 "F($exception)",
@@ -662,7 +662,7 @@ End Class
                 aliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,1): error BC30064: 'ReadOnly' variable cannot be the target of an assignment.")
+            Assert.Equal(errorMessage, "error BC30064: 'ReadOnly' variable cannot be the target of an assignment.")
             testData = New CompilationTestData()
             context.CompileExpression(
                 "F($ReturnValue)",
@@ -680,7 +680,7 @@ End Class
                 aliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,1): error BC30064: 'ReadOnly' variable cannot be the target of an assignment.")
+            Assert.Equal(errorMessage, "error BC30064: 'ReadOnly' variable cannot be the target of an assignment.")
             testData = New CompilationTestData()
             context.CompileExpression(
                 "F($1)",
@@ -966,7 +966,7 @@ End Class"
                     "o",
                     "$1",
                     aliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     resultProperties,
                     errorMessage,
                     missingAssemblyIdentities,

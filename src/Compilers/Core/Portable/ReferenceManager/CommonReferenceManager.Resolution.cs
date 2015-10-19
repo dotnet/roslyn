@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Index into an array of assemblies or an array of modules, depending on <see cref="Kind"/>.
+            /// Index into an array of assemblies (not including the assembly being built) or an array of modules, depending on <see cref="Kind"/>.
             /// </summary>
             public int Index
             {
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Only compare strong with strong (weak is never equivalent to strong and vice versa).
                     // In order to eliminate duplicate references we need to try to match their identities in both directions since 
-                    // ReferenceMatchesDefinition is not neccessarily symmetric.
+                    // ReferenceMatchesDefinition is not necessarily symmetric.
                     // (e.g. System.Numerics.Vectors, Version=4.1+ matches System.Numerics.Vectors, Version=4.0, but not the other way around.)
                     if (other.Identity.IsStrongName && 
                         IdentityComparer.ReferenceMatchesDefinition(identity, other.Identity) &&

@@ -151,9 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 }
 
                 var newStart = Math.Min(Math.Max(span.Start + delta, 0), length);
-                var newSpan = new TextSpan(newStart, newStart >= length ? 0 : span.Length);
-
-                list[i] = newSpan;
+                list[i] = new TextSpan(newStart, newStart >= length ? 0 : span.Length);
             }
 
             data.MemberRangeMap[newVersion] = list.ToImmutableArray();
@@ -260,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var versionsInTrackingMap = data.VersionTrackingMap.Keys;
                 var versionsInRangeMap = data.MemberRangeMap.Keys;
 
-                // there shoudn't be any version that is not in the version map
+                // there shouldn't be any version that is not in the version map
                 foreach (var version in versionsInRangeMap)
                 {
                     Contract.Requires(versionsInVersionMap.Contains(version));

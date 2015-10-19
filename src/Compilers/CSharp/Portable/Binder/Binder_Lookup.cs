@@ -244,29 +244,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 submissionSymbols.Clear();
 
+                var isCurrentSubmission = submission == Compilation;
+                var considerUsings = !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing));
+
+                Imports submissionImports;
+                if (!considerUsings)
+                {
+                    submissionImports = Imports.Empty;
+                }
+                else if (!this.Flags.Includes(BinderFlags.InLoadedSyntaxTree))
+                {
+                    submissionImports = submission.GetSubmissionImports();
+                }
+                else if (isCurrentSubmission)
+                {
+                    submissionImports = this.GetImports(basesBeingResolved);
+                }
+                else
+                {
+                    submissionImports = Imports.Empty;
+                }
+
                 // If a viable using alias and a matching member are both defined in the submission an error is reported elsewhere.
                 // Ignore the member in such case.
                 if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && (object)submission.ScriptClass != null)
                 {
                     LookupMembersWithoutInheritance(submissionSymbols, submission.ScriptClass, name, arity, options, originalBinder, submissionClass, diagnose, ref useSiteDiagnostics, basesBeingResolved);
-                }
 
-                // using aliases:
-                Imports imports = submission.GetSubmissionImports();
-                if (submissionSymbols.Symbols.Count > 0 && imports.IsUsingAlias(name, this.IsSemanticModelBinder))
-                {
-                    // using alias is ambiguous with another definition within the same submission iff the other definition is a 0-ary type or a non-type:
-                    Symbol existingDefinition = submissionSymbols.Symbols.First();
-                    if (existingDefinition.Kind == SymbolKind.NamedType && arity == 0 || existingDefinition.Kind != SymbolKind.NamedType)
+                    // NB: It doesn't matter that submissionImports hasn't been expanded since we're not actually using the alias target. 
+                    if (submissionSymbols.IsMultiViable &&
+                        considerUsings &&
+                        submissionImports.IsUsingAlias(name, originalBinder.IsSemanticModelBinder))
                     {
-                        CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictingAliasAndDefinition, name, existingDefinition.GetKindText());
-                        var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
-                        result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
-                        break;
+                        // using alias is ambiguous with another definition within the same submission iff the other definition is a 0-ary type or a non-type:
+                        Symbol existingDefinition = submissionSymbols.Symbols.First();
+                        if (existingDefinition.Kind != SymbolKind.NamedType || arity == 0)
+                        {
+                            CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictingAliasAndDefinition, name, existingDefinition.GetKindText());
+                            var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
+                            result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
+                            break;
+                        }
                     }
                 }
 
-                imports.LookupSymbolInAliases(originalBinder, submissionSymbols, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+                if (!submissionSymbols.IsMultiViable && considerUsings)
+                {
+                    if (!isCurrentSubmission)
+                    {
+                        submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);
+                    }
+
+                    // NB: We diverge from InContainerBinder here and only look in aliases.
+                    // In submissions, regular usings are bubbled up to the outermost scope.
+                    submissionImports.LookupSymbolInAliases(originalBinder, submissionSymbols, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+                }
 
                 if (lookingForOverloadsOfKind == null)
                 {
@@ -337,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this.IsSemanticModelBinder);
+            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
 
             foreach (var method in methods)
             {
@@ -611,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             int arity,
             LookupOptions options,
-            bool isCallerSemanticModel)
+            Binder originalBinder)
         {
         }
 
@@ -1493,10 +1525,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: optimize lookup (there might be many interactions in the chain)
             for (CSharpCompilation submission = Compilation; submission != null; submission = submission.PreviousSubmission)
             {
-                submission.GetSubmissionImports().AddLookupSymbolsInfoInAliases(this, result, options);
                 if ((object)submission.ScriptClass != null)
                 {
                     AddMemberLookupSymbolsInfoWithoutInheritance(result, submission.ScriptClass, options, originalBinder, scriptClass);
+                }
+
+                bool isCurrentSubmission = submission == Compilation;
+
+                // If we are looking only for labels we do not need to search through the imports.
+                if ((options & LookupOptions.LabelsOnly) == 0 && !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing)))
+                {
+                    var submissionImports = submission.GetSubmissionImports();
+                    if (!isCurrentSubmission)
+                    {
+                        submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);
+                    }
+
+                    // NB: We diverge from InContainerBinder here and only look in aliases.
+                    // In submissions, regular usings are bubbled up to the outermost scope.
+                    submissionImports.AddLookupSymbolsInfoInAliases(result, options, originalBinder);
                 }
             }
         }

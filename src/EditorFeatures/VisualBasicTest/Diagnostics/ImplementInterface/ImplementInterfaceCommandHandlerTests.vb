@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Implem
                 </Workspace>)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub FeatureDoesNothingIfDisabled()
             Using workspace = GetWorkspace("
 Imports System
@@ -76,7 +76,7 @@ End Interface")
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestInterfaceWithSingleSub()
             Dim code = <text>
 Imports System
@@ -100,7 +100,7 @@ End Interface</text>
         End Sub
 
         <WorkItem(544161)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestInterfacesWithDuplicateMember()
             Dim code = <text>
 Interface IFoo
@@ -128,7 +128,7 @@ End Class</text>
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestInterfaceWithManyMembers()
             Dim code = <text>
 Imports System
@@ -167,7 +167,7 @@ End Interface</text>
              Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestMultipleInterfaces()
             Dim code = <text>
 Imports System
@@ -197,7 +197,7 @@ End Interface</text>
                  Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestWrongCursorPlacement()
             Dim code = <text>
 Imports System
@@ -230,7 +230,7 @@ End Class</text>
 
         <WorkItem(530553)>
         <WorkItem(544087)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestInvocationAfterWhitespaceTrivia()
             Dim code = <text>
 Imports System
@@ -255,7 +255,7 @@ End Interface</text>
         End Sub
 
         <WorkItem(544089)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestInvocationAfterCommentTrivia()
             Dim code = <text>
 Imports System
@@ -279,7 +279,7 @@ End Interface</text>
                  Sub(expected, actual, view) AssertEx.AssertContainsToleratingWhitespaceDifferences(expected, actual))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestNoMembersToImplement()
             Dim code = <text>
 Class Foo
@@ -308,7 +308,7 @@ End Interface</text>
         End Sub
 
         <WorkItem(544211)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestWithEndBlockMissing()
             Dim code = <text>
 Imports System
@@ -334,7 +334,7 @@ End Class</text>
         End Sub
 
         <WorkItem(529302)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestWithEndBlockMissing2()
             Dim code = <text>
 Imports System
@@ -366,7 +366,7 @@ End Class</text>
         <WorkItem(530553)>
         <WorkItem(529337)>
         <WorkItem(674621)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestWithStatementSeparator()
             Dim code = <text>
 Imports System
@@ -400,7 +400,7 @@ End Class
         End Sub
 
         <WorkItem(529360)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestCursorNotOnSameLine()
             Dim code = <text>
 Imports System
@@ -435,7 +435,7 @@ End Class
         End Sub
 
         <WorkItem(529722)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestCursorPlacedOnBlankLineAfter()
             Dim code = <text>
 Imports System
@@ -470,7 +470,7 @@ End Class
         End Sub
 
         <WorkItem(545867)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestMultipleImplementationWithCaseDifference()
             Dim code = <text>
 Interface IA
@@ -506,7 +506,7 @@ End Class</text>
         End Sub
 
         <WorkItem(927478)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestFullyQualifiedName()
             Dim code = <text>
 Namespace N

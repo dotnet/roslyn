@@ -876,8 +876,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: nullable forms of those types. For each of the predefined implicit identity and numeric conversions
             // SPEC: that convert from a non-nullable value type S to a non-nullable value type T, the following implicit 
             // SPEC: nullable conversions exist:
-            // SPEC: â€¢ An implicit conversion from S? to T?.
-            // SPEC: â€¢ An implicit conversion from S to T?.
+            // SPEC: * An implicit conversion from S? to T?.
+            // SPEC: * An implicit conversion from S to T?.
             if (!destination.IsNullableType())
             {
                 return false;

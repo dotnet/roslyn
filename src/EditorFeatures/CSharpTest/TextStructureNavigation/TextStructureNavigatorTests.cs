@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
 {
     public class TextStructureNavigatorTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Empty()
         {
             AssertExtent(
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: 0, length: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Whitespace()
         {
             AssertExtent(
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: 0, length: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void EndOfFile()
         {
             AssertExtent(
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: 12, length: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void NewLine()
         {
             AssertExtent(
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: 16, length: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void SingleLineComment()
         {
             AssertExtent(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: 3, length: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void MultiLineComment()
         {
             AssertExtent(
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                start: 11, length: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Keyword()
         {
             for (int i = 7; i <= 7 + 4; i++)
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Identifier()
         {
             for (int i = 13; i <= 13 + 8; i++)
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void EscapedIdentifier()
         {
             for (int i = 12; i <= 12 + 9; i++)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void Number()
         {
             for (int i = 37; i <= 37 + 10; i++)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void String()
         {
             const string TestString = "class Test { private string s1 = \" () test  \"; }";
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
                 start: TestString.LastIndexOf('"') + 1, length: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void InterpolatedString1()
         {
             const string TestString = "class Test { string x = \"hello\"; string s = $\" { x } hello\"; }";
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void GetSpanOfEnclosingTest()
         {
             // First operation returns span of 'Class1'
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             TestNavigator("class Class1 { }", (n, s) => n.GetSpanOfEnclosing(s), 0, 16, 0, 16);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void GetSpanOfFirstChildTest()
         {
             // Go from 'class Class1 { }' to 'class'
@@ -432,14 +432,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
             TestNavigator("class Class1 { }", (n, s) => n.GetSpanOfFirstChild(s), 0, 5, 0, 5);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void GetSpanOfNextSiblingTest()
         {
             // Go from 'class' to 'Class1'
             TestNavigator("class Class1 { }", (n, s) => n.GetSpanOfNextSibling(s), 0, 5, 6, 6);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)]
         public void GetSpanOfPreviousSiblingTest()
         {
             // Go from '{' to 'Class1'

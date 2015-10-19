@@ -126,6 +126,7 @@
           Win32Manifest="$(Win32Manifest)"
           Win32Resource="$(Win32Resource)"
           VBRuntime="$(VBRuntime)"
+          PathMap="$(PathMap)"
           >
       <Output TaskParameter="CommandLineArgs" ItemName="VbcCommandLineArgs" />
     </Vbc>

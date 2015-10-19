@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         #endregion
 
-        [Fact]
+        [WpfFact]
         public void ErrorSpans_TopLevel()
         {
             string source = @"
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             TestSpans(source, kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
         }
 
-        [Fact]
+        [WpfFact]
         public void ErrorSpans_StatementLevel_Update()
         {
             string source = @"
@@ -223,14 +223,14 @@ class C
         /// <summary>
         /// Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/>s.
         /// </summary>
-        [Fact]
+        [WpfFact]
         public void ErrorSpansAllKinds()
         {
             TestErrorSpansAllKinds(StatementSyntaxComparer.IgnoreLabeledChild);
             TestErrorSpansAllKinds(kind => TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations: false));
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_InsignificantChangesInMethodBody()
         {
             string source1 = @"
@@ -288,7 +288,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_SyntaxError_Change()
         {
             string source1 = @"
@@ -326,7 +326,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_SyntaxError_NoChange()
         {
             string source = @"
@@ -352,7 +352,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_SyntaxError_NoChange2()
         {
             string source1 = @"
@@ -390,7 +390,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_Features_NoChange()
         {
             string source = @"
@@ -420,7 +420,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_Features_Change()
         {
             // these are all the experimental features currently implemented
@@ -469,7 +469,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_SemanticError_NoChange()
         {
             string source = @"
@@ -496,7 +496,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_SemanticError_Change()
         {
             string source1 = @"
@@ -536,7 +536,7 @@ class C
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_AddingNewFileHavingRudeEdits()
         {
             string source1 = @"
@@ -592,7 +592,7 @@ namespace N
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void AnalyzeDocumentAsync_AddingNewFile()
         {
             string source1 = @"
