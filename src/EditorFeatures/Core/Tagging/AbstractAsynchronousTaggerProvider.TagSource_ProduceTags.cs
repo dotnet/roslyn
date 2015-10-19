@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             /// <summary>
-            /// This is the same as <see cref="ComputeNewTagTree(ImmutableDictionary{ITextBuffer, TagSpanIntervalTree{TTag}}, ITextBuffer, IEnumerable{ITagSpan{TTag}}, IEnumerable{SnapshotSpan})"/>,
+            /// This is the same as <see cref="ComputeNewTagTree(ImmutableDictionary{ITextBuffer, TagSpanIntervalTree{TTag}}, ITextBuffer, List{ITagSpan{TTag}}, IEnumerable{SnapshotSpan})"/>,
             /// just optimized for the case where we were tagging a single snapshot span.
             /// </summary>
             private TagSpanIntervalTree<TTag> ComputeNewTagTree(
