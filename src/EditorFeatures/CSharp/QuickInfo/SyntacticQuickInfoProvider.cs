@@ -91,60 +91,47 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
         {
-            SyntaxTrivia nearbyTrivia;
+            SyntaxTrivia nearbyComment;
 
-            if (openBrace.HasLeadingTrivia && FindFurthestNearbyComment(openBrace.LeadingTrivia.Reverse(), out nearbyTrivia))
+            var searchListAbove = openBrace.LeadingTrivia.Reverse();
+            if (FindFurthestNearbyComment(ref searchListAbove, out nearbyComment))
             {
-                spanStart = nearbyTrivia.SpanStart;
+                spanStart = nearbyComment.SpanStart;
                 return;
             }
 
             var nextToken = block.FindToken(openBrace.FullSpan.End);
-            if (nextToken.HasLeadingTrivia && FindFurthestNearbyComment(nextToken.LeadingTrivia, out nearbyTrivia))
+            var searchListBelow = nextToken.LeadingTrivia;
+            if (FindFurthestNearbyComment(ref searchListBelow, out nearbyComment))
             {
-                spanEnd = nearbyTrivia.Span.End;
+                spanEnd = nearbyComment.Span.End;
                 return;
             }
         }
 
-        private static bool FindFurthestNearbyComment(IEnumerable<SyntaxTrivia> triviaSearchList, out SyntaxTrivia nearbyTrivia)
+        private static bool FindFurthestNearbyComment<T>(ref T triviaSearchList, out SyntaxTrivia nearbyTrivia)
+            where T : IEnumerable<SyntaxTrivia>
         {
-            var searchList = triviaSearchList.SkipWhile(IsIndentation).ToArray();
+            nearbyTrivia = default(SyntaxTrivia);
 
-            if (searchList.Length == 0)
+            foreach (var trivia in triviaSearchList)
             {
-                nearbyTrivia = default(SyntaxTrivia);
-                return false;
-            }
-
-            nearbyTrivia = searchList[0];
-            if (nearbyTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return true;
-            }
-
-            // In case of line comments that are potentially
-            // stacked like this, crawl and find the furthest
-            for ( var i = 0; i < searchList.Length && searchList[i].IsKind(SyntaxKind.SingleLineCommentTrivia); )
-            {
-                nearbyTrivia = searchList[i];
-                i++;
-
-                for ( int skipped = 0; i < searchList.Length && IsIndentation(searchList[i], skipped); )
+                if (IsCommentTrivia(trivia))
                 {
-                    skipped++;
-                    i++;
+                    nearbyTrivia = trivia;
+                }
+                else if(!trivia.IsKind(SyntaxKind.WhitespaceTrivia) && !trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                {
+                    break;
                 }
             }
 
-            return nearbyTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
+            return IsCommentTrivia(nearbyTrivia);
         }
 
-        private static bool IsIndentation(SyntaxTrivia trivia, int skipped)
+        private static bool IsCommentTrivia(SyntaxTrivia trivia)
         {
-            // At most one empty line when there are no indentation
-            // but in 99% times there should be indentation as we are just testing against scope blocks.
-            return skipped < 2 && (trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+            return trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia);
         }
     }
 }
