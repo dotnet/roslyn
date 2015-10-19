@@ -8,8 +8,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{066F0DBD-C46C-4C20-AFEC-99829A172625}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.Scripting.CSharp</RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.Scripting.CSharp</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.Scripting</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>
@@ -65,8 +65,8 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />

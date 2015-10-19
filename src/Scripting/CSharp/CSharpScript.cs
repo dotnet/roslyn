@@ -3,9 +3,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Scripting
 {
     /// <summary>
     /// A factory for creating and running C# scripts.
