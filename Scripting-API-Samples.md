@@ -1,8 +1,9 @@
 The scripting APIs enable .NET applications to instatiate a C# engine and execute code snippets against host-supplied objects. Below are examples of how to get started with the scripting APIs and some common samples. 
 
+We have made some small tweaks to the API which should be reflected here. 
+
 > **Note:** most samples require the following usings: <br/>
 > ```using Microsoft.CodeAnalysis.CSharp.Scripting;``` <br/>
-
 
 ## Scenarios
 * [Evaluate a C# expression](#expr)
