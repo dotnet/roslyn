@@ -5,10 +5,11 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
