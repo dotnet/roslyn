@@ -956,7 +956,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with caret in 2nd active prompt, move caret to 
-            // closest editable buffer then delete prvious characer (breakline)        
+            // closest editable buffer then delete previous character (breakline)        
             caret.MoveToNextCaretPosition();
             Window.Operations.End(false);
             caret.MoveToNextCaretPosition();

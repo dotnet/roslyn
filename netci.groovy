@@ -45,7 +45,7 @@ static void addWrappers(def myJob) {
   myJob.with {
     wrappers {
       timeout {
-        absolute(90)
+        absolute(120)
         abortBuild()
       }
       timestamps()
@@ -71,7 +71,7 @@ static void addUnitPublisher(def myJob) {
       'xunit'('plugin': 'xunit@1.97') {
       'types' {
         'XUnitDotNetTestType' {
-          'pattern'('**/*TestResults.xml')
+          'pattern'('**/xUnitResults/*.xml')
             'skipNoTestFiles'(false)
             'failIfNotNew'(true)
             'deleteOutputFiles'(true)
@@ -112,22 +112,19 @@ static void addPushTrigger(def myJob) {
 
 static void addPullRequestTrigger(def myJob, String contextName, String opsysName, String triggerKeyword = 'this', Boolean triggerOnly = false) {
   myJob.with {
-    configure { node ->
-      node / 'triggers' << {
-        'org.jenkinsci.plugins.ghprb.GhprbTrigger'('plugin': 'ghprb@1.29') {
-          'adminlist'('Microsoft')
-          'useGitHubHooks'(true)
-          'configVersion'(3)
-          'triggerPhrase'("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
-          'onlyTriggerPhrase'(triggerOnly)
-          'autoCloseFailedPullRequests'(false)
-          'orgslist'('Microsoft')
-          'allowMembersOfWhitelistedOrgsAsAdmin'(true)
-          'permitAll'(true)
-          'extensions' {
-            'org.jenkinsci.plugins.ghprb.extensions.status.GhprbSimpleStatus' {
-              'commitStatusContext'(contextName.replace('_', '/').substring(7))
-            }
+    triggers {
+      pullRequest {
+        admin('Microsoft')
+        useGitHubHooks(true)
+        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+        onlyTriggerPhrase(triggerOnly)
+        autoCloseFailedPullRequests(false)
+        orgWhitelist('Microsoft')
+        allowMembersOfWhitelistedOrgsAsAdmin(true)
+        permitAll(true)
+        extensions {
+          commitStatus {
+            context(contextName.replace('_', '/').substring(7))
           }
         }
       }

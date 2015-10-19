@@ -224,15 +224,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     options |= PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError;
                     actual = PdbToXmlConverter.ToXml(pdbbits, exebits, options, methodName: qualifiedMethodName);
-                }
 
-                ValidateDebugDirectory(exebits, compilation.AssemblyName + ".pdb", portable, compilation.IsEmitDeterministic);
+                    ValidateDebugDirectory(exebits, portable ? pdbbits : null, compilation.AssemblyName + ".pdb", compilation.IsEmitDeterministic);
+                }
             }
 
             return actual;
         }
 
-        public static void ValidateDebugDirectory(Stream peStream, string pdbPath, bool isPortable, bool isDeterministic)
+        public static void ValidateDebugDirectory(Stream peStream, Stream portablePdbStreamOpt, string pdbPath, bool isDeterministic)
         {
             peStream.Seek(0, SeekOrigin.Begin);
             PEReader peReader = new PEReader(peStream);
@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int characteristics = reader.ReadInt32();
             Assert.Equal(0, characteristics);
 
-            uint timeDateStamp = reader.ReadUInt32();
+            byte[] stamp = reader.ReadBytes(sizeof(int));
 
             uint version = reader.ReadUInt32();
-            Assert.Equal(isPortable ? 0x504d0001u : 0, version);
+            Assert.Equal((portablePdbStreamOpt != null) ? 0x504d0100u : 0, version);
 
             int type = reader.ReadInt32();
             Assert.Equal(2, type);
@@ -303,6 +303,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var actualPath = Encoding.UTF8.GetString(pathBlob, 0, terminator);
             Assert.Equal(pdbPath, actualPath);
+
+            if (portablePdbStreamOpt != null)
+            {
+                ValidatePortablePdbId(portablePdbStreamOpt, stamp, guidBlob);
+            }
+        }
+
+        private unsafe static void ValidatePortablePdbId(Stream pdbStream, byte[] stampInDebugDirectory, byte[] guidInDebugDirectory)
+        {
+            var expectedId = ImmutableArray.CreateRange(guidInDebugDirectory.Concat(stampInDebugDirectory));
+
+            pdbStream.Position = 0;
+            var buffer = new byte[pdbStream.Length];
+            var bytesRead = pdbStream.TryReadAll(buffer, 0, buffer.Length);
+
+            Assert.Equal(buffer.Length, bytesRead);
+
+            fixed (byte* bufferPtr = buffer)
+            {
+                var id = new MetadataReader(bufferPtr, buffer.Length).DebugMetadataHeader.Id;
+                Assert.Equal(id.ToArray(), expectedId);
+            }
         }
 
         public static void VerifyMetadataEqualModuloMvid(Stream peStream1, Stream peStream2)

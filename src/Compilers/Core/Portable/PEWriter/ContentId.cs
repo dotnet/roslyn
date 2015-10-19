@@ -7,6 +7,8 @@ namespace Microsoft.Cci
 {
     internal struct ContentId
     {
+        public const int Size = 20;
+
         public readonly byte[] Guid;
         public readonly byte[] Stamp;
 

@@ -32,25 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         internal static ForegroundThreadData CreateDefault()
         {
-            TaskScheduler taskScheduler;
-            ForegroundThreadDataKind kind;
-
-            var previousContext = SynchronizationContext.Current;
-            try
-            {
-                // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
-                // So instead of using the default priority which is above user input, we use Background priority which is 1 level
-                // below user input.
-                SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
-                taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                kind = previousContext?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
+            ForegroundThreadDataKind kind = SynchronizationContext.Current?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
                     ? ForegroundThreadDataKind.Wpf
                     : ForegroundThreadDataKind.Unknown;
-            }
-            finally
-            {
-                SynchronizationContext.SetSynchronizationContext(previousContext);
-            }
+
+            // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
+            // So instead of using the default priority which is above user input, we use Background priority which is 1 level
+            // below user input.
+            var taskScheduler = new SynchronizationContextTaskScheduler(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
 
             return new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
         }
@@ -132,10 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public void AssertIsForeground()
         {
-#if DEBUG
-            Debug.Assert(IsForeground());
-#endif
-
             Contract.ThrowIfFalse(IsForeground());
         }
 

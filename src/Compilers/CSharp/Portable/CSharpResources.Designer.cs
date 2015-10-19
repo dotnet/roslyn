@@ -62,15 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot have a previousSubmission when not a submission..
-        /// </summary>
-        internal static string CannotHavePreviousSubmission {
-            get {
-                return ResourceManager.GetString("CannotHavePreviousSubmission", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t reference compilation of type &apos;{0}&apos; from {1} compilation..
         /// </summary>
         internal static string CantReferenceCompilationOf {
@@ -9779,15 +9770,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string TheStreamCannotBeWritten {
             get {
                 return ResourceManager.GetString("TheStreamCannotBeWritten", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to This compilation doesn&apos;t represent an interactive submission..
-        /// </summary>
-        internal static string ThisCompilationNotInteractive {
-            get {
-                return ResourceManager.GetString("ThisCompilationNotInteractive", resourceCulture);
             }
         }
         

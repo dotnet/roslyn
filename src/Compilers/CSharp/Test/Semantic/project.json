@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.1.0-beta1-20150824-02",
+    
     "xunit": "2.1.0",
     "xunit.runner.console": "2.1.0"
   },

@@ -175,17 +175,17 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            var methodBodyHandle = ((MethodDefinitionHandle)handle).ToMethodBodyHandle();
+            var methodDebugHandle = ((MethodDefinitionHandle)handle).ToDebugInformationHandle();
 
-            var methodBody = MetadataReader.GetMethodBody(methodBodyHandle);
-            if (methodBody.SequencePoints.IsNil)
+            var methodBody = MetadataReader.GetMethodDebugInformation(methodDebugHandle);
+            if (methodBody.SequencePointsBlob.IsNil)
             {
                 // no debug info for the method
                 method = null;
                 return HResult.E_FAIL;
             }
 
-            method = new SymMethod(this, methodBodyHandle);
+            method = new SymMethod(this, methodDebugHandle);
             return HResult.S_OK;
         }
 
@@ -216,12 +216,12 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
 
             var comparer = HandleComparer.Default;
-            var candidate = default(MethodBodyHandle);
-            foreach (var methodBodyHandle in methodBodyHandles)
+            var candidate = default(MethodDebugInformationHandle);
+            foreach (var methodDebugHandle in methodBodyHandles)
             {
-                if (candidate.IsNil || comparer.Compare(methodBodyHandle, candidate) < 0)
+                if (candidate.IsNil || comparer.Compare(methodDebugHandle, candidate) < 0)
                 {
-                    candidate = methodBodyHandle;
+                    candidate = methodDebugHandle;
                 }
             }
 
@@ -260,14 +260,14 @@ namespace Microsoft.DiaSymReader.PortablePdb
             if (bufferLength > 0)
             {
                 int i = 0;
-                foreach (var methodBodyHandle in methodBodyHandles)
+                foreach (var methodDebugHandle in methodBodyHandles)
                 {
                     if (i == bufferLength)
                     {
                         break;
                     }
 
-                    methods[i++] = new SymMethod(this, methodBodyHandle);
+                    methods[i++] = new SymMethod(this, methodDebugHandle);
                 }
 
                 count = i;
@@ -328,7 +328,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             }
 
             var map = GetMethodMap();
-            if (!map.TryGetMethodSourceExtent(symDocument.Handle, method.BodyHandle, out startLine, out endLine))
+            if (!map.TryGetMethodSourceExtent(symDocument.Handle, method.DebugHandle, out startLine, out endLine))
             {
                 startLine = endLine = 0;
                 return HResult.E_FAIL;

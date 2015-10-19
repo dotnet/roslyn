@@ -1533,6 +1533,40 @@ End Class
             CompilationUtils.AssertTheseDiagnostics(comp)
         End Sub
 
+        <Fact>
+        Public Sub LogicalExpressionInErroneousObjectInitializer()
+            Dim program = <compilation>
+                              <file name="a.b">
+Public Class Class1
+
+    Sub Test()
+        Dim x As S1
+        Dim y As New C1() With {.F1 = x.F1 AndAlso x.F2, .F3 = x.F3}
+    End Sub
+
+End Class
+
+Public Structure S1
+    Public F1 As Boolean
+    Public F2 As Boolean
+    Public F3 As Object
+End Structure
+                            </file>
+                          </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib(program, options:=TestOptions.DebugDll)
+
+            comp.AssertTheseDiagnostics(
+<expected>
+BC30002: Type 'C1' is not defined.
+        Dim y As New C1() With {.F1 = x.F1 AndAlso x.F2, .F3 = x.F3}
+                     ~~
+BC42104: Variable 'F3' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Dim y As New C1() With {.F1 = x.F1 AndAlso x.F2, .F3 = x.F3}
+                                                               ~~~~
+</expected>
+            )
+        End Sub
+
     End Class
 
 End Namespace

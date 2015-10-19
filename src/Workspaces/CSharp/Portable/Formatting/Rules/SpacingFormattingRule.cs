@@ -163,8 +163,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBeforeOpenSquareBracket);
             }
 
-            // For spacing empty square braces
-            if (previousKind == SyntaxKind.OpenBracketToken && (currentKind == SyntaxKind.CloseBracketToken || currentKind == SyntaxKind.OmittedArraySizeExpressionToken) && HasFormattableBracketParent(previousToken))
+            // For spacing empty square braces, also treat [,] as empty
+            if (((currentKind == SyntaxKind.CloseBracketToken && previousKind == SyntaxKind.OpenBracketToken)
+                || currentKind == SyntaxKind.OmittedArraySizeExpressionToken)
+                && HasFormattableBracketParent(previousToken))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets);
             }
@@ -174,22 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
-            else if (currentKind == SyntaxKind.CloseBracketToken && HasFormattableBracketParent(currentToken))
+
+            if (currentKind == SyntaxKind.CloseBracketToken && previousKind != SyntaxKind.OmittedArraySizeExpressionToken && HasFormattableBracketParent(currentToken))
             {
-                if (currentToken.Parent is ArrayRankSpecifierSyntax)
-                {
-                    var parent = currentToken.Parent as ArrayRankSpecifierSyntax;
-                    if ((parent.Sizes.Any() && parent.Sizes.First().Kind() != SyntaxKind.OmittedArraySizeExpression) || parent.Sizes.SeparatorCount > 0)
-                    {
-                        // int []: added spacing operation on open [
-                        // int[1], int[,]: need spacing operation
-                        return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
-                    }
-                }
-                else
-                {
-                    return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
-                }
+                return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceWithinSquareBrackets);
             }
 
             // For spacing delimiters - after colon
@@ -205,15 +195,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For spacing delimiters - after comma
-            if ((previousToken.IsCommaInArgumentOrParameterList() && currentKind != SyntaxKind.OmittedTypeArgumentToken) ||
-                previousToken.IsCommaInInitializerExpression())
+            if ((previousToken.IsCommaInArgumentOrParameterList() && currentKind != SyntaxKind.OmittedTypeArgumentToken)
+                || previousToken.IsCommaInInitializerExpression()
+                || (previousKind == SyntaxKind.CommaToken
+                    && currentKind != SyntaxKind.OmittedArraySizeExpressionToken
+                    && HasFormattableBracketParent(previousToken)))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceAfterComma);
             }
 
             // For spacing delimiters - before comma
-            if ((currentToken.IsCommaInArgumentOrParameterList() && previousKind != SyntaxKind.OmittedTypeArgumentToken) ||
-                currentToken.IsCommaInInitializerExpression())
+            if ((currentToken.IsCommaInArgumentOrParameterList() && previousKind != SyntaxKind.OmittedTypeArgumentToken)
+                || currentToken.IsCommaInInitializerExpression()
+                || (currentKind == SyntaxKind.CommaToken
+                    && previousKind != SyntaxKind.OmittedArraySizeExpressionToken
+                    && HasFormattableBracketParent(currentToken)))
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpaceBeforeComma);
             }

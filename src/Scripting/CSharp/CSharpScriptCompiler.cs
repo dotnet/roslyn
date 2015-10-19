@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
 
         public override Compilation CreateSubmission(Script script)
         {
-            Compilation previousSubmission = null;
+            CSharpCompilation previousSubmission = null;
             if (script.Previous != null)
             {
-                previousSubmission = script.Previous.GetCompilation();
+                previousSubmission = (CSharpCompilation)script.Previous.GetCompilation();
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
             // TODO: report diagnostics
             diagnostics.Free();
 
-            var tree = SyntaxFactory.ParseSyntaxTree(script.Code, s_defaultOptions, script.Options.Path);
+            var tree = SyntaxFactory.ParseSyntaxTree(script.Code, s_defaultOptions, script.Options.FilePath);
 
             string assemblyName, submissionTypeName;
             script.Builder.GenerateSubmissionId(out assemblyName, out submissionTypeName);
 
-            var compilation = CSharpCompilation.CreateSubmission(
+            var compilation = CSharpCompilation.CreateScriptCompilation(
                 assemblyName,
                 tree,
                 references,
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp
                     outputKind: OutputKind.DynamicallyLinkedLibrary,
                     mainTypeName: null,
                     scriptClassName: submissionTypeName,
-                    usings: script.Options.Namespaces,
+                    usings: script.Options.Imports,
                     optimizationLevel: OptimizationLevel.Debug, // TODO
                     checkOverflow: false,                       // TODO
                     allowUnsafe: true,                          // TODO

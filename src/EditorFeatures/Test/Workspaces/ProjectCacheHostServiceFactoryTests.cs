@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 workspace.OnProjectRemoved(project2.Id);
             }
 
-            // make sure p2p reference doesnt go to implicit cache
+            // make sure p2p reference doesn't go to implicit cache
             CollectGarbage();
             Assert.False(weak.IsAlive);
         }

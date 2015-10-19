@@ -23698,7 +23698,7 @@ Friend MustOverride ReadOnly Property P
 Friend MustOverride Function F() As Object
 Friend MustOverride ReadOnly Property P
 ]]>
-            Dim submission = VisualBasicCompilation.CreateSubmission(
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree:=Parse(source.Value, TestOptions.Script),
                 references:={MscorlibRef, SystemCoreRef})

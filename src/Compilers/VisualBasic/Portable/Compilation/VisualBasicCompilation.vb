@@ -158,7 +158,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _lazyMyTemplate As SyntaxTree = VisualBasicSyntaxTree.Dummy
 
         Private ReadOnly _scriptClass As Lazy(Of ImplicitNamedTypeSymbol)
-        Private ReadOnly _previousSubmission As VisualBasicCompilation
 
         ''' <summary>
         ''' Contains the main method of this assembly, if there is one.
@@ -322,28 +321,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> 
         ''' Creates a new compilation that can be used in scripting. 
         ''' </summary>
-        Public Shared Function CreateSubmission(
+        Friend Shared Function CreateScriptCompilation(
             assemblyName As String,
             Optional syntaxTree As SyntaxTree = Nothing,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
             Optional options As VisualBasicCompilationOptions = Nothing,
-            Optional previousSubmission As Compilation = Nothing,
+            Optional previousScriptCompilation As VisualBasicCompilation = Nothing,
             Optional returnType As Type = Nothing,
-            Optional hostObjectType As Type = Nothing) As VisualBasicCompilation
+            Optional globalsType As Type = Nothing) As VisualBasicCompilation
 
             CheckSubmissionOptions(options)
-
-            Dim vbTree = syntaxTree
-            Dim vbPrevious = DirectCast(previousSubmission, VisualBasicCompilation)
+            ValidateScriptCompilationParameters(previousScriptCompilation, returnType, globalsType)
 
             Return Create(
                 assemblyName,
                 If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)),
-                If((syntaxTree IsNot Nothing), {vbTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
+                If((syntaxTree IsNot Nothing), {syntaxTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
                 references,
-                vbPrevious,
+                previousScriptCompilation,
                 returnType,
-                hostObjectType,
+                globalsType,
                 isSubmission:=True)
         End Function
 
@@ -364,7 +361,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             CheckAssemblyName(assemblyName)
 
             Dim validatedReferences = ValidateReferences(Of VisualBasicCompilationReference)(references)
-            ValidateSubmissionParameters(previousSubmission, returnType, hostObjectType)
 
             Dim c As VisualBasicCompilation = Nothing
             Dim embeddedTrees = CreateEmbeddedTrees(New Lazy(Of VisualBasicCompilation)(Function() c))
@@ -413,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             reuseReferenceManager As Boolean,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
-            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), submissionReturnType, hostObjectType, isSubmission, eventQueue)
+            MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, eventQueue)
 
             Debug.Assert(rootNamespaces IsNot Nothing)
             Debug.Assert(declarationTable IsNot Nothing)
@@ -434,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If isSubmission Then
                 Debug.Assert(previousSubmission Is Nothing OrElse previousSubmission.HostObjectType Is hostObjectType)
-                _previousSubmission = previousSubmission
+                Me.ScriptCompilationInfo = New VisualBasicScriptCompilationInfo(previousSubmission, submissionReturnType, hostObjectType)
             Else
                 Debug.Assert(previousSubmission Is Nothing AndAlso submissionReturnType Is Nothing AndAlso hostObjectType Is Nothing)
             End If
@@ -493,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
-                _previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
@@ -518,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 rootNamespaces,
                 _embeddedTrees,
                 declarationTable,
-                _previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
@@ -545,7 +541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
-                _previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
@@ -586,7 +582,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _rootNamespaces,
                 embeddedTrees,
                 declTable,
-                _previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
@@ -639,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 declMap,
                 embeddedTrees,
                 declTable,
-                _previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
@@ -651,9 +647,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns a new compilation with the given compilation set as the previous submission. 
         ''' </summary>
-        Friend Shadows Function WithPreviousSubmission(newPreviousSubmission As VisualBasicCompilation) As VisualBasicCompilation
-            If Not IsSubmission Then
-                Throw New NotSupportedException("Can't have a previousSubmission when not a submission")
+        Friend Shadows Function WithScriptCompilationInfo(info As VisualBasicScriptCompilationInfo) As VisualBasicCompilation
+            If info Is ScriptCompilationInfo Then
+                Return Me
             End If
 
             ' Reference binding doesn't depend on previous submission so we can reuse it.
@@ -667,10 +663,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
-                newPreviousSubmission,
-                Me.SubmissionReturnType,
-                Me.HostObjectType,
-                Me.IsSubmission,
+                info?.PreviousScriptCompilation,
+                info?.ReturnType,
+                info?.GlobalsType,
+                info IsNot Nothing,
                 _referenceManager,
                 reuseReferenceManager:=True)
         End Function
@@ -688,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _rootNamespaces,
                 _embeddedTrees,
                 _declarationTable,
-                _previousSubmission,
+                Me.PreviousSubmission,
                 Me.SubmissionReturnType,
                 Me.HostObjectType,
                 Me.IsSubmission,
@@ -701,9 +697,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Submission"
 
+        Friend Shadows ReadOnly Property ScriptCompilationInfo As VisualBasicScriptCompilationInfo
+
+        Friend Overrides ReadOnly Property CommonScriptCompilationInfo As ScriptCompilationInfo
+            Get
+                Return ScriptCompilationInfo
+            End Get
+        End Property
+
         Friend Shadows ReadOnly Property PreviousSubmission As VisualBasicCompilation
             Get
-                Return _previousSubmission
+                Return ScriptCompilationInfo?.PreviousScriptCompilation
             End Get
         End Property
 
@@ -724,11 +728,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Note that the return type is System.Void for both compilations "System.Console.WriteLine()" and "?System.Console.WriteLine()",
         ''' and <paramref name="hasValue"/> is <c>False</c> for the former and <c>True</c> for the latter.
         ''' </remarks>
-        ''' <exception cref="InvalidOperationException">The compilation doesn't represent a submission (<see cref="IsSubmission"/> return false).</exception>
-        Friend Shadows Function GetSubmissionResultType(<Out> ByRef hasValue As Boolean) As TypeSymbol
-            If Not IsSubmission Then
-                Throw New InvalidOperationException(VBResources.CompilationDoesNotRepresentInteractiveSubmission)
-            End If
+        Friend Overrides Function GetSubmissionResultType(<Out> ByRef hasValue As Boolean) As ITypeSymbol
+            Debug.Assert(IsSubmission)
 
             hasValue = False
             Dim tree = SyntaxTrees.SingleOrDefault()
@@ -2503,8 +2504,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithAssemblyName(assemblyName)
         End Function
 
-        Protected Overrides Function CommonGetSubmissionResultType(ByRef hasValue As Boolean) As ITypeSymbol
-            Return GetSubmissionResultType(hasValue)
+        Protected Overrides Function CommonWithCompilationScriptInfo(info As ScriptCompilationInfo) As Compilation
+            Return WithScriptCompilationInfo(DirectCast(info, VisualBasicScriptCompilationInfo))
         End Function
 
         Protected Overrides ReadOnly Property CommonAssembly As IAssemblySymbol
@@ -2522,12 +2523,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides ReadOnly Property CommonOptions As CompilationOptions
             Get
                 Return Options
-            End Get
-        End Property
-
-        Protected Overrides ReadOnly Property CommonPreviousSubmission As Compilation
-            Get
-                Return PreviousSubmission
             End Get
         End Property
 
@@ -2577,10 +2572,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonWithOptions(options As CompilationOptions) As Compilation
             Return Me.WithOptions(DirectCast(options, VisualBasicCompilationOptions))
-        End Function
-
-        Protected Overrides Function CommonWithPreviousSubmission(newPreviousSubmission As Compilation) As Compilation
-            Return Me.WithPreviousSubmission(DirectCast(newPreviousSubmission, VisualBasicCompilation))
         End Function
 
         Protected Overrides Function CommonContainsSyntaxTree(syntaxTree As SyntaxTree) As Boolean

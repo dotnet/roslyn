@@ -363,7 +363,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
                     End If
 
                     ' This can occur if a module member is referenced without the module name. In that case,
-                    ' we'll go ahead and try to use the module name name.
+                    ' we'll go ahead and try to use the module namespace name.
                     If leftHandSymbol.Kind = SymbolKind.Namespace AndAlso
                        symbolOpt?.ContainingType?.TypeKind = TypeKind.Module Then
 

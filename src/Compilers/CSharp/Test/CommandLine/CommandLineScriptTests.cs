@@ -35,16 +35,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             var options = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
             var corLib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
 
-            var s1 = CSharpCompilation.CreateSubmission("s1.dll",
+            var s1 = CSharpCompilation.CreateScriptCompilation("s1.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree("struct S { }", options),
                 references: new[] { corLib.GetReference(documentation: new TestDocumentationProviderNoEquals()) },
                 returnType: typeof(object));
 
             s1.VerifyDiagnostics();
 
-            var s2 = CSharpCompilation.CreateSubmission("s2.dll",
+            var s2 = CSharpCompilation.CreateScriptCompilation("s2.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree("System.Collections.IEnumerable Iterator() { yield return new S(); }", options),
-                previousSubmission: s1,
+                previousScriptCompilation: s1,
                 references: new[] { corLib.GetReference(documentation: new TestDocumentationProviderNoEquals()) },
                 returnType: typeof(object));
 
@@ -65,16 +65,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             var options = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
             var corLib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib);
 
-            var s1 = CSharpCompilation.CreateSubmission("s1.dll",
+            var s1 = CSharpCompilation.CreateScriptCompilation("s1.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree("struct S { }", options),
                 references: new[] { corLib.GetReference(documentation: new TestDocumentationProviderEquals()) },
                 returnType: typeof(object));
 
             s1.VerifyDiagnostics();
 
-            var s2 = CSharpCompilation.CreateSubmission("s2.dll",
+            var s2 = CSharpCompilation.CreateScriptCompilation("s2.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree("System.Collections.IEnumerable Iterator() { yield return new S(); }", options),
-                previousSubmission: s1,
+                previousScriptCompilation: s1,
                 references: new[] { corLib.GetReference(documentation: new TestDocumentationProviderEquals()) },
                 returnType: typeof(object));
 
