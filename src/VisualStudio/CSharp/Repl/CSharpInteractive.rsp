@@ -1,4 +1,7 @@
-﻿/r:System
+﻿# This file contains command-line options that the C# REPL
+# will process as part of every compilation, unless 
+# "/noconfig" option is specified in the reset command.
+/r:System
 /r:System.Core
 /r:Microsoft.CSharp
 /r:System.Data

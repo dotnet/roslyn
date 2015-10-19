@@ -165,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return false;
             }
 
-            text = symbol != null ? Format(symbol) : null;
+            text = symbol != null ? FormatSymbol(symbol) : null;
             return symbol != null;
         }
 
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return false;
         }
 
-        private string FormatTypeOrNamespace(INamespaceOrTypeSymbol symbol)
+        private static string FormatNamespaceOrTypeSymbol(INamespaceOrTypeSymbol symbol)
         {
             var displayString = symbol.ToDisplayString(TypeFormat);
 
@@ -326,38 +326,38 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}`{1}", displayString, symbol.GetTypeArguments().Length);
+                return $"{displayString}`{symbol.GetTypeArguments().Length}";
             }
 
             return displayString;
         }
 
-        private string Format(ISymbol symbol)
+        public override string FormatSymbol(ISymbol symbol)
         {
             if (symbol is ITypeSymbol || symbol is INamespaceSymbol)
             {
-                return FormatTypeOrNamespace((INamespaceOrTypeSymbol)symbol);
+                return FormatNamespaceOrTypeSymbol((INamespaceOrTypeSymbol)symbol);
             }
 
             if (symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter))
             {
-                return Format(symbol.GetSymbolType());
+                return FormatSymbol(symbol.GetSymbolType());
             }
 
-            var containingType = FormatTypeOrNamespace(symbol.ContainingType);
+            var containingType = FormatNamespaceOrTypeSymbol(symbol.ContainingType);
             var name = symbol.ToDisplayString(NameFormat);
 
             if (symbol.IsConstructor())
             {
-                return string.Format("{0}.#ctor", containingType);
+                return $"{containingType}.#ctor";
             }
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}.{1}``{2}", containingType, name, symbol.GetTypeArguments().Length);
+                return $"{containingType}.{name}``{symbol.GetTypeArguments().Length}";
             }
 
-            return string.Format("{0}.{1}", containingType, name);
+            return $"{containingType}.{name}";
         }
     }
 }

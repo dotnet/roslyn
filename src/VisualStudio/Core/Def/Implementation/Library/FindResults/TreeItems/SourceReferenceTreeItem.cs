@@ -9,10 +9,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal class SourceReferenceTreeItem : AbstractSourceTreeItem, IComparable<SourceReferenceTreeItem>
     {
-        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements = 0, string displayText = null)
+        public SourceReferenceTreeItem(Document document, TextSpan sourceSpan, ushort glyphIndex, int commonPathElements = 0, string displayText = null, bool includeFileLocation = false)
             : base(document, sourceSpan, glyphIndex, commonPathElements)
         {
-            if (displayText != null)
+            if (displayText != null && !includeFileLocation)
             {
                 this.DisplayText = displayText;
             }
@@ -25,7 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
                     _offset,
                     _textLineString,
                     sourceSpan.Length,
-                    projectNameDisambiguator: string.Empty);
+                    projectNameDisambiguator: string.Empty,
+                    explicitDisplayText: displayText);
             }
         }
 

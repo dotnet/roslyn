@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Dim tree = ParseLines("Class C",
                                   "    ''' <summary>",
                                   "    ''' Summary with <see cref=""SeeClass"" />, <seealso cref=""SeeAlsoClass"" />,",
-                                  "    ''' <see langword=""Nothing"" />, <typeparamref name=""T"" />, and <paramref name=""t"" />.",
+                                  "    ''' <see langword=""Nothing"" />, <typeparamref name=""T"" />, <paramref name=""t"" />, and <see unsupported-attribute=""not-supported"" />.",
                                   "    ''' </summary>",
                                   "    Sub M(Of T)(t as T)",
                                   "    End Sub",
@@ -248,8 +248,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Dim docComment = DirectCast(trivia.Single(Function(t) t.HasStructure).GetStructure(), DocumentationCommentTriviaSyntax)
             Dim actualRegion = GetRegion(docComment)
             Dim expectedRegion = New OutliningSpan(
-                         TextSpan.FromBounds(13, 217),
-                         "''' <summary> Summary with SeeClass , SeeAlsoClass , Nothing , T , and t .",
+                         TextSpan.FromBounds(13, 264),
+                         "''' <summary> Summary with SeeClass , SeeAlsoClass , Nothing , T , t , and not-supported .",
                          autoCollapse:=True)
 
             AssertRegion(expectedRegion, actualRegion)

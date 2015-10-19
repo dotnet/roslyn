@@ -15,31 +15,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             /// </summary>
             private sealed class AttributeRemoveAction : RemoveSuppressionCodeAction
             {
+                private readonly Project _project;
                 private readonly AttributeData _attribute;
 
                 public static AttributeRemoveAction Create(
                     AttributeData attribute,
-                    Document document,
+                    Project project,
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer)
                 {
-                    return new AttributeRemoveAction(attribute, document, diagnostic, fixer);
+                    return new AttributeRemoveAction(attribute, project, diagnostic, fixer);
                 }
 
                 private AttributeRemoveAction(
                     AttributeData attribute,
-                    Document document,
+                    Project project,
                     Diagnostic diagnostic,
                     AbstractSuppressionCodeFixProvider fixer,
                     bool forFixMultipleContext = false)
-                    : base(document, diagnostic, fixer, forFixMultipleContext)
+                    : base(diagnostic, fixer, forFixMultipleContext)
                 {
+                    _project = project;
                     _attribute = attribute;
                 }
 
                 public override RemoveSuppressionCodeAction CloneForFixMultipleContext()
                 {
-                    return new AttributeRemoveAction(_attribute, _document, _diagnostic, Fixer, forFixMultipleContext: true);
+                    return new AttributeRemoveAction(_attribute, _project, _diagnostic, Fixer, forFixMultipleContext: true);
                 }
 
                 public override SyntaxTree SyntaxTreeToModify => _attribute.ApplicationSyntaxReference.SyntaxTree;
@@ -52,30 +54,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         attributeNode;
                 }
 
-                protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+                protected async override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
                     var attributeNode = await GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
-                    var document = GetDocumentWithAttribute(attributeNode);
-                    if (document == null)
+                    var documentWithAttribute = _project.GetDocument(attributeNode.SyntaxTree);
+                    if (documentWithAttribute == null)
                     {
-                        return _document;
+                        return _project.Solution;
                     }
 
-                    var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+                    var editor = await DocumentEditor.CreateAsync(documentWithAttribute, cancellationToken).ConfigureAwait(false);
                     editor.RemoveNode(attributeNode);
-                    var newProject = editor.GetChangedDocument().Project;
-                    return newProject.GetDocument(_document.Id);
-                }
-
-                private Document GetDocumentWithAttribute(SyntaxNode attributeNode)
-                {
-                    var tree = attributeNode.SyntaxTree;
-                    if (_document.FilePath == tree.FilePath)
-                    {
-                        return _document;
-                    }
-
-                    return _document.Project.GetDocument(tree);
+                    return editor.GetChangedDocument().Project.Solution;
                 }
             }
         }

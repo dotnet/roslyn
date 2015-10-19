@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 : null;
         }
 
-        private class BlockChecker : BoundTreeWalker
+        private class BlockChecker : BoundTreeWalkerWithStackGuard
         {
             private readonly TypeParameterChecker _typeParameterChecker;
 

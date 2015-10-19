@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeProperty))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeProperty2))]
     public sealed partial class CodeProperty : AbstractCodeMember, ICodeElementContainer<CodeParameter>, ICodeElementContainer<CodeAttribute>, EnvDTE.CodeProperty, EnvDTE80.CodeProperty2
     {
         internal static EnvDTE.CodeProperty Create(
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             var element = new CodeProperty(state, fileCodeModel, nodeKey, nodeKind);
             var result = (EnvDTE.CodeProperty)ComAggregate.CreateAggregatedObject(element);
 
-            fileCodeModel.OnElementCreated(nodeKey, (EnvDTE.CodeElement)result);
+            fileCodeModel.OnCodeElementCreated(nodeKey, (EnvDTE.CodeElement)result);
 
             return result;
         }
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                     throw Exceptions.ThrowEUnexpected();
                 }
 
-                return FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(containingTypeNode);
+                return FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(containingTypeNode);
             }
         }
 

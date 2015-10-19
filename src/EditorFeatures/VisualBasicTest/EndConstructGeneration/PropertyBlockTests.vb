@@ -147,6 +147,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
+        Public Sub DontApplyForReadOnlyPropertyIfEndPropertyMissingWhenInvokedAfterProperty()
+            VerifyStatementEndConstructNotApplied(
+                text:={"Class c1",
+                       "    ReadOnly Property foo As Integer",
+                       "        Get",
+                       "End Class"},
+                caret:={1, -1})
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyOnGetForRegularPropertyWithSetPresent()
             VerifyStatementEndConstructApplied(
                 before:={"Class c1",

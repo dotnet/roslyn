@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private bool _dismissed;
         private bool _isApplyingEdit;
+        private string _replacementText;
         private OptionSet _optionSet;
         private Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
 
@@ -49,7 +50,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// If non-null, the current text of the replacement. Linked spans added will automatically be updated with this
         /// text.
         /// </summary>
-        public string ReplacementText { get; private set; }
+        public string ReplacementText
+        {
+            get
+            {
+                return _replacementText;
+            }
+            private set
+            {
+                _replacementText = value;
+                ReplacementTextChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -255,6 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;
         public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
+        public event EventHandler ReplacementTextChanged;
 
         internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
         {

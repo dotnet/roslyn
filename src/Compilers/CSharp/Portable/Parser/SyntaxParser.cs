@@ -191,11 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Script - global statements and member declarations allowed, but not expressions.
+        /// Script or interactive - global statements, member declarations, and expressions allowed.
         /// </summary>
-        public bool IsScript
+        public bool IsScriptOrInteractive
         {
-            get { return Options.Kind != SourceCodeKind.Regular; }
+            get { return (Options.Kind == SourceCodeKind.Script) || (Options.Kind == SourceCodeKind.Interactive); }
         }
 
         protected LexerMode Mode

@@ -84,6 +84,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         private async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
         {
+            var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
+            if (suppressionTargetInfo == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CodeFix>();
+            }
+
+            return await GetSuppressionsAsync(documentOpt: document, project: document.Project, diagnostics: diagnostics,
+                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: skipSuppressMessage, skipUnsuppress: skipUnsuppress, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        {
+            if (!project.SupportsCompilation)
+            {
+                return SpecializedCollections.EmptyEnumerable<CodeFix>();
+            }
+
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var suppressionTargetInfo = new SuppressionTargetInfo() { TargetSymbol = compilation.Assembly };
+            return await GetSuppressionsAsync(documentOpt: null, project: project, diagnostics: diagnostics,
+                suppressionTargetInfo: suppressionTargetInfo, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<IEnumerable<CodeFix>> GetSuppressionsAsync(Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+        {
             // We only care about diagnostics that can be suppressed/unsuppressed.
             diagnostics = diagnostics.Where(CanBeSuppressedOrUnsuppressed);
             if (diagnostics.IsEmpty())
@@ -91,16 +116,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 return SpecializedCollections.EmptyEnumerable<CodeFix>();
             }
 
-            var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
-            if (suppressionTargetInfo == null)
-            {
-                return SpecializedCollections.EmptyEnumerable<CodeFix>();
-            }
-
             if (!skipSuppressMessage)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var suppressMessageAttribute = semanticModel.Compilation.SuppressMessageAttributeType();
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var suppressMessageAttribute = compilation.SuppressMessageAttributeType();
                 skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
             }
 
@@ -111,22 +130,28 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 {
                     var nestedActions = new List<NestedSuppressionCodeAction>();
 
-                    // pragma warning disable.
-                    nestedActions.Add(new PragmaWarningCodeAction(suppressionTargetInfo, document, diagnostic, this));
+                    if (diagnostic.Location.IsInSource && documentOpt != null)
+                    {
+                        // pragma warning disable.
+                        nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, diagnostic, this));
+                    }
 
                     // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
                     if (!skipSuppressMessage && !SuppressionHelpers.IsCompilerDiagnostic(diagnostic))
                     {
                         // global assembly-level suppress message attribute.
-                        nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, document.Project, diagnostic, this));
+                        nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
                     }
 
                     result.Add(new CodeFix(new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
                 }
                 else if (!skipUnsuppress)
                 {
-                    var codeAcion = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, document, diagnostic, this, cancellationToken).ConfigureAwait(false);
-                    result.Add(new CodeFix(codeAcion, diagnostic));
+                    var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
+                    if (codeAction != null)
+                    {
+                        result.Add(new CodeFix(codeAction, diagnostic));
+                    }
                 }
             }
 
@@ -151,25 +176,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             // Find the start token to attach leading pragma disable warning directive.
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            SyntaxTrivia containingTrivia = root.FindTrivia(span.Start);
             var lines = syntaxTree.GetText(cancellationToken).Lines;
-            int indexOfLine;
-            if (containingTrivia == default(SyntaxTrivia))
-            {
-                indexOfLine = lines.IndexOf(span.Start);
-            }
-            else
-            {
-                indexOfLine = lines.IndexOf(containingTrivia.Token.SpanStart);
-            }
-
+            var indexOfLine = lines.IndexOf(span.Start);
             var lineAtPos = lines[indexOfLine];
             var startToken = root.FindToken(lineAtPos.Start);
             startToken = GetAdjustedTokenForPragmaDisable(startToken, root, lines, indexOfLine);
 
             // Find the end token to attach pragma restore warning directive.
-            // This should be the last token on the line that contains the start token.
-            indexOfLine = lines.IndexOf(startToken.Span.End);
+            var spanEnd = Math.Max(startToken.Span.End, span.End);
+            indexOfLine = lines.IndexOf(spanEnd);
             lineAtPos = lines[indexOfLine];
             var endToken = root.FindToken(lineAtPos.End);
             endToken = GetAdjustedTokenForPragmaRestore(endToken, root, lines, indexOfLine);

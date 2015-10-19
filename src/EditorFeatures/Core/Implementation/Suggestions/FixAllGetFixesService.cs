@@ -31,8 +31,39 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return this;
         }
 
+        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage)
+        {
+            // Compute fix all occurrences code fix for the given fix all context.
+            // Bring up a cancellable wait dialog.
+            bool userCancelled;
+            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage, out userCancelled);
+            if (codeAction == null)
+            {
+                return userCancelled ? null : fixAllContext.Solution;
+            }
+
+            fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+            return await codeAction.GetChangedSolutionInternalAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
+        }
+
         public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage, bool showPreviewChangesDialog)
         {
+            // Compute fix all occurrences code fix for the given fix all context.
+            // Bring up a cancellable wait dialog.
+            bool userCancelled;
+            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage, out userCancelled);
+            if (codeAction == null)
+            {
+                return null;
+            }
+
+            return await GetFixAllOperationsAsync(codeAction, fixAllContext, fixAllTitle, showPreviewChangesDialog).ConfigureAwait(false);
+        }
+
+        private CodeAction GetFixAllCodeAction(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage, out bool userCancelled)
+        {
+            userCancelled = false;
+
             // Compute fix all occurrences code fix for the given fix all context.
             // Bring up a cancellable wait dialog.
             CodeAction codeAction = null;
@@ -65,7 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         }
                     });
 
-                var cancelled = result == WaitIndicatorResult.Canceled || codeAction == null;
+                userCancelled = result == WaitIndicatorResult.Canceled;
+                var cancelled = userCancelled || codeAction == null;
 
                 if (cancelled)
                 {
@@ -75,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             FixAllLogger.LogComputationResult(completed: true);
-            return await GetFixAllOperationsAsync(codeAction, fixAllContext, fixAllTitle, showPreviewChangesDialog).ConfigureAwait(false);
+            return codeAction;
         }
 
         private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, FixAllContext fixAllContext, string fixAllPreviewChangesTitle, bool showPreviewChangesDialog)
@@ -98,37 +130,60 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             if (showPreviewChangesDialog)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, cancellationToken))
-                {
-                    var previewService = workspace.Services.GetService<IPreviewDialogService>();
-                    var glyph = fixAllContext.Project.Language == LanguageNames.CSharp ?
-                        Glyph.CSharpProject :
-                        Glyph.BasicProject;
-
-                    var changedSolution = previewService.PreviewChanges(
-                    string.Format(EditorFeaturesResources.PreviewChangesOf, fixAllPreviewChangesTitle),
-                    "vs.codefix.fixall",
-                    codeAction.Title,
-                    fixAllPreviewChangesTitle,
-                    glyph,
+                newSolution = PreviewChanges(
+                    fixAllContext.Project.Solution,
                     newSolution,
-                    fixAllContext.Project.Solution);
-
-                    if (changedSolution == null)
-                    {
-                        // User clicked cancel.
-                        FixAllLogger.LogPreviewChangesResult(applied: false);
-                        return null;
-                    }
-
-                    FixAllLogger.LogPreviewChangesResult(applied: true, allChangesApplied: changedSolution == newSolution);
-                    newSolution = changedSolution;
+                    fixAllPreviewChangesTitle,
+                    codeAction.Title,
+                    fixAllContext.Project.Language,
+                    workspace,
+                    cancellationToken);
+                if (newSolution == null)
+                {
+                    return null;
                 }
             }
 
             // Get a code action, with apply changes operation replaced with the newSolution.
             return GetNewFixAllOperations(operations, newSolution, cancellationToken);
+        }
+
+        internal static Solution PreviewChanges(
+            Solution currentSolution,
+            Solution newSolution,
+            string fixAllPreviewChangesTitle,
+            string fixAllTopLevelHeader,
+            string languageOpt,
+            Workspace workspace,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesPreviewChanges, cancellationToken))
+            {
+                var previewService = workspace.Services.GetService<IPreviewDialogService>();
+                var glyph = languageOpt == null ?
+                    Glyph.Assembly :
+                    languageOpt == LanguageNames.CSharp ? Glyph.CSharpProject : Glyph.BasicProject;
+
+                var changedSolution = previewService.PreviewChanges(
+                    string.Format(EditorFeaturesResources.PreviewChangesOf, fixAllPreviewChangesTitle),
+                    "vs.codefix.fixall",
+                    fixAllTopLevelHeader,
+                    fixAllPreviewChangesTitle,
+                    glyph,
+                    newSolution,
+                    currentSolution);
+
+                if (changedSolution == null)
+                {
+                    // User clicked cancel.
+                    FixAllLogger.LogPreviewChangesResult(applied: false);
+                    return null;
+                }
+
+                FixAllLogger.LogPreviewChangesResult(applied: true, allChangesApplied: changedSolution == newSolution);
+                return changedSolution;
+            }
         }
 
         private IEnumerable<CodeActionOperation> GetNewFixAllOperations(IEnumerable<CodeActionOperation> operations, Solution newSolution, CancellationToken cancellationToken)

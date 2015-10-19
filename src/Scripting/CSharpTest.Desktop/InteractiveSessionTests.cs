@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
 using Microsoft.CodeAnalysis.Scripting.Test;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
     public class InteractiveSessionTests : TestBase
     {
         [Fact]
-        public async void CompilationChain_GlobalImportsRebinding()
+        public async Task CompilationChain_GlobalImportsRebinding()
         {
             var options = ScriptOptions.Default.AddNamespaces("System.Diagnostics");
 
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
         }
 
         [Fact]
-        public async void CompilationChain_UsingRebinding_AddReference()
+        public async Task CompilationChain_UsingRebinding_AddReference()
         {
             var s0 = await CSharpScript.RunAsync("using System.Diagnostics;");
 
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
         }
 
         [Fact]
-        public async void CompilationChain_UsingRebinding_Directive()
+        public async Task CompilationChain_UsingRebinding_Directive()
         {
             var s0 = await CSharpScript.RunAsync("using System.Diagnostics;");
 
@@ -139,7 +140,7 @@ new System.Data.DataSet()
         /// Look at base directory (or directory containing #r) before search paths.
         /// </summary>
         [Fact]
-        public async void SearchPaths_BaseDirectory()
+        public async Task SearchPaths_BaseDirectory()
         {
             var options = ScriptOptions.Default.
                 WithCustomMetadataResolution(new TestMetadataReferenceResolver(
@@ -159,7 +160,7 @@ var x = from a in new[] { 1, 2 ,3 } select a + 1;
         }
 
         [Fact]
-        public async void References1()
+        public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(
                 typeof(Process).Assembly, 
@@ -195,7 +196,7 @@ System.Drawing.Color.Coral
             var options3 = options2.AddReferences(typeof(System.Windows.Forms.Form).Assembly.Location);
 
             var s3 = await s2.ContinueWithAsync<System.Windows.Forms.Form>(@"
-new System.Windows.Forms.Form();
+new System.Windows.Forms.Form()
 ", options3);
 
             Assert.NotNull(s3.ReturnValue);
@@ -289,7 +290,7 @@ System.Collections.IEnumerable w = new Window();
         public class C { public int x = 1; }
 
         [Fact]
-        public async void HostObjectBinding_DuplicateReferences()
+        public async Task HostObjectBinding_DuplicateReferences()
         {
             var options = ScriptOptions.Default.
                 AddReferences(typeof(C).Assembly, typeof(C).Assembly);
@@ -301,6 +302,7 @@ System.Collections.IEnumerable w = new Window();
             {
                 typeof(object).GetTypeInfo().Assembly.Location,
                 typeof(C).Assembly.Location,
+                Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")).Location, // TODO: remove
                 typeof(C).Assembly.Location,
                 typeof(C).Assembly.Location,
             }, s0.Script.GetCompilation().ExternalReferences.SelectAsArray(m => m.Display));

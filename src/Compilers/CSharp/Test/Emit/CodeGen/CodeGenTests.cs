@@ -14407,7 +14407,7 @@ class Program
         public void BadDefaultParameterValue()
         {
             // In this DLL there is an optional parameter which has a corrupted metadata value
-            // as the default argument.  This can happen in legitamite code when run through an
+            // as the default argument.  This can happen in legitimate code when run through an
             // obfuscator program.  For compatibility with the native compiler we need to treat
             // the value as default(T) 
             string source = @"
@@ -14434,5 +14434,269 @@ class Program
   IL_000b:  ret
 }");
         }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void InplaceCtorUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        private static S1[] arr = new S1[1];
+
+        struct S1
+        {
+            public int a, b;
+            public S1(int a, int b)
+            {
+                this.a = a;
+                this.b = b;
+            }
+        }
+
+        static void Main(string[] args)
+        {
+            var arg = System.Math.Max(1, 2);
+            var val = new S1(arg, arg);
+            arr[0] = val;
+            System.Console.WriteLine(arr[0].a);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "2");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (int V_0, //arg
+                Program.S1 V_1) //val
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""int System.Math.Max(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""Program.S1..ctor(int, int)""
+  IL_0011:  ldsfld     ""Program.S1[] Program.arr""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.1
+  IL_0018:  stelem     ""Program.S1""
+  IL_001d:  ldsfld     ""Program.S1[] Program.arr""
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldelema    ""Program.S1""
+  IL_0028:  ldfld      ""int Program.S1.a""
+  IL_002d:  call       ""void System.Console.WriteLine(int)""
+  IL_0032:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void TernaryConsequenceUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static bool foo()
+        {
+            return true;
+        }
+
+        static void Main(string[] args)
+        {
+            bool arg;
+            var val = (arg = foo())? arg & arg : false;
+
+            System.Console.WriteLine(val);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "True");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (bool V_0) //arg
+  IL_0000:  call       ""bool Program.foo()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.0
+  IL_000a:  br.s       IL_000f
+  IL_000c:  ldloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  and
+  IL_000f:  call       ""void System.Console.WriteLine(bool)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void CoalesceUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static string foo()
+        {
+            return ""hi"";
+        }
+
+        static void Main(string[] args)
+        {
+            string str;
+            var val = (str = foo()) ?? str + ""aa"";
+
+            System.Console.WriteLine(val);
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "hi");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0) //str
+  IL_0000:  call       ""string Program.foo()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  dup
+  IL_0008:  brtrue.s   IL_0016
+  IL_000a:  pop
+  IL_000b:  ldloc.0
+  IL_000c:  ldstr      ""aa""
+  IL_0011:  call       ""string string.Concat(string, string)""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void TernaryUsesLocal()
+        {
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string sline = GetString();
+
+            var lastChar = sline.Length == 0 ? '\0' : sline[sline.Length - 1];
+
+            System.Console.WriteLine(lastChar);
+        }
+
+        private static string GetString()
+        {
+            return ""hello"";
+        }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "o");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (string V_0) //sline
+  IL_0000:  call       ""string Program.GetString()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  callvirt   ""int string.Length.get""
+  IL_000c:  brfalse.s  IL_001e
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  callvirt   ""int string.Length.get""
+  IL_0015:  ldc.i4.1
+  IL_0016:  sub
+  IL_0017:  callvirt   ""char string.this[int].get""
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""void System.Console.WriteLine(char)""
+  IL_0024:  ret
+}
+");
+        }
+
+        [WorkItem(5530, "https://github.com/dotnet/roslyn/issues/5530")]
+        [Fact]
+        public void LogicalOpUsesLocal()
+        { 
+            string source = @"
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            string tokenString = GetString();
+
+
+            if (tokenString[tokenString.Length - 1] != 'L' && tokenString[tokenString.Length -1] != 'l')
+            {
+                System.Console.WriteLine(""hi"");
+            }
+            }
+
+            private static string GetString()
+            {
+                return ""hello"";
+            }
+    }
+";
+
+            var compilation = CompileAndVerify(source, expectedOutput: "hi");
+
+            compilation.VerifyIL("Program.Main",
+@"
+{
+  // Code size       53 (0x35)
+  .maxstack  3
+  .locals init (string V_0) //tokenString
+  IL_0000:  call       ""string Program.GetString()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   ""int string.Length.get""
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  callvirt   ""char string.this[int].get""
+  IL_0014:  ldc.i4.s   76
+  IL_0016:  beq.s      IL_0034
+  IL_0018:  ldloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  callvirt   ""int string.Length.get""
+  IL_001f:  ldc.i4.1
+  IL_0020:  sub
+  IL_0021:  callvirt   ""char string.this[int].get""
+  IL_0026:  ldc.i4.s   108
+  IL_0028:  beq.s      IL_0034
+  IL_002a:  ldstr      ""hi""
+  IL_002f:  call       ""void System.Console.WriteLine(string)""
+  IL_0034:  ret
+}
+");
+        }
+
     }
 }

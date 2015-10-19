@@ -5323,7 +5323,7 @@
     <value>partial modules</value>
   </data>
   <data name="FEATURE_PartialInterfaces" xml:space="preserve">
-    <value>partial interafces</value>
+    <value>partial interfaces</value>
   </data>
   <data name="FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite" xml:space="preserve">
     <value>implementing read-only or write-only property with read-write property</value>

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
-            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrNull());
+            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
-            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -125,6 +126,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or code block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
+        }
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or code block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
     }
 
     /// <summary>
@@ -205,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
-            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrNull());
+            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -249,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
-            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -261,6 +283,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or code block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
+        }
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or code block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
     }
 
     /// <summary>
@@ -491,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
         {
-            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
         }
 
         /// <summary>
@@ -655,6 +698,56 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _node = node;
             _semanticModel = semanticModel;
+            _options = options;
+            _reportDiagnostic = reportDiagnostic;
+            _isSupportedDiagnostic = isSupportedDiagnostic;
+            _cancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Report a <see cref="Diagnostic"/> about a <see cref="SyntaxNode"/>.
+        /// </summary>
+        /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
+        public void ReportDiagnostic(Diagnostic diagnostic)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, _isSupportedDiagnostic);
+            lock (_reportDiagnostic)
+            {
+                _reportDiagnostic(diagnostic);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Context for an operation action.
+    /// An operation action can use an <see cref="OperationAnalysisContext"/> to report <see cref="Diagnostic"/>s for an <see cref="IOperation"/>.
+    /// </summary>
+    public struct OperationAnalysisContext
+    {
+        private readonly IOperation _operation;
+        private readonly AnalyzerOptions _options;
+        private readonly Action<Diagnostic> _reportDiagnostic;
+        private readonly Func<Diagnostic, bool> _isSupportedDiagnostic;
+        private readonly CancellationToken _cancellationToken;
+
+        /// <summary>
+        /// <see cref="IOperation"/> that is the subject of the analysis.
+        /// </summary>
+        public IOperation Operation { get { return _operation; } }
+        
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options { get { return _options; } }
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken { get { return _cancellationToken; } }
+
+        public OperationAnalysisContext(IOperation operation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+        {
+            _operation = operation;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;

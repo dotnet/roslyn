@@ -32,10 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private int _selectedSuppressedItems;
         private int _selectedRoslynItems;
         private int _selectedCompilerDiagnosticItems;
+        private int _selectedNoLocationDiagnosticItems;
         private int _selectedNonSuppressionStateItems;
-
-        private const string SynthesizedFxCopDiagnostic = "SynthesizedFxCopDiagnostic";
-        private readonly string[] SynthesizedFxCopDiagnosticCustomTags = new string[] { SynthesizedFxCopDiagnostic };
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListSuppressionStateService(
@@ -62,7 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         // If only Roslyn active items are selected, we enable suppress in source.
         public bool CanSuppressSelectedEntriesInSource => _selectedActiveItems > 0 &&
             _selectedSuppressedItems == 0 &&
-            _selectedRoslynItems == _selectedActiveItems;
+            _selectedRoslynItems == _selectedActiveItems &&
+            (_selectedRoslynItems - _selectedNoLocationDiagnosticItems) > 0;
 
         // If only active items are selected, and there is at least one Roslyn item, we enable suppress in suppression file.
         // Also, compiler diagnostics cannot be suppressed in suppression file, so there must be at least one non-compiler item.
@@ -76,6 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _selectedSuppressedItems = 0;
             _selectedRoslynItems = 0;
             _selectedCompilerDiagnosticItems = 0;
+            _selectedNoLocationDiagnosticItems = 0;
             _selectedNonSuppressionStateItems = 0;
         }
 
@@ -119,14 +119,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private bool ProcessEntries(IEnumerable<ITableEntryHandle> entryHandles, bool added)
         {
-            bool isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry;
+            bool isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry;
             var hasSuppressionStateEntry = false;
             foreach (var entryHandle in entryHandles)
             {
-                if (EntrySupportsSuppressionState(entryHandle, out isRoslynEntry, out isSuppressedEntry, out isCompilerDiagnosticEntry))
+                if (EntrySupportsSuppressionState(entryHandle, out isRoslynEntry, out isSuppressedEntry, out isCompilerDiagnosticEntry, out isNoLocationDiagnosticEntry))
                 {
                     hasSuppressionStateEntry = true;
-                    HandleSuppressionStateEntry(isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, added);
+                    HandleSuppressionStateEntry(isRoslynEntry, isSuppressedEntry, isCompilerDiagnosticEntry, isNoLocationDiagnosticEntry, added);
                 }
                 else
                 {
@@ -137,8 +137,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return hasSuppressionStateEntry;
         }
 
-        private static bool EntrySupportsSuppressionState(ITableEntryHandle entryHandle, out bool isRoslynEntry, out bool isSuppressedEntry, out bool isCompilerDiagnosticEntry)
+        private static bool EntrySupportsSuppressionState(ITableEntryHandle entryHandle, out bool isRoslynEntry, out bool isSuppressedEntry, out bool isCompilerDiagnosticEntry, out bool isNoLocationDiagnosticEntry)
         {
+            string filePath;
+            isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) ||
+                string.IsNullOrEmpty(filePath);
+
             int index;
             var roslynSnapshot = GetEntriesSnapshot(entryHandle, out index);
             if (roslynSnapshot == null)
@@ -183,7 +187,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private static bool IsEntryWithConfigurableSuppressionState(DiagnosticData entry)
         {
             return entry != null &&
-                entry.HasTextSpan &&
                 !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
         }
 
@@ -204,23 +207,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return snapshot as AbstractTableEntriesSnapshot<DiagnosticData>;
         }
 
-        public bool IsSynthesizedNonRoslynDiagnostic(DiagnosticData diagnostic)
-        {
-            var tags = diagnostic.CustomTags;
-            return tags != null && tags.Contains(SynthesizedFxCopDiagnostic);
-        }
-
         /// <summary>
-        /// Gets <see cref="DiagnosticData"/> objects for error list entries, filtered based on the given parameters.
+        /// Gets <see cref="DiagnosticData"/> objects for selected error list entries.
+        /// For remove suppression, the method also returns selected external source diagnostics.
         /// </summary>
-        public async Task<ImmutableArray<DiagnosticData>> GetItemsAsync(bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<DiagnosticData>> GetSelectedItemsAsync(bool isAddSuppression, CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
             Dictionary<string, Project> projectNameToProjectMapOpt = null;
             Dictionary<Project, ImmutableDictionary<string, Document>> filePathToDocumentMapOpt = null;
 
-            var entries = selectedEntriesOnly ? _tableControl.SelectedEntries : _tableControl.Entries;
-            foreach (var entryHandle in entries)
+            foreach (var entryHandle in _tableControl.SelectedEntries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -243,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                     string errorCode = null, category = null, message = null, filePath = null, projectName = null;
                     int line = -1; // FxCop only supports line, not column.
-                    var location = Location.None;
+                    DiagnosticDataLocation location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out errorCode) && !string.IsNullOrEmpty(errorCode) &&
                         entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out category) && !string.IsNullOrEmpty(category) &&
@@ -297,18 +294,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             var linePosition = new LinePosition(line, 0);
                             var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
                             var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
-                            location = tree.GetLocation(textSpan);
+                            location = new DiagnosticDataLocation(document.Id, textSpan, filePath,
+                                originalStartLine: linePosition.Line, originalStartColumn: linePosition.Character,
+                                originalEndLine: linePosition.Line, originalEndColumn: linePosition.Character);
                         }
 
                         Contract.ThrowIfNull(project);
-                        Contract.ThrowIfFalse((document != null) == location.IsInSource);
+                        Contract.ThrowIfFalse((document != null) == (location != null));
 
                         // Create a diagnostic with correct values for fields we care about: id, category, message, isSuppressed, location
                         // and default values for the rest of the fields (not used by suppression fixer).
-                        var diagnostic = Diagnostic.Create(
+                        diagnosticData = new DiagnosticData(
                             id: errorCode,
                             category: category,
                             message: message,
+                            enuMessageForBingSearch: message,
                             severity: DiagnosticSeverity.Warning,
                             defaultSeverity: DiagnosticSeverity.Warning,
                             isEnabledByDefault: true,
@@ -316,35 +316,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             isSuppressed: isSuppressedEntry,
                             title: message,
                             location: location,
-                            customTags: SynthesizedFxCopDiagnosticCustomTags);
-
-                        diagnosticData = document != null ?
-                            DiagnosticData.Create(document, diagnostic) :
-                            DiagnosticData.Create(project, diagnostic);
+                            customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
+                            properties: ImmutableDictionary<string, string>.Empty,
+                            workspace: _workspace,
+                            projectId: project.Id);
                     }
                 }
 
                 if (IsEntryWithConfigurableSuppressionState(diagnosticData))
                 {
-                    var isCompilerDiagnostic = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
-                    if (onlyCompilerDiagnostics && !isCompilerDiagnostic)
-                    {
-                        continue;
-                    }
-
-                    if (isAddSuppression)
-                    {
-                        // Compiler diagnostics can only be suppressed in source.
-                        if (!diagnosticData.IsSuppressed &&
-                            (isSuppressionInSource || !isCompilerDiagnostic))
-                        {
-                            builder.Add(diagnosticData);
-                        }
-                    }
-                    else if (diagnosticData.IsSuppressed)
-                    {
-                        builder.Add(diagnosticData);
-                    }
+                    builder.Add(diagnosticData);
                 }
             }
 
@@ -381,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void HandleSuppressionStateEntry(bool isRoslynEntry, bool isSuppressedEntry, bool isCompilerDiagnosticEntry, bool added)
+        private void HandleSuppressionStateEntry(bool isRoslynEntry, bool isSuppressedEntry, bool isCompilerDiagnosticEntry, bool isNoLocationDiagnosticEntry, bool added)
         {
             if (isRoslynEntry)
             {
@@ -391,6 +372,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (isCompilerDiagnosticEntry)
             {
                 UpdateSelectedItems(added, ref _selectedCompilerDiagnosticItems);
+            }
+
+            if (isNoLocationDiagnosticEntry)
+            {
+                UpdateSelectedItems(added, ref _selectedNoLocationDiagnosticItems);
             }
 
             if (isSuppressedEntry)

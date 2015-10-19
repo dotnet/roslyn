@@ -14,10 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         Inherits BasicTestBase
 
         Private Function GetBytesEmitted(source As String, platform As Platform, debug As Boolean) As ImmutableArray(Of Byte)
-            Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform)
+            Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform).WithDeterministic(True)
 
-            Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options,
-                                                            parseOptions:=TestOptions.Regular.WithFeature("dEtErmInIstIc", "true")) ' expect case-insensitivity
+            Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options)
 
             ' The resolution of the PE header time date stamp is seconds, and we want to make sure
             ' that has an opportunity to change between calls to Emit.
@@ -34,9 +33,12 @@ Class C
     Shared Sub Main()
     End Sub
 End Class"
-            Dim compilationDeterministic = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest",
-                parseOptions:=TestOptions.Regular.WithFeature("deterministic", "true"))
-            Dim compilationNonDeterministic = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest")
+            Dim compilationDeterministic = CreateCompilationWithMscorlib({source},
+                                                                         assemblyName:="DeterminismTest",
+                                                                         options:=TestOptions.DebugExe.WithDeterministic(True))
+            Dim compilationNonDeterministic = CreateCompilationWithMscorlib({source},
+                                                                         assemblyName:="DeterminismTest",
+                                                                         options:=TestOptions.DebugExe.WithDeterministic(False))
 
             Dim resultDeterministic = compilationDeterministic.Emit(Stream.Null, Stream.Null)
             Dim resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, Stream.Null)
@@ -45,7 +47,7 @@ End Class"
             Assert.True(resultNonDeterministic.Success)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5813")>
         Public Sub CompareAllBytesEmitted_Release()
             Dim source =
 "Class Program
@@ -61,7 +63,7 @@ End Class"
             AssertEx.Equal(result3, result4)
         End Sub
 
-        <Fact, WorkItem(926)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5813"), WorkItem(926)>
         Public Sub CompareAllBytesEmitted_Debug()
             Dim source =
 "Class Program

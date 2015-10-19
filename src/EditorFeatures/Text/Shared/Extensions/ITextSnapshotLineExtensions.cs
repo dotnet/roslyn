@@ -141,5 +141,37 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
         {
             return line.GetText().GetLineOffsetFromColumn(column, editorOptions.GetTabSize());
         }
+
+        /// <summary>
+        /// Checks if the given line at the given snapshot index starts with the provided value.
+        /// </summary>
+        public static bool StartsWith(this ITextSnapshotLine line, int index, string value, bool ignoreCase)
+        {
+            var snapshot = line.Snapshot;
+            if (index + value.Length >= snapshot.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                var snapshotIndex = index + i;
+                var actualCharacter = snapshot[snapshotIndex];
+                var expectedCharacter = value[i];
+
+                if (ignoreCase)
+                {
+                    actualCharacter = char.ToLowerInvariant(actualCharacter);
+                    expectedCharacter = char.ToLowerInvariant(expectedCharacter);
+                }
+
+                if (actualCharacter != expectedCharacter)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,8 +23,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
         public async override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var diagnostics = context.Diagnostics.WhereAsArray(_suppressionFixProvider.CanBeSuppressedOrUnsuppressed);
-            var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Document, context.Span, diagnostics, context.CancellationToken).ConfigureAwait(false);
+            var diagnostics = context.Diagnostics.Where(_suppressionFixProvider.CanBeSuppressedOrUnsuppressed);
+
+            var documentDiagnostics = diagnostics.Where(d => d.Location.IsInSource).ToImmutableArray();
+            if (!documentDiagnostics.IsEmpty)
+            {
+                var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Document, context.Span, diagnostics, context.CancellationToken).ConfigureAwait(false);
+                RegisterSuppressionFixes(context, suppressionFixes);
+            }
+
+            var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
+            if (!projectDiagnostics.IsEmpty)
+            {
+                var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Project, diagnostics, context.CancellationToken).ConfigureAwait(false);
+                RegisterSuppressionFixes(context, suppressionFixes);
+            }
+        }
+
+        private void RegisterSuppressionFixes(CodeFixContext context, IEnumerable<CodeFix> suppressionFixes)
+        {
             if (suppressionFixes != null)
             {
                 foreach (var suppressionFix in suppressionFixes)

@@ -15,7 +15,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             private readonly Diagnostic _diagnostic;
             private readonly bool _forFixMultipleContext;
 
-            internal PragmaWarningCodeAction(
+            public static PragmaWarningCodeAction Create(
+                    SuppressionTargetInfo suppressionTargetInfo,
+                    Document document,
+                    Diagnostic diagnostic,
+                    AbstractSuppressionCodeFixProvider fixer)
+            {
+                // We need to normalize the leading trivia on start token to account for
+                // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
+                PragmaHelpers.NormalizeTriviaOnTokens(fixer, ref document, ref suppressionTargetInfo);
+
+                return new PragmaWarningCodeAction(suppressionTargetInfo, document, diagnostic, fixer);
+            }
+
+            private PragmaWarningCodeAction(
                 SuppressionTargetInfo suppressionTargetInfo,
                 Document document,
                 Diagnostic diagnostic,

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This part of the partial class focuses on features that cannot be used in expression trees.
     /// CAVEAT: Errors may be produced for ObsoleteAttribute, but such errors don't affect lambda convertibility.
     /// </summary>
-    internal sealed partial class DiagnosticsPass : BoundTreeWalker
+    internal sealed partial class DiagnosticsPass
     {
         private readonly DiagnosticBag _diagnostics;
         private readonly CSharpCompilation _compilation;
@@ -26,8 +26,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert((object)containingSymbol != null);
 
-            var diagnosticPass = new DiagnosticsPass(compilation, diagnostics, containingSymbol);
-            diagnosticPass.Visit(node);
+            try
+            {
+                var diagnosticPass = new DiagnosticsPass(compilation, diagnostics, containingSymbol);
+                diagnosticPass.Visit(node);
+            }
+            catch (CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+            }
         }
 
         private DiagnosticsPass(CSharpCompilation compilation, DiagnosticBag diagnostics, MethodSymbol containingSymbol)
@@ -552,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            if (_inExpressionLambda && node.LeftOperand.ConstantValue != null && node.LeftOperand.ConstantValue.IsNull)
+            if (_inExpressionLambda && node.LeftOperand.IsLiteralNull())
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, node.LeftOperand);
             }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             this ISymUnmanagedReader reader,
             int methodToken,
             int methodVersion,
-            string firstLocalName)
+            ArrayBuilder<ISymUnmanagedScope> scopes)
         {
             ImmutableArray<string> externAliasStrings;
             var importStringGroups = reader.GetCSharpGroupedImportStrings(methodToken, methodVersion, out externAliasStrings);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     customDebugInfoBytes,
                     methodToken,
                     methodVersion,
-                    firstLocalName,
+                    scopes,
                     out dynamicLocalMap,
                     out dynamicLocalConstantMap);
             }

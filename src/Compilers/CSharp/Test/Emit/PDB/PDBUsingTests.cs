@@ -2125,9 +2125,9 @@ class C
                     "DebuggableAttribute",
                     "DebuggingModes",
                     "Object",
+                    "Func`1",
                     "Enumerable",
-                    "DataColumn",
-                    "Func`1"
+                    "DataColumn"
                 }, reader.TypeReferences.Select(h => reader.GetString(reader.GetTypeReference(h).Name)));
 
                 Assert.Equal(1, reader.GetTableRowCount(TableIndex.TypeSpec));

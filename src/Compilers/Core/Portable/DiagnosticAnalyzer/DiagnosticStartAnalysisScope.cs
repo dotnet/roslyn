@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -69,6 +70,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
             _scope.RegisterSyntaxNodeAction(_analyzer, action, syntaxKinds);
         }
+
+        public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
+            this._scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+        }
     }
 
     /// <summary>
@@ -119,6 +126,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
             _scope.RegisterSyntaxNodeAction(_analyzer, action, syntaxKinds);
+        }
+        public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            this._scope.RegisterOperationAction(this._analyzer, action, operationKinds);
         }
     }
 
@@ -243,6 +254,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return base.GetSyntaxNodeActions<TLanguageKindEnum>().AddRange(_sessionScope.GetSyntaxNodeActions<TLanguageKindEnum>());
         }
 
+        public override ImmutableArray<OperationAnalyzerAction> OperationActions
+        {
+            get { return base.OperationActions.AddRange(this._sessionScope.OperationActions); }
+        }
+
         public override AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
             AnalyzerActions compilationActions = base.GetAnalyzerActions(analyzer);
@@ -311,6 +327,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
+        private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
         private readonly Dictionary<DiagnosticAnalyzer, AnalyzerActions> _analyzerActions = new Dictionary<DiagnosticAnalyzer, AnalyzerActions>();
 
         public ImmutableArray<CompilationAnalyzerAction> CompilationActions
@@ -371,6 +388,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public virtual ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>() where TLanguageKindEnum : struct
         {
             return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().AsImmutable();
+        }
+
+        public virtual ImmutableArray<OperationAnalyzerAction> OperationActions
+        {
+            get { return this._operationActions; }
         }
 
         public virtual AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
@@ -443,6 +465,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _syntaxNodeActions = _syntaxNodeActions.Add(analyzerAction);
         }
 
+        public void RegisterOperationAction(DiagnosticAnalyzer analyzer, Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            OperationAnalyzerAction analyzerAction = new OperationAnalyzerAction(action, operationKinds, analyzer);
+            this.GetOrCreateAnalyzerActions(analyzer).AddOperationAction(analyzerAction);
+            this._operationActions = this._operationActions.Add(analyzerAction);
+        }
+
         protected AnalyzerActions GetOrCreateAnalyzerActions(DiagnosticAnalyzer analyzer)
         {
             AnalyzerActions actions;
@@ -475,6 +504,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockEndActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<CodeBlockAnalyzerAction> _codeBlockActions = ImmutableArray<CodeBlockAnalyzerAction>.Empty;
         private ImmutableArray<AnalyzerAction> _syntaxNodeActions = ImmutableArray<AnalyzerAction>.Empty;
+        private ImmutableArray<OperationAnalyzerAction> _operationActions = ImmutableArray<OperationAnalyzerAction>.Empty;
 
         internal static readonly AnalyzerActions Empty = new AnalyzerActions();
 
@@ -489,6 +519,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public int SemanticModelActionsCount { get { return _semanticModelActions.Length; } }
         public int SymbolActionsCount { get { return _symbolActions.Length; } }
         public int SyntaxNodeActionsCount { get { return _syntaxNodeActions.Length; } }
+        public int OperationActionsCount { get { return this._operationActions.Length; } }
         public int CodeBlockStartActionsCount { get { return _codeBlockStartActions.Length; } }
         public int CodeBlockEndActionsCount { get { return _codeBlockEndActions.Length; } }
         public int CodeBlockActionsCount { get { return _codeBlockActions.Length; } }
@@ -543,6 +574,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _syntaxNodeActions.OfType<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>().ToImmutableArray();
         }
 
+        internal ImmutableArray<OperationAnalyzerAction> OperationActions
+        {
+            get { return this._operationActions; }
+        }
+
         internal void AddCompilationStartAction(CompilationStartAnalyzerAction action)
         {
             _compilationStartActions = _compilationStartActions.Add(action);
@@ -593,6 +629,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _syntaxNodeActions = _syntaxNodeActions.Add(action);
         }
 
+        internal void AddOperationAction(OperationAnalyzerAction action)
+        {
+            this._operationActions = this._operationActions.Add(action);
+        }
+
         /// <summary>
         /// Append analyzer actions from <paramref name="otherActions"/> to actions from this instance.
         /// </summary>
@@ -615,6 +656,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             actions._codeBlockEndActions = _codeBlockEndActions.AddRange(otherActions._codeBlockEndActions);
             actions._codeBlockActions = _codeBlockActions.AddRange(otherActions._codeBlockActions);
             actions._syntaxNodeActions = _syntaxNodeActions.AddRange(otherActions._syntaxNodeActions);
+            actions._operationActions = _operationActions.AddRange(otherActions._operationActions);
 
             return actions;
         }

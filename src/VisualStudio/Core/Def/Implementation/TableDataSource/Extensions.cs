@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public static string[] GetProjectNames(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
         {
-            return projectIds.Select(p => GetProjectName(workspace, p)).WhereNotNull().ToArray();
+            return projectIds.Select(p => GetProjectName(workspace, p)).WhereNotNull().Distinct().ToArray();
         }
 
         public static Guid GetProjectGuid(this Workspace workspace, ProjectId projectId)
@@ -169,7 +169,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         public static Guid[] GetProjectGuids(this Workspace workspace, ImmutableArray<ProjectId> projectIds)
         {
-            return projectIds.Select(p => GetProjectGuid(workspace, p)).Where(g => g != Guid.Empty).ToArray();
+            return projectIds.Select(p => GetProjectGuid(workspace, p)).Where(g => g != Guid.Empty).Distinct().ToArray();
         }
 
         public static DocumentId GetDocumentId<T>(T item)
@@ -185,6 +185,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             Contract.ThrowIfNull(todo);
 
             return todo.DocumentId;
+        }
+
+        public static ProjectId GetProjectId<T>(T item)
+        {
+            // item must be either one of diagnostic data and todo item
+            var diagnostic = item as DiagnosticData;
+            if (diagnostic != null)
+            {
+                return diagnostic.ProjectId;
+            }
+
+            var todo = item as TodoItem;
+            Contract.ThrowIfNull(todo);
+
+            return todo.DocumentId.ProjectId;
         }
 
         public static Workspace GetWorkspace<T>(T item)

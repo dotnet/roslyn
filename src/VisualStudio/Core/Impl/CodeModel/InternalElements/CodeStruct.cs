@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeStruct))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeStruct2))]
     public sealed class CodeStruct : AbstractCodeType, EnvDTE.CodeStruct, EnvDTE80.CodeStruct2
     {
         internal static EnvDTE.CodeStruct Create(
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             var element = new CodeStruct(state, fileCodeModel, nodeKey, nodeKind);
             var result = (EnvDTE.CodeStruct)ComAggregate.CreateAggregatedObject(element);
 
-            fileCodeModel.OnElementCreated(nodeKey, (EnvDTE.CodeElement)result);
+            fileCodeModel.OnCodeElementCreated(nodeKey, (EnvDTE.CodeElement)result);
 
             return result;
         }

@@ -34,14 +34,6 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|ARM'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|ARM'">
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
@@ -49,6 +41,15 @@
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-beta-23401\ref\dotnet\System.Runtime.Loader.dll">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
+      <Link>Resolvers\RelativePathResolver.cs</Link>
+    </Compile>
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
@@ -58,17 +59,27 @@
     <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="AssemblyLoader\AssemblyLoadResult.cs" />
-    <Compile Include="CommandLine\CommandLineHostObject.cs" />
-    <Compile Include="CommandLine\CommandLineRunner.cs" />
-    <Compile Include="CommandLine\ConsoleIO.cs" />
-    <Compile Include="CommandLine\NotImplementedAnalyzerLoader.cs" />
-    <Compile Include="Resolvers\RuntimeMetadataReferenceResolver.cs" />
-    <Compile Include="AssemblyLoader\InteractiveAssemblyLoader.cs" />
-    <Compile Include="AssemblyLoader\MetadataShadowCopy.cs" />
-    <Compile Include="AssemblyLoader\MetadataShadowCopyProvider.cs" />
-    <Compile Include="AssemblyLoader\ShadowCopy.cs" />
-    <Compile Include="Resolvers\NuGetPackageResolver.cs" />
+    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
+    </Compile>
+    <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
+    <Compile Include="Hosting\AssemblyLoader\AssemblyLoadResult.cs" />
+    <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />
+    <Compile Include="Hosting\CommandLine\ConsoleIO.cs" />
+    <Compile Include="Hosting\CommandLine\NotImplementedAnalyzerLoader.cs" />
+    <Compile Include="Hosting\InteractiveScriptGlobals.cs" />
+    <Compile Include="Hosting\Resolvers\RuntimeMetadataReferenceResolver.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoader.cs" />
+    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopy.cs" />
+    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopyProvider.cs" />
+    <Compile Include="Hosting\AssemblyLoader\ShadowCopy.cs" />
+    <Compile Include="Hosting\Resolvers\NuGetPackageResolver.cs" />
+    <Compile Include="Hosting\SearchPaths.cs" />
+    <Compile Include="Hosting\SynchronizedList.cs" />
     <Compile Include="ScriptCompiler.cs" />
     <Compile Include="ScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -76,19 +87,19 @@
       <DependentUpon>ScriptingResources.resx</DependentUpon>
     </Compile>
     <Compile Include="ScriptRunner.cs" />
-    <Compile Include="ObjectFormatter.cs" />
-    <Compile Include="ObjectFormatter.Formatter.cs" />
-    <Compile Include="XmlFileResolverForAssemblies.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.Formatter.cs" />
     <Compile Include="Script.cs" />
     <Compile Include="ScriptBuilder.cs" />
     <Compile Include="CompilationErrorException.cs" />
-    <Compile Include="MemberDisplayFormat.cs" />
-    <Compile Include="ObjectFormattingOptions.cs" />
+    <Compile Include="Hosting\ObjectFormatter\MemberDisplayFormat.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormattingOptions.cs" />
     <Compile Include="ScriptExecutionState.cs" />
     <Compile Include="ScriptOptions.cs" />
     <Compile Include="ScriptState.cs" />
     <Compile Include="ScriptVariable.cs" />
-    <Compile Include="TaskExtensions.cs" />
+    <Compile Include="Utilities\IListExtensions.cs" />
+    <Compile Include="Utilities\TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
@@ -96,6 +107,13 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
+    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <!-- /TODO -->
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
@@ -103,6 +121,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ScriptingResources.resx">

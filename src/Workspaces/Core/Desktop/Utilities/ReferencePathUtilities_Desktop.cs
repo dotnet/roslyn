@@ -45,7 +45,7 @@ namespace Roslyn.Utilities
         private static IEnumerable<string> GetFrameworkPaths()
         {
             ////            Concat(Path.GetDirectoryName(typeof(Microsoft.CSharp.RuntimeHelpers.SessionHelpers).Assembly.Location)).
-            return GlobalAssemblyCache.RootLocations.Concat(RuntimeEnvironment.GetRuntimeDirectory());
+            return GlobalAssemblyCacheLocation.RootLocations.Concat(RuntimeEnvironment.GetRuntimeDirectory());
         }
 
         public static IEnumerable<string> GetReferencePaths()

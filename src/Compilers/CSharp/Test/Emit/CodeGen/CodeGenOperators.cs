@@ -4609,7 +4609,281 @@ class test<T> where T : c0
   IL_0004:  ret
 }
 ");
-
         }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_01()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        var f = new long[4096];
+        for (int i = 0; i < 4096 ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine((Calculate1(f) == Calculate2(f)) ? ""True"" : ""False"");
+    }
+
+	public static long Calculate1(long[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+    }
+
+	public static long Calculate2(long[] f)
+    {
+        long result = 0;
+        int i;
+
+        for (i = 0; i < f.Length; i++)
+        {
+            result+=(i + 1)*f[i];
+        }
+
+        return result + (i + 1);
+    }
+}
+";
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "True");
+        }
+
+        private static string BuildSequenceOfBinaryExpressions_01(int count = 4096)
+        {
+            var builder = new System.Text.StringBuilder();
+            int i;
+            for (i = 0; i < count ; i++)
+            {
+                builder.Append(i + 1);
+                builder.Append(" * ");
+                builder.Append("f[");
+                builder.Append(i);
+                builder.Append("] + ");
+            }
+
+            builder.Append(i + 1);
+
+            return builder.ToString();
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_02()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        var f = new long[4096];
+        for (int i = 0; i < 4096 ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+	public static double Calculate(long[] f)
+    {
+" + $"        return checked({ BuildSequenceOfBinaryExpressions_01() });" + @"
+    }
+}
+";
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
+        }
+        
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_03()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+	public static bool Calculate(bool[] a, bool[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics(
+    // (10,16): error CS8078: An expression is too long or complex to compile
+    //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
+    Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
+                );
+        }
+
+        private static string BuildSequenceOfBinaryExpressions_03()
+        {
+            var builder = new System.Text.StringBuilder();
+            int i;
+            for (i = 0; i < 8192; i++)
+            {
+                builder.Append("a[");
+                builder.Append(i);
+                builder.Append("]");
+                builder.Append(" && ");
+                builder.Append("f[");
+                builder.Append(i);
+                builder.Append("] || ");
+            }
+
+            builder.Append("a[");
+            builder.Append(i);
+            builder.Append("]");
+
+            return builder.ToString();
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_04()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        var f = new float?[4096];
+        for (int i = 0; i < 4096 ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+	public static double? Calculate(float?[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01() };" + @"
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics(
+    // (17,16): error CS8078: An expression is too long or complex to compile
+    //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
+    Diagnostic(ErrorCode.ERR_InsufficientStack, "1").WithLocation(17, 16)
+                );
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_05()
+        {
+            int count = 50;
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var f = new double?[" + $"{count}" + @"];
+        for (int i = 0; i < " + $"{count}" + @" ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+	public static double? Calculate(double?[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+    }
+
+    static void Test2()
+    {
+        var f = new double[" + $"{count}" + @"];
+        for (int i = 0; i < " + $"{count}" + @" ; i++)
+        {
+            f[i] = 4096 - i;
+        }
+
+        System.Console.WriteLine(Calculate(f));
+    }
+
+	public static double Calculate(double[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_01(count) };" + @"
+    }
+}
+";
+
+            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5180801
+5180801");
+        }
+
+        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+        public void EmitSequenceOfBinaryExpressions_06()
+        {
+            var source =
+@"
+class Test
+{ 
+    static void Main()
+    {
+    }
+
+	public static bool Calculate(S1[] a, S1[] f)
+    {
+" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+    }
+}
+
+struct S1
+{
+    public static S1 operator & (S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static S1 operator |(S1 x, S1 y)
+    {
+        return new S1();
+    }
+
+    public static bool operator true(S1 x)
+    {
+        return true;
+    }
+
+    public static bool operator false(S1 x)
+    {
+        return true;
+    }
+
+    public static implicit operator bool (S1 x)
+    {
+        return true;
+    } 
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyEmitDiagnostics(
+    // (10,16): error CS8078: An expression is too long or complex to compile
+    //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
+    Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
+                );
+        }
+
     }
 }

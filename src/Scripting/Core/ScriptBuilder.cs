@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 peStream.Position = 0;
 
-                var assembly = _assemblyLoader.Load(peStream, pdbStream: null);
+                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream: null);
                 var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
 
                 return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();

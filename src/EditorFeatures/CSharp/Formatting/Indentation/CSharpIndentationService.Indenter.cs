@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -363,7 +362,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             {
                 // find containing non terminal node
                 var queryExpressionClause = GetQueryExpressionClause(token);
-                Contract.ThrowIfNull(queryExpressionClause);
+                if (queryExpressionClause == null)
+                {
+                    return GetDefaultIndentationFromTokenLine(token);
+                }
 
                 // find line where first token of the node is
                 var snapshot = LineToBeIndented.Snapshot;

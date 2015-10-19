@@ -1923,10 +1923,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _returns = returns;
             }
 
-            public override BoundNode VisitLambda(BoundLambda node)
+            public override BoundNode Visit(BoundNode node)
             {
-                // Do not recurse into nested lambdas; we don't want their returns.
+                if (!(node is BoundExpression))
+                {
+                    return base.Visit(node);
+                }
+
                 return null;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)

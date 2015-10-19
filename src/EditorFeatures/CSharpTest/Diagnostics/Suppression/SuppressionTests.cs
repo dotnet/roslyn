@@ -194,7 +194,7 @@ class Class
                             .WaitAndGetResult(CancellationToken.None)
                             .SelectMany(fixCollection => fixCollection.Fixes)
                             .Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
-                        
+
                         // Ensure that both the fixes have identical equivalence key, and hence get de-duplicated in LB menu.
                         Assert.Equal(2, fixes.Count());
                         Assert.NotNull(fixes.First().Action.EquivalenceKey);
@@ -542,6 +542,9 @@ class Class
 
             public class DiagnosticWithBadIdSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
             {
+                // Analyzer driver generates a no-location analyzer exception diagnostic, which we don't intend to test here.
+                protected override bool IncludeNoLocationDiagnostics => false;
+
                 private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
                 {
                     private DiagnosticDescriptor _descriptor =
@@ -592,6 +595,58 @@ using System;
             }
         }
 
+        public partial class MultilineDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests
+        {
+            private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
+            {
+                public static readonly DiagnosticDescriptor Decsciptor =
+                    new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                {
+                    get
+                    {
+                        return ImmutableArray.Create(Decsciptor);
+                    }
+                }
+
+                public override void Initialize(AnalysisContext context)
+                {
+                    context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.ClassDeclaration);
+                }
+
+                public void AnalyzeNode(SyntaxNodeAnalysisContext context)
+                {
+                    var classDecl = (ClassDeclarationSyntax)context.Node;
+                    context.ReportDiagnostic(Diagnostic.Create(Decsciptor, classDecl.GetLocation()));
+                }
+            }
+
+            internal override Tuple<DiagnosticAnalyzer, ISuppressionFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            {
+                return new Tuple<DiagnosticAnalyzer, ISuppressionFixProvider>(
+                    new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+            }
+
+            [WorkItem(2764, "https://github.com/dotnet/roslyn/issues/2764")]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            public void TestPragmaWarningDirectiveAroundMultilineDiagnostic()
+            {
+                Test(
+    @"
+[|class Class
+{
+}|]
+",
+    $@"
+#pragma warning disable {UserDiagnosticAnalyzer.Decsciptor.Id} // {UserDiagnosticAnalyzer.Decsciptor.Title}
+class Class
+{{
+}}
+#pragma warning restore {UserDiagnosticAnalyzer.Decsciptor.Id} // {UserDiagnosticAnalyzer.Decsciptor.Title}
+");
+            }
+        }
         #endregion
 
         #region "SuppressMessageAttribute tests"
@@ -1412,18 +1467,18 @@ class Class { }
 
         #region NoLocation Diagnostics tests
 
-        public class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
+        public partial class CSharpDiagnosticWithoutLocationSuppressionTests : CSharpSuppressionTests
         {
             private class UserDiagnosticAnalyzer : DiagnosticAnalyzer
             {
-                private DiagnosticDescriptor _descriptor =
+                public static readonly DiagnosticDescriptor Descriptor =
                     new DiagnosticDescriptor("NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", "NoLocationDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
                     get
                     {
-                        return ImmutableArray.Create(_descriptor);
+                        return ImmutableArray.Create(Descriptor);
                     }
                 }
 
@@ -1434,7 +1489,7 @@ class Class { }
 
                 public void AnalyzeNode(SyntaxNodeAnalysisContext context)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(_descriptor, Location.None));
+                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.None));
                 }
             }
 
@@ -1454,21 +1509,31 @@ class Class { }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
             [WorkItem(1073825)]
-            public void TestDiagnosticWithoutLocationCannotBeSuppressed()
+            public void TestDiagnosticWithoutLocationCanBeSuppressed()
             {
-                TestMissing(
-        @"
+                Test(
+        @"[||]
 using System;
 
-[|class Class|]
+class Class
 {
     int Method()
     {
         int x = 0;
     }
-}");
+}",
+            $@"
+// This file is used by Code Analysis to maintain SuppressMessage 
+// attributes that are applied to this project.
+// Project-level suppressions either have no target or are given 
+// a specific target and scoped to a namespace, type, member, etc.
+
+[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage(""NoLocationDiagnostic"", ""NoLocationDiagnostic:NoLocationDiagnostic"", Justification = ""{FeaturesResources.SuppressionPendingJustification}"")]
+
+");
             }
         }
+
         #endregion
     }
 }
