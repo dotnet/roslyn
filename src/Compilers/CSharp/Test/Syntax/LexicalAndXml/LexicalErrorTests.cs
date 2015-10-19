@@ -44,6 +44,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FloatOverflow, "3e100m").WithArguments("decimal"));
         }
 
+        [WorkItem(6079, "https://github.com/dotnet/roslyn/issues/6079")]
+        [Fact]
+        public void FloatLexicalError()
+        {
+            var test =
+@"class C
+{
+    const double d1 = 0endOfDirective.Span;
+}";
+            // The precise errors don't matter so much as the fact that the compiler should not crash.
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (3,23): error CS0594: Floating-point constant is outside the range of type 'double'
+                //     const double d1 = 0endOfDirective.Span;
+                Diagnostic(ErrorCode.ERR_FloatOverflow, "").WithArguments("double").WithLocation(3, 23),
+                // (3,25): error CS1002: ; expected
+                //     const double d1 = 0endOfDirective.Span;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ndOfDirective").WithLocation(3, 25),
+                // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     const double d1 = 0endOfDirective.Span;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43),
+                // (3,43): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     const double d1 = 0endOfDirective.Span;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(3, 43)
+                );
+        }
+
         [Fact]
         public void CS1009ERR_IllegalEscape()
         {
