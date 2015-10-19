@@ -10,7 +10,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Shared ReadOnly Instance As New SymbolFactory()
 
-        Friend Overrides Function GetMDArrayTypeSymbol(moduleSymbol As PEModuleSymbol, rank As Integer, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
+        Friend Overrides Function GetMDArrayTypeSymbol(
+            moduleSymbol As PEModuleSymbol,
+            rank As Integer,
+            elementType As TypeSymbol,
+            customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)),
+            sizes As ImmutableArray(Of Integer),
+            lowerBounds As ImmutableArray(Of Integer)
+        ) As TypeSymbol
             If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
                 Return elementType
             End If
@@ -18,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return ArrayTypeSymbol.CreateMDArray(
                             elementType,
                             VisualBasicCustomModifier.Convert(customModifiers),
-                            rank, moduleSymbol.ContainingAssembly)
+                            rank, sizes, lowerBounds, moduleSymbol.ContainingAssembly)
         End Function
 
         Friend Overrides Function GetByRefReturnTypeSymbol(moduleSymbol As PEModuleSymbol, referencedType As TypeSymbol, countOfCustomModifiersPrecedingByRef As UShort) As TypeSymbol

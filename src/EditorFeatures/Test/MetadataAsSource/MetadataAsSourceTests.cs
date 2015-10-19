@@ -248,6 +248,36 @@ End Class");
         public void TestEnum()
         {
             var metadataSource = "public enum E { A, B, C }";
+            var symbolName = "E";
+
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
+#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public enum [|E|]
+{{
+    A = 0,
+    B = 1,
+    C = 2
+}}");
+            GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
+#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Public Enum [|E|]
+    A = 0
+    B = 1
+    C = 2
+End Enum");
+        }
+
+        [WorkItem(546195), WorkItem(546269)]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public void TestEnumFromField()
+        {
+            var metadataSource = "public enum E { A, B, C }";
             var symbolName = "E.C";
 
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.CSharp, $@"
@@ -257,9 +287,9 @@ End Class");
 
 public enum E
 {{
-    A,
-    B,
-    [|C|]
+    A = 0,
+    B = 1,
+    [|C|] = 2
 }}");
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
 #Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
@@ -267,9 +297,9 @@ public enum E
 #End Region
 
 Public Enum E
-    A
-    B
-    [|C|]
+    A = 0
+    B = 1
+    [|C|] = 2
 End Enum");
         }
 
@@ -287,9 +317,9 @@ End Enum");
 
 public enum E : short
 {{
-    A,
-    B,
-    [|C|]
+    A = 0,
+    B = 1,
+    [|C|] = 2
 }}");
             GenerateAndVerifySource(metadataSource, symbolName, LanguageNames.VisualBasic, $@"
 #Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
@@ -297,9 +327,9 @@ public enum E : short
 #End Region
 
 Public Enum E As Short
-    A
-    B
-    [|C|]
+    A = 0
+    B = 1
+    [|C|] = 2 
 End Enum");
         }
 

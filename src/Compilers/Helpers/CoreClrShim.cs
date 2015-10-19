@@ -6,7 +6,6 @@ using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
-
     /// <summary>
     /// This is a bridge for APIs that are only available on CoreCLR or .NET 4.6
     /// and NOT on .NET 4.5. The compiler currently targets .NET 4.5 and CoreCLR
@@ -14,36 +13,26 @@ namespace Roslyn.Utilities
     /// </summary>
     internal static class CoreClrShim
     {
-        internal static bool IsCoreClr { get; } =
-            Type.GetType("System.Runtime.Loader.AssemblyLoadContext, System.Runtime.Loader, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-                         throwOnError: false) != null;
-
-        internal static void Initialize()
+        
+        internal static class AssemblyLoadContext
         {
-            // This method provides a way to force the static initializers of each type below
-            // to run. This ensures that the static field values will be computed eagerly
-            // rather than lazily on demand. If you add a new nested class below to access API
-            // surface area, be sure to "touch" the Type field here.
-
-            Touch(CodePagesEncodingProvider.Type);
+            internal static readonly Type Type = ReflectionUtilities.TryGetType(
+               "System.Runtime.Loader.AssemblyLoadContext, System.Runtime.Loader, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
         }
-
-        private static void Touch(Type type)
-        {
-            // Do nothing.
-        }
-
+        
         internal static class CodePagesEncodingProvider
         {
-            internal static readonly Type Type =
-                Type.GetType("System.Text.CodePagesEncodingProvider, System.Text.Encoding.CodePages, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-                             throwOnError: false);
+            internal static readonly Type Type = ReflectionUtilities.TryGetType(
+                "System.Text.CodePagesEncodingProvider, " +
+                "System.Text.Encoding.CodePages, " +
+                "Version=4.0.0.0, Culture=neutral, " +
+                "PublicKeyToken=b03f5f7f11d50a3a");
 
             private static PropertyInfo s_instance = Type
-                .GetTypeInfo()
+                ?.GetTypeInfo()
                 .GetDeclaredProperty("Instance");
 
-            internal static object Instance => s_instance.GetValue(null);
+            internal static object Instance => s_instance?.GetValue(null);
         }
 
         internal static class Encoding

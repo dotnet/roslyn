@@ -125,6 +125,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // (c) Emit switch buckets
                 this.EmitSwitchBuckets(switchBuckets, 0, switchBuckets.Length - 1);
             }
+            else
+            {
+                _builder.EmitBranch(ILOpCode.Br, _fallThroughLabel);
+            }
         }
 
         #region "Sorting switch labels"

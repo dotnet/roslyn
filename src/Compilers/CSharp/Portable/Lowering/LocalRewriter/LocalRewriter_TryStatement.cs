@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Is there any code to execute in the given statement that could have side-effects,
-        /// such as throwing an exception? This implementation is conserviative, in the sense
+        /// such as throwing an exception? This implementation is conservative, in the sense
         /// that it may return true when the statement actually may have no side effects.
         /// </summary>
         private static bool HasSideEffects(BoundStatement statement)

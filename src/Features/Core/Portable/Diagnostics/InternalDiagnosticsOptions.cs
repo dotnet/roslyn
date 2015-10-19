@@ -16,5 +16,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option<bool> ClearLiveErrorsForProjectBuilt = new Option<bool>(OptionName, "Clear all live errors of projects that got built", defaultValue: false);
         public static readonly Option<bool> PreferLiveErrorsOnOpenedFiles = new Option<bool>(OptionName, "Live errors will be preferred over errors from build on opened files from same analyzer", defaultValue: true);
         public static readonly Option<bool> PreferBuildErrorsOverLiveErrors = new Option<bool>(OptionName, "Errors from build will be preferred over live errors from same analyzer", defaultValue: true);
+        public static readonly Option<bool> PutCustomTypeInBingSearch = new Option<bool>(OptionName, "PutCustomTypeInBingSearch", defaultValue: true);
     }
 }

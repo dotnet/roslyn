@@ -3103,6 +3103,27 @@ End Module
 #End Region
 
         <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub GetBaseName1()
+            Dim code =
+<Code>
+Imports N.M
+
+Namespace N
+    Namespace M
+        Class Generic(Of T)
+        End Class
+    End Namespace
+End Namespace
+
+Class $$C 
+    Inherits Generic(Of String)
+End Class
+</Code>
+
+            TestGetBaseName(code, "N.M.Generic(Of String)")
+        End Sub
+
+        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ExternalClass_ImplementedInterfaces()
             Dim code =
 <Code>

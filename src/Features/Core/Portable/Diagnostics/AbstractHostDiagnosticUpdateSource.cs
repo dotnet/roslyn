@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
         {
             return ImmutableArray<DiagnosticData>.Empty;
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        protected void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
+        public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
             var updated = this.DiagnosticsUpdated;
             if (updated != null)

@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier)
             Get
-                ' custom event methods do not have explicit returns and nver implement or override
+                ' custom event methods do not have explicit returns and never implement or override
                 Return ImmutableArray(Of CustomModifier).Empty
             End Get
         End Property
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim nParameters = parameterListSyntax.Count
             Dim paramBuilder = ArrayBuilder(Of ParameterSymbol).GetInstance(nParameters)
 
-            ' Bind all parameters (even though we kow how many to expect), 
+            ' Bind all parameters (even though we know how many to expect), 
             ' to ensure all diagnostics are generated and ensure parameter symbols are available for binding the method body.
             binder.DecodeParameterList(
                 Me,

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal sealed class CapturedVariableRewriter : BoundTreeRewriter
+    internal sealed class CapturedVariableRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
         internal static BoundNode Rewrite(
             ParameterSymbol targetMethodThisParameter,
@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override BoundNode VisitBlock(BoundBlock node)
         {
             var rewrittenLocals = node.Locals.WhereAsArray(local => local.IsCompilerGenerated || local.Name == null || this.GetVariable(local.Name) == null);
+            var rewrittenLocalFunctions = node.LocalFunctions;
             var rewrittenStatements = VisitList(node.Statements);
-            return node.Update(rewrittenLocals, rewrittenStatements);
+            return node.Update(rewrittenLocals, rewrittenLocalFunctions, rewrittenStatements);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)

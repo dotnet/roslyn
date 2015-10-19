@@ -1354,12 +1354,8 @@ class C
         this.foo();
     }
 }";
-
-            var comp = CSharpCompilation.Create(
-                "Test",
-                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) },
-                new[] { MscorlibRef });
-
+            var comp = CreateCompilationWithMscorlib45(
+                new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) });
             comp.VerifyDiagnostics(
                 // (4,9): error CS0027: Keyword 'this' is not available in the current context
                 Diagnostic(ErrorCode.ERR_ThisInBadContext, "this"),
@@ -4892,7 +4888,7 @@ class Program
                 // (12,17): error CS0159: No such label 'default:' within the scope of the goto statement
                 //                 goto default;
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto default;").WithArguments("default:"),
-                // (11,13): error CS14001: Control cannot fall out of switch from final case label ('case 23:')
+                // (11,13): error CS8070: Control cannot fall out of switch from final case label ('case 23:')
                 //             case 23:
                 Diagnostic(ErrorCode.ERR_SwitchFallOut, "case 23:").WithArguments("case 23:"));
         }
@@ -10681,7 +10677,7 @@ class C
         [Fact]
         public void CS0670ERR_FieldCantHaveVoidType_Var()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var x = default(void); 
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,17): error CS1547: Keyword 'void' cannot be used in this context
@@ -10835,7 +10831,7 @@ public class Test
         [Fact]
         public void CS0723ERR_VarDeclIsStaticClass_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 static class SC {} 
 
 var sc2 = new SC();
@@ -11065,7 +11061,7 @@ class Test
         [Fact]
         public void CS0815ERR_ImplicitlyTypedVariableAssignedBadValue_Field()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 static void M() {}
 
 var m = M;       
@@ -11115,7 +11111,7 @@ class A
         [Fact]
         public void CS0818ERR_ImplicitlyTypedVariableWithNoInitializer_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var a; // CS0818
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (1,5): error CS0818: Implicitly-typed variables must be initialized
@@ -11150,7 +11146,7 @@ class A
         [Fact]
         public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var foo = 4, bar = 4.5;
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,1): error CS0819: Implicitly-typed fields cannot have multiple declarators
@@ -11182,7 +11178,7 @@ class G
         [Fact]
         public void CS0820ERR_ImplicitlyTypedVariableAssignedArrayInitializer_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 var y = { 1, 2, 3 };
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
             // (1,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
@@ -11213,7 +11209,30 @@ class A
         }
 
         [Fact]
-        public void CS0822ERR_ImplicitlyTypedLocalCannotBeConst()
+        public void ConstNullAdd()
+        {
+            var text = @"
+class A
+{
+    public static void Main()
+    {
+        const int x = 0; // CS0822.cs
+        const int? y = (int?)null + x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (7,15): error CS0283: The type 'int?' cannot be declared const
+                //         const int? y = (int?)null + x;
+                Diagnostic(ErrorCode.ERR_BadConstType, "int?").WithArguments("int?").WithLocation(7, 15),
+                // (7,24): warning CS0458: The result of the expression is always 'null' of type 'int?'
+                //         const int? y = (int?)null + x;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 24));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedLocalCanBeConst()
         {
             var text = @"
 class A
@@ -11224,53 +11243,78 @@ class A
         const var y = (int?)null + x;
     }
 }";
-            // In the dev10 compiler, the second line reports both that "const var" is illegal 
-            // and that the initializer must be a valid constant. This seems a bit odd, so
-            // in Roslyn we just report the first error. Let the user sort out whether they
-            // meant it to be a constant or a variable, and then we can tell them if its a
-            // bad constant.
 
             var comp = CreateCompilationWithMscorlib(text);
             comp.VerifyDiagnostics(
-// (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?"),
-// (6,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var x = 0; // CS0822.cs
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var x = 0;"),
-// (7,9): error CS0822: Implicitly-typed variables cannot be constant
-//         const var y = (int?)null + x;
-Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "const var y = (int?)null + x;")
-                );
+                // (7,23): error CS0133: The expression being assigned to 'y' must be constant
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)null + x").WithArguments("y").WithLocation(7, 23),
+                // (7,23): warning CS0458: The result of the expression is always 'null' of type 'int?'
+                //         const var y = (int?)null + x;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(int?)null + x").WithArguments("int?").WithLocation(7, 23));
         }
 
         [Fact]
-        public void CS0822ERR_ImplicitlyTypedVariableCannotBeConst_Fields()
+        public void ImplicitlyTypedConstLocal1()
         {
-            CreateCompilationWithMscorlib(@"
+            var text = @"
+class A
+{
+    public static void Main()
+    {
+        const var x = 0; 
+        x = 1;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         x = 1;
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "x").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedConstField1()
+        {
+            var text = @"
+class A
+{
+    const var x = 0;
+}";
+
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (4,11): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //     const var x = 0;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(4, 11));
+        }
+
+        [Fact]
+        public void ImplicitlyTypedScriptVariableCanBeConst()
+        {
+            CreateCompilationWithMscorlib45(@"
 const var x = 0; // CS0822.cs
-", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (2,7): error CS0822: Implicitly-typed variables cannot be constant
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, "var"));
+", parseOptions: TestOptions.Script).VerifyDiagnostics();
         }
 
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 void foo(var arg) { }
 var foo(int arg) { return 2; }
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (1,10): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
-                // (2,1): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"),
+                // (2,1): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"));
         }
 
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields2()
         {
-            CreateCompilationWithMscorlib(@"
+            CreateCompilationWithMscorlib45(@"
 T foo<T>() { return default(T); }
 foo<var>();
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
@@ -15121,7 +15165,7 @@ public class Child2 : Parent
 
             compilation.VerifyDiagnostics(expected);
 
-            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), null, true).Verify(expected);
+            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), filterSpanWithinTree: null, includeEarlierStages: true).Verify(expected);
         }
 
         [WorkItem(539631, "DevDiv")]

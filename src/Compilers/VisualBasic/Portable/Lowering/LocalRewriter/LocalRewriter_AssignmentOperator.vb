@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim leftFieldAccess = DirectCast(leftNode, BoundFieldAccess)
                 If leftFieldAccess.IsConstant Then
 #If DEBUG Then
-                    Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewritting the same node several times.")
+                    Debug.Assert(Not _rewrittenNodes.Contains(node), "LocalRewriter: Rewriting the same node several times.")
                     Dim originalNode = node
 #End If
 

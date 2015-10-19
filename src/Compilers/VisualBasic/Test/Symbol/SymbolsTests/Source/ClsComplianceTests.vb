@@ -1,14 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
-Imports System.Text
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2675,7 +2668,7 @@ End Class
             Dim libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlibAndReferences(source, {libRef})
             Dim tree = comp.SyntaxTrees.Single()
-            comp.GetDiagnosticsForTree(CompilationStage.Declare, tree, filterSpanWithinTree:=Nothing, includeEarlierStages:=True)
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree)
         End Sub
 
         <WorkItem(709317, "DevDiv")>
@@ -2749,7 +2742,7 @@ BC40027: Return type of function 'P' is not CLS-compliant.
                         ~
 ]]></errors>)
 
-            CompilationUtils.AssertTheseDiagnostics(comp.GetDiagnosticsForTree(CompilationStage.Declare, tree1, filterSpanWithinTree:=Nothing, includeEarlierStages:=False),
+            CompilationUtils.AssertTheseDiagnostics(comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree1, filterSpanWithinTree:=Nothing, includeEarlierStages:=False),
                                                <errors><![CDATA[
 BC40026: 'Compliant' is not CLS-compliant because it derives from 'NonCompliant', which is not CLS-compliant.
     Public Class Compliant

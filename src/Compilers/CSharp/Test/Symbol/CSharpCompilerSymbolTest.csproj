@@ -68,6 +68,7 @@
     <Compile Include="Compilation\GetSemanticInfoTests.cs" />
     <Compile Include="Compilation\GetUnusedImportDirectivesTests.cs" />
     <Compile Include="Compilation\IndexedProperties_BindingTests.cs" />
+    <Compile Include="Compilation\LoadDirectiveTests.cs" />
     <Compile Include="Compilation\QueryClauseInfoTests.cs" />
     <Compile Include="Compilation\ReferenceManagerTests.cs" />
     <Compile Include="Compilation\SemanticModelAPITests.cs" />
@@ -183,7 +184,6 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
@@ -197,6 +197,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

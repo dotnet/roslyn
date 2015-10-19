@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
                 AddReferences("System.Linq").
                 AddReferences("System.Linq");
 
-            Assert.Equal(5, options.References.Length);
+            Assert.Equal(5, options.MetadataReferences.Length);
         }
 
         [Fact]
@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         public void WithReferences()
         {
             var options = ScriptOptions.Default.WithReferences("System.Linq", "system.linq");
-            Assert.Equal(2, options.References.Length);
+            Assert.Equal(2, options.MetadataReferences.Length);
 
             options = ScriptOptions.Default.WithReferences(typeof(int).GetTypeInfo().Assembly, typeof(int).GetTypeInfo().Assembly);
-            Assert.Equal(2, options.References.Length);
+            Assert.Equal(2, options.MetadataReferences.Length);
 
             var assemblyRef = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.Methods.CSMethods).GetReference();
 
             options = ScriptOptions.Default.WithReferences(assemblyRef, assemblyRef);
-            Assert.Equal(2, options.References.Length);
+            Assert.Equal(2, options.MetadataReferences.Length);
         }
 
         [Fact]
@@ -152,6 +152,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             options.WithNamespaces(".blah");
         }
 
+#if TODO // provide simple resolver APIs
         [Fact]
         public void AddSearchPaths()
         {
@@ -175,5 +176,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             AssertEx.ThrowsArgumentNull("searchPaths", () => options.WithSearchPaths((IEnumerable<string>)null));
             AssertEx.ThrowsArgumentNull("searchPaths[0]", () => options.WithSearchPaths((IEnumerable<string>)new string[] { null }));
         }
+#endif
     }
 }

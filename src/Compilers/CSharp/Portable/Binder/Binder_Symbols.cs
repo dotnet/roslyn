@@ -546,8 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsTypeInContextWhichNeedsDynamicAttribute())
             {
-                if ((object)this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) == null ||
-                    (object)this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) == null)
+                if (!Compilation.HasDynamicEmitAttributes())
                 {
                     // CONSIDER:    Native compiler reports error CS1980 for each syntax node which binds to dynamic type, we do the same by reporting a diagnostic here.
                     //              However, this means we generate multiple duplicate diagnostics, when a single one would suffice.
@@ -889,6 +888,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(members.Count > 0);
+
+            if (!hasErrors)
+            {
+                // The common case is that if that members contains a local function symbol,
+                // there is only one element. Still do a foreach for potential error cases.
+                foreach (var member in members)
+                {
+                    if (!(member is LocalFunctionSymbol))
+                    {
+                        continue;
+                    }
+                    Debug.Assert(members.Count == 1 && member.Locations.Length == 1);
+                    var localSymbolLocation = member.Locations[0];
+                    bool usedBeforeDecl =
+                        syntax.SyntaxTree == localSymbolLocation.SourceTree &&
+                        syntax.SpanStart < localSymbolLocation.SourceSpan.Start;
+                    if (usedBeforeDecl)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, syntax, syntax);
+                    }
+                }
+            }
 
             switch (members[0].Kind)
             {

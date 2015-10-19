@@ -10,7 +10,10 @@ namespace Roslyn.Utilities
     {
         public static bool IsNestedPath(string basePath, string fullPath)
         {
-            return fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase);
+            return basePath.Length > 0
+                && fullPath.Length > basePath.Length
+                && fullPath.StartsWith(basePath, StringComparison.OrdinalIgnoreCase)
+                && (PathUtilities.IsDirectorySeparator(basePath[basePath.Length - 1]) || PathUtilities.IsDirectorySeparator(fullPath[basePath.Length]));
         }
 
         public static string GetNestedPath(string baseDirectory, string fullPath)

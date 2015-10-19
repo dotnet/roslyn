@@ -229,11 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (isVar)
                     {
-                        if (this.IsConst)
-                        {
-                            diagnosticsForFirstDeclarator.Add(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, typeSyntax.Location);
-                        }
-
                         if (fieldsBeingBound.ContainsReference(this))
                         {
                             diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);

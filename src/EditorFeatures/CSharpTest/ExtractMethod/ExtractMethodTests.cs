@@ -1,10 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+using Microsoft.CodeAnalysis.Editor.CSharp.ExtractMethod;
+using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10219,6 +10227,46 @@ namespace ClassLibrary9
             var service = new CSharpExtractMethodService() as IExtractMethodService;
 
             service.ExtractMethodAsync(document, default(TextSpan)).Wait();
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [Trait(Traits.Feature, Traits.Features.Interactive)]
+        public void ExtractMethodCommandDisabledInSubmission()
+        {
+            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsCodeFixService)));
+
+            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+                <Workspace>
+                    <Submission Language=""C#"" CommonReferences=""true"">  
+                        typeof(string).$$Name
+                    </Submission>
+                </Workspace> "),
+                workspaceKind: WorkspaceKind.Interactive,
+                exportProvider: exportProvider))
+            {
+                // Force initialization.
+                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+
+                var textView = workspace.Documents.Single().GetTextView();
+
+                var handler = new ExtractMethodCommandHandler(
+                    workspace.GetService<ITextBufferUndoManagerProvider>(),
+                    workspace.GetService<IEditorOperationsFactoryService>(),
+                    workspace.GetService<IInlineRenameService>(),
+                    workspace.GetService<Host.IWaitIndicator>());
+                var delegatedToNext = false;
+                Func<CommandState> nextHandler = () =>
+                {
+                    delegatedToNext = true;
+                    return CommandState.Unavailable;
+                };
+
+                var state = handler.GetCommandState(new Commands.ExtractMethodCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
+            }
         }
 
         private CSharpParseOptions Interactive

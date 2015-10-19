@@ -84,18 +84,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                             }
 
                             var codeAction = new MyCodeAction(
-                                string.Format(FeaturesResources.ChangeTo, name, containerName, memberName),
-                                (c) =>
-                                {
-                                    var newRoot = this.ReplaceNode(node, containerName, c);
-                                    return Task.FromResult(document.WithSyntaxRoot(newRoot));
-                                });
+                                $"{containerName}.{memberName}",
+                                c => ProcessNode(document, node, containerName, c));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
                         }
                     }
                 }
             }
+        }
+
+        private Task<Document> ProcessNode(Document document, SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        {
+            var newRoot = this.ReplaceNode(node, containerName, cancellationToken);
+            return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
         internal async Task<IEnumerable<ISymbol>> GetMatchingTypesAsync(

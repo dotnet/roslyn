@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyVersionAttribute) Then
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
                 Dim version As Version = Nothing
-                If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=True, version:=version) Then
+                If Not VersionHelper.TryParseAssemblyVersion(verString, allowWildcard:=Not _compilation.IsEmitDeterministic, version:=version) Then
                     arguments.Diagnostics.Add(ERRID.ERR_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
                 End If
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyVersionAttributeSetting = version
@@ -1162,8 +1162,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             emitExtensionAttribute = ThreeState.True
                         End If
                     End If
-
                 End If
+
+                Debug.Assert(_lazyEmitExtensionAttribute = ThreeState.Unknown OrElse
+                             _lazyEmitExtensionAttribute = emitExtensionAttribute)
+
+                _lazyEmitExtensionAttribute = emitExtensionAttribute
 
                 'strong name key settings are not validated when building netmodules.
                 'They are validated when the netmodule is added to an assembly.
@@ -1196,13 +1200,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ReportDiagnosticsForSynthesizedAttributes(DeclaringCompilation, diagnostics)
-
                 ReportDiagnosticsForAddedModules(diagnostics)
 
-                Dim vbDiagnostics = diagnostics.ToReadOnlyAndFree(Of Diagnostic)()
-                If ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, vbDiagnostics) Then
-                    _lazyEmitExtensionAttribute = emitExtensionAttribute
-                End If
+                ImmutableInterlocked.InterlockedInitialize(_lazyAssemblyLevelDeclarationErrors, diagnostics.ToReadOnlyAndFree(Of Diagnostic)())
             End If
 
             Return _lazyAssemblyLevelDeclarationErrors

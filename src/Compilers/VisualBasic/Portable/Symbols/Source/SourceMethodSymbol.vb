@@ -269,7 +269,7 @@ lReportErrorOnTwoTokens:
                 End If
             Else
                 ' If alias syntax not specified use Nothing - the emitter will fill in the metadata method name and 
-                ' the users can determine wheter or not it was specified.
+                ' the users can determine whether or not it was specified.
                 entryPointName = Nothing
             End If
 

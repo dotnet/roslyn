@@ -865,7 +865,7 @@ Friend Module CompilationUtils
     End Sub
 
     ' There are certain cases where multiple distinct errors are
-    ' reported where the errorcode and text span are the same. When
+    ' reported where the error code and text span are the same. When
     ' sorting such cases, we should preserve the original order.
     Private Structure DiagnosticAndIndex
         Public Sub New(diagnostic As Diagnostic, index As Integer)

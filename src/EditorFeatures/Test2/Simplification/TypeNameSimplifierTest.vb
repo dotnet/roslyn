@@ -2413,6 +2413,43 @@ namespace N
 
             Test(input, expected)
         End Sub
+
+        <WorkItem(4859, "https://github.com/dotnet/roslyn/issues/4859")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub CSharp_DontSimplifyNullableInNameOfExpression()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+using System;
+class C
+{
+    void M()
+    {
+        var s = nameof({|Simplify:Nullable<int>|});
+    }
+}
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+using System;
+class C
+{
+    void M()
+    {
+        var s = nameof(Nullable<int>);
+    }
+}
+]]></text>
+
+            Test(input, expected)
+        End Sub
 #End Region
 
 #Region "Normal Visual Basic Tests"
@@ -4316,6 +4353,39 @@ Module Module1
         Dim x = New System.Int32.Blah
     End Sub
 End Module]]></text>
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(4859, "https://github.com/dotnet/roslyn/issues/4859")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontSimplifyNullableInNameOfExpression()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" CommonReferences="true">
+                <Document>
+                    <![CDATA[
+Imports System
+Class C
+    Sub M()
+        Dim s = NameOf({|Simplify:Nullable(Of Integer)|})
+    End Sum
+End Class
+]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+              <text>
+                  <![CDATA[
+Imports System
+Class C
+    Sub M()
+        Dim s = NameOf(Nullable(Of Integer))
+    End Sum
+End Class
+]]></text>
 
             Test(input, expected)
         End Sub

@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
-            ' show extra info for assembly if possible such as version, publictoken and etc
+            ' show extra info for assembly if possible such as version, public key token etc.
             If symbol.Kind = SymbolKind.Assembly OrElse symbol.Kind = SymbolKind.Namespace Then
                 Return symbol.ToString()
             End If
@@ -129,13 +129,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function GetDiagnosticReport(diagnosticInfo As DiagnosticInfo, options As CompilationOptions) As ReportDiagnostic
+            Dim hasSourceSuppression = False
             Return VisualBasicDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
                                                                    True,
                                                                    diagnosticInfo.MessageIdentifier,
                                                                    Location.None,
                                                                    diagnosticInfo.Category,
                                                                    options.GeneralDiagnosticOption,
-                                                                   options.SpecificDiagnosticOptions)
+                                                                   options.SpecificDiagnosticOptions,
+                                                                   hasSourceSuppression)
         End Function
 
 
@@ -146,9 +148,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ' command line:
-        Public Overrides ReadOnly Property ERR_NoScriptsSpecified As Integer
+        Public Overrides ReadOnly Property ERR_ExpectedSingleScript As Integer
             Get
-                Return ERRID.ERR_NoScriptsSpecified
+                Return ERRID.ERR_ExpectedSingleScript
             End Get
         End Property
 

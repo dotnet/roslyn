@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
+            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
 
@@ -917,7 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
             }
-            else if (IsAbstract && !ContainingType.IsAbstract && ContainingType.TypeKind == TypeKind.Class)
+            else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {
                 // '{0}' is abstract but it is contained in non-abstract class '{1}'
                 diagnostics.Add(ErrorCode.ERR_AbstractInConcreteClass, location, this, ContainingType);

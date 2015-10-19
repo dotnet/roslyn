@@ -33,6 +33,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// </summary>
     internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
     {
+        internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
+        internal int LanguageBufferCounter = 0;
+
         public event EventHandler<SubmissionBufferAddedEventArgs> SubmissionBufferAdded;
 
         PropertyCollection IPropertyOwner.Properties { get; } = new PropertyCollection();
@@ -43,6 +46,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         /// WARNING: Members of this object should only be accessed from the UI thread.
         /// </remarks>
         private readonly UIThreadOnly _uiOnly;
+                     
+        // Setter for InteractiveWindowClipboard is a test hook.  
+        internal InteractiveWindowClipboard InteractiveWindowClipboard { get; set; } = new SystemClipboard();
 
         #region Initialization
 
@@ -258,6 +264,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.ExecuteInputAsync());
         }
 
+        /// <remarks>
+        /// Test hook.
+        /// </remarks>
+        internal Task ExecuteInputAsync()
+        {
+            return UIThread(uiOnly => uiOnly.ExecuteInputAsync());
+        }
+
         /// <summary>
         /// Appends text to the output buffer and updates projection buffer to include it.
         /// WARNING: this has to be the only method that writes to the output buffer so that 
@@ -366,6 +380,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         bool IInteractiveWindowOperations.Return()
         {
             return UIThread(uiOnly => uiOnly.Return());
+        }   
+
+        void IInteractiveWindowOperations2.DeleteLine()
+        {
+            UIThread(uiOnly => uiOnly.DeleteLine());
+        }
+
+        void IInteractiveWindowOperations2.CutLine()
+        {
+            UIThread(uiOnly => uiOnly.CutLine());
         }
 
         #endregion
@@ -434,9 +458,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-#endregion
+        #endregion
 
-#region Output
+        #region Output
 
         Span IInteractiveWindow.Write(string text)
         {
@@ -463,7 +487,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             UIThread(uiOnly => uiOnly.Write(element));
         }
 
-#endregion
+        #endregion
 
         #region UI Dispatcher Helpers
 
@@ -522,12 +546,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             Dispatcher.PushFrame(frame);
         }
 
-#endregion
+        #endregion
 
-#region Testing
+        #region Testing
 
         internal event Action<State> StateChanged;
 
-#endregion
+        #endregion
     }
 }

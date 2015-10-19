@@ -44,6 +44,18 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
+      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
+      <Name>InteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
+      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
+      <Name>CSharpInteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\VisualBasic\BasicInteractiveEditorFeatures.vbproj">
+      <Project>{849e516a-595f-474b-adb4-e099f921cedf}</Project>
+      <Name>BasicInteractiveEditorFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
@@ -188,11 +200,13 @@
     <Compile Include="Classification\ClassificationBuilder.PunctuationClassificationTypes.cs" />
     <Compile Include="Classification\ClassificationBuilder.XmlDocClassificationTypes.cs" />
     <Compile Include="Classification\ClassificationTestHelper.cs" />
+    <Compile Include="CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs" />
     <Compile Include="CodeActions\AbstractCodeActionTest.cs" />
     <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
     <Compile Include="CodeAnalysisResources.cs" />
     <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
+    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds2.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
     <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
@@ -220,6 +234,8 @@
     <Compile Include="Diagnostics\AbstractSuppressionDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AbstractUserDiagnosticTest.cs" />
+    <Compile Include="Diagnostics\MockDiagnosticUpdateSourceRegistrationService.cs" />
+    <Compile Include="Diagnostics\TestAnalyzerReferenceByLanguage.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzerDriver.cs" />
     <Compile Include="Diagnostics\TestDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
@@ -268,7 +284,6 @@
     <Compile Include="ExtractInterface\TestExtractInterfaceOptions.cs" />
     <Compile Include="FindReferences\FindReferencesCommandHandlerTests.cs" />
     <Compile Include="FindReferences\MockReferencedSymbolsPresenter.cs" />
-    <Compile Include="Interactive\SearchPathsTest.cs" />
     <Compile Include="KeywordHighlighting\AbstractKeywordHighlighterTests.cs" />
     <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
     <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />
@@ -353,6 +368,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

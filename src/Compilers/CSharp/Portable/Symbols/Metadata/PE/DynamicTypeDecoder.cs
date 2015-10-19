@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 arrayType :
                 arrayType.IsSZArray ?
                     ArrayTypeSymbol.CreateSZArray(_containingAssembly, transformedElementType, arrayType.CustomModifiers) :
-                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, transformedElementType, arrayType.Rank, arrayType.CustomModifiers);
+                    ArrayTypeSymbol.CreateMDArray(_containingAssembly, transformedElementType, arrayType.Rank, arrayType.Sizes, arrayType.LowerBounds, arrayType.CustomModifiers);
         }
 
         private PointerTypeSymbol TransformPointerType(PointerTypeSymbol pointerType)

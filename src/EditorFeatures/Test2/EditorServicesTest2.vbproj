@@ -37,6 +37,10 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
+      <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
+      <Name>InteractiveEditorFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
@@ -119,12 +123,6 @@
     <DebugType>pdbonly</DebugType>
     <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
-    <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
-    <DocumentationFile>Roslyn.Services.Editor.UnitTests2.xml</DocumentationFile>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
@@ -169,7 +167,11 @@
   <ItemGroup>
     <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
     <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
+    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
+    <Compile Include="Simplification\SimplifierAPITests.vb" />
+    <Compile Include="Utilities\GoToHelpers\GoToTestHelpers.vb" />
     <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
     <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />
@@ -225,9 +227,9 @@
     <Compile Include="FindReferences\FindReferencesTests.XmlDocSymbols.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionCommandHandlerTests.vb" />
     <Compile Include="GoToDefinition\GoToDefinitionTests.vb" />
-    <Compile Include="GoToDefinition\MockDocumentNavigationService.vb" />
-    <Compile Include="GoToDefinition\MockDocumentNavigationServiceFactory.vb" />
-    <Compile Include="GoToDefinition\MockNavigableItemsPresenter.vb" />
+    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationService.vb" />
+    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationServiceFactory.vb" />
+    <Compile Include="Utilities\GoToHelpers\MockNavigableItemsPresenter.vb" />
     <Compile Include="IntelliSense\CompletionWaiter.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_Projections.vb" />
@@ -314,6 +316,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

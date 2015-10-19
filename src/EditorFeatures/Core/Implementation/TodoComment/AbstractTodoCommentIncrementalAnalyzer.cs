@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
                 if (CheckVersions(document, textVersion, syntaxVersion, existingData))
                 {
                     Contract.Requires(_workspace == document.Project.Solution.Workspace);
-                    RaiseTaskListUpdated(_workspace, document.Id, existingData.Items);
+                    RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, existingData.Items);
                     return;
                 }
             }
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             if (existingData == null || existingData.Items.Length > 0 || data.Items.Length > 0)
             {
                 Contract.Requires(_workspace == document.Project.Solution.Workspace);
-                RaiseTaskListUpdated(_workspace, document.Id, data.Items);
+                RaiseTaskListUpdated(_workspace, document.Project.Solution, document.Id, data.Items);
             }
         }
 
@@ -109,7 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TodoItem CreateItem(Document document, SourceText text, SyntaxTree tree, TodoComment comment)
         {
-            var textSpan = new TextSpan(comment.Position, 0);
+            // make sure given position is within valid text range.
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, comment.Position)), 0);
 
             var location = tree == null ? Location.Create(document.FilePath, textSpan, text.Lines.GetLinePositionSpan(textSpan)) : tree.GetLocation(textSpan);
             var originalLineInfo = location.GetLineSpan();
@@ -148,6 +151,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return existingData.Items;
         }
 
+        public IEnumerable<UpdatedEventArgs> GetTodoItemsUpdatedEventArgs(Workspace workspace, CancellationToken cancellationToken)
+        {
+            foreach (var documentId in _state.GetDocumentIds())
+            {
+                yield return new UpdatedEventArgs(Tuple.Create(this, documentId), workspace, documentId.ProjectId, documentId);
+            }
+        }
+
         private static bool CheckVersions(Document document, VersionStamp textVersion, VersionStamp syntaxVersion, Data existingData)
         {
             // first check full version to see whether we can reuse data in same session, if we can't, check timestamp only version to see whether
@@ -161,11 +172,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return _state.GetItems_TestingOnly(documentId);
         }
 
-        private void RaiseTaskListUpdated(Workspace workspace, DocumentId documentId, ImmutableArray<TodoItem> items)
+        private void RaiseTaskListUpdated(Workspace workspace, Solution solution, DocumentId documentId, ImmutableArray<TodoItem> items)
         {
             if (_owner != null)
             {
-                _owner.RaiseTaskListUpdated(documentId, workspace, documentId.ProjectId, documentId, items);
+                _owner.RaiseTaskListUpdated(documentId, workspace, solution, documentId.ProjectId, documentId, items);
             }
         }
 
@@ -173,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         {
             _state.Remove(documentId);
 
-            RaiseTaskListUpdated(_workspace, documentId, ImmutableArray<TodoItem>.Empty);
+            RaiseTaskListUpdated(_workspace, null, documentId, ImmutableArray<TodoItem>.Empty);
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)

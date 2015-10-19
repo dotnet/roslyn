@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxToken RenameInStringLiteral(SyntaxToken oldToken, SyntaxToken newToken, Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> createNewStringLiteral)
             {
                 var originalString = newToken.ToString();
-                string replacedString = RenameLocationSet.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText);
+                string replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText);
                 if (replacedString != originalString)
                 {
                     var oldSpan = oldToken.Span;
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             private SyntaxTrivia RenameInCommentTrivia(SyntaxTrivia trivia)
             {
                 var originalString = trivia.ToString();
-                string replacedString = RenameLocationSet.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText);
+                string replacedString = RenameLocations.ReferenceProcessing.ReplaceMatchingSubStrings(originalString, _originalText, _replacementText);
                 if (replacedString != originalString)
                 {
                     var oldSpan = trivia.Span;
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     var properties = new List<ISymbol>();
                     foreach (var referencedSymbol in referencedSymbols)
                     {
-                        var property = await RenameLocationSet.ReferenceProcessing.GetPropertyFromAccessorOrAnOverride(
+                        var property = await RenameLocations.ReferenceProcessing.GetPropertyFromAccessorOrAnOverride(
                             referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
                         if (property != null)
                         {

@@ -1,8 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractInterface
 Imports Microsoft.CodeAnalysis.ExtractInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractInterface
@@ -1247,6 +1250,44 @@ End Namespace
                 expectedUpdatedOriginalDocumentCode:=expectedUpdatedDocument,
                 expectedInterfaceCode:=expectedInterfaceCode,
                 rootNamespace:="RootNamespace")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
+        <Trait(Traits.Feature, Traits.Features.Interactive)>
+        Public Sub ExtractInterfaceCommandDisabledInSubmission()
+            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsCodeFixService)))
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+                <Workspace>
+                    <Submission Language="Visual Basic" CommonReferences="true">  
+                        Public Class C
+                            Public Sub M()
+                            End Sub
+                        End Class
+                    </Submission>
+                </Workspace>,
+                workspaceKind:=WorkspaceKind.Interactive,
+                exportProvider:=exportProvider)
+
+                ' Force initialization.
+                workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
+
+                Dim textView = workspace.Documents.Single().GetTextView()
+
+                Dim handler = New ExtractInterfaceCommandHandler()
+                Dim delegatedToNext = False
+                Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+                Dim state = handler.GetCommandState(New Commands.ExtractInterfaceCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+            End Using
         End Sub
 
         Private Shared Sub TestTypeDiscovery(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean)

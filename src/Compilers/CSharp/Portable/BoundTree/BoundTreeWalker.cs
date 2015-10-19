@@ -49,4 +49,85 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
     }
+
+    internal abstract class BoundTreeWalkerWithStackGuard : BoundTreeWalker
+    {
+        private int _recursionDepth;
+
+        protected BoundTreeWalkerWithStackGuard()
+        { }
+
+        protected BoundTreeWalkerWithStackGuard(int recursionDepth)
+        {
+            _recursionDepth = recursionDepth;
+        }
+
+        protected int RecursionDepth => _recursionDepth;
+
+        public override BoundNode Visit(BoundNode node)
+        {
+            var expression = node as BoundExpression;
+            if (expression != null)
+            {
+                return VisitExpressionWithStackGuard(ref _recursionDepth, expression);
+            }
+
+            return base.Visit(node);
+        }
+
+        protected BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        {
+            return VisitExpressionWithStackGuard(ref _recursionDepth, node);
+        }
+
+        protected sealed override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        {
+            return (BoundExpression)base.Visit(node);
+        }
+    }
+
+    internal abstract class BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator : BoundTreeWalkerWithStackGuard 
+    {
+        protected BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator()
+        { }
+
+        protected BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator(int recursionDepth)
+            : base(recursionDepth)
+        { }
+
+        public sealed override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            if (node.Left.Kind != BoundKind.BinaryOperator)
+            {
+                return base.VisitBinaryOperator(node);
+            }
+
+            var rightOperands = ArrayBuilder<BoundExpression>.GetInstance();
+
+            rightOperands.Push(node.Right);
+
+            var binary = (BoundBinaryOperator)node.Left;
+
+            rightOperands.Push(binary.Right);
+
+            BoundExpression current = binary.Left;
+
+            while (current.Kind == BoundKind.BinaryOperator)
+            {
+                binary = (BoundBinaryOperator)current;
+                rightOperands.Push(binary.Right);
+                current = binary.Left;
+            }
+
+            this.Visit(current);
+
+            while (rightOperands.Count > 0)
+            {
+                this.Visit(rightOperands.Pop());
+            }
+
+            rightOperands.Free();
+            return null;
+        }
+    }
 }

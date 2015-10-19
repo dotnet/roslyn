@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp {
     using System;
     using System.Reflection;
     
-    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -58,6 +57,41 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Usage: csi [options] [script-file.csx] [-- script-arguments]
+        ///
+        ///If script-file is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+        ///
+        ///Options:
+        ///  /help                          Display this usage message (Short form: /?)
+        ///  /reference:&lt;alias&gt;=&lt;file&gt;      Reference metadata from the specified assembly file using the given alias (Short form: /r)
+        ///  /reference:&lt;file list&gt;         Reference metadata from the specified assembly files (Short form: /r)
+        ///  /referencePath [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string InteractiveHelp {
+            get {
+                return ResourceManager.GetString("InteractiveHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Microsoft (R) Visual C# Interactive Compiler version {0}.
+        /// </summary>
+        internal static string LogoLine1 {
+            get {
+                return ResourceManager.GetString("LogoLine1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copyright (C) Microsoft Corporation. All rights reserved..
+        /// </summary>
+        internal static string LogoLine2 {
+            get {
+                return ResourceManager.GetString("LogoLine2", resourceCulture);
             }
         }
     }

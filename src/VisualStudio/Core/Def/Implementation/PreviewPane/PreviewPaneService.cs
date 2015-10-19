@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             if (!BrowserHelper.TryGetUri(diagnostic.Descriptor.HelpLinkUri, out helpLink))
             {
                 // We use the ENU version of the message for bing search.
-                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.GetMessage(DiagnosticData.USCultureInfo), language, projectType);
+                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.GetBingHelpMessage(), language, projectType);
                 isBing = true;
             }
 

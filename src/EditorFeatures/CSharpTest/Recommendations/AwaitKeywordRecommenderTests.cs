@@ -137,5 +137,13 @@ class Program
     {
         lock($$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public void InGlobalStatement()
+        {
+            const string text = @"$$";
+            VerifyKeyword(SourceCodeKind.Interactive, text);
+            VerifyKeyword(SourceCodeKind.Script, text);
+        } 
     }
 }

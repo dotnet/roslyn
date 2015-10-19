@@ -573,7 +573,7 @@ public class Ref<T> where T : Entity
         {
             CodeClass classObject = (CodeClass)GetCodeElement("Ref");
             var element = classObject.Members.Item(1);
-            Assert.Equal("operator implicit Ref<T>", element.Name);
+            Assert.Equal("implicit operator Ref<T>", element.Name);
         }
     }
 }

@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
     public class Vbc2
     {
         public static int Main(string[] args)
-            => Program.Main(args.Concat(new[] { "/shared" }).ToArray());
+            => Program.Main(args, new[] { "/shared" });
     }
 }

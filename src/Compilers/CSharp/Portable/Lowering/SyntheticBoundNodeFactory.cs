@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBlock Block(ImmutableArray<BoundStatement> statements)
         {
-            return Block(ImmutableArray<LocalSymbol>.Empty, statements);
+            return Block(ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, statements);
         }
 
         public BoundBlock Block(params BoundStatement[] statements)
@@ -406,14 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Block(ImmutableArray.Create(statements));
         }
 
-        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, params BoundStatement[] statements)
+        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, params BoundStatement[] statements)
         {
-            return Block(locals, ImmutableArray.Create(statements));
+            return Block(locals, localFunctions, ImmutableArray.Create(statements));
         }
 
-        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> statements)
+        public BoundBlock Block(ImmutableArray<LocalSymbol> locals, ImmutableArray<LocalFunctionSymbol> localFunctions, ImmutableArray<BoundStatement> statements)
         {
-            return new BoundBlock(Syntax, locals, statements) { WasCompilerGenerated = true };
+            return new BoundBlock(Syntax, locals, localFunctions, statements) { WasCompilerGenerated = true };
         }
 
         public BoundReturnStatement Return(BoundExpression expression = null)
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
         {
-            Debug.Assert(left.Type.Equals(right.Type, ignoreCustomModifiers: true));
+            Debug.Assert(left.Type.Equals(right.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Debug.Assert(left.Type.IsReferenceType);
 
             return new BoundNullCoalescingOperator(Syntax, left, right, Conversion.Identity, left.Type) { WasCompilerGenerated = true };
@@ -730,6 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ex,
                 null,
                 ImmutableArray<LocalSymbol>.Empty,
+                ImmutableArray<LocalFunctionSymbol>.Empty,
                 s,
                 breakLabel,
                 null)

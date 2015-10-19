@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var syntaxTree = context.SyntaxTree;
             return
+                context.IsPreProcessorKeywordContext &&
                 syntaxTree.IsInteractiveOrScript() &&
-                syntaxTree.IsBeforeFirstToken(position, cancellationToken) &&
-                context.IsPreProcessorKeywordContext;
+                syntaxTree.IsBeforeFirstToken(position, cancellationToken);
         }
     }
 }

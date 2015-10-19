@@ -213,7 +213,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' has executed <see cref="DecodeWellKnownAttribute"/> for attributes applied on the symbol and has stored the decoded data in the
         ''' lazyCustomAttributesBag on the symbol. Bound attributes haven't been stored on the bag yet.
         ''' 
-        ''' Post-validation for attributes that is dependant on other attributes can be done here.
+        ''' Post-validation for attributes that is dependent on other attributes can be done here.
         ''' 
         ''' This method should not have any side effects on the symbol, i.e. it SHOULD NOT change the symbol state.
         ''' </remarks>
