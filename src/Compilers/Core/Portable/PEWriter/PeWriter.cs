@@ -461,14 +461,23 @@ namespace Microsoft.Cci
             return OffsetToILStream + BitArithmeticUtilities.Align(ilStreamLength, 4);
         }
 
-        private const int ImageDebugDirectoryBaseSize =
-            sizeof(uint) +   // Characteristics
-            sizeof(uint) +   // TimeDataStamp
-            sizeof(uint) +   // Version
-            sizeof(uint) +   // Type
-            sizeof(uint) +   // SizeOfData
-            sizeof(uint) +   // AddressOfRawData
-            sizeof(uint);    // PointerToRawData
+        /// <summary>
+        /// The size of a single entry in the "Debug Directory (Image Only)"
+        /// </summary>
+        private const int ImageDebugDirectoryEntrySize =
+                    sizeof(uint) +   // Characteristics
+                    sizeof(uint) +   // TimeDataStamp
+                    sizeof(uint) +   // Version
+                    sizeof(uint) +   // Type
+                    sizeof(uint) +   // SizeOfData
+                    sizeof(uint) +   // AddressOfRawData
+                    sizeof(uint);    // PointerToRawData
+
+        /// <summary>
+        /// The size of our debug directory: one entry for debug information, and an optional second one indicating
+        /// that the timestamp is deterministic (i.e. not really a timestamp)
+        /// </summary>
+        private int ImageDebugDirectoryBaseSize => (_deterministic ? 2 : 1) * ImageDebugDirectoryEntrySize;
 
         private int ComputeSizeOfDebugDirectoryData()
         {
@@ -1350,41 +1359,77 @@ namespace Microsoft.Cci
             }
         }
 
+        /// <summary>
+        /// Write one entry in the "Debug Directory (Image Only)"
+        /// See https://msdn.microsoft.com/en-us/windows/hardware/gg463119.aspx
+        /// section 5.1.1 (pages 71-72).
+        /// </summary>
+        private static void WriteDebugTableEntry(
+            PooledBlobBuilder writer,
+            byte[] stamp,
+            uint version, // major and minor version, combined
+            uint debugType,
+            uint sizeOfData,
+            uint addressOfRawData,
+            uint pointerToRawData
+            )
+        {
+            writer.WriteUInt32(0); // characteristics
+            Debug.Assert(stamp.Length == 4);
+            writer.WriteBytes(stamp);
+            writer.WriteUInt32(version);
+            writer.WriteUInt32(debugType);
+            writer.WriteUInt32(sizeOfData);
+            writer.WriteUInt32(addressOfRawData);
+            writer.WriteUInt32(pointerToRawData);
+        }
+
+        private static byte[] zeroStamp = new byte[4]; // four bytes of zero
+
+        /// <summary>
+        /// Write the entire "Debug Directory (Image Only)" along with data that it points to.
+        /// </summary>
+        /// <param name="peStream"></param>
+        /// <param name="textSection"></param>
+        /// <param name="nativePdbContentId"></param>
+        /// <param name="portablePdbContentId"></param>
+        /// <param name="metadataSizes"></param>
         private void WriteDebugTable(Stream peStream, SectionHeader textSection, ContentId nativePdbContentId, ContentId portablePdbContentId, MetadataSizes metadataSizes)
         {
+            int tableSize = ImageDebugDirectoryBaseSize;
             Debug.Assert(nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault);
 
             var writer = PooledBlobBuilder.GetInstance();
 
-            // characteristics:
-            writer.WriteUInt32(0);
-
-            // PDB stamp & version
-            if (portablePdbContentId.IsDefault)
-            {
-                writer.WriteBytes(nativePdbContentId.Stamp);
-                writer.WriteUInt32(0);
-            }
-            else
-            {
-                writer.WriteBytes(portablePdbContentId.Stamp);
-                writer.WriteUInt32('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00);
-            }
-            
-            // type: 
             const int ImageDebugTypeCodeView = 2;
-            writer.WriteUInt32(ImageDebugTypeCodeView);
+            uint dataOffset = (uint)(ComputeOffsetToDebugTable(metadataSizes) + tableSize);
+            int dataSize = ComputeSizeOfDebugDirectoryData();
+            WriteDebugTableEntry(writer, 
+                stamp: nativePdbContentId.Stamp ?? portablePdbContentId.Stamp,
+                version: portablePdbContentId.IsDefault ? (uint)0 : ('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00),
+                debugType: ImageDebugTypeCodeView,
+                sizeOfData: (uint)dataSize,
+                addressOfRawData: (uint)textSection.RelativeVirtualAddress + dataOffset, // RVA of the data
+                pointerToRawData: (uint)textSection.PointerToRawData + dataOffset); // position of the data in the PE stream
 
-            // size of data:
-            writer.WriteUInt32((uint)ComputeSizeOfDebugDirectoryData());
+            if (this._deterministic)
+            {
+                const int ImageDebugTypeDeterministicTimestamp = 16;
+                WriteDebugTableEntry(writer,
+                    stamp: zeroStamp,
+                    version: 0,
+                    debugType: ImageDebugTypeDeterministicTimestamp,
+                    sizeOfData: 0,
+                    addressOfRawData: 0,
+                    pointerToRawData: 0);
+            }
 
-            uint dataOffset = (uint)ComputeOffsetToDebugTable(metadataSizes) + ImageDebugDirectoryBaseSize;
+            // We should now have written all and precisely the data we said we'd write for the table entries.
+            Debug.Assert(writer.Count == tableSize);
 
-            // PointerToRawData (RVA of the data):
-            writer.WriteUInt32((uint)textSection.RelativeVirtualAddress + dataOffset);
-
-            // AddressOfRawData (position of the data in the PE stream):
-            writer.WriteUInt32((uint)textSection.PointerToRawData + dataOffset);
+            // ====================
+            // The following is additional data beyond the debug directory at the offset `dataOffset`
+            // pointed to by the ImageDebugTypeCodeView entry.
 
             writer.WriteByte((byte)'R');
             writer.WriteByte((byte)'S');
@@ -1404,6 +1449,9 @@ namespace Microsoft.Cci
 
             // padding:
             writer.WriteBytes(0, Math.Max(0, _minPdbPath - (writer.Position - pathStart)));
+
+            // We should now have written all and precisely the data we said we'd write for the table and its data.
+            Debug.Assert(writer.Count == tableSize + dataSize);
 
             writer.WriteContentTo(peStream);
             writer.Free();
