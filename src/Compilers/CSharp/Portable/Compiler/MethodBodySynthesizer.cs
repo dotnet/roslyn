@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statement = new BoundSequencePoint(accessor.SyntaxNode, statement) { WasCompilerGenerated = true };
 
-            return new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundStatement>(statement)) { WasCompilerGenerated = true };
+            return BoundBlock.SynthesizedNoLocals(syntax, statement);
         }
 
         /// <summary>
@@ -358,10 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                       memberDescriptor.Name),
                                                                       syntax.Location));
 
-                return new BoundBlock(syntax,
-                    locals: ImmutableArray<LocalSymbol>.Empty,
-                    statements: ImmutableArray.Create<BoundStatement>(@return))
-                { WasCompilerGenerated = true };
+                return BoundBlock.SynthesizedNoLocals(syntax, @return);
             }
 
             Binder.ReportUseSiteDiagnostics(updateMethod, diagnostics, syntax);
@@ -404,12 +401,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = true };
 
-                return new BoundBlock(syntax,
-                    locals: ImmutableArray<LocalSymbol>.Empty,
+                return BoundBlock.SynthesizedNoLocals(syntax,
                     statements: ImmutableArray.Create<BoundStatement>(
                         eventUpdate,
-                        @return))
-                { WasCompilerGenerated = true };
+                        @return));
             }
 
             compareExchangeMethod = compareExchangeMethod.Construct(ImmutableArray.Create<TypeSymbol>(delegateType));
@@ -505,6 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBlock(syntax,
                 locals: tmps.AsImmutable(),
+                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create<BoundStatement>(
                     tmp0Init,
                     loopStart,
@@ -548,6 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     syntax,
                     ImmutableArray<LocalSymbol>.Empty,
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(
                         new BoundTryStatement(
                             syntax,
@@ -556,6 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             new BoundBlock(
                                 syntax,
                                 ImmutableArray<LocalSymbol>.Empty,
+                                ImmutableArray<LocalFunctionSymbol>.Empty,
                                 ImmutableArray.Create<BoundStatement>(
                                     baseFinalizeCall)
                             )

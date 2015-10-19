@@ -6,9 +6,10 @@
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
        use a 2013 compatible solution. -->
   <PropertyGroup>
-    <RoslynSolution>$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
+    <RoslynSolution Condition="'$(RoslynSolution)' == ''">$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
+    <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <RunTestArgs>$(RunTestArgs) -xml</RunTestArgs>
+    <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
     <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
     <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
@@ -16,14 +17,14 @@
     <XunitVersion>1.9.2</XunitVersion>
   </PropertyGroup>
 
-  <Target Name="RestorePackages">
-    <Exec Command="nuget.exe restore &quot;$(MSBuildThisFileDirectory)build\ToolsetPackages\project.json&quot; "/>
-    <Exec Command="nuget.exe restore &quot;$(MSBuildThisFileDirectory)Roslyn.sln&quot; "/>
-  </Target>
-
-  <Target Name="Build" DependsOnTargets="RestorePackages">
+  <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Targets="Build"/>
+    <MSBuild BuildInParallel="true"
+             Condition="'$(ManualTest)' == ''"
+             Projects="$(SamplesSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Build"/>
   </Target>
@@ -33,11 +34,21 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
              Targets="Clean"/>
+    <MSBuild BuildInParallel="true"
+             Condition="'$(ManualTest)' == ''"
+             Projects="$(SamplesSolution)"
+             Properties="RestorePackages=false"
+             Targets="Clean"/>
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Targets="Rebuild"/>
+    <MSBuild BuildInParallel="true"
+             Condition="'$(ManualTest)' == ''"
+             Projects="$(SamplesSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Rebuild"/>
   </Target>

@@ -151,6 +151,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
+            // The caret may no longer be mappable into our subject buffer.
+            var caret = TextView.GetCaretPoint(SubjectBuffer);
+            if (!caret.HasValue)
+            {
+                return false;
+            }
+
+
             if (this.TextView.Caret.Position.VirtualBufferPosition.IsInVirtualSpace)
             {
                 // Convert any virtual whitespace to real whitespace by doing an empty edit at the caret position.

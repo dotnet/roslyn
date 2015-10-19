@@ -4,7 +4,11 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -255,6 +259,52 @@ class C{i}
                         Assert.Contains(@"c.Ext(""two"");", updatedDocument.GetTextAsync(CancellationToken.None).Result.ToString());
                     }
                 }
+            }
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Trait(Traits.Feature, Traits.Features.Interactive)]
+        public void ChangeSignatureCommandDisabledInSubmission()
+        {
+            var exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsCodeFixService)));
+
+            using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
+                <Workspace>
+                    <Submission Language=""C#"" CommonReferences=""true"">  
+                        class C
+                        {
+                            void M$$(int x)
+                            {
+                            }
+                        }
+                    </Submission>
+                </Workspace> "),
+                workspaceKind: WorkspaceKind.Interactive,
+                exportProvider: exportProvider))
+            {
+                // Force initialization.
+                workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+
+                var textView = workspace.Documents.Single().GetTextView();
+
+                var handler = new ChangeSignatureCommandHandler();
+                var delegatedToNext = false;
+                Func<CommandState> nextHandler = () =>
+                {
+                    delegatedToNext = true;
+                    return CommandState.Unavailable;
+                };
+
+                var state = handler.GetCommandState(new Commands.RemoveParametersCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
+
+                delegatedToNext = false;
+                state = handler.GetCommandState(new Commands.ReorderParametersCommandArgs(textView, textView.TextBuffer), nextHandler);
+                Assert.True(delegatedToNext);
+                Assert.False(state.IsAvailable);
             }
         }
     }

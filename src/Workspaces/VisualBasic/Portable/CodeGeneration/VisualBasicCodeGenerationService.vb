@@ -158,15 +158,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destination As TDeclarationNode,
                 namedType As INamedTypeSymbol,
                 options As CodeGenerationOptions,
-                availableIndices As IList(Of Boolean)) As TDeclarationNode
+                availableIndices As IList(Of Boolean),
+                cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of TypeBlockSyntax, NamespaceBlockSyntax, CompilationUnitSyntax)(destination)
             options = If(options, CodeGenerationOptions.Default)
             If TypeOf destination Is TypeBlockSyntax Then
-                Return Cast(Of TDeclarationNode)(NamedTypeGenerator.AddNamedTypeTo(Me, Cast(Of TypeBlockSyntax)(destination), namedType, options, availableIndices))
+                Return Cast(Of TDeclarationNode)(NamedTypeGenerator.AddNamedTypeTo(Me, Cast(Of TypeBlockSyntax)(destination), namedType, options, availableIndices, cancellationToken))
             ElseIf TypeOf destination Is NamespaceBlockSyntax Then
-                Return Cast(Of TDeclarationNode)(NamedTypeGenerator.AddNamedTypeTo(Me, Cast(Of NamespaceBlockSyntax)(destination), namedType, options, availableIndices))
+                Return Cast(Of TDeclarationNode)(NamedTypeGenerator.AddNamedTypeTo(Me, Cast(Of NamespaceBlockSyntax)(destination), namedType, options, availableIndices, cancellationToken))
             Else
-                Return Cast(Of TDeclarationNode)(NamedTypeGenerator.AddNamedTypeTo(Me, Cast(Of CompilationUnitSyntax)(destination), namedType, options, availableIndices))
+                Return Cast(Of TDeclarationNode)(NamedTypeGenerator.AddNamedTypeTo(Me, Cast(Of CompilationUnitSyntax)(destination), namedType, options, availableIndices, cancellationToken))
             End If
         End Function
 
@@ -174,13 +175,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 destination As TDeclarationNode,
                 [namespace] As INamespaceSymbol,
                 options As CodeGenerationOptions,
-                availableIndices As IList(Of Boolean)) As TDeclarationNode
+                availableIndices As IList(Of Boolean),
+                cancellationToken As CancellationToken) As TDeclarationNode
             CheckDeclarationNode(Of CompilationUnitSyntax, NamespaceBlockSyntax)(destination)
 
             If TypeOf destination Is CompilationUnitSyntax Then
-                Return Cast(Of TDeclarationNode)(NamespaceGenerator.AddNamespaceTo(Me, Cast(Of CompilationUnitSyntax)(destination), [namespace], options, availableIndices))
+                Return Cast(Of TDeclarationNode)(NamespaceGenerator.AddNamespaceTo(Me, Cast(Of CompilationUnitSyntax)(destination), [namespace], options, availableIndices, cancellationToken))
             Else
-                Return Cast(Of TDeclarationNode)(NamespaceGenerator.AddNamespaceTo(Me, Cast(Of NamespaceBlockSyntax)(destination), [namespace], options, availableIndices))
+                Return Cast(Of TDeclarationNode)(NamespaceGenerator.AddNamespaceTo(Me, Cast(Of NamespaceBlockSyntax)(destination), [namespace], options, availableIndices, cancellationToken))
             End If
         End Function
 
@@ -538,14 +540,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function CreateNamedTypeDeclaration(namedType As INamedTypeSymbol,
                                                              destination As CodeGenerationDestination,
-                                                             options As CodeGenerationOptions) As SyntaxNode
-            Return NamedTypeGenerator.GenerateNamedTypeDeclaration(Me, namedType, options)
+                                                             options As CodeGenerationOptions,
+                                                             cancellationToken As CancellationToken) As SyntaxNode
+            Return NamedTypeGenerator.GenerateNamedTypeDeclaration(Me, namedType, options, cancellationToken)
         End Function
 
         Public Overrides Function CreateNamespaceDeclaration([namespace] As INamespaceSymbol,
                                                              destination As CodeGenerationDestination,
-                                                             options As CodeGenerationOptions) As SyntaxNode
-            Return NamespaceGenerator.GenerateNamespaceDeclaration(Me, [namespace], options)
+                                                             options As CodeGenerationOptions,
+                                                             cancellationToken As CancellationToken) As SyntaxNode
+            Return NamespaceGenerator.GenerateNamespaceDeclaration(Me, [namespace], options, cancellationToken)
         End Function
 
         Private Overloads Shared Function UpdateDeclarationModifiers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, computeNewModifiersList As Func(Of SyntaxTokenList, SyntaxTokenList), options As CodeGenerationOptions, cancellationToken As CancellationToken) As TDeclarationNode

@@ -2059,5 +2059,24 @@ End Namespace
                 Exceptions($"{vbCrLf}{WorkspacesResources.Exceptions}{vbCrLf}  MyException1{vbCrLf}  MyException2{vbCrLf}  Integer{vbCrLf}  Double{vbCrLf}  Not_A_Class_But_Still_Displayed"))
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(1516, "https://github.com/dotnet/roslyn/issues/1516")>
+        Public Sub QuickInfoWithNonStandardSeeAttributesAppear()
+            Test("
+Class C
+    ''' <summary>
+    ''' <see cref=""System.String"" />
+    ''' <see href=""http://microsoft.com"" />
+    ''' <see langword=""Nothing"" />
+    ''' <see unsupported-attribute=""cat"" />
+    ''' </summary>
+    Sub M()
+        M$$()
+    End Sub
+End Class
+",
+                 Documentation("String http://microsoft.com Nothing cat"))
+        End Sub
+
     End Class
 End Namespace

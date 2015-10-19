@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using VSLangProj;
 using Project = EnvDTE.Project;
+using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {
@@ -68,7 +69,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                     var waitIndicator = _componentModel.GetService<IWaitIndicator>();
                     var waitContext = waitIndicator.StartWait(title, ServicesVSResources.BuildingProject, allowCancel: true);
 
-                    var resetInteractiveTask = ResetInteractiveAsync(vsInteractiveWindow, references, referenceSearchPaths, sourceSearchPaths, namespacesToImport, projectDirectory, waitContext);
+                    var resetInteractiveTask = ResetInteractiveAsync(
+                        vsInteractiveWindow, 
+                        references.ToImmutableArray(),
+                        referenceSearchPaths.ToImmutableArray(), 
+                        sourceSearchPaths.ToImmutableArray(), 
+                        namespacesToImport.ToImmutableArray(), 
+                        projectDirectory, 
+                        waitContext);
 
                     // Once we're done resetting, dismiss the wait indicator and focus the REPL window.
                     resetInteractiveTask.SafeContinueWith(
@@ -89,87 +97,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        private Task ResetInteractiveAsync(
+        private async Task ResetInteractiveAsync(
             IVsInteractiveWindow vsInteractiveWindow,
-            List<string> referencePaths,
-            List<string> referenceSearchPaths,
-            List<string> sourceSearchPaths,
-            List<string> namespacesToImport,
+            ImmutableArray<string> referencePaths,
+            ImmutableArray<string> referenceSearchPaths,
+            ImmutableArray<string> sourceSearchPaths,
+            ImmutableArray<string> namespacesToImport,
             string projectDirectory,
             IWaitContext waitContext)
         {
             // First, open the repl window.
             var engine = (InteractiveEvaluator)vsInteractiveWindow.InteractiveWindow.Evaluator;
 
-            var uiTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-
             // If the user hits the cancel button on the wait indicator, then we want to stop the
             // build.
             waitContext.CancellationToken.Register(() =>
                 _dte.ExecuteCommand("Build.Cancel"), useSynchronizationContext: true);
 
-            // First, start a build.
-            var buildTask = BuildProject();
+            // First, start a build
+            await BuildProject().ConfigureAwait(true);
 
-            // Then reset the repl.
-            var resetTask = buildTask.SafeContinueWithFromAsync(_ =>
-                {
-                    waitContext.Message = ServicesVSResources.ResettingInteractive;
-                    return vsInteractiveWindow.InteractiveWindow.Operations.ResetAsync(initialize: false);
-                },
-                waitContext.CancellationToken,
-                TaskContinuationOptions.OnlyOnRanToCompletion,
-                uiTaskScheduler);
+            // Then reset the REPL
+            waitContext.Message = ServicesVSResources.ResettingInteractive;
+            await vsInteractiveWindow.InteractiveWindow.Operations.ResetAsync(initialize: false).ConfigureAwait(true);
 
             // Now send the reference paths we've collected to the repl.
-            var submitReferencesTask = resetTask.SafeContinueWith(
-                _ =>
-                {
-                    // TODO (tomat): In general, these settings should be applied again when we auto-reset.
+            await engine.SetPathsAsync(referenceSearchPaths, sourceSearchPaths, projectDirectory).ConfigureAwait(true);
 
-                    engine.SetInitialPaths(
-                        referenceSearchPaths.ToArray(),
-                        sourceSearchPaths.ToArray(),
-                        projectDirectory);
-
-                    vsInteractiveWindow.InteractiveWindow.SubmitAsync(new[]
-                    {
-                        // TODO(DustinCa): Update these to be language agnostic.
-                        referencePaths.Select(_createReference).Join("\r\n"),
-                        namespacesToImport.Select(_createImport).Join("\r\n")
-                    });
-                },
-                waitContext.CancellationToken,
-                TaskContinuationOptions.OnlyOnRanToCompletion,
-                uiTaskScheduler);
-
-            return submitReferencesTask;
-
-            //// TODO (tomat): Ideally we should check if the imported namespaces are available in #r'd assemblies.
-            //// We should wait until #r submission is finished and then query for existing namespaces.
-
-            ////if (namespacesToImport.IsEmpty()) 
-            ////{
-            ////    return submitReferencesTask;
-            ////}
-
-            ////var submitReferencesAndUsingsTask = submitReferencesTask.SafeContinueWith(
-            ////    _ =>
-            ////    {
-            ////        var compilation = engine.GetPreviousSubmissionProject().GetCompilation(waitContext.CancellationToken);
-
-            ////        replWindow.Submit(new[] 
-            ////        { 
-            ////            (from ns in namespacesToImport
-            ////             where compilation.GlobalNamespace.GetMembers(ns, waitContext.CancellationToken).Any()
-            ////             select string.Format("using {0};", ns)).Join("\r\n")
-            ////        });
-            ////    },
-            ////    waitContext.CancellationToken,
-            ////    TaskContinuationOptions.OnlyOnRanToCompletion,
-            ////    uiTaskScheduler);
-
-            //// return submitReferencesAndUsingsTask;
+            await vsInteractiveWindow.InteractiveWindow.SubmitAsync(new[]
+            {
+                referencePaths.Select(_createReference).Join("\r\n"),
+                namespacesToImport.Select(_createImport).Join("\r\n")
+            }).ConfigureAwait(true);
         }
 
         private static void GetProjectProperties(
@@ -245,7 +204,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            // TODO: This shouldn't directly depend on GAC, rather we should have some kind of "reference simplifier".
+            return reference.Path;
+
+#if TODO // TODO: This shouldn't directly depend on GAC, rather we should have some kind of "reference simplifier".
             var possibleGacNames = GlobalAssemblyCache.GetAssemblyIdentities(name).ToArray();
             if (possibleGacNames.Length == 0)
             {
@@ -309,6 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             // We found a single simple name match that is equivalent to the given reference.
             // We can use the simple name to load the GAC'd assembly.
             return name;
+#endif
         }
 
         private static void SafeRelease(IntPtr pointer)

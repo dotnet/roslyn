@@ -17,8 +17,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
         public override string Description
         {
-            // TODO: Needs localization...
-            get { return "Clears the contents of the editor window, leaving history and execution context intact."; }
+            get { return InteractiveWindowResources.ClearScreenCommandDescription; }
         }
 
         public override IEnumerable<string> Names

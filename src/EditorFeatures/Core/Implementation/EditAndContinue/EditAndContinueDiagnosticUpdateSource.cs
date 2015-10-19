@@ -13,7 +13,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    [Export(typeof(IDiagnosticUpdateSource))]
     [Export(typeof(EditAndContinueDiagnosticUpdateSource))]
     [Shared]
     internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
@@ -21,15 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         internal static object DebuggerErrorId = new object();
         internal static object EmitErrorId = new object();
 
-        public EditAndContinueDiagnosticUpdateSource()
+        [ImportingConstructor]
+        public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
         {
+            registrationService.Register(this);
         }
 
         public bool SupportGetDiagnostics { get { return false; } }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ImmutableArray<DiagnosticData>.Empty;
         }

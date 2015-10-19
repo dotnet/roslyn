@@ -60,12 +60,6 @@
     <DebugType>pdbonly</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
-    <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml</DocumentationFile>
-  </PropertyGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticLineEnderCommandHandler.vb" />
     <Compile Include="AutomaticCompletion\Sessions\CurlyBraceCompletionSession.vb" />
@@ -119,6 +113,7 @@
     <Compile Include="Formatting\Indentation\SpecialFormattingOperation.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.Indenter.vb" />
     <Compile Include="Formatting\Indentation\VisualBasicIndentationService.vb" />
+    <Compile Include="GoToImplementation\VisualBasicGoToImplementationService.vb" />
     <Compile Include="GoToDefinition\VisualBasicGoToDefinitionService.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\AccessorDeclarationHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\ConditionalPreprocessorHighlighter.vb" />
@@ -241,6 +236,9 @@
     <Compile Include="SignatureHelp\SignatureHelpUtilities.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />
     <Compile Include="TodoComment\BasicTodoCommentIncrementalAnalyzerProvider.vb" />
+    <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.vb" />
+    <Compile Include="UseAutoProperty\UseAutoPropertyCodeFixProvider.vb" />
+    <Compile Include="UseAutoProperty\Utilities.vb" />
     <Compile Include="Utilities\LineAdjustmentFormattingRule.vb" />
     <Compile Include="Utilities\CommandHandlers\AbstractImplementAbstractClassOrInterfaceCommandHandler.vb" />
     <Compile Include="Utilities\NamedTypeSymbolExtensions.vb" />
@@ -316,6 +314,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

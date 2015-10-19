@@ -9432,5 +9432,70 @@ BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called di
             Assert.False(info.CandidateSymbols.Any())
         End Sub
 
+        <Fact(), WorkItem(4615, "https://github.com/dotnet/roslyn/issues/4615")>
+        Public Sub ConditionalAndConditionalMethods()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class Program
+    Shared Sub Main()
+        TestClass.Create().Test()
+        TestClass.Create().Self().Test()
+        System.Console.WriteLine("---")
+        TestClass.Create()?.Test()
+        TestClass.Create()?.Self().Test()
+        TestClass.Create()?.Self()?.Test()
+    End Sub
+End Class
+
+Class TestClass
+    <System.Diagnostics.Conditional("DEBUG")>
+    Public Sub Test()
+        System.Console.WriteLine("Test")
+    End Sub
+
+    Shared Function Create() As TestClass
+        System.Console.WriteLine("Create")
+        return new TestClass()
+    End Function
+
+    Function Self() As TestClass
+        System.Console.WriteLine("Self")
+        return Me
+    End Function
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.DebugExe,
+                                                                             parseOptions:=VisualBasicParseOptions.Default.WithPreprocessorSymbols({New KeyValuePair(Of String, Object)("DEBUG", True)}))
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+Create
+Test
+Create
+Self
+Test
+---
+Create
+Test
+Create
+Self
+Test
+Create
+Self
+Test
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseExe)
+
+            verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+---
+]]>)
+        End Sub
+
     End Class
 End Namespace

@@ -919,7 +919,7 @@ partial class Program {
 
             using (var workspace = CreateWorkspaceFromFile(text, null, null))
             {
-                var result = GetCodeRefactoring(workspace, nodeLocator: null);
+                var result = GetCodeRefactoring(workspace);
                 Assert.NotNull(result);
             }
         }
@@ -938,7 +938,7 @@ class Program
 
             using (var workspace = CreateWorkspaceFromFile(text, null, null))
             {
-                var result = GetCodeRefactoring(workspace, nodeLocator: null);
+                var result = GetCodeRefactoring(workspace);
                 Assert.NotNull(result);
             }
         }

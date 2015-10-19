@@ -1065,6 +1065,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((EventDeclarationSyntax)declaration).AttributeLists;
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)declaration).AttributeLists;
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return ((AccessorDeclarationSyntax)declaration).AttributeLists;
                 case SyntaxKind.CompilationUnit:
                     return ((CompilationUnitSyntax)declaration).AttributeLists;
                 default:
@@ -1108,6 +1113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((EventDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)declaration).WithAttributeLists(attributeLists);
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return ((AccessorDeclarationSyntax)declaration).WithAttributeLists(attributeLists);
                 case SyntaxKind.CompilationUnit:
                     return ((CompilationUnitSyntax)declaration).WithAttributeLists(AsAssemblyAttributes(attributeLists));
                 default:
@@ -3220,18 +3230,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
         {
+            return RemoveNode(root, node, DefaultRemoveOptions);
+        }
+
+        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
+        {
             if (root.Span.Contains(node.Span))
             {
                 // node exists within normal span of the root (not in trivia)
-                return this.Isolate(root.TrackNodes(node), r => RemoveNodeInternal(r, r.GetCurrentNode(node)));
+                return this.Isolate(root.TrackNodes(node), r => RemoveNodeInternal(r, r.GetCurrentNode(node), options));
             }
             else
             {
-                return RemoveNodeInternal(root, node);
+                return RemoveNodeInternal(root, node, options);
             }
         }
 
-        private SyntaxNode RemoveNodeInternal(SyntaxNode root, SyntaxNode declaration)
+        private SyntaxNode RemoveNodeInternal(SyntaxNode root, SyntaxNode declaration, SyntaxRemoveOptions options)
         {
             switch (declaration.Kind())
             {
@@ -3241,7 +3256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (attrList != null && attrList.Attributes.Count == 1)
                     {
                         // remove entire list if only one attribute
-                        return this.RemoveNodeInternal(root, attrList);
+                        return this.RemoveNodeInternal(root, attrList, options);
                     }
                     break;
 
@@ -3249,7 +3264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (declaration.Parent != null && ((AttributeArgumentListSyntax)declaration.Parent).Arguments.Count == 1)
                     {
                         // remove entire argument list if only one argument
-                        return this.RemoveNodeInternal(root, declaration.Parent);
+                        return this.RemoveNodeInternal(root, declaration.Parent, options);
                     }
                     break;
 
@@ -3258,7 +3273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (full != declaration && GetDeclarationCount(full) == 1)
                     {
                         // remove full declaration if only one declarator
-                        return this.RemoveNodeInternal(root, full);
+                        return this.RemoveNodeInternal(root, full, options);
                     }
                     break;
 
@@ -3267,7 +3282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (baseList != null && baseList.Types.Count == 1)
                     {
                         // remove entire base list if this is the only base type.
-                        return this.RemoveNodeInternal(root, baseList);
+                        return this.RemoveNodeInternal(root, baseList, options);
                     }
                     break;
 
@@ -3278,13 +3293,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         switch (parent.Kind())
                         {
                             case SyntaxKind.SimpleBaseType:
-                                return RemoveNodeInternal(root, parent);
+                                return RemoveNodeInternal(root, parent, options);
                         }
                     }
                     break;
             }
 
-            return base.RemoveNode(root, declaration);
+            return base.RemoveNode(root, declaration, options);
         }
 
         /// <summary>
@@ -3404,6 +3419,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 return this.Parenthesize(expression);
             }
+        }
+
+        private SeparatedSyntaxList<ExpressionSyntax> AsExpressionList(IEnumerable<SyntaxNode> expressions)
+        {
+            return SyntaxFactory.SeparatedList(expressions.OfType<ExpressionSyntax>());
+        }
+
+        public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, SyntaxNode size)
+        {
+            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList((ExpressionSyntax)size))));
+            return SyntaxFactory.ArrayCreationExpression(arrayType);
+        }
+
+        public override SyntaxNode ArrayCreationExpression(SyntaxNode elementType, IEnumerable<SyntaxNode> elements)
+        {
+            var arrayType = SyntaxFactory.ArrayType((TypeSyntax)elementType, SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()));
+            var initializer = SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, AsExpressionList(elements));
+            return SyntaxFactory.ArrayCreationExpression(arrayType, initializer);
         }
 
         public override SyntaxNode ObjectCreationExpression(SyntaxNode type, IEnumerable<SyntaxNode> arguments)

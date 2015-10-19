@@ -120,5 +120,44 @@ End Class
             Test(input)
         End Sub
 
+        <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestCaseInsensitiveAnonymousType1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class C
+    Sub M()
+        Dim x = New With {.[|$${|Definition:A|}|] = 1}
+        Dim y = New With {.[|A|] = 2}
+        Dim z = New With {.[|a|] = 3}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
+
+        <WorkItem(3284, "https://github.com/dotnet/roslyn/issues/3284")>
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Sub TestCaseInsensitiveAnonymousType2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class C
+    Sub M()
+        Dim x = New With {.[|A|] = 1}
+        Dim y = New With {.[|A|] = 2}
+        Dim z = New With {.[|$${|Definition:a|}|] = 3}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+            Test(input)
+        End Sub
     End Class
 End Namespace

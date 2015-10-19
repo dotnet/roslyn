@@ -3841,5 +3841,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Comment("' Comment"))
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WorkItem(3291, "https://github.com/dotnet/roslyn/issues/3291")>
+        Public Sub TestCommentOnCollapsedEndRegion()
+            Test(
+"#Region ""Stuff""
+End Region ' Stuff",
+TextSpan.FromBounds(28, 36),
+Comment("' Stuff"))
+        End Sub
     End Class
 End Namespace

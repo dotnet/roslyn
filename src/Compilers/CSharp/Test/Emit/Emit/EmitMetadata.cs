@@ -2144,11 +2144,11 @@ public class Methods
         public unsafe void PEHeaders1()
         {
             var options = EmitOptions.Default.WithFileAlignment(8192);
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular.WithDeterministicFeature());
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
             var peStream = CreateCompilationWithMscorlib(
                 syntax,
-                options: TestOptions.ReleaseDll,
+                options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
 
             peStream.Position = 0;
@@ -2333,11 +2333,11 @@ public class Methods
                 WithHighEntropyVirtualAddressSpace(true).
                 WithSubsystemVersion(SubsystemVersion.WindowsXP);
 
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular.WithDeterministicFeature());
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
 
             var peStream = CreateCompilationWithMscorlib(
                 syntax,
-                options: TestOptions.DebugExe.WithPlatform(Platform.X64),
+                options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
 
             peStream.Position = 0;

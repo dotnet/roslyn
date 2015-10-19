@@ -65,6 +65,7 @@
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />
     <Compile Include="Classification\ClassificationHelpers.vb" />
     <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.vb" />
+    <Compile Include="Classification\Classifiers\IdentifierNameSyntaxClassifier.vb" />
     <Compile Include="Classification\Classifiers\ImportAliasClauseSyntaxClassifier.vb" />
     <Compile Include="Classification\Classifiers\NameSyntaxClassifier.vb" />
     <Compile Include="Classification\SyntaxClassifier.vb" />
@@ -126,7 +127,6 @@
     <Compile Include="Extensions\INamespaceOrTypeSymbolExtensions.vb" />
     <Compile Include="Extensions\InvocationExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\ITypeSymbolExtensions.vb" />
-    <Compile Include="Extensions\LocationExtensions.vb" />
     <Compile Include="Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\MethodBaseSyntaxExtensions.vb" />
     <Compile Include="Extensions\NameSyntaxExtensions.vb" />
@@ -274,6 +274,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

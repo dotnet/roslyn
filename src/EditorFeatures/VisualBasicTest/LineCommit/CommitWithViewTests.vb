@@ -1056,5 +1056,79 @@ End Module
                 Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub
+
+        <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub MissingThenInIf()
+            Using testData = New CommitTestData(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Sub M()
+        If True $$
+            M()
+        End If
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.MoveLineDown(False)
+
+                Dim expected = <Code>
+Class C
+    Sub M()
+        If True Then
+
+            M()
+        End If
+    End Sub
+End Class
+</Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+            End Using
+        End Sub
+
+        <WorkItem(3119, "https://github.com/dotnet/roslyn/issues/3119")>
+        <Fact, Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub MissingThenInElseIf()
+            Using testData = New CommitTestData(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Class C
+    Sub M()
+        If True Then
+            M()
+        ElseIf False $$
+            M()
+        End If
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>)
+
+                testData.EditorOperations.InsertNewLine()
+                testData.EditorOperations.MoveLineDown(False)
+
+                Dim expected = <Code>
+Class C
+    Sub M()
+        If True Then
+            M()
+        ElseIf False Then
+
+            M()
+        End If
+    End Sub
+End Class
+</Code>
+                Assert.Equal(expected.NormalizedValue, testData.Workspace.Documents.Single().TextBuffer.CurrentSnapshot.GetText())
+            End Using
+        End Sub
     End Class
 End Namespace

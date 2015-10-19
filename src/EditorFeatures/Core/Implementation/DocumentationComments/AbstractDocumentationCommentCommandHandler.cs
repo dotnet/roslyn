@@ -219,14 +219,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             ITextView textView,
             CancellationToken cancellationToken)
         {
-            if (!subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
-            {
-                return false;
-            }
+            // Don't attempt to generate a new XML doc comment on ENTER if the option to auto-generate
+            // them isn't set. Regardless of the option, we should generate exterior trivia (i.e. /// or ''')
+            // on ENTER inside an existing XML doc comment.
 
-            if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+            if (subjectBuffer.GetOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration))
             {
-                return true;
+                if (TryGenerateDocumentationCommentAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
+                {
+                    return true;
+                }
             }
 
             if (TryGenerateExteriorTriviaAfterEnter(syntaxTree, text, position, originalPosition, subjectBuffer, textView, cancellationToken))
@@ -480,14 +482,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
             // Check to see if the current line starts with exterior trivia. If so, we'll take over.
             // If not, let the nextHandler run.
 
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
-            if (caretPosition < 0)
+            int originalPosition = -1;
+
+            // The original position should be a position that is consistent with the syntax tree, even
+            // after Enter is pressed. Thus, we use the start of the first selection if there is one.
+            // Otherwise, getting the tokens to the right or the left might return unexpected results.
+
+            if (args.TextView.Selection.SelectedSpans.Count > 0)
+            {
+                var selectedSpan = args.TextView.Selection
+                    .GetSnapshotSpansOnBuffer(args.SubjectBuffer)
+                    .FirstOrNullable();
+
+                originalPosition = selectedSpan != null
+                    ? selectedSpan.Value.Start
+                    : args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+            }
+
+            if (originalPosition < 0)
             {
                 nextHandler();
                 return;
             }
 
-            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, caretPosition))
+            if (!CurrentLineStartsWithExteriorTrivia(args.SubjectBuffer, originalPosition))
             {
                 nextHandler();
                 return;
@@ -509,7 +527,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments
                 var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
                 editorOperations.InsertNewLine();
 
-                CompleteComment(args.SubjectBuffer, args.TextView, caretPosition, InsertOnEnterTyped, CancellationToken.None);
+                CompleteComment(args.SubjectBuffer, args.TextView, originalPosition, InsertOnEnterTyped, CancellationToken.None);
 
                 // Since we're wrapping the ENTER key undo transaction, we always complete
                 // the transaction -- even if we didn't generate anything.

@@ -12,9 +12,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string CSharpCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer";
         private const string VisualBasicCompilerAnalyzerTypeName = "Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer";
 
-        private const string AnalyzerExceptionDiagnosticId = "AD0001";
+        // These are the error codes of the compiler warnings. 
+        // Keep the ids the same so that de-duplication against compiler errors
+        // works in the error list (after a build).
+        internal const string WRN_AnalyzerCannotBeCreatedIdCS = "CS8032";
+        internal const string WRN_AnalyzerCannotBeCreatedIdVB = "BC42376";
+        internal const string WRN_NoAnalyzerInAssemblyIdCS = "CS8033";
+        internal const string WRN_NoAnalyzerInAssemblyIdVB = "BC42377";
+        internal const string WRN_UnableToLoadAnalyzerIdCS = "CS8034";
+        internal const string WRN_UnableToLoadAnalyzerIdVB = "BC42378";
+
+        // Shared with Compiler
+        internal const string AnalyzerExceptionDiagnosticId = "AD0001";
+        internal const string AnalyzerDriverExceptionDiagnosticId = "AD0002";
+
+        // IDE only errors
+        internal const string WRN_AnalyzerCannotBeCreatedId = "AD1000";
+        internal const string WRN_NoAnalyzerInAssemblyId = "AD1001";
+        internal const string WRN_UnableToLoadAnalyzerId = "AD1002";
+
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
-        
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
@@ -122,6 +139,74 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return VersionStamp.Create(PortableShim.File.GetLastWriteTimeUtc(path));
+        }
+
+        public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(string fullPath, AnalyzerLoadFailureEventArgs e)
+        {
+            return CreateAnalyzerLoadFailureDiagnostic(null, null, null, fullPath, e);
+        }
+
+        public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(
+            Workspace workspace, ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
+        {
+            string id, message, messageFormat;
+            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat))
+            {
+                return null;
+            }
+
+            return new DiagnosticData(
+                id,
+                FeaturesResources.ErrorCategory,
+                message,
+                messageFormat,
+                severity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                warningLevel: 0,
+                workspace: workspace,
+                projectId: projectId);
+        }
+
+        private static bool TryGetErrorMessage(
+            string language, string fullPath, AnalyzerLoadFailureEventArgs e,
+            out string id, out string message, out string messageFormat)
+        {
+            switch (e.ErrorCode)
+            {
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer:
+                    id = Choose(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
+                    messageFormat = FeaturesResources.WRN_UnableToLoadAnalyzer;
+                    message = string.Format(FeaturesResources.WRN_UnableToLoadAnalyzer, fullPath, e.Message);
+                    break;
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
+                    id = Choose(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
+                    messageFormat = FeaturesResources.WRN_AnalyzerCannotBeCreated;
+                    message = string.Format(FeaturesResources.WRN_AnalyzerCannotBeCreated, e.TypeName, fullPath, e.Message);
+                    break;
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
+                    id = Choose(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
+                    messageFormat = FeaturesResources.WRN_NoAnalyzerInAssembly;
+                    message = string.Format(FeaturesResources.WRN_NoAnalyzerInAssembly, fullPath);
+                    break;
+                case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
+                default:
+                    id = string.Empty;
+                    message = string.Empty;
+                    messageFormat = string.Empty;
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static string Choose(string language, string noLanguageMessage, string csharpMessage, string vbMessage)
+        {
+            if (language == null)
+            {
+                return noLanguageMessage;
+            }
+
+            return language == LanguageNames.CSharp ? csharpMessage : vbMessage;
         }
     }
 }

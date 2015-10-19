@@ -142,9 +142,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                     if (notificationService != null)
                     {
                         if (!notificationService.ConfirmMessageBox(
+                                EditorFeaturesResources.ExtractMethodFailedReasons + Environment.NewLine + Environment.NewLine +
                                 string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
                                 EditorFeaturesResources.ExtractMethodAsyncErrorFix,
-                                EditorFeaturesResources.ExtractMethodFailedReasons, NotificationSeverity.Error))
+                                title: EditorFeaturesResources.ExtractMethod,
+                                severity: NotificationSeverity.Error))
                         {
                             // We handled the command, displayed a notification and did not produce code.
                             return true;
@@ -195,8 +197,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 if (notificationService != null)
                 {
                     notificationService.SendNotification(
+                        EditorFeaturesResources.ExtractMethodFailedReasons + Environment.NewLine + Environment.NewLine +
                         string.Join(Environment.NewLine, result.Reasons),
-                        EditorFeaturesResources.ExtractMethodFailedReasons, NotificationSeverity.Error);
+                        title: EditorFeaturesResources.ExtractMethod,
+                        severity:NotificationSeverity.Error);
                 }
 
                 return true;
@@ -206,9 +210,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             if (notificationService != null)
             {
                 if (!notificationService.ConfirmMessageBox(
+                        EditorFeaturesResources.ExtractMethodFailedReasons + Environment.NewLine + Environment.NewLine +
                         string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
                         EditorFeaturesResources.ExtractMethodStillGenerateCode,
-                        EditorFeaturesResources.ExtractMethodFailedReasons, NotificationSeverity.Error))
+                        title: EditorFeaturesResources.ExtractMethod,
+                        severity: NotificationSeverity.Error))
                 {
                     return true;
                 }

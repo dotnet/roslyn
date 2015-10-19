@@ -138,24 +138,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' "Func(Of" tends to get in the way of typing "Function". Exclude System.Func from expression
             ' contexts, except within GetType
             If Not context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
-               Not context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
+                    Not context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
 
-                symbols = symbols.Where(Function(s) Not IsSystemFunc(s))
+                symbols = symbols.Where(Function(s) Not IsInEligibleDelegate(s))
             End If
+
 
             ' Hide backing fields and events
             Return symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
         End Function
 
-        Private Function IsSystemFunc(s As ISymbol) As Boolean
-            Dim namedTypeSymbol = TryCast(s, INamedTypeSymbol)
-            Return namedTypeSymbol IsNot Nothing AndAlso
-                    namedTypeSymbol.Name = "Func" AndAlso
-                    namedTypeSymbol.GetArity() > 0 AndAlso
-                    namedTypeSymbol.ContainingNamespace IsNot Nothing AndAlso
-                    namedTypeSymbol.ContainingNamespace.Name = "System" AndAlso
-                    namedTypeSymbol.ContainingNamespace.ContainingNamespace.IsGlobalNamespace
+        Private Function IsInEligibleDelegate(s As ISymbol) As Boolean
+            If s.IsDelegateType() Then
+                Dim typeSymbol = DirectCast(s, ITypeSymbol)
+                Return typeSymbol.SpecialType <> SpecialType.System_Delegate
+            End If
 
+            Return False
         End Function
 
         Private Function GetSymbolsForQualifiedNameSyntax(

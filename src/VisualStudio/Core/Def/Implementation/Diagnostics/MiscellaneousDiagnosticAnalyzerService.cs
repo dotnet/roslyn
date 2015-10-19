@@ -17,16 +17,17 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
     [ExportIncrementalAnalyzerProvider(WorkspaceKind.MiscellaneousFiles)]
-    [Export(typeof(IDiagnosticUpdateSource))]
     [Shared]
     internal partial class MiscellaneousDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
         [ImportingConstructor]
-        public MiscellaneousDiagnosticAnalyzerService(IDiagnosticAnalyzerService analyzerService)
+        public MiscellaneousDiagnosticAnalyzerService(IDiagnosticAnalyzerService analyzerService, IDiagnosticUpdateSourceRegistrationService registrationService)
         {
             _analyzerService = analyzerService;
+
+            registrationService.Register(this);
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
         }
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             // pull model not supported
             return ImmutableArray<DiagnosticData>.Empty;

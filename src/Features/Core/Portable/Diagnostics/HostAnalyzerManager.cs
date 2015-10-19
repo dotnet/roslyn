@@ -75,11 +75,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>> _compilerDiagnosticAnalyzerDescriptorMap;
 
         /// <summary>
-        /// Map from project to <see cref="CompilationWithAnalyzers"/> instance to be used for computing analyzer diagnostics.
-        /// </summary>
-        private readonly ConditionalWeakTable<Project, CompilationWithAnalyzers> _compilationWithAnalyzersMap;
-
-        /// <summary>
         /// Cache from <see cref="DiagnosticAnalyzer"/> instance to its supported desciptors.
         /// </summary>
         private readonly ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>> _descriptorCache;
@@ -90,7 +85,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly IAnalyzerAssemblyLoader s_assemblyLoader = new LoadContextAssemblyLoader();
 
         public HostAnalyzerManager(IEnumerable<HostDiagnosticAnalyzerPackage> hostAnalyzerPackages, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages), hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
+            this(CreateAnalyzerReferencesFromPackages(hostAnalyzerPackages, new HostAnalyzerReferenceDiagnosticReporter(hostDiagnosticUpdateSource)),
+                 hostAnalyzerPackages.ToImmutableArrayOrEmpty(), hostDiagnosticUpdateSource)
         {
         }
 
@@ -112,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _compilerDiagnosticAnalyzerMap = ImmutableDictionary<string, DiagnosticAnalyzer>.Empty;
             _compilerDiagnosticAnalyzerDescriptorMap = ImmutableDictionary<DiagnosticAnalyzer, HashSet<string>>.Empty;
             _hostDiagnosticAnalyzerPackageNameMap = ImmutableDictionary<DiagnosticAnalyzer, string>.Empty;
-            _compilationWithAnalyzersMap = new ConditionalWeakTable<Project, CompilationWithAnalyzers>();
             _descriptorCache = new ConditionalWeakTable<DiagnosticAnalyzer, IReadOnlyCollection<DiagnosticDescriptor>>();
 
             DiagnosticAnalyzerLogger.LogWorkspaceAnalyzers(hostAnalyzerReferences);
@@ -472,7 +467,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return builder.ToImmutable();
         }
 
-        private static ImmutableArray<AnalyzerReference> CreateAnalyzerReferencesFromPackages(IEnumerable<HostDiagnosticAnalyzerPackage> analyzerPackages)
+        private static ImmutableArray<AnalyzerReference> CreateAnalyzerReferencesFromPackages(
+            IEnumerable<HostDiagnosticAnalyzerPackage> analyzerPackages,
+            HostAnalyzerReferenceDiagnosticReporter reporter)
         {
             if (analyzerPackages == null || analyzerPackages.IsEmpty())
             {
@@ -484,7 +481,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var builder = ImmutableArray.CreateBuilder<AnalyzerReference>();
             foreach (var analyzerAssembly in analyzerAssemblies.Distinct(StringComparer.OrdinalIgnoreCase))
             {
-                builder.Add(new AnalyzerFileReference(analyzerAssembly, s_assemblyLoader));
+                var reference = new AnalyzerFileReference(analyzerAssembly, s_assemblyLoader);
+                reference.AnalyzerLoadFailed += reporter.OnAnalyzerLoadFailed;
+
+                builder.Add(reference);
             }
 
             return builder.ToImmutable();
@@ -512,17 +512,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return current;
         }
 
-        internal CompilationWithAnalyzers GetOrCreateCompilationWithAnalyzers(Project project, ConditionalWeakTable<Project, CompilationWithAnalyzers>.CreateValueCallback createCompilationWithAnalyzers)
+        private class HostAnalyzerReferenceDiagnosticReporter
         {
-            Contract.ThrowIfFalse(project.SupportsCompilation);
-            return _compilationWithAnalyzersMap.GetValue(project, createCompilationWithAnalyzers);
-        }
+            private readonly AbstractHostDiagnosticUpdateSource _hostUpdateSource;
 
-        internal void DisposeCompilationWithAnalyzers(Project project)
-        {
-            if (project.SupportsCompilation)
+            public HostAnalyzerReferenceDiagnosticReporter(AbstractHostDiagnosticUpdateSource hostUpdateSource)
             {
-                _compilationWithAnalyzersMap.Remove(project);
+                _hostUpdateSource = hostUpdateSource;
+            }
+
+            public void OnAnalyzerLoadFailed(object sender, AnalyzerLoadFailureEventArgs e)
+            {
+                var reference = sender as AnalyzerFileReference;
+                if (reference == null)
+                {
+                    return;
+                }
+
+                var diagnostic = AnalyzerHelper.CreateAnalyzerLoadFailureDiagnostic(reference.FullPath, e);
+
+                // diagnostic from host analyzer can never go away
+                var args = new DiagnosticsUpdatedArgs(
+                    id: Tuple.Create(this, reference.FullPath, e.ErrorCode, e.TypeName),
+                    workspace: PrimaryWorkspace.Workspace,
+                    solution: null,
+                    projectId: null,
+                    documentId: null,
+                    diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic));
+
+                _hostUpdateSource.RaiseDiagnosticsUpdated(args);
             }
         }
 

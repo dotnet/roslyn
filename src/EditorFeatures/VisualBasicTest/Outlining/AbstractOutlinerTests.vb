@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Assert.Equal(expected.HintSpan.End, actual.HintSpan.End)
             Assert.Equal(expected.BannerText, actual.BannerText)
             Assert.Equal(expected.AutoCollapse, actual.AutoCollapse)
+            Assert.Equal(expected.IsDefaultCollapsed, actual.IsDefaultCollapsed)
         End Sub
     End Class
 End Namespace

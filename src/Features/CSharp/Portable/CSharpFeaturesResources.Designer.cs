@@ -377,6 +377,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hide base member.
+        /// </summary>
+        internal static string HideBase {
+            get {
+                return ResourceManager.GetString("HideBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement Abstract Class.
         /// </summary>
         internal static string ImplementAbstractClass {
@@ -841,15 +850,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Struct {
             get {
                 return ResourceManager.GetString("Struct", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to with #pragma directive.
-        /// </summary>
-        internal static string SuppressWithPragma {
-            get {
-                return ResourceManager.GetString("SuppressWithPragma", resourceCulture);
             }
         }
         

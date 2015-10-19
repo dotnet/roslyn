@@ -1,7 +1,10 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Global.Microsoft.CodeAnalysis.VisualBasic
 
@@ -12,6 +15,11 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
             Dim diagnostics = c.GetDiagnostics(CompilationStage.Compile)
             diagnostics.Verify(expected)
             Return c
+        End Function
+
+        <Extension>
+        Friend Function GetDiagnosticsForSyntaxTree(c As VisualBasicCompilation, stage As CompilationStage, tree As SyntaxTree, Optional filterSpan As TextSpan? = Nothing) As ImmutableArray(Of Diagnostic)
+            Return c.GetDiagnosticsForSyntaxTree(stage, tree, filterSpan, includeEarlierStages:=True, cancellationToken:=CancellationToken.None)
         End Function
 
         ' TODO: Figure out how to return a localized message using VB

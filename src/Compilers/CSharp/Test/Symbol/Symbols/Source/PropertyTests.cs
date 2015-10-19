@@ -2784,5 +2784,39 @@ unsafe class Test
     Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test").WithLocation(2, 14)
                 );
         }
+
+
+        [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
+        public void LangVersioAndReadonlyAutoProperty()
+        {
+            var source = @"
+public class Class1
+{
+    public Class1()
+    {
+        Prop1 = ""Test"";
+    }
+
+    public string Prop1 { get; }
+}
+
+abstract class Class2
+{
+    public abstract string Prop2 { get; }
+}
+
+interface I1
+{
+    string Prop3 { get; }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            comp.GetDeclarationDiagnostics().Verify(
+    // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5.  Please use language version 6 or greater.
+    //     public string Prop1 { get; }
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
+                );
+        }
     }
 }

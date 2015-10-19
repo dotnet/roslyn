@@ -236,7 +236,12 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsSlotReusable(this SynthesizedLocalKind kind, OptimizationLevel optimizations)
         {
-            if (optimizations == OptimizationLevel.Debug)
+            return kind.IsSlotReusable(optimizations != OptimizationLevel.Release);
+        }
+
+        public static bool IsSlotReusable(this SynthesizedLocalKind kind, bool isDebug)
+        {
+            if (isDebug)
             {
                 // Don't reuse any long-lived locals in debug builds to provide good debugging experience 
                 // for user-defined locals and to allow EnC.

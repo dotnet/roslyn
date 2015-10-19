@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim unconditionalEntry As Boolean = WillDoAtLeastOneIteration(rewrittenInitialValue, rewrittenLimit, rewrittenStep)
 
             ' For loop must ensure that loop range and step do not change while iterating so it needs to 
-            ' cache nonconstant values.
+            ' cache non-constant values.
             ' We do not need to do this for object loops though. Object loop helpers do caching internally.
 
             ' NOTE the order of the following initializations is important!!!!

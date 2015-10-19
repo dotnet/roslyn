@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                         // unused field. current live error doesn't support this.
                         continue;
 
+                    case (int)ErrorCode.ERR_MissingPredefinedMember:
+                        // make it build only error.
+                        continue;
+
                     default:
                         builder.Add(errorCode);
                         break;

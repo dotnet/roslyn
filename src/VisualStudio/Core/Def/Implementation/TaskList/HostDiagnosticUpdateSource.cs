@@ -12,7 +12,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     // exporting both Abstract and HostDiagnosticUpdateSource is just to make testing easier.
     // use HostDiagnosticUpdateSource when abstract one is not needed for testing purpose
-    [Export(typeof(IDiagnosticUpdateSource))]
     [Export(typeof(AbstractHostDiagnosticUpdateSource))]
     [Export(typeof(HostDiagnosticUpdateSource))]
     internal sealed class HostDiagnosticUpdateSource : AbstractHostDiagnosticUpdateSource
@@ -23,9 +22,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly Dictionary<ProjectId, HashSet<object>> _diagnosticMap = new Dictionary<ProjectId, HashSet<object>>();
 
         [ImportingConstructor]
-        public HostDiagnosticUpdateSource(VisualStudioWorkspaceImpl workspace)
+        public HostDiagnosticUpdateSource(VisualStudioWorkspaceImpl workspace, IDiagnosticUpdateSourceRegistrationService registrationService)
         {
             _workspace = workspace;
+
+            registrationService.Register(this);
         }
 
         internal override Workspace Workspace

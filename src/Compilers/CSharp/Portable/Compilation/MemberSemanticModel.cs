@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -153,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (var current = node; binder == null; current = current.ParentOrStructuredTriviaParent)
             {
                 Debug.Assert(current != null); // Why were we asked for an enclosing binder for a node outside our root?
-
                 StatementSyntax stmt = current as StatementSyntax;
+                TypeOfExpressionSyntax typeOfExpression;
                 if (stmt != null)
                 {
                     if (LookupPosition.IsInStatementScope(position, stmt))
@@ -197,9 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind() == SyntaxKind.TypeOfExpression && typeOfArgument == null)
+                else if (current.Kind() == SyntaxKind.TypeOfExpression &&
+                    typeOfArgument == null &&
+                    LookupPosition.IsBetweenTokens(
+                        position,
+                        (typeOfExpression = (TypeOfExpressionSyntax)current).OpenParenToken,
+                        typeOfExpression.CloseParenToken))
                 {
-                    typeOfArgument = ((TypeOfExpressionSyntax)current).Type;
+                    typeOfArgument = typeOfExpression.Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
                 else
@@ -420,6 +426,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Can't define member inside member.
             return null;
+        }
+
+        public override ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var boundLocalFunction = GetLowerBoundNode(declarationSyntax) as BoundLocalFunctionStatement;
+            return boundLocalFunction?.Symbol;
         }
 
         public override ISymbol GetDeclaredSymbol(MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -761,6 +773,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _root.SyntaxTree;
+            }
+        }
+
+        internal override IOperation GetOperationWorker(CSharpSyntaxNode node, GetOperationOptions options, CancellationToken cancellationToken)
+        {
+            CSharpSyntaxNode bindableNode;
+
+            BoundNode lowestBoundNode;
+            BoundNode highestBoundNode;
+            BoundNode boundParent;
+
+            GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
+
+            switch (options)
+            {
+                case GetOperationOptions.Parent:
+                    return boundParent as IOperation;
+                case GetOperationOptions.Highest:
+                    return highestBoundNode as IOperation;
+                case GetOperationOptions.Lowest:
+                default:
+                    return lowestBoundNode as IOperation;
             }
         }
 
@@ -1108,6 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.AnonymousMethodExpression:
+                    case SyntaxKind.LocalFunctionStatement:
                         // We can't use a statement that is inside a lambda.
                         enclosingStatement = null;
                         break;

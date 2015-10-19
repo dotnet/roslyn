@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -9,6 +10,13 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal class CompletionRules
     {
+        private readonly static char[] s_defaultCommitCharacters = new[]
+            {
+                ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
+                ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
+                '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\'
+            };
+
         private readonly object _gate = new object();
         private readonly AbstractCompletionService _completionService;
         private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
@@ -180,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         protected virtual bool IsCommitCharacterCore(CompletionItem completionItem, char ch, string textTypedSoFar)
         {
-            return false;
+            return s_defaultCommitCharacters.Contains(ch);
         }
 
         /// <summary>

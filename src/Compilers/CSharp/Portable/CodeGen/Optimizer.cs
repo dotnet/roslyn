@@ -16,13 +16,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal class Optimizer
     {
-        public static BoundStatement Optimize(BoundStatement src, out HashSet<LocalSymbol> stackLocals)
+        /// <summary>
+        /// Perform IL specific optimizations (mostly reduction of local slots)
+        /// </summary>
+        /// <param name="src">Method body to optimize</param>
+        /// <param name="debugFriendly">
+        /// When set, do not perform aggressive optimizations that degrade debugging experience.
+        /// In particular we do not do the following:
+        /// 
+        /// 1) Do not elide any user defined locals, even if never read from. 
+        ///    Example:
+        ///      {
+        ///        var dummy = Foo();    // should not become just "Foo"
+        ///      }
+        ///        
+        ///    User might want to examine dummy in the debugger.
+        /// 
+        /// 2) Do not carry values on the stack between statements
+        ///    Example:
+        ///      {
+        ///        var temp = Foo();
+        ///        temp.ToString();       // should not become   Foo().ToString();
+        ///      }
+        ///       
+        ///    User might want to examine temp in the debugger.
+        ///        
+        /// </param>
+        /// <param name="stackLocals">
+        /// Produced list of "ephemeral" locals.
+        /// Essentially, these locals do not need to leave the evaluation stack.
+        /// As such they do not require an allocation of a local slot and 
+        /// their load/store operations are implemented trivially.
+        /// </param>
+        /// <returns></returns>
+        public static BoundStatement Optimize(
+            BoundStatement src, bool debugFriendly,
+            out HashSet<LocalSymbol> stackLocals)
         {
             //TODO: run other optimizing passes here.
             //      stack scheduler must be the last one.
 
             var locals = PooledDictionary<LocalSymbol, LocalDefUseInfo>.GetInstance();
-            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals);
+            src = (BoundStatement)StackOptimizerPass1.Analyze(src, locals, debugFriendly);
 
             FilterValidStackLocals(locals);
 
@@ -100,6 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
+            var dummyCnt = defs.Count;
+
             //TODO: perf. This can be simplified to not use a query.
 
             // order definitions by increasing size 
@@ -142,14 +179,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     intersects = false;
-                    for (int i = 0; i < cnt; i++)
+                    for (int i = 0; i < dummyCnt; i++)
                     {
                         var def = defs[i];
 
-                        if (newDef.ConflictsWith(def))
+                        if (newDef.ConflictsWithDummy(def))
                         {
                             intersects = true;
                             break;
+                        }
+                    }
+
+                    if (!intersects)
+                    {
+                        for (int i = dummyCnt; i < cnt; i++)
+                        {
+                            var def = defs[i];
+
+                            if (newDef.ConflictsWith(def))
+                            {
+                                intersects = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -236,44 +287,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// when current and other use spans are regular spans we can have only 2 conflict cases:
         /// [1, 3) conflicts with [0, 2)
         /// [1, 3) conflicts with [2, 4)
+        /// 
+        /// NOTE: with regular spans, it is not possible for two spans to share an edge point 
+        /// unless they belong to the same local. (because we cannot aceess two real locals at the same time)
+        /// 
         /// specifically:
-        /// [1, 3) does not conflict with [0, 1)
-        /// 
-        /// NOTE: with regular spans, it is not possible 
-        /// to have start1 == start2 or end1 == end 
-        /// since at the same node we can access only one real local.
-        /// 
-        /// However at the same node we can access one or more dummy locals.
-        /// So we can have start1 == start2 and end1 == end2 scenarios, but only if 
-        /// other span is a span of a dummy.
-        /// 
-        /// In such cases we consider 
-        ///    start2 == span1.start ==> start2 IS included in span1
-        ///    end2 == span1.end ==> end2 IS NOT included in span1
+        /// [1, 3) does not conflict with [0, 1)   since such spans would need to belong to the same local
         /// </summary>
         public bool ConflictsWith(LocalDefUseSpan other)
         {
-            var containsStart = other.ContainsStart(this.start);
-            var containsEnd = other.ContainsEnd(this.end);
-            return containsStart ^ containsEnd;
+            return Contains(other.start) ^ Contains(other.end);
         }
 
-        private bool ContainsStart(int otherStart)
+        private bool Contains(int val)
         {
-            return this.start <= otherStart && this.end > otherStart;
+            return this.start < val && this.end > val;
         }
 
-        private bool ContainsEnd(int otherEnd)
+        /// <summary>
+        /// Dummy locals represent implicit control flow
+        /// It is not allowed for a regular local span to cross into or 
+        /// be immediately adjacent to a dummy span.
+        /// 
+        /// specifically:
+        /// [1, 3) does conflict with [0, 1)   since that would imply a value flowing into or out of a span surrounded by a branch/label
+        /// 
+        /// </summary>
+        public bool ConflictsWithDummy(LocalDefUseSpan dummy)
         {
-            return this.start < otherEnd && this.end > otherEnd;
+            return Includes(dummy.start) ^ Includes(dummy.end);
+        }
+
+        private bool Includes(int val)
+        {
+            return this.start <= val && this.end >= val;
         }
     }
 
     // context of expression evaluation. 
     // it will affect inference of stack behavior
-    // it will also affect when expressions can be dup-reused
+    // it will also affect when locals can be scheduled to the stack
     // Example:
-    //      Foo(x, ref x)     <-- x cannot be duped as it is used in different context  
+    //      Foo(x, ref x)     <-- x cannot be a stack local as it is used in different contexts.
     internal enum ExprContext
     {
         Sideeffects,
@@ -290,16 +345,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     // NOTE: It is always safe to mark a local as not eligible as a stack local
     //       so when situation gets complicated we just refuse to schedule and move on.
     //
-    internal class StackOptimizerPass1 : BoundTreeRewriter
+    internal sealed class StackOptimizerPass1 : BoundTreeRewriter
     {
+        private readonly bool _debugFriendly;
+        private readonly ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> _evalStack;
+
         private int _counter;
-        private int _evalStack;
         private ExprContext _context;
         private BoundLocal _assignmentLocal;
-
-        private BoundExpression _lastExpression;
-        private ExprContext _lastExprContext;
-        private int _lastExpressionCnt;
 
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _locals =
             new Dictionary<LocalSymbol, LocalDefUseInfo>();
@@ -315,19 +368,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // when we need to ensure that eval stack is not blocked by stack Locals, we record an access to empty.
         public static readonly DummyLocal empty = new DummyLocal();
 
-        private StackOptimizerPass1(Dictionary<LocalSymbol, LocalDefUseInfo> locals)
+        private int _recursionDepth;
+
+        private StackOptimizerPass1(Dictionary<LocalSymbol, LocalDefUseInfo> locals,
+            ArrayBuilder<ValueTuple<BoundExpression, ExprContext>> evalStack,
+            bool debugFriendly)
         {
             _locals = locals;
+            _evalStack = evalStack;
+            _debugFriendly = debugFriendly;
 
             // this is the top of eval stack
             DeclareLocal(empty, 0);
-            RecordVarWrite(empty);
+            RecordDummyWrite(empty);
         }
 
-        public static BoundNode Analyze(BoundNode node, Dictionary<LocalSymbol, LocalDefUseInfo> locals)
+        public static BoundNode Analyze(
+            BoundNode node, 
+            Dictionary<LocalSymbol, LocalDefUseInfo> locals,
+            bool debugFriendly)
         {
-            var analyzer = new StackOptimizerPass1(locals);
+            var evalStack = ArrayBuilder<ValueTuple<BoundExpression, ExprContext>>.GetInstance();
+            var analyzer = new StackOptimizerPass1(locals, evalStack, debugFriendly);
             var rewritten = analyzer.Visit(node);
+            evalStack.Free();
 
             return rewritten;
         }
@@ -350,166 +414,146 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
-        private static bool CanDup(BoundExpression prevNode, BoundExpression curNode)
-        {
-            if (prevNode == null)
-            {
-                return false;
-            }
-
-            if (prevNode.Type != curNode.Type)
-            {
-                return false;
-            }
-
-            // TODO: constants
-            //      Codegen sometimes folds constants (conditional ops, anything else?) 
-            //      We cannot currently rely on constants being actually emitted so we cannot dup them.
-            //      It could be attractive to do that though for big constants like doubles.
-            var prevConst = prevNode.ConstantValue;
-            if (prevConst != null)
-            {
-                return false;
-            }
-
-            // locals
-            var prevAsLocal = prevNode as BoundLocal;
-            var curAsLocal = curNode as BoundLocal;
-
-            if (prevAsLocal != null && curAsLocal != null)
-            {
-                return prevAsLocal.LocalSymbol == curAsLocal.LocalSymbol;
-            }
-
-            // parameters
-            var prevAsParam = prevNode as BoundParameter;
-            var curAsParam = curNode as BoundParameter;
-
-            if (prevAsParam != null && curAsParam != null)
-            {
-                // TODO: it may be unnecessary to dup when it is ldloc[0-4]
-                //       just dup always for now for simplicity.
-                return prevAsParam.ParameterSymbol == curAsParam.ParameterSymbol;
-            }
-
-            //TODO: fields, constants, sequence points ...
-
-            return false;
-        }
-
-        /// <summary>
-        /// Recursively rewrites the node or simply replaces it with a dup node
-        /// if we have just seen exactly same node.
-        /// </summary>
-        private BoundExpression ReuseOrVisit(BoundExpression node, ExprContext context)
-        {
-            if (context == ExprContext.AssignmentTarget || context == ExprContext.Sideeffects)
-            {
-                return BaseVisitExpression(node);
-            }
-
-            // it must be most recent expression
-            // it can be a ref when we want a value, but cannot be the other way
-            // TODO: we could reuse boxed values, but we would need to make the Dup to know it was boxed
-            if (_counter == _lastExpressionCnt + 1 &&
-                _lastExprContext != ExprContext.Box &&
-                (_lastExprContext == context || _lastExprContext != ExprContext.Value) &&
-                CanDup(_lastExpression, node))
-            {
-                _lastExpressionCnt = _counter;
-
-                // when duping something not created in a Value context, we are actually duping a reference.
-                // record that so that codegen could know if it is a value or a reference.
-                RefKind dupRefKind = _lastExprContext == ExprContext.Value ?
-                                                    RefKind.None :
-                                                    RefKind.Ref;
-
-                // change the context to the most recently used. 
-                // Why? If we obtained a value from a duped reference, we now have a value on the stack.
-                _lastExprContext = context;
-
-                return new BoundDup(node.Syntax, dupRefKind, node.Type);
-            }
-            else
-            {
-                BoundExpression result = BaseVisitExpression(node);
-
-                _lastExpressionCnt = _counter;
-                _lastExprContext = context;
-                _lastExpression = result;
-
-                return result;
-            }
-        }
-
-        private BoundExpression BaseVisitExpression(BoundExpression node)
-        {
-            // Do not recurse into constant expressions. Their children do not push any locals.
-            // TODO: we may consider duping the constants though (see comments in CanDup)
-            if (node.ConstantValue == null)
-            {
-                node = (BoundExpression)base.Visit(node);
-            }
-
-            return node;
-        }
-
-        public BoundExpression VisitExpression(BoundExpression node, ExprContext context)
+        private BoundExpression VisitExpressionCore(BoundExpression node, ExprContext context)
         {
             var prevContext = _context;
-            int prevStack = _evalStack;
-
+            int prevStack = StackDepth();
             _context = context;
-            var result = ReuseOrVisit(node, context);
+
+            // Do not recurse into constant expressions. Their children do not push any values.
+            var result = node.ConstantValue == null ?
+                node = (BoundExpression)base.Visit(node) :
+                node;
+
+            _context = prevContext;
             _counter += 1;
 
             switch (context)
             {
                 case ExprContext.Sideeffects:
-                    _evalStack = prevStack;
+                    SetStackDepth(prevStack);
+                    break;
+
+                case ExprContext.AssignmentTarget:
                     break;
 
                 case ExprContext.Value:
                 case ExprContext.Address:
                 case ExprContext.Box:
-                    _evalStack = prevStack + 1;
-                    break;
-
-                case ExprContext.AssignmentTarget:
-                    _evalStack = prevStack;
-                    if (LhsUsesStackWhenAssignedTo(node, context))
-                    {
-                        _evalStack = prevStack + 1;
-                    }
+                    SetStackDepth(prevStack);
+                    PushEvalStack(node, context);
                     break;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(context);
             }
 
-            _context = prevContext;
             return result;
+        }
+
+        private BoundExpression VisitExpression(BoundExpression node, ExprContext context)
+        {
+            BoundExpression result;
+            _recursionDepth++;
+
+            if (_recursionDepth > 1)
+            {
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                result = VisitExpressionCore(node, context);
+            }
+            else
+            {
+                result = VisitExpressionCoreWithStackGuard(node, context);
+            }
+
+            _recursionDepth--;
+            return result;
+        }
+
+        private BoundExpression VisitExpressionCoreWithStackGuard(BoundExpression node, ExprContext context)
+        {
+            Debug.Assert(_recursionDepth == 1);
+
+            try
+            {
+                var result = VisitExpressionCore(node, context);
+                Debug.Assert(_recursionDepth == 1);
+                return result;
+            }
+            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            {
+                throw new CancelledByStackGuardException(ex, node);
+            }
+        }
+
+        protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        {
+            throw ExceptionUtilities.Unreachable; 
+        }
+
+        private void PushEvalStack(BoundExpression result, ExprContext context)
+        {
+            _evalStack.Add(ValueTuple.Create(result, context));
+        }
+
+        private int StackDepth()
+        {
+            return _evalStack.Count;
+        }
+
+        private bool EvalStackIsEmpty()
+        {
+            return StackDepth() == 0;
+        }
+
+        private void SetStackDepth(int depth)
+        {
+            _evalStack.Clip(depth);
+        }
+
+        private void PopEvalStack()
+        {
+            SetStackDepth(_evalStack.Count - 1);
+        }
+
+        private void ClearEvalStack()
+        {
+            _evalStack.Clear();
         }
 
         public BoundNode VisitStatement(BoundNode node)
         {
+            Debug.Assert(node == null || EvalStackIsEmpty());
+
+            var origStack = StackDepth();
             var prevContext = _context;
-            int prevStack = _evalStack;
 
             var result = base.Visit(node);
 
-            ClearLastExpression();
-            _counter += 1;
-            _evalStack = prevStack;
+            // prevent cross-statement local optimizations
+            // when emitting debug-friendly code.
+            if (_debugFriendly)
+            {
+                EnsureOnlyEvalStack();
+            }
+
             _context = prevContext;
+            SetStackDepth(origStack);
+            _counter += 1;
 
             return result;
         }
 
-        private void ClearLastExpression()
+        public override BoundNode VisitBlock(BoundBlock node)
         {
-            _lastExpressionCnt = 0;
-            _lastExpression = null;
+            Debug.Assert(EvalStackIsEmpty(), "entering blocks when evaluation stack is not empty?");
+
+            // normally we would not allow stack locals
+            // when evaluation stack is not empty.
+            DeclareLocals(node.Locals, 0);
+
+            return base.VisitBlock(node);
         }
 
         // here we have a case of indirect assignment:  *t1 = expr;
@@ -532,37 +576,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         //  We may consider detecting exactly these cases and pretend that we do not need 
         //  to push either t1 or t2 in this case.
         //
-        private bool LhsUsesStackWhenAssignedTo(BoundNode node, ExprContext context)
-        {
-            Debug.Assert(context == ExprContext.AssignmentTarget);
-
-            switch (node.Kind)
-            {
-                case BoundKind.Parameter:
-                case BoundKind.Local:
-                    return false;
-
-                case BoundKind.FieldAccess:
-                    return !((BoundFieldAccess)node).FieldSymbol.IsStatic;
-
-                case BoundKind.Sequence:
-                    return LhsUsesStackWhenAssignedTo(((BoundSequence)node).Value, context);
-            }
-
-            return true;
-        }
-
-        public override BoundNode VisitBlock(BoundBlock node)
-        {
-            Debug.Assert(_evalStack == 0, "entering blocks when evaluation stack is not empty?");
-
-            // normally we would not allow stack locals
-            // when evaluation stack is not empty.
-            DeclareLocals(node.Locals, 0);
-
-            return base.VisitBlock(node);
-        }
-
         public override BoundNode VisitSequence(BoundSequence node)
         {
             // Normally we can only use stack for local scheduling if stack is not used for evaluation.
@@ -603,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             //
             //  We will detect such case and indicate +1 as the desired stack depth at local accesses.
             //
-            var declarationStack = _evalStack;
+            var declarationStack = StackDepth();
 
             var locals = node.Locals;
             if (!locals.IsDefaultOrEmpty)
@@ -670,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // only because it must be returned, otherwise all uses are 
         // confined to the nested sequence that is assigned indirectly of to an instance field (and therefore has +1 stack)
         // in such case the desired stack for this local is +1
-        private static bool IsNestedLocalOfCompoundOperator(LocalSymbol local, BoundSequence node)
+        private bool IsNestedLocalOfCompoundOperator(LocalSymbol local, BoundSequence node)
         {
             var value = node.Value;
 
@@ -690,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             assignment.Right.Kind == BoundKind.Sequence)
                         {
                             // and no other side-effects should use the variable
-                            var localUsedWalker = new LocalUsedWalker(local);
+                            var localUsedWalker = new LocalUsedWalker(local, _recursionDepth);
                             for (int i = 0; i < sideeffects.Length - 1; i++)
                             {
                                 if (localUsedWalker.IsLocalUsedIn(sideeffects[i]))
@@ -718,12 +731,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
-        private class LocalUsedWalker : BoundTreeWalker
+        private sealed class LocalUsedWalker : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
             private readonly LocalSymbol _local;
             private bool _found;
 
-            internal LocalUsedWalker(LocalSymbol local)
+            internal LocalUsedWalker(LocalSymbol local, int recursionDepth)
+                : base(recursionDepth)
             {
                 _local = local;
             }
@@ -786,10 +800,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         // actual assignment will happen later, after Right is evaluated
                         // just remember what we are assigning to.
                         _assignmentLocal = node;
-
-                        // whatever is available as lastExpression is still available 
-                        // (adjust for visit of this node)
-                        _lastExpressionCnt++;
 
                         break;
 
@@ -862,15 +872,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Such call will push the receiver ref before the arguments
             // so we need to ensure that arguments cannot use stack temps
             BoundExpression right = node.Right;
-            object rhsCookie = null;
-            if (right.Kind == BoundKind.ObjectCreationExpression &&
+            bool mayPushReceiver = (right.Kind == BoundKind.ObjectCreationExpression &&
                 right.Type.IsVerifierValue() &&
-                ((BoundObjectCreationExpression)right).Constructor.ParameterCount != 0)
+                ((BoundObjectCreationExpression)right).Constructor.ParameterCount != 0);
+
+            if (mayPushReceiver)
             {
-                rhsCookie = this.GetStackStateCookie();
+                // push unknown value just to prevent access to stack locals.
+                PushEvalStack(null, ExprContext.Address);
             }
 
             right = VisitExpression(node.Right, rhsContext);
+
+            if (mayPushReceiver)
+            {
+                PopEvalStack();
+            }
 
             // if assigning to a local, now it is the time to record the Write
             if (assignmentLocal != null)
@@ -879,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // - i.e assigns int value to a short local.
                 // in that case we should force lhs to be a real local.
                 Debug.Assert(
-                    node.Left.Type.Equals(node.Right.Type, ignoreCustomModifiers: true, ignoreDynamic: true),
+                    node.Left.Type.Equals(node.Right.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true),
                     @"type of the assignment value is not the same as the type of assignment target. 
                 This is not expected by the optimizer and is typically a result of a bug somewhere else.");
 
@@ -894,19 +911,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     assignmentLocal.Type.IsPointerType() && right.Kind == BoundKind.Conversion &&
                     ((BoundConversion)right).ConversionKind.IsPointerConversion())
                 {
-                    _locals[localSymbol].ShouldNotSchedule();
+                    ShouldNotSchedule(localSymbol);
                 }
 
                 RecordVarWrite(localSymbol);
                 assignmentLocal = null;
-            }
-
-            if (rhsCookie != null)
-            {
-                // we currently have the rhs on stack, adjust for that.
-                _evalStack--;
-                this.EnsureStackState(rhsCookie);
-                _evalStack++;
             }
 
             return node.Update(left, right, node.RefKind, node.Type);
@@ -921,6 +930,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var lhs = node.Left;
             switch (lhs.Kind)
             {
+                case BoundKind.ThisReference:
+                    Debug.Assert(lhs.Type.IsValueType && node.RefKind == RefKind.None);
+                    return true;
+
                 case BoundKind.Parameter:
                     if (((BoundParameter)lhs).ParameterSymbol.RefKind != RefKind.None)
                     {
@@ -1102,9 +1115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         receiver = VisitExpression(receiver, ExprContext.Value);
                     }
                 }
-                // whatever is available as lastExpression is still available 
-                // (adjust for visit of this node)
-                _lastExpressionCnt++;
             }
             else
             {
@@ -1143,8 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
             var result = base.VisitConditionalGoto(node);
-
-            _evalStack--;  // condition gets consumed.
+            PopEvalStack();  // condition gets consumed.
             RecordBranch(node.Label);
 
             return result;
@@ -1152,17 +1161,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            var origStack = _evalStack;
+            var origStack = StackDepth();
             BoundExpression condition = (BoundExpression)this.Visit(node.Condition);
 
             var cookie = GetStackStateCookie();  // implicit goto here
 
-            _evalStack = origStack;  // consequence is evaluated with original stack
+            SetStackDepth(origStack);  // consequence is evaluated with original stack
             BoundExpression consequence = (BoundExpression)this.Visit(node.Consequence);
 
             EnsureStackState(cookie);   // implicit label here
 
-            _evalStack = origStack;  // alternative is evaluated with original stack
+            SetStackDepth(origStack);  // alternative is evaluated with original stack
             BoundExpression alternative = (BoundExpression)this.Visit(node.Alternative);
 
             EnsureStackState(cookie);   // implicit label here
@@ -1172,37 +1181,108 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
+            BoundExpression child = node.Left;
+
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            {
+                return VisitBinaryOperatorSimple(node);
+            }
+
+            // Do not blow the stack due to a deep recursion on the left.
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(node);
+
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
+            }
+
+            var prevContext = _context;
+            int prevStack = StackDepth();
+
+            var left = (BoundExpression)this.Visit(child);
+
+            while (true)
+            {
+                binary = stack.Pop();
+
+                var isLogical = (binary.OperatorKind & BinaryOperatorKind.Logical) != 0;
+
+                object cookie = null;
+                if (isLogical)
+                {
+                    cookie = GetStackStateCookie();     // implicit branch here
+                    SetStackDepth(prevStack);  // right is evaluated with original stack
+                }
+
+                var right = (BoundExpression)this.Visit(binary.Right);
+
+                if (isLogical)
+                {
+                    EnsureStackState(cookie);   // implicit label here
+                }
+
+                var type = this.VisitType(binary.Type);
+                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+
+                if (stack.Count == 0)
+                {
+                    break;
+                }
+
+                _context = prevContext;
+                _counter += 1;
+                SetStackDepth(prevStack);
+                PushEvalStack(binary, ExprContext.Value);
+            }
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
+        }
+
+        private BoundNode VisitBinaryOperatorSimple(BoundBinaryOperator node)
+        {
             var isLogical = (node.OperatorKind & BinaryOperatorKind.Logical) != 0;
             if (isLogical)
             {
-                var origStack = _evalStack;
+                var origStack = StackDepth();
                 BoundExpression left = (BoundExpression)this.Visit(node.Left);
 
                 var cookie = GetStackStateCookie();     // implicit branch here
 
-                _evalStack = origStack;  // right is evaluated with original stack
+                SetStackDepth(origStack);  // right is evaluated with original stack
                 BoundExpression right = (BoundExpression)this.Visit(node.Right);
 
                 EnsureStackState(cookie);   // implicit label here
 
                 return node.Update(node.OperatorKind, left, right, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
             }
-            else
-            {
-                return base.VisitBinaryOperator(node);
-            }
+
+            return base.VisitBinaryOperator(node);
         }
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            var origStack = _evalStack;
+            var origStack = StackDepth();
             BoundExpression left = (BoundExpression)this.Visit(node.LeftOperand);
 
             var cookie = GetStackStateCookie();     // implicit branch here
 
             // right is evaluated with original stack 
             // (this is not entirely true, codegen may keep left on the stack as an ephemeral temp, but that is irrelevant here)
-            _evalStack = origStack;
+            SetStackDepth(origStack);
             BoundExpression right = (BoundExpression)this.Visit(node.RightOperand);
 
             EnsureStackState(cookie);   // implicit label here
@@ -1212,14 +1292,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
-            var origStack = _evalStack;
+            var origStack = StackDepth();
             BoundExpression receiver = VisitCallReceiver(node.Receiver);
 
             var cookie = GetStackStateCookie();     // implicit branch here
 
             // right is evaluated with original stack 
             // (this is not entirely true, codegen will keep receiver on the stack, but that is irrelevant here)
-            _evalStack = origStack;
+            SetStackDepth(origStack);
             BoundExpression whenNotNull = (BoundExpression)this.Visit(node.WhenNotNull);
 
             EnsureStackState(cookie);   // implicit label here
@@ -1227,7 +1307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var whenNull = node.WhenNullOpt;
             if (whenNull != null)
             {
-                _evalStack = origStack;  // whenNull is evaluated with original stack
+                SetStackDepth(origStack);  // whenNull is evaluated with original stack
                 whenNull = (BoundExpression)this.Visit(whenNull);
                 EnsureStackState(cookie);   // implicit label here
             }
@@ -1244,18 +1324,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EnsureOnlyEvalStack();
 
-            var origStack = _evalStack;
+            var origStack = StackDepth();
 
-            _evalStack += 1;
+            PushEvalStack(null, ExprContext.Value);
 
             var cookie = GetStackStateCookie(); // implicit goto here 
 
-            _evalStack = origStack; // consequence is evaluated with original stack 
+            SetStackDepth(origStack); // consequence is evaluated with original stack 
             var valueTypeReceiver = (BoundExpression)this.Visit(node.ValueTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
 
-            _evalStack = origStack; // alternative is evaluated with original stack 
+            SetStackDepth(origStack); // alternative is evaluated with original stack 
             var referenceTypeReceiver = (BoundExpression)this.Visit(node.ReferenceTypeReceiver);
 
             EnsureStackState(cookie); // implicit label here 
@@ -1268,11 +1348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // checked(-x) is emitted as "0 - x"
             if (node.OperatorKind.IsChecked() && node.OperatorKind.Operator() == UnaryOperatorKind.UnaryMinus)
             {
-                var origStack = _evalStack;
-                _evalStack++;
-                CannotReusePreviousExpression(); // Loaded 0 on the stack.
+                var origStack = StackDepth();
+                PushEvalStack(new BoundDefaultOperator(node.Syntax, node.Operand.Type), ExprContext.Value);
                 BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
-                _evalStack = origStack;
                 return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, node.Type);
             }
             else
@@ -1283,10 +1361,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            Debug.Assert(_evalStack == 0);
+            Debug.Assert(EvalStackIsEmpty());
             DeclareLocals(node.InnerLocals, 0);
-
-            var origStack = _evalStack;
 
             // switch needs a byval local or a parameter as a key.
             // if this is already a fitting local, let's keep it that way
@@ -1296,14 +1372,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var localSym = ((BoundLocal)boundExpression).LocalSymbol;
                 if (localSym.RefKind == RefKind.None)
                 {
-                    _locals[localSym].ShouldNotSchedule();
+                    ShouldNotSchedule(localSym);
                 }
             }
 
             boundExpression = (BoundExpression)this.Visit(boundExpression);
 
             // expression value is consumed by the switch
-            _evalStack = origStack;
+            PopEvalStack();
 
             // implicit control flow
             EnsureOnlyEvalStack();
@@ -1318,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 this.RecordLabel(breakLabel);
             }
 
-            var result = node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, breakLabel, node.StringEquality);
+            var result = node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabel, node.StringEquality);
 
             // implicit control flow
             EnsureOnlyEvalStack();
@@ -1370,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (exceptionSourceOpt != null)
             {
                 // runtime pushes the exception object
-                _evalStack++;
+                PushEvalStack(null, ExprContext.Value);
                 _counter++;
 
                 // We consume it by writing into the exception source.
@@ -1380,13 +1456,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    int prevStack = _evalStack;
+                    int prevStack = StackDepth();
                     exceptionSourceOpt = VisitExpression(exceptionSourceOpt, ExprContext.AssignmentTarget);
-                    Debug.Assert(_evalStack == prevStack + (LhsUsesStackWhenAssignedTo(exceptionSourceOpt, ExprContext.AssignmentTarget) ? 1 : 0));
-                    _evalStack = prevStack;
+                    SetStackDepth(prevStack);
                 }
 
-                _evalStack--;
+                PopEvalStack();
                 _counter++;
             }
 
@@ -1396,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 boundFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
 
                 // the value of filter expression is consumed by the VM
-                _evalStack--;
+                PopEvalStack();
                 _counter++;
 
                 // variables allocated on stack in a filter can't be used in the catch handler 
@@ -1475,35 +1550,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // It is done by accessing virtual "empty" local that is at the bottom of all stack locals.
         private void EnsureOnlyEvalStack()
         {
-            CannotReusePreviousExpression();
             RecordVarRead(empty);
         }
 
         private object GetStackStateCookie()
         {
-            CannotReusePreviousExpression();
-
             // create a dummy and start tracing it
             var dummy = new DummyLocal();
             _dummyVariables.Add(dummy, dummy);
-            _locals.Add(dummy, new LocalDefUseInfo(_evalStack));
-            RecordVarWrite(dummy);
+            _locals.Add(dummy, new LocalDefUseInfo(StackDepth()));
+            RecordDummyWrite(dummy);
 
             return dummy;
         }
 
         private void EnsureStackState(object cookie)
         {
-            CannotReusePreviousExpression();
-
             RecordVarRead(_dummyVariables[cookie]);
         }
 
         // called on branches and labels
         private void RecordBranch(LabelSymbol label)
         {
-            CannotReusePreviousExpression();
-
             DummyLocal dummy;
             if (_dummyVariables.TryGetValue(label, out dummy))
             {
@@ -1514,15 +1582,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // create a dummy and start tracing it
                 dummy = new DummyLocal();
                 _dummyVariables.Add(label, dummy);
-                _locals.Add(dummy, new LocalDefUseInfo(_evalStack));
-                RecordVarWrite(dummy);
+                _locals.Add(dummy, new LocalDefUseInfo(StackDepth()));
+                RecordDummyWrite(dummy);
             }
         }
 
         private void RecordLabel(LabelSymbol label)
         {
-            CannotReusePreviousExpression();
-
             DummyLocal dummy;
             if (_dummyVariables.TryGetValue(label, out dummy))
             {
@@ -1538,10 +1604,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void CannotReusePreviousExpression()
+        private void ShouldNotSchedule(LocalSymbol localSymbol)
         {
-            _lastExpressionCnt = 0;
-            _lastExpression = null;
+            LocalDefUseInfo localDefInfo;
+            if (_locals.TryGetValue(localSymbol, out localDefInfo))
+            {
+                localDefInfo.ShouldNotSchedule();
+            }
         }
 
         private void RecordVarRef(LocalSymbol local)
@@ -1554,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // if we ever take a reference of a local, it must be a real local.
-            _locals[local].ShouldNotSchedule();
+            ShouldNotSchedule(local);
         }
 
         private void RecordVarRead(LocalSymbol local)
@@ -1581,7 +1650,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // if accessing real val, check stack
             if (local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp)
             {
-                if (locInfo.stackAtDeclaration != _evalStack)
+                if (locInfo.stackAtDeclaration != StackDepth() &&
+                    !EvalStackHasLocal(local))
                 {
                     //reading at different eval stack.
                     locInfo.ShouldNotSchedule();
@@ -1591,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 // dummy must be accessed on same stack.
-                Debug.Assert(local == empty || locInfo.stackAtDeclaration == _evalStack);
+                Debug.Assert(local == empty || locInfo.stackAtDeclaration == StackDepth());
             }
 
             var definedAt = locInfo.LocalDefs.Last();
@@ -1601,8 +1671,32 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             locInfo.LocalDefs.Add(locDef);
         }
 
+        private bool EvalStackHasLocal(LocalSymbol local)
+        {
+            var top = _evalStack.Last();
+
+            return top.Item2 == (local.RefKind == RefKind.None? ExprContext.Value : ExprContext.Address) &&
+                   top.Item1.Kind == BoundKind.Local &&
+                   ((BoundLocal)top.Item1).LocalSymbol == local;
+        }
+
+        private void RecordDummyWrite(LocalSymbol local)
+        {
+            Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.OptimizerTemp);
+
+            var locInfo = _locals[local];
+
+            // dummy must be accessed on same stack.
+            Debug.Assert(local == empty || locInfo.stackAtDeclaration == StackDepth());
+
+            var locDef = new LocalDefUseSpan(_counter);
+            locInfo.LocalDefs.Add(locDef);
+        }
+
         private void RecordVarWrite(LocalSymbol local)
         {
+            Debug.Assert(local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp);
+
             if (!CanScheduleToStack(local))
             {
                 return;
@@ -1614,32 +1708,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            // if accessing real val, check stack
-            if (local.SynthesizedKind != SynthesizedLocalKind.OptimizerTemp)
-            {
-                // -1 because real assignment "consumes, assigns, and then pushes back" the value.
-                var evalStack = _evalStack - 1;
+            // check stack
+            // -1 because real assignment "consumes, assigns, and then pushes back" the value.
+            var evalStack = StackDepth() - 1;
 
-                if (locInfo.stackAtDeclaration != evalStack)
-                {
-                    //writing at different eval stack.
-                    locInfo.ShouldNotSchedule();
-                    return;
-                }
-            }
-            else
+            if (locInfo.stackAtDeclaration != evalStack)
             {
-                // dummy must be accessed on same stack.
-                Debug.Assert(local == empty || locInfo.stackAtDeclaration == _evalStack);
+                //writing at different eval stack.
+                locInfo.ShouldNotSchedule();
+                return;
             }
 
             var locDef = new LocalDefUseSpan(_counter);
             locInfo.LocalDefs.Add(locDef);
         }
 
-        private static bool CanScheduleToStack(LocalSymbol local)
+        private bool CanScheduleToStack(LocalSymbol local)
         {
-            return local.CanScheduleToStack;
+            return local.CanScheduleToStack &&
+                (!this._debugFriendly || !local.SynthesizedKind.IsLongLived());
         }
 
         private void DeclareLocals(ImmutableArray<LocalSymbol> locals, int stack)
@@ -1682,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
     //              NotLastUse(X_stackLocal) ===> NotLastUse(Dup)
     //              LastUse(X_stackLocal) ===> LastUse(X_stackLocal)
     //
-    internal class StackOptimizerPass2 : BoundTreeRewriter
+    internal sealed class StackOptimizerPass2 : BoundTreeRewriterWithStackGuard
     {
         private int _nodeCounter;
         private readonly Dictionary<LocalSymbol, LocalDefUseInfo> _info;
@@ -1718,6 +1805,57 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _nodeCounter += 1;
 
             return result;
+        }
+
+        public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        {
+            BoundExpression child = node.Left;
+
+            if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+            {
+                return base.VisitBinaryOperator(node);
+            }
+
+            // Do not blow the stack due to a deep recursion on the left.
+            var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
+            stack.Push(node);
+
+            BoundBinaryOperator binary = (BoundBinaryOperator)child;
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryOperator || child.ConstantValue != null)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryOperator)child;
+            }
+
+            var left = (BoundExpression)this.Visit(child);
+
+            while (true)
+            {
+                binary = stack.Pop();
+                var right = (BoundExpression)this.Visit(binary.Right);
+                var type = this.VisitType(binary.Type);
+                left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
+
+                if (stack.Count == 0)
+                {
+                    break;
+                }
+
+                _nodeCounter += 1;
+            }
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
         }
 
         private static bool IsLastAccess(LocalDefUseInfo locInfo, int counter)
@@ -1866,6 +2004,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         internal override SynthesizedLocalKind SynthesizedKind
         {
             get { return SynthesizedLocalKind.OptimizerTemp; }
+        }
+
+        internal override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        {
+            throw new NotImplementedException();
         }
 
         internal override SyntaxToken IdentifierToken

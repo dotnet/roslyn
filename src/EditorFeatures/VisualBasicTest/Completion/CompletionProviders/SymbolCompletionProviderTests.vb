@@ -2861,6 +2861,18 @@ End Module
             VerifyItemExists(code, "args")
         End Sub
 
+        <WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")>
+        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InTopLevelFieldInitializer()
+            Dim code =
+<Code>
+Dim aaa = 1
+Dim bbb = $$
+</Code>.Value
+
+            VerifyItemExists(code, "aaa")
+        End Sub
+
 #End Region
 
 #Region "SharedMemberSourceTests"
@@ -6678,6 +6690,24 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
+        Dim x = $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInStatementContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
         $$
     End Sub
 End Module
@@ -6770,6 +6800,129 @@ Module Program
 End Module
 ]]></code>.Value
             VerifyItemExists(text, "Delegate")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionExcludedInExpressionContext1()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        args.Select($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionExcludedInExpressionContext2()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionExcludedInStatementContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInGetType()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        GetType($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInTypeOf()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim s = TypeOf args Is $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInReturnTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Function x() as $$
+    End Function
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInFieldTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Dim x as $$
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
         End Sub
 
         <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>

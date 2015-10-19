@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> _localSemanticDiagnosticsOpt = null;
         private Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, List<Diagnostic>>> _localSyntaxDiagnosticsOpt = null;
         private Dictionary<DiagnosticAnalyzer, List<Diagnostic>> _nonLocalDiagnosticsOpt = null;
-        
+
         public AnalysisResult(bool logAnalyzerExecutionTime, ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             _analyzerExecutionTimeOpt = logAnalyzerExecutionTime ? CreateAnalyzerExecutionTimeMap(analyzers) : null;
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public void StoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver)
+        public void StoreAnalysisResult(AnalysisScope analysisScope, AnalyzerDriver driver, Compilation compilation)
         {
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 // Dequeue reported analyzer diagnostics from the driver and store them in our maps.
-                var syntaxDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: true);
-                var semanticDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: false);
-                var compilationDiagnostics = driver.DequeueNonLocalDiagnostics(analyzer);
+                var syntaxDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: true, compilation: compilation);
+                var semanticDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: false, compilation: compilation);
+                var compilationDiagnostics = driver.DequeueNonLocalDiagnostics(analyzer, compilation);
 
                 lock (_gate)
                 {

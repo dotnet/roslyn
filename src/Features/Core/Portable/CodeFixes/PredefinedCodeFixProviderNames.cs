@@ -34,5 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string SimplifyNames = "Simplify Names";
         public const string SpellCheck = "Spell Check";
         public const string Suppression = "Suppression";
+        public const string AddOverloads = "Add Overloads to member";
+        public const string AddNew = "Add new keyword to member";
     }
 }

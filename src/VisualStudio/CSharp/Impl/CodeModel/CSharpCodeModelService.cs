@@ -483,7 +483,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         /// <summary>
-        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.GetOrCreateCodeElement{T}(SyntaxNode)"/>
         /// </summary>
         public override EnvDTE.CodeElement CreateInternalCodeElement(
             CodeModelState state,
@@ -823,8 +823,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return "operator " + ((OperatorDeclarationSyntax)node).OperatorToken.ToString();
                 case SyntaxKind.ConversionOperatorDeclaration:
                     var conversionOperator = (ConversionOperatorDeclarationSyntax)node;
-                    return "operator "
-                        + (conversionOperator.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? "implicit " : "explicit ")
+                    return (conversionOperator.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? "implicit " : "explicit ")
+                        + "operator "
                         + conversionOperator.Type.ToString();
                 case SyntaxKind.EnumMemberDeclaration:
                     return ((EnumMemberDeclarationSyntax)node).Identifier.ToString();
@@ -1180,8 +1180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             for (int i = triviaList.Count - 1; i >= 0; i--)
             {
                 var trivia = triviaList[i];
-                if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                    trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.IsRegularComment())
                 {
                     commentList.Add(trivia);
                 }
@@ -1210,8 +1209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var textBuilder = new StringBuilder();
             foreach (var trivia in commentList)
             {
-                if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                    trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.IsRegularComment())
                 {
                     textBuilder.AppendLine(trivia.GetCommentText());
                 }
