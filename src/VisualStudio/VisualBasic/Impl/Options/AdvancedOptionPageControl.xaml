@@ -46,6 +46,13 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="GoToDefinitionGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_GoToDefinition}">
+                <StackPanel>
+                    <CheckBox x:Name="NavigateToObjectBrowser"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_NavigateToObjectBrowser}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="ExtractMethodGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
                 <StackPanel>

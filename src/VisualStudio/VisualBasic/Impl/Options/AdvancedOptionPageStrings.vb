@@ -21,12 +21,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_RenameTrackingPreview As String
-            Get
-                Return BasicVSResources.Option_RenameTrackingPreview
-            End Get
-        End Property
-
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
                 Return BasicVSResources.Option_DisplayLineSeparators
@@ -69,6 +63,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_EnableOutlining As String
+            Get
+                Return BasicVSResources.Option_EnableOutlining
+            End Get
+        End Property
+
         Public ReadOnly Property Option_ExtractMethod As String
             Get
                 Return BasicVSResources.Option_ExtractMethod
@@ -81,15 +81,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_EnableOutlining As String
+        Public ReadOnly Property Option_GoToDefinition As String
             Get
-                Return BasicVSResources.Option_EnableOutlining
+                Return BasicVSResources.Option_GoToDefinition
             End Get
         End Property
 
         Public ReadOnly Property Option_Highlighting As String
             Get
                 Return BasicVSResources.Option_Highlighting
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_NavigateToObjectBrowser As String
+            Get
+                Return BasicVSResources.Option_NavigateToObjectBrowser
             End Get
         End Property
 
@@ -126,6 +132,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Performance As String
             Get
                 Return BasicVSResources.Option_Performance
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_RenameTrackingPreview As String
+            Get
+                Return BasicVSResources.Option_RenameTrackingPreview
             End Get
         End Property
 
