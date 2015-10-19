@@ -58,7 +58,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetNamespace([MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedNamespace @namespace)
         {
-            // SymReader doesn't support namspaces
+            // SymReader doesn't support namespaces
             @namespace = null;
             return HResult.E_NOTIMPL;
         }
@@ -80,7 +80,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared across multiple methods
             // and for lines outside of the current method.
 
             var spReader = GetSequencePointEnumerator();
@@ -137,7 +137,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared accross multiple methods.
+            // DiaSymReader uses DiaSession::findLinesByLinenum, which results in bad results for lines shared across multiple methods.
 
             var spReader = GetSequencePointEnumerator();
             var documentHandle = symDocument.Handle;
@@ -453,7 +453,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         #region ISymEncUnmanagedMethod
 
         /// <summary>
-        /// Get the file name for the line associated with speficied offset.
+        /// Get the file name for the line associated with specified offset.
         /// </summary>
         public int GetFileNameFromOffset(
             int offset,

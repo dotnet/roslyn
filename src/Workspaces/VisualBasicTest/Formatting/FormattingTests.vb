@@ -4339,5 +4339,22 @@ End Module
             AssertFormatLf2CrLf(code.Value, expected.Value)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <WorkItem(2822, "https://github.com/dotnet/roslyn/issues/2822")>
+        Public Sub FormatOmittedArgument()
+            Dim code = <Code>
+Class C
+    Sub M()
+        Call M(
+            a,
+                    ,
+            a
+            )
+    End Sub
+End Class</Code>
+
+            AssertFormatLf2CrLf(code.Value, code.Value)
+        End Sub
+
     End Class
 End Namespace

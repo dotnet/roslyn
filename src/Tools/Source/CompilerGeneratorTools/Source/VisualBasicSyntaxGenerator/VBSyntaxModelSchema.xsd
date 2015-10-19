@@ -81,7 +81,7 @@ the definition of VB parse tree nodes. -->
                       <!-- A spec-section element defines the cross-reference to the language spec. -->
                       <xs:element minOccurs="0" maxOccurs="unbounded" name="spec-section" type="xs:string" />
 
-                      <!-- A grammar element defins the grammar non-terminal -->
+                      <!-- A grammar element defines the grammar non-terminal -->
                       <xs:element minOccurs="0" maxOccurs="unbounded" name="grammar" type="xs:string" />
 
                       <!-- A node-kind defines an element of the NodeKind enumeration that refers to this node.
@@ -242,7 +242,7 @@ the definition of VB parse tree nodes. -->
                       <xs:element name="enumerators">
                         <xs:complexType>
                           <xs:sequence>
-                            <!-- enumerator defins one enumeration in an enumeration
+                            <!-- enumerator defines one enumeration in an enumeration
                             Attributes:
                               name - name of the enumerator [required]
                               hexvalue - hex value of the enumerator [optional]

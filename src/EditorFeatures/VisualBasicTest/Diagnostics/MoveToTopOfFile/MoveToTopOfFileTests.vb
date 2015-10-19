@@ -324,13 +324,13 @@ Module Program
     Sub Main(args As String())
 
     End Sub
-    &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt; 'Bomment
+    &lt;[|Assembly:|] Reflection.AssemblyCultureAttribute("de")&gt; 'Another Comment
 End Module 
 </File>
 
             Dim expected = <File>
 &lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Comment
-&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Bomment
+&lt;Assembly: Reflection.AssemblyCultureAttribute("de")&gt; 'Another Comment
 Module Program
     Sub Main(args As String())
     End Sub

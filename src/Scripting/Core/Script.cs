@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Forces the script through the build step.
         /// If not called directly, the build step will occur on the first call to Run.
         /// </summary>
-        public void Build(CancellationToken cancellationToken = default(CancellationToken)) =>
+        public ImmutableArray<Diagnostic> Build(CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonBuild(cancellationToken);
 
-        internal abstract void CommonBuild(CancellationToken cancellationToken);
+        internal abstract ImmutableArray<Diagnostic> CommonBuild(CancellationToken cancellationToken);
         internal abstract Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken);
 
         /// <summary>
@@ -235,6 +235,26 @@ namespace Microsoft.CodeAnalysis.Scripting
                 references.Free();
             }
         }
+
+        // TODO: remove
+        internal bool HasReturnValue()
+        {
+            bool hasValue;
+            var resultType = GetCompilation().GetSubmissionResultType(out hasValue);
+            if (hasValue)
+            {
+                if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     public sealed class Script<T> : Script
@@ -268,12 +288,21 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
         internal override Script WithCodeInternal(string code) => WithCode(code);
         internal override Script WithGlobalsTypeInternal(Type globalsType) => WithGlobalsType(globalsType);
-
-        /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
-        internal override void CommonBuild(CancellationToken cancellationToken)
+        
+        internal override ImmutableArray<Diagnostic> CommonBuild(CancellationToken cancellationToken)
         {
-            GetPrecedingExecutors(cancellationToken);
-            GetExecutor(cancellationToken);
+            // TODO: avoid throwing exception, report all diagnostics https://github.com/dotnet/roslyn/issues/5949
+            try
+            {
+                GetPrecedingExecutors(cancellationToken);
+                GetExecutor(cancellationToken);
+
+                return ImmutableArray.CreateRange(GetCompilation().GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Warning));
+            }
+            catch (CompilationErrorException e)
+            {
+                return ImmutableArray.CreateRange(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
+            }
         }
 
         internal override Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken)
@@ -372,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException">The type of <paramref name="globals"/> doesn't match <see cref="Script.GlobalsType"/>.</exception>
         public new Task<ScriptState<T>> RunAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             ValidateGlobals(globals, GlobalsType);
@@ -415,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
         internal new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             if (previousState == null)

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             return editorOptionsFactory.GlobalOptions;
         }
 
-        // This particular section is commented for future reference if there arises a need to implement a option serilizer in the editor layer
+        // This particular section is commented for future reference if there arises a need to implement a option serializer in the editor layer
         // public static IOptionService GetFormattingOptions(this IEditorOptionsFactoryService editorOptionsFactory, Document document)
         // {
         //     return CreateOptions(editorOptionsFactory.GetEditorOptions(document));

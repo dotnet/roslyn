@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         Compilation ICompilationFactoryService.CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type hostObjectType)
         {
-            return CSharpCompilation.CreateSubmission(
+            return CSharpCompilation.CreateScriptCompilation(
                 assemblyName,
                 options: (CSharpCompilationOptions)options,
-                previousSubmission: null,
-                hostObjectType: hostObjectType);
+                previousScriptCompilation: null,
+                globalsType: hostObjectType);
         }
 
         Compilation ICompilationFactoryService.GetCompilationFromCompilationReference(MetadataReference reference)

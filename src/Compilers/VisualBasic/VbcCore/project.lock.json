@@ -533,6 +533,20 @@
           "lib/DNXCore50/System.Runtime.Loader.dll": {}
         }
       },
+      "System.Runtime.Numerics/4.0.1-beta-23401": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Runtime.Numerics.dll": {}
+        }
+      },
       "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
         "dependencies": {
           "System.Private.DataContractSerialization": "[4.0.1-beta-23401, )"
@@ -1552,6 +1566,20 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.Loader.dll": {}
+        }
+      },
+      "System.Runtime.Numerics/4.0.1-beta-23401": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Runtime.Numerics.dll": {}
         }
       },
       "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
@@ -2729,6 +2757,20 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Runtime.Loader.dll": {}
+        }
+      },
+      "System.Runtime.Numerics/4.0.1-beta-23401": {
+        "dependencies": {
+          "System.Globalization": "[4.0.10, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.20, )",
+          "System.Runtime.Extensions": "[4.0.10, )"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Numerics.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Runtime.Numerics.dll": {}
         }
       },
       "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
@@ -5032,6 +5074,37 @@
         "System.Runtime.Loader.nuspec"
       ]
     },
+    "System.Runtime.Numerics/4.0.1-beta-23401": {
+      "sha512": "RF7EswqLB7/V+7LHKgmsH0hS6KcFotf9GfaKBgCWfNvAr66r6/bUTNzz9TYn0veMMGLOoItQ6DWA8IAAIFdnTw==",
+      "type": "Package",
+      "files": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "lib/dotnet/de/System.Runtime.Numerics.xml",
+        "lib/dotnet/es/System.Runtime.Numerics.xml",
+        "lib/dotnet/fr/System.Runtime.Numerics.xml",
+        "lib/dotnet/it/System.Runtime.Numerics.xml",
+        "lib/dotnet/ja/System.Runtime.Numerics.xml",
+        "lib/dotnet/ko/System.Runtime.Numerics.xml",
+        "lib/dotnet/ru/System.Runtime.Numerics.xml",
+        "lib/dotnet/System.Runtime.Numerics.dll",
+        "lib/dotnet/System.Runtime.Numerics.xml",
+        "lib/dotnet/zh-hans/System.Runtime.Numerics.xml",
+        "lib/dotnet/zh-hant/System.Runtime.Numerics.xml",
+        "lib/net45/_._",
+        "lib/netcore50/System.Runtime.Numerics.dll",
+        "lib/netcore50/System.Runtime.Numerics.xml",
+        "lib/win8/_._",
+        "lib/wpa81/_._",
+        "package/services/metadata/core-properties/dd30b2ccdf7e4f9d9f37ea0b478b54a2.psmdcp",
+        "ref/dotnet/System.Runtime.Numerics.dll",
+        "ref/net45/_._",
+        "ref/netcore50/System.Runtime.Numerics.dll",
+        "ref/win8/_._",
+        "ref/wpa81/_._",
+        "System.Runtime.Numerics.nuspec"
+      ]
+    },
     "System.Runtime.Serialization.Json/4.0.1-beta-23401": {
       "sha512": "6zGC2zfQ1N7eaJasJsn1mLEOcRJNmvUjQGlRpuhZ6UQKBcHBloOOqxIwkbkRXtpC82Y6swGSmKvpD2t005kJbw==",
       "type": "Package",
@@ -5619,6 +5692,7 @@
       "System.Runtime.Handles >= 4.0.1-beta-23401",
       "System.Runtime.InteropServices >= 4.0.21-beta-23401",
       "System.Runtime.Loader >= 4.0.0-beta-23401",
+      "System.Runtime.Numerics >= 4.0.1-beta-23401",
       "System.Runtime.Serialization.Json >= 4.0.1-beta-23401",
       "System.Security.Cryptography.Algorithms >= 4.0.0-beta-23401",
       "System.Text.Encoding >= 4.0.11-beta-23401",

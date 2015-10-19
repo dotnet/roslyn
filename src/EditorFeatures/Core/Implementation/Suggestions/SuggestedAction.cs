@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 IEnumerable<CodeActionOperation> operations = null;
 
-                // NOTE: As mentoned above, we want to avoid computing the operations on the UI thread.
+                // NOTE: As mentioned above, we want to avoid computing the operations on the UI thread.
                 // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
                 // to compute the options and must be done on the UI thread.
                 var actionWithOptions = this.CodeAction as CodeActionWithOptions;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent);
         }
 
-        protected virtual Diagnostic GetDiagnostic()
+        protected virtual DiagnosticData GetDiagnostic()
         {
             return null;
         }

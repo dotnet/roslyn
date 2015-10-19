@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         Regular = 0,
 
         /// <summary>
-        /// Allows top-level statementsm, declarations, and optional trailing expression. 
+        /// Allows top-level statements, declarations, and optional trailing expression. 
         /// Used for parsing .csx/.vbx and interactive submissions.
         /// </summary>
         Script = 1,
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The same as <see cref="Script"/>.
         /// </summary>
-        [Obsolete("Use Script instead", error: true)]
+        [Obsolete("Use Script instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         Interactive = 2,
     }

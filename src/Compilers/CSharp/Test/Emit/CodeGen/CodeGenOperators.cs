@@ -4697,8 +4697,10 @@ class Test
 
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
-        
-        [Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6077")]
+        [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
+        [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
         {
             var source =

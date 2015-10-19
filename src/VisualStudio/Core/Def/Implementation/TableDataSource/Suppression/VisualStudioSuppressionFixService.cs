@@ -429,14 +429,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private static CodeFixProvider GetSuppressionFixer(IEnumerable<Diagnostic> diagnostics, string language, ICodeFixService codeFixService)
         {
-            var allDiagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
-            foreach (var documentDiagnostics in diagnostics)
-            {
-                allDiagnosticsBuilder.AddRange(diagnostics);
-            }
-
             // Fetch the suppression fixer to apply the fix.
-            return codeFixService.GetSuppressionFixer(language, allDiagnosticsBuilder.ToImmutable());
+            return codeFixService.GetSuppressionFixer(language, diagnostics.Select(d => d.Id));
         }
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
@@ -513,7 +507,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     if (documentDiagnosticsToFix.Any())
                     {
-                        var diagnostics = await DiagnosticData.ToDiagnosticsAsync(project, documentDiagnosticsToFix, cancellationToken).ConfigureAwait(false);
+                        var diagnostics = await documentDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                         finalBuilder.Add(document, diagnostics.ToImmutableArray());
                     }
                 }
@@ -575,7 +569,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 if (projectDiagnosticsToFix.Any())
                 {
-                    var projectDiagnostics = await DiagnosticData.ToDiagnosticsAsync(project, projectDiagnosticsToFix, cancellationToken).ConfigureAwait(false);
+                    var projectDiagnostics = await projectDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                     finalBuilder.Add(project, projectDiagnostics.ToImmutableArray());
                 }
             }

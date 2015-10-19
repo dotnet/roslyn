@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
                 Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
 
-                ' create commit formatting cleaup provider that has line commit specific behavior
+                ' create commit formatting cleanup provider that has line commit specific behavior
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                                                 document,
                                                 spanToFormat,

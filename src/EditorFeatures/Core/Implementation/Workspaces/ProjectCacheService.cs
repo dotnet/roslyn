@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
             foreach (var projectId in _activeCaches.Keys)
             {
-                // this should be cheap. graph is cached everytime project reference is updated.
+                // this should be cheap. graph is cached every time project reference is updated.
                 var p2pReferences = (ImmutableHashSet<ProjectId>)graph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
                 if (p2pReferences.Contains(key))
                 {

@@ -996,7 +996,7 @@ s
             Execute(@"System.Console.WriteLine(2)");
 
             var output = ReadOutputToEnd();
-            Assert.Equal("2\r\n<void>\r\n", output);
+            Assert.Equal("2\r\n", output);
 
             Execute(@"
 void foo() { } 
@@ -1004,7 +1004,7 @@ foo()
 ");
 
             output = ReadOutputToEnd();
-            Assert.Equal("<void>\r\n", output);
+            Assert.Equal("", output);
         }
 
         #endregion
