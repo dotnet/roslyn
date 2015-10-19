@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 IEnumerable<CodeActionOperation> operations = null;
 
-                // NOTE: As mentoned above, we want to avoid computing the operations on the UI thread.
+                // NOTE: As mentioned above, we want to avoid computing the operations on the UI thread.
                 // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
                 // to compute the options and must be done on the UI thread.
                 var actionWithOptions = this.CodeAction as CodeActionWithOptions;

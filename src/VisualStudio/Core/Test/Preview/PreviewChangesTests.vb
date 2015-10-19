@@ -197,7 +197,7 @@ Class C
                 Dim addedDocumentId2 = DocumentId.CreateNewId(docId.ProjectId)
                 Dim addedDocumentText = "// This file will be added!"
                 newSolution = newSolution.AddDocument(addedDocumentId1, "test4.cs", addedDocumentText)
-                newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be be unchecked and not added!")
+                newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
                 Dim previewEngine = New PreviewEngine(
                     "Title", "helpString", "description", "topLevelItemName", CodeAnalysis.Glyph.Assembly,

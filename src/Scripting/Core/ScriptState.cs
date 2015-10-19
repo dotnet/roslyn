@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary> 
         /// <remarks>
         /// If multiple script variables are defined in the script (in distinct submissions) returns the last one.
-        /// Namve lookup is case sensitive in C# scripts and case insensitive in VB scripts.
+        /// Name lookup is case sensitive in C# scripts and case insensitive in VB scripts.
         /// </remarks>
         /// <returns><see cref="ScriptVariable"/> or null, if no variable of the specified <paramref name="name"/> is defined in the script.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>

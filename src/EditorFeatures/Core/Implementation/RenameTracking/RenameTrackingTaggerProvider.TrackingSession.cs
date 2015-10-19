@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         }
 
         /// <summary>
-        /// Determines whether the original token was a renamable identifier on a background thread
+        /// Determines whether the original token was a renameable identifier on a background thread
         /// </summary>
         private class TrackingSession : ForegroundThreadAffinitizedObject
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 {
                     // If the snapshotSpan is nonempty, then the session began with a change that
                     // was touching a word. Asynchronously determine whether that word was a
-                    // renamable identifier. If it is, alert the state machine so it can trigger
+                    // renameable identifier. If it is, alert the state machine so it can trigger
                     // tagging.
 
                     _originalName = snapshotSpan.GetText();

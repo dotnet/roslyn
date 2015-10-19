@@ -790,7 +790,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
 
-            ' to make it simpler, we recompiler the constructor (by reporting a field as a node update)
+            ' to make it simpler, we recompile the constructor (by reporting a field as a node update)
             edits.VerifyLineEdits({New LineChange(2, 3)}, {"Foo"})
         End Sub
 

@@ -2794,14 +2794,15 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
         {
             var srcFile = Temp.CreateFile().WriteAllText(@"class A { static void Main(string[] args) { } }");
             var srcDirectory = Path.GetDirectoryName(srcFile.Path);
-
+            string root = Path.GetPathRoot(srcDirectory); // Make sure we pick a drive that exists and is plugged in to avoid 'Drive not ready'
+            
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = new MockCSharpCompiler(null, srcDirectory,
                 new[] { "/nologo", "/preferreduilang:en",
-                        @"/appconfig:I:\DoesNotExist\NOwhere\bonobo.exe.config" ,
+                        $@"/appconfig:{root}DoesNotExist\NOwhere\bonobo.exe.config" ,
                         srcFile.Path }).Run(outWriter);
             Assert.NotEqual(0, exitCode);
-            Assert.Equal(@"error CS7093: Cannot read config file 'I:\DoesNotExist\NOwhere\bonobo.exe.config' -- 'Could not find a part of the path 'I:\DoesNotExist\NOwhere\bonobo.exe.config'.'", outWriter.ToString().Trim());
+            Assert.Equal($@"error CS7093: Cannot read config file '{root}DoesNotExist\NOwhere\bonobo.exe.config' -- 'Could not find a part of the path '{root}DoesNotExist\NOwhere\bonobo.exe.config'.'", outWriter.ToString().Trim());
 
             CleanupAllGeneratedFiles(srcFile.Path);
         }
@@ -7886,6 +7887,31 @@ class C {
             Assert.Equal(
                 new[] { @"a, b" },
                 paths);
+        }
+
+        [Fact]
+        public void PathMapParser()
+        {
+            var parsedArgs = DefaultParse(new [] { "/pathmap:", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(ImmutableArray.Create<KeyValuePair<string, string>>(), parsedArgs.PathMap);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:K1=V1,K2=V2", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(KeyValuePair.Create("K1", "V1"), parsedArgs.PathMap[0]);
+            Assert.Equal(KeyValuePair.Create("K2", "V2"), parsedArgs.PathMap[1]);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(0, parsedArgs.PathMap.Length);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(0, parsedArgs.PathMap.Length);
         }
     }
 

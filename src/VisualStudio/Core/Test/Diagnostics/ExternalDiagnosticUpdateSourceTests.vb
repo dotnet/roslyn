@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <WpfFact>
-        Public Sub TestExternalDiagnostics_RaiseEvents()
+        Public Async Function TestExternalDiagnostics_RaiseEvents() As Task
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim waiter = New Waiter()
                 Dim service = New TestDiagnosticAnalyzerService()
@@ -47,16 +47,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.AddNewErrors(project.DocumentIds.First(), diagnostic)
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                waiter.CreateWaitTask().PumpingWait()
+                Await waiter.CreateWaitTask().ConfigureAwait(True)
 
                 expected = 0
                 source.ClearErrors(project.Id)
-                waiter.CreateWaitTask().PumpingWait()
+                Await waiter.CreateWaitTask().ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestExternalDiagnostics_DuplicatedError()
+        Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(String.Empty)
                 Dim waiter = New Waiter()
 
@@ -76,9 +76,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 AddHandler source.DiagnosticsUpdated, Sub(o, a)
                                                           Assert.Equal(1, a.Diagnostics.Length)
                                                       End Sub
-                waiter.CreateWaitTask().PumpingWait()
+                Await waiter.CreateWaitTask().ConfigureAwait(True)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Async Function TestBuildStartEvent() As Task

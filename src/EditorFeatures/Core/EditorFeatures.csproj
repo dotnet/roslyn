@@ -660,6 +660,7 @@
     <Compile Include="Interactive\PredefinedInteractiveContentTypes.cs" />
     <Compile Include="Interactive\ReplSpanKind.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />

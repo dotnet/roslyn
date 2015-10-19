@@ -764,9 +764,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override Binder VisitCompilationUnit(CompilationUnitSyntax parent)
             {
                 return VisitCompilationUnit(
-                parent,
-                inUsing: IsInUsing(parent),
-                inScript: InScript);
+                    parent,
+                    inUsing: IsInUsing(parent),
+                    inScript: InScript);
             }
 
             internal InContainerBinder VisitCompilationUnit(CompilationUnitSyntax compilationUnit, bool inUsing, bool inScript)
