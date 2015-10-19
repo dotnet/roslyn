@@ -26,6 +26,8 @@
 
 [Edit-and-Continue Supported Edits](https://github.com/dotnet/roslyn/wiki/EnC-Supported-Edits)
 
+***
+#Interactive Docs
 [Interactive Window Documentation](https://github.com/dotnet/roslyn/wiki/Interactive-Window)
 
 [Scripting API Samples](https://github.com/dotnet/roslyn/wiki/Scripting-API-Samples)
