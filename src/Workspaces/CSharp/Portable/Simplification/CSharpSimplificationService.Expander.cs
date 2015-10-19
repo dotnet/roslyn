@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         {
                             ExpressionSyntax left;
 
-                            // Assumption here is, if the enclosing and containing types are different then there is Inheritence relationship
+                            // Assumption here is, if the enclosing and containing types are different then there is inheritance relationship
                             if (_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken) != symbol.ContainingType)
                             {
                                 left = SyntaxFactory.BaseExpression();

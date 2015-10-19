@@ -220,13 +220,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
             Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"a.xml"), sc.DocumentationFile.FullPath); 
             Assert.Equal("Invariant", File.ReadAllText(sc.DocumentationFile.FullPath));
 
-            // greek culture
+            // Greek culture
             provider = CreateProvider(elGR);
             sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
             Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"el-GR\a.xml"), sc.DocumentationFile.FullPath);
             Assert.Equal("Greek", File.ReadAllText(sc.DocumentationFile.FullPath));
 
-            // arabic culture (culture specific docs not found, use invariant)
+            // Arabic culture (culture specific docs not found, use invariant)
             provider = CreateProvider(arMA);
             sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
             Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"a.xml"), sc.DocumentationFile.FullPath);

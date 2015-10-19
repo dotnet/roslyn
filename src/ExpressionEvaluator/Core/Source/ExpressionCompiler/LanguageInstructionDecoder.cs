@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // DkmVariableInfoFlags.FullNames was accepted by the old GetMethodName implementation,
                 // but it was ignored.  Furthermore, it's not clear what FullNames would mean with respect
                 // to argument names in C# or Visual Basic.  For consistency with the old behavior, we'll
-                // just ignore the the flag as well.
+                // just ignore the flag as well.
                 Debug.Assert((argumentFlags & (DkmVariableInfoFlags.FullNames | DkmVariableInfoFlags.Names | DkmVariableInfoFlags.Types)) == argumentFlags,
                     $"Unexpected argumentFlags '{argumentFlags}'");
 

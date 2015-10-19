@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             while (node != null)
             {
-                // Types in BaseList, Type Constraint or Member Types cannot be of restricter accessibility than the declaring type
+                // Types in BaseList, Type Constraint or Member Types cannot be of more restricted accessibility than the declaring type
                 if ((node is BaseListSyntax || node is TypeParameterConstraintClauseSyntax) &&
                     node.Parent != null &&
                     node.Parent is TypeDeclarationSyntax)

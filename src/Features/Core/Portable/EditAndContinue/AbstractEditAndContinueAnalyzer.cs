@@ -2774,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         Debug.Assert(newDeclaration.SyntaxTree == topMatch.NewRoot.SyntaxTree);
 
                         // Constructor that doesn't contain initializers had a corresponding semantic edit produced previously 
-                        // or was not not edited. In either case we should not produce a semantic edit for it.
+                        // or was not edited. In either case we should not produce a semantic edit for it.
                         if (!IsConstructorWithMemberInitializers(newDeclaration))
                         {
                             continue;
@@ -3066,7 +3066,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
 
             // Report rude edits for lambdas added to the method.
-            // We already checked that no new captures are introduced opr removed. 
+            // We already checked that no new captures are introduced or removed. 
             // We also need to make sure that no new parent frame links are introduced.
             // 
             // We could implement the same analysis as the compiler does when rewriting lambdas - 

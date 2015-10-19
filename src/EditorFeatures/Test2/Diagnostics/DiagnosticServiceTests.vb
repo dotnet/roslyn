@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim expected = Diagnostic.Create("test", "test", "test", DiagnosticSeverity.Error, DiagnosticSeverity.Error, True, 0)
                 Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
 
-                ' check reporting diagnostic to a project that doesnt exist
+                ' check reporting diagnostic to a project that doesn't exist
                 exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, New ProjectId(Guid.NewGuid(), "dummy"))
                 Dim diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(0, diagnostics.Count())

@@ -47,7 +47,9 @@ namespace RunTests
 
             var testRunner = new TestRunner(xunit, useHtml);
             var start = DateTime.Now;
-            Console.WriteLine("Running {0} tests", list.Count);
+
+            Console.WriteLine("Running {0} test assemblies", list.Count);
+
             var orderedList = OrderAssemblyList(list);
             var result = testRunner.RunAllAsync(orderedList, cts.Token).Result;
             var span = DateTime.Now - start;

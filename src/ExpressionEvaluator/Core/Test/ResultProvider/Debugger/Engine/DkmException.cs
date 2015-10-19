@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Debugger
         //
         // Summary:
         //     Create a new exception instance. To enable native-interop scenarios, this exception
-        //     system is error code based, so there is no excepion string.
+        //     system is error code based, so there is no exception string.
         //
         // Parameters:
         //   code:
