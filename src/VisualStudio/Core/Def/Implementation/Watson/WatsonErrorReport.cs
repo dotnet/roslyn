@@ -194,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         /// <returns>true on success and false on failure</returns>
         private unsafe bool InitializeHandlesForSnapshot()
         {
-            // Grab the pointer the the exception
+            // Grab the pointer to the exception
             _exceptionPointersPointer = Marshal.GetExceptionPointers();
 
             NativeWin32Stubs.SECURITY_ATTRIBUTES secAttrib = new NativeWin32Stubs.SECURITY_ATTRIBUTES();

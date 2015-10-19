@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return Nothing
             End If
 
-            ' We have the right tokens. Get the containing object intializer. Will we be able to walk
+            ' We have the right tokens. Get the containing object initializer. Will we be able to walk
             ' up and determine the type?
             Dim containingInitializer = commaOrBrace.Parent
             If containingInitializer Is Nothing OrElse

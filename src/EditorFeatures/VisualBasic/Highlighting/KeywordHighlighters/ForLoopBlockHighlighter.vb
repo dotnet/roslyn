@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             ' For block but we want to highlight the outermost matching For block. 
 
             If TypeOf node Is NextStatementSyntax Then
-                ' If there is no For block the correctnumber of levels out (consider 2 nested For 
+                ' If there is no For block the correct number of levels out (consider 2 nested For 
                 ' blocks terminated by "Next c, b, a"), then choose the outermost even if it's not 
                 ' the exact match.
                 Return GetForBlocksMatchingNextStatement(DirectCast(node, NextStatementSyntax)).FirstOrDefault()

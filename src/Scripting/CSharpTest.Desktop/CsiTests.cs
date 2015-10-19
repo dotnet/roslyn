@@ -8,7 +8,7 @@ using Xunit;
 using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class CsiTests : TestBase
     {

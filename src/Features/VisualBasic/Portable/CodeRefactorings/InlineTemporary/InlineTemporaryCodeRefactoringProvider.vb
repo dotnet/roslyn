@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InlineTemporary
         End Function
 
         Private Shared Async Function CreateExpressionToInlineAsync(document As Document, cancellationToken As CancellationToken) As Task(Of ExpressionSyntax)
-            ' TODO: We should be using a speculative semantic model in the method rather than forking new semantic model everytime.
+            ' TODO: We should be using a speculative semantic model in the method rather than forking new semantic model every time.
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 

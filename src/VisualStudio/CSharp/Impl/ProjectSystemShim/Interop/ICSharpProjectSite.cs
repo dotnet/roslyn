@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Inter
         [PreserveSig]
         int OnResourceFileRemoved([MarshalAs(UnmanagedType.LPWStr)] string filename);
 
-        // NOTICE: OnImportAdded is superceded by OnImportAddedEx.
+        // NOTICE: OnImportAdded is superseded by OnImportAddedEx.
         // The function has not been removed due to the hard-dependency on this particular signature in Venus' 
         // templates
         [PreserveSig]
