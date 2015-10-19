@@ -5,7 +5,7 @@ Microsoft.CodeAnalysis.CommandLineArguments.ScriptArguments.get -> System.Collec
 Microsoft.CodeAnalysis.CommandLineArguments.SourcePaths.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Compilation.ScriptClass.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.ScriptCompilationInfo.get -> Microsoft.CodeAnalysis.ScriptCompilationInfo
-Microsoft.CodeAnalysis.Compilation.WithCompilationScriptInfo(Microsoft.CodeAnalysis.ScriptCompilationInfo info) -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.Compilation.WithScriptCompilationInfo(Microsoft.CodeAnalysis.ScriptCompilationInfo info) -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.CompilationOptions.Deterministic.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.ReportSuppressedDiagnostics.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithDeterministic(bool deterministic) -> Microsoft.CodeAnalysis.CompilationOptions
