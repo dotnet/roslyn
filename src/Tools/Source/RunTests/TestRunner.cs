@@ -200,7 +200,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyPath} with {_xunitConsolePath}", ex);
+                throw new Exception($"Unable to run {assemblyPath} with {_xunitConsolePath}. {ex}");
             }
         }
 
