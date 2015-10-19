@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return
                 End If
 
-                ' check whether colon is for statements inside of singleline statement
+                ' check whether colon is for statements inside of single-line statement
                 If (colonInTrailing AndAlso PartOfSinglelineConstruct(token1)) OrElse
                    (colonInLeading AndAlso PartOfSinglelineConstruct(token2)) Then
                     Return

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 
             private void OnSubjectBufferChanged(object sender, TextContentChangedEventArgs e)
             {
-                // Whenever this subject buffer has chnaged, we always consider that to be a 
+                // Whenever this subject buffer has changed, we always consider that to be a 
                 // semantic change.
                 this.RaiseChanged();
             }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 //
                 // Note: although we're passing CancellationToken.None here, this should never actually
                 // block.  This is because we would have only gotten this notification if this value
-                // was already compted.  In which case retrieving it again should happen immediately.
+                // was already computed.  In which case retrieving it again should happen immediately.
                 var documentVersion = document.GetTopLevelChangeTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                 var projectVersion = document.Project.GetDependentSemanticVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 

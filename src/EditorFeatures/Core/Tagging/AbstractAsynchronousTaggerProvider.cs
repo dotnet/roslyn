@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 
         /// <summary>
-        /// The bahavior the tagger will have when changes happen to the caret.
+        /// The behavior the tagger will have when changes happen to the caret.
         /// </summary>
         protected virtual TaggerCaretChangeBehavior CaretChangeBehavior => TaggerCaretChangeBehavior.None;
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         /// notifications from the <see cref="ITaggerEventSource"/> that something has changed, and
         /// will only be called from the UI thread.  The tagger infrastructure will then determine
         /// the <see cref="DocumentSnapshotSpan"/>s associated with these <see cref="SnapshotSpan"/>s
-        /// and will asycnhronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> at some point in
+        /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag})"/> at some point in
         /// the future to produce tags for these spans.
         /// </summary>
         protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textViewOpt, ITextBuffer subjectBuffer)

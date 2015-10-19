@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 NoteWrite(node.RangeVariableOpt, Nothing)
             End If
 
-            Visit(node.Source)
+            VisitRvalue(node.Source)
             Return Nothing
         End Function
 
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 NoteWrite(node.RangeVariable, Nothing)
             End If
 
-            Visit(node.Value)
+            VisitRvalue(node.Value)
             Return Nothing
         End Function
 

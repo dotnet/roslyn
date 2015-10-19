@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private static string GetContentLocation(string shellFolder, string rootFolder, string installPath, string relativePath)
         {
-            // extension manager should expose an API that doesnt require this.
+            // extension manager should expose an API that doesn't require this.
             const string ShellFolderToken = "$ShellFolder$";
             const string RootFolderToken = "$RootFolder$";
 
