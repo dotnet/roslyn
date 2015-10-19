@@ -76,6 +76,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
             Dim parseOptions = Arguments.ParseOptions
+
+            ' We compute script parse options once so we don't have to do it repeatedly in
+            ' case there are many script files.
             Dim scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script)
 
             Dim hadErrors As Boolean = False
@@ -127,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)
 
             ' TODO: support for #load search paths
-            Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, touchedFilesLogger)
+            Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
             Dim result = VisualBasicCompilation.Create(
                  Arguments.CompilationName,

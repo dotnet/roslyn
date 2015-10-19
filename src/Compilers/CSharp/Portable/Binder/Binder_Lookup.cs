@@ -53,31 +53,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Makes a second attempt if the results are not viable, in order to produce more detailed failure information (symbols and diagnostics).
         /// </remarks>
-        private void LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
+        private Binder LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());
 
             // don't create diagnosis instances unless lookup fails
-            this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            var binder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            Debug.Assert((binder != null) || result.IsClear);
+
             if (result.Kind != LookupResultKind.Viable && result.Kind != LookupResultKind.Empty)
             {
                 result.Clear();
                 // retry to get diagnosis
-                this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                var otherBinder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                Debug.Assert(binder == otherBinder);
             }
 
             Debug.Assert(result.IsMultiViable || result.IsClear || result.Error != null);
+            return binder;
         }
 
-        private void LookupSymbolsInternal(
+        private Binder LookupSymbolsInternal(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
             Debug.Assert(options.AreValid());
 
+            Binder binder = null;
             for (var scope = this; scope != null && !result.IsMultiViable; scope = scope.Next)
             {
-                if (!result.IsClear)
+                if (binder != null)
                 {
                     var tmp = LookupResult.GetInstance();
                     scope.LookupSymbolsInSingleBinder(tmp, name, arity, basesBeingResolved, options, this, diagnose, ref useSiteDiagnostics);
@@ -87,8 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     scope.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, this, diagnose, ref useSiteDiagnostics);
+                    if (!result.IsClear)
+                    {
+                        binder = scope;
+                    }
                 }
             }
+            return binder;
         }
 
         internal virtual void LookupSymbolsInSingleBinder(

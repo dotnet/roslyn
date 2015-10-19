@@ -370,6 +370,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A key in the pathMap is empty..
+        /// </summary>
+        internal static string EmptyKeyInPathMap {
+            get {
+                return ResourceManager.GetString("EmptyKeyInPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty or invalid file name.
         /// </summary>
         internal static string EmptyOrInvalidFileName {
@@ -384,6 +393,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string EmptyOrInvalidResourceName {
             get {
                 return ResourceManager.GetString("EmptyOrInvalidResourceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value in the pathMap is empty..
+        /// </summary>
+        internal static string EmptyValueInPathMap {
+            get {
+                return ResourceManager.GetString("EmptyValueInPathMap", resourceCulture);
             }
         }
         
@@ -699,6 +717,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string KeepAliveWithoutShared {
             get {
                 return ResourceManager.GetString("KeepAliveWithoutShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A key in the pathMap ends with a path separator..
+        /// </summary>
+        internal static string KeyInPathMapEndsWithSeparator {
+            get {
+                return ResourceManager.GetString("KeyInPathMapEndsWithSeparator", resourceCulture);
             }
         }
         
