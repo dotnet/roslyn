@@ -7,8 +7,8 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {

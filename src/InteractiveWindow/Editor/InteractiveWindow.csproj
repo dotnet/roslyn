@@ -26,6 +26,12 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
   </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3CDEEAB7-2256-418A-BEB2-620B5CB16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
@@ -68,7 +74,6 @@
     <Content Include="Resources\ReplToolBarImages.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BufferBlock.cs" />
     <Compile Include="Commands\CancelExecutionCommand.cs" />
     <Compile Include="Commands\ClearScreenCommand.cs" />
     <Compile Include="Commands\CommandClassifier.cs" />
@@ -98,12 +103,9 @@
     <Compile Include="InteractiveWindow.SystemClipboard.cs" />
     <Compile Include="ProjectionBufferExtensions.cs" />
     <Compile Include="InteractiveWindow.PendingSubmission.cs" />
-    <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
     <Compile Include="InteractiveWindow.EditResolver.cs" />
     <Compile Include="InteractiveWindow.State.cs" />
     <Compile Include="InteractiveWindow.UIThreadOnly.cs" />
-    <Compile Include="PredefinedInteractiveContentTypes.cs" />
-    <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindow.cs" />
     <Compile Include="InteractiveWindowExtensions.cs" />
     <Compile Include="InteractiveWindowOptions.cs" />
