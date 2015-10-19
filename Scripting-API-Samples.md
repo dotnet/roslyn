@@ -90,8 +90,6 @@ for (int i = 0; i < 10; i++)
 ```
 
 ### <a name="inspect"></a> Run a C# snippet and inspect defined script variables
-The delegate doesn’t hold compilation resources (syntax trees, etc.) alive.
-
 ```csharp
 var state = await CSharpScript.RunAsync<int>(Console.ReadLine());
 foreach (var variable in state.Variables)
