@@ -704,10 +704,9 @@ static int Baz = w;
         }
 
         [Fact]
-        public void ERR_VariableUsedBeforeDeclaration()
+        public void ERR_VariableUsedBeforeDeclaration_01()
         {
             var c = CreateSubmission("var x = 1; { var x = x;}");
-
             c.VerifyDiagnostics(
                 // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
                 // var x = 1; { var x = x;}
@@ -715,6 +714,56 @@ static int Baz = w;
                 // (1,22): error CS0165: Use of unassigned local variable 'x'
                 // var x = 1; { var x = x;}
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
+        }
+
+        [WorkItem(550)]
+        [Fact]
+        public void ERR_VariableUsedBeforeDeclaration_02()
+        {
+            var c = CreateSubmission(
+@"object b = a;
+object a;
+void F()
+{
+    object d = c;
+    object c;
+}
+{
+    object f = e;
+    object e;
+}");
+            c.VerifyDiagnostics(
+                // (9,16): error CS0841: Cannot use local variable 'e' before it is declared
+                //     object f = e;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "e").WithArguments("e").WithLocation(9, 16),
+                // (5,16): error CS0841: Cannot use local variable 'c' before it is declared
+                //     object d = c;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "c").WithArguments("c").WithLocation(5, 16));
+        }
+
+        [WorkItem(550)]
+        [Fact]
+        public void ERR_UseDefViolation()
+        {
+            var c = CreateSubmission(
+@"int a;
+int b = a;
+void F()
+{
+    int c;
+    int d = c;
+}
+{
+    int e;
+    int f = e;
+}");
+            c.VerifyDiagnostics(
+                // (10,13): error CS0165: Use of unassigned local variable 'e'
+                //     int f = e;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "e").WithArguments("e").WithLocation(10, 13),
+                // (6,13): error CS0165: Use of unassigned local variable 'c'
+                //     int d = c;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(6, 13));
         }
 
         [Fact]
