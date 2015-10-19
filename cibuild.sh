@@ -16,6 +16,8 @@ OS_NAME=$(uname -s)
 USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
 
+export MONO_THREADS_PER_CPU=50
+
 # There are some stability issues that are causing Jenkins builds to fail at an 
 # unacceptable rate.  To temporarily work around that we are going to retry the 
 # unstable tasks a number of times.  
