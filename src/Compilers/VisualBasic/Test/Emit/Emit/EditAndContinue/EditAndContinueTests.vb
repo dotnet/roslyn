@@ -1630,13 +1630,13 @@ End Class
     <methods>
         <method token="0x6000004">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="0"/>
-                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="25" document="0"/>
-                <entry offset="0x7" startLine="10" startColumn="13" endLine="10" endColumn="31" document="0"/>
-                <entry offset="0xd" startLine="11" startColumn="13" endLine="11" endColumn="30" document="0"/>
-                <entry offset="0x14" startLine="12" startColumn="9" endLine="12" endColumn="13" document="0"/>
-                <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13" document="0"/>
-                <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="25"/>
+                <entry offset="0x7" startLine="10" startColumn="13" endLine="10" endColumn="31"/>
+                <entry offset="0xd" startLine="11" startColumn="13" endLine="11" endColumn="30"/>
+                <entry offset="0x14" startLine="12" startColumn="9" endLine="12" endColumn="13"/>
+                <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13"/>
+                <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x29">
                 <currentnamespace name=""/>
@@ -1679,12 +1679,12 @@ End Class
     <methods>
         <method token="0x6000004">
             <sequencePoints>
-                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="0"/>
-                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="30" document="0"/>
-                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="25" document="0"/>
-                <entry offset="0xe" startLine="11" startColumn="9" endLine="11" endColumn="13" document="0"/>
-                <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13" document="0"/>
-                <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="30"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="25"/>
+                <entry offset="0xe" startLine="11" startColumn="9" endLine="11" endColumn="13"/>
+                <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13"/>
+                <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x23">
                 <currentnamespace name=""/>
@@ -1734,12 +1734,12 @@ End Class
     <methods>
         <method token="0x6000005">
             <sequencePoints>
-                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="19" document="0"/>
-                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="30" document="0"/>
-                <entry offset="0x7" startLine="16" startColumn="13" endLine="16" endColumn="30" document="0"/>
-                <entry offset="0xd" startLine="17" startColumn="9" endLine="17" endColumn="13" document="0"/>
-                <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13" document="0"/>
-                <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="19"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="30"/>
+                <entry offset="0x7" startLine="16" startColumn="13" endLine="16" endColumn="30"/>
+                <entry offset="0xd" startLine="17" startColumn="9" endLine="17" endColumn="13"/>
+                <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13"/>
+                <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x26">
                 <currentnamespace name=""/>
@@ -1820,10 +1820,10 @@ End Class
     <methods>
         <method token="0x6000002">
             <sequencePoints>
-                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19" document="0"/>
-                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="18" document="0"/>
-                <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29" document="0"/>
-                <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="18"/>
+                <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29"/>
+                <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xa">
                 <currentnamespace name=""/>
@@ -3488,7 +3488,7 @@ End Class
 ")
             ' expect a single TypeRef for System.Object
             Dim md1 = diff1.GetMetadata()
-            AssertEx.Equal({"[0x23000002] 0x00000232.0x0000023f"}, DumpTypeRefs(md1.Reader))
+            AssertEx.Equal({"[0x23000002] 0x0000020d.0x0000021a"}, DumpTypeRefs(md1.Reader))
 
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
@@ -3508,7 +3508,7 @@ End Class
 ")
             ' expect a single TypeRef for System.Object
             Dim md2 = diff2.GetMetadata()
-            AssertEx.Equal({"[0x23000003] 0x000002a0.0x000002ad"}, DumpTypeRefs(md2.Reader))
+            AssertEx.Equal({"[0x23000003] 0x00000256.0x00000263"}, DumpTypeRefs(md2.Reader))
         End Sub
 
         <Fact>
@@ -3580,7 +3580,7 @@ End Class
 ")
             ' expect a single TypeRef for System.Object
             Dim md2 = diff2.GetMetadata()
-            AssertEx.Equal({"[0x23000003] 0x000002d3.0x000002e0"}, DumpTypeRefs(md2.Reader))
+            AssertEx.Equal({"[0x23000003] 0x00000289.0x00000296"}, DumpTypeRefs(md2.Reader))
         End Sub
 
         Private Shared Iterator Function DumpTypeRefs(reader As MetadataReader) As IEnumerable(Of String)

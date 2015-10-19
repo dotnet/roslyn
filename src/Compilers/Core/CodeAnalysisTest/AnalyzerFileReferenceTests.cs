@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestLoadErrors3()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
@@ -230,7 +230,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             AppDomain.Unload(loadDomain);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(x86))]
         public void TestAnalyzerLoading_Error()
         {
             var analyzerSource = @"
@@ -254,6 +254,13 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+
+            // The other app domain in 64-bit tries to load xunit.dll so to work around bug 4959
+            // (https://github.com/dotnet/roslyn/issues/4959) we are copying xunit to the test directory.
+            if (Environment.Is64BitProcess)
+            {
+                var xunit = dir.CopyFile(typeof(FactAttribute).Assembly.Location);
+            }
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
@@ -290,7 +297,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void ValidAnalyzerReference_DisplayName()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             Assert.Equal(expected: "Alpha", actual: reference.Display);
@@ -302,7 +309,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void ValidAnalyzerReference_Id()
         {
             var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.AssemblyLoadTests.Alpha);
+            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             AssemblyIdentity expectedIdentity = null;
@@ -328,7 +335,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {
             var directory = Temp.CreateDirectory();
-            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.AnalyzerTests.FaultyAnalyzer);
+            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(analyzerDll.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();

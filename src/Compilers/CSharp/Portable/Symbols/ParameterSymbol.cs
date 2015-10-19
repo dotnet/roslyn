@@ -390,13 +390,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The CLI spec says that custom modifiers must precede the ByRef type code in the encoding of a parameter.
         /// Unfortunately, the managed C++ compiler emits them in the reverse order.  In order to avoid breaking
-        /// interop scenarios, we need to support such signatures.  When this flag is set, we need to reverse the
-        /// emit order.
+        /// interop scenarios, we need to support such signatures.
+        /// Should be 0 for non-ref parameters.
         /// </summary>
-        /// <remarks>
-        /// We support before (correct) and after (incorrect, but works), but not in between.
-        /// </remarks>
-        internal abstract bool HasByRefBeforeCustomModifiers { get; }
+        internal abstract ushort CountOfCustomModifiersPrecedingByRef { get; }
 
         #region IParameterSymbol Members
 

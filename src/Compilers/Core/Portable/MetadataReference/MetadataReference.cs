@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     {
         public MetadataReferenceProperties Properties { get; }
 
-        internal MetadataReference(MetadataReferenceProperties properties)
+        protected MetadataReference(MetadataReferenceProperties properties)
         {
             this.Properties = properties;
         }

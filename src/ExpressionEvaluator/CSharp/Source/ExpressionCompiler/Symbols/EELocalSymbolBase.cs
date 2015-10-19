@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return l.ToOtherMethod(method, typeMap);
             }
             var type = typeMap.SubstituteType(local.Type);
-            return new EELocalSymbol(method, local.Locations, local.Name, -1, local.DeclarationKind, type, local.RefKind, local.IsPinned, local.IsCompilerGenerated, local.CanScheduleToStack);
+            return new EELocalSymbol(method, local.Locations, local.Name, -1, local.DeclarationKind, type.Type, local.RefKind, local.IsPinned, local.IsCompilerGenerated, local.CanScheduleToStack);
         }
     }
 
@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal sealed override SynthesizedLocalKind SynthesizedKind
         {
             get { return SynthesizedLocalKind.UserDefined; }
+        }
+
+        internal sealed override LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         internal sealed override bool IsImportedFromMetadata

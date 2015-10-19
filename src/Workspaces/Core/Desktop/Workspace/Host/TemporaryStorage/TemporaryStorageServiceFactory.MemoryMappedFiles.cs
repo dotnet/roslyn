@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Host
                     {
                         lock (_gate)
                         {
-                            // re-check to make sure no one allocated after we released the lock
+                            // re-check to make sure no-one allocated after we released the lock
                             if (_freeSegmentOffsets.Count == _segmentCount)
                             {
                                 _containingList.Remove(this);

@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _notificationService.RegisterNotification(() =>
                     {
                         _workQueue.AssertIsForeground();
-                        ReportChangedSpan(new SnapshotSpan(snapshot, 0, snapshot.Length));
+                        ReportChangedSpan(snapshot.GetFullSpan());
                     },
                     ReportChangeDelayInMilliseconds,
                     _listener.BeginAsyncOperation("ReportEntireFileChanged"),

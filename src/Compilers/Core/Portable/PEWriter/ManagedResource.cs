@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Microsoft.Cci
 {
@@ -32,7 +33,7 @@ namespace Microsoft.Cci
             _isPublic = isPublic;
         }
 
-        public void WriteData(BlobWriter resourceWriter)
+        public void WriteData(BlobBuilder resourceWriter)
         {
             if (_fileReference == null)
             {
@@ -46,9 +47,14 @@ namespace Microsoft.Cci
                         }
 
                         var count = (int)(stream.Length - stream.Position);
-                        resourceWriter.WriteInt(count);
+                        resourceWriter.WriteInt32(count);
 
-                        resourceWriter.Write(stream, count);
+                        int bytesWritten = resourceWriter.TryWriteBytes(stream, count);
+                        if (bytesWritten != count)
+                        {
+                            throw new EndOfStreamException(
+                                    string.Format(CultureInfo.CurrentUICulture, CodeAnalysisResources.ResourceStreamEndedUnexpectedly, bytesWritten, count));
+                        }
                         resourceWriter.Align(8);
                     }
                 }

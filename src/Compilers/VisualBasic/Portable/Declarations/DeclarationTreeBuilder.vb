@@ -1,18 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
-Imports System.Linq
 Imports System.Runtime.InteropServices
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
-Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class DeclarationTreeBuilder
@@ -23,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _scriptClassName As String
         Private ReadOnly _isSubmission As Boolean
         Private ReadOnly _syntaxTree As SyntaxTree
-        Private _diagnostics As List(Of Diagnostic)
 
         Public Shared Function ForTree(tree As SyntaxTree, rootNamespace As ImmutableArray(Of String), scriptClassName As String, isSubmission As Boolean) As RootSingleNamespaceDeclaration
             Dim builder = New DeclarationTreeBuilder(tree, rootNamespace, scriptClassName, isSubmission)
@@ -169,7 +161,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim syntaxRef = _syntaxTree.GetReference(node)
             Dim implicitClass As SingleNamespaceOrTypeDeclaration = Nothing
-            Dim diagnostics As ImmutableArray(Of Diagnostic)
 
             If _syntaxTree.Options.Kind <> SourceCodeKind.Regular Then
                 Dim childrenBuilder = ArrayBuilder(Of SingleNamespaceOrTypeDeclaration).GetInstance()
@@ -194,14 +185,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 implicitClass = CreateScriptClass(node, scriptChildren.ToImmutableAndFree(), memberNames, declFlags)
                 children = childrenBuilder.ToImmutableAndFree()
-                diagnostics = Global.Microsoft.CodeAnalysis.ImmutableArrayExtensions.AsImmutableOrEmpty(Me._diagnostics)
             Else
                 children = VisitNamespaceChildren(node, node.Members, implicitClass).ToImmutableAndFree()
-
-                ' no diagnostics should be reported from a non-script tree:
-                Debug.Assert(_diagnostics Is Nothing)
-
-                diagnostics = GetMisplacedReferenceDirectivesDiagnostics(node)
             End If
 
             ' Find children within NamespaceGlobal separately
@@ -214,7 +199,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     treeNode:=_syntaxTree.GetReference(node),
                     children:=globalChildren.Concat(nonGlobal),
                     referenceDirectives:=ImmutableArray(Of ReferenceDirective).Empty,
-                    diagnostics:=diagnostics,
                     hasAssemblyAttributes:=node.Attributes.Any)
             Else
                 ' Project-level root namespace. All children without explicit global are children
@@ -230,7 +214,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     treeNode:=_syntaxTree.GetReference(node),
                     children:=newChildren,
                     referenceDirectives:=ImmutableArray(Of ReferenceDirective).Empty,
-                    diagnostics:=diagnostics,
                     hasAssemblyAttributes:=node.Attributes.Any)
             End If
         End Function
@@ -263,19 +246,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             globalDeclarations = globalBuilder.ToImmutableAndFree()
             nonGlobal = nonGlobalBuilder.ToImmutableAndFree()
         End Sub
-
-        Private Function GetMisplacedReferenceDirectivesDiagnostics(compilation As CompilationUnitSyntax) As ImmutableArray(Of Diagnostic)
-            ' report errors for the first #r directive - they are not allowed in regular code:
-            Dim directives = compilation.GetReferenceDirectives()
-            If directives.Count = 0 Then
-                Return ImmutableArray(Of Diagnostic).Empty
-            End If
-
-            Return ImmutableArray.Create(Of Diagnostic)(
-                New VBDiagnostic(
-                    New DiagnosticInfo(MessageProvider.Instance, DirectCast(ERRID.ERR_ReferenceDirectiveOnlyAllowedInScripts, Integer)),
-                    directives(0).GetLocation()))
-        End Function
 
         Private Function UnescapeIdentifier(identifier As String) As String
             If identifier(0) = "[" Then
@@ -332,15 +302,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim nsDeclSyntax As NamespaceStatementSyntax = nsBlockSyntax.NamespaceStatement
             Dim children = VisitNamespaceChildren(nsBlockSyntax, nsBlockSyntax.Members)
             Dim name As NameSyntax = nsDeclSyntax.Name
-
-            If _syntaxTree.Options.Kind = SourceCodeKind.Interactive OrElse _syntaxTree.Options.Kind = SourceCodeKind.Script Then
-                If _diagnostics Is Nothing Then
-                    _diagnostics = New List(Of Diagnostic)()
-                End If
-
-                _diagnostics.Add(New VBDiagnostic(New DiagnosticInfo(MessageProvider.Instance, ERRID.ERR_NamespaceNotAllowedInScript),
-                                                nsBlockSyntax.NamespaceStatement.NamespaceKeyword.GetLocation()))
-            End If
 
             While TypeOf name Is QualifiedNameSyntax
                 Dim dotted = DirectCast(name, QualifiedNameSyntax)

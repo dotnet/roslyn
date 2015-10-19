@@ -786,5 +786,215 @@ class C
   IL_0016:  ret
 }");
         }
+
+        [Fact]
+        public void LiftedFromIntPtrConversions()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine((int?)M(null));
+        Console.WriteLine((int?)M((IntPtr)42));
+    }
+
+    static IntPtr? M(IntPtr? p)
+    {
+        return p;
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput:
+@"
+42");
+        }
+
+        [Fact]
+        public void LiftedToIntPtrConversions()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine((IntPtr?)M_int());
+        Console.WriteLine((IntPtr?)M_int(42));
+        Console.WriteLine((IntPtr?)M_long());
+        Console.WriteLine((IntPtr?)M_long(300));
+    }
+
+    static int? M_int(int? p = null) { return p; } 
+    static long? M_long(long? p = null) { return p; } 
+}
+";
+
+            CompileAndVerify(source, expectedOutput:
+@"
+42
+
+300
+");
+        }
+
+        [Fact]
+        public void LiftedToIntPtrConversionsOptimized()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Use((IntPtr?)(int?)(null));
+        Use((IntPtr?)(int?)(42));
+    }
+
+    static void Use(IntPtr? p) { } 
+}
+";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Main()", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (System.IntPtr? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""System.IntPtr?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""void C.Use(System.IntPtr?)""
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0015:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_001a:  call       ""void C.Use(System.IntPtr?)""
+  IL_001f:  ret
+}");
+        }
+
+        [Fact]
+        public void NullableNumericToIntPtr()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Test()
+    {
+        byte? b = 0;
+        IntPtr p = (IntPtr)b;
+        Console.WriteLine(p);
+    }
+}";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Test()", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (byte? V_0) //b
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       ""byte?..ctor(byte)""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       ""byte byte?.Value.get""
+  IL_000f:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0014:  box        ""System.IntPtr""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ret
+}");
+        }
+
+        [Fact]
+        public void NumericToNullableIntPtr()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Test()
+    {
+        byte b = 0;
+        IntPtr? p = (IntPtr?)b;
+        Console.WriteLine(p);
+    }
+}";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Test()", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (byte V_0) //b
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0008:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_000d:  box        ""System.IntPtr?""
+  IL_0012:  call       ""void System.Console.WriteLine(object)""
+  IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(1210529, "DevDiv")]
+        public void LiftedIntToIntPtr()
+        {
+            var source =
+@"
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Use((IntPtr?)M());
+    }
+
+    static int? M() { return 0; } 
+    static void Use(IntPtr? p) { } 
+}
+";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Main()",
+@"
+{
+  // Code size       49 (0x31)
+  .maxstack  1
+  .locals init (int? V_0,
+                System.IntPtr? V_1)
+  IL_0000:  call       ""int? C.M()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  call       ""bool int?.HasValue.get""
+  IL_000d:  brtrue.s   IL_001a
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  initobj    ""System.IntPtr?""
+  IL_0017:  ldloc.1
+  IL_0018:  br.s       IL_002b
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       ""int int?.GetValueOrDefault()""
+  IL_0021:  call       ""System.IntPtr System.IntPtr.op_Explicit(int)""
+  IL_0026:  newobj     ""System.IntPtr?..ctor(System.IntPtr)""
+  IL_002b:  call       ""void C.Use(System.IntPtr?)""
+  IL_0030:  ret
+}");
+
+        }
     }
 }

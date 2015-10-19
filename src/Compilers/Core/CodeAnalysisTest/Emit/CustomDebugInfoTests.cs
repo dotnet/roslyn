@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
-            var cmw = new Cci.BlobWriter();
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas).SerializeLocalSlots(cmw);
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var cmw = new Cci.BlobWriter();
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, new DebugId(0, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var cmw = new Cci.BlobWriter();
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
-            var cmw = new Cci.BlobWriter();
+            var cmw = new Cci.BlobBuilder();
 
             new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas).SerializeLambdaMap(cmw);
 
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
-            var records = new ArrayBuilder<Cci.BlobWriter>();
+            var records = new ArrayBuilder<Cci.BlobBuilder>();
 
             Cci.CustomDebugInfoWriter.SerializeCustomDebugInformation(debugInfo, records);
             var cdi = Cci.CustomDebugInfoWriter.SerializeCustomDebugMetadata(records);

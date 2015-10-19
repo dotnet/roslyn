@@ -1,21 +1,22 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class SuggestionModeCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldDeclaration1()
             Dim markup = <a>Class C
     $$
@@ -24,7 +25,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldDeclaration2()
             Dim markup = <a>Class C
     Public $$
@@ -33,7 +34,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldDeclaration3()
             Dim markup = <a>Module M
     Public $$
@@ -42,7 +43,7 @@ End Module</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldDeclaration4()
             Dim markup = <a>Structure S
     Public $$
@@ -51,7 +52,7 @@ End Structure</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldDeclaration5()
             Dim markup = <a>Class C
     WithEvents $$
@@ -60,7 +61,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldDeclaration6()
             Dim markup = <a>Class C
     Protected Friend $$
@@ -69,7 +70,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration1()
             Dim markup = <a>Class C
     Public Sub Bar($$
@@ -79,7 +80,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration2()
             Dim markup = <a>Class C
     Public Sub Bar(Optional foo as Integer, $$
@@ -89,7 +90,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration3()
             Dim markup = <a>Class C
     Public Sub Bar(Optional $$
@@ -99,7 +100,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration4()
             Dim markup = <a>Class C
     Public Sub Bar(Optional x $$
@@ -109,7 +110,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration5()
             Dim markup = <a>Class C
     Public Sub Bar(Optional x As $$
@@ -119,7 +120,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration6()
             Dim markup = <a>Class C
     Public Sub Bar(Optional x As Integer $$
@@ -129,7 +130,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration7()
             Dim markup = <a>Class C
     Public Sub Bar(ByVal $$
@@ -139,7 +140,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration8()
             Dim markup = <a>Class C
     Public Sub Bar(ByVal x $$
@@ -149,7 +150,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration9()
             Dim markup = <a>Class C
     Sub Foo $$
@@ -158,7 +159,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParameterDeclaration10()
             Dim markup = <a>Class C
     Public Property SomeProp $$
@@ -167,7 +168,7 @@ End Class</a>
             VerifyNotBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SelectClause1()
             Dim markup = <a>Class z
     Sub bar()
@@ -181,7 +182,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SelectClause2()
             Dim markup = <a>Class z
     Sub bar()
@@ -195,7 +196,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ForStatement1()
             Dim markup = <a>Class z
     Sub bar()
@@ -206,7 +207,7 @@ End Class</a>
             VerifyBuilder(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ForStatement2()
             Dim markup = <a>Class z
     Sub bar()
@@ -219,7 +220,7 @@ End Class</a>
         End Sub
 
         <WorkItem(545351)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub BuilderWhenOptionExplicitOff()
             Dim markup = <a>Option Explicit Off
  
@@ -234,7 +235,7 @@ End Class
         End Sub
 
         <WorkItem(546659)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub UsingStatement()
             Dim markup = <a> 
 Class C1
@@ -247,7 +248,7 @@ End Class
         End Sub
 
         <WorkItem(734596)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OptionExplicitOffStatementLevel1()
             Dim markup = <a> 
 Option Explicit Off
@@ -261,7 +262,7 @@ End Class
         End Sub
 
         <WorkItem(734596)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OptionExplicitOffStatementLevel2()
             Dim markup = <a> 
 Option Explicit Off
@@ -275,7 +276,7 @@ End Class
         End Sub
 
         <WorkItem(960416)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ReadonlyField()
             Dim markup = <a> 
 Class C1
@@ -288,7 +289,7 @@ End Class
         End Sub
 
         <WorkItem(1044441)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub BuilderInDebugger
             Dim markup = <a> 
 Class C1
@@ -297,53 +298,54 @@ Class C1
     End Sub
 End Class
 </a>
-            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(isAugment:=True).WithIsDebugger(True))
+            VerifyBuilder(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), useDebuggerOptions:=True)
         End Sub
 
-        Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
-            VerifySuggestionModeWorker(markup, isBuilder:=False, triggerInfo:=triggerInfo)
+        Private Sub VerifyNotBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False)
+            VerifySuggestionModeWorker(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Sub
 
-        Private Sub VerifyBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing)
-            VerifySuggestionModeWorker(markup, isBuilder:=True, triggerInfo:=triggerInfo)
+        Private Sub VerifyBuilder(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False)
+            VerifySuggestionModeWorker(markup, isBuilder:=True, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Sub
 
-        Private Sub VerifySuggestionModeWorker(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
+        Private Sub VerifySuggestionModeWorker(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, Optional useDebuggerOptions As Boolean = False)
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
+                Dim options = If(useDebuggerOptions,
+                                 workspaceFixture.Workspace.Options.WithDebuggerCompletionOptions(),
+                                 workspaceFixture.Workspace.Options)
+
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
-                CheckResults(document1, position, isBuilder, triggerInfo)
+                CheckResults(document1, position, isBuilder, triggerInfo, options)
 
                 If CanUseSpeculativeSemanticModel(document1, position) Then
                     Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
-                    CheckResults(document2, position, isBuilder, triggerInfo)
+                    CheckResults(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using
 
         End Sub
 
-        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?)
-            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c, isAugment:=True))
+        Private Sub CheckResults(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, options As OptionSet)
+            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
 
-            Dim provider = CreateCompletionProvider()
+            Dim completionList = GetCompletionList(document, position, triggerInfo.Value, options)
 
             If isBuilder Then
-                Dim group = provider.GetGroupAsync(document, position, triggerInfo.Value, CancellationToken.None).Result
-                Assert.NotNull(group)
-                Assert.NotNull(group.Builder)
+                Assert.NotNull(completionList)
+                Assert.NotNull(completionList.Builder)
             Else
-                Dim group = provider.GetGroupAsync(document, position, triggerInfo.Value, CancellationToken.None).Result
-
-                If group IsNot Nothing Then
-                    Assert.True(group.Builder Is Nothing, "group.Builder = " & group.Builder.DisplayText)
+                If completionList IsNot Nothing Then
+                    Assert.True(completionList.Builder Is Nothing, "group.Builder = " & If(completionList.Builder IsNot Nothing, completionList.Builder.DisplayText, "null"))
                 End If
             End If
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New VisualBasicSuggestionModeCompletionProvider()
         End Function
     End Class

@@ -4,10 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -29,7 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly Lazy<ISet<string>> TypeNames;
             internal readonly Lazy<ISet<string>> NamespaceNames;
             internal readonly Lazy<ImmutableArray<ReferenceDirective>> ReferenceDirectives;
-            internal readonly Lazy<ImmutableArray<Diagnostic>> ReferenceDirectiveDiagnostics;
 
             public Cache(DeclarationTable table)
             {
@@ -44,9 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 this.ReferenceDirectives = new Lazy<ImmutableArray<ReferenceDirective>>(
                     () => MergedRoot.Value.Declarations.OfType<RootSingleNamespaceDeclaration>().SelectMany(r => r.ReferenceDirectives).AsImmutable());
-
-                this.ReferenceDirectiveDiagnostics = new Lazy<ImmutableArray<Diagnostic>>(
-                    () => MergedRoot.Value.Declarations.OfType<RootSingleNamespaceDeclaration>().SelectMany(r => r.ReferenceDirectiveDiagnostics).AsImmutable());
             }
         }
     }

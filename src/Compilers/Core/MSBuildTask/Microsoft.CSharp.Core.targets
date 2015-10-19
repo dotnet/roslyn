@@ -19,7 +19,7 @@
                  @(_DebugSymbolsIntermediatePath);
                  $(NonExistentFile);
                  @(CustomAdditionalCompileOutputs)"
-          Returns=""
+          Returns="@(CscCommandLineArgs)"
           DependsOnTargets="$(CoreCompileDependsOn)"
     >
     <!-- These two compiler warnings are raised when a reference is bound to a different version
@@ -85,6 +85,7 @@
           ErrorEndLocation="$(ErrorEndLocation)"
           ErrorLog="$(ErrorLog)"
           ErrorReport="$(ErrorReport)"
+          Features="$(Features)"
           FileAlignment="$(FileAlignment)"
           GenerateFullPaths="$(GenerateFullPaths)"
           HighEntropyVA="$(HighEntropyVA)"
@@ -99,15 +100,18 @@
           NoStandardLib="$(NoCompilerStandardLib)"
           NoWin32Manifest="$(NoWin32Manifest)"
           Optimize="$(Optimize)"
+          Deterministic="$(Deterministic)"
           OutputAssembly="@(IntermediateAssembly)"
           PdbFile="$(PdbFile)"
           Platform="$(PlatformTarget)"
           Prefer32Bit="$(Prefer32Bit)"
           PreferredUILang="$(PreferredUILang)"
+          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
           References="@(ReferencePath)"
           ReportAnalyzer="$(ReportAnalyzer)"
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
+          SkipCompilerExecution="$(SkipCompilerExecution)"
           Sources="@(Compile)"
           SubsystemVersion="$(SubsystemVersion)"
           TargetType="$(OutputType)"
@@ -124,7 +128,10 @@
           Win32Icon="$(ApplicationIcon)"
           Win32Manifest="$(Win32Manifest)"
           Win32Resource="$(Win32Resource)"
-              />
+          PathMap="$(PathMap)"
+          >
+      <Output TaskParameter="CommandLineArgs" ItemName="CscCommandLineArgs" />
+    </Csc>
 
     <ItemGroup>
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />

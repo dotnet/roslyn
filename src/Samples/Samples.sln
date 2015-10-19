@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22905.0
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APISampleUnitTestsCS", "CSharp\APISampleUnitTests\APISampleUnitTestsCS.csproj", "{CFF49CC1-85B5-49F7-B14B-A6EBF2592DD2}"
 EndProject
@@ -45,14 +45,10 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "MakeConstVB.UnitTests", "Vi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VisualBasic", "VisualBasic", "{0A8A5052-C6C9-4E92-9027-5229466DF86C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncPackage", "CSharp\AsyncPackage\AsyncPackage.csproj", "{68D3FDD2-DA02-453B-9DF9-022F65F9265E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncPackage.Test", "CSharp\AsyncPackage\Test\AsyncPackage.Test.csproj", "{0D9287FD-F17F-4CB8-B622-904E69994AC6}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{B00C02A7-7E65-46D8-B56F-2314D189E607}"
 	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
+		..\..\NuGet.Config = ..\..\NuGet.Config
+		..\..\nuget.exe = ..\..\nuget.exe
 	EndProjectSection
 EndProject
 Global
@@ -207,22 +203,6 @@ Global
 		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -246,7 +226,5 @@ Global
 		{EF5ACC32-7644-4CF0-87FC-AE9AFD0DB4D8} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
 		{050DC082-5E4E-4175-8F7E-723B134774BE} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
 		{B9963F89-CF12-4A8D-B4BF-C2C0B9732144} = {0A8A5052-C6C9-4E92-9027-5229466DF86C}
-		{68D3FDD2-DA02-453B-9DF9-022F65F9265E} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
-		{0D9287FD-F17F-4CB8-B622-904E69994AC6} = {CC979E2E-846C-46EE-81D7-9AE234572B80}
 	EndGlobalSection
 EndGlobal

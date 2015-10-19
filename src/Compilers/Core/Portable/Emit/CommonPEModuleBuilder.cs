@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract EmitOptions EmitOptions { get; }
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(ITypeSymbol symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
-        internal abstract Cci.IMethodReference EntryPoint { get; }
+        internal abstract Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
         internal abstract bool SupportsPrivateImplClass { get; }
         internal abstract ImmutableArray<Cci.INamespaceTypeDefinition> GetAnonymousTypes();
         internal abstract Compilation CommonCompilation { get; }
@@ -58,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody> _methodBodyMap =
             new ConcurrentDictionary<TMethodSymbol, Cci.IMethodBody>(ReferenceEqualityComparer.Instance);
 
-        private TMethodSymbol _entryPoint;
+        private Cci.IMethodReference _peEntryPoint;
+        private Cci.IMethodReference _debugEntryPoint;
         private PrivateImplementationDetails _privateImplementationDetails;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
@@ -120,11 +120,7 @@ namespace Microsoft.CodeAnalysis.Emit
             this.CompilationState.Freeze();
         }
 
-        internal override EmitOptions EmitOptions
-        {
-            get { return _emitOptions; }
-        }
-
+        internal override EmitOptions EmitOptions => _emitOptions;
         internal abstract string ModuleName { get; }
         internal abstract string Name { get; }
         internal abstract TAssemblySymbol CorLibrary { get; }
@@ -227,6 +223,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
         internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+        internal abstract Cci.IMethodReference Translate(TMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
 
         internal sealed override Cci.IAssemblyReference Translate(IAssemblySymbol symbol, DiagnosticBag diagnostics)
         {
@@ -238,6 +235,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
+        internal sealed override Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        {
+            return Translate((TMethodSymbol)symbol, diagnostics, needDeclaration);
+        }
+
         internal OutputKind OutputKind => _outputKind;
         internal TSourceModuleSymbol SourceModule => _sourceModule;
         internal TCompilation Compilation => _compilation;
@@ -246,14 +248,27 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
 
-        // General entry point method. May be a PE entry point or a submission entry point.
-        internal sealed override Cci.IMethodReference EntryPoint => _entryPoint;
+        Cci.IMethodReference Cci.IModule.PEEntryPoint => _peEntryPoint;
+        Cci.IMethodReference Cci.IModule.DebugEntryPoint => _debugEntryPoint;
 
-        internal void SetEntryPoint(TMethodSymbol value)
+        internal void SetPEEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
         {
-            Debug.Assert(value == null ||
-                ((object)((IMethodSymbol)value).ContainingModule == (object)_sourceModule && ReferenceEquals(value, ((IMethodSymbol)value).OriginalDefinition)));
-            _entryPoint = value;
+            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
+            Debug.Assert(_outputKind.IsApplication());
+
+            _peEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        internal void SetDebugEntryPoint(TMethodSymbol method, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(method == null || IsSourceDefinition((IMethodSymbol)method));
+
+            _debugEntryPoint = Translate(method, diagnostics, needDeclaration: true);
+        }
+
+        private bool IsSourceDefinition(IMethodSymbol method)
+        {
+            return (object)method.ContainingModule == _sourceModule && method.IsDefinition;
         }
 
         internal MetadataConstant CreateConstant(
@@ -277,28 +292,21 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> CalculateAssemblyReferenceAliases(EmitContext context)
         {
-            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance(_compilation.ExternalReferences.Length);
+            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance();
 
-            var referenceManager = _compilation.GetBoundReferenceManager();
-
-            // Enumerate external references (#r's don't define aliases) to preserve the order.
-            foreach (MetadataReference reference in _compilation.ExternalReferences)
+            foreach (var assemblyAndAliases in _compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                // duplicate references might have been skipped by the assembly binder:
+                var assembly = assemblyAndAliases.Item1;
+                var aliases = assemblyAndAliases.Item2;
 
-                IAssemblySymbol symbol;
-                ImmutableArray<string> aliases;
-                if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                for (int i = 0; i < aliases.Length; i++)
                 {
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        string alias = aliases[i];
+                    string alias = aliases[i];
 
-                        // filter out duplicates and global aliases:
-                        if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
-                        {
-                            result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(symbol, context.Diagnostics)));
-                        }
+                    // filter out duplicates and global aliases:
+                    if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                    {
+                        result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(assembly, context.Diagnostics)));
                     }
                 }
             }
@@ -720,15 +728,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         string Cci.IModule.DefaultNamespace => DefaultNamespace;
         protected abstract string DefaultNamespace { get; }
-
-        // PE entry point, only available for console and windows apps:
-        Cci.IMethodReference Cci.IModule.EntryPoint
-        {
-            get
-            {
-                return _outputKind.IsApplication() ? _entryPoint : null;
-            }
-        }
 
         protected abstract Cci.IAssemblyReference GetCorLibraryReferenceToEmit(EmitContext context);
 

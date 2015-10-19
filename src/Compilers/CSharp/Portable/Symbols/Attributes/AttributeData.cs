@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!this.HasErrors);
 
             bool hasErrors;
-            Cci.SecurityAction action = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, out hasErrors, arguments.Diagnostics);
+            DeclarativeSecurityAction action = DecodeSecurityAttributeAction(targetSymbol, compilation, arguments.AttributeSyntaxOpt, out hasErrors, arguments.Diagnostics);
 
             if (!hasErrors)
             {
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private Cci.SecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax nodeOpt, out bool hasErrors, DiagnosticBag diagnostics)
+        private DeclarativeSecurityAction DecodeSecurityAttributeAction(Symbol targetSymbol, CSharpCompilation compilation, AttributeSyntax nodeOpt, out bool hasErrors, DiagnosticBag diagnostics)
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
@@ -256,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsTargetAttribute(targetSymbol, AttributeDescription.HostProtectionAttribute))
                 {
                     hasErrors = false;
-                    return Cci.SecurityAction.LinkDemand;
+                    return DeclarativeSecurityAction.LinkDemand;
                 }
             }
             else
@@ -265,54 +266,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol firstArgType = (TypeSymbol)firstArg.Type;
                 if ((object)firstArgType != null && firstArgType.Equals(compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAction)))
                 {
-                    var securityAction = (Cci.SecurityAction)firstArg.Value;
-                    hasErrors = !ValidateSecurityAction(securityAction, targetSymbol, nodeOpt, diagnostics);
-                    return securityAction;
+                    return DecodeSecurityAction(firstArg, targetSymbol, nodeOpt, diagnostics, out hasErrors);
                 }
             }
 
             // CS7048: First argument to a security attribute must be a valid SecurityAction
             diagnostics.Add(ErrorCode.ERR_SecurityAttributeMissingAction, nodeOpt != null ? nodeOpt.Name.Location : NoLocation.Singleton);
             hasErrors = true;
-            return default(Cci.SecurityAction);
+            return DeclarativeSecurityAction.None;
         }
 
-        private bool ValidateSecurityAction(Cci.SecurityAction securityAction, Symbol targetSymbol, AttributeSyntax nodeOpt, DiagnosticBag diagnostics)
+        private DeclarativeSecurityAction DecodeSecurityAction(TypedConstant typedValue, Symbol targetSymbol, AttributeSyntax nodeOpt, DiagnosticBag diagnostics, out bool hasErrors)
         {
             Debug.Assert((object)targetSymbol != null);
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
 
+            int securityAction = (int)typedValue.Value;
             bool isPermissionRequestAction;
+
             switch (securityAction)
             {
-                case Cci.SecurityAction.InheritanceDemand:
-                case Cci.SecurityAction.LinkDemand:
+                case (int)DeclarativeSecurityAction.InheritanceDemand:
+                case (int)DeclarativeSecurityAction.LinkDemand:
                     if (this.IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute))
                     {
                         // CS7052: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
                         string displayString;
-                        Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, securityAction, out displayString);
+                        Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                         diagnostics.Add(ErrorCode.ERR_PrincipalPermissionInvalidAction, syntaxLocation, displayString);
-                        return false;
+                        hasErrors = true;
+                        return DeclarativeSecurityAction.None;
                     }
 
                     isPermissionRequestAction = false;
                     break;
 
-                case Cci.SecurityAction.Undocumented:
+                case 1:
                 // Native compiler allows security action value 1 for security attributes on types/methods, even though there is no corresponding field in System.Security.Permissions.SecurityAction enum.
                 // We will maintain compatibility.
 
-                case Cci.SecurityAction.Assert:
-                case Cci.SecurityAction.Demand:
-                case Cci.SecurityAction.PermitOnly:
-                case Cci.SecurityAction.Deny:
+                case (int)DeclarativeSecurityAction.Assert:
+                case (int)DeclarativeSecurityAction.Demand:
+                case (int)DeclarativeSecurityAction.PermitOnly:
+                case (int)DeclarativeSecurityAction.Deny:
                     isPermissionRequestAction = false;
                     break;
 
-                case Cci.SecurityAction.RequestMinimum:
-                case Cci.SecurityAction.RequestOptional:
-                case Cci.SecurityAction.RequestRefuse:
+                case (int)DeclarativeSecurityAction.RequestMinimum:
+                case (int)DeclarativeSecurityAction.RequestOptional:
+                case (int)DeclarativeSecurityAction.RequestRefuse:
                     isPermissionRequestAction = true;
                     break;
 
@@ -320,9 +322,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // CS7049: Security attribute '{0}' has an invalid SecurityAction value '{1}'
                         string displayString;
-                        Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, securityAction, out displayString);
+                        Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                         diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidAction, syntaxLocation, nodeOpt != null ? nodeOpt.GetErrorDisplayName() : "", displayString);
-                        return false;
+                        hasErrors = true;
+                        return DeclarativeSecurityAction.None;
                     }
             }
 
@@ -335,9 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CS7051: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method
                     string displayString;
-                    Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, securityAction, out displayString);
+                    Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                     diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidActionTypeOrMethod, syntaxLocation, displayString);
-                    return false;
+                    hasErrors = true;
+                    return DeclarativeSecurityAction.None;
                 }
             }
             else
@@ -348,16 +352,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CS7050: SecurityAction value '{0}' is invalid for security attributes applied to an assembly
                     string displayString;
-                    Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, securityAction, out displayString);
+                    Location syntaxLocation = GetSecurityAttributeActionSyntaxLocation(nodeOpt, typedValue, out displayString);
                     diagnostics.Add(ErrorCode.ERR_SecurityAttributeInvalidActionAssembly, syntaxLocation, displayString);
-                    return false;
+                    hasErrors = true;
+                    return DeclarativeSecurityAction.None;
                 }
             }
 
-            return true;
+            hasErrors = false;
+            return (DeclarativeSecurityAction)securityAction;
         }
 
-        private static Location GetSecurityAttributeActionSyntaxLocation(AttributeSyntax nodeOpt, Cci.SecurityAction value, out string displayString)
+        private static Location GetSecurityAttributeActionSyntaxLocation(AttributeSyntax nodeOpt, TypedConstant typedValue, out string displayString)
         {
             if (nodeOpt == null)
             {
@@ -366,10 +372,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var argList = nodeOpt.ArgumentList;
-            if ((argList == null) || argList.Arguments.IsEmpty())
+            if (argList == null || argList.Arguments.IsEmpty())
             {
                 // Optional SecurityAction parameter with default value.
-                displayString = value.ToString();
+                displayString = typedValue.Value.ToString();
                 return nodeOpt.Location;
             }
 
@@ -387,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// It involves following steps:
         ///  1) Verifying that the specified file name resolves to a valid path.
         ///  2) Reading the contents of the file into a byte array.
-        ///  3) Convert each byte in the file content into two bytes containing hexa-decimal characters.
+        ///  3) Convert each byte in the file content into two bytes containing hexadecimal characters.
         ///  4) Replacing the 'File = fileName' named argument with 'Hex = hexFileContent' argument, where hexFileContent is the converted output from step 3) above.
         ///
         /// Step 1) is performed in this method, i.e. during binding.

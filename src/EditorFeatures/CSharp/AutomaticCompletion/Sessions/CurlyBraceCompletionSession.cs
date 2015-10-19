@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
 
         public override void AfterStart(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
-            FormatTrackingSpan(session);
+            FormatTrackingSpan(session, shouldHonorAutoFormattingOnCloseBraceOption: true);
 
             session.TextView.TryMoveCaretToAndEnsureVisible(session.ClosingPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).Subtract(1));
         }
@@ -65,12 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    // first add one line in between, and format braces 
-                    if (session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
-                    {
-                        document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
-                        FormatTrackingSpan(session, GetFormattingRules(document));
-                    }
+                    document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
+                    FormatTrackingSpan(session, shouldHonorAutoFormattingOnCloseBraceOption: false, rules: GetFormattingRules(document));
 
                     // put caret at right indentation
                     PutCaretOnLine(session, session.OpeningPoint.GetPoint(session.SubjectBuffer.CurrentSnapshot).GetContainingLineNumber() + 1);
@@ -114,9 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return SpecializedCollections.SingletonEnumerable(BraceCompletionFormattingRule.Instance).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        private void FormatTrackingSpan(IBraceCompletionSession session, IEnumerable<IFormattingRule> rules = null)
+        private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<IFormattingRule> rules = null)
         {
-            if (!session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
+            if (!session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && shouldHonorAutoFormattingOnCloseBraceOption)
             {
                 return;
             }
@@ -237,9 +233,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
             {
-                base.AddSuppressOperations(list, node, optionSet, nextOperation);
+                base.AddSuppressOperations(list, node, lastToken, optionSet, nextOperation);
 
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())

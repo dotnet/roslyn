@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
 {
     public class RudeEditDiagnosticTests
     {
-        [Fact]
+        [WpfFact]
         public void ToDiagnostic()
         {
             var tree = SyntaxFactory.ParseCompilationUnit("class C { }").SyntaxTree;
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue
                 RudeEditKind.AwaitStatementUpdate,
                 RudeEditKind.InsertFile,
                 RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas,
+                RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement,
             };
 
             var arg2 = new HashSet<RudeEditKind>()

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
     {
         #region "No change to symbol"
 
-        [Fact]
+        [WpfFact]
         public void C2CTypeSymbolUnchanged01()
         {
             var src1 = @"using System;
@@ -74,7 +74,7 @@ namespace N1.N2
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
         }
 
-        [Fact, WorkItem(530171)]
+        [WpfFact, WorkItem(530171)]
         public void C2CErrorSymbolUnchanged01()
         {
             var src1 = @"public void Method() { }";
@@ -104,7 +104,7 @@ public void Method()
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(820263)]
         public void PartialDefinitionAndImplementationResolveCorrectly()
         {
@@ -131,7 +131,7 @@ namespace NS
             Assert.Equal(implementation, ResolveSymbol(implementation, comp, comp, SymbolKeyComparison.None));
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(916341)]
         public void ExplicitIndexerImplementationResolvesCorrectly()
         {
@@ -180,7 +180,7 @@ class C<T> : I<T>, I
 
         #region "Change to symbol"
 
-        [Fact]
+        [WpfFact]
         public void C2CTypeSymbolChanged01()
         {
             var src1 = @"using System;
@@ -237,7 +237,7 @@ namespace N1.N2
             ResolveAndVerifySymbolList(newSymbols, comp2, originalSymbols, comp1);
         }
 
-        [Fact]
+        [WpfFact]
         public void C2CTypeSymbolChanged02()
         {
             var src1 = @"using System;
@@ -283,7 +283,7 @@ namespace NS
             Assert.Null(syminfo.Symbol);
         }
 
-        [Fact]
+        [WpfFact]
         public void C2CMemberSymbolChanged01()
         {
             var src1 = @"using System;
@@ -324,7 +324,7 @@ public class Test
         }
 
         [WorkItem(542700)]
-        [Fact]
+        [WpfFact]
         public void C2CIndexerSymbolChanged01()
         {
             var src1 = @"using System;
@@ -357,7 +357,7 @@ public class Test
             ResolveAndVerifySymbol(newSymbols.Last(), comp2, originalSymbols.Last(), comp1, SymbolKeyComparison.CaseSensitive);
         }
 
-        [Fact]
+        [WpfFact]
         public void C2CAssemblyChanged01()
         {
             var src = @"
@@ -385,7 +385,7 @@ namespace NS
             Assert.Null(ResolveSymbol(typeSym02, comp2, comp1, SymbolKeyComparison.CaseSensitive));
         }
 
-        [Fact(Skip = "530169"), WorkItem(530169)]
+        [WpfFact(Skip = "530169"), WorkItem(530169)]
         public void C2CAssemblyChanged02()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -413,7 +413,7 @@ namespace NS
             Assert.NotNull(ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(530170)]
+        [WpfFact, WorkItem(530170)]
         public void C2CAssemblyChanged03()
         {
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
@@ -448,7 +448,7 @@ namespace NS
             Assert.Null(ResolveSymbol(module2, compilation2, compilation1, SymbolKeyComparison.IgnoreAssemblyIds));
         }
 
-        [Fact, WorkItem(546254)]
+        [WpfFact, WorkItem(546254)]
         public void C2CAssemblyChanged04()
         {
             var src = @"

@@ -407,7 +407,7 @@ namespace Microsoft.Cci
         /// </summary>
         ushort MaxStack { get; }
 
-        byte[] IL { get; }
+        ImmutableArray<byte> IL { get; }
         bool HasAnySequencePoints { get; }
         ImmutableArray<SequencePoint> GetSequencePoints();
         ImmutableArray<SequencePoint> GetLocations();

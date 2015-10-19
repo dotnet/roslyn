@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
-            string actual = GetTokenToLocationMap(compilation, true);
+            string actual = PdbTestUtilities.GetTokenToLocationMap(compilation, true);
             AssertXml.Equal(expected, actual);
         }
 
@@ -107,7 +107,7 @@ namespace X
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
-            string actual = GetTokenToLocationMap(compilation, true);
+            string actual = PdbTestUtilities.GetTokenToLocationMap(compilation, true);
             AssertXml.Equal(expected, actual);
         }
 
@@ -154,7 +154,7 @@ namespace X
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
-            string actual = GetTokenToLocationMap(compilation, true);
+            string actual = PdbTestUtilities.GetTokenToLocationMap(compilation, true);
             AssertXml.Equal(expected, actual);
         }
 
@@ -235,7 +235,7 @@ namespace X
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("X.TestCase.E"),
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E2").WithArguments("X.TestCase.E2"));
 
-            string actual = GetTokenToLocationMap(compilation, true);
+            string actual = PdbTestUtilities.GetTokenToLocationMap(compilation, true);
             AssertXml.Equal(expected, actual);
         }
 
@@ -269,7 +269,7 @@ namespace X
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
 
-            string actual = GetTokenToLocationMap(compilation, true);
+            string actual = PdbTestUtilities.GetTokenToLocationMap(compilation, true);
             AssertXml.Equal(expected, actual);
         }
     }

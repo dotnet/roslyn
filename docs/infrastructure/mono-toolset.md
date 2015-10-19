@@ -2,7 +2,7 @@ Building a new Mono toolset
 ====
 This document describes building a new Mono toolset for use in our Mac or Linux Jenkins jobs.  
 
-### Building
+### Building Mono
 The new *toolset name* will be chosen as one of the following:
 
 - Linux: mono.linux.`<version number>`
@@ -27,3 +27,18 @@ This table describes the existing Mono toolsets and the commit they were built f
 | Version | Linux | Mac |
 | --- | --- | --- |
 | 1 | [43af8d475d853c8408ddaddbed4cfd61d2919780](https://github.com/jaredpar/mono/commit/43af8d475d853c8408ddaddbed4cfd61d2919780) | [43af8d475d853c8408ddaddbed4cfd61d2919780](https://github.com/jaredpar/mono/commit/43af8d475d853c8408ddaddbed4cfd61d2919780) |
+
+### Building NuGet Zip
+The cross platform restore works by downloading the contents of the packages directory from Azure directly.  Hence if a package is updated that is used cross platform this zip will need to be rebuild.  
+
+This is done by executing the following on a Windows box.  
+
+    - Change to the root of the enlistment.
+    - delete the contents of the `~\.nuget\packages`
+    - Run
+        - `.\nuget.exe restore Roslyn.sln`
+        - `.\nuget.exe restore build\ToolsetPackages\project.json`
+    - Zip the `~\.nuget` directory (via explorer) and name it nuget.X.zip (where X is one higher than the previous number)
+    - Use [azcopy](https://azure.microsoft.com/en-us/documentation/articles/storage-use-azcopy) to upload to https://dotnetci.blob.core.windows.net/roslyn
+    - Change cibuild.sh to reference the new package. 
+

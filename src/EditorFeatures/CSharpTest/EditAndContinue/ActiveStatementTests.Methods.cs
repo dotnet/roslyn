@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         #region Methods
 
         [WorkItem(740443)]
-        [Fact]
+        [WpfFact]
         public void Method_Delete_Leaf1()
         {
             string src1 = @"
@@ -48,7 +48,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "class C", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void Method_Body_Delete1()
         {
             var src1 = "class C { int M() { <AS:0>return 1;</AS:0> } }";
@@ -61,7 +61,7 @@ class C
                 Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void Method_ExpressionBody_Delete1()
         {
             var src1 = "class C { int M() => <AS:0>1</AS:0>; }";
@@ -74,7 +74,7 @@ class C
                 Diagnostic(RudeEditKind.MethodBodyDelete, "int M()", FeaturesResources.Method));
         }
 
-        [Fact]
+        [WpfFact]
         public void Method_ExpressionBodyToBlockBody1()
         {
             var src1 = "class C { int M() => <AS:0>1</AS:0>; }";
@@ -86,7 +86,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Method_BlockBodyToExpressionBody1()
         {
             var src1 = "class C { int M() { <AS:0>return 1;</AS:0> } }";
@@ -99,7 +99,7 @@ class C
         }
 
         // Generics
-        [Fact]
+        [WpfFact]
         public void Update_Inner_GenericMethod()
         {
             string src1 = @"
@@ -145,7 +145,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c.Swap(ref b, ref a);"));
         }
 
-        [Fact]
+        [WpfFact]
         public void Update_Inner_ParameterType_GenericMethod()
         {
             string src1 = @"
@@ -185,7 +185,7 @@ class C
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Swap(null, null);"));
         }
 
-        [Fact]
+        [WpfFact]
         public void Update_Leaf_GenericMethod()
         {
             string src1 = @"
@@ -227,7 +227,7 @@ class C
 
         // Async
         [WorkItem(749458)]
-        [Fact]
+        [WpfFact]
         public void Update_Leaf_AsyncMethod()
         {
             string src1 = @"
@@ -267,7 +267,7 @@ class Test
         }
 
         [WorkItem(749440)]
-        [Fact]
+        [WpfFact]
         public void Update_Inner_AsyncMethod()
         {
             string src1 = @"
@@ -308,7 +308,7 @@ class Test
         }
 
         [WorkItem(749440)]
-        [Fact]
+        [WpfFact]
         public void Update_Initializer_MultipleVariables1()
         {
             string src1 = @"
@@ -355,7 +355,7 @@ class Test
         }
 
         [WorkItem(749440)]
-        [Fact]
+        [WpfFact]
         public void Update_Initializer_MultipleVariables2()
         {
             string src1 = @"
@@ -401,7 +401,7 @@ class Test
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b = F()"));
         }
 
-        [Fact]
+        [WpfFact]
         public void MethodUpdateWithLocalVariables()
         {
             string src1 = @"
@@ -438,7 +438,7 @@ class C
 
         #region Properties
 
-        [Fact]
+        [WpfFact]
         public void Property_ExpressionBodyToBlockBody1()
         {
             var src1 = "class C { int P => <AS:0>1</AS:0>; }";
@@ -450,7 +450,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_ExpressionBodyToBlockBody2()
         {
             var src1 = "class C { int P => <AS:0>1</AS:0>; }";
@@ -462,7 +462,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_ExpressionBodyToBlockBody3()
         {
             var src1 = "class C { int P => <AS:0>1</AS:0>; }";
@@ -474,7 +474,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_ExpressionBodyToBlockBody_Internal()
         {
             var src1 = @"
@@ -498,7 +498,7 @@ class C
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "get"));
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_BlockBodyToExpressionBody1()
         {
             var src1 = "class C { int P { get { <AS:0>return 1;</AS:0> } } }";
@@ -510,7 +510,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_BlockBodyToExpressionBody2()
         {
             var src1 = "class C { int P { set { } get { <AS:0>return 1;</AS:0> } } }";
@@ -523,7 +523,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "int P", CSharpFeaturesResources.PropertySetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Property_BlockBodyToExpressionBody_Internal()
         {
             var src1 = @"
@@ -552,7 +552,7 @@ class C
 
         #region Indexers
 
-        [Fact]
+        [WpfFact]
         public void Indexer_ExpressionBodyToBlockBody1()
         {
             var src1 = "class C { int this[int a] => <AS:0>1</AS:0>; }";
@@ -564,7 +564,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_ExpressionBodyToBlockBody2()
         {
             var src1 = "class C { int this[int a] => <AS:0>1</AS:0>; }";
@@ -576,7 +576,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_BlockBodyToExpressionBody1()
         {
             var src1 = "class C { int this[int a] { get { <AS:0>return 1;</AS:0> } } }";
@@ -588,7 +588,7 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Indexer_BlockBodyToExpressionBody2()
         {
             var src1 = "class C { int this[int a] { get { <AS:0>return 1;</AS:0> } set { } } }";
@@ -601,7 +601,7 @@ class C
                 Diagnostic(RudeEditKind.Delete, "int this[int a]", CSharpFeaturesResources.IndexerSetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Update_Leaf_Indexers1()
         {
             string src1 = @"
@@ -652,7 +652,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(750244)]
-        [Fact]
+        [WpfFact]
         public void Update_Inner_Indexers1()
         {
             string src1 = @"
@@ -705,7 +705,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Update_Leaf_Indexers2()
         {
             string src1 = @"
@@ -756,7 +756,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(750244)]
-        [Fact]
+        [WpfFact]
         public void Update_Inner_Indexers2()
         {
             string src1 = @"
@@ -807,7 +807,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Deleted_Leaf_Indexers1()
         {
             string src1 = @"
@@ -857,7 +857,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "set", CSharpFeaturesResources.IndexerSetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Deleted_Inner_Indexers1()
         {
             string src1 = @"
@@ -906,7 +906,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
-        [Fact]
+        [WpfFact]
         public void Deleted_Leaf_Indexers2()
         {
             string src1 = @"
@@ -956,7 +956,7 @@ class SampleCollection<T>
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "get", CSharpFeaturesResources.IndexerGetter));
         }
 
-        [Fact]
+        [WpfFact]
         public void Deleted_Inner_Indexers2()
         {
             string src1 = @"
@@ -1009,7 +1009,7 @@ class SampleCollection<T>
 
         #region Operators
 
-        [Fact]
+        [WpfFact]
         public void Operator_ExpressionBodyToBlockBody1()
         {
             var src1 = "class C { public static C operator +(C t1, C t2) => <AS:0>null</AS:0>; }";
@@ -1021,7 +1021,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Operator_ExpressionBodyToBlockBody2()
         {
             var src1 = "class C { public static explicit operator D(C t) => <AS:0>null</AS:0>; }";
@@ -1033,7 +1033,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Operator_BlockBodyToExpressionBody1()
         {
             var src1 = "class C { public static C operator +(C t1, C t2) { <AS:0>return null;</AS:0> } }";
@@ -1045,7 +1045,7 @@ class SampleCollection<T>
             edits.VerifyRudeDiagnostics(active);
         }
 
-        [Fact]
+        [WpfFact]
         public void Operator_BlockBodyToExpressionBody2()
         {
             var src1 = "class C { public static explicit operator D(C t) { <AS:0>return null;</AS:0> } }";
@@ -1058,7 +1058,7 @@ class SampleCollection<T>
         }
 
         [WorkItem(754274)]
-        [Fact]
+        [WpfFact]
         public void Update_Leaf_OverloadedOperator()
         {
             string src1 = @"
@@ -1096,7 +1096,7 @@ class Test
         }
 
         [WorkItem(754274)]
-        [Fact]
+        [WpfFact]
         public void Update_Inner_OverloadedOperator()
         {
             string src1 = @"

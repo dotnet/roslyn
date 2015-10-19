@@ -1,10 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Scripting.UnitTests
+Imports Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 Imports ObjectFormatterFixtures
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
+Namespace Microsoft.CodeAnalysis.Scripting.Hosting.VisualBasic.UnitTests
 
     Public Class ObjectFormatterTests
         Inherits ObjectFormatterTestBase
@@ -66,6 +66,7 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
             str = VisualBasicObjectFormatter.Instance.FormatObject(sort, New ObjectFormattingOptions(maxLineLength:=80, memberFormat:=MemberDisplayFormat.Inline))
             Assert.Equal("Sort { aB=-1, ab=1, Ac=-1, Ad=1, ad=-1, aE=1, aF=-1, AG=1 }", str)
         End Sub
-    End Class
 
+        ' TODO: port tests from C#
+    End Class
 End Namespace

@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             _root1 = root1;
             _root2 = root2;
             _comparer = comparer;
-            _oneToTwo = new Dictionary<TNode, TNode>();
-            _twoToOne = new Dictionary<TNode, TNode>();
-
+            
             int labelCount = comparer.LabelCount;
 
             // Calculate chains (not including root node):
@@ -41,6 +39,12 @@ namespace Microsoft.CodeAnalysis.Differencing
             List<TNode>[] nodes1, nodes2;
             CategorizeNodesByLabels(comparer, root1, labelCount, out nodes1, out count1);
             CategorizeNodesByLabels(comparer, root2, labelCount, out nodes2, out count2);
+
+            _oneToTwo = new Dictionary<TNode, TNode>();
+            _twoToOne = new Dictionary<TNode, TNode>();
+
+            // Root nodes always match. Add them before adding known matches to make sure we always have root mapping.
+            TryAdd(root1, root2);
 
             if (knownMatches != null)
             {
@@ -61,10 +65,8 @@ namespace Microsoft.CodeAnalysis.Differencing
                         throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheNewTree, knownMatch.Value), nameof(knownMatches));
                     }
 
-                    if (!_oneToTwo.ContainsKey(knownMatch.Key))
-                    {
-                        Add(knownMatch.Key, knownMatch.Value);
-                    }
+                    // skip pairs whose key or value is already mapped:
+                    TryAdd(knownMatch.Key, knownMatch.Value);
                 }
             }
 
@@ -110,12 +112,6 @@ namespace Microsoft.CodeAnalysis.Differencing
         private void ComputeMatch(List<TNode>[] nodes1, List<TNode>[] nodes2)
         {
             Debug.Assert(nodes1.Length == nodes2.Length);
-
-            // Root nodes always match but they might have been added as knownMatches
-            if (!HasPartnerInTree2(_root1))
-            {
-                Add(_root1, _root2);
-            }
 
             // --- The original FastMatch algorithm ---
             // 
@@ -257,7 +253,11 @@ namespace Microsoft.CodeAnalysis.Differencing
 
                 if (matched && bestDistance <= maxAcceptableDistance)
                 {
-                    Add(node1, bestMatch);
+                    bool added = TryAdd(node1, bestMatch);
+
+                    // We checked above that node1 doesn't have a partner. 
+                    // The map is a bijection by construction, so we should be able to add the mapping.
+                    Debug.Assert(added);
 
                     // If we exactly matched to firstNonMatch2 we can advance it.
                     if (i2 == firstNonMatch2)
@@ -268,13 +268,19 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
         }
 
-        internal void Add(TNode node1, TNode node2)
+        internal bool TryAdd(TNode node1, TNode node2)
         {
             Debug.Assert(_comparer.TreesEqual(node1, _root1));
             Debug.Assert(_comparer.TreesEqual(node2, _root2));
 
+            if (_oneToTwo.ContainsKey(node1) || _twoToOne.ContainsKey(node2))
+            {
+                return false;
+            }
+
             _oneToTwo.Add(node1, node2);
             _twoToOne.Add(node2, node1);
+            return true;
         }
 
         internal bool TryGetPartnerInTree1(TNode node2, out TNode partner1)

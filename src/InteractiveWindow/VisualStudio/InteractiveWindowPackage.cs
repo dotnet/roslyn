@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {
@@ -23,10 +22,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [Description("Visual Studio Interactive Window")]
     [ProvideKeyBindingTable(Guids.InteractiveToolWindowIdString, 200)] // Resource ID: "Interactive Window"
-    [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideMenuResource("Menus.ctmenu", 3)]
     [Guid(Guids.InteractiveWindowPackageIdString)]
     [ProvideBindingPath]  // make sure our DLLs are loadable from other packages
-    internal sealed class InteractiveWindowPackage : Package
+    public sealed class InteractiveWindowPackage : Package
     {
     }
 }

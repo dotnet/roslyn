@@ -48,7 +48,7 @@ namespace Microsoft.Cci
         // On the other hand, we do want to use a fairly large buffer as the hashing operations
         // are invoked through reflection, which is fairly slow.
         private readonly bool _logging;
-        private readonly BlobWriter _logData;
+        private readonly PooledBlobBuilder _logData;
         private const int bufferFlushLimit = 64 * 1024;
         private readonly HashAlgorithm _hashAlgorithm;
 
@@ -57,7 +57,7 @@ namespace Microsoft.Cci
             _logging = logging;
             if (logging)
             {
-                _logData = BlobWriter.GetInstance();
+                _logData = PooledBlobBuilder.GetInstance();
                 _hashAlgorithm = new SHA1CryptoServiceProvider();
                 Debug.Assert(_hashAlgorithm.SupportsTransform);
             }
@@ -70,18 +70,40 @@ namespace Microsoft.Cci
 
         private void MaybeFlush()
         {
-            if (_logData.Length >= bufferFlushLimit)
+            if (_logData.Count >= bufferFlushLimit)
             {
-                _hashAlgorithm.TransformBlock(_logData.Buffer, _logData.Position);
-                _logData.Position = 0;
+                foreach (var blob in _logData.GetBlobs())
+                {
+                    var segment = blob.GetUnderlyingBuffer();
+                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
+                }
+
+                _logData.Clear();
             }
         }
 
         internal ContentId ContentIdFromLog()
         {
             Debug.Assert(_logData != null);
-            _hashAlgorithm.TransformFinalBlock(_logData.Buffer, _logData.Position);
-            _logData.Position = 0;
+
+            int remaining = _logData.Count;
+            foreach (var blob in _logData.GetBlobs())
+            {
+                var segment = blob.GetUnderlyingBuffer();
+                remaining -= segment.Count;
+                if (remaining == 0)
+                {
+                    _hashAlgorithm.TransformFinalBlock(segment.Array, segment.Offset, segment.Count);
+                }
+                else
+                {
+                   _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
+                }
+            }
+
+            Debug.Assert(remaining == 0);
+
+            _logData.Clear();
             return ContentId.FromHash(_hashAlgorithm.Hash.ToImmutableArray());
         }
 
@@ -126,23 +148,23 @@ namespace Microsoft.Cci
 
         public void LogArgument(uint[] data)
         {
-            _logData.WriteInt(data.Length);
+            _logData.WriteInt32(data.Length);
             for (int i = 0; i < data.Length; i++)
             {
-                _logData.WriteUint(data[i]);
+                _logData.WriteUInt32(data[i]);
             }
             MaybeFlush();
         }
 
         public void LogArgument(string data)
         {
-            _logData.WriteUTF8(data);
+            _logData.WriteUTF8(data, allowUnpairedSurrogates: true);
             MaybeFlush();
         }
 
         public void LogArgument(uint data)
         {
-            _logData.WriteUint(data);
+            _logData.WriteUInt32(data);
         }
 
         public void LogArgument(byte data)
@@ -166,12 +188,12 @@ namespace Microsoft.Cci
 
         public void LogArgument(long data)
         {
-            _logData.WriteLong(data);
+            _logData.WriteInt64(data);
         }
 
         public void LogArgument(int data)
         {
-            _logData.WriteInt(data);
+            _logData.WriteInt32(data);
         }
 
         public void LogArgument(object data)
@@ -725,9 +747,11 @@ namespace Microsoft.Cci
 
         private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
 
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
         [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
         [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
@@ -821,7 +845,7 @@ namespace Microsoft.Cci
                 try
                 {
                     Debug.Assert(BitConverter.IsLittleEndian);
-                    ((ISymUnmanagedWriter6)_symWriter).SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
+                    ((ISymUnmanagedWriter100)_symWriter).SetSignature(BitConverter.ToUInt32(id.Stamp, 0), new Guid(id.Guid));
                 }
                 catch (Exception ex)
                 {
@@ -1352,7 +1376,7 @@ namespace Microsoft.Cci
         }
 
         [Conditional("DEBUG")]
-        // Used to catch cases where file2definitions contain nonwriteable definitions early
+        // Used to catch cases where file2definitions contain nonwritable definitions early
         // If left unfixed, such scenarios will lead to crashes if happen in winmdobj projects
         public void AssertAllDefinitionsHaveTokens(MultiDictionary<DebugSourceDocument, DefinitionWithLocation> file2definitions)
         {

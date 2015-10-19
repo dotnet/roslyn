@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sessionOpt == null)
             {
                 // The user may be trying to invoke snippets
-                var completionService = CreateCompletionService();
+                var completionService = GetCompletionService();
                 if (completionService != null &&
                     completionService.SupportSnippetCompletionListOnTab &&
                     TryInvokeSnippetCompletion(args, completionService))
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
+            var textChange = GetCompletionRules().GetTextChange(selectedItem);
 
             Commit(selectedItem, textChange, model, null);
             committed = true;

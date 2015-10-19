@@ -132,10 +132,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Private Function GetNode(root As SyntaxNode) As SyntaxNode
                     Dim node = root
                     Dim i As Integer = 0
-                    Dim n As Integer = Me._pathFromRoot.Count
+                    Dim n As Integer = Me._pathFromRoot.Length
 
                     While i < n
-                        Dim child = node.ChildNodesAndTokens().ElementAt(Me._pathFromRoot(i))
+                        Dim child = node.ChildNodesAndTokens()(Me._pathFromRoot(i))
 
                         If child.IsToken Then
                             i = i + 1

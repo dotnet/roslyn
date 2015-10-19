@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Composition;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     public static class MinimalTestExportProvider
     {
-        private static readonly PartDiscovery s_partDiscovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(Resolver.DefaultInstance), new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true));
+        private static readonly PartDiscovery s_partDiscovery = CreatePartDiscovery(Resolver.DefaultInstance);
         private static readonly Lazy<ComposableCatalog> s_lazyLanguageNeutralCatalog = new Lazy<ComposableCatalog>(() => CreateAssemblyCatalog(GetVisualStudioAssemblies()).WithParts(CreateAssemblyCatalog(GetLanguageNeutralTypes().Select(t => t.Assembly).Distinct())));
 
         public static ComposableCatalog LanguageNeutralCatalog
@@ -51,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
+                typeof(SymbolMapping.SymbolMappingServiceFactory),
                 typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
                 typeof(TestExportProvider)
@@ -102,22 +101,44 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return CreateAssemblyCatalog(SpecializedCollections.SingletonEnumerable(assembly));
         }
 
-        public static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies)
+        public static ComposableCatalog CreateAssemblyCatalog(IEnumerable<Assembly> assemblies, Resolver resolver = null)
         {
+            var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
+
             // If we run CreatePartsAsync on the test thread we may deadlock since it'll schedule stuff back
             // on the thread.
-            var parts = Task.Run(async () => await s_partDiscovery.CreatePartsAsync(assemblies).ConfigureAwait(false)).Result;
+            var parts = Task.Run(async () => await discovery.CreatePartsAsync(assemblies).ConfigureAwait(false)).Result;
 
-            return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
+            return ComposableCatalog.Create(resolver ?? Resolver.DefaultInstance).AddParts(parts);
         }
 
-        public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types)
+        public static ComposableCatalog CreateTypeCatalog(IEnumerable<Type> types, Resolver resolver = null)
         {
+            var discovery = resolver == null ? s_partDiscovery : CreatePartDiscovery(resolver);
+
             // If we run CreatePartsAsync on the test thread we may deadlock since it'll schedule stuff back
             // on the thread.
-            var parts = Task.Run(async () => await s_partDiscovery.CreatePartsAsync(types).ConfigureAwait(false)).Result;
+            var parts = Task.Run(async () => await discovery.CreatePartsAsync(types).ConfigureAwait(false)).Result;
 
-            return ComposableCatalog.Create(Resolver.DefaultInstance).AddParts(parts);
+            return ComposableCatalog.Create(resolver ?? Resolver.DefaultInstance).AddParts(parts);
+        }
+
+        public static Resolver CreateResolver()
+        {
+            // simple assembly loader is stateless, so okay to share
+            return new Resolver(SimpleAssemblyLoader.Instance);
+        }
+
+        public static PartDiscovery CreatePartDiscovery(Resolver resolver)
+        {
+            return PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
+        }
+
+        public static ExportProvider CreateExportProvider(ComposableCatalog catalog)
+        {
+            var configuration = CompositionConfiguration.Create(catalog.WithDesktopSupport().WithCompositionService());
+            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+            return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
         }
 
         public static ComposableCatalog WithParts(this ComposableCatalog @this, ComposableCatalog catalog)
@@ -140,11 +161,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return catalog.WithParts(CreateTypeCatalog(SpecializedCollections.SingletonEnumerable(t)));
         }
 
-        public static ExportProvider CreateExportProvider(ComposableCatalog catalog)
+        private class SimpleAssemblyLoader : IAssemblyLoader
         {
-            var configuration = CompositionConfiguration.Create(catalog.WithDesktopSupport().WithCompositionService());
-            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-            return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
+            public static readonly IAssemblyLoader Instance = new SimpleAssemblyLoader();
+
+            public Assembly LoadAssembly(AssemblyName assemblyName)
+            {
+                return Assembly.Load(assemblyName);
+            }
+
+            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            {
+                var assemblyName = new AssemblyName(assemblyFullName);
+                if (!string.IsNullOrEmpty(codeBasePath))
+                {
+                    assemblyName.CodeBase = codeBasePath;
+                }
+
+                return this.LoadAssembly(assemblyName);
+            }
         }
     }
 }

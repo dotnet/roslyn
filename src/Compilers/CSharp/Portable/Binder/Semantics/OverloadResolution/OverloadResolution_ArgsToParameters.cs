@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   a parameter list with inaccessible names and no optional parameters is constructed, so that invocations cannot use 
             //   named parameters or omit optional arguments.
             // - For partial methods, the parameter list of the defining partial method declaration is used.
-            // - For all other other function members and delegates there is only a single parameter list, which is the one used.
+            // - For all other function members and delegates there is only a single parameter list, which is the one used.
             //
             // The position of an argument or parameter is defined as the number of arguments or
             // parameters preceding it in the argument list or parameter list.

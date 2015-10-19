@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
@@ -27,8 +28,9 @@ namespace Microsoft.Cci
 
         public int GetHashCode(IGenericMethodInstanceReference methodInstanceReference)
         {
-            return (int)((_metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(_metadataWriter.Context)) << 2) ^
-              _metadataWriter.GetMethodInstanceSignatureIndex(methodInstanceReference));
+            return Hash.Combine(
+                (int)_metadataWriter.GetMethodDefOrRefCodedIndex(methodInstanceReference.GetGenericMethod(_metadataWriter.Context)),
+                _metadataWriter.GetMethodInstanceSignatureIndex(methodInstanceReference).GetHashCode());
         }
     }
 }

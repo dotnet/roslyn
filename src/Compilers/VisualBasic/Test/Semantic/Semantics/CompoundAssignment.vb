@@ -90,7 +90,7 @@ End Class
   // Code size        7 (0x7)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  ldind.i4
   IL_0003:  ldc.i4.2
   IL_0004:  add.ovf
@@ -1806,18 +1806,18 @@ Position set for item 'Foo'
             verifier.VerifyIL("Program.Shift",
             <![CDATA[
 {
-  // Code size       34 (0x22)
+  // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarga.s   V_0
-  IL_0002:  dup
-  IL_0003:  constrained. "T"
-  IL_0009:  callvirt   "Function IMoveable.get_Position() As Integer"
-  IL_000e:  ldarga.s   V_0
-  IL_0010:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
-  IL_0015:  add.ovf
-  IL_0016:  constrained. "T"
-  IL_001c:  callvirt   "Sub IMoveable.set_Position(Integer)"
-  IL_0021:  ret
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  constrained. "T"
+  IL_000a:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000f:  ldarga.s   V_0
+  IL_0011:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0016:  add.ovf
+  IL_0017:  constrained. "T"
+  IL_001d:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0022:  ret
 }
 ]]>)
 
@@ -1912,7 +1912,7 @@ Position set for item 'Foo'
   // Code size       32 (0x20)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  dup
+  IL_0001:  ldarg.0
   IL_0002:  constrained. "T"
   IL_0008:  callvirt   "Function IMoveable.get_Position() As Integer"
   IL_000d:  ldarg.0
@@ -2013,21 +2013,21 @@ Position set for item 'Foo'
             verifier.VerifyIL("Program.Shift",
             <![CDATA[
 {
-  // Code size       36 (0x24)
+  // Code size       37 (0x25)
   .maxstack  3
   .locals init (T V_0) //lItem
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
-  IL_0004:  dup
-  IL_0005:  constrained. "T"
-  IL_000b:  callvirt   "Function IMoveable.get_Position() As Integer"
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
-  IL_0017:  add.ovf
-  IL_0018:  constrained. "T"
-  IL_001e:  callvirt   "Sub IMoveable.set_Position(Integer)"
-  IL_0023:  ret
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  constrained. "T"
+  IL_000c:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0018:  add.ovf
+  IL_0019:  constrained. "T"
+  IL_001f:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0024:  ret
 }
 ]]>)
 
@@ -2358,18 +2358,18 @@ Position set for item 'Foo'
             verifier.VerifyIL("Program.Shift",
             <![CDATA[
 {
-  // Code size       34 (0x22)
+  // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarga.s   V_0
-  IL_0002:  dup
-  IL_0003:  constrained. "T"
-  IL_0009:  callvirt   "Function IMoveable.get_Position() As Integer"
-  IL_000e:  ldarga.s   V_0
-  IL_0010:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
-  IL_0015:  add.ovf
-  IL_0016:  constrained. "T"
-  IL_001c:  callvirt   "Sub IMoveable.set_Position(Integer)"
-  IL_0021:  ret
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  constrained. "T"
+  IL_000a:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000f:  ldarga.s   V_0
+  IL_0011:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0016:  add.ovf
+  IL_0017:  constrained. "T"
+  IL_001d:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0022:  ret
 }
 ]]>)
 
@@ -2704,6 +2704,65 @@ False
 ]]>)
         End Sub
 
+        <Fact, WorkItem(4132, "https://github.com/dotnet/roslyn/issues/4132")>
+        Public Sub Issue4132()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Namespace NullableMathRepro
+    Module Program
+        Sub Main()
+            Dim x As Integer? = 0
+            x += 5
+            Console.WriteLine("'x' is {0}", x)
+
+            Dim y As IntHolder? = 0
+            y += 5
+            Console.WriteLine("'y' is {0}", y)
+        End Sub
+    End Module
+
+    Structure IntHolder
+        Private x As Integer
+
+        Public Shared Widening Operator CType(ih As IntHolder) As Integer
+            Console.WriteLine("operator int (IntHolder ih)")
+            Return ih.x
+        End Operator
+
+        Public Shared Widening Operator CType(i As Integer) As IntHolder
+            Console.WriteLine("operator IntHolder(int i)")
+            Return New IntHolder With {.x = i}
+        End Operator
+
+        Public Shared Operator +(x As IntHolder, y As Integer) As Integer
+            Return CInt(x) + y
+        End Operator
+        Public Overrides Function ToString() As String
+            Return x.ToString()
+        End Function
+
+    End Structure
+End Namespace
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+'x' is 5
+operator IntHolder(int i)
+operator int (IntHolder ih)
+operator IntHolder(int i)
+'y' is 5
+]]>)
+        End Sub
+
     End Class
 
 End Namespace
+

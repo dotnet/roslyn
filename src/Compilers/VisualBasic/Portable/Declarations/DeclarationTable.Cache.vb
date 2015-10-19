@@ -1,14 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Partial Class DeclarationTable
@@ -28,9 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Friend ReadOnly NamespaceNames As Lazy(Of ICollection(Of String))
             Friend ReadOnly ReferenceDirectives As Lazy(Of ImmutableArray(Of ReferenceDirective))
 
-            ' Stores diagnostics related to #r directives
-            Friend ReadOnly ReferenceDirectiveDiagnostics As Lazy(Of ImmutableArray(Of Diagnostic))
-
             Public Sub New(table As DeclarationTable)
                 Me.MergedRoot = New Lazy(Of MergedNamespaceDeclaration)(AddressOf table.MergeOlderNamespaces)
 
@@ -40,9 +29,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Me.ReferenceDirectives = New Lazy(Of ImmutableArray(Of ReferenceDirective))(
                     Function() table.SelectManyFromOlderDeclarationsNoEmbedded(Function(r) r.ReferenceDirectives))
-
-                Me.ReferenceDirectiveDiagnostics = New Lazy(Of ImmutableArray(Of Diagnostic))(
-                    Function() table.SelectManyFromOlderDeclarationsNoEmbedded(Function(r) r.ReferenceDirectiveDiagnostics))
             End Sub
         End Class
     End Class

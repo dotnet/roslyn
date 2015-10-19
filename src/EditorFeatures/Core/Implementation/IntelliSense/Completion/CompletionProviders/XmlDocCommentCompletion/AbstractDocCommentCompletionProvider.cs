@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Text;
@@ -11,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders.XmlDocCommentCompletion
 {
-    internal abstract class AbstractDocCommentCompletionProvider : AbstractCompletionProvider, ICustomCommitCompletionProvider
+    internal abstract class AbstractDocCommentCompletionProvider : CompletionListProvider, ICustomCommitCompletionProvider
     {
         private readonly Dictionary<string, string[]> _tagMap =
             new Dictionary<string, string[]>
@@ -42,22 +45,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
                 new[] { "include", "path", "path=\"", "\"" }
             };
 
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        {
+            if (!context.Options.GetOption(CompletionOptions.ShowXmlDocCommentCompletion))
+            {
+                return;
+            }
+
+            var items = await GetItemsWorkerAsync(context.Document, context.Position, context.TriggerInfo, context.CancellationToken).ConfigureAwait(false);
+            if (items != null)
+            {
+                context.AddItems(items);
+            }
+        }
+
+        protected abstract Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken);
+
         protected CompletionItem GetItem(string n, TextSpan span)
         {
             if (_tagMap.ContainsKey(n))
             {
                 var value = _tagMap[n];
-                return new XmlItem(this, span, n, value[0], value[1]);
+                return new XmlDocCommentCompletionItem(this, span, n, value[0], value[1], GetCompletionItemRules());
             }
 
-            return new XmlItem(this, span, n);
+            return new XmlDocCommentCompletionItem(this, span, n, GetCompletionItemRules());
         }
 
         protected IEnumerable<CompletionItem> GetAttributeItem(string n, TextSpan span)
         {
-            var items = _attributeMap.Where(x => x[0] == n).Select(x => new XmlItem(this, span, x[1], x[2], x[3]));
+            var items = _attributeMap.Where(x => x[0] == n).Select(x => new XmlDocCommentCompletionItem(this, span, x[1], x[2], x[3], GetCompletionItemRules()));
 
-            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(new XmlItem(this, span, n));
+            return items.Any() ? items : SpecializedCollections.SingletonEnumerable(new XmlDocCommentCompletionItem(this, span, n, GetCompletionItemRules()));
         }
 
         protected IEnumerable<CompletionItem> GetAlwaysVisibleItems(TextSpan filterSpan)
@@ -97,13 +116,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
 
         public void Commit(CompletionItem completionItem, ITextView textView, ITextBuffer subjectBuffer, ITextSnapshot triggerSnapshot, char? commitChar)
         {
-            var item = (XmlItem)completionItem;
+            var item = (XmlDocCommentCompletionItem)completionItem;
             item.Commit(textView, subjectBuffer, triggerSnapshot, commitChar);
         }
 
-        public override bool IsFilterCharacter(CompletionItem completionItem, char ch, string textTypedSoFar)
-        {
-            return base.IsFilterCharacter(completionItem, ch, textTypedSoFar) || ch == '!' || ch == '-' || ch == '[';
-        }
+        protected abstract AbstractXmlDocCommentCompletionItemRules GetCompletionItemRules();
     }
 }

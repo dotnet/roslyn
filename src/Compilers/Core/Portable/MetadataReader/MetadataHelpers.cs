@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis
                     var pair = enumerator.Current;
 
                     // Simple name of the last encountered child namespace.
-                    string lastChildNamespaceName = string.Empty;
+                    string lastChildNamespaceName = null;
 
                     // A list accumulating information about types within the last encountered child namespace.
                     // The list is similar to the sequence passed to this function.
@@ -1050,16 +1050,17 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Given an input string changes it to be acceptable as a part of a type name.
-        /// For now we will simply replace '.' with '_'as the most common case.
         /// </summary>
         internal static string MangleForTypeNameIfNeeded(string moduleName)
         {
-            // TODO: it may make sense to strengthen this algorithm 
-            //       to result in 1-1 mapping to reduce chances of
-            //       producing matching results for distinct original strings
-            var result = moduleName.Replace('.', '_');
+            var pooledStrBuilder = PooledStringBuilder.GetInstance();
+            var s = pooledStrBuilder.Builder;
+            s.Append(moduleName);
+            s.Replace("Q", "QQ");
+            s.Replace("_", "Q_");
+            s.Replace('.', '_');
 
-            return result;
+            return pooledStrBuilder.ToStringAndFree();
         }
     }
 }

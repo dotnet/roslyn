@@ -8,7 +8,6 @@ using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
@@ -19,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
     public class WinMdDumpTest : CSharpTestBase
     {
         private readonly MetadataReference _windowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
-        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime.AsImmutableOrNull());
-        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_ObjectModel.AsImmutableOrNull());
-        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
-        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime.AsImmutableOrNull());
+        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime.AsImmutableOrNull());
+        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_ObjectModel.AsImmutableOrNull());
+        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
+        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319_17929.System_Runtime_InteropServices_WindowsRuntime.AsImmutableOrNull());
 
         private void AppendMembers(StringBuilder result, NamespaceOrTypeSymbol container, string indent)
         {

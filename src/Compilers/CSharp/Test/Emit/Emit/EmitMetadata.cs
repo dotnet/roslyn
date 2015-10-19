@@ -388,7 +388,7 @@ abstract public class A
                 var method2Ret = (ArrayTypeSymbol)m2.ReturnType;
                 var method3Ret = (ArrayTypeSymbol)m3.ReturnType;
 
-                Assert.Equal(1, method1Ret.Rank);
+                Assert.True(method1Ret.IsSZArray);
                 Assert.Same(classA, method1Ret.ElementType);
                 Assert.Equal(2, method2Ret.Rank);
                 Assert.Same(classA, method2Ret.ElementType);
@@ -1665,7 +1665,6 @@ class C1<C1T1, C1T2>
             CompileAndVerify(source);
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1()
         {
@@ -1684,7 +1683,6 @@ public class E
 ");
         }
 
-        // TODO: this is possible to emit using AppDomain.TypeLoad event workaround, but it's not implemented yet
         [Fact]
         public void RefEmit_UnsupportedOrdering1_EP()
         {
@@ -2146,11 +2144,11 @@ public class Methods
         public unsafe void PEHeaders1()
         {
             var options = EmitOptions.Default.WithFileAlignment(8192);
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular.WithDeterministicFeature());
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
             var peStream = CreateCompilationWithMscorlib(
                 syntax,
-                options: TestOptions.ReleaseDll,
+                options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
 
             peStream.Position = 0;
@@ -2298,8 +2296,7 @@ public class Methods
             var sections = peHeaders.SectionHeaders;
             Assert.Equal(2, sections.Length);
 
-            // TODO: bug in the reader, should return ".text". Fixed in vNext. https://github.com/dotnet/corefx/issues/1805
-            Assert.Equal(".text\0\0\0", sections[0].Name);
+            Assert.Equal(".text", sections[0].Name);
             Assert.Equal(0, sections[0].NumberOfLineNumbers);
             Assert.Equal(0, sections[0].NumberOfRelocations);
             Assert.Equal(0, sections[0].PointerToLineNumbers);
@@ -2310,8 +2307,7 @@ public class Methods
             Assert.Equal(0x2000, sections[0].VirtualAddress);
             Assert.Equal(872, sections[0].VirtualSize);
 
-            // TODO: bug in the reader, should return ".reloc". Fixed in vNext. https://github.com/dotnet/corefx/issues/1805
-            Assert.Equal(".reloc\0\0", sections[1].Name);
+            Assert.Equal(".reloc", sections[1].Name);
             Assert.Equal(0, sections[1].NumberOfLineNumbers);
             Assert.Equal(0, sections[1].NumberOfRelocations);
             Assert.Equal(0, sections[1].PointerToLineNumbers);
@@ -2337,11 +2333,11 @@ public class Methods
                 WithHighEntropyVirtualAddressSpace(true).
                 WithSubsystemVersion(SubsystemVersion.WindowsXP);
 
-            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular.WithDeterministicFeature());
+            var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
 
             var peStream = CreateCompilationWithMscorlib(
                 syntax,
-                options: TestOptions.DebugExe.WithPlatform(Platform.X64),
+                options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);
 
             peStream.Position = 0;
@@ -2438,8 +2434,7 @@ public class Methods
             var sections = peHeaders.SectionHeaders;
             Assert.Equal(1, sections.Length);
 
-            // TODO: bug in the reader, should return ".text". Fixed in vNext. https://github.com/dotnet/corefx/issues/1805
-            Assert.Equal(".text\0\0\0", sections[0].Name);
+            Assert.Equal(".text", sections[0].Name);
             Assert.Equal(0, sections[0].NumberOfLineNumbers);
             Assert.Equal(0, sections[0].NumberOfRelocations);
             Assert.Equal(0, sections[0].PointerToLineNumbers);

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// Then we make a frame, or compiler-generated class, represented by an instance of
     /// <see cref="LambdaFrame"/> for each scope with captured variables.  The generated frames are kept
     /// in <see cref="_frames"/>.  Each frame is given a single field for each captured
-    /// variable in the corresponding scope.  These are are maintained in <see cref="MethodToClassRewriter.proxies"/>.
+    /// variable in the corresponding scope.  These are maintained in <see cref="MethodToClassRewriter.proxies"/>.
     /// 
     /// Finally, we walk and rewrite the input bound tree, keeping track of the following:
     /// (1) The current set of active frame pointers, in <see cref="_framePointers"/>
@@ -312,8 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
                 CompilationState.AddSynthesizedMethod(
                     frame.Constructor,
-                    FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                    frame.Constructor));
+                    FlowAnalysisPass.AppendImplicitReturn(
+                        MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                        frame.Constructor));
             }
 
             return frame;
@@ -344,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     DebugId closureId = default(DebugId);
                     _lazyStaticLambdaFrame = new LambdaFrame(_topLevelMethod, scopeSyntaxOpt: null, methodId: methodId, closureId: closureId);
 
-                    // nongeneric static lambdas can share the frame
+                    // non-generic static lambdas can share the frame
                     if (isNonGeneric)
                     {
                         CompilationState.staticLambdaFrame = _lazyStaticLambdaFrame;
@@ -358,10 +359,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // add its ctor
                     CompilationState.AddSynthesizedMethod(
                         frame.Constructor,
-                        FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                        frame.Constructor));
+                        FlowAnalysisPass.AppendImplicitReturn(
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            frame.Constructor));
 
-                    // associate the frame with the the first lambda that caused it to exist. 
+                    // associate the frame with the first lambda that caused it to exist. 
                     // we need to associate this with some syntax.
                     // unfortunately either containing method or containing class could be synthetic
                     // therefore could have no syntax.
@@ -448,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The translated statement, as returned from F</returns>
         private T IntroduceFrame<T>(BoundNode node, LambdaFrame frame, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, T> F)
         {
-            NamedTypeSymbol frameType = frame.ConstructIfGeneric(StaticCast<TypeSymbol>.From(_currentTypeParameters));
+            NamedTypeSymbol frameType = frame.ConstructIfGeneric(_currentTypeParameters.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
 
             Debug.Assert(frame.ScopeSyntaxOpt != null);
             LocalSymbol framePointer = new SynthesizedLocal(_topLevelMethod, frameType, SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
@@ -758,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If exception variable got lifted, IntroduceFrame will give us frame init prologue.
             // It needs to run before the exception variable is accessed.
-            // To ensure that, we will make exception variable a sequence that performs prologue as its its sideeffects.
+            // To ensure that, we will make exception variable a sequence that performs prologue as its side-effects.
             BoundExpression rewrittenExceptionSource = null;
             var rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
             if (node.ExceptionSourceOpt != null)
@@ -991,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var newType = VisitType(node.Type);
                 var newBody = (BoundBlock)Visit(node.Body);
                 node = node.Update(node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
-                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, Diagnostics);
+                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, RecursionDepth, Diagnostics);
                 _inExpressionLambda = wasInExpressionLambda;
                 return result0;
             }
@@ -1087,7 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
             NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ?
-                translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(_currentTypeParameters)) :
+                translatedLambdaContainer.ConstructIfGeneric(_currentTypeParameters.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)) :
                 translatedLambdaContainer;
 
             // for instance lambdas, receiver is the frame
@@ -1113,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // static lambdas are emitted as instance methods on a singleton receiver
             // delegates invoke dispatch is optimized for instance delegates so 
-            // it is preferrable to emit lambdas as instance methods even when lambdas 
+            // it is preferable to emit lambdas as instance methods even when lambdas 
             // do not capture anything
             BoundExpression result = new BoundDelegateCreationExpression(
                 node.Syntax,
@@ -1147,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Since the cache variable will be in a container with possibly alpha-rewritten generic parameters, we need to
                         // substitute the original type according to the type map for that container. That substituted type may be
                         // different from the local variable `type`, which has the node's type substituted for the current container.
-                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type);
+                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                             // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 

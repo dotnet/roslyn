@@ -278,7 +278,7 @@ namespace Roslyn.Utilities
                 var totalCopyCount = Read(this.chunks, this.position, this.length, buffer, index, count);
                 this.position += totalCopyCount;
 
-                return (int)totalCopyCount;
+                return totalCopyCount;
             }
 
             private static int Read(List<byte[]> chunks, long position, long length, byte[] buffer, int index, int count)

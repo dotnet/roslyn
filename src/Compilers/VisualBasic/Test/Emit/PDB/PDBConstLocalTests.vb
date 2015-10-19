@@ -35,9 +35,9 @@ end class
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19" document="0"/>
-                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="33" document="0"/>
-                <entry offset="0x8" startLine="7" startColumn="5" endLine="7" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="33"/>
+                <entry offset="0x8" startLine="7" startColumn="5" endLine="7" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <namespace name="System" importlevel="file"/>
@@ -85,9 +85,9 @@ end class
                 </encLambdaMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="30" document="0"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="11" endColumn="11" document="0"/>
-                <entry offset="0x2c" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="30"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="11" endColumn="11"/>
+                <entry offset="0x2c" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2d">
                 <namespace name="System" importlevel="file"/>
@@ -97,9 +97,9 @@ end class
         </method>
         <method containingType="C+_Closure$__" name="_Lambda$__1-0">
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="18" document="0"/>
-                <entry offset="0x1" startLine="9" startColumn="17" endLine="9" endColumn="45" document="0"/>
-                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="20" document="0"/>
+                <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="18"/>
+                <entry offset="0x1" startLine="9" startColumn="17" endLine="9" endColumn="45"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="20"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x9">
                 <importsforward declaringType="C" methodName="M" parameterNames="a"/>
@@ -163,8 +163,8 @@ End Class
     <methods>
         <method containingType="C" name="M">
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="12" document="0"/>
-                <entry offset="0x1" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="12"/>
+                <entry offset="0x1" startLine="10" startColumn="5" endLine="10" endColumn="12"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2">
                 <namespace name="System" importlevel="file"/>

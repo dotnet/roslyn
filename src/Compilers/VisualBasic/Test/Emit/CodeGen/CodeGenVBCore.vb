@@ -2807,7 +2807,7 @@ BC31210: module 'VisualBasic' conflicts with a Visual Basic Runtime namespace 'V
 
 </errors>)
 
-            ' Remove the reference to System.XML.Linq and verify compilation behaviour that the 
+            ' Remove the reference to System.XML.Linq and verify compilation behavior that the 
             ' diagnostic is not produced.
             compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
 <compilation>

@@ -20,6 +20,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return RewriteTryStatement(node.Syntax, rewrittenTryBlock, rewrittenCatchBlocks, rewrittenFinally, node.ExitLabelOpt)
         End Function
 
+        ''' <summary>
+        ''' Is there any code to execute in the given statement that could have side-effects,
+        ''' such as throwing an exception? This implementation is conservative, in the sense
+        ''' that it may return true when the statement actually may have no side effects.
+        ''' </summary>
+        Private Shared Function HasSideEffects(statement As BoundStatement) As Boolean
+            If statement Is Nothing Then
+                Return False
+            End If
+
+            Select Case statement.Kind
+                Case BoundKind.NoOpStatement
+                    Return False
+                Case BoundKind.Block
+                    Dim block = DirectCast(statement, BoundBlock)
+                    For Each s In block.Statements
+                        If HasSideEffects(s) Then
+                            Return True
+                        End If
+                    Next
+                    Return False
+                Case BoundKind.SequencePoint
+                    Dim sequence = DirectCast(statement, BoundSequencePoint)
+                    Return HasSideEffects(sequence.StatementOpt)
+                Case BoundKind.SequencePointWithSpan
+                    Dim sequence = DirectCast(statement, BoundSequencePointWithSpan)
+                    Return HasSideEffects(sequence.StatementOpt)
+                Case Else
+                    Return True
+            End Select
+        End Function
+
         Public Function RewriteTryStatement(
             syntaxNode As VisualBasicSyntaxNode,
             tryBlock As BoundBlock,
@@ -27,6 +59,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             finallyBlockOpt As BoundBlock,
             exitLabelOpt As LabelSymbol
         ) As BoundStatement
+            If Not Me.OptimizationLevelIsDebug Then
+                ' When optimizing and the try block has no side effects, we can discard the catch blocks.
+                If Not HasSideEffects(tryBlock) Then
+                    catchBlocks = ImmutableArray(Of BoundCatchBlock).Empty
+                End If
+
+                ' A finally block with no side effects can be omitted.
+                If Not HasSideEffects(finallyBlockOpt) Then
+                    finallyBlockOpt = Nothing
+                End If
+
+                If catchBlocks.IsDefaultOrEmpty AndAlso finallyBlockOpt Is Nothing Then
+                    Return tryBlock
+                End If
+            End If
 
             Dim newTry As BoundStatement = New BoundTryStatement(syntaxNode, tryBlock, catchBlocks, finallyBlockOpt, exitLabelOpt)
 

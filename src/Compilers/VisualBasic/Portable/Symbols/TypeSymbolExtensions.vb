@@ -105,11 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension()>
-        Friend Function IsCharArrayRankOne(type As TypeSymbol) As Boolean
+        Friend Function IsCharSZArray(type As TypeSymbol) As Boolean
             If type.IsArrayType() Then
                 Dim array = DirectCast(type, ArrayTypeSymbol)
 
-                If array.Rank = 1 AndAlso array.ElementType.SpecialType = SpecialType.System_Char Then
+                If array.IsSZArray AndAlso array.ElementType.SpecialType = SpecialType.System_Char Then
                     Return True
                 End If
             End If
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim array1 = DirectCast(t1, ArrayTypeSymbol)
                 Dim array2 = DirectCast(t2, ArrayTypeSymbol)
 
-                Return array1.Rank = array2.Rank AndAlso
+                Return array1.HasSameShapeAs(array2) AndAlso
                        array1.ElementType.IsSameTypeIgnoringCustomModifiers(array2.ElementType)
 
             ElseIf t1.IsAnonymousType AndAlso t2.IsAnonymousType Then
@@ -827,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If type.IsArrayType Then
                 Dim arrayType = DirectCast(type, ArrayTypeSymbol)
-                If arrayType.Rank <> 1 Then
+                If Not arrayType.IsSZArray Then
                     Return False
                 End If
                 type = arrayType.ElementType
@@ -913,7 +913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Check for type arguments equal to type parameters of this type,
             ' but not contained by it ("cross-pollination"). Replace them with 
-            ' this type type parameters.
+            ' this types' type parameters.
             Dim newTypeArguments As TypeSymbol() = Nothing
             Dim i As Integer = 0
             Dim typeArgument As TypeSymbol
@@ -1116,6 +1116,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End While
 
             Return typeArguments
+        End Function
+
+        ''' <summary>
+        ''' Return all of the type arguments and their modifiers in this type and enclosing types,
+        ''' from outer-most to inner-most type.
+        ''' </summary>
+        <Extension>
+        Public Function GetAllTypeArgumentsWithModifiers(type As NamedTypeSymbol) As ImmutableArray(Of TypeWithModifiers)
+            Dim typeArguments = type.TypeArgumentsNoUseSiteDiagnostics
+            Dim typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers
+
+            While True
+                type = type.ContainingType
+                If type Is Nothing Then
+                    Exit While
+                End If
+                typeArguments = type.TypeArgumentsNoUseSiteDiagnostics.Concat(typeArguments)
+                typeArgumentsCustomModifiers = type.TypeArgumentsCustomModifiers.Concat(typeArgumentsCustomModifiers)
+            End While
+
+            Return ImmutableArray.CreateRange(typeArguments.Zip(typeArgumentsCustomModifiers, Function(a, m) New TypeWithModifiers(a, m)))
         End Function
 
         ''' <summary>

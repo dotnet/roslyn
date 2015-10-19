@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestProjectCodeFix()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -55,8 +55,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan).WaitAndGetResult(CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -89,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDifferentLanguageProjectCodeFix()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -119,8 +118,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 ' Verify available diagnostics
                 Dim document = project.Documents.Single()
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan).WaitAndGetResult(CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 

@@ -142,11 +142,9 @@ namespace Microsoft.Cci
         /// <summary>
         /// The method that will be called to start execution of this executable module. 
         /// </summary>
-        IMethodReference EntryPoint
-        {
-            get;
-            // ^ requires this.Kind == ModuleKind.ConsoleApplication || this.Kind == ModuleKind.WindowsApplication;
-        }
+        IMethodReference PEEntryPoint { get; }
+
+        IMethodReference DebugEntryPoint { get; }
 
         /// <summary>
         /// Returns zero or more strings used in the module. If the module is produced by reading in a CLR PE file, then this will be the contents

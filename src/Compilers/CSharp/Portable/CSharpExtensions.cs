@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (items == null)
             {
-                throw new ArgumentNullException("items");
+                throw new ArgumentNullException(nameof(items));
             }
 
             if (list.Count == 0)
@@ -349,6 +349,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csharpTree = tree as CSharpSyntaxTree;
             return csharpTree != null && csharpTree.HasReferenceDirectives;
+        }
+
+        internal static bool HasReferenceOrLoadDirectives(this SyntaxTree tree)
+        {
+            var csharpTree = tree as CSharpSyntaxTree;
+            return csharpTree != null && csharpTree.HasReferenceOrLoadDirectives;
         }
 
         internal static bool IsAnyPreprocessorSymbolDefined(this SyntaxTree tree, ImmutableArray<string> conditionalSymbols)

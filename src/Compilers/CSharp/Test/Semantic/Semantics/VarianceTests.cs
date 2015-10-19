@@ -225,7 +225,7 @@ class Test
                         {
                             var code = (ErrorCode)errors.Single().Code;
                             // UNDONE: which one will be used is predictable, but confirming that the behavior
-                            // exactly matches dev 10 is probably too tedious to be worthwhile
+                            // exactly matches dev10 is probably too tedious to be worthwhile
                             Assert.True(code == ErrorCode.ERR_NoImplicitConvCast || code == ErrorCode.ERR_NoImplicitConv, "Unexpected error code " + code);
                         }
                         else

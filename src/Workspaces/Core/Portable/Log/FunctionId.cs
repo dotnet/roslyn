@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TemporaryStorageServiceFactory_ReadStream,
         TemporaryStorageServiceFactory_WriteStream,
 
-        // currently no one uses these
+        // currently no-one uses these
         SmartTags_RefreshSession,
         SmartTags_SmartTagInitializeFixes,
         SmartTags_ApplyQuickFix,
@@ -304,6 +304,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VirtualMemory_MemoryLow,
         Extension_Exception,
 
-        WorkCoordinator_WaitForHigherPriorityOperationsAsync
+        WorkCoordinator_WaitForHigherPriorityOperationsAsync,
+
+        CSharp_Interactive_Window,
+        VisualBasic_Interactive_Window,
+
+        NonFatalWatson,
+        GlobalOperationRegistration,
     }
 }

@@ -21,12 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (assemblyIdentity == null)
             {
-                throw new ArgumentNullException("assemblyIdentity");
+                throw new ArgumentNullException(nameof(assemblyIdentity));
             }
 
             return new AddMetadataReferenceOperation(projectId, assemblyIdentity);

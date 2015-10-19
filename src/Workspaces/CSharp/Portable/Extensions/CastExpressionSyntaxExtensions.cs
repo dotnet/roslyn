@@ -325,6 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            // A casts to object can always be removed from an expression inside of an interpolation, since it'll be converted to object
+            // in order to call string.Format(...) anyway.
+            if (castType?.SpecialType == SpecialType.System_Object &&
+                cast.WalkUpParentheses().IsParentKind(SyntaxKind.Interpolation))
+            {
+                return true;
+            }
+
             if (speculationAnalyzer.ReplacementChangesSemantics())
             {
                 return false;
@@ -360,9 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // Explicit reference conversions can cause an exception or data loss, hence can never be removed.
                 return false;
             }
-            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric && IsInExplicitCheckedOrUncheckedContext(cast))
+            else if (expressionToCastType.IsExplicit && expressionToCastType.IsNumeric)
             {
-                // Don't remove any explicit numeric casts in explicit checked/unchecked context.
+                // Don't remove any explicit numeric casts.
                 // https://github.com/dotnet/roslyn/issues/2987 tracks improving on this conservative approach.
                 return false;
             }
@@ -451,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         // We should not remove the cast to "float?".
                         // However, cast to "int?" is unnecessary and should be removable.
-                        return expressionToCastType.IsImplicit && !((ITypeSymbol)expressionType).IsNullable();
+                        return expressionToCastType.IsImplicit && !expressionType.IsNullable();
                     }
                     else if (expressionToCastType.IsImplicit && expressionToCastType.IsNumeric && !castToOuterType.IsIdentity)
                     {
@@ -556,27 +564,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 default:
                     return false;
             }
-        }
-
-        private static bool IsInExplicitCheckedOrUncheckedContext(CastExpressionSyntax cast)
-        {
-            SyntaxNode currentNode = cast;
-
-            do
-            {
-                switch (currentNode.Kind())
-                {
-                    case SyntaxKind.UncheckedExpression:
-                    case SyntaxKind.UncheckedStatement:
-                    case SyntaxKind.CheckedExpression:
-                    case SyntaxKind.CheckedStatement:
-                        return true;
-                }
-
-                currentNode = currentNode.Parent;
-            } while (currentNode is ExpressionSyntax || currentNode is StatementSyntax);
-
-            return false;
         }
     }
 }

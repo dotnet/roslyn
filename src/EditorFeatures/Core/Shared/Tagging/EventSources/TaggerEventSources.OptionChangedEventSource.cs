@@ -20,14 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _option = option;
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.OptionChanged;
-                }
-            }
-
             protected override void ConnectToWorkspace(Workspace workspace)
             {
                 _optionService = workspace.Services.GetService<IOptionService>();

@@ -125,8 +125,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int referencedAssemblyIndex,
             ref MetadataTypeName emittedName)
         {
-            AssemblySymbol assembly = moduleSymbol.GetReferencedAssemblySymbols()[referencedAssemblyIndex];
-            return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
+            try
+            {
+                AssemblySymbol assembly = moduleSymbol.GetReferencedAssemblySymbols()[referencedAssemblyIndex];
+                return assembly.LookupTopLevelMetadataType(ref emittedName, digThroughForwardedTypes: true);
+            }
+            catch (Exception e) when (FatalError.Report(e)) // Trying to get more useful Watson dumps.
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <summary>
@@ -505,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            // We're going to use a special decoder that can generate useable symbols for type parameters without full context.
+            // We're going to use a special decoder that can generate usable symbols for type parameters without full context.
             // (We're not just using a different type - we're also changing the type context.)
             var memberRefDecoder = new MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol);
 

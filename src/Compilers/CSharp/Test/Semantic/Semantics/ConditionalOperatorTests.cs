@@ -240,75 +240,72 @@ D");
             // in different branches
             verifier.VerifyIL("Program.Main", @"
 {
-  // Code size      136 (0x88)
-  .maxstack  2
-  .locals init (bool V_0, //testFlag
-                D<Base> V_1, //baseDelegate
-                D<Derived> V_2, //derivedDelegate
-                System.Collections.Generic.IEnumerable<Base> V_3, //baseSequence
-                System.Collections.Generic.List<Derived> V_4, //derivedList
-                D<Base> V_5)
+  // Code size      133 (0x85)
+  .maxstack  3
+  .locals init (D<Base> V_0, //baseDelegate
+                D<Derived> V_1, //derivedDelegate
+                System.Collections.Generic.IEnumerable<Base> V_2, //baseSequence
+                System.Collections.Generic.List<Derived> V_3, //derivedList
+                D<Base> V_4)
   IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""D<Base> Program.<>c.<>9__0_0""
-  IL_0007:  dup
-  IL_0008:  brtrue.s   IL_0021
-  IL_000a:  pop
-  IL_000b:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0010:  ldftn      ""void Program.<>c.<Main>b__0_0()""
-  IL_0016:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
-  IL_001b:  dup
-  IL_001c:  stsfld     ""D<Base> Program.<>c.<>9__0_0""
-  IL_0021:  stloc.1
-  IL_0022:  ldsfld     ""D<Derived> Program.<>c.<>9__0_1""
-  IL_0027:  dup
-  IL_0028:  brtrue.s   IL_0041
-  IL_002a:  pop
-  IL_002b:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0030:  ldftn      ""void Program.<>c.<Main>b__0_1()""
-  IL_0036:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
-  IL_003b:  dup
-  IL_003c:  stsfld     ""D<Derived> Program.<>c.<>9__0_1""
-  IL_0041:  stloc.2
-  IL_0042:  ldloc.0
-  IL_0043:  brtrue.s   IL_004c
-  IL_0045:  ldloc.2
-  IL_0046:  stloc.s    V_5
-  IL_0048:  ldloc.s    V_5
-  IL_004a:  br.s       IL_004d
-  IL_004c:  ldloc.1
-  IL_004d:  callvirt   ""void D<Base>.Invoke()""
-  IL_0052:  ldloc.0
-  IL_0053:  brtrue.s   IL_0058
-  IL_0055:  ldloc.1
-  IL_0056:  br.s       IL_005d
-  IL_0058:  ldloc.2
-  IL_0059:  stloc.s    V_5
-  IL_005b:  ldloc.s    V_5
-  IL_005d:  callvirt   ""void D<Base>.Invoke()""
-  IL_0062:  ldloc.1
-  IL_0063:  dup
-  IL_0064:  brtrue.s   IL_006c
-  IL_0066:  pop
-  IL_0067:  ldloc.2
-  IL_0068:  stloc.s    V_5
-  IL_006a:  ldloc.s    V_5
-  IL_006c:  callvirt   ""void D<Base>.Invoke()""
-  IL_0071:  ldloc.2
-  IL_0072:  stloc.s    V_5
-  IL_0074:  ldloc.s    V_5
-  IL_0076:  dup
-  IL_0077:  brtrue.s   IL_007b
-  IL_0079:  pop
-  IL_007a:  ldloc.1
-  IL_007b:  callvirt   ""void D<Base>.Invoke()""
-  IL_0080:  ldnull
-  IL_0081:  stloc.3
-  IL_0082:  ldnull
-  IL_0083:  stloc.s    V_4
-  IL_0085:  ldloc.0
-  IL_0086:  pop
-  IL_0087:  ret
+  IL_0001:  ldsfld     ""D<Base> Program.<>c.<>9__0_0""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0020
+  IL_0009:  pop
+  IL_000a:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000f:  ldftn      ""void Program.<>c.<Main>b__0_0()""
+  IL_0015:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""D<Base> Program.<>c.<>9__0_0""
+  IL_0020:  stloc.0
+  IL_0021:  ldsfld     ""D<Derived> Program.<>c.<>9__0_1""
+  IL_0026:  dup
+  IL_0027:  brtrue.s   IL_0040
+  IL_0029:  pop
+  IL_002a:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_002f:  ldftn      ""void Program.<>c.<Main>b__0_1()""
+  IL_0035:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
+  IL_003a:  dup
+  IL_003b:  stsfld     ""D<Derived> Program.<>c.<>9__0_1""
+  IL_0040:  stloc.1
+  IL_0041:  dup
+  IL_0042:  brtrue.s   IL_004b
+  IL_0044:  ldloc.1
+  IL_0045:  stloc.s    V_4
+  IL_0047:  ldloc.s    V_4
+  IL_0049:  br.s       IL_004c
+  IL_004b:  ldloc.0
+  IL_004c:  callvirt   ""void D<Base>.Invoke()""
+  IL_0051:  dup
+  IL_0052:  brtrue.s   IL_0057
+  IL_0054:  ldloc.0
+  IL_0055:  br.s       IL_005c
+  IL_0057:  ldloc.1
+  IL_0058:  stloc.s    V_4
+  IL_005a:  ldloc.s    V_4
+  IL_005c:  callvirt   ""void D<Base>.Invoke()""
+  IL_0061:  ldloc.0
+  IL_0062:  dup
+  IL_0063:  brtrue.s   IL_006b
+  IL_0065:  pop
+  IL_0066:  ldloc.1
+  IL_0067:  stloc.s    V_4
+  IL_0069:  ldloc.s    V_4
+  IL_006b:  callvirt   ""void D<Base>.Invoke()""
+  IL_0070:  ldloc.1
+  IL_0071:  stloc.s    V_4
+  IL_0073:  ldloc.s    V_4
+  IL_0075:  dup
+  IL_0076:  brtrue.s   IL_007a
+  IL_0078:  pop
+  IL_0079:  ldloc.0
+  IL_007a:  callvirt   ""void D<Base>.Invoke()""
+  IL_007f:  ldnull
+  IL_0080:  stloc.2
+  IL_0081:  ldnull
+  IL_0082:  stloc.3
+  IL_0083:  pop
+  IL_0084:  ret
 }");
         }
 
@@ -352,67 +349,64 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
             verifier.VerifyIL("Program.Main", @"
 {
-  // Code size      121 (0x79)
-  .maxstack  2
-  .locals init (bool V_0, //testFlag
-                D<Base> V_1, //baseDelegate
-                D<Derived> V_2, //derivedDelegate
-                D<Derived> V_3)
+  // Code size      119 (0x77)
+  .maxstack  3
+  .locals init (D<Base> V_0, //baseDelegate
+                D<Derived> V_1, //derivedDelegate
+                D<Derived> V_2)
   IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""D<Base> Program.<>c.<>9__0_0""
-  IL_0007:  dup
-  IL_0008:  brtrue.s   IL_0021
-  IL_000a:  pop
-  IL_000b:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0010:  ldftn      ""void Program.<>c.<Main>b__0_0()""
-  IL_0016:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
-  IL_001b:  dup
-  IL_001c:  stsfld     ""D<Base> Program.<>c.<>9__0_0""
-  IL_0021:  stloc.1
-  IL_0022:  ldsfld     ""D<Derived> Program.<>c.<>9__0_1""
-  IL_0027:  dup
-  IL_0028:  brtrue.s   IL_0041
-  IL_002a:  pop
-  IL_002b:  ldsfld     ""Program.<>c Program.<>c.<>9""
-  IL_0030:  ldftn      ""void Program.<>c.<Main>b__0_1()""
-  IL_0036:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
-  IL_003b:  dup
-  IL_003c:  stsfld     ""D<Derived> Program.<>c.<>9__0_1""
-  IL_0041:  stloc.2
-  IL_0042:  ldloc.0
-  IL_0043:  brtrue.s   IL_0048
-  IL_0045:  ldloc.2
-  IL_0046:  br.s       IL_004b
-  IL_0048:  ldloc.1
-  IL_0049:  stloc.3
-  IL_004a:  ldloc.3
-  IL_004b:  callvirt   ""void D<Derived>.Invoke()""
-  IL_0050:  ldloc.0
-  IL_0051:  brtrue.s   IL_0058
-  IL_0053:  ldloc.1
-  IL_0054:  stloc.3
-  IL_0055:  ldloc.3
-  IL_0056:  br.s       IL_0059
-  IL_0058:  ldloc.2
-  IL_0059:  callvirt   ""void D<Derived>.Invoke()""
-  IL_005e:  ldloc.1
-  IL_005f:  stloc.3
-  IL_0060:  ldloc.3
-  IL_0061:  dup
-  IL_0062:  brtrue.s   IL_0066
-  IL_0064:  pop
-  IL_0065:  ldloc.2
-  IL_0066:  callvirt   ""void D<Derived>.Invoke()""
-  IL_006b:  ldloc.2
-  IL_006c:  dup
-  IL_006d:  brtrue.s   IL_0073
-  IL_006f:  pop
-  IL_0070:  ldloc.1
-  IL_0071:  stloc.3
-  IL_0072:  ldloc.3
-  IL_0073:  callvirt   ""void D<Derived>.Invoke()""
-  IL_0078:  ret
+  IL_0001:  ldsfld     ""D<Base> Program.<>c.<>9__0_0""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0020
+  IL_0009:  pop
+  IL_000a:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_000f:  ldftn      ""void Program.<>c.<Main>b__0_0()""
+  IL_0015:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""D<Base> Program.<>c.<>9__0_0""
+  IL_0020:  stloc.0
+  IL_0021:  ldsfld     ""D<Derived> Program.<>c.<>9__0_1""
+  IL_0026:  dup
+  IL_0027:  brtrue.s   IL_0040
+  IL_0029:  pop
+  IL_002a:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_002f:  ldftn      ""void Program.<>c.<Main>b__0_1()""
+  IL_0035:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
+  IL_003a:  dup
+  IL_003b:  stsfld     ""D<Derived> Program.<>c.<>9__0_1""
+  IL_0040:  stloc.1
+  IL_0041:  dup
+  IL_0042:  brtrue.s   IL_0047
+  IL_0044:  ldloc.1
+  IL_0045:  br.s       IL_004a
+  IL_0047:  ldloc.0
+  IL_0048:  stloc.2
+  IL_0049:  ldloc.2
+  IL_004a:  callvirt   ""void D<Derived>.Invoke()""
+  IL_004f:  brtrue.s   IL_0056
+  IL_0051:  ldloc.0
+  IL_0052:  stloc.2
+  IL_0053:  ldloc.2
+  IL_0054:  br.s       IL_0057
+  IL_0056:  ldloc.1
+  IL_0057:  callvirt   ""void D<Derived>.Invoke()""
+  IL_005c:  ldloc.0
+  IL_005d:  stloc.2
+  IL_005e:  ldloc.2
+  IL_005f:  dup
+  IL_0060:  brtrue.s   IL_0064
+  IL_0062:  pop
+  IL_0063:  ldloc.1
+  IL_0064:  callvirt   ""void D<Derived>.Invoke()""
+  IL_0069:  ldloc.1
+  IL_006a:  dup
+  IL_006b:  brtrue.s   IL_0071
+  IL_006d:  pop
+  IL_006e:  ldloc.0
+  IL_006f:  stloc.2
+  IL_0070:  ldloc.2
+  IL_0071:  callvirt   ""void D<Derived>.Invoke()""
+  IL_0076:  ret
 }");
         }
 
@@ -458,59 +452,56 @@ class Program
 ";
             string expectedIL = @"
 {
-  // Code size      109 (0x6d)
+  // Code size      107 (0x6b)
   .maxstack  2
-  .locals init (bool V_0, //testFlag
-  I<Base> V_1, //baseInstance
-  I<Derived> V_2, //derivedInstance
-  I<Base> V_3)
+  .locals init (I<Base> V_0, //baseInstance
+                I<Derived> V_1, //derivedInstance
+                I<Base> V_2)
   IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  newobj     ""B..ctor()""
-  IL_0007:  stloc.1
-  IL_0008:  newobj     ""D..ctor()""
-  IL_000d:  stloc.2
-  IL_000e:  ldloc.0
-  IL_000f:  brtrue.s   IL_0016
-  IL_0011:  ldloc.2
-  IL_0012:  stloc.3
-  IL_0013:  ldloc.3
-  IL_0014:  br.s       IL_0017
-  IL_0016:  ldloc.1
-  IL_0017:  callvirt   ""System.Type object.GetType()""
-  IL_001c:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0021:  call       ""void System.Console.Write(string)""
-  IL_0026:  ldloc.0
-  IL_0027:  brtrue.s   IL_002c
-  IL_0029:  ldloc.1
-  IL_002a:  br.s       IL_002f
+  IL_0001:  newobj     ""B..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  newobj     ""D..ctor()""
+  IL_000c:  stloc.1
+  IL_000d:  dup
+  IL_000e:  brtrue.s   IL_0015
+  IL_0010:  ldloc.1
+  IL_0011:  stloc.2
+  IL_0012:  ldloc.2
+  IL_0013:  br.s       IL_0016
+  IL_0015:  ldloc.0
+  IL_0016:  callvirt   ""System.Type object.GetType()""
+  IL_001b:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_0020:  call       ""void System.Console.Write(string)""
+  IL_0025:  brtrue.s   IL_002a
+  IL_0027:  ldloc.0
+  IL_0028:  br.s       IL_002d
+  IL_002a:  ldloc.1
+  IL_002b:  stloc.2
   IL_002c:  ldloc.2
-  IL_002d:  stloc.3
-  IL_002e:  ldloc.3
-  IL_002f:  callvirt   ""System.Type object.GetType()""
-  IL_0034:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0039:  call       ""void System.Console.Write(string)""
-  IL_003e:  ldloc.1
-  IL_003f:  dup
-  IL_0040:  brtrue.s   IL_0046
-  IL_0042:  pop
+  IL_002d:  callvirt   ""System.Type object.GetType()""
+  IL_0032:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_0037:  call       ""void System.Console.Write(string)""
+  IL_003c:  ldloc.0
+  IL_003d:  dup
+  IL_003e:  brtrue.s   IL_0044
+  IL_0040:  pop
+  IL_0041:  ldloc.1
+  IL_0042:  stloc.2
   IL_0043:  ldloc.2
-  IL_0044:  stloc.3
-  IL_0045:  ldloc.3
-  IL_0046:  callvirt   ""System.Type object.GetType()""
-  IL_004b:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0050:  call       ""void System.Console.Write(string)""
+  IL_0044:  callvirt   ""System.Type object.GetType()""
+  IL_0049:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_004e:  call       ""void System.Console.Write(string)""
+  IL_0053:  ldloc.1
+  IL_0054:  stloc.2
   IL_0055:  ldloc.2
-  IL_0056:  stloc.3
-  IL_0057:  ldloc.3
-  IL_0058:  dup
-  IL_0059:  brtrue.s   IL_005d
-  IL_005b:  pop
-  IL_005c:  ldloc.1
-  IL_005d:  callvirt   ""System.Type object.GetType()""
-  IL_0062:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0067:  call       ""void System.Console.Write(string)""
-  IL_006c:  ret
+  IL_0056:  dup
+  IL_0057:  brtrue.s   IL_005b
+  IL_0059:  pop
+  IL_005a:  ldloc.0
+  IL_005b:  callvirt   ""System.Type object.GetType()""
+  IL_0060:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_0065:  call       ""void System.Console.Write(string)""
+  IL_006a:  ret
 }
 ";
 
@@ -560,59 +551,56 @@ class Program
 ";
             string expectedIL = @"
 {
-  // Code size      109 (0x6d)
+  // Code size      107 (0x6b)
   .maxstack  2
-  .locals init (bool V_0, //testFlag
-  I<Base> V_1, //baseInstance
-  I<Derived> V_2, //derivedInstance
-  I<Derived> V_3)
+  .locals init (I<Base> V_0, //baseInstance
+                I<Derived> V_1, //derivedInstance
+                I<Derived> V_2)
   IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  newobj     ""B..ctor()""
-  IL_0007:  stloc.1
-  IL_0008:  newobj     ""D..ctor()""
-  IL_000d:  stloc.2
-  IL_000e:  ldloc.0
-  IL_000f:  brtrue.s   IL_0014
-  IL_0011:  ldloc.2
-  IL_0012:  br.s       IL_0017
-  IL_0014:  ldloc.1
-  IL_0015:  stloc.3
-  IL_0016:  ldloc.3
-  IL_0017:  callvirt   ""System.Type object.GetType()""
-  IL_001c:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0021:  call       ""void System.Console.Write(string)""
-  IL_0026:  ldloc.0
-  IL_0027:  brtrue.s   IL_002e
-  IL_0029:  ldloc.1
-  IL_002a:  stloc.3
-  IL_002b:  ldloc.3
-  IL_002c:  br.s       IL_002f
-  IL_002e:  ldloc.2
-  IL_002f:  callvirt   ""System.Type object.GetType()""
-  IL_0034:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0039:  call       ""void System.Console.Write(string)""
-  IL_003e:  ldloc.1
-  IL_003f:  stloc.3
-  IL_0040:  ldloc.3
-  IL_0041:  dup
-  IL_0042:  brtrue.s   IL_0046
-  IL_0044:  pop
-  IL_0045:  ldloc.2
-  IL_0046:  callvirt   ""System.Type object.GetType()""
-  IL_004b:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0050:  call       ""void System.Console.Write(string)""
-  IL_0055:  ldloc.2
-  IL_0056:  dup
-  IL_0057:  brtrue.s   IL_005d
-  IL_0059:  pop
-  IL_005a:  ldloc.1
-  IL_005b:  stloc.3
-  IL_005c:  ldloc.3
-  IL_005d:  callvirt   ""System.Type object.GetType()""
-  IL_0062:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
-  IL_0067:  call       ""void System.Console.Write(string)""
-  IL_006c:  ret
+  IL_0001:  newobj     ""B..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  newobj     ""D..ctor()""
+  IL_000c:  stloc.1
+  IL_000d:  dup
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldloc.1
+  IL_0011:  br.s       IL_0016
+  IL_0013:  ldloc.0
+  IL_0014:  stloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  callvirt   ""System.Type object.GetType()""
+  IL_001b:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_0020:  call       ""void System.Console.Write(string)""
+  IL_0025:  brtrue.s   IL_002c
+  IL_0027:  ldloc.0
+  IL_0028:  stloc.2
+  IL_0029:  ldloc.2
+  IL_002a:  br.s       IL_002d
+  IL_002c:  ldloc.1
+  IL_002d:  callvirt   ""System.Type object.GetType()""
+  IL_0032:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_0037:  call       ""void System.Console.Write(string)""
+  IL_003c:  ldloc.0
+  IL_003d:  stloc.2
+  IL_003e:  ldloc.2
+  IL_003f:  dup
+  IL_0040:  brtrue.s   IL_0044
+  IL_0042:  pop
+  IL_0043:  ldloc.1
+  IL_0044:  callvirt   ""System.Type object.GetType()""
+  IL_0049:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_004e:  call       ""void System.Console.Write(string)""
+  IL_0053:  ldloc.1
+  IL_0054:  dup
+  IL_0055:  brtrue.s   IL_005b
+  IL_0057:  pop
+  IL_0058:  ldloc.0
+  IL_0059:  stloc.2
+  IL_005a:  ldloc.2
+  IL_005b:  callvirt   ""System.Type object.GetType()""
+  IL_0060:  callvirt   ""string System.Reflection.MemberInfo.Name.get""
+  IL_0065:  call       ""void System.Console.Write(string)""
+  IL_006a:  ret
 }
 ";
 
@@ -1247,6 +1235,222 @@ interface I<in T, out U> {{ }}";
                     Assert.Equal(expectedType, model.GetTypeInfo(conditionalExpr.WhenFalse).ConvertedType.ToTestDisplayString()); //in parent to catch conversion
                 }
             }
+        }
+
+
+        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        public void ConditionalAccessToEvent_01()
+        {
+            string source = @"
+using System;
+
+class TestClass
+{
+    event Action test;
+
+    public static void Test(TestClass receiver)
+    {
+        Console.WriteLine(receiver?.test);
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(""----"");
+        Test(null);
+        Console.WriteLine(""----"");
+        Test(new TestClass() {test = Main});
+        Console.WriteLine(""----"");
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: 
+@"----
+
+----
+System.Action
+----");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
+
+            Assert.Equal(".test", memberBinding.ToString());
+            Assert.Equal("receiver?.test", access.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(access).Symbol);
+        }
+
+        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        public void ConditionalAccessToEvent_02()
+        {
+            string source = @"
+using System;
+
+class TestClass
+{
+    event Action test;
+
+    public static void Test(TestClass receiver)
+    {
+        receiver?.test();
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(""----"");
+        Test(null);
+        Console.WriteLine(""----"");
+        Test(new TestClass() {test = Target});
+        Console.WriteLine(""----"");
+    }
+
+    static void Target()
+    {
+        Console.WriteLine(""Target"");
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"----
+----
+Target
+----");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            var invocation = (InvocationExpressionSyntax)memberBinding.Parent;
+            var access = (ConditionalAccessExpressionSyntax)invocation.Parent;
+
+            Assert.Equal(".test", memberBinding.ToString());
+            Assert.Equal(".test()", invocation.ToString());
+            Assert.Equal("receiver?.test()", access.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
+            Assert.Equal("void System.Action.Invoke()", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(access).Symbol);
+        }
+
+        [Fact, WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")]
+        public void ConditionalAccessToEvent_03()
+        {
+            string source = @"
+using System;
+
+class TestClass
+{
+    event Action test;
+
+    public static void Test(TestClass receiver)
+    {
+        receiver?.test += Main;
+    }
+
+    static void Main()
+    {
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            compilation.VerifyDiagnostics(
+    // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+    //         receiver?.test += Main;
+    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "receiver?.test").WithLocation(10, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var memberBinding = tree.GetRoot().DescendantNodes().OfType<MemberBindingExpressionSyntax>().Single();
+            var access = (ConditionalAccessExpressionSyntax)memberBinding.Parent;
+
+            Assert.Equal(".test", memberBinding.ToString());
+            Assert.Equal("receiver?.test", access.ToString());
+
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding).Symbol.ToTestDisplayString());
+            Assert.Equal("event System.Action TestClass.test", model.GetSymbolInfo(memberBinding.Name).Symbol.ToTestDisplayString());
+
+            Assert.Null(model.GetSymbolInfo(access).Symbol);
+        }
+
+        [Fact(), WorkItem(4615, "https://github.com/dotnet/roslyn/issues/4615")]
+        public void ConditionalAndConditionalMethods()
+        {
+            string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        TestClass.Create().Test();
+        TestClass.Create().Self().Test();
+        System.Console.WriteLine(""---"");
+        TestClass.Create()?.Test();
+        TestClass.Create()?.Self().Test();
+        TestClass.Create()?.Self()?.Test();
+     }
+}
+
+class TestClass
+{
+    [System.Diagnostics.Conditional(""DEBUG"")]
+    public void Test() 
+    { 
+        System.Console.WriteLine(""Test"");
+    }
+
+    public static TestClass Create()
+    {
+        System.Console.WriteLine(""Create"");
+        return new TestClass();
+    }
+
+    public TestClass Self()
+    {
+        System.Console.WriteLine(""Self"");
+        return this;
+    }
+}
+";
+            
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe,
+                                                            parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
+
+            CompileAndVerify(compilation, expectedOutput:
+@"Create
+Test
+Create
+Self
+Test
+---
+Create
+Test
+Create
+Self
+Test
+Create
+Self
+Test
+");
+
+            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput:"---");
         }
     }
 }

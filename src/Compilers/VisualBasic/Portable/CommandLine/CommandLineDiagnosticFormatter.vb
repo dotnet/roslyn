@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Add "vbc : " command line prefix to the start of the command line diagnostics which do not have a location to match the 
-                ' behaviour of native compiler.    This allows MSBuild output to be consistent whether Roslyn is installed or not.      
+                ' behavior of native compiler.    This allows MSBuild output to be consistent whether Roslyn is installed or not.      
                 Return VisualBasicCompiler.VbcCommandLinePrefix &
                     MyBase.Format(diagnostic, formatter)
             End If

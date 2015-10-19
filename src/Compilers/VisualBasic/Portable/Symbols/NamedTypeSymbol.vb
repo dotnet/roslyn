@@ -48,6 +48,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        ''' <summary>
+        ''' Returns custom modifiers for the type arguments that have been substituted for the type parameters. 
+        ''' </summary>
+        Friend MustOverride ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+
+        Friend Function CreateEmptyTypeArgumentsCustomModifiers() As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Dim arity = Me.Arity
+
+            If arity > 0 Then
+                Return CreateEmptyTypeArgumentsCustomModifiers(arity)
+            Else
+                Return ImmutableArray(Of ImmutableArray(Of CustomModifier)).Empty
+            End If
+        End Function
+
+        Friend Shared Function CreateEmptyTypeArgumentsCustomModifiers(arity As Integer) As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Debug.Assert(arity > 0)
+            Return ArrayBuilder(Of ImmutableArray(Of CustomModifier)).GetInstance(arity, ImmutableArray(Of CustomModifier).Empty).ToImmutableAndFree()
+        End Function
+
+        Friend MustOverride ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+
         Friend MustOverride ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
         Friend Function TypeArgumentsWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
@@ -189,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' For delegate types, gets the delegate's invoke method.  Returns null on
-        ''' all other kinds of types.  Note that is is possible to have an ill-formed 
+        ''' all other kinds of types.  Note that it is possible to have an ill-formed 
         ''' delegate type imported from metadata which does not have an Invoke method.
         ''' Such a type will be classified as a delegate but its DelegateInvokeMethod
         ''' would be null.
@@ -482,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Validate the map for use of alpha-renamed type parameters.
             substitution.ThrowIfSubstitutingToAlphaRenamedTypeParameter()
 
-            Return DirectCast(InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+            Return DirectCast(InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
         End Function
 
         ''' <summary>
@@ -530,11 +552,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns true if the type is a submission class. 
         ''' </summary>
-        Public Overridable ReadOnly Property IsSubmissionClass As Boolean
+        Public ReadOnly Property IsSubmissionClass As Boolean
             Get
-                Return False
+                Return TypeKind = TypeKind.Submission
             End Get
         End Property
+
+        Friend Function GetScriptConstructor() As SynthesizedConstructorBase
+            Debug.Assert(IsScriptClass)
+            Return DirectCast(InstanceConstructors.Single(), SynthesizedConstructorBase)
+        End Function
+
+        Friend Function GetScriptInitializer() As SynthesizedInteractiveInitializerMethod
+            Debug.Assert(IsScriptClass)
+            Return DirectCast(GetMembers(SynthesizedInteractiveInitializerMethod.InitializerName).Single(), SynthesizedInteractiveInitializerMethod)
+        End Function
+
+        Friend Function GetScriptEntryPoint() As SynthesizedEntryPointSymbol
+            Debug.Assert(IsScriptClass)
+            Dim name = If(TypeKind = TypeKind.Submission, SynthesizedEntryPointSymbol.FactoryName, SynthesizedEntryPointSymbol.MainName)
+            Return DirectCast(GetMembers(name).Single(), SynthesizedEntryPointSymbol)
+        End Function
 
         ''' <summary>
         ''' Returns true if the type is the implicit class that holds onto invalid global members (like methods or
@@ -974,6 +1012,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
             Next
+
+            If Me.HasTypeArgumentsCustomModifiers Then
+                Dim modifiersErrorInfo As DiagnosticInfo = Nothing
+
+                For Each modifiers In Me.TypeArgumentsCustomModifiers
+                    modifiersErrorInfo = MergeUseSiteErrorInfo(modifiersErrorInfo, DeriveUseSiteErrorInfoFromCustomModifiers(modifiers))
+                Next
+
+                Return MergeUseSiteErrorInfo(argsErrorInfo, modifiersErrorInfo)
+            End If
 
             Return argsErrorInfo
         End Function

@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = argument.HasAnyErrors;
 
-            TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
+            TypeSymbol typedReferenceType = GetSpecialType(SpecialType.System_TypedReference, diagnostics, node);
 
             if ((object)argument.Type != null && argument.Type.IsRestrictedType())
             {
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
-                    return new BoundPreviousSubmissionReference(syntax, currentType, memberDeclaringType) { WasCompilerGenerated = true };
+                    return new BoundPreviousSubmissionReference(syntax, memberDeclaringType) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -2079,7 +2079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
-            var arrayType = new ArrayTypeSymbol(Compilation.Assembly, bestType, ImmutableArray<CustomModifier>.Empty, rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, ImmutableArray<CustomModifier>.Empty, rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
@@ -4753,7 +4753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArguments,
                         boundLeft,
                         rightName,
-                        ImmutableArray<MethodSymbol>.Empty,
+                        lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
                         lookupResult,
                         flags);
                 }
@@ -5099,9 +5099,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // be inferred. (In the case of nameof(o.M) or the error case of o.M = null; for instance.)
                 if (analyzedArguments == null)
                 {
-                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                    if (expression == EnclosingNameofArgument)
                     {
-                        if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                        for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                        {
+                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                        }
                     }
 
                     if (methodGroup.Methods.Count != 0)
@@ -5676,7 +5679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int rank = arrayType.Rank;
 
-            if (arguments.Arguments.Count != arrayType.Rank)
+            if (arguments.Arguments.Count != rank)
             {
                 Error(diagnostics, ErrorCode.ERR_BadIndexCount, node, rank);
                 return new BoundArrayAccess(node, expr, BuildArgumentsForErrorRecovery(arguments), arrayType.ElementType, hasErrors: true);

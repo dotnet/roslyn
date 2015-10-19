@@ -13,14 +13,16 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Traits = Microsoft.CodeAnalysis.Test.Utilities.Traits;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public class DiagnosticStateTests
     {
-        [Fact, Trait(Roslyn.Test.Utilities.Traits.Feature, Roslyn.Test.Utilities.Traits.Features.Diagnostics)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void SerializationTest_Document()
         {
             using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind: "DiagnosticTest"))
@@ -36,20 +38,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         "test1", "Test", "test1 message", "test1 message format",
                         DiagnosticSeverity.Info, DiagnosticSeverity.Info, false, 1,
                         ImmutableArray<string>.Empty, ImmutableDictionary<string, string>.Empty,
-                        workspace, document.Project.Id, document.Id,
-                        new TextSpan(10, 20), "mappedFile1", 10, 10, 20, 20, "originalFile1", 30, 30, 40, 40),
+                        workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
+                            new TextSpan(10, 20), "originalFile1", 30, 30, 40, 40, "mappedFile1", 10, 10, 20, 20)),
                     new DiagnosticData(
                         "test2", "Test", "test2 message", "test2 message format",
                         DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 0,
                         ImmutableArray.Create<string>("Test2"), ImmutableDictionary<string, string>.Empty.Add("propertyKey", "propertyValue"),
-                        workspace, document.Project.Id, document.Id,
-                        new TextSpan(30, 40), "mappedFile2", 50, 50, 60, 60, "originalFile2", 70, 70, 80, 80, title: "test2 title", description: "test2 description", helpLink: "http://test2link"),
+                        workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
+                            new TextSpan(30, 40), "originalFile2", 70, 70, 80, 80, "mappedFile2", 50, 50, 60, 60), title: "test2 title", description: "test2 description", helpLink: "http://test2link"),
                     new DiagnosticData(
                         "test3", "Test", "test3 message", "test3 message format",
                         DiagnosticSeverity.Error, DiagnosticSeverity.Warning, true, 2,
                         ImmutableArray.Create<string>("Test3", "Test3_2"), ImmutableDictionary<string, string>.Empty.Add("p1Key", "p1Value").Add("p2Key", "p2Value"),
-                        workspace, document.Project.Id, document.Id,
-                        new TextSpan(50, 60), "mappedFile3", 90, 90, 100, 100, "originalFile3", 110, 110, 120, 120, title: "test3 title", description: "test3 description", helpLink: "http://test3link"),
+                        workspace, document.Project.Id, new DiagnosticDataLocation(document.Id,
+                            new TextSpan(50, 60), "originalFile3", 110, 110, 120, 120, "mappedFile3", 90, 90, 100, 100), title: "test3 title", description: "test3 description", helpLink: "http://test3link"),
                 };
 
                 var original = new DiagnosticIncrementalAnalyzer.AnalysisData(version1, version2, diagnostics.ToImmutableArray());
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact, Trait(Roslyn.Test.Utilities.Traits.Feature, Roslyn.Test.Utilities.Traits.Features.Diagnostics)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void SerializationTest_Project()
         {
             using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, workspaceKind: "DiagnosticTest"))
@@ -141,17 +143,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     Assert.Equal(items1[i].TextSpan, items2[i].TextSpan);
                 }
 
-                Assert.Equal(items1[i].MappedFilePath, items2[i].MappedFilePath);
-                Assert.Equal(items1[i].MappedStartLine, items2[i].MappedStartLine);
-                Assert.Equal(items1[i].MappedStartColumn, items2[i].MappedStartColumn);
-                Assert.Equal(items1[i].MappedEndLine, items2[i].MappedEndLine);
-                Assert.Equal(items1[i].MappedEndColumn, items2[i].MappedEndColumn);
+                Assert.Equal(items1[i].DataLocation?.MappedFilePath, items2[i].DataLocation?.MappedFilePath);
+                Assert.Equal(items1[i].DataLocation?.MappedStartLine, items2[i].DataLocation?.MappedStartLine);
+                Assert.Equal(items1[i].DataLocation?.MappedStartColumn, items2[i].DataLocation?.MappedStartColumn);
+                Assert.Equal(items1[i].DataLocation?.MappedEndLine, items2[i].DataLocation?.MappedEndLine);
+                Assert.Equal(items1[i].DataLocation?.MappedEndColumn, items2[i].DataLocation?.MappedEndColumn);
 
-                Assert.Equal(items1[i].OriginalFilePath, items2[i].OriginalFilePath);
-                Assert.Equal(items1[i].OriginalStartLine, items2[i].OriginalStartLine);
-                Assert.Equal(items1[i].OriginalStartColumn, items2[i].OriginalStartColumn);
-                Assert.Equal(items1[i].OriginalEndLine, items2[i].OriginalEndLine);
-                Assert.Equal(items1[i].OriginalEndColumn, items2[i].OriginalEndColumn);
+                Assert.Equal(items1[i].DataLocation?.OriginalFilePath, items2[i].DataLocation?.OriginalFilePath);
+                Assert.Equal(items1[i].DataLocation?.OriginalStartLine, items2[i].DataLocation?.OriginalStartLine);
+                Assert.Equal(items1[i].DataLocation?.OriginalStartColumn, items2[i].DataLocation?.OriginalStartColumn);
+                Assert.Equal(items1[i].DataLocation?.OriginalEndLine, items2[i].DataLocation?.OriginalEndLine);
+                Assert.Equal(items1[i].DataLocation?.OriginalEndColumn, items2[i].DataLocation?.OriginalEndColumn);
 
                 Assert.Equal(items1[i].Description, items2[i].Description);
                 Assert.Equal(items1[i].HelpLink, items2[i].HelpLink);

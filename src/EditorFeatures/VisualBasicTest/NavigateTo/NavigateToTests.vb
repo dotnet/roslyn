@@ -35,14 +35,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             Return workspace
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub NoItemsForEmptyFile()
             Using worker = SetupWorkspace()
                 Assert.Empty(_aggregator.GetItems("Hello"))
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindClass()
             Using worker = SetupWorkspace("Class Foo", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindVerbatimClass()
             Using worker = SetupWorkspace("Class [Class]", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindNestedClass()
             Using worker = SetupWorkspace("Class Alpha", "Class Beta", "Class Gamma", "End Class", "End Class", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindMemberInANestedClass()
             Using worker = SetupWorkspace("Class Alpha", "Class Beta", "Class Gamma", "Sub DoSomething()", "End Sub", "End Class", "End Class", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindGenericConstrainedClass()
             Using worker = SetupWorkspace("Class Foo(Of M As IComparable)", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindGenericConstrainedMethod()
             Using worker = SetupWorkspace("Class Foo(Of M As IComparable)", "Public Sub Bar(Of T As IComparable)()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindPartialClass()
             Using worker = SetupWorkspace("Partial Public Class Foo", "Private a As Integer", "End Class", "Partial Class Foo", "Private b As Integer", "End Class")
 
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindClassInNamespace()
             Using worker = SetupWorkspace("Namespace Bar", "Class Foo", "End Class", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend)
@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindStruct()
             Using worker = SetupWorkspace("Structure Bar", "End Structure")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupStruct, StandardGlyphItem.GlyphItemFriend)
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindEnum()
             Using worker = SetupWorkspace("Enum Colors", "Red", "Green", "Blue", "End Enum")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnum, StandardGlyphItem.GlyphItemFriend)
@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindEnumMember()
             Using worker = SetupWorkspace("Enum Colors", "Red", "Green", "Blue", "End Enum")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEnumMember, StandardGlyphItem.GlyphItemPublic)
@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindField1()
             Using worker = SetupWorkspace("Class Foo", "Private Bar As Integer", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindField2()
             Using worker = SetupWorkspace("Class Foo", "Private Bar As Integer", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindField3()
             Using worker = SetupWorkspace("Class Foo", "Private Bar As Integer", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -178,7 +178,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindVerbatimField()
             Using worker = SetupWorkspace("Class Foo", "Private [string] As String", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindConstField()
             Using worker = SetupWorkspace("Class Foo", "Private Const bar As String = ""bar""", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupConstant, StandardGlyphItem.GlyphItemPrivate)
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindIndexer()
             Using worker = SetupWorkspace("Class Foo", "Private arr As Integer()",
                                        "Default Public Property Item(ByVal i As Integer) As Integer",
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo), WorkItem(780993)>
         Public Sub FindEvent()
             Using worker = SetupWorkspace("Class Foo", "Public Event Bar as EventHandler", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupEvent, StandardGlyphItem.GlyphItemPublic)
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindNormalProperty()
             Using worker = SetupWorkspace("Class Foo", "Property Name As String",
                                           "Get", "Return String.Empty", "End Get",
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindAutoImplementedProperty()
             Using worker = SetupWorkspace("Class Foo", "Property Name As String", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupProperty, StandardGlyphItem.GlyphItemPublic)
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindMethod()
             Using worker = SetupWorkspace("Class Foo", "Private Sub DoSomething()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindVerbatimMethod()
             Using worker = SetupWorkspace("Class Foo", "Private Sub [Sub]()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindParameterizedMethod()
             Using worker = SetupWorkspace("Class Foo", "Private Sub DoSomething(ByVal i As Integer, s As String)", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindConstructor()
             Using worker = SetupWorkspace("Class Foo", "Sub New()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindStaticConstructor()
             Using worker = SetupWorkspace("Class Foo", "Shared Sub New()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -289,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindDestructor()
             Using worker = SetupWorkspace("Class Foo", "Implements IDisposable",
                                        "Public Sub Dispose() Implements IDisposable.Dispose", "End Sub",
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindPartialMethods()
             Using worker = SetupWorkspace("Partial Class Foo", "Partial Private Sub Bar()", "End Sub", "End Class",
                                        "Partial Class Foo", "Private Sub Bar()", "End Sub", "End Class")
@@ -323,7 +323,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindPartialMethodDefinitionOnly()
             Using worker = SetupWorkspace("Partial Class Foo", "Partial Private Sub Bar()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindPartialMethodImplementationOnly()
             Using worker = SetupWorkspace("Partial Class Foo", "Private Sub Bar()", "End Sub", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPrivate)
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindOverriddenMethods()
             Using worker = SetupWorkspace("Class BaseFoo", "Public Overridable Sub Bar()", "End Sub", "End Class",
                                        "Class DerivedFoo", "Inherits BaseFoo", "Public Overrides Sub Bar()", "MyBase.Bar()", "End Sub", "End Class")
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DottedPattern1()
             Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DottedPattern2()
             Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -384,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DottedPattern3()
             Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DottedPattern4()
             Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DottedPattern5()
             Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -426,7 +426,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DottedPattern6()
             Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem)
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DottedPattern7()
             Using workspace = SetupWorkspace("namespace Foo", "namespace Bar", "class Baz(of X, Y, Z)", "sub Quux()", "end sub", "end class", "end namespace", "end namespace")
                 Dim expecteditems = New List(Of NavigateToItem) From
@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindInterface()
             Using worker = SetupWorkspace("Public Interface IFoo", "End Interface")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupInterface, StandardGlyphItem.GlyphItemPublic)
@@ -460,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindDelegateInNamespace()
             Using worker = SetupWorkspace("Namespace Foo", "Delegate Sub DoStuff()", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupDelegate, StandardGlyphItem.GlyphItemFriend)
@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindLambdaExpression()
             Using worker = SetupWorkspace("Class Foo", "Dim sqr As Func(Of Integer, Integer) = Function(x) x*x", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindModule()
             Using worker = SetupWorkspace("Module ModuleTest", "End Module")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
@@ -487,7 +487,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindLineContinuationMethod()
             Using worker = SetupWorkspace("Class Foo", "Public Sub Bar(x as Integer,", "y as Integer)", "End Sub")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindArray()
             Using worker = SetupWorkspace("Class Foo", "Private itemArray as object()", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupField, StandardGlyphItem.GlyphItemPrivate)
@@ -505,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindClassAndMethodWithSameName()
             Using worker = SetupWorkspace("Class Foo", "End Class",
                                        "Class Test", "Private Sub Foo()", "End Sub", "End Class")
@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindMethodNestedInGenericTypes()
             Using worker = SetupWorkspace("Class A(Of T)", "Class B", "Structure C(Of U)", "Sub M()", "End Sub", "End Structure", "End Class", "End Class")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic)
@@ -532,7 +532,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         <WorkItem(1111131)>
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindClassInNamespaceWithGlobalPrefix()
             Using worker = SetupWorkspace("Namespace Global.MyNS", "Public Class C", "End Class", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
@@ -542,7 +542,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         <WorkItem(1121267)>
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub FindClassInGlobalNamespace()
             Using worker = SetupWorkspace("Namespace Global", "Public Class C(Of T)", "End Class", "End Namespace")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemPublic)
@@ -552,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
         End Sub
 
         <WorkItem(1834, "https://github.com/dotnet/roslyn/issues/1834")>
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub ConstructorNotParentedByTypeBlock()
             Using worker = SetupWorkspace("Module Program", "End Module", "Public Sub New()", "End Sub")
                 SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupModule, StandardGlyphItem.GlyphItemFriend)
@@ -562,7 +562,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub StartStopSanity()
             ' Verify that multiple calls to start/stop don't blow up
             Using worker = SetupWorkspace("Public Class Foo", "End Class")
@@ -579,7 +579,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DescriptionItems()
             Using workspace = SetupWorkspace("", "Public Class Foo", "End Class")
                 Dim item As NavigateToItem = _aggregator.GetItems("F").Single()
@@ -599,7 +599,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)>
         Public Sub DescriptionItemsFilePath()
             Using workspace = SetupWorkspace(
                 <Workspace>

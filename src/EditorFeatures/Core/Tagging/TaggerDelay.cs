@@ -3,7 +3,7 @@
 namespace Microsoft.CodeAnalysis.Editor.Tagging
 {
     /// <summary>
-    /// How quickly the <see cref="AsynchronousTaggerProvider{TTag}"/> should update tags after
+    /// How quickly the <see cref="AbstractAsynchronousTaggerProvider{TTag}"/> should update tags after
     /// receiving an <see cref="ITaggerEventSource.Changed"/> notification.
     /// </summary>
     internal enum TaggerDelay

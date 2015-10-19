@@ -64,8 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ordinal,
                 parameterType,
                 refKind,
-                ImmutableArray<CustomModifier>.Empty,
-                false,
                 name,
                 locations,
                 syntax.GetReference(),
@@ -90,22 +88,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _locations = locations;
         }
 
-        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams)
+        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams)
         {
-            return WithCustomModifiersAndParamsCore(newType, newCustomModifiers, hasByRefBeforeCustomModifiers, newIsParams);
+            return WithCustomModifiersAndParamsCore(newType, newCustomModifiers, countOfCustomModifiersPrecedingByRef, newIsParams);
         }
 
-        internal SourceParameterSymbol WithCustomModifiersAndParamsCore(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, bool hasByRefBeforeCustomModifiers, bool newIsParams)
+        internal SourceParameterSymbol WithCustomModifiersAndParamsCore(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams)
         {
             newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, _refKind, this.ContainingAssembly);
 
-            return new SourceComplexParameterSymbol(
+            if (newCustomModifiers.IsDefaultOrEmpty)
+            {
+                return new SourceComplexParameterSymbol(
+                    this.ContainingSymbol,
+                    this.Ordinal,
+                    newType,
+                    _refKind,
+                    _name,
+                    _locations,
+                    this.SyntaxReference,
+                    this.ExplicitDefaultConstantValue,
+                    newIsParams,
+                    this.IsExtensionMethodThis);
+            }
+
+            return new SourceComplexParameterSymbolWithCustomModifiers(
                 this.ContainingSymbol,
                 this.Ordinal,
                 newType,
                 _refKind,
                 newCustomModifiers,
-                hasByRefBeforeCustomModifiers,
+                countOfCustomModifiersPrecedingByRef,
                 _name,
                 _locations,
                 this.SyntaxReference,

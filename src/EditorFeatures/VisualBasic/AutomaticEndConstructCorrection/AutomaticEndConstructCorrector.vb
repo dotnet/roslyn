@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 Return False
             End If
 
-            ' we only start session if one edit happens not multiedits
+            ' we only start session if one edit happens, not multi-edits
             If changes.Count <> 1 Then
                 Return False
             End If
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
                 Return False
             End If
 
-            Dim root = DirectCast(_previousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), SyntaxNode)
+            Dim root = _previousDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken)
             token = root.FindToken(textChange.OldPosition)
 
             If Not IsChangeOnCorrectToken(token) Then

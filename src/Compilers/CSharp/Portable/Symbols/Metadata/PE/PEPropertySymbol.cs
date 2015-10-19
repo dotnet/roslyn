@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
                 var ordinal = i - 1;
                 bool isBad;
-                parameters[ordinal] = new PEParameterSymbol(moduleSymbol, property, ordinal, paramHandle, propertyParam, out isBad);
+                parameters[ordinal] = PEParameterSymbol.Create(moduleSymbol, property, ordinal, paramHandle, propertyParam, out isBad);
 
                 if (isBad)
                 {

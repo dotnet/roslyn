@@ -1,8 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="Common diagnostic rules for all non-shipping projects" Description="Enables/disable rules specific to all non-shipping projects." ToolsVersion="14.0">
-  <Include Path=".\Roslyn.ruleset" Action="Default" />
+  <Include Path=".\roslyn.ruleset" Action="Default" />
+  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.CSharp" RuleNamespace="Roslyn.Diagnostics.Analyzers.CSharp">
+    <Rule Id="RS0007" Action="None" />
+  </Rules>
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.MetaAnalyzers" RuleNamespace="Roslyn.Diagnostics.Analyzers.MetaAnalyzers">
-    <!-- Suppress rule RS1001 (Missing diagnostic analyzer attribute) for non-shipping projects, as they may have test analyzers. -->
     <Rule Id="RS1001" Action="None" />
+  </Rules>
+  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.VisualBasic" RuleNamespace="Roslyn.Diagnostics.Analyzers.VisualBasic">
+    <Rule Id="RS0007" Action="None" />
   </Rules>
 </RuleSet>

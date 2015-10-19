@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaFrame = local.Type.OriginalDefinition as LambdaFrame;
                 if ((object)lambdaFrame != null)
                 {
-                    return lambdaFrame.ConstructIfGeneric(frame.TypeArgumentsNoUseSiteDiagnostics);
+                    return lambdaFrame.ConstructIfGeneric(frame.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
                 }
             }
 
-            return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type);
+            return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type).Type;
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

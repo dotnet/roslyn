@@ -28,7 +28,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithReferences({source.Tree}, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithReferences({source.Tree}, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source.Tree)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -67,42 +67,41 @@ End Class
 }
 ", sequencePoints:="C.M")
 
-            v0.VerifyPdb("C.M", "
+            v0.VerifyPdb("C.M",
 <symbols>
-  <methods>
-    <method containingType=""C"" name=""M"">
-      <customDebugInfo>
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""9"" />
-          <slot kind=""0"" offset=""107"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""12"" document=""0"" />
-        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""49"" document=""0"" />
-        <entry offset=""0x3"" startLine=""6"" startColumn=""13"" endLine=""6"" endColumn=""33"" document=""0"" />
-        <entry offset=""0xa"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""13"" document=""0"" />
-        <entry offset=""0xe"" hidden=""true"" document=""0"" />
-        <entry offset=""0x12"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""49"" document=""0"" />
-        <entry offset=""0x14"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""33"" document=""0"" />
-        <entry offset=""0x1b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""13"" document=""0"" />
-        <entry offset=""0x1f"" hidden=""true"" document=""0"" />
-        <entry offset=""0x23"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""12"" document=""0"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x24"">
-        <namespace name=""System"" importlevel=""file"" />
-        <currentnamespace name="""" />
-        <scope startOffset=""0x1"" endOffset=""0x11"">
-          <local name=""index"" il_index=""0"" il_start=""0x1"" il_end=""0x11"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x12"" endOffset=""0x22"">
-          <local name=""index"" il_index=""1"" il_start=""0x12"" il_end=""0x22"" attributes=""0"" />
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>
-")
+    <methods>
+        <method containingType="C" name="M">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="0" offset="9"/>
+                    <slot kind="0" offset="107"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="12"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="49"/>
+                <entry offset="0x3" startLine="6" startColumn="13" endLine="6" endColumn="33"/>
+                <entry offset="0xa" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
+                <entry offset="0xe" hidden="true"/>
+                <entry offset="0x12" startLine="8" startColumn="9" endLine="8" endColumn="49"/>
+                <entry offset="0x14" startLine="9" startColumn="13" endLine="9" endColumn="33"/>
+                <entry offset="0x1b" startLine="10" startColumn="9" endLine="10" endColumn="13"/>
+                <entry offset="0x1f" hidden="true"/>
+                <entry offset="0x23" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x24">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+                <scope startOffset="0x1" endOffset="0x11">
+                    <local name="index" il_index="0" il_start="0x1" il_end="0x11" attributes="0"/>
+                </scope>
+                <scope startOffset="0x12" endOffset="0x22">
+                    <local name="index" il_index="1" il_start="0x12" il_end="0x22" attributes="0"/>
+                </scope>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
             Dim symReader = v0.CreateSymReader()
 
             Dim testData0 = New CompilationTestData()
@@ -175,8 +174,8 @@ End Class
     </file>
 </compilation>
 
-            Dim debug = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim release = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.ReleaseDll)
+            Dim debug = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim release = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(debug).VerifyPdb("C.M",
 <symbols>
@@ -475,7 +474,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -580,7 +579,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -752,7 +751,7 @@ End Class
                 </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)

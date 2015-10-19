@@ -21,7 +21,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class CommandLineArguments
     {
-        internal bool IsInteractive { get; set; }
+        internal bool IsScriptRunner { get; set; }
+
+        /// <summary>
+        /// Drop to an interactive loop. If a script is specified in <see cref="SourceFiles"/> executes the script first.
+        /// </summary>
+        public bool InteractiveMode { get; internal set; }
 
         /// <summary>
         /// Directory used to resolve relative paths stored in the arguments.
@@ -38,6 +43,11 @@ namespace Microsoft.CodeAnalysis
         /// Sequence of absolute paths used to search for references.
         /// </summary>
         public ImmutableArray<string> ReferencePaths { get; internal set; }
+
+        /// <summary>
+        /// Sequence of absolute paths used to search for sources specified as #load directives.
+        /// </summary>
+        public ImmutableArray<string> SourcePaths { get; internal set; }
 
         /// <summary>
         /// Sequence of absolute paths used to search for key files.
@@ -171,7 +181,7 @@ namespace Microsoft.CodeAnalysis
         public SourceHashAlgorithm ChecksumAlgorithm { get; internal set; }
 
         /// <summary>
-        /// Arguments following script argument separator "--" or null if <see cref="IsInteractive"/> is false.
+        /// Arguments following a script file or separator "--". Null if the command line parser is not interactive.
         /// </summary>
         public ImmutableArray<string> ScriptArguments { get; internal set; }
 
@@ -236,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves metadata references stored in <see cref="MetadataReferences"/> using given file resolver and metadata provider.
         /// </summary>
-        /// <param name="metadataResolver"><see cref="MetadataFileReferenceResolver"/> to use for assembly name and relative path resolution.</param>
+        /// <param name="metadataResolver"><see cref="MetadataReferenceResolver"/> to use for assembly name and relative path resolution.</param>
         /// <returns>Yields resolved metadata references or <see cref="UnresolvedMetadataReference"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="metadataResolver"/> is null.</exception>
         public IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver)
@@ -293,7 +303,6 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        // TODO: change to private protected when available
         internal static ImmutableArray<PortableExecutableReference> ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             Debug.Assert(metadataResolver != null);
@@ -392,13 +401,9 @@ namespace Microsoft.CodeAnalysis
         private AnalyzerFileReference ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: PortableShim.File.Exists);
-            if (PortableShim.File.Exists(resolvedPath))
+            if (resolvedPath != null)
             {
                 resolvedPath = FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
-            }
-            else
-            {
-                resolvedPath = null;
             }
 
             if (resolvedPath != null)

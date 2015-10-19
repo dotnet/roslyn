@@ -109,6 +109,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride Overrides ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
+        Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Get
+                Return CreateEmptyTypeArgumentsCustomModifiers()
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property EnumUnderlyingType As NamedTypeSymbol
             Get
                 Return OriginalDefinition.EnumUnderlyingType
@@ -231,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Friend MustOverride Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeSymbol
+        Friend MustOverride Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers
 
         Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
             Return Nothing
@@ -420,6 +432,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim container As Symbol = ContainingSymbol
                         Dim containerAsConstructed = TryCast(container, UnboundGenericType.ConstructedSymbol)
 
+                        Debug.Assert(Not Me.HasTypeArgumentsCustomModifiers)
+
                         If containerAsConstructed IsNot Nothing Then
                             If OriginalDefinition.Arity = 0 Then
                                 result = VisualBasic.Symbols.TypeSubstitution.Concat(OriginalDefinition,
@@ -496,9 +510,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray(Function(t) (New UnboundGenericType.ConstructedSymbol(t)).ConstructedFrom)
             End Function
 
-            Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeSymbol
+            Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers
                 ' Has no effect.
-                Return Me
+                Return New TypeWithModifiers(Me)
             End Function
 
             Public Overrides Function Equals(obj As Object) As Boolean
@@ -622,7 +636,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return ImmutableArray(Of NamedTypeSymbol).Empty
             End Function
 
-            Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeSymbol
+            Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers
                 Throw ExceptionUtilities.Unreachable
             End Function
 

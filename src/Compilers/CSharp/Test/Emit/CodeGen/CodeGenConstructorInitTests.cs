@@ -527,5 +527,67 @@ struct C
 }
 ");
         }
+
+        [WorkItem(4383, "https://github.com/dotnet/roslyn/issues/4383")]
+        [Fact]
+        public void DecimalConstInit001()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+public static class Module1
+{
+    public static void Main()
+    {
+        Console.WriteLine(ClassWithStaticField.Dictionary[""String3""]);
+    }
+    }
+
+    public class ClassWithStaticField
+    {
+        public const decimal DecimalConstant = 375;
+
+        private static Dictionary<String, Single> DictionaryField = new Dictionary<String, Single> {
+        {""String1"", 1.0F},
+        {""String2"", 2.0F},
+        {""String3"", 3.0F}
+    };
+
+        public static Dictionary<String, Single> Dictionary
+        {
+            get
+            {
+                return DictionaryField;
+            }
+        }
+    }
+";
+            CompileAndVerify(source, expectedOutput: "3").
+                VerifyIL("ClassWithStaticField..cctor", @"
+{
+  // Code size       74 (0x4a)
+  .maxstack  4
+  IL_0000:  ldc.i4     0x177
+  IL_0005:  newobj     ""decimal..ctor(int)""
+  IL_000a:  stsfld     ""decimal ClassWithStaticField.DecimalConstant""
+  IL_000f:  newobj     ""System.Collections.Generic.Dictionary<string, float>..ctor()""
+  IL_0014:  dup
+  IL_0015:  ldstr      ""String1""
+  IL_001a:  ldc.r4     1
+  IL_001f:  callvirt   ""void System.Collections.Generic.Dictionary<string, float>.Add(string, float)""
+  IL_0024:  dup
+  IL_0025:  ldstr      ""String2""
+  IL_002a:  ldc.r4     2
+  IL_002f:  callvirt   ""void System.Collections.Generic.Dictionary<string, float>.Add(string, float)""
+  IL_0034:  dup
+  IL_0035:  ldstr      ""String3""
+  IL_003a:  ldc.r4     3
+  IL_003f:  callvirt   ""void System.Collections.Generic.Dictionary<string, float>.Add(string, float)""
+  IL_0044:  stsfld     ""System.Collections.Generic.Dictionary<string, float> ClassWithStaticField.DictionaryField""
+  IL_0049:  ret
+}
+");
+        }
     }
 }

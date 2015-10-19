@@ -9,6 +9,8 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class TestSyntaxNodes
+        Inherits BasicTestBase
+
         Private _spaceTrivia As SyntaxTrivia = SyntaxFactory.WhitespaceTrivia(" ")
         Private _newlineTrivia As SyntaxTriviaList = SyntaxTriviaListBuilder.Create.Add(SyntaxFactory.WhitespaceTrivia(Environment.NewLine)).ToList
 
@@ -3050,10 +3052,13 @@ End Interface
 </compilation>
 
             'Verify Compile Errors when try to use
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim c = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
                 compilationDef,
-                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).VerifyDiagnostics(BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
-                                                                                                                              BasicTestBase.Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
+                New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom))
+
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_ModuleCantInherit, "Inherits aaa"),
+                Diagnostic(ERRID.ERR_ModuleCantImplement, "Implements Ifoo"))
         End Sub
 
         <Fact>

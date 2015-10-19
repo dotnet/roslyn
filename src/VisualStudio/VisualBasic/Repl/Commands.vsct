@@ -20,6 +20,7 @@
         </Strings>
       </Button>
 
+      <!-- https://github.com/dotnet/roslyn/issues/4688
       <Button guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
         <Parent guid="guidVisualBasicInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -30,6 +31,7 @@
           <LocCanonicalName>ResetVisualBasicInteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+      -->
     </Buttons>
 
     <Bitmaps>
@@ -37,7 +39,11 @@
     </Bitmaps>
   </Commands>
 
-  <!-- We need to pick a different keyboard shortcut for VB Interactive
+  <VisibilityConstraints>
+    <VisibilityItem context="guidVBProjectContext" guid="guidVisualBasicInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
+  </VisibilityConstraints>
+  
+  <!-- https://github.com/dotnet/roslyn/issues/3941
   <KeyBindings>
     <KeyBinding guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" mod2="Control" key2="I" />
     <KeyBinding guid="guidVisualBasicInteractiveCommandSet" id="cmdidVisualBasicInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" key2="I" />
@@ -57,5 +63,7 @@
     <GuidSymbol name="guidVisualBasicInteractiveImages" value="{4B45CA50-2FB8-4BAC-AAB5-3B5BBAF0C093}" >
       <IDSymbol name="bmpVisualBasicInteractiveWindow" value="0x01" />
     </GuidSymbol>
+
+    <GuidSymbol name="guidVBProjectContext" value="{164B10B9-B200-11D0-8C61-00A0C91E29D5}" />
   </Symbols>
 </CommandTable>

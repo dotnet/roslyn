@@ -12,6 +12,12 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
     Friend Partial Class CodeGenerator
+        Private _recursionDepth As Integer
+
+        Private Class EmitCancelledException
+            Inherits Exception
+        End Class
+
         Private Sub EmitExpression(expression As BoundExpression, used As Boolean)
             If expression Is Nothing Then
                 Return
@@ -20,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim constantValue = expression.ConstantValueOpt
             If constantValue IsNot Nothing Then
                 If Not used Then
-                    ' unused constants have no sideeffects.
+                    ' unused constants have no side-effects.
                     Return
                 End If
                 If constantValue.IsDecimal OrElse constantValue.IsDateTime Then
@@ -31,6 +37,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Return
                 End If
             End If
+
+            _recursionDepth += 1
+
+            If _recursionDepth > 1 Then
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+
+                EmitExpressionCore(expression, used)
+            Else
+                EmitExpressionCoreWithStackGuard(expression, used)
+            End If
+
+            _recursionDepth -= 1
+        End Sub
+
+        Private Sub EmitExpressionCoreWithStackGuard(expression As BoundExpression, used As Boolean)
+            Debug.Assert(_recursionDepth = 1)
+
+            Try
+                EmitExpressionCore(expression, used)
+                Debug.Assert(_recursionDepth = 1)
+
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
+                                 BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression))
+                Throw New EmitCancelledException()
+            End Try
+        End Sub
+
+        Private Sub EmitExpressionCore(expression As BoundExpression, used As Boolean)
 
             Select Case expression.Kind
                 Case BoundKind.AssignmentOperator
@@ -70,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitLocalLoad(DirectCast(expression, BoundLocal), used)
 
                 Case BoundKind.Parameter
-                    If used Then ' unused parameter has no sideeffects
+                    If used Then ' unused parameter has no side-effects
                         EmitParameterLoad(DirectCast(expression, BoundParameter))
                     End If
 
@@ -84,12 +119,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitArrayElementLoad(DirectCast(expression, BoundArrayAccess), used)
 
                 Case BoundKind.MeReference, BoundKind.MyClassReference
-                    If used Then ' unused Me/MyClass has no sideeffects
+                    If used Then ' unused Me/MyClass has no side-effects
                         EmitMeOrMyClassReferenceExpression(expression)
                     End If
 
                 Case BoundKind.MyBaseReference
-                    If used Then ' unused base has no sideeffects
+                    If used Then ' unused base has no side-effects
                         _builder.EmitOpCode(ILOpCode.Ldarg_0)
                     End If
 
@@ -347,13 +382,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitLocalLoad(local As BoundLocal, used As Boolean)
             If IsStackLocal(local.LocalSymbol) Then
-                ' local should be alsready on the stack
+                ' local should be already on the stack
                 EmitPopIfUnused(used)
             Else
-                If used Then ' unused local has no sideeffects
+                If used Then ' unused local has no side-effects
                     _builder.EmitLocalLoad(GetLocal(local))
                 Else
-                    ' do nothing. Unused local load has no sideeffects.                    
+                    ' do nothing. Unused local load has no side-effects.                    
                     Return
                 End If
             End If
@@ -484,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitExpression(arrayAccess.Expression, True)
             EmitExpressions(arrayAccess.Indices, True)
 
-            If arrayAccess.Indices.Length = 1 Then
+            If DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol).IsSZArray Then
                 Dim elementType = arrayAccess.Type
                 If elementType.IsEnumType() Then
                     elementType = (DirectCast(elementType, NamedTypeSymbol)).EnumUnderlyingType
@@ -533,7 +568,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                 _builder.EmitOpCode(ILOpCode.Ldelem)
                             Else
                                 ' no need to read whole element of nontrivial type/size here
-                                ' just take a reference to an element for array access sideeffects 
+                                ' just take a reference to an element for array access side-effects 
                                 If elementType.TypeKind = TypeKind.TypeParameter Then
                                     _builder.EmitOpCode(ILOpCode.Readonly)
                                 End If
@@ -554,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitFieldLoad(fieldAccess As BoundFieldAccess, used As Boolean)
             Dim field = fieldAccess.FieldSymbol
 
-            'TODO: For static field access this may require ..ctor to run. Is this a sideeffect?
+            'TODO: For static field access this may require ..ctor to run. Is this a side-effect?
             ' Accessing unused instance field on a struct is a noop. Just emit the receiver.
             If Not used AndAlso Not field.IsShared AndAlso fieldAccess.ReceiverOpt.Type.IsVerifierValue() Then
                 EmitExpression(fieldAccess.ReceiverOpt, used:=False)
@@ -591,14 +626,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitStaticFieldLoad(field As FieldSymbol, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
-            'TODO: this may require ..ctor to run. Is this a sideeffect?
+            'TODO: this may require ..ctor to run. Is this a side-effect?
             _builder.EmitOpCode(ILOpCode.Ldsfld)
             EmitSymbolToken(field, syntaxNode)
             EmitPopIfUnused(used)
         End Sub
 
         Private Sub EmitInstanceFieldLoad(fieldAccess As BoundFieldAccess, used As Boolean)
-            'TODO: access to a field on this/base has no sideeffects.
+            'TODO: access to a field on this/base has no side-effects.
 
             Dim field As FieldSymbol = fieldAccess.FieldSymbol
             Dim receiver = fieldAccess.ReceiverOpt
@@ -1022,7 +1057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitSymbolToken(method, [call].Syntax)
             If Not method.IsSub Then
                 EmitPopIfUnused(used)
-            ElseIf _optimizations = OptimizationLevel.Debug Then
+            ElseIf _ilEmitStyle = ILEmitStyle.Debug Then
                 Debug.Assert(Not used, "Using the return value of a void method.")
                 Debug.Assert(_method.GenerateDebugInfo, "Implied by emitSequencePoints")
 
@@ -1349,7 +1384,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' It appears that verifier/JIT gets easily confused. 
         ' So to not rely on whether that should work or not we will flag potentially 
         ' "complicated" casts and make them static casts to ensure we are all on 
-        ' the same page with what type shoud be tracked.
+        ' the same page with what type should be tracked.
         Private Shared Function IsVarianceCast(toType As TypeSymbol, fromType As TypeSymbol) As Boolean
             If (toType = fromType) Then
                 Return False
@@ -1396,7 +1431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             EmitExpressions(expression.Bounds, True)
 
-            If arrayType.Rank = 1 Then
+            If arrayType.IsSZArray Then
                 _builder.EmitOpCode(ILOpCode.Newarr)
                 EmitSymbolToken(arrayType.ElementType, expression.Syntax)
             Else
@@ -1503,7 +1538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             '
             ' We are creating a fully modifiable reference to a struct in order to initialize it.
             ' In fact we are going to pass the reference as a byref arg to a constructor 
-            ' (which can do whatever it wants with it - pass it byref tosomebody else, etc...)
+            ' (which can do whatever it wants with it - pass it byref to somebody else, etc...)
             '
             ' We are still going to say the reference is immutable. Since we are initializing, there is nothing to mutate.
             '
@@ -1549,7 +1584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitConstantExpression(type As TypeSymbol, constantValue As ConstantValue, used As Boolean, syntaxNode As VisualBasicSyntaxNode)
-            ' unused constant has no sideeffects
+            ' unused constant has no side-effects
             If used Then
                 ' Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
                 If ((type IsNot Nothing) AndAlso (type.TypeKind = TypeKind.TypeParameter) AndAlso constantValue.IsNull) Then
@@ -1912,7 +1947,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitArrayElementStore(arrayType As ArrayTypeSymbol, syntaxNode As VisualBasicSyntaxNode)
-            If arrayType.Rank = 1 Then
+            If arrayType.IsSZArray Then
                 EmitVectorElementStore(arrayType, syntaxNode)
             Else
                 _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics)

@@ -662,16 +662,16 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public void Serialize(Cci.BlobWriter writer)
+        public void Serialize(Cci.BlobBuilder writer)
         {
             switch (this.Discriminator)
             {
                 case ConstantValueTypeDiscriminator.Boolean:
-                    writer.WriteBool(this.BooleanValue);
+                    writer.WriteBoolean(this.BooleanValue);
                     break;
 
                 case ConstantValueTypeDiscriminator.SByte:
-                    writer.WriteSbyte(this.SByteValue);
+                    writer.WriteSByte(this.SByteValue);
                     break;
 
                 case ConstantValueTypeDiscriminator.Byte:
@@ -680,23 +680,23 @@ namespace Microsoft.CodeAnalysis
 
                 case ConstantValueTypeDiscriminator.Char:
                 case ConstantValueTypeDiscriminator.Int16:
-                    writer.WriteShort(this.Int16Value);
+                    writer.WriteInt16(this.Int16Value);
                     break;
 
                 case ConstantValueTypeDiscriminator.UInt16:
-                    writer.WriteUshort(this.UInt16Value);
+                    writer.WriteUInt16(this.UInt16Value);
                     break;
 
                 case ConstantValueTypeDiscriminator.Single:
-                    writer.WriteFloat(this.SingleValue);
+                    writer.WriteSingle(this.SingleValue);
                     break;
 
                 case ConstantValueTypeDiscriminator.Int32:
-                    writer.WriteInt(this.Int32Value);
+                    writer.WriteInt32(this.Int32Value);
                     break;
 
                 case ConstantValueTypeDiscriminator.UInt32:
-                    writer.WriteUint(this.UInt32Value);
+                    writer.WriteUInt32(this.UInt32Value);
                     break;
 
                 case ConstantValueTypeDiscriminator.Double:
@@ -704,11 +704,11 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 case ConstantValueTypeDiscriminator.Int64:
-                    writer.WriteLong(this.Int64Value);
+                    writer.WriteInt64(this.Int64Value);
                     break;
 
                 case ConstantValueTypeDiscriminator.UInt64:
-                    writer.WriteUlong(this.UInt64Value);
+                    writer.WriteUInt64(this.UInt64Value);
                     break;
 
                 default: throw ExceptionUtilities.UnexpectedValue(this.Discriminator);

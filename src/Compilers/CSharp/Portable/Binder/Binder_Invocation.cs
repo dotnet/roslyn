@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // Only a static method can be called in a constructor initializer. If we were not in a ctor initializer
                                 // the runtime binder would ignore the receiver, but in a ctor initializer we can't read "this" before 
-                                // the base constructor is called. We need to handle thisas a type qualified static method call.
+                                // the base constructor is called. We need to handle this as a type qualified static method call.
                                 expression = methodGroup.Update(
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,

@@ -145,6 +145,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             string dnFull = id.GetDisplayName(fullKey: true);
             Assert.Equal("Foo, Version=0.0.0.0, Culture=neutral, PublicKey=" + StrPublicKey1, dnFull);
+
+            id = new AssemblyIdentity("Foo", cultureName: "neutral");
+            Assert.Equal("Foo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", id.GetDisplayName());
+
+            id = new AssemblyIdentity("Foo", cultureName: "  '\t\r\n\\=,  ");
+            Assert.Equal(@"Foo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null", id.GetDisplayName());
         }
 
         [Fact]
@@ -228,7 +234,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseSimpleName("a'b, Version=1.0.0.0", expected: null);
             TestParseSimpleName("'', Version=1.0.0.0", expected: null);
             TestParseSimpleName("''a'', Version=1.0.0.0", expected: null);
-
+            
             // Unicode quotes
             TestParseSimpleName("\u201ca\u201d", expected: "\u201ca\u201d");
             TestParseSimpleName("\\u201c;a\\u201d;", expected: "\u201ca\u201d");
@@ -380,6 +386,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new AssemblyIdentity("foo", new Version(1, 0, 0, 1), publicKeyOrToken: RoPublicKey1, hasPublicKey: true),
                 NVK);
 
+            TestParseDisplayName(@"Foo, Version=0.0.0.0, Culture=""  \'\t\r\n\\\=\,  "", PublicKeyToken=null",
+                new AssemblyIdentity("Foo", cultureName: "  '\t\r\n\\=,  "),
+                NVCT);
+
             // duplicates
             TestParseDisplayName("foo, Version=1.0.0.0, Version=1.0.0.0", null);
             TestParseDisplayName("foo, Version=1.0.0.0, Version=2.0.0.0", null);
@@ -500,6 +510,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseDisplayName("foo, Culture=*", new AssemblyIdentity("foo"), N);
 
             TestParseDisplayName("foo, Culture=*, Culture=en-US, Version=1.0.0.1", null);
+
+            TestParseDisplayName("Foo, Version=1.0.0.0, Culture='neutral', PublicKeyToken=null",
+                new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), cultureName: null), NVCT);
         }
 
         [Fact]

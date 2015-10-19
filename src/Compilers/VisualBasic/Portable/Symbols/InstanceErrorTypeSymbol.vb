@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
-    ''' The base class for potentially constructable (i.e. with known arity) error type symbols
+    ''' The base class for potentially constructible (i.e. with known arity) error type symbols
     ''' </summary>
     Friend MustInherit Class InstanceErrorTypeSymbol
         Inherits ErrorTypeSymbol
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ' Instance types are always constructable if they have arity >= 1
+        ' Instance types are always constructible if they have arity >= 1
         Friend Overrides ReadOnly Property CanConstruct As Boolean
             Get
                 Return _arity > 0
@@ -62,7 +62,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' !!! Only code implementing construction of generic types is allowed to call this method !!!
         ''' !!! All other code should use Construct methods.                                        !!! 
         ''' </summary>
-        Friend NotOverridable Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeSymbol
+        Friend NotOverridable Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
+            Return New TypeWithModifiers(InternalSubstituteTypeParametersInInstanceErrorTypeSymbol(substitution))
+        End Function
+
+        Private Overloads Function InternalSubstituteTypeParametersInInstanceErrorTypeSymbol(substitution As TypeSubstitution) As NamedTypeSymbol
             If substitution IsNot Nothing Then
                 ' The substitution might target one of this type's children.
                 substitution = substitution.GetSubstitutionForGenericDefinitionOrContainers(Me)
@@ -79,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Debug.Assert(substitution.TargetGenericDefinition Is Me AndAlso substitution.Parent Is Nothing AndAlso substitution.Pairs.Length > 0)
                 Return New SubstitutedErrorType(container, Me, substitution)
             Else
-                Dim newContainer = DirectCast(containingType.InternalSubstituteTypeParameters(substitution), NamedTypeSymbol)
+                Dim newContainer = DirectCast(containingType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
 
                 If substitution.TargetGenericDefinition Is Me Then
                     Debug.Assert(substitution IsNot Nothing)
@@ -116,6 +120,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
             Get
                 Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property TypeArgumentsCustomModifiers As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Get
+                ' This is always the instance type, so the type arguments do not have any modifiers.
+                Return CreateEmptyTypeArgumentsCustomModifiers()
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
+            Get
+                ' This is always the instance type, so the type arguments do not have any modifiers.
+                Return False
             End Get
         End Property
 

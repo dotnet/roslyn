@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             Else
-                Dim paramType As TypeSymbol = parameter.Type.InternalSubstituteTypeParameters(typeMap)
+                Dim paramType As TypeSymbol = parameter.Type.InternalSubstituteTypeParameters(typeMap).Type
 
                 Debug.Assert(Not parameter.IsByRef)
                 proxy = CreateParameterCapture(
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Variable needs to be hoisted.
-            Dim fieldType = local.Type.InternalSubstituteTypeParameters(typeMap)
+            Dim fieldType = local.Type.InternalSubstituteTypeParameters(typeMap).Type
 
             Dim id As LocalDebugId = LocalDebugId.None
             Dim slotIndex As Integer = -1
@@ -408,7 +408,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   Optional hasMethodBodyDependency As Boolean = False,
                                                   Optional associatedProperty As PropertySymbol = Nothing) As SynthesizedMethod
 
-            ' Errors must be reported before and if any thispoint should not be reachable
+            ' Errors must be reported before and if any this point should not be reachable
             Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
 
             Dim result As New SynthesizedStateMachineDebuggerNonUserCodeMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function OpenMoveNextMethodImplementation(methodToImplement As MethodSymbol, accessibility As Accessibility) As SynthesizedMethod
 
-            ' Errors must be reported before and if any thispoint should not be reachable
+            ' Errors must be reported before and if any this point should not be reachable
             Debug.Assert(methodToImplement IsNot Nothing AndAlso methodToImplement.GetUseSiteErrorInfo Is Nothing)
 
             Dim result As New SynthesizedStateMachineMoveNextMethod(DirectCast(Me.F.CurrentType, StateMachineTypeSymbol),

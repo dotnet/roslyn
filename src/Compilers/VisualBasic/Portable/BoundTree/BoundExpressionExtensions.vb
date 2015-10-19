@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Module BoundExpressionExtensions
 
-        ' returns true when expression has no sideeffects and produces
+        ' returns true when expression has no side-effects and produces
         ' default value (null, zero, false, default(T) ...)
         ' NOTE: This method is a very shallow check.
         '       It does not make any assumptions about what this node could become 

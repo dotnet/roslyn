@@ -57,7 +57,7 @@ End Module
 
     </file>
 </compilation>
-            Dim ref = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.Regress40025DLL.AsImmutableOrNull())
+            Dim ref = MetadataReference.CreateFromImage(TestResources.General.Regress40025DLL.AsImmutableOrNull())
             Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, {ref}, TestOptions.ReleaseExe)
             CompilationUtils.AssertTheseDiagnostics(c1,
 <errors>

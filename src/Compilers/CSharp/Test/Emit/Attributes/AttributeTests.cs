@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -89,7 +90,7 @@ public unsafe partial class A : C, I
             var source = CreateCompilationWithMscorlibAndSystemCore(code);
 
             // the following should not crash
-            source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], null, true);
+            source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
         }
 
 
@@ -3109,41 +3110,41 @@ public class C6 {}
 
                 var attrs = classC1.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                var typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
+                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC2.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC3.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC4.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create<TypeSymbol>(classW));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, classYOfW, default(ImmutableArray<CustomModifier>), rank: 2);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
+                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classYOfW, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC5.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create<TypeSymbol>(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)));
+                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
                 NamedTypeSymbol substNestedF = classYOfInt.GetTypeMember("F");
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, substNestedF, default(ImmutableArray<CustomModifier>), rank: 3);
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedF, default(ImmutableArray<CustomModifier>), rank: 3);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC6.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create<TypeSymbol>(classW));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, substNestedZ, default(ImmutableArray<CustomModifier>));
-                typeArg = new ArrayTypeSymbol(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
+                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(new TypeWithModifiers(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, substNestedZ, default(ImmutableArray<CustomModifier>));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, typeArg, default(ImmutableArray<CustomModifier>), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
             };
 

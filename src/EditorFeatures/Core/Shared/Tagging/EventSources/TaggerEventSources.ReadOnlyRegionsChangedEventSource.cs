@@ -20,14 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 _subjectBuffer = subjectBuffer;
             }
 
-            public override string EventKind
-            {
-                get
-                {
-                    return PredefinedChangedEventKinds.ReadOnlyRegionsChanged;
-                }
-            }
-
             public override void Connect()
             {
                 _subjectBuffer.ReadOnlyRegionsChanged += OnReadOnlyRegionsChanged;

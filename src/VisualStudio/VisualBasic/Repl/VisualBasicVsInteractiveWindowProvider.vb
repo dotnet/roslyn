@@ -4,6 +4,7 @@ Imports System.ComponentModel.Composition
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Editor.Interactive
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
+Imports Microsoft.CodeAnalysis.Internal.Log
 Imports Microsoft.VisualStudio.LanguageServices.Interactive
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text.Classification
@@ -45,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
         Protected Overrides ReadOnly Property Title As String
             Get
-                ' TODO: localize
+                ' Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
                 Return "Visual Basic Interactive"
             End Get
         End Property
@@ -63,6 +64,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
                 Path.GetDirectoryName(GetType(VisualBasicVsInteractiveWindowPackage).Assembly.Location),
                 CommonVsUtils.GetWorkingDirectory())
         End Function
+
+        Protected Overrides ReadOnly Property InteractiveWindowFunctionId As FunctionId
+            Get
+                Return FunctionId.VisualBasic_Interactive_Window
+            End Get
+        End Property
     End Class
 End Namespace
 

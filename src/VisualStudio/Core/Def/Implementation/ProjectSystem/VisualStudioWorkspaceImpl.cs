@@ -8,6 +8,7 @@ using System.Text;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -46,6 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
+
+        private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -247,12 +250,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (analyzerReference == null)
             {
-                throw new ArgumentNullException("analyzerReference");
+                throw new ArgumentNullException(nameof(analyzerReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -272,12 +275,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (analyzerReference == null)
             {
-                throw new ArgumentNullException("analyzerReference");
+                throw new ArgumentNullException(nameof(analyzerReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -308,12 +311,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (metadataReference == null)
             {
-                throw new ArgumentNullException("metadataReference");
+                throw new ArgumentNullException(nameof(metadataReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -333,12 +336,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (metadataReference == null)
             {
-                throw new ArgumentNullException("metadataReference");
+                throw new ArgumentNullException(nameof(metadataReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -362,12 +365,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (projectReference == null)
             {
-                throw new ArgumentNullException("projectReference");
+                throw new ArgumentNullException(nameof(projectReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -388,12 +391,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (projectId == null)
             {
-                throw new ArgumentNullException("projectId");
+                throw new ArgumentNullException(nameof(projectId));
             }
 
             if (projectReference == null)
             {
-                throw new ArgumentNullException("projectReference");
+                throw new ArgumentNullException(nameof(projectReference));
             }
 
             IVisualStudioHostProject hostProject;
@@ -594,7 +597,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
             var document = this.GetHostDocument(documentId);
@@ -644,32 +647,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             CloseDocumentCore(documentId);
         }
 
-        public bool TryGetInfoBarData(DocumentId documentId, out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
+        public bool TryGetInfoBarData(out IVsWindowFrame frame, out IVsInfoBarUIFactory factory)
         {
-            if (documentId == null)
+            frame = null;
+            factory = null;
+            var monitorSelectionService = ServiceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+            object value = null;
+
+            // We want to get whichever window is currently in focus (including toolbars) as we could have had an exception thrown from the error list or interactive window
+            if (monitorSelectionService != null &&
+               ErrorHandler.Succeeded(monitorSelectionService.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, out value)))
             {
-                frame = null;
-                factory = null;
+                frame = value as IVsWindowFrame;
+            }
+            else
+            {
                 return false;
             }
 
-            var document = this.GetHostDocument(documentId);
-            if (TryGetFrame(document, out frame))
-            {
-                factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
-                return frame != null && factory != null;
-            }
-
-            frame = null;
-            factory = null;
-            return false;
+            factory = ServiceProvider.GetService(typeof(SVsInfoBarUIFactory)) as IVsInfoBarUIFactory;
+            return frame != null && factory != null;
         }
 
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            if (!foregroundObject.IsForeground())
+            {
+                throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
             }
 
             var document = this.GetHostDocument(documentId);
@@ -697,7 +706,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var itemId = document.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
-                // If the ItemId is Nil, then then IVsProject would not be able to open the 
+                // If the ItemId is Nil, then IVsProject would not be able to open the 
                 // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only 
                 // depends on the file path.
 
@@ -736,7 +745,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (documentId == null)
             {
-                throw new ArgumentNullException("documentId");
+                throw new ArgumentNullException(nameof(documentId));
             }
 
             if (this.IsDocumentOpen(documentId))
@@ -776,9 +785,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             switch (hostProject.Language)
             {
                 case LanguageNames.CSharp:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    return ".cs";
                 case LanguageNames.VisualBasic:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    return ".vb";
                 default:
                     throw new InvalidOperationException();
             }

@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return 0; }
         }
 
         public override Symbol ContainingSymbol
@@ -146,6 +146,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return ImmutableArray<SyntaxReference>.Empty;
+            }
+        }
+
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            // Emit [Dynamic] on synthesized parameter symbols when the original parameter was dynamic 
+            // in order to facilitate debugging.  In the case the necessary attributes are missing 
+            // this is a no-op.  Emitting an error here, or when the original parameter was bound, would
+            // adversely effect the compilation or potentially change overload resolution.  
+            var compilation = this.DeclaringCompilation;
+            if (Type.ContainsDynamic() && 
+                compilation.HasDynamicEmitAttributes() &&
+                compilation.GetSpecialType(SpecialType.System_Boolean).SpecialType == SpecialType.System_Boolean)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
             }
         }
 

@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // from it the nodes that describe the method symbols. We then compare the description of
             // the symbols given to the comment that follows the call.
 
-            var mscorlibRef = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib");
+            var mscorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib).GetReference(display: "mscorlib");
             var references = new[] { mscorlibRef }.Concat(additionalRefs ?? SpecializedCollections.EmptyArray<MetadataReference>());
 
             var compilation = CreateCompilation(source, references, TestOptions.ReleaseDll);

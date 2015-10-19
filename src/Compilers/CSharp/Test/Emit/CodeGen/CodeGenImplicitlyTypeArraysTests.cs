@@ -3,7 +3,6 @@
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -287,7 +286,7 @@ namespace Test
             // The version of mscorlib checked in to the test resources in v4_0_30316 does not have
             // the IReadOnlyList<T> and IReadOnlyCollection<T> interfaces. Use the one in v4_0_30316_17626.
 
-            var mscorlib17626 = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30316_17626.mscorlib);
+            var mscorlib17626 = MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30316_17626.mscorlib);
             CompileAndVerify(testSrc, new MetadataReference[] { mscorlib17626 }, expectedOutput: "1");
         }
 

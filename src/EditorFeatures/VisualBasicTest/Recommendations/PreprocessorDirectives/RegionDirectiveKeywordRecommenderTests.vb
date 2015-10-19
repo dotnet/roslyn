@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class RegionDirectiveKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashRegionInFile()
             VerifyRecommendationsContain(<File>|</File>, "#Region")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashRegionInLambda()
             VerifyRecommendationsContain(<ClassDeclaration>Dim x = Function()
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
 End Function</ClassDeclaration>, "#Region")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInEnumBlockMemberDeclaration()
             VerifyRecommendationsMissing(<File>
@@ -33,7 +33,7 @@ End Function</ClassDeclaration>, "#Region")
                                          </File>, "#Region")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHashEnd()
             VerifyRecommendationsMissing(<File>

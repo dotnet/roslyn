@@ -4,13 +4,11 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal class MemberInsertionCompletionItem : CompletionItem
     {
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
         public SyntaxToken Token { get; }
 
         public MemberInsertionCompletionItem(
-            ICompletionProvider provider,
+            CompletionListProvider provider,
             string displayText,
             TextSpan filterSpan,
             Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             int line,
             SymbolKey symbolId,
             SyntaxToken token)
-            : base(provider, displayText, filterSpan, descriptionFactory, glyph)
+            : base(provider, displayText, filterSpan, descriptionFactory, glyph, rules: MemberInsertingCompletionItemRules.Instance)
         {
             this.Modifiers = modifiers;
             this.Line = line;

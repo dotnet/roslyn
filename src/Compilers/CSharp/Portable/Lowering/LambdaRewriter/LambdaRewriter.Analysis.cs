@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
         /// The results of analysis are placed in the fields seenLambda, blockParent, variableBlock, captured, and captures.
         /// </summary>
-        internal sealed class Analysis : BoundTreeWalker
+        internal sealed class Analysis : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator 
         {
             private readonly MethodSymbol _topLevelMethod;
 
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   and outermost scope is -1
                     //   Such lambda will be placed in a closure frame that corresponds to the method//s outer block
                     //   and this frame will also lift original Me as a field when created by its parent.
-                    //   Note that is is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
+                    //   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     if (innermostScope != null)
                     {
                         lambdaScopes.Add(kvp.Key, innermostScope);

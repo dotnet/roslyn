@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
     internal interface IActionHolder<TArgument>
     {
-        Action<int, List<TArgument>, SyntaxNode, NextAction<TArgument>> NextOperation { get; }
-        Action<int, List<TArgument>, SyntaxNode, IActionHolder<TArgument>> Continuation { get; }
+        Action<int, List<TArgument>, SyntaxNode, SyntaxToken, NextAction<TArgument>> NextOperation { get; }
+        Action<int, List<TArgument>, SyntaxNode, SyntaxToken, IActionHolder<TArgument>> Continuation { get; }
     }
 }

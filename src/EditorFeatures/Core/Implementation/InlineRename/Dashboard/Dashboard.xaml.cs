@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 var current = _tabNavigableChildren.IndexOf(_focusedElement);
                 current = selector(current);
-                _focusedElement = _tabNavigableChildren.ElementAt(current);
+                _focusedElement = _tabNavigableChildren[current];
             }
 
             _focusedElement.Focus();
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (presentationSource == null)
             {
-                throw new ArgumentNullException("presentationSource");
+                throw new ArgumentNullException(nameof(presentationSource));
             }
 
             _presentationSource = presentationSource;
@@ -218,6 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public string SearchInStrings { get { return EditorFeaturesResources.SearchInStrings; } }
         public string ApplyRename { get { return EditorFeaturesResources.ApplyRename; } }
         public string PreviewChanges { get { return EditorFeaturesResources.RenamePreviewChanges; } }
+        public string RenameInstructions {  get { return EditorFeaturesResources.InlineRenameInstructions; } }
         public string ApplyToolTip { get { return EditorFeaturesResources.RenameApplyToolTip + " (Enter)"; } }
         public string CancelToolTip { get { return EditorFeaturesResources.RenameCancelToolTip + " (Esc)"; } }
 

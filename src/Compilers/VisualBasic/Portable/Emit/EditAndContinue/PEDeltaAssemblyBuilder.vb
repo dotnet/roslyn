@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' both need to be completely lowered (translated). Standard translation only goes one level deep. 
             ' Generic arguments are not translated until they are needed by metadata writer. 
             '
-            ' In order to get the fully lowered form we run the type symbols of stashed variables thru a deep translator
+            ' In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             ' that translates the symbol recursively.
             _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
         End Sub
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim members = type.GetMembers(WellKnownMemberNames.DelegateInvokeName)
             Debug.Assert(members.Length = 1 AndAlso members(0).Kind = SymbolKind.Method)
             Dim method = DirectCast(members(0), MethodSymbol)
-            Debug.Assert(method.Parameters.Count + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
+            Debug.Assert(method.Parameters.Length + If(method.IsSub, 0, 1) = type.TypeParameters.Length)
             Dim parameters = ArrayBuilder(Of AnonymousTypeKeyField).GetInstance()
             parameters.AddRange(method.Parameters.SelectAsArray(Function(p) New AnonymousTypeKeyField(p.Name, isKey:=False, ignoreCase:=True)))
             parameters.Add(New AnonymousTypeKeyField(AnonymousTypeDescriptor.GetReturnParameterName(Not method.IsSub), isKey:=False, ignoreCase:=True))

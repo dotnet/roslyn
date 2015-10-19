@@ -3,7 +3,6 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -17,14 +16,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        public OverrideCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new OverrideCompletionProvider(TestWaitIndicator.Default);
         }
 
         #region "CompletionItem tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InheritedVirtualPublicMethod()
         {
             VerifyItemExists(@"
@@ -40,7 +43,7 @@ public class b : a
         }
 
         [WorkItem(543799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InheritedParameterDefaultValue1()
         {
             VerifyItemExists(@"public class a
@@ -55,7 +58,7 @@ public class b : a
         }
 
         [WorkItem(543799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InheritedParameterDefaultValue2()
         {
             VerifyItemExists(@"public class a
@@ -69,7 +72,7 @@ public class b : a
 }", "foo(int x, int y = 42)", "void a.foo(int x, [int y = 42])");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InheritedAbstractPublicMethod()
         {
             VerifyItemExists(@"
@@ -84,7 +87,7 @@ public class b : a
 }", "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotPrivateInheritedMethod()
         {
             VerifyItemIsAbsent(@"
@@ -99,7 +102,7 @@ public class b : a
 }", "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void MatchReturnType()
         {
             var markup = @"
@@ -118,7 +121,7 @@ public class b : a
             VerifyItemExists(markup, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvalidReturnType()
         {
             var markup = @"
@@ -138,7 +141,7 @@ public class b : a
             VerifyItemExists(markup, "bar()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAlreadyImplementedMethods()
         {
             VerifyItemIsAbsent(@"
@@ -157,7 +160,7 @@ public class b : a
 }", "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotSealed()
         {
             VerifyItemIsAbsent(@"
@@ -172,7 +175,7 @@ public class b : a
 }", "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ShowEvent()
         {
             VerifyItemExists(@"
@@ -188,7 +191,7 @@ public class b : a
 }", "foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfTokensAfterPosition()
         {
             VerifyNoItemsExist(@"
@@ -203,7 +206,7 @@ public class b : a
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfNameAfterPosition()
         {
             VerifyNoItemsExist(@"
@@ -218,7 +221,7 @@ public class b : a
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotIfStatic()
         {
             VerifyNoItemsExist(@"
@@ -233,7 +236,7 @@ public class b : a
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterSingleLineMethodDeclaration()
         {
             VerifyNoItemsExist(@"
@@ -248,7 +251,7 @@ public class b : a
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestProperty()
         {
             VerifyItemExists(@"
@@ -263,7 +266,7 @@ public class b : a
 }", "foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotSuggestSealed()
         {
             VerifyItemIsAbsent(@"
@@ -278,7 +281,7 @@ public class b : a
 }", "foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GatherModifiers()
         {
             VerifyItemExists(@"
@@ -293,7 +296,7 @@ public class b : a
 }", "foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IgnorePartial()
         {
             VerifyNoItemsExist(@"
@@ -308,7 +311,7 @@ public class b : a
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IgnoreSealed()
         {
             VerifyItemIsAbsent(@"
@@ -323,7 +326,7 @@ public class b : a
 }", "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IgnoreIfTokenAfter()
         {
             VerifyNoItemsExist(@"
@@ -338,7 +341,7 @@ public class b : a
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestAfterUnsafeAbstractExtern()
         {
             VerifyItemExists(@"
@@ -353,7 +356,7 @@ public class b : a
 }", "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestAfterSealed()
         {
             VerifyItemExists(@"
@@ -368,7 +371,7 @@ public class b : a
 }", "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NoAccessibility()
         {
             var markup = @"
@@ -387,7 +390,7 @@ public class b : a
             VerifyItemExists(markup, "bar()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FilterAccessibility()
         {
             var markup = @"
@@ -425,7 +428,7 @@ public class b : a
 }", "bar()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FilterPublicInternal()
         {
             var protectedinternal = @"
@@ -459,7 +462,7 @@ public class b : a
             VerifyItemExists(internalprotected, "foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void VerifySignatureFormat()
         {
             var markup = @"
@@ -471,7 +474,7 @@ public class a
             VerifyItemExists(markup, "Equals(object obj)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void PrivateNoFilter()
         {
             var markup = @"
@@ -488,7 +491,7 @@ public class a : c
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotOfferedOnFirstLine()
         {
             var markup = @"class c { override $$";
@@ -496,7 +499,7 @@ public class a : c
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotOfferedOverrideAlone()
         {
             var markup = @"override $$";
@@ -504,7 +507,7 @@ public class a : c
             VerifyNoItemsExist(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IntermediateClassOverriddenMember()
         {
             var markup = @"abstract class Base
@@ -526,7 +529,7 @@ class SomeClass : Derived
         }
 
         [WorkItem(543748)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotOfferedBaseClassMember()
         {
             var markup = @"abstract class Base
@@ -547,7 +550,7 @@ class SomeClass : Derived
             VerifyItemIsAbsent(markup, "Foo()", "void Base.Foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotOfferedOnNonVirtual()
         {
             var markup = @"class Base
@@ -563,7 +566,7 @@ class SomeClass : Base
             VerifyItemIsAbsent(markup, "Foo()", "void Base.Foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GenericTypeNameSubstitutedForGenericInDerivedClass1()
         {
             var markup = @"public abstract class Base<T>
@@ -579,7 +582,7 @@ public class SomeClass<X> : Base<X>
             VerifyItemIsAbsent(markup, "Foo(T t)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GenericTypeNameSubstitutedForGenericInDerivedClass2()
         {
             var markup = @"public abstract class Base<T>
@@ -595,7 +598,7 @@ public class SomeClass<X, Y, Z> : Base<Y>
             VerifyItemIsAbsent(markup, "Foo(T t)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GenericTypeNameSubstitutedForGenericInDerivedClass3()
         {
             var markup = @"public abstract class Base<T, S>
@@ -611,7 +614,7 @@ public class SomeClass<X, Y, Z> : Base<Y, Z>
             VerifyItemIsAbsent(markup, "Foo(T t, S s)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GenericTypeNameSubstitutedForNonGenericInDerivedClass1()
         {
             var markup = @"public abstract class Base<T>
@@ -627,7 +630,7 @@ public class SomeClass : Base<int>
             VerifyItemIsAbsent(markup, "Foo(T t)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GenericTypeNameSubstitutedForNonGenericInDerivedClass2()
         {
             var markup = @"public abstract class Base<T>
@@ -643,7 +646,7 @@ public class SomeClass<X, Y, Z> : Base<int>
             VerifyItemIsAbsent(markup, "Foo(T t)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void GenericTypeNameSubstitutedForNonGenericInDerivedClass3()
         {
             var markup = @"using System;
@@ -662,7 +665,7 @@ public class SomeClass : Base<int, Exception>
         }
 
         [WorkItem(543756)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ParameterTypeSimplified()
         {
             var markup = @"using System;
@@ -680,7 +683,7 @@ public class SomeClass : Base
             VerifyItemExists(markup, "Foo(Exception e)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EscapedMethodNameInIntelliSenseList()
         {
             var markup = @"public abstract class Base
@@ -701,7 +704,7 @@ public class SomeClass : Base
             BaseVerifyWorker(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EscapedPropertyNameInIntelliSenseList()
         {
             var markup = @"public abstract class Base
@@ -722,7 +725,7 @@ public class SomeClass : Base
             BaseVerifyWorker(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void EscapedParameterNameInIntelliSenseList()
         {
             var markup = @"public abstract class Base
@@ -738,7 +741,7 @@ public class SomeClass : Base
             VerifyItemExists(markup, "foo(int @class)", "void Base.foo(int @class)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void RefParameter()
         {
             var markup = @"public abstract class Base
@@ -754,7 +757,7 @@ public class SomeClass : Base
             VerifyItemExists(markup, "foo(int x, ref string y)", "void Base.foo(int x, ref string y)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void OutParameter()
         {
             var markup = @"public abstract class Base
@@ -771,7 +774,7 @@ public class SomeClass : Base
         }
 
         [WorkItem(529714)]
-        [Fact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
         public void GenericMethodTypeParametersRenamed()
         {
             var markup = @"abstract class CFoo
@@ -795,7 +798,7 @@ class Derived<X> : CFoo
 
         #region "Commit tests"
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInEmptyClass()
         {
             var markupBeforeCommit = @"class c
@@ -814,7 +817,7 @@ class Derived<X> : CFoo
             VerifyCustomCommitProvider(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitMethodBeforeMethod()
         {
             var markupBeforeCommit = @"class c
@@ -837,7 +840,7 @@ class Derived<X> : CFoo
             VerifyCustomCommitProvider(markupBeforeCommit, "Equals(object obj)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitMethodAfterMethod()
         {
             var markupBeforeCommit = @"class c
@@ -861,7 +864,7 @@ class Derived<X> : CFoo
         }
 
         [WorkItem(543798)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOptionalParameterValuesAreGenerated()
         {
             var markupBeforeCommit = @"using System;
@@ -894,7 +897,7 @@ public class Derived : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(int x = 42)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAttributesAreNotGenerated()
         {
             var markupBeforeCommit = @"using System;
@@ -933,7 +936,7 @@ public class Derived : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitVoidMethod()
         {
             var markupBeforeCommit = @"class c
@@ -962,7 +965,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitVoidMethodWithParams()
         {
             var markupBeforeCommit = @"class c
@@ -991,7 +994,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(int bar, int quux)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitNonVoidMethod()
         {
             var markupBeforeCommit = @"class c
@@ -1020,7 +1023,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitNonVoidMethodWithParams()
         {
             var markupBeforeCommit = @"class c
@@ -1049,7 +1052,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(int bar, int quux)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitProtectedMethod()
         {
             var markupBeforeCommit = @"class c
@@ -1077,7 +1080,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInternalMethod()
         {
             var markupBeforeCommit = @"class c
@@ -1106,7 +1109,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitProtectedInternalMethod()
         {
             var markupBeforeCommit = @"public class c
@@ -1135,7 +1138,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAbstractMethodThrows()
         {
             var markupBeforeCommit = @"abstract class c
@@ -1166,7 +1169,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOverrideAsAbstract()
         {
             var markupBeforeCommit = @"class c
@@ -1192,7 +1195,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOverrideAsUnsafeSealed()
         {
             var markupBeforeCommit = @"class c
@@ -1221,7 +1224,7 @@ class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInsertProperty()
         {
             var markupBeforeCommit = @"public class c
@@ -1258,7 +1261,7 @@ public class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInsertPropertyAfterMethod()
         {
             var markupBeforeCommit = @"public class c
@@ -1297,7 +1300,7 @@ public class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInsertPropertyBeforeMethod()
         {
             var markupBeforeCommit = @"public class c
@@ -1336,7 +1339,7 @@ public class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitPropertyInaccessibleGet()
         {
             var markupBeforeCommit = @"public class c
@@ -1368,7 +1371,7 @@ public class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitPropertyInaccessibleSet()
         {
             var markupBeforeCommit = @"public class c
@@ -1400,7 +1403,7 @@ public class d : c
             VerifyCustomCommitProvider(markupBeforeCommit, "foo", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAccessibleEvent()
         {
             var markupBeforeCommit = @"using System;
@@ -1428,7 +1431,7 @@ public class b : a
             VerifyCustomCommitProvider(markupBeforeCommit, "foo", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitEventAfterMethod()
         {
             var markupBeforeCommit = @"using System;
@@ -1460,7 +1463,7 @@ public class b : a
             VerifyCustomCommitProvider(markupBeforeCommit, "foo", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitGenericMethod()
         {
             var markupBeforeCommit = @"using System;
@@ -1493,7 +1496,7 @@ public class b : a
             VerifyCustomCommitProvider(markupBeforeCommit, "foo<T>()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitInsertIndexer()
         {
             var markupBeforeCommit = @"public class MyIndexer<T>
@@ -1552,7 +1555,7 @@ class d : MyIndexer<T>
             VerifyCustomCommitProvider(markupBeforeCommit, "this[int i]", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAbstractIndexer()
         {
             var markupBeforeCommit = @"public class MyIndexer<T>
@@ -1598,7 +1601,7 @@ class d : MyIndexer<T>
         // public void CommitInsertAtEndOfFile()
         // public void CommitInsertAtEndOfFileAfterMethod()
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitFormats()
         {
             var markupBeforeCommit = @"class Base
@@ -1627,7 +1630,7 @@ class Derived : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitSimplifiesParameterTypes()
         {
             var markupBeforeCommit = @"using System;
@@ -1660,7 +1663,7 @@ public class SomeClass : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(Exception e)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitSimplifiesReturnType()
         {
             var markupBeforeCommit = @"using System;
@@ -1693,7 +1696,7 @@ public class SomeClass : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(Exception e)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitEscapedMethodName()
         {
             var markupBeforeCommit = @"public abstract class Base
@@ -1723,7 +1726,7 @@ public class SomeClass : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "@class()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitEscapedPropertyName()
         {
             var markupBeforeCommit = @"public abstract class Base
@@ -1760,7 +1763,7 @@ public class SomeClass : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "@class", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitEscapedParameterName()
         {
             var markupBeforeCommit = @"using System;
@@ -1793,7 +1796,7 @@ public class SomeClass : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(int @class)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitRefParameter()
         {
             var markupBeforeCommit = @"public abstract class Base
@@ -1824,7 +1827,7 @@ public class SomeClass : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo(int x, ref string y)", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitOutParameter()
         {
             var markupBeforeCommit = @"public abstract class Base
@@ -1856,7 +1859,7 @@ public class SomeClass : Base
         }
 
         [WorkItem(529714)]
-        [Fact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "529714"), Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitGenericMethodTypeParametersRenamed()
         {
             var markupBeforeCommit = @"abstract class CFoo
@@ -1892,7 +1895,7 @@ class Derived<X> : CFoo
         }
 
         [WorkItem(544560)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestUnsafe1()
         {
             var markupBeforeCommit =
@@ -1928,7 +1931,7 @@ public class B : A
         }
 
         [WorkItem(544560)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestUnsafe2()
         {
             var markupBeforeCommit =
@@ -1964,7 +1967,7 @@ public class B : A
         }
 
         [WorkItem(544560)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestUnsafe3()
         {
             var markupBeforeCommit =
@@ -2000,7 +2003,7 @@ public class B : A
         }
 
         [WorkItem(544560)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestUnsafe4()
         {
             var markupBeforeCommit =
@@ -2036,7 +2039,7 @@ public class B : A
         }
 
         [WorkItem(545534)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void TestPrivateVirtualProperty()
         {
             var markupBeforeCommit =
@@ -2077,7 +2080,7 @@ public class B : A
         }
 
         [WorkItem(636706)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CrossLanguageParameterizedPropertyOverride()
         {
             var vbFile = @"Public Class Foo
@@ -2124,20 +2127,19 @@ End Class
 
             using (var testWorkspace = TestWorkspaceFactory.CreateWorkspace(xmlString))
             {
-                int cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
+                var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                DocumentId docId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
-                Document doc = solution.GetDocument(docId);
+                var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
+                var document = solution.GetDocument(documentId);
+                var triggerInfo = new CompletionTriggerInfo();
 
-                CompletionTriggerInfo completionTriggerInfo = new CompletionTriggerInfo();
-                var completions = CompletionProvider.GetGroupAsync(doc, cursorPosition, completionTriggerInfo).Result;
-
-                var completionItem = completions.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
+                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
-                    var textView = testWorkspace.GetTestDocument(docId).GetTextView();
+                    var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2157,7 +2159,7 @@ End Class
         #region "Commit: With Trivia"
 
         [WorkItem(529199)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitSurroundingTriviaDirective()
         {
             var markupBeforeCommit = @"class Base
@@ -2190,7 +2192,7 @@ class Derived : Base
         }
 
         [WorkItem(529199)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitBeforeTriviaDirective()
         {
             var markupBeforeCommit = @"class Base
@@ -2222,7 +2224,7 @@ class Derived : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAfterTriviaDirective()
         {
             var markupBeforeCommit = @"class Base
@@ -2255,7 +2257,7 @@ class Derived : Base
         }
 
         [WorkItem(529199)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitBeforeComment()
         {
             var markupBeforeCommit = @"class Base
@@ -2285,7 +2287,7 @@ class Derived : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAfterComment()
         {
             var markupBeforeCommit = @"class Base
@@ -2315,7 +2317,7 @@ class Derived : Base
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DoNotFormatFile()
         {
             var markupBeforeCommit = @"class Program
@@ -2354,7 +2356,7 @@ int bar;
         }
 
         [WorkItem(736742)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AcrossPartialTypes1()
         {
             var file1 = @"partial class c
@@ -2384,20 +2386,19 @@ int bar;
 
             using (var testWorkspace = TestWorkspaceFactory.CreateWorkspace(xmlString))
             {
-                int cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
+                var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                DocumentId docId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
-                Document doc = solution.GetDocument(docId);
+                var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
+                var document = solution.GetDocument(documentId);
+                var triggerInfo = new CompletionTriggerInfo();
 
-                CompletionTriggerInfo completionTriggerInfo = new CompletionTriggerInfo();
-                var completions = CompletionProvider.GetGroupAsync(doc, cursorPosition, completionTriggerInfo).Result;
-
-                var completionItem = completions.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
+                var completionList = GetCompletionList(document, position, triggerInfo);
+                var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
-                    var textView = testWorkspace.GetTestDocument(docId).GetTextView();
+                    var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2413,7 +2414,7 @@ int bar;
         }
 
         [WorkItem(736742)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AcrossPartialTypes2()
         {
             var file1 = @"partial class c
@@ -2443,20 +2444,19 @@ int bar;
 
             using (var testWorkspace = TestWorkspaceFactory.CreateWorkspace(xmlString))
             {
-                int cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
+                var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
-                DocumentId docId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
-                Document doc = solution.GetDocument(docId);
+                var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
+                var document = solution.GetDocument(documentId);
+                var triggerInfo = new CompletionTriggerInfo();
 
-                CompletionTriggerInfo completionTriggerInfo = new CompletionTriggerInfo();
-                var completions = CompletionProvider.GetGroupAsync(doc, cursorPosition, completionTriggerInfo).Result;
-
-                var completionItem = completions.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
+                var completionList = GetCompletionList(document, cursorPosition, triggerInfo);
+                var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
                 var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
-                    var textView = testWorkspace.GetTestDocument(docId).GetTextView();
+                    var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
                     customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                     string actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                     var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2475,7 +2475,7 @@ int bar;
 
         #region "EditorBrowsable should be ignored"
 
-        [Fact]
+        [WpfFact]
         [WorkItem(545678)]
         [Trait(Traits.Feature, Traits.Features.Completion)]
         public void EditorBrowsable_IgnoredWhenOverridingMethods()
@@ -2503,7 +2503,7 @@ public class B
 
         #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DuplicateMember()
         {
             var markupBeforeCommit = @"class Program
@@ -2533,7 +2533,7 @@ class C : Program
             VerifyCustomCommitProvider(markupBeforeCommit, "foo()", expectedCodeAfterCommit);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void LeaveTrailingTriviaAlone()
         {
             var text = @"
@@ -2552,12 +2552,11 @@ namespace ConsoleApplication46
             var provider = new OverrideCompletionProvider(TestWaitIndicator.Default);
             var testDocument = workspace.Documents.Single();
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-            var items = provider.GetGroupAsync(document, testDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), CancellationToken.None)
-                                .WaitAndGetResult(CancellationToken.None);
+            var completionList = GetCompletionList(provider, document, testDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
 
             var oldTree = document.GetSyntaxTreeAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            provider.Commit(items.Items.First(i => i.DisplayText == "ToString()"), testDocument.GetTextView(), testDocument.GetTextBuffer(), testDocument.TextBuffer.CurrentSnapshot, ' ');
+            provider.Commit(completionList.Items.First(i => i.DisplayText == "ToString()"), testDocument.GetTextView(), testDocument.GetTextBuffer(), testDocument.TextBuffer.CurrentSnapshot, ' ');
             var newTree = workspace.CurrentSolution.GetDocument(testDocument.Id).GetSyntaxTreeAsync().WaitAndGetResult(CancellationToken.None);
             var changes = newTree.GetChanges(oldTree);
 

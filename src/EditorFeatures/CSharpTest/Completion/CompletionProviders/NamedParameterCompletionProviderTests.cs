@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,25 +11,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class NamedParameterCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        public NamedParameterCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new NamedParameterCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
-            VerifySendEnterThroughToEnter("foo:", "foo:", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("foo:", "foo:", sendThroughEnterEnabled: true, expected: true);
+            const string markup = @"
+class Foo
+{
+    public Foo(int a = 42)
+    { }
+
+    void Bar()
+    {
+        var b = new Foo($$
+    }
+}";
+
+            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter(markup, "a:", sendThroughEnterEnabled: true, expected: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitCharacterTest()
         {
-            TestCommonIsCommitCharacter();
+            const string markup = @"
+class Foo
+{
+    public Foo(int a = 42)
+    { }
+
+    void Bar()
+    {
+        var b = new Foo($$
+    }
+}";
+
+            VerifyCommonCommitCharacters(markup, textTypedSoFar: "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InObjectCreation()
         {
             var markup = @"
@@ -46,7 +75,7 @@ class Foo
             VerifyItemExists(markup, "a:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InBaseConstructor()
         {
             var markup = @"
@@ -65,7 +94,7 @@ class DogBed : Foo
             VerifyItemExists(markup, "a:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvocationExpression()
         {
             var markup = @"
@@ -81,7 +110,7 @@ class Foo
             VerifyItemExists(markup, "a:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InvocationExpressionAfterComma()
         {
             var markup = @"
@@ -97,7 +126,7 @@ class Foo
             VerifyItemExists(markup, "a:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ElementAccessExpression()
         {
             var markup = @"
@@ -130,7 +159,7 @@ class Program
             VerifyItemExists(markup, "i:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void PartialMethods()
         {
             var markup = @"
@@ -151,7 +180,7 @@ partial class PartialClass
             VerifyItemIsAbsent(markup, "implementing:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotAfterColon()
         {
             var markup = @"
@@ -168,7 +197,7 @@ class Foo
         }
 
         [WorkItem(544292)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInCollectionInitializers()
         {
             var markup = @"
@@ -186,7 +215,7 @@ class Foo
         }
 
         [WorkItem(544191)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FilteringOverloadsByCallSite()
         {
             var markup = @"
@@ -209,7 +238,7 @@ class Class1
             VerifyItemIsAbsent(markup, "character:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DontFilterYet()
         {
             var markup = @"
@@ -233,7 +262,7 @@ class Class1
         }
 
         [WorkItem(544191)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void FilteringOverloadsByCallSiteComplex()
         {
             var markup = @"
@@ -266,7 +295,7 @@ class Bar { }
             VerifyItemIsAbsent(markup, "dbl:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void MethodOverloads()
         {
             var markup = @"
@@ -294,7 +323,7 @@ class Foo
             VerifyItemExists(markup, "b:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ExistingNamedParamsAreFilteredOut()
         {
             var markup = @"
@@ -327,7 +356,7 @@ class Foo
         }
 
         [WorkItem(529369)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void VerbatimIdentifierNotAKeyword()
         {
             var markup = @"
@@ -343,7 +372,7 @@ class Program
         }
 
         [WorkItem(544209)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DescriptionStringInMethodOverloads()
         {
             var markup = @"
@@ -365,7 +394,7 @@ class Class1
                 expectedDescriptionOrNull: $"({FeaturesResources.Parameter}) Class1 obj = default(Class1)");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InDelegates()
         {
             var markup = @"
@@ -387,7 +416,7 @@ class Program
             VerifyItemExists(markup, "message:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InDelegateInvokeSyntax()
         {
             var markup = @"
@@ -409,7 +438,7 @@ class Program
             VerifyItemExists(markup, "message:");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInComment()
         {
             var markup = @"

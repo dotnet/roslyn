@@ -31,11 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Splits nullable operand into a hasValueExpression and an expression that represents underlying value (returned).
         ''' 
-        ''' Underlying value can be called after calling hasValueExpr without duplicated sideeffects.
-        ''' Note that hasValueExpr is guaranteed to have NO SIDEEFFECTS, while result value is 
+        ''' Underlying value can be called after calling hasValueExpr without duplicated side-effects.
+        ''' Note that hasValueExpr is guaranteed to have NO SIDE-EFFECTS, while result value is 
         ''' expected to be called exactly ONCE. That is the normal pattern in operator lifting.
         ''' 
-        ''' All necessary temps and sideeffecting initializations are appended to temps and inits
+        ''' All necessary temps and side-effecting initializations are appended to temps and inits
         ''' </summary>
         Private Function ProcessNullableOperand(operand As BoundExpression,
                                                 <Out> ByRef hasValueExpr As BoundExpression,
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Returns a NOT-SIDEEFFECTING expression that represents results of the operand
+        ''' Returns a NOT-SIDE-EFFECTING expression that represents results of the operand
         ''' If such transformation requires a temp, the temp and its initializing expression
         ''' are returned in temp/init
         ''' </summary>
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' returns true when expression has NO SIDEEFFECTS and is known to produce nullable NULL
+        ''' returns true when expression has NO SIDE-EFFECTS and is known to produce nullable NULL
         ''' </summary>
         Private Shared Function HasNoValue(expr As BoundExpression) As Boolean
             Debug.Assert(expr.Type.IsNullableType)
@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns true when expression is known to produce nullable NOT-NULL
-        ''' NOTE: unlike HasNoValue case, HasValue expressions may have sideeffects.
+        ''' NOTE: unlike HasNoValue case, HasValue expressions may have side-effects.
         ''' </summary>
         Private Shared Function HasValue(expr As BoundExpression) As Boolean
             Debug.Assert(expr.Type.IsNullableType)
@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns an expression that can be used instead of the original one when
-        ''' we want to run the expression for sideeffects only (i.e. we intend to ignore result).
+        ''' we want to run the expression for side-effects only (i.e. we intend to ignore result).
         ''' </summary>
         Private Shared Function GetSideeffects(operand As BoundExpression) As BoundExpression
             If operand.IsConstant Then

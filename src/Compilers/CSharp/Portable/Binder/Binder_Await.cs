@@ -116,45 +116,53 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>True if the expression contains errors.</returns>
         private bool ReportBadAwaitWithoutAsync(CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
+            DiagnosticInfo info = null;
             var containingMemberOrLambda = this.ContainingMemberOrLambda;
-            if ((object)containingMemberOrLambda == null || containingMemberOrLambda.Kind != SymbolKind.Method)
+            if ((object)containingMemberOrLambda != null)
             {
-                Error(diagnostics, ErrorCode.ERR_BadAwaitWithoutAsync, node);
-                return true;
+                switch (containingMemberOrLambda.Kind)
+                {
+                    case SymbolKind.Field:
+                        if (containingMemberOrLambda.ContainingType.IsScriptClass)
+                        {
+                            if (((FieldSymbol)containingMemberOrLambda).IsStatic)
+                            {
+                                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitInStaticVariableInitializer);
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                        break;
+                    case SymbolKind.Method:
+                        var method = (MethodSymbol)containingMemberOrLambda;
+                        if (method.IsAsync)
+                        {
+                            return false;
+                        }
+                        if (method.MethodKind == MethodKind.AnonymousFunction)
+                        {
+                            info = method.IsImplicitlyDeclared ?
+                                // The await expression occurred in a query expression:
+                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitInQuery) :
+                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncLambda, ((LambdaSymbol)method).MessageID.Localize());
+                        }
+                        else
+                        {
+                            info = method.ReturnsVoid ?
+                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod) :
+                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType);
+                        }
+                        break;
+                }
             }
-
-            var method = (MethodSymbol)containingMemberOrLambda;
-            if (!method.IsAsync)
+            if (info == null)
             {
-                if (method.MethodKind == MethodKind.AnonymousFunction)
-                {
-                    if (method.IsImplicitlyDeclared)
-                    {
-                        // The await expression occurred in a query expression:
-                        Error(diagnostics, ErrorCode.ERR_BadAwaitInQuery, node);
-                    }
-                    else
-                    {
-                        var lambda = (LambdaSymbol)method;
-                        Error(diagnostics, ErrorCode.ERR_BadAwaitWithoutAsyncLambda, node, lambda.MessageID.Localize());
-                    }
-                }
-                else
-                {
-                    if (method.ReturnsVoid)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, node);
-                    }
-                    else
-                    {
-                        Error(diagnostics, ErrorCode.ERR_BadAwaitWithoutAsyncMethod, node, method.ReturnType);
-                    }
-                }
-
-                return true;
+                info = new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsync);
             }
-
-            return false;
+            Error(diagnostics, info, node);
+            return true;
         }
 
         /// <summary>

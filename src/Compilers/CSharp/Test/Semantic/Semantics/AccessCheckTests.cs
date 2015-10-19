@@ -436,7 +436,7 @@ class B
             // SPEC VIOLATION: the wrong receiver type are discarded from the candidate set, and
             // SPEC VIOLATION: then the best method is chosen.
             // SPEC VIOLATION: We should consider changing the specification to match the native
-            // SPEC VIOLATION: compiler behaviour; it is arguably sensible and would be a 
+            // SPEC VIOLATION: compiler behavior; it is arguably sensible and would be a 
             // SPEC VIOLATION: bad breaking change to fix now.
 
             CSharpCompilation c = CreateCompilationWithMscorlib(@"
@@ -453,7 +453,7 @@ public class D : B
        B b = new D();
        b.M(123);
        // According to the spec, this should choose the int version and then error;
-       // the native compiler chooses the double version. We match the native compiler behaviour.
+       // the native compiler chooses the double version. We match the native compiler behavior.
     }
 }
 ");
@@ -471,7 +471,7 @@ public class D : B
             // SPEC VIOLATION: the wrong receiver type are discarded from the candidate set, and
             // SPEC VIOLATION: then the best method is chosen.
             // SPEC VIOLATION: We should consider changing the specification to match the native
-            // SPEC VIOLATION: compiler behaviour; it is arguably sensible and would be a 
+            // SPEC VIOLATION: compiler behavior; it is arguably sensible and would be a 
             // SPEC VIOLATION: bad breaking change to fix now.
             //
             // This fact has interesting implications in "Color Color" scenarios; when one 

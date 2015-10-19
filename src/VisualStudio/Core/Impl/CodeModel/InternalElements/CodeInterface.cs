@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeInterface))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeInterface2))]
     public sealed class CodeInterface : AbstractCodeType, EnvDTE.CodeInterface, EnvDTE80.CodeInterface2
     {
         internal static EnvDTE.CodeInterface Create(
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             var element = new CodeInterface(state, fileCodeModel, nodeKey, nodeKind);
             var result = (EnvDTE.CodeInterface)ComAggregate.CreateAggregatedObject(element);
 
-            fileCodeModel.OnElementCreated(nodeKey, (EnvDTE.CodeElement)result);
+            fileCodeModel.OnCodeElementCreated(nodeKey, (EnvDTE.CodeElement)result);
 
             return result;
         }

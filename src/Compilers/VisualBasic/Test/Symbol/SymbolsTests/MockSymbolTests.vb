@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim compilation As VisualBasicCompilation = TrivialCompilation()
             Dim elementType As NamedTypeSymbol = New MockNamedTypeSymbol("TestClass", Enumerable.Empty(Of Symbol))   ' this can be any type.
 
-            Dim ats1 As ArrayTypeSymbol = New ArrayTypeSymbol(elementType, Nothing, 1, compilation)
+            Dim ats1 As ArrayTypeSymbol = ArrayTypeSymbol.CreateVBArray(elementType, Nothing, 1, compilation)
             Assert.Equal(1, ats1.Rank)
             Assert.Same(elementType, ats1.ElementType)
             Assert.Equal(SymbolKind.ArrayType, ats1.Kind)
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(ats1.IsValueType)
             Assert.Equal("TestClass()", ats1.ToString())
 
-            Dim ats2 As ArrayTypeSymbol = New ArrayTypeSymbol(elementType, Nothing, 2, compilation)
+            Dim ats2 As ArrayTypeSymbol = ArrayTypeSymbol.CreateVBArray(elementType, Nothing, 2, compilation)
             Assert.Equal(2, ats2.Rank)
             Assert.Same(elementType, ats2.ElementType)
             Assert.Equal(SymbolKind.ArrayType, ats2.Kind)
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.False(ats2.IsValueType)
             Assert.Equal("TestClass(*,*)", ats2.ToString())
 
-            Dim ats3 As ArrayTypeSymbol = New ArrayTypeSymbol(elementType, Nothing, 3, compilation)
+            Dim ats3 As ArrayTypeSymbol = ArrayTypeSymbol.CreateVBArray(elementType, Nothing, 3, compilation)
             Assert.Equal(3, ats3.Rank)
             Assert.Equal("TestClass(*,*,*)", ats3.ToString())
         End Sub

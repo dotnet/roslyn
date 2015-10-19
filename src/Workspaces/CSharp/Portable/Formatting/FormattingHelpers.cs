@@ -61,6 +61,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return true;
         }
 
+        public static bool IsOpenParenInParameterListOfAConversionOperatorDeclaration(this SyntaxToken token)
+        {
+            return token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.ConversionOperatorDeclaration);
+        }
+
+        public static bool IsOpenParenInParameterListOfAOperationDeclaration(this SyntaxToken token)
+        {
+            return token.IsOpenParenInParameterList() && token.Parent.IsParentKind(SyntaxKind.OperatorDeclaration);
+        }
+
         public static bool IsOpenParenInParameterList(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.OpenParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;

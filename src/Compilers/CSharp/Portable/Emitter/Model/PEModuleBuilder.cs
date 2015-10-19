@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 ValidateReferencedAssembly(assembly, cachedAsmRef, diagnostics);
             }
 
-            // tryadd because whatever is associated with assembly should be associated with Modules[0]
+            // TryAdd because whatever is associated with assembly should be associated with Modules[0]
             AssemblyOrModuleSymbolToModuleRefMap.TryAdd(assembly.Modules[0], cachedAsmRef);
 
             return cachedAsmRef;
@@ -1030,6 +1030,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
             }
+        }
+
+        internal override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        {
+            return Translate(symbol, null, diagnostics, null, needDeclaration);
         }
 
         internal Cci.IMethodReference Translate(

@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         {
                             ExpressionSyntax left;
 
-                            // Assumption here is, if the enclosing and containing types are different then there is Inheritence relationship
+                            // Assumption here is, if the enclosing and containing types are different then there is inheritance relationship
                             if (_semanticModel.GetEnclosingNamedType(originalSimpleName.SpanStart, _cancellationToken) != symbol.ContainingType)
                             {
                                 left = SyntaxFactory.BaseExpression();
@@ -583,9 +583,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     var leftTokens = expression.DescendantTokens();
                     List<SyntaxToken> candidateTokens = new List<SyntaxToken>();
 
-                    for (int i = 0; i < leftTokens.Count(); ++i)
+                    foreach (var candidateToken in leftTokens)
                     {
-                        var candidateToken = leftTokens.ElementAt(i);
                         if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
                         {
                             candidateTokens.Add(candidateToken);
@@ -787,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                     displayParts = replaceNode
                         ? symbol.ToDisplayParts(s_typeNameFormatWithGenerics)
-                        : ((ISymbol)symbol.ContainingType ?? (ISymbol)symbol.ContainingNamespace).ToDisplayParts(s_typeNameFormatWithGenerics);
+                        : (symbol.ContainingType ?? (ISymbol)symbol.ContainingNamespace).ToDisplayParts(s_typeNameFormatWithGenerics);
 
                     rewrittenNode = TryAddTypeArgumentToIdentifierName(rewrittenNode, symbol);
 

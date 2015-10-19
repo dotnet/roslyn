@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
         {
             // currently we only support one level branching. 
             // my reasonings are
-            // 1. it seems there is no one who needs sub branches.
+            // 1. it seems there is no-one who needs sub branches.
             // 2. this lets us to branch without explicit branch API
             return _branchId == Workspace.PrimaryBranchId ? BranchId.GetNextId() : _branchId;
         }
@@ -1787,6 +1787,32 @@ namespace Microsoft.CodeAnalysis
                 lazyLatestProjectVersion: newLatestProjectVersion);
         }
 
+        internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
+        {
+            var projectState = this.GetProjectState(documentId.ProjectId);
+            if (projectState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var documentState = projectState.GetDocumentState(documentId);
+            if (documentState == null)
+            {
+                // this document no longer exist
+                return ImmutableArray<DocumentId>.Empty;
+            }
+
+            var filePath = documentState.FilePath;
+            if (string.IsNullOrEmpty(filePath))
+            {
+                // this document can't have any related document. only related document is itself.
+                return ImmutableArray.Create<DocumentId>(documentId);
+            }
+
+            return this.GetDocumentIdsWithFilePath(filePath);
+        }
+
         /// <summary>
         /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
         /// <see cref="TextDocument.FilePath"/> that matches the given file path.
@@ -2094,7 +2120,7 @@ namespace Microsoft.CodeAnalysis
                 return result.Value;
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {
@@ -2114,7 +2140,7 @@ namespace Microsoft.CodeAnalysis
                 return ConvertTreesToDocuments(id, trees);
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {

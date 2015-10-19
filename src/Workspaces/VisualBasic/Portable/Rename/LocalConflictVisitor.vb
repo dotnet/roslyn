@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             End If
 
             If controlVariable.Kind = SyntaxKind.VariableDeclarator Then
-                ' it's only legal to have one name in the variable declarator for for and for each loops.
+                ' it's only legal to have one name in the variable declarator for for and foreach loops.
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else
                 Dim semanticModel = _newSolution.GetDocument(controlVariable.SyntaxTree).GetSemanticModelAsync(_cancellationToken).Result

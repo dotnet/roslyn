@@ -255,7 +255,7 @@ public class Test
             var other = CreateCompilationWithMscorlib(s,
                 options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_publicKeyFile).WithDelaySign(true).WithStrongNameProvider(s_defaultProvider));
             other.VerifyDiagnostics();
-            Assert.True(ByteSequenceComparer.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
+            Assert.True(ByteSequenceComparer.Equals(TestResources.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
         }
 
         [Fact]
@@ -646,7 +646,8 @@ public class A
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
+            requestor.VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
         }
 
         [Fact]
@@ -674,7 +675,7 @@ public class A
               options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider));
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
         }
 
         [Fact]
@@ -730,7 +731,7 @@ public class A
                 assemblyName: "John");
 
             Assert.False(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
         }
 
         [WorkItem(820450, "DevDiv")]
@@ -861,7 +862,7 @@ public class Z
 {
 }";
 
-                //now that the module checks out, ensure that adding it to a compilation outputing a dll
+                //now that the module checks out, ensure that adding it to a compilation outputting a dll
                 //results in a signed assembly.
                 var assemblyComp = CreateCompilationWithMscorlib(source,
                     new[] { metadata.GetReference() },

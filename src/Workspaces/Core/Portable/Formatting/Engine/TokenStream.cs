@@ -292,7 +292,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         public int GetOriginalColumn(SyntaxToken token)
         {
             var tokenWithIndex = this.GetTokenData(token);
-
             return GetColumn(tokenWithIndex, _getOriginalTriviaData);
         }
 

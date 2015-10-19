@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
         <Fact, WorkItem(910574, "DevDiv")>
         Public Sub Test1()
 
-            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.SymbolsTests.General.MDTestLib1)
+            Dim assembly = MetadataTestHelpers.LoadFromBytes(TestResources.General.MDTestLib1)
             Dim module0 = assembly.Modules(0)
 
             Dim C1 = module0.GlobalNamespace.GetTypeMembers("C1").Single()

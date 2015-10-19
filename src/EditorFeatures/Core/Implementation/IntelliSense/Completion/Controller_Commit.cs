@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -136,11 +135,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            // Let the rules factories know that this item was committed.
-            foreach (var rules in GetCompletionRules())
-            {
-                rules.CompletionItemCommitted(item);
-            }
+            // Let the completion rules know that this item was committed.
+            GetCompletionRules().CompletionItemCommitted(item);
         }
 
         private SnapshotSpan GetFinalSpan(SnapshotSpan currentSpan, char commitChar, bool textChanged)

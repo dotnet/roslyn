@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestIsAccessibleWithin_ProtectedInternal()
             Dim workspace =
 <Workspace>
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             TestIsAccessibleWithin(workspace, False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestIsAccessibleWithin_ProtectedInternal_InternalsVisibleTo()
             Dim workspace =
 <Workspace>
@@ -73,7 +73,7 @@ public class Program { protected internal static int F; }
             TestIsAccessibleWithin(workspace, True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestIsAccessibleWithin_ProtectedInternal_WrongInternalsVisibleTo()
             Dim workspace =
 <Workspace>
@@ -94,7 +94,7 @@ public class Program { protected internal static int F; }
             TestIsAccessibleWithin(workspace, False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestIsAccessibleWithin_PrivateInsideNestedType()
             Dim workspace =
 <Workspace>
@@ -113,7 +113,7 @@ class Outer
             TestIsAccessibleWithin(workspace, True)
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestIsAccessibleWithin_ProtectedInsideNestedType()
             Dim workspace =
 <Workspace>

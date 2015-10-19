@@ -9,19 +9,19 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ConstDirectiveKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstInFile()
             VerifyRecommendationsContain(<File>|</File>, "#Const")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstInMethodBody()
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "#Const")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInEnumBlockMemberDeclaration()
             VerifyRecommendationsMissing(<File>
@@ -31,21 +31,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Pr
                                          </File>, "#Const")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(544629)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstAfterSingleNonMatchingCharacter()
             VerifyRecommendationsContain(<File>a|</File>, "#Const")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(544629)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub HashConstAfterPartialConstWithoutHash()
             VerifyRecommendationsContain(<File>Con|</File>, "#Const")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(722, "https://github.com/dotnet/roslyn/issues/722")>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterHashConst()

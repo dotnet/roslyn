@@ -30,6 +30,18 @@ class C {
 //]
 }";
 
+        private static string s_propertyPreview = @"class c {
+//[
+    public int Property {
+        get {
+            return 42;
+        }
+        set {
+        }
+    }
+//]
+}";
+
         private static readonly string s_tryCatchFinallyPreview = @"using System;
 class C {
     void Foo() {
@@ -186,6 +198,8 @@ class B {
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.NewLineBraces });
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInTypes, CSharpVSResources.NewLinesBracesType, s_previewText, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInMethods, CSharpVSResources.NewLinesForBracesMethod, s_methodPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInProperties, CSharpVSResources.NewLinesForBracesProperty, s_propertyPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInAccessors, CSharpVSResources.NewLinesForBracesAccessors, s_propertyPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods, CSharpVSResources.NewLinesForBracesInAnonymousMethods, s_anonymousMethodPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, CSharpVSResources.NewLinesForBracesInControlBlocks, s_forBlockPreview, this, options));
             Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes, CSharpVSResources.NewLinesForBracesInAnonymousTypes, s_anonymousTypePreview, this, options));

@@ -112,7 +112,7 @@ class C { }
 class C { }
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(source,
+            ParserErrorMessageTests.ParseAndValidate(source, TestOptions.Script,
                 Diagnostic(ErrorCode.ERR_ExpectedPPFile, ""));
         }
 

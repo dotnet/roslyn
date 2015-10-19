@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// detected at lookup time (e.g., NotAVariable), so only occur in bound nodes.
     /// </summary>
     /// <remarks>
-    /// This enumeration is parallel to and almost the same as as the CandidateReason enumeration.
+    /// This enumeration is parallel to and almost the same as the CandidateReason enumeration.
     /// Changes to one should usually result in changes to the other.
     /// 
     /// There are two enumerations because:

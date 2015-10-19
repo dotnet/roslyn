@@ -1756,22 +1756,22 @@ end namespace
                     Dim securityPermissionAttr As NamedTypeSymbol = sourceAssembly.CorLibrary.LookupTopLevelMetadataType(emittedName, True)
 
                     ' Verify <assembly: SecurityPermission(SecurityAction.RequestOptional, RemotingConfiguration:=true)>
-                    Dim securityAttribute As Microsoft.Cci.SecurityAttribute = assemblySecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.RequestOptional, securityAttribute.Action)
+                    Dim securityAttribute As Cci.SecurityAttribute = assemblySecurityAttributes.First()
+                    Assert.Equal(DeclarativeSecurityAction.RequestOptional, securityAttribute.Action)
                     Dim typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(securityPermissionAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.RequestOptional))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.RequestOptional))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "RemotingConfiguration", TypedConstantKind.Primitive, True)
 
                     ' Verify <assembly: SecurityPermission(SecurityAction.RequestMinimum, UnmanagedCode:=true)>
                     securityAttribute = assemblySecurityAttributes.Last()
-                    Assert.Equal(Cci.SecurityAction.RequestMinimum, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.RequestMinimum, securityAttribute.Action)
                     typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(securityPermissionAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.RequestMinimum))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.RequestMinimum))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "UnmanagedCode", TypedConstantKind.Primitive, True)
 
@@ -1787,21 +1787,21 @@ end namespace
 
                     ' Verify <PrincipalPermission(SecurityAction.Demand, Role:="User1")>
                     securityAttribute = typeSecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action)
                     typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Demand))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Demand))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User1")
 
                     ' Verify <PrincipalPermission(SecurityAction.RequestOptional, Role:="User2")>
                     securityAttribute = typeSecurityAttributes.Last()
-                    Assert.Equal(Cci.SecurityAction.Assert, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Assert, securityAttribute.Action)
                     typeAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, typeAttribute.AttributeClass)
                     Assert.Equal(1, typeAttribute.CommonConstructorArguments.Length)
-                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Assert))
+                    typeAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Assert))
                     Assert.Equal(1, typeAttribute.CommonNamedArguments.Length)
                     typeAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User2")
 
@@ -1812,21 +1812,21 @@ end namespace
 
                     ' Verify <PrincipalPermission(SecurityAction.Demand, Role:="User3")>
                     securityAttribute = methodSecurityAttributes.First()
-                    Assert.Equal(Cci.SecurityAction.Demand, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Demand, securityAttribute.Action)
                     Dim methodAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass)
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length)
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Demand))
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Demand))
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length)
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User3")
 
                     ' Verify PrincipalPermission(SecurityAction.RequestOptional, Role:="User4")
                     securityAttribute = methodSecurityAttributes.Last()
-                    Assert.Equal(Cci.SecurityAction.Assert, securityAttribute.Action)
+                    Assert.Equal(DeclarativeSecurityAction.Assert, securityAttribute.Action)
                     methodAttribute = DirectCast(securityAttribute.Attribute, VisualBasicAttributeData)
                     Assert.Equal(principalPermAttr, methodAttribute.AttributeClass)
                     Assert.Equal(1, methodAttribute.CommonConstructorArguments.Length)
-                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(Cci.SecurityAction.Assert))
+                    methodAttribute.VerifyValue(0, TypedConstantKind.Enum, CInt(DeclarativeSecurityAction.Assert))
                     Assert.Equal(1, methodAttribute.CommonNamedArguments.Length)
                     methodAttribute.VerifyNamedArgumentValue(0, "Role", TypedConstantKind.Primitive, "User4")
                 End Sub

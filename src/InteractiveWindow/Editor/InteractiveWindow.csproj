@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
+    <Import Project="..\Version.props" />
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
@@ -8,7 +9,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Roslyn.Editor.InteractiveWindow</RootNamespace>
+    <RootNamespace>Microsoft.VisualStudio.InteractiveWindow</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.InteractiveWindow</AssemblyName>
     <!-- TODO -->
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
@@ -22,23 +23,43 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
@@ -47,6 +68,7 @@
     <Content Include="Resources\ReplToolBarImages.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BufferBlock.cs" />
     <Compile Include="Commands\CancelExecutionCommand.cs" />
     <Compile Include="Commands\ClearScreenCommand.cs" />
     <Compile Include="Commands\CommandClassifier.cs" />
@@ -70,6 +92,16 @@
     <Compile Include="IInteractiveWindowFactoryService.cs" />
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
+    <Compile Include="IInteractiveWindowOperations2.cs" />
+    <Compile Include="InteractiveWindowClipboard.cs" />
+    <Compile Include="InteractiveWindow.SpanRangeEdit.cs" />
+    <Compile Include="InteractiveWindow.SystemClipboard.cs" />
+    <Compile Include="ProjectionBufferExtensions.cs" />
+    <Compile Include="InteractiveWindow.PendingSubmission.cs" />
+    <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
+    <Compile Include="InteractiveWindow.EditResolver.cs" />
+    <Compile Include="InteractiveWindow.State.cs" />
+    <Compile Include="InteractiveWindow.UIThreadOnly.cs" />
     <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindow.cs" />
@@ -89,15 +121,18 @@
     <Compile Include="Output\SortedSpans.cs" />
     <Compile Include="Output\ZoomableInlineAdornment.cs" />
     <Compile Include="PredefinedInteractiveTextViewRoles.cs" />
-    <Compile Include="PromptLineMapping.cs" />
-    <Compile Include="ReplInput.cs" />
-    <Compile Include="ReplSpanKind.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenter.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenterProvider.cs" />
     <Compile Include="SmartUpDownOption.cs" />
     <Compile Include="SubmissionBufferAddedEventArgs.cs" />
     <Compile Include="Utils\Contract.cs" />
     <Compile Include="Utils\EditorExtensions.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
+      <Link>InternalUtilities\ExceptionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FatalError.cs">
+      <Link>InternalUtilities\FatalError.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="InteractiveWindowResources.resx">
@@ -106,10 +141,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                     // If we don't have any intermediate projects to process, just initialize our
                     // DeclarationState now.
                     return intermediateProjects.Length == 0
-                        ? (State)new FullDeclarationState(compilation)
+                        ? new FullDeclarationState(compilation)
                         : (State)new InProgressState(compilation, intermediateProjects);
                 }
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
                     SolutionServices services)
                 {
                     return services.SupportsCachingRecoverableObjects
-                        ? (ValueSource<Compilation>)new WeakConstantValueSource<Compilation>(compilation)
+                        ? new WeakConstantValueSource<Compilation>(compilation)
                         : (ValueSource<Compilation>)new ConstantValueSource<Compilation>(compilation);
                 }
             }

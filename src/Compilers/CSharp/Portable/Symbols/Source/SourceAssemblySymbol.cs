@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (attribute != null)
                         {
-                            yield return new Cci.SecurityAttribute((Cci.SecurityAction)constantValue, attribute);
+                            yield return new Cci.SecurityAttribute((DeclarativeSecurityAction)(int)constantValue, attribute);
                         }
                     }
                 }
@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
                 Version version;
-                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: true, version: out version))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: !_compilation.IsEmitDeterministic, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     bool isInternalAccessibility;
                     bool success = _unassignedFieldsMap.TryGetValue(field, out isInternalAccessibility);
-                    Debug.Assert(success, "Once CompletionPart.Module is set, no one should be modifying the map.");
+                    Debug.Assert(success, "Once CompletionPart.Module is set, no-one should be modifying the map.");
 
                     if (isInternalAccessibility && internalsAreVisible)
                     {

@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
+        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
+
         internal abstract bool IsImportedFromMetadata
         {
             get;

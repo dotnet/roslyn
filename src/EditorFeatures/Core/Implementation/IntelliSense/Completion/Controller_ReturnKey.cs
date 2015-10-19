@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // to the editor.  In single-line debugger windows (Watch, etc), however, we don't
             // want to send the enter though, because those windows don't support displaying
             // more than one line of text.
-            sendThrough = !model.TriggerInfo.IsDebugger || model.TriggerInfo.IsImmediateWindow;
+            sendThrough = !_isDebugger || _isImmediateWindow;
 
             if (model.IsSoftSelection)
             {
@@ -84,16 +85,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
+            var completionRules = GetCompletionRules();
+
             if (sendThrough)
             {
                 // Get the text that the user has currently entered into the buffer
                 var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
-                sendThrough = selectedItem.CompletionProvider.SendEnterThroughToEditor(selectedItem, textTypedSoFar);
+
+                var options = GetOptions();
+                if (options != null)
+                {
+                    sendThrough = completionRules.SendEnterThroughToEditor(selectedItem, textTypedSoFar, options);
+                }
             }
 
-            var textChange = selectedItem.CompletionProvider.GetTextChange(selectedItem);
+            var textChange = completionRules.GetTextChange(selectedItem);
             this.Commit(selectedItem, textChange, model, null);
             committed = true;
         }

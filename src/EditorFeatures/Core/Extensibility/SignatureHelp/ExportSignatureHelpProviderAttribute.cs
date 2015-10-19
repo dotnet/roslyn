@@ -17,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             if (name == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (language == null)
             {
-                throw new ArgumentNullException("language");
+                throw new ArgumentNullException(nameof(language));
             }
 
             this.Name = name;

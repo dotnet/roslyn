@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,12 +13,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class SnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        internal override ICompletionProvider CreateCompletionProvider()
+        public SnippetCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
+        internal override CompletionListProvider CreateCompletionProvider()
         {
             return new SnippetCompletionProvider(new MockSnippetInfoService());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SnippetsInEmptyFile()
         {
             VerifyItemExists(@"$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
@@ -29,64 +33,64 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             VerifyItemExists(@"$$", MockSnippetInfoService.SnippetShortcut, MockSnippetInfoService.SnippetTitle + Environment.NewLine + MockSnippetInfoService.SnippetDescription, SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SnippetsInNamespace()
         {
             VerifyItemExists(@"namespace NS { $$ }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SnippetsInClass()
         {
             VerifyItemExists(@"namespace NS { class C { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SnippetsInMethod()
         {
             VerifyItemExists(@"namespace NS { class C { void M() { $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SnippetsNotInLocalDeclarationIdentifier()
         {
             VerifyItemIsAbsent(@"namespace NS { class C { void M() { int $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SnippetsNotInEnum()
         {
             VerifyItemIsAbsent(@"namespace NS { enum E { $$ } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SnippetsInExpression()
         {
             VerifyItemExists(@"namespace NS { class C { void M() { bool b = true && $$ } } }", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(608860)]
         public void SnippetsInPreProcessorContextWhenShortcutBeginsWithHash()
         {
             VerifyItemExists(@"#$$", MockSnippetInfoService.PreProcessorSnippetShortcut.Substring(1), sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(608860)]
         public void SnippetsNotInPreProcessorContextWhenShortcutDoesNotBeginWithHash()
         {
             VerifyItemIsAbsent(@"#$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(770156)]
         public void SnippetsNotInPreProcessorContextDirectiveNameAlreadyTyped()
         {
             VerifyItemIsAbsent(@"#region $$", MockSnippetInfoService.PreProcessorSnippetShortcut, sourceCodeKind: SourceCodeKind.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(839555)]
         public void ShowRegionSnippetWithHashRTyped()
         {
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [WorkItem(968256)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void ShowSnippetsFromOtherContext()
         {
             var markup = @"<Workspace>
@@ -117,14 +121,14 @@ class C
         }
 
         [WorkItem(1140893)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitWithEnterObeysOption()
         {
-            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: true, expected: false);
-            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: true, expected: true);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
 
-            VerifySendEnterThroughToEnter("try", "tr", sendThroughEnterEnabled: false, expected: false);
-            VerifySendEnterThroughToEnter("try", "try", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
+            VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
         }
 
         private class MockSnippetInfoService : ISnippetInfoService

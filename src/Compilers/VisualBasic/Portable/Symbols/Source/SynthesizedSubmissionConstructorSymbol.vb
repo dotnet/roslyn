@@ -4,9 +4,6 @@ Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    ''' <summary>
-    ''' This class represents a compiler generated parameterless constructor 
-    ''' </summary>
     Friend NotInheritable Class SynthesizedSubmissionConstructorSymbol
         Inherits SynthesizedConstructorBase
 
@@ -32,14 +29,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim compilation = container.DeclaringCompilation
 
             Dim submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object))
-
-            ' resolve return type:
-            ' TODO(tomat): compilation.GetTypeByReflectionType(compilation.SubmissionReturnType, diagnostics)
-            Dim returnType As TypeSymbol = compilation.GetSpecialType(SpecialType.System_Object)
+            Dim useSiteDiagnostic = submissionArrayType.GetUseSiteErrorInfo()
+            If useSiteDiagnostic IsNot Nothing Then
+                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
+            End If
 
             _parameters = ImmutableArray.Create(Of ParameterSymbol)(
-                New SynthesizedParameterSymbol(Me, submissionArrayType, 0, isByRef:=False, name:="executionState"),
-                New SynthesizedParameterSymbol(Me, returnType, 1, isByRef:=True, name:="submissionResult"))
+                New SynthesizedParameterSymbol(Me, submissionArrayType, 0, isByRef:=False, name:="submissionArray"))
         End Sub
 
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
@@ -64,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             compilation As VisualBasicCompilation,
             diagnostics As DiagnosticBag) As ImmutableArray(Of BoundStatement)
 
-            Debug.Assert(constructor.ParameterCount = 2)
+            Debug.Assert(constructor.ParameterCount = 1)
             Dim result = New List(Of BoundStatement)()
 
             Dim submissionArrayReference = New BoundParameter(syntax, constructor.Parameters(0), isLValue:=False, type:=constructor.Parameters(0).Type)
@@ -107,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim targetSubmissionId = targetScriptType.DeclaringCompilation.GetSubmissionSlotIndex()
                 Debug.Assert(targetSubmissionId >= 0)
 
-                ' constructor.<field> = DirectCast(<submission_array>(<i>), <FieldType>);
+                ' Me.<field> = DirectCast(<submission_array>(<i>), <FieldType>);
                 result.Add(New BoundExpressionStatement(syntax,
                     New BoundAssignmentOperator(syntax,
                         New BoundFieldAccess(syntax,

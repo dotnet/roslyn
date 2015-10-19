@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New UsingBlockHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestUsingBlock1()
             Test(<Text>
 Class C
@@ -22,7 +22,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestUsingBlock2()
             Test(<Text>
 Class C

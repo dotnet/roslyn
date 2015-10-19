@@ -55,8 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             receiverType.CollectReferencedTypeParameters(hashSetOfTypeParametersToFix)
 
-            Dim typeParametersToFix() As TypeParameterSymbol = Nothing
-            Dim fixWith() As TypeSymbol = Nothing
+            Dim typeParametersToFixArray As ImmutableArray(Of TypeParameterSymbol) = Nothing
+            Dim fixWithArray As ImmutableArray(Of TypeSymbol) = Nothing
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
             If hashSetOfTypeParametersToFix.Count > 0 Then
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim inferenceLevel As TypeArgumentInference.InferenceLevel = TypeArgumentInference.InferenceLevel.None
                 Dim allFailedInferenceIsDueToObject As Boolean = False
                 Dim someInferenceFailed As Boolean = False
-                Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
+                Dim inferenceErrorReasons As InferenceErrorReasons = inferenceErrorReasons.Other
 
                 Dim fixTheseTypeParameters = BitVector.Create(possiblyExtensionMethod.Arity)
 
@@ -104,33 +104,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Nothing
                 End If
 
-                ' Adjust the receiver type accordingly.
-                typeParametersToFix = New TypeParameterSymbol(hashSetOfTypeParametersToFix.Count - 1) {}
-                fixWith = New TypeSymbol(typeParametersToFix.Count - 1) {}
+                Dim toFixCount = hashSetOfTypeParametersToFix.Count
+                Dim typeParametersToFix = ArrayBuilder(Of TypeParameterSymbol).GetInstance(toFixCount)
+                Dim fixWith = ArrayBuilder(Of TypeSymbol).GetInstance(toFixCount)
 
-                Dim j As Integer = 0
+                ' Adjust the receiver type accordingly.
                 For i As Integer = 0 To possiblyExtensionMethod.Arity - 1
                     If fixTheseTypeParameters(i) Then
-                        typeParametersToFix(j) = possiblyExtensionMethod.TypeParameters(i)
-                        fixWith(j) = typeArguments(i)
-                        Debug.Assert(fixWith(j) IsNot Nothing)
-                        j += 1
+                        typeParametersToFix.Add(possiblyExtensionMethod.TypeParameters(i))
+                        fixWith.Add(typeArguments(i))
+                        Debug.Assert(fixWith.Last() IsNot Nothing)
 
-                        If j = typeParametersToFix.Count Then
+                        If typeParametersToFix.Count = toFixCount Then
                             Exit For
                         End If
                     End If
                 Next
 
-                Dim partialSubstitution = TypeSubstitution.Create(possiblyExtensionMethod, typeParametersToFix, fixWith)
+                typeParametersToFixArray = typeParametersToFix.ToImmutableAndFree()
+                fixWithArray = fixWith.ToImmutableAndFree()
+
+                Dim partialSubstitution = TypeSubstitution.Create(possiblyExtensionMethod, typeParametersToFixArray, fixWithArray)
 
                 If partialSubstitution IsNot Nothing Then
                     ' Check constraints.
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
                     success = possiblyExtensionMethod.CheckConstraints(partialSubstitution,
-                                                                       typeParametersToFix.AsImmutableOrNull(),
-                                                                       fixWith.AsImmutableOrNull(),
+                                                                       typeParametersToFixArray,
+                                                                       fixWithArray,
                                                                        diagnosticsBuilder,
                                                                        useSiteDiagnosticsBuilder)
                     diagnosticsBuilder.Free()
@@ -139,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return Nothing
                     End If
 
-                    receiverType = receiverType.InternalSubstituteTypeParameters(partialSubstitution)
+                    receiverType = receiverType.InternalSubstituteTypeParameters(partialSubstitution).Type
                 End If
             End If
 
@@ -157,14 +159,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim fixedTypeParameters = ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).Empty
 
-            If typeParametersToFix IsNot Nothing Then
-                Dim fixed(typeParametersToFix.Count - 1) As KeyValuePair(Of TypeParameterSymbol, TypeSymbol)
+            If Not typeParametersToFixArray.IsDefault Then
+                Dim fixed = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).GetInstance(typeParametersToFixArray.Length)
 
-                For i As Integer = 0 To fixed.Count - 1
-                    fixed(i) = New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(typeParametersToFix(i), fixWith(i))
+                For i As Integer = 0 To typeParametersToFixArray.Length - 1
+                    fixed.Add(New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(typeParametersToFixArray(i), fixWithArray(i)))
                 Next
 
-                fixedTypeParameters = fixed.AsImmutableOrNull()
+                fixedTypeParameters = fixed.ToImmutableAndFree()
             End If
 
             Return New ReducedExtensionMethodSymbol(receiverType, possiblyExtensionMethod, fixedTypeParameters, proximity)
@@ -209,14 +211,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _curriedTypeParameters = ImmutableArray(Of ReducedTypeParameterSymbol).Empty
             Else
                 Dim j As Integer = 0
-                For i = 0 To curryTypeArguments.Count - 1
+                For i = 0 To curryTypeArguments.Length - 1
                     If curryTypeArguments(i) Is Nothing Then
                         Dim curried = New ReducedTypeParameterSymbol(Me, curriedFromMethod.TypeParameters(i), j)
                         curriedTypeParameters(j) = curried
                         curryTypeArguments(i) = curried
                         j += 1
 
-                        If j = curriedTypeParameters.Count Then
+                        If j = curriedTypeParameters.Length Then
                             Exit For
                         End If
                     End If
@@ -353,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim type As TypeSymbol = _curriedFromMethod.ReturnType
 
                     If _curryTypeSubstitution IsNot Nothing Then
-                        type = type.InternalSubstituteTypeParameters(_curryTypeSubstitution)
+                        type = type.InternalSubstituteTypeParameters(_curryTypeSubstitution).Type
                     End If
 
                     Interlocked.CompareExchange(_lazyReturnType, type, Nothing)
@@ -792,7 +794,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim paramType As TypeSymbol = m_CurriedFromParameter.Type
 
                         If _curriedMethod._curryTypeSubstitution IsNot Nothing Then
-                            paramType = paramType.InternalSubstituteTypeParameters(_curriedMethod._curryTypeSubstitution)
+                            paramType = paramType.InternalSubstituteTypeParameters(_curriedMethod._curryTypeSubstitution).Type
                         End If
 
                         Interlocked.CompareExchange(_lazyType, paramType, Nothing)
@@ -895,9 +897,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return m_CurriedFromParameter.HasByRefBeforeCustomModifiers
+                Return m_CurriedFromParameter.CountOfCustomModifiersPrecedingByRef
             End Get
         End Property
 

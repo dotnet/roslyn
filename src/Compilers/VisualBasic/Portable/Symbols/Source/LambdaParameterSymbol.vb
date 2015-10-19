@@ -126,9 +126,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property HasByRefBeforeCustomModifiers As Boolean
+        Friend NotOverridable Overrides ReadOnly Property CountOfCustomModifiersPrecedingByRef As UShort
             Get
-                Return False
+                Return 0
             End Get
         End Property
 

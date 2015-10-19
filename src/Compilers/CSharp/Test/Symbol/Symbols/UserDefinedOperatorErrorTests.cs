@@ -52,7 +52,7 @@ class C
     private class op_Multiply {} 
 
     // These two collide because they have different return types but
-    // identical parameters types. The behaviour is that the error
+    // identical parameters types. The behavior is that the error
     // given says that they collide because of the name op_Modulus,
     // rather than there being a custom error message as there is for
     // the following scenario.
@@ -150,7 +150,7 @@ class H
         [Fact]
         public void UserDefinedOperatorBodyErrors()
         {
-            // User-defined operators have the same behaviour as other methods;
+            // User-defined operators have the same behavior as other methods;
             // for example, they must return a value compatible with their declared
             // return type and have an unreachable end point.
 
@@ -269,7 +269,7 @@ public class C
 }
 ";
             // UNDONE: Roslyn squiggles just the "operator"; Native compiler squiggles the "operator +".
-            // UNDONE: Consider matching the native compiler behaviour, or, even better, squiggle the
+            // UNDONE: Consider matching the native compiler behavior, or, even better, squiggle the
             // UNDONE: offending type.
 
             var comp = CreateCompilationWithMscorlib(text);

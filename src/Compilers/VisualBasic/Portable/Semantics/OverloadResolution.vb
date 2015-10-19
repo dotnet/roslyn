@@ -2994,7 +2994,7 @@ Bailout:
                         ' Perform the conversions to the element type of the ParamArray here.
                         Dim arrayType = DirectCast(targetType, ArrayTypeSymbol)
 
-                        If arrayType.Rank <> 1 Then
+                        If Not arrayType.IsSZArray Then
                             ' ERRID_ParamArrayWrongType
                             candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                             candidate.IgnoreExtensionMethods = False
@@ -3498,7 +3498,8 @@ Bailout:
                     Continue For
                 End If
 
-                If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule Then
+                If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule OrElse
+                   info.Candidate.IsExtensionMethod Then
                     CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
                                                delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
@@ -3520,7 +3521,8 @@ Bailout:
                 Dim applicableCount As Integer = If(info.State = CandidateAnalysisResultState.Applicable, 1, 0)
 
                 For j As Integer = i + 1 To group.Count - 1
-                    If group(j) Is Nothing Then
+                    If group(j) Is Nothing OrElse
+                       group(j).IsExtensionMethod Then ' VS2013 ignores illegal overloading for extension methods
                         Continue For
                     End If
 
@@ -4522,7 +4524,7 @@ ContinueCandidatesLoop:
                 ' Both are arrays
                 Dim leftArray = DirectCast(leftType, ArrayTypeSymbol)
                 Dim rightArray = DirectCast(rightType, ArrayTypeSymbol)
-                If leftArray.Rank = rightArray.Rank Then
+                If leftArray.HasSameShapeAs(rightArray) Then
                     Return CompareParameterTypeGenericDepth(leftArray.ElementType, rightArray.ElementType, leftWins, rightWins)
                 End If
             End If

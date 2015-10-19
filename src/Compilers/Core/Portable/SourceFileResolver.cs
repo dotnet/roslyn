@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Resolves references to source files specified in source code.
     /// </summary>
-    public class SourceFileResolver : SourceReferenceResolver
+    public class SourceFileResolver : SourceReferenceResolver, IEquatable<SourceFileResolver>
     {
         public static SourceFileResolver Default { get; } = new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
@@ -59,8 +59,7 @@ namespace Microsoft.CodeAnalysis
         public override string ResolveReference(string path, string baseFilePath)
         {
             string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
-
-            if (!FileExists(resolvedPath))
+            if (resolvedPath == null)
             {
                 return null;
             }
@@ -87,7 +86,11 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var other = (SourceFileResolver)obj;
+            return Equals((SourceFileResolver)obj);
+        }
+
+        public bool Equals(SourceFileResolver other)
+        {
             return string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal);
         }

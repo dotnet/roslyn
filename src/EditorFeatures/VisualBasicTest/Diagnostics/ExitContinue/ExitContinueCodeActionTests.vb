@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.ExitCo
                 Nothing, New IncorrectExitContinueCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedExitKind_Sub()
             Dim code =
 <File>
@@ -37,7 +37,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedExitKind_While()
             Dim code =
     <File>
@@ -64,7 +64,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedExitKind_For()
             Dim code =
     <File>
@@ -91,7 +91,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedExitKind_Do()
             Dim code =
     <File>
@@ -118,7 +118,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitPropNot()
             Dim code =
     <File>
@@ -149,7 +149,7 @@ Exit Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedExitKind_Try()
             Dim code =
     <File>
@@ -180,7 +180,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedExitKind_Function()
             Dim code =
     <File>
@@ -203,7 +203,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitSubOfFunc()
             Dim code =
     <File>
@@ -226,7 +226,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitFuncOfSub()
             Dim code =
     <File>
@@ -249,7 +249,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitDoNotWithinDo()
             Dim code =
     <File>
@@ -276,7 +276,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitDoNotWithinDo_For()
             Dim code =
     <File>
@@ -303,7 +303,7 @@ End Class
             Test(code, expected, compareTokens:=False, index:=0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitWhileNotWithinWhile()
             Dim code =
     <File>
@@ -330,7 +330,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitDoNotWithinDo_Try()
             Dim code =
     <File>
@@ -363,7 +363,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitTryNotWithinTry()
             Dim code =
     <File>
@@ -386,7 +386,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExitChangeToSelect()
             Dim code =
     <File>
@@ -417,7 +417,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ContinueDoNotWithinDo()
             Dim code =
     <File>
@@ -447,7 +447,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ContinueForNotWithinFor()
             Dim code =
     <File>
@@ -477,7 +477,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ContinueWhileNotWithinWhile()
             Dim code =
     <File>
@@ -507,7 +507,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedContinueKindWhile()
             Dim code =
     <File>
@@ -534,7 +534,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedContinueKindFor()
             Dim code =
     <File>
@@ -561,7 +561,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedContinueKindForEach()
             Dim code =
     <File>
@@ -588,7 +588,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedContinueKindDo()
             Dim code =
     <File>
@@ -615,7 +615,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedContinueKindDo_ReplaceFor()
             Dim code =
     <File>
@@ -642,7 +642,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedExitKindDo_UseSub()
             Dim code =
     <File>
@@ -670,7 +670,7 @@ End Class
         End Sub
 
         <WorkItem(547094)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub DoNotTryToExitFinally()
             Dim code =
     <File>
@@ -706,7 +706,7 @@ End Class
         End Sub
 
         <WorkItem(547110)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub MissingExitTokenInNonExitableBlock()
             Dim code =
     <File>
@@ -745,14 +745,14 @@ End Class
         End Sub
 
         <WorkItem(547100)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub NotInValidCaseElse()
             TestMissing(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n For Each a In args \n Select a \n Case Else \n [|Exit Select|] ' here \n End Select \n Next \n End Sub \n End Module"))
         End Sub
 
         <WorkItem(547099)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub CollapseDuplicateBlockKinds()
             TestActionCount(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Do \n Do While True \n [|Exit Function|] ' here \n Loop \n Loop \n End Sub \n End Module"),
@@ -760,7 +760,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
         End Sub
 
         <WorkItem(547092)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ReplaceInvalidTokenExit()
             Dim code =
     <File>
@@ -799,7 +799,7 @@ End Class
         End Sub
 
         <WorkItem(547092)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ReplaceInvalidTokenContinue()
             Dim code =
     <File>
@@ -827,7 +827,7 @@ End Class
             Test(code, expected, compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedActionDescriptions1()
             Dim code =
 <File>
@@ -838,11 +838,11 @@ Class C
 End Class
 </File>
 
-            TestExactActionSetOffered(code.ConvertTestSourceTag(), {String.Format(VBFeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
+            TestExactActionSetOffered(code.ConvertTestSourceTag(), {String.Format(FeaturesResources.ChangeTo, "Function", "Sub"), String.Format(VBFeaturesResources.DeleteTheStatement, "Exit Function")})
         End Sub
 
         <WorkItem(531354)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsCorrectExitContinue)>
         Public Sub ExpectedActionDescriptions2()
             Dim code =
 <File>

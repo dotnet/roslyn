@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
@@ -9,7 +10,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Const s_unicodeEllipsis = ChrW(&H2026)
 
-        Friend Overrides Function CreateCompletionProvider() As ICompletionProvider
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
+        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New SymbolCompletionProvider()
         End Function
 
@@ -31,37 +36,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             VerifyItemExists(markup, "String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EmptyFile()
             VerifyNSATIsAbsent("$$")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EmptyFileWithImports()
             VerifyNSATIsAbsent(AddImportsStatement("Imports System", "$$"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeConstraint1()
             VerifyNSATExists(AddImportsStatement("Imports System", "Class A(Of T As $$"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeConstraint2()
             VerifyNSATExists(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeConstraint3()
             VerifyNSATExists(AddImportsStatement("Imports System", "Class A(Of T As $$)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeConstraint4()
             VerifyNSATExists(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements1()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -69,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                   "  Function Method() As A Implements $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements2()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -77,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                   "  Function Method() As A Implements $$.Method")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements3()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -85,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                   "  Function Method() As A Implements I.Method, $$.Method")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub As1()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -93,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                   "  Function Method() As $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub As2()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -101,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                   "  Function Method() As $$ Implements II.Method")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub As3()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -109,102 +114,102 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                   "  Function Method(ByVal args As $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AsNew()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d As New $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub GetType1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = GetType($$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeOfIs()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = TypeOf d Is $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ObjectCreation()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = New $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ArrayCreation()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d() = New $$() {")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Cast1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = CType(obj, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Cast2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = TryCast(obj, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Cast3()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = DirectCast(obj, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ArrayType()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d() as $$(")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NullableType()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d as $$?")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeArgumentList1()
             VerifyNSATIsAbsent(AddImportsStatement("Imports System", CreateContent("Class A(Of $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeArgumentList2()
             VerifyNSATIsAbsent(AddImportsStatement("Imports System", CreateContent("Class A(Of T, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeArgumentList3()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d as D(Of $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeArgumentList4()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d as D(Of A, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InferredFieldInitializer()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim anonymousCust2 = New With {Key $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NamedFieldInitializer()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim anonymousCust = New With {.Name = $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Initializer()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ReturnStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Return $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IfStatement1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("If $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IfStatement2()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -213,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Else If $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CatchFilterClause()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -222,22 +227,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Catch ex As Exception when $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ErrorStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Error $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SelectStatement1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Select $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SelectStatement2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Select Case $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SimpleCaseClause1()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -246,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Case $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SimpleCaseClause2()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -255,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Case 1, $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RangeCaseClause1()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -264,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Case $$ To"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RangeCaseClause2()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -273,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Case 1 To $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RelationalCaseClause1()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -282,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Case Is > $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RelationalCaseClause2()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -291,272 +296,272 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Case >= $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SyncLockStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("SyncLock $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WhileOrUntilClause1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Do While $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WhileOrUntilClause2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Do Until $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WhileStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("While $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ForStatement1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("For i = $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ForStatement2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("For i = 1 To $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ForStepClause()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("For i = 1 To 10 Step $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ForEachStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("For Each I in $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub UsingStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Using $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ThrowStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Throw $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AssignmentStatement1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("$$ = a")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AssignmentStatement2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("a = $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CallStatement1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Call $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CallStatement2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("$$(1)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AddRemoveHandlerStatement1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("AddHandler $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AddRemoveHandlerStatement2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("AddHandler T.Event, AddressOf $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AddRemoveHandlerStatement3()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("RemoveHandler $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AddRemoveHandlerStatement4()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("RemoveHandler T.Event, AddressOf $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WithStatement()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("With $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ParenthesizedExpression()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = ($$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeOfIs2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = TypeOf $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MemberAccessExpression1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("$$.Name")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MemberAccessExpression2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("$$!Name")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvocationExpression()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("$$(1)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TypeArgumentExpression()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("$$(Of Integer)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Cast4()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = CType($$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Cast5()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = TryCast($$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Cast6()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = DirectCast($$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub BuiltInCase()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = CInt($$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub BinaryExpression1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = $$ + d")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub BinaryExpression2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = d + $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub UnaryExpression()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = +$$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub BinaryConditionExpression1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = If($$,")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub BinaryConditionExpression2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = If(a, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TernaryConditionExpression1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = If($$, a, b")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TernaryConditionExpression2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = If(a, $$, c")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TernaryConditionExpression3()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = If(a, b, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SingleArgument()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("D($$)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NamedArgument()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("D(Name := $$)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RangeArgument1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a($$ To 10)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RangeArgument2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a(0 To $$)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CollectionRangeVariable()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = From var in $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ExpressionRangeVariable()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = From var In collection Let b = $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FunctionAggregation()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = From c In col Aggregate o In c.o Into an = Any($$)")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WhereQueryOperator()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = From c In col Where $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub PartitionWhileQueryOperator1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim customerList = From c In cust Order By c.C Skip While $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub PartitionWhileQueryOperator2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim customerList = From c In cust Order By c.C Take While $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub PartitionQueryOperator1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = From c In cust Skip $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub PartitionQueryOperator2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = From c In cust Take $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub JoinCondition1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim p1 = From p In P Join d In Desc On $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub JoinCondition2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim p1 = From p In P Join d In Desc On p.P Equals $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Ordering()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim a = From b In books Order By $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub XmlEmbeddedExpression()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim book As XElement = <book isbn=<%= $$ %>></book>")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NextStatement1()
             VerifyNSATIsAbsent(
                 AddImportsStatement("Imports System",
@@ -565,7 +570,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Next $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NextStatement2()
             VerifyNSATIsAbsent(
                 AddImportsStatement("Imports System",
@@ -574,37 +579,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                                       "Next i, $$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EraseStatement1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Erase $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EraseStatement2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Erase i, $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CollectionInitializer1()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = new List(Of Integer) from { $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CollectionInitializer2()
             VerifyNSATExists(AddImportsStatement("Imports System", AddInsideMethod("Dim d = { $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub StringLiteral()
             VerifyNSATIsAbsent(AddImportsStatement("Imports System", AddInsideMethod("Dim d = ""$$""")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Comment1()
             VerifyNSATIsAbsent(AddImportsStatement("Imports System", AddInsideMethod("' $$")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Comment2()
             VerifyNSATExists(
                 AddImportsStatement("Imports System",
@@ -612,7 +617,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                         CreateContent("'", "$$"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InactiveRegion1()
             VerifyNSATIsAbsent(
                 AddImportsStatement("Imports System",
@@ -622,39 +627,39 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
 #Region "Tests that verify namespaces and types separately"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AliasImportsClause1()
             VerifyItemExists(AddImportsStatement("Imports System", "Imports T = $$"), "System")
             VerifyItemIsAbsent(AddImportsStatement("Imports System", "Imports T = $$"), "String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AliasImportsClause2()
             VerifyItemExists("Imports $$ = S", "System")
             VerifyItemIsAbsent("Imports $$ = S", "String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersImportsClause1()
             VerifyItemExists(AddImportsStatement("Imports System", "Imports $$"), "System")
             VerifyItemIsAbsent(AddImportsStatement("Imports System", "Imports $$"), "String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersImportsClause2()
             VerifyItemExists(AddImportsStatement("Imports System", "Imports System, $$"), "System")
             VerifyItemIsAbsent(AddImportsStatement("Imports System", "Imports System, $$"), "String")
         End Sub
 
         <WorkItem(529191)>
-        <Fact(Skip:="529191"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="529191"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Attributes1()
             VerifyItemExists(AddImportsStatement("Imports System", CreateContent("<$$>")), "System")
             VerifyItemExists(AddImportsStatement("Imports System", CreateContent("<$$>")), "String")
         End Sub
 
         <WorkItem(529191)>
-        <Fact(Skip:="529191"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="529191"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Attributes2()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
@@ -667,7 +672,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         <WorkItem(529191)>
-        <Fact(Skip:="529191"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="529191"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Attributes3()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
@@ -687,113 +692,129 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
 #Region "SymbolCompletionProviderTests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsCommitCharacterTest()
-            TestCommonIsCommitCharacter()
+            Const code = "
+Imports System
+Class C
+    Sub M()
+        $$
+    End Sub
+End Class"
+
+            VerifyCommonCommitCharacters(code, textTypedSoFar:="")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub IsTextualTriggerCharacterTest()
             TestCommonIsTextualTriggerCharacter()
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SendEnterThroughToEditorTest()
-            TestCommonSendEnterThroughToEditor()
+            Const code = "
+Imports System
+Class C
+    Sub M()
+        $$
+    End Sub
+End Class"
+
+            VerifySendEnterThroughToEditor(code, "Int32", expected:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterDateLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call #1/1/2010#.$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterStringLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call """".$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterTrueLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call True.$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterFalseLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call False.$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterNumericLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call 2.$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterCharacterLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call ""c""c.$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoMembersAfterNothingLiteral()
             VerifyItemIsAbsent(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call Nothing.$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterParenthesizedDateLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call (#1/1/2010#).$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterParenthesizedStringLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call ("""").$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterParenthesizedTrueLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call (True).$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterParenthesizedFalseLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call (False).$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterParenthesizedNumericLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call (2).$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MembersAfterParenthesizedCharacterLiteral()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
                     AddInsideMethod("Call (""c""c).$$")), "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoMembersAfterParenthesizedNothingLiteral()
             VerifyItemIsAbsent(
                 AddImportsStatement("Imports System",
@@ -801,23 +822,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         <WorkItem(539243)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedClassesInImports()
             VerifyItemExists("Imports System.$$", "Console")
         End Sub
 
         <WorkItem(539332)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceTypesAvailableInImportsAlias()
             VerifyItemExists("Imports S = System.$$", "String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceTypesAvailableInImports()
             VerifyItemExists("Imports System.$$", "String")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVarInMethod()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
@@ -825,7 +846,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Sub
 
         <WorkItem(539300)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedMembersAfterMe1()
             VerifyItemExists(
 <Text>
@@ -842,7 +863,7 @@ End Class
         End Sub
 
         <WorkItem(539300)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedMembersAfterMe2()
             VerifyItemExists(
 <Text>
@@ -859,7 +880,7 @@ End Class
         End Sub
 
         <WorkItem(539300)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersAfterMe1()
             VerifyItemExists(
 <Text>
@@ -876,7 +897,7 @@ End Class
         End Sub
 
         <WorkItem(539300)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersAfterMe2()
             VerifyItemExists(
 <Text>
@@ -893,7 +914,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoEventSymbolAfterMe()
             VerifyItemIsAbsent(
 <Text>
@@ -908,7 +929,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoEventSymbolAfterMyClass()
             VerifyItemIsAbsent(
 <Text>
@@ -923,7 +944,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoEventSymbolAfterMyBase()
             VerifyItemIsAbsent(
 <Text>
@@ -941,7 +962,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoEventSymbolAfterInstanceMember()
             VerifyItemIsAbsent(
 <Text>
@@ -957,7 +978,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EventSymbolAfterMeInAddHandlerContext()
             VerifyItemExists(
 <Text>
@@ -971,7 +992,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EventSymbolAfterInstanceMemberInAddHandlerContext()
             VerifyItemExists(
 <Text>
@@ -986,7 +1007,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EventSymbolAfterInstanceMemberInParenthesizedAddHandlerContext()
             VerifyItemExists(
 <Text>
@@ -1001,7 +1022,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EventSymbolAfterMeInRemoveHandlerContext()
             VerifyItemExists(
 <Text>
@@ -1015,7 +1036,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoImplicitlyDeclaredMembersFromEventDeclarationAfterMe()
             Dim source = <Text>
 Class EventClass
@@ -1033,7 +1054,7 @@ End Class
         End Sub
 
         <WorkItem(530617)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoImplicitlyDeclaredMembersFromEventDeclarationAfterInstance()
             Dim source = <Text>
 Class EventClass
@@ -1051,7 +1072,7 @@ End Class
             VerifyItemIsAbsent(source, "remove_X")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ImplicitlyDeclaredEventHandler()
             Dim source = <Text>
 Class EventClass
@@ -1064,7 +1085,7 @@ End Class
         End Sub
 
         <WorkItem(529570)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ImplicitlyDeclaredFieldFromWithEvents()
             Dim source = <Text>
 Public Class C1
@@ -1079,7 +1100,7 @@ End Class
         End Sub
 
         <WorkItem(529147)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ImplicitlyDeclaredFieldFromAutoProperty()
             Dim source = <Text>
 Class C1
@@ -1093,7 +1114,7 @@ End Class
             VerifyItemIsAbsent(source, "_X")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NothingBeforeDot()
             Dim code = <Text>
 Module Module1
@@ -1107,7 +1128,7 @@ End Module
         End Sub
 
         <WorkItem(539276)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedMembersAfterWithMe1()
             VerifyItemExists(
 <Text>
@@ -1126,7 +1147,7 @@ End Class
         End Sub
 
         <WorkItem(539276)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedMembersAfterWithMe2()
             VerifyItemExists(
 <Text>
@@ -1145,7 +1166,7 @@ End Class
         End Sub
 
         <WorkItem(539276)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersAfterWithMe1()
             VerifyItemExists(
 <Text>
@@ -1164,7 +1185,7 @@ End Class
         End Sub
 
         <WorkItem(539276)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersAfterWithMe2()
             VerifyItemExists(
 <Text>
@@ -1182,7 +1203,7 @@ End Class
 </Text>.Value, "M")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NestedWithBlocks()
             VerifyItemExists(
 <Text>
@@ -1199,7 +1220,7 @@ End Class
 </Text>.Value, "ToString")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoSharedMembers()
             Dim test = <Text>
 Class C
@@ -1216,7 +1237,7 @@ End Class
             VerifyItemIsAbsent(test, "ReferenceEquals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LabelAfterGoto1()
             Dim test = <Text>
 Class C
@@ -1228,7 +1249,7 @@ Class C
             VerifyItemExists(test, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LabelAfterGoto2()
             Dim test = <Text>
 Class C
@@ -1240,7 +1261,7 @@ Class C
             VerifyItemIsAbsent(test, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LabelAfterGoto3()
             Dim test = <Text>
 Class C
@@ -1260,7 +1281,7 @@ Class C
         End Sub
 
         <WorkItem(541235)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterAlias1()
             Dim test = <Text>
 Imports N = NS1.NS2
@@ -1278,7 +1299,7 @@ End Namespace
         End Sub
 
         <WorkItem(541235)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterAlias2()
             Dim test = <Text>
 Imports N = NS1.NS2
@@ -1296,7 +1317,7 @@ End Namespace
         End Sub
 
         <WorkItem(541235)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterAlias3()
             Dim test = <Text>
 Imports System
@@ -1322,7 +1343,7 @@ End Namespace
         End Sub
 
         <WorkItem(541235)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterAlias4()
             Dim test = <Text>
 Imports System
@@ -1349,7 +1370,7 @@ End Namespace
 
         <WorkItem(541399)>
         <WorkItem(529190)>
-        <Fact(Skip:="529190"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="529190"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterSingleLineIf()
             Dim test = <Text>
 Module Program
@@ -1364,7 +1385,7 @@ End Module
         End Sub
 
         <WorkItem(540442)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OnlyInterfacesInImplementsStatements()
             Dim test = <Text>
 Interface IOuter
@@ -1386,7 +1407,7 @@ Class nested
         End Sub
 
         <WorkItem(540442)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NestedInterfaceInImplementsClause()
             Dim test = <Text>
 Interface IOuter
@@ -1406,7 +1427,7 @@ Class nested
             VerifyItemExists(test.Value, "INested")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NothingAfterBadQualifiedImplementsClause()
             Dim test = <Text>
 Class SomeClass
@@ -1417,7 +1438,7 @@ End Class
             VerifyNoItemsExist(test.Value)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NothingAfterBadImplementsClause()
             Dim test = <Text>
 Module Module1
@@ -1432,7 +1453,7 @@ Class SomeClass
             VerifyItemIsAbsent(test.Value, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DescriptionGenericTypeParameter()
             Dim test = <Text><![CDATA[
 Class SomeClass(Of T)
@@ -1446,7 +1467,7 @@ End Class
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeName()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1458,7 +1479,7 @@ Imports System
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNameAfterSpecifier()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1470,7 +1491,7 @@ Imports System
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNameInAttributeList()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1482,7 +1503,7 @@ Imports System
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNameInAttributeListAfterSpecifier()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1494,7 +1515,7 @@ Imports System
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNameBeforeClass()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1508,7 +1529,7 @@ End Class
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNameAfterSpecifierBeforeClass()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1522,7 +1543,7 @@ End Class
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNameInAttributeArgumentList()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1536,7 +1557,7 @@ End Class
         End Sub
 
         <WorkItem(542225)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeNameInsideClass()
             Dim test = <Text><![CDATA[
 Imports System
@@ -1550,7 +1571,7 @@ End Class
         End Sub
 
         <WorkItem(542441)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NewAfterMeWhenFirstStatementInCtor()
             Dim test = <Text><![CDATA[
 Class C1
@@ -1570,7 +1591,7 @@ End Class
         End Sub
 
         <WorkItem(542441)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoNewAfterMeWhenNotFirstStatementInCtor()
             Dim test = <Text><![CDATA[
 Class C1
@@ -1592,7 +1613,7 @@ End Class
 
         <WorkItem(542441)>
         <WorkItem(759729)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoNewAfterMeWhenFirstStatementInSingleCtor()
             ' This is different from Dev10, where we lead users to call the same .ctor, which is illegal.
             Dim test = <Text><![CDATA[
@@ -1608,7 +1629,7 @@ End Class
 
         <WorkItem(542441)>
         <WorkItem(759729)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NewAfterMyClassWhenFirstStatementInCtor()
             Dim test = <Text><![CDATA[
 Class C1
@@ -1628,7 +1649,7 @@ End Class
         End Sub
 
         <WorkItem(542441)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoNewAfterMyClassWhenNotFirstStatementInCtor()
             Dim test = <Text><![CDATA[
 Class C1
@@ -1650,7 +1671,7 @@ End Class
 
         <WorkItem(542441)>
         <WorkItem(759729)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoNewAfterMyClassWhenFirstStatementInSingleCtor()
             ' This is different from Dev10, where we lead users to call the same .ctor, which is illegal.
             Dim test = <Text><![CDATA[
@@ -1665,7 +1686,7 @@ End Class
         End Sub
 
         <WorkItem(542242)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OnlyShowAttributesInAttributeNameContext1()
             ' This is different from Dev10, where we lead users to call the same .ctor, which is illegal.
             Dim markup = <Text><![CDATA[
@@ -1699,7 +1720,7 @@ End Class
         End Sub
 
         <WorkItem(542242)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OnlyShowAttributesInAttributeNameContext2()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1732,7 +1753,7 @@ End Class
         End Sub
 
         <WorkItem(542242)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OnlyShowAttributesInAttributeNameContext3()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1765,7 +1786,7 @@ End Class
         End Sub
 
         <WorkItem(542737)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub QueryVariableAfterSelectClause()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1781,7 +1802,7 @@ Module Program
         End Sub
 
         <WorkItem(542683)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ImplementsClassesWithNestedInterfaces()
             Dim markup = <Text><![CDATA[
 Interface MyInterface1
@@ -1805,7 +1826,7 @@ End Class
         End Sub
 
         <WorkItem(542683)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ImplementsClassesWithNestedInterfacesClassOutermost()
             Dim markup = <Text><![CDATA[
 Class MyClass1
@@ -1824,7 +1845,7 @@ End Class
         End Sub
 
         <WorkItem(542876)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQuerySelect1()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1843,7 +1864,7 @@ End Module
         End Sub
 
         <WorkItem(542876)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQuerySelect2()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1862,7 +1883,7 @@ End Module
         End Sub
 
         <WorkItem(542876)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQuerySelect3()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1881,7 +1902,7 @@ End Module
         End Sub
 
         <WorkItem(542927)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQueryGroupByInto1()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1899,7 +1920,7 @@ End Module
         End Sub
 
         <WorkItem(542927)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQueryGroupByInto2()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1925,7 +1946,7 @@ End Module
         End Sub
 
         <WorkItem(542927)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQueryGroupByInto3()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1951,7 +1972,7 @@ End Module
         End Sub
 
         <WorkItem(542927)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQueryGroupByInto4()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1977,7 +1998,7 @@ End Module
         End Sub
 
         <WorkItem(542929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQueryAggregateInto1()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -1993,7 +2014,7 @@ End Module
         End Sub
 
         <WorkItem(542929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQueryAggregateInto2()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2009,7 +2030,7 @@ End Module
         End Sub
 
         <WorkItem(542929)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InQueryAggregateInto3()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2025,7 +2046,7 @@ End Module
         End Sub
 
         <WorkItem(543137)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterAndKeywordInComplexJoin()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2044,7 +2065,7 @@ End Module
         End Sub
 
         <WorkItem(543181)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterGroupKeywordInGroupByClause()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2062,7 +2083,7 @@ End Module
         End Sub
 
         <WorkItem(543182)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterByInGroupByClause()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2080,7 +2101,7 @@ End Module
         End Sub
 
         <WorkItem(543210)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterByInsideExprVarDeclGroupByClause()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2101,7 +2122,7 @@ End Module
         End Sub
 
         <WorkItem(543213)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterGroupInsideExprVarDeclGroupByClause()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2122,7 +2143,7 @@ End Module
         End Sub
 
         <WorkItem(543246)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterAggregateKeyword()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -2137,7 +2158,7 @@ Module Program
         End Sub
 
         <WorkItem(543270)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterDelegateCreationExpression1()
             Dim markup =
 <Text>
@@ -2159,7 +2180,7 @@ End Module
         End Sub
 
         <WorkItem(543270)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterDelegateCreationExpression2()
             Dim markup =
 <Text>
@@ -2181,7 +2202,7 @@ End Module
         End Sub
 
         <WorkItem(619388)>
-        <Fact(Skip:="619388"), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="619388"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OverloadsHiding()
             Dim markup = <Text><![CDATA[
 Public Class Base
@@ -2202,7 +2223,7 @@ End Class
         End Sub
 
         <WorkItem(543580)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterMyBaseDot1()
             Dim markup = <Text><![CDATA[
 Public Class Base
@@ -2223,7 +2244,7 @@ End Class
         End Sub
 
         <WorkItem(543580)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterMyBaseDot2()
             Dim markup = <Text>
 Public Class Base
@@ -2246,7 +2267,7 @@ End Class
         End Sub
 
         <WorkItem(543547)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterRaiseEvent()
             Dim markup = <Text>
 Module Program
@@ -2262,7 +2283,7 @@ End Module
         End Sub
 
         <WorkItem(543730)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoInheritedEventsAfterRaiseEvent()
             Dim markup = <Text>
 Class C1
@@ -2282,7 +2303,7 @@ End Class
         End Sub
 
         <WorkItem(529116)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InSingleLineLambda1()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -2297,7 +2318,7 @@ End Module
         End Sub
 
         <WorkItem(529116)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InSingleLineLambda2()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -2313,7 +2334,7 @@ End Module
 
         <WorkItem(543601)>
         <WorkItem(530595)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoInstanceFieldsInSharedMethod()
             Dim markup = <Text>
 Class C
@@ -2328,7 +2349,7 @@ End Class
         End Sub
 
         <WorkItem(543601)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoInstanceFieldsInSharedFieldInitializer()
             Dim markup = <Text>
 Class C
@@ -2341,7 +2362,7 @@ End Class
         End Sub
 
         <WorkItem(543601)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedFieldsInSharedMethod()
             Dim markup = <Text>
 Class C
@@ -2356,7 +2377,7 @@ End Class
         End Sub
 
         <WorkItem(543601)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedFieldsInSharedFieldInitializer()
             Dim markup = <Text>
 Class C
@@ -2369,7 +2390,7 @@ End Class
         End Sub
 
         <WorkItem(543680)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoInstanceFieldsFromOuterClassInInstanceMethod()
             Dim markup = <Text>
 Class outer
@@ -2386,7 +2407,7 @@ End Class
         End Sub
 
         <WorkItem(543680)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedFieldsFromOuterClassInInstanceMethod()
             Dim markup = <Text>
 Class outer
@@ -2403,7 +2424,7 @@ End Class
         End Sub
 
         <WorkItem(543104)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OnlyEnumMembersInEnumTypeMemberAccess()
             Dim markup = <Text>
 Class C
@@ -2426,7 +2447,7 @@ End Class
         End Sub
 
         <WorkItem(539450)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub KeywordEscaping1()
             Dim markup = <Text>
 Module [Structure]
@@ -2443,7 +2464,7 @@ End Module
             VerifyItemIsAbsent(markup, "[Structure]")
         End Sub
 
-        <WorkItem(539450)> <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(539450)> <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub KeywordEscaping2()
             Dim markup = <Text>
 Module [Structure]
@@ -2465,7 +2486,7 @@ End Module
             VerifyItemIsAbsent(markup, "[rem]")
         End Sub
 
-        <WorkItem(539450)> <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(539450)> <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub KeywordEscaping3()
             Dim markup = <Text>
 Namespace Foo
@@ -2482,7 +2503,7 @@ End Namespace
         End Sub
 
         <WorkItem(539450)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributeKeywordEscaping()
             Dim markup = <Text>
 Imports System
@@ -2498,7 +2519,7 @@ End Class
         End Sub
 
         <WorkItem(645898)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EscapedKeywordAttributeCommit()
             Dim markup = <Text>
 Imports System
@@ -2513,7 +2534,7 @@ End Class
 Imports System
 Class classattribute : Inherits Attribute
 End Class
-&lt;[class]
+&lt;[class](
 Class C
 End Class
 </Text>.Value
@@ -2522,7 +2543,7 @@ End Class
         End Sub
 
         <WorkItem(543104)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllMembersInEnumLocalAccess()
             Dim markup = <Text>
 Class C
@@ -2545,7 +2566,7 @@ End Class
             VerifyItemExists(markup, "Equals")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ReadOnlyPropertiesPresentOnRightSideInObjectInitializer()
             Dim text = <a>Class C
     Public Property Foo As Integer
@@ -2564,7 +2585,7 @@ End Class</a>.Value
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVariableNotBeforeExplicitDeclaration_ExplicitOff()
@@ -2580,7 +2601,7 @@ End Class</Text>.Value
             VerifyItemIsAbsent(text, "foo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVariableNotBeforeExplicitDeclaration_ExplicitOn()
@@ -2598,7 +2619,7 @@ End Class</Text>.Value
 
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <WorkItem(530595)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVariableBeforeImplicitDeclaration()
             Dim text = <Text>
@@ -2613,7 +2634,7 @@ End Class</Text>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVariableInItsDeclaration()
@@ -2632,7 +2653,7 @@ End Class</Text>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVariableInItsDeclarator()
@@ -2646,7 +2667,7 @@ End Class</Text>.Value
             VerifyItemExists(text, "bar")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVariableNotBeforeItsDeclarator()
@@ -2660,7 +2681,7 @@ End Class</Text>.Value
             VerifyItemIsAbsent(text, "bar")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(10572, "DevDiv_Projects/Roslyn")>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LocalVariableAfterDeclarator()
@@ -2674,7 +2695,7 @@ End Class</Text>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(545439)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ArrayAfterReDim()
@@ -2689,7 +2710,7 @@ End Class</Text>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(545439)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ArrayAfterReDimPreserve()
@@ -2704,7 +2725,7 @@ End Class</Text>.Value
             VerifyItemExists(text, "foo")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(546353)>
         <Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoNamespaceDeclarationIntellisense()
@@ -2717,7 +2738,7 @@ End Class</Text>.Value
         End Sub
 
         <WorkItem(531258)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LabelsAfterOnErrorGoTo()
             Dim code =
 <Code>
@@ -2733,7 +2754,7 @@ End Class</Code>.Value
             VerifyItemExists(code, "label1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AwaitableItem()
             Dim code =
 <Code>
@@ -2757,7 +2778,7 @@ Doc Comment!
         End Sub
 
         <WorkItem(550760)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AfterAwait()
             Dim code =
 <Code>
@@ -2776,7 +2797,7 @@ End Class</Code>.Value
             VerifyItemExists(code, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ObsoleteItem()
             Dim code =
 <Code>
@@ -2791,7 +2812,7 @@ End Class</Code>.Value
             VerifyItemExists(code, "Foo", $"({VBFeaturesResources.Deprecated}) Sub SomeClass.Foo()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ExpressionAfterYield()
             Dim code =
 <Code>
@@ -2807,7 +2828,7 @@ End Class
         End Sub
 
         <WorkItem(568986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoMembersOnDottingIntoUnboundType()
             Dim code =
 <Code>
@@ -2824,14 +2845,14 @@ End Module
         End Sub
 
         <WorkItem(611154)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoOperators()
             VerifyItemIsAbsent(
                     AddInsideMethod("String.$$"), "op_Equality")
         End Sub
 
         <WorkItem(736891)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InBinaryConditionalExpression()
             Dim code =
 <Code>
@@ -2845,26 +2866,38 @@ End Module
             VerifyItemExists(code, "args")
         End Sub
 
+        <WorkItem(5069, "https://github.com/dotnet/roslyn/issues/5069")>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub InTopLevelFieldInitializer()
+            Dim code =
+<Code>
+Dim aaa = 1
+Dim bbb = $$
+</Code>.Value
+
+            VerifyItemExists(code, "aaa")
+        End Sub
+
 #End Region
 
 #Region "SharedMemberSourceTests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvalidLocation1()
             VerifyItemIsAbsent("System.Console.$$", "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvalidLocation2()
             VerifyItemIsAbsent(AddImportsStatement("Imports System", "System.Console.$$"), "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvalidLocation3()
             VerifyItemIsAbsent("Imports System.Console.$$", "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvalidLocation4()
             VerifyItemIsAbsent(
                 AddImportsStatement("Imports System",
@@ -2872,22 +2905,22 @@ End Module
                                   "' Console.$$")), "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvalidLocation5()
             VerifyItemIsAbsent(AddImportsStatement("Imports System", AddInsideMethod("Dim d = ""Console.$$")), "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InvalidLocation6()
             VerifyItemIsAbsent("<System.Console.$$>", "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InsideMethodBody()
             VerifyItemExists(AddImportsStatement("Imports System", AddInsideMethod("Console.$$")), "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InsideAccessorBody()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
@@ -2897,7 +2930,7 @@ End Module
                                   "             Console.$$")), "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FieldInitializer()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
@@ -2905,7 +2938,7 @@ End Module
                                   "     Dim d = Console.$$")), "Beep")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedMethods()
             VerifyItemExists(
                 AddImportsStatement("Imports System",
@@ -2920,7 +2953,7 @@ End Module
 
 #Region "EditorBrowsableTests"
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -2950,7 +2983,7 @@ End Class
 
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -2979,7 +3012,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -3019,7 +3052,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_Overloads_BothBrowsableAlways()
 
             Dim markup = <Text><![CDATA[
@@ -3053,7 +3086,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_Overloads_OneBrowsableAlways_OneBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -3087,7 +3120,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Method_Overloads_BothBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -3121,7 +3154,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub OverriddenSymbolsFilteredFromCompletionList()
 
             Dim markup = <Text><![CDATA[
@@ -3157,7 +3190,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverClass()
 
             Dim markup = <Text><![CDATA[
@@ -3188,7 +3221,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_BrowsableStateAlwaysMethodInBrowsableStateNeverBaseClass()
 
             Dim markup = <Text><![CDATA[
@@ -3225,7 +3258,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_HidingWithDifferentArgumentList()
 
             Dim markup = <Text><![CDATA[
@@ -3262,7 +3295,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_BrowsableStateNeverMethodsInBaseClass()
 
             Dim markup = <Text><![CDATA[
@@ -3293,7 +3326,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableAlways()
 
             Dim markup = <Text><![CDATA[
@@ -3326,7 +3359,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed1()
 
             Dim markup = <Text><![CDATA[
@@ -3360,7 +3393,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BrowsableMixed2()
 
             Dim markup = <Text><![CDATA[
@@ -3394,7 +3427,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericTypeCausingMethodSignatureEquality_BothBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -3429,7 +3462,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableAlways()
 
             Dim markup = <Text><![CDATA[
@@ -3462,7 +3495,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericType2CausingMethodSignatureEquality_BrowsableMixed()
 
             Dim markup = <Text><![CDATA[
@@ -3496,7 +3529,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_GenericType2CausingMethodSignatureEquality_BothBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -3531,7 +3564,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Field_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -3561,7 +3594,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Field_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -3590,7 +3623,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Field_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -3630,7 +3663,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Property_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -3665,7 +3698,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Property_IgnoreBrowsabilityOfGetSetMethods()
 
             Dim markup = <Text><![CDATA[
@@ -3701,7 +3734,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Property_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -3736,7 +3769,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Property_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -3782,7 +3815,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Constructor_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -3811,7 +3844,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Constructor_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -3840,7 +3873,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Constructor_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -3880,7 +3913,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Constructor_MixedOverloads1()
 
             Dim markup = <Text><![CDATA[
@@ -3912,7 +3945,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Constructor_MixedOverloads2()
 
             Dim markup = <Text><![CDATA[
@@ -3945,7 +3978,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Event_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -3975,7 +4008,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Event_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -4005,7 +4038,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Event_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -4046,7 +4079,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Delegate_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -4071,7 +4104,7 @@ Public Delegate Sub DelegateType()
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Delegate_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -4096,7 +4129,7 @@ Public Delegate Sub DelegateType()
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Delegate_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -4131,7 +4164,7 @@ Public Delegate Sub DelegateType()
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateNever_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4158,7 +4191,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateNever_DeriveFrom()
 
             Dim markup = <Text><![CDATA[
@@ -4183,7 +4216,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateNever_FullyQualified()
 
             Dim markup = <Text><![CDATA[
@@ -4212,7 +4245,7 @@ End Namespace
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateAlways_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4239,7 +4272,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateAlways_DeriveFrom()
 
             Dim markup = <Text><![CDATA[
@@ -4264,7 +4297,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateAlways_FullyQualified()
 
             Dim markup = <Text><![CDATA[
@@ -4293,7 +4326,7 @@ End Namespace
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateAdvanced_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4331,7 +4364,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateAdvanced_DeriveFrom()
 
             Dim markup = <Text><![CDATA[
@@ -4367,7 +4400,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_BrowsableStateAdvanced_FullyQualified()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -4406,7 +4439,7 @@ End Namespace
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Class_IgnoreBaseClassBrowsableNever()
 
             Dim markup = <Text><![CDATA[
@@ -4437,7 +4470,7 @@ End Class
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Struct_BrowsableStateNever_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4464,7 +4497,7 @@ End Structure
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Struct_BrowsableStateAlways_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4492,7 +4525,7 @@ End Structure
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Struct_BrowsableStateAdvanced_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4531,7 +4564,7 @@ End Structure
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Enum_BrowsableStateNever()
 
             Dim markup = <Text><![CDATA[
@@ -4559,7 +4592,7 @@ End Enum
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Enum_BrowsableStateAlways()
 
             Dim markup = <Text><![CDATA[
@@ -4587,7 +4620,7 @@ End Enum
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Enum_BrowsableStateAdvanced()
 
             Dim markup = <Text><![CDATA[
@@ -4626,7 +4659,7 @@ End Enum
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Interface_BrowsableStateNever_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4653,7 +4686,7 @@ End Interface
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Interface_BrowsableStateNever_DeriveFrom()
 
             Dim markup = <Text><![CDATA[
@@ -4678,7 +4711,7 @@ End Interface
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Interface_BrowsableStateAlways_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4705,7 +4738,7 @@ End Interface
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Interface_BrowsableStateAlways_DeriveFrom()
 
             Dim markup = <Text><![CDATA[
@@ -4730,7 +4763,7 @@ End Interface
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Interface_BrowsableStateAdvanced_DeclareLocal()
 
             Dim markup = <Text><![CDATA[
@@ -4768,7 +4801,7 @@ End Interface
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_Interface_BrowsableStateAdvanced_DeriveFrom()
 
             Dim markup = <Text><![CDATA[
@@ -4804,7 +4837,7 @@ End Interface
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_CrossLanguage_VBtoCS_Always()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -4832,7 +4865,7 @@ public class Foo
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_CrossLanguage_VBtoCS_Never()
             Dim markup = <Text><![CDATA[
 Class Program
@@ -4862,7 +4895,7 @@ public class Foo
 
 #Region "Inherits/Implements Tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_AfterInherits()
             Const markup = "
 Public Class Base
@@ -4877,7 +4910,7 @@ End Class
             VerifyItemIsAbsent(markup, "Derived")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_AfterInheritsDotIntoClass()
             Const markup = "
 Public Class Base
@@ -4893,7 +4926,7 @@ End Class
             VerifyItemExists(markup, "Nest")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_AfterImplements()
             Const markup = "
 Public Interface IFoo
@@ -4908,7 +4941,7 @@ End Class
         End Sub
 
         <WorkItem(995986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_AliasedInterfaceAfterImplements()
             Const markup = "
 Imports IAlias = IFoo
@@ -4924,7 +4957,7 @@ End Class
         End Sub
 
         <WorkItem(995986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_AliasedNamespaceAfterImplements()
             Const markup = "
 Imports AliasedNS = NS1
@@ -4942,7 +4975,7 @@ End Namespace
         End Sub
 
         <WorkItem(995986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_AliasedClassAfterInherits()
             Const markup = "
 Imports AliasedClass = Base
@@ -4958,7 +4991,7 @@ End Class
         End Sub
 
         <WorkItem(995986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_AliasedNamespaceAfterInherits()
             Const markup = "
 Imports AliasedNS = NS1
@@ -4976,7 +5009,7 @@ End Namespace
         End Sub
 
         <WorkItem(995986)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_AliasedClassAfterInherits2()
             Const markup = "
 Imports AliasedClass = NS1.Base
@@ -4993,7 +5026,7 @@ End Namespace
             VerifyItemExists(markup, "AliasedClass")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_AfterImplementsComma()
             Const markup = "
 Public Interface IFoo
@@ -5010,7 +5043,7 @@ End Class
             VerifyItemExists(markup, "IBar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_ClassContainingInterface()
             Const markup = "
 Public Class Base
@@ -5026,7 +5059,7 @@ End Class
             VerifyItemExists(markup, "Base")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_NoClassNotContainingInterface()
             Const markup = "
 Public Class Base
@@ -5040,7 +5073,7 @@ End Class
             VerifyItemIsAbsent(markup, "Base")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_GenericClass()
             Const markup = "
 Public Class base(Of T)
@@ -5055,7 +5088,7 @@ End Class
             VerifyItemExists(markup, "base(Of " & s_unicodeEllipsis & ")")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_GenericInterface()
             Const markup = "
 Public Interface IFoo(Of T)
@@ -5071,7 +5104,7 @@ End Class
         End Sub
 
         <WorkItem(546610)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_IncompleteClassDeclaration()
             Const markup = "
 Public Interface IFoo
@@ -5086,7 +5119,7 @@ Class C
         End Sub
 
         <WorkItem(546611)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_NotNotInheritable()
             Const markup = "
 Public NotInheritable Class D
@@ -5099,7 +5132,7 @@ Class C
         End Sub
 
         <WorkItem(546802)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_KeywordIdentifiersShownUnescaped()
             Const markup = "
 Public Class [Inherits]
@@ -5112,7 +5145,7 @@ Class C
         End Sub
 
         <WorkItem(546802)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_KeywordIdentifiersCommitEscaped()
             Const markup = "
 Public Class [Inherits]
@@ -5125,14 +5158,14 @@ Class C
 Public Class [Inherits]
 End Class
 Class C
-    Inherits [Inherits]
+    Inherits [Inherits].
 "
 
             VerifyProviderCommit(markup, "Inherits", expected, "."c, "")
         End Sub
 
         <WorkItem(546801)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_Modules()
             Const markup = "
 Module Module1
@@ -5161,7 +5194,7 @@ End Class
         End Sub
 
         <WorkItem(530726)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_DoNotShowNamespaceWithNoApplicableClasses()
             Const markup = "
 Namespace N
@@ -5177,7 +5210,7 @@ End Class
         End Sub
 
         <WorkItem(530725)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_CheckStructContents()
             Const markup = "
 Namespace N
@@ -5197,7 +5230,7 @@ End Class
         End Sub
 
         <WorkItem(530724)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_NamespaceContainingInterface()
             Const markup = "
 Namespace N
@@ -5213,7 +5246,7 @@ End Class
         End Sub
 
         <WorkItem(531256)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_OnlyInterfacesForInterfaceInherits1()
             Const markup = "
 Interface ITestInterface
@@ -5231,7 +5264,7 @@ Interface IFoo
         End Sub
 
         <WorkItem(1036374)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_InterfaceCircularInheritance()
             Const markup = "
 Interface ITestInterface
@@ -5253,7 +5286,7 @@ End Interface
         End Sub
 
         <WorkItem(531256)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_OnlyInterfacesForInterfaceInherits2()
             Const markup = "
 Interface ITestInterface
@@ -5271,7 +5304,7 @@ Interface IFoo
         End Sub
 
         <WorkItem(547291)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_CommitGenericOnParen()
             Const markup = "
 Class G(Of T)
@@ -5295,7 +5328,7 @@ End Class
         End Sub
 
         <WorkItem(579186)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Implements_AfterImplementsWithCircularInheritance()
             Const markup = "
 Interface I(Of T)
@@ -5313,7 +5346,7 @@ End Class
         End Sub
 
         <WorkItem(622563)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_CommitNonGenericOnParen()
             Const markup = "
 Class G
@@ -5329,13 +5362,13 @@ Class G
 End Class
 
 Class DG
-    Inherits G
+    Inherits G(
 End Class
 "
             VerifyProviderCommit(markup, "G", expected, "("c, "")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_AfterInheritsWithCircularInheritance()
             Const markup = "
 Class B
@@ -5352,7 +5385,7 @@ End Class
             VerifyItemExists(markup, "B")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_ClassesInsideSealedClasses()
             Const markup = "
 Public NotInheritable Class G
@@ -5371,7 +5404,7 @@ End Class
         End Sub
 
         <WorkItem(638762)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub Inherits_ClassWithinNestedStructs()
             Const markup = "
 Structure somestruct
@@ -5393,7 +5426,7 @@ End
 #End Region
 
         <WorkItem(715146)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ExtensionMethodsOffered()
             Dim markup = <Text><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -5413,7 +5446,7 @@ End Module
         End Sub
 
         <WorkItem(715146)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ExtensionMethodsOffered2()
             Dim markup = <Text><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -5434,7 +5467,7 @@ End Module
         End Sub
 
         <WorkItem(715146)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub LinqExtensionMethodsOffered()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -5453,7 +5486,7 @@ End Class
         End Sub
 
         <WorkItem(884060)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionOffTypeParameter()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -5467,7 +5500,7 @@ End Class
             VerifyNoItemsExist(markup)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AvailableInBothLinkedFiles()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1">
@@ -5488,7 +5521,7 @@ end class]]>
             VerifyItemInLinkedFiles(markup, "x", $"({FeaturesResources.Field}) C.x As Integer")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AvailableInOneLinkedFile()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="FOO=True">
@@ -5514,7 +5547,7 @@ Class C
 
         <WorkItem(909121)>
         <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitGenericOnParen()
             Dim text =
 <code>
@@ -5531,14 +5564,14 @@ Class G(Of T)
 End Class
 
 Class DG
-    Function Bar() as G(Of
+    Function Bar() as G(
 End Class</code>.Value
 
-            VerifyProviderCommit(text, "G(Of …)", expected, Nothing, "")
+            VerifyProviderCommit(text, "G(Of …)", expected, "("c, "")
         End Sub
 
         <WorkItem(668159)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AttributesShownWithBraceCompletionActive()
             Dim text =
 <code><![CDATA[
@@ -5556,7 +5589,7 @@ End Class
         End Sub
 
         <WorkItem(991466)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DescriptionInAliasedType()
             Dim text =
 <code><![CDATA[
@@ -5577,7 +5610,7 @@ End Interface
         End Sub
 
         <WorkItem(842049)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MergedNamespace1()
             Dim text =
 <code><![CDATA[
@@ -5607,7 +5640,7 @@ End Module
         End Sub
 
         <WorkItem(842049)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub MergedNamespace2()
             Dim text =
 <code><![CDATA[
@@ -5640,7 +5673,7 @@ End Module
         End Sub
 
         <WorkItem(925469)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitWithCloseBracketLeaveOpeningBracket1()
             Dim text =
 <code><![CDATA[
@@ -5654,7 +5687,7 @@ End Class]]></code>.Value
 <code><![CDATA[
 Class Await
     Sub Foo()
-        Dim x = new [Await
+        Dim x = new [Await]
     End Sub
 End Class]]></code>.Value
 
@@ -5662,7 +5695,7 @@ End Class]]></code>.Value
         End Sub
 
         <WorkItem(925469)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub CommitWithCloseBracketLeavesOpeningBracket2()
             Dim text =
 <code><![CDATA[
@@ -5683,7 +5716,7 @@ End Class]]></code>.Value
             VerifyProviderCommit(text, "Class", expected, "]"c, Nothing)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConditionalOperatorCompletion()
             Dim text =
 <code><![CDATA[
@@ -5697,7 +5730,7 @@ End Class]]></code>.Value
             VerifyItemExists(text, "ToString", experimental:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub ConditionalOperatorCompletion2()
             Dim text =
 <code><![CDATA[
@@ -5712,7 +5745,7 @@ End Class]]></code>.Value
         End Sub
 
         <WorkItem(1041269)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub HidePropertyBackingFieldAndEventsAtExpressionLevel()
             Dim text =
 <code><![CDATA[
@@ -5731,7 +5764,7 @@ End Class
         End Sub
 
         <WorkItem(1041269)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NullableForConditionalAccess()
             Dim text =
 <code><![CDATA[
@@ -5748,7 +5781,7 @@ End Class
         End Sub
 
         <WorkItem(1079694)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DontThrowForNullPropagatingOperatorInErase()
             Dim text =
 <code><![CDATA[
@@ -5764,7 +5797,7 @@ End Module
         End Sub
 
         <WorkItem(1109319)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub UnwrapNullableForConditionalFromStructure()
             Dim text =
 <code><![CDATA[
@@ -5792,7 +5825,7 @@ End Class
         End Sub
 
         <WorkItem(1109319)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub WithinChainOfConditionalAccess()
             Dim text =
 <code><![CDATA[
@@ -5821,7 +5854,7 @@ End Class
 
 
         <WorkItem(1079694)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DontThrowForNullPropagatingOperatorOnTypeParameter()
             Dim text =
 <code><![CDATA[
@@ -5836,7 +5869,7 @@ End Module
         End Sub
 
         <WorkItem(1079723)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionAfterNullPropagatingOperatingInWithBlock()
             Dim text =
 <code><![CDATA[
@@ -5854,7 +5887,7 @@ End Module
             VerifyItemExists(text, "Length")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext1()
             Dim text =
 <code><![CDATA[
@@ -5874,7 +5907,7 @@ End Class
             VerifyItemExists(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext2()
             Dim text =
 <code><![CDATA[
@@ -5894,7 +5927,7 @@ End Class
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext3()
             Dim text =
 <code><![CDATA[
@@ -5914,7 +5947,7 @@ End Class
             VerifyItemExists(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext4()
             Dim text =
 <code><![CDATA[
@@ -5934,7 +5967,7 @@ End Class
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext5()
             Dim text =
 <code><![CDATA[
@@ -5954,7 +5987,7 @@ End Class
             VerifyItemExists(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext6()
             Dim text =
 <code><![CDATA[
@@ -5974,7 +6007,7 @@ End Class
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext7()
             Dim text =
 <code><![CDATA[
@@ -5994,7 +6027,7 @@ End Class
             VerifyItemExists(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext8()
             Dim text =
 <code><![CDATA[
@@ -6014,7 +6047,7 @@ End Class
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext9()
             Dim text =
 <code><![CDATA[
@@ -6034,7 +6067,7 @@ End Class
             VerifyItemExists(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext10()
             Dim text =
 <code><![CDATA[
@@ -6054,7 +6087,7 @@ End Class
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext11()
             Dim text =
 <code><![CDATA[
@@ -6074,7 +6107,7 @@ End Class
             VerifyItemExists(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext12()
             Dim text =
 <code><![CDATA[
@@ -6094,7 +6127,7 @@ End Class
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext13()
             Dim text =
 <code><![CDATA[
@@ -6114,7 +6147,7 @@ End Class
             VerifyItemIsAbsent(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext14()
             Dim text =
 <code><![CDATA[
@@ -6134,7 +6167,7 @@ End Class
             VerifyItemIsAbsent(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext15()
             Dim text =
 <code><![CDATA[
@@ -6158,7 +6191,7 @@ End Class
             VerifyItemExists(text, "Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInNameOfArgumentContext16()
             Dim text =
 <code><![CDATA[
@@ -6182,7 +6215,7 @@ End Class
             VerifyItemExists(text, "Bar")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInInterpolationExpressionContext1()
             Dim text =
 <code><![CDATA[
@@ -6197,7 +6230,7 @@ End Class
             VerifyItemExists(text, "x")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AllowCompletionInInterpolationExpressionContext2()
             Dim text =
 <code><![CDATA[
@@ -6210,7 +6243,7 @@ Class C
             VerifyItemExists(text, "x")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionInInterpolationAlignmentContext()
             Dim text =
 <code><![CDATA[
@@ -6225,7 +6258,7 @@ End Class
             VerifyNoItemsExist(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionInInterpolationFormatContext()
             Dim text =
 <code><![CDATA[
@@ -6241,7 +6274,7 @@ End Class
         End Sub
 
         <WorkItem(1293, "https://github.com/dotnet/roslyn/issues/1293")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TriggeredAfterDotInWithAfterNumericLiteral()
             Dim text =
 <code><![CDATA[
@@ -6261,7 +6294,7 @@ End Class
         End Sub
 
         <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionForConditionalAccessOnTypes1()
             Dim text =
 <code><![CDATA[
@@ -6276,7 +6309,7 @@ End Module
         End Sub
 
         <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionForConditionalAccessOnTypes2()
             Dim text =
 <code><![CDATA[
@@ -6291,7 +6324,7 @@ End Module
         End Sub
 
         <WorkItem(33, "https://github.com/dotnet/roslyn/issues/33")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NoCompletionForConditionalAccessOnTypes3()
             Dim text =
 <code><![CDATA[
@@ -6307,7 +6340,7 @@ End Module
         End Sub
 
         <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub SharedMembersOffInstanceInColorColor()
             Dim text =
 <code><![CDATA[
@@ -6330,7 +6363,7 @@ End Class
         End Sub
 
         <WorkItem(3086, "https://github.com/dotnet/roslyn/issues/3086")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotSharedMembersOffAliasInColorColor()
             Dim text =
 <code><![CDATA[
@@ -6353,7 +6386,7 @@ End Class
             VerifyItemIsAbsent(text, "Y")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersFromBaseOuterType()
             Dim text =
 <code><![CDATA[
@@ -6370,7 +6403,7 @@ End Class
             VerifyItemExists(text, "_field")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersFromBaseOuterType2()
             Dim text =
 <code><![CDATA[
@@ -6393,7 +6426,7 @@ End Class
             VerifyItemExists(text, "M")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersFromBaseOuterType3()
             Dim text =
 <code><![CDATA[
@@ -6416,7 +6449,7 @@ End Class
             VerifyItemIsAbsent(text, "M")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersFromBaseOuterType4()
             Dim text =
 <code><![CDATA[
@@ -6440,7 +6473,7 @@ End Class
             VerifyItemExists(text, "M")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersFromBaseOuterType5()
             Dim text =
 <code><![CDATA[
@@ -6460,7 +6493,7 @@ End Class
             VerifyItemIsAbsent(text, "Q")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InstanceMembersFromBaseOuterType6()
             Dim text =
 <code><![CDATA[
@@ -6479,5 +6512,479 @@ End Class
             VerifyItemIsAbsent(text, "X")
         End Sub
 
+        <WorkItem(4900, "https://github.com/dotnet/roslyn/issues/4090")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoInstanceMembersWhenDottingIntoType()
+            Dim text =
+<code><![CDATA[
+Class Instance
+    Public Shared x as Integer
+    Public y as Integer
+End Class
+
+Class Program
+    Sub Foo()
+        Instance.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "y")
+            VerifyItemExists(text, "x")
+        End Sub
+
+        <WorkItem(4900, "https://github.com/dotnet/roslyn/issues/4090")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoSharedMemberWhenDottingIntoInstance()
+            Dim text =
+<code><![CDATA[
+Class Instance
+    Public Shared x as Integer
+    Public y as Integer
+End Class
+
+Class Program
+    Sub Foo()
+        Dim x = new Instance()
+        x.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "x")
+            VerifyItemExists(text, "y")
+        End Sub
+
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoEnum()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        E.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemExists(text, "A")
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
+        <WorkItem(4136, "https://github.com/dotnet/roslyn/issues/4136")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NoValue__WhenDottingIntoLocalOfEnumType()
+            Dim text =
+<code><![CDATA[
+Enum E
+    A
+End Enum
+
+Class Program
+    Sub Foo()
+        Dim x = E.A
+        x.$$
+    End Sub
+End Class
+]]></code>.Value
+            VerifyItemIsAbsent(text, "value__")
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Sub SharedProjectFieldAndPropertiesTreatedAsIdentical()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if ONE Then
+    Public  x As Integer
+#endif
+#if TWO Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"(field) C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
+
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SharedProjectFieldAndPropertiesTreatedAsIdentical2()
+            Dim markup = <Workspace>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj1" PreprocessorSymbols="ONE=True">
+                                 <Document FilePath="CurrentDocument.vb"><![CDATA[
+Class C
+#if TWO Then
+    Public  x As Integer
+#endif
+#if ONE Then
+    Public Property x as Integer
+#endif
+    Sub foo()
+        x$$
+    End Sub
+End Class]]>
+                                 </Document>
+                             </Project>
+                             <Project Language="Visual Basic" CommonReferences="True" AssemblyName="Proj2" PreprocessorSymbols="TWO=True">
+                                 <Document IsLinkFile="True" LinkAssemblyName="Proj1" LinkFilePath="CurrentDocument.vb"/>
+                             </Project>
+                         </Workspace>.ToString().NormalizeLineEndings()
+
+            Dim expectedDescription = $"Property C.x As Integer"
+            VerifyItemInLinkedFiles(markup, "x", expectedDescription)
+        End Sub
+
+        <WorkItem(4405, "https://github.com/dotnet/roslyn/issues/4405")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub VerifyDelegateEscapedWhenCommitted()
+            Dim text =
+<code><![CDATA[
+Imports System
+Module Module1
+    Sub Main()
+        Dim x As {0}
+    End Sub
+End Module
+
+]]></code>.Value
+            VerifyProviderCommit(markupBeforeCommit:=String.Format(text, "$$"),
+                                 itemToCommit:="Delegate",
+                                 expectedCodeAfterCommit:=String.Format(text, "[Delegate]"),
+                                 commitChar:=Nothing,
+                                 textTypedSoFar:="")
+        End Sub
+
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInExpressionContext1()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        args.Select($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInExpressionContext2()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncExcludedInStatementContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInGetType()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        GetType($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInTypeOf()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim s = TypeOf args Is $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInReturnTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Function x() as $$
+    End Function
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemFuncIncludedInFieldTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Dim x as $$
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Func(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemDelegateInStatementContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Delegate")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionExcludedInExpressionContext1()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        args.Select($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionExcludedInExpressionContext2()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim x = $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionExcludedInStatementContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemIsAbsent(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInGetType()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        GetType($$)
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInTypeOf()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim s = TypeOf args Is $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInReturnTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Function x() as $$
+    End Function
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemActionIncludedInFieldTypeContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Dim x as $$
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Action(Of " & s_unicodeEllipsis & ")")
+        End Sub
+
+        <WorkItem(4428, "https://github.com/dotnet/roslyn/issues/4428")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub SystemDelegateInExpressionContext()
+            Dim text =
+<code><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        Dim x = $$
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Delegate")
+        End Sub
+
+        <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConditionalAccessInWith1()
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim s As String
+
+        With s
+1:         Console.WriteLine(If(?.$$, -1))
+            Console.WriteLine()
+        End With
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Length")
+        End Sub
+
+        <WorkItem(4750, "https://github.com/dotnet/roslyn/issues/4750")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub ConditionalAccessInWith2()
+            Dim text =
+<code><![CDATA[
+Module Module1
+    Sub Main()
+        Dim s As String
+
+        With s
+1:         Console.WriteLine(If(?.Length, -1))
+           ?.$$
+            Console.WriteLine()
+        End With
+    End Sub
+End Module
+]]></code>.Value
+            VerifyItemExists(text, "Length")
+        End Sub
     End Class
 End Namespace

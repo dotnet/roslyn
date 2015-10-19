@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -18,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService
 {
     public class CodeRefactoringServiceTest
     {
-        [Fact]
+        [WpfFact]
         public void TestExceptionInComputeRefactorings()
         {
             VerifyRefactoringDisabled(new ErrorCases.ExceptionInCodeActions());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestExceptionInComputeRefactoringsAsync()
         {
             VerifyRefactoringDisabled(new ErrorCases.ExceptionInComputeRefactoringsAsync());

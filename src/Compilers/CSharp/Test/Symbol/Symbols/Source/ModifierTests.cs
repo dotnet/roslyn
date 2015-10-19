@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -104,36 +101,34 @@ private void M6() { }
 extern void M7();
 static void M12() { }
 ";
-            foreach (var options in new[] { TestOptions.Script, TestOptions.Interactive })
-            {
-                var comp = CreateCompilationWithMscorlib(text, parseOptions: options);
-                var script = comp.ScriptClass;
-                var m1 = script.GetMembers("M1").Single() as MethodSymbol;
-                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
-                var m2 = script.GetMembers("M2").Single() as MethodSymbol;
-                Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
-                var m3 = script.GetMembers("M3").Single() as MethodSymbol;
-                Assert.Equal(Accessibility.Protected, m3.DeclaredAccessibility);
-                var m4 = script.GetMembers("M4").Single() as MethodSymbol;
-                Assert.Equal(Accessibility.Internal, m4.DeclaredAccessibility);
-                var m5 = script.GetMembers("M5").Single() as MethodSymbol;
-                Assert.Equal(Accessibility.ProtectedOrInternal, m5.DeclaredAccessibility);
-                var m6 = script.GetMembers("M6").Single() as MethodSymbol;
-                Assert.Equal(Accessibility.Private, m6.DeclaredAccessibility);
-                var m7 = script.GetMembers("M7").Single() as MethodSymbol;
-                Assert.True(m7.IsExtern);
-                var m12 = script.GetMembers("M12").Single() as MethodSymbol;
-                Assert.True(m12.IsStatic);
 
-                comp.VerifyDiagnostics(
-                    // (4,16): warning CS0628: 'M3()': new protected member declared in sealed class
-                    Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M3").WithArguments("M3()"),
-                    // (6,25): warning CS0628: 'M5()': new protected member declared in sealed class
-                    Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M5").WithArguments("M5()"),
-                    // (8,13): warning CS0626: Method, operator, or accessor 'M7()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                    Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M7").WithArguments("M7()")
-                );
-            }
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var script = comp.ScriptClass;
+            var m1 = script.GetMembers("M1").Single() as MethodSymbol;
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+            var m2 = script.GetMembers("M2").Single() as MethodSymbol;
+            Assert.Equal(Accessibility.Public, m2.DeclaredAccessibility);
+            var m3 = script.GetMembers("M3").Single() as MethodSymbol;
+            Assert.Equal(Accessibility.Protected, m3.DeclaredAccessibility);
+            var m4 = script.GetMembers("M4").Single() as MethodSymbol;
+            Assert.Equal(Accessibility.Internal, m4.DeclaredAccessibility);
+            var m5 = script.GetMembers("M5").Single() as MethodSymbol;
+            Assert.Equal(Accessibility.ProtectedOrInternal, m5.DeclaredAccessibility);
+            var m6 = script.GetMembers("M6").Single() as MethodSymbol;
+            Assert.Equal(Accessibility.Private, m6.DeclaredAccessibility);
+            var m7 = script.GetMembers("M7").Single() as MethodSymbol;
+            Assert.True(m7.IsExtern);
+            var m12 = script.GetMembers("M12").Single() as MethodSymbol;
+            Assert.True(m12.IsStatic);
+
+            comp.VerifyDiagnostics(
+                // (4,16): warning CS0628: 'M3()': new protected member declared in sealed class
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M3").WithArguments("M3()"),
+                // (6,25): warning CS0628: 'M5()': new protected member declared in sealed class
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "M5").WithArguments("M5()"),
+                // (8,13): warning CS0626: Method, operator, or accessor 'M7()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M7").WithArguments("M7()")
+            );
         }
 
         [Fact]
@@ -155,12 +150,12 @@ struct S<T> where T : struct
             var typeParamType = structType.TypeParameters.Single();
 
             var pointerType = new PointerTypeSymbol(typeParamType, customModifiers); // NOTE: We're constructing this manually, since it's illegal.
-            var arrayType = new ArrayTypeSymbol(comp.Assembly, typeParamType, customModifiers); // This is legal, but we're already manually constructing types.
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(comp.Assembly, typeParamType, customModifiers); // This is legal, but we're already manually constructing types.
 
-            var typeMap = new TypeMap(ImmutableArray.Create(typeParamType), ImmutableArray.Create<TypeSymbol>(intType));
+            var typeMap = new TypeMap(ImmutableArray.Create(typeParamType), ImmutableArray.Create(new TypeWithModifiers(intType)));
 
-            var substitutedPointerType = (PointerTypeSymbol)typeMap.SubstituteType(pointerType);
-            var substitutedArrayType = (ArrayTypeSymbol)typeMap.SubstituteType(arrayType);
+            var substitutedPointerType = (PointerTypeSymbol)typeMap.SubstituteType(pointerType).AsTypeSymbolOnly();
+            var substitutedArrayType = (ArrayTypeSymbol)typeMap.SubstituteType(arrayType).AsTypeSymbolOnly();
 
             // The map changed the types.
             Assert.Equal(intType, substitutedPointerType.PointedAtType);

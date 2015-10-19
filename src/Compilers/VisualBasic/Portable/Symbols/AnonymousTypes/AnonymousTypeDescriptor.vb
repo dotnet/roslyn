@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i = 0 To fieldCount - 1
                 Dim current As AnonymousTypeField = Me.Fields(i)
                 newFields(i) = New AnonymousTypeField(current.Name,
-                                                      current.Type.InternalSubstituteTypeParameters(substitution),
+                                                      current.Type.InternalSubstituteTypeParameters(substitution).Type,
                                                       current.Location,
                                                       current.IsKey)
                 If Not anyChange Then

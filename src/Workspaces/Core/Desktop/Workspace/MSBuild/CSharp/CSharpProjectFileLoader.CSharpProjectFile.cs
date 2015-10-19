@@ -23,36 +23,25 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class CSharpProjectFile : ProjectFile
         {
-            private readonly IMetadataService _metadataService;
-            private readonly IAnalyzerService _analyzerService;
-            private readonly IHostBuildDataFactory _msbuildHost;
-            private readonly ICommandLineArgumentsFactoryService _commandLineArgumentsFactoryService;
-
-            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project, IMetadataService metadataService, IAnalyzerService analyzerService)
+            public CSharpProjectFile(CSharpProjectFileLoader loader, MSB.Evaluation.Project project)
                 : base(loader, project)
             {
-                _metadataService = metadataService;
-                _analyzerService = analyzerService;
-                _msbuildHost = loader.MSBuildHost;
-                _commandLineArgumentsFactoryService = loader.CommandLineArgumentsFactoryService;
             }
 
             public override SourceCodeKind GetSourceCodeKind(string documentFileName)
             {
-                return documentFileName.EndsWith(".csx", StringComparison.OrdinalIgnoreCase)
-                    ? SourceCodeKind.Script
-                    : SourceCodeKind.Regular;
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return documentFileName.EndsWith(".csx", StringComparison.OrdinalIgnoreCase)
+                //    ? SourceCodeKind.Script
+                //    : SourceCodeKind.Regular;
+                return SourceCodeKind.Regular;
             }
 
             public override string GetDocumentExtension(SourceCodeKind sourceCodeKind)
             {
-                switch (sourceCodeKind)
-                {
-                    case SourceCodeKind.Script:
-                        return ".csx";
-                    default:
-                        return ".cs";
-                }
+                // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                //return (sourceCodeKind != SourceCodeKind.Script) ? ".cs" : ".csx";
+                return ".cs";
             }
 
             public override async Task<ProjectFileInfo> GetProjectFileInfoAsync(CancellationToken cancellationToken)
@@ -92,32 +81,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
                        .ToImmutableArray();
 
-                var additionalDocs = compilerInputs.AdditionalFiles
-                                     .Select(s => MakeDocumentFileInfo(projectDirectory, s))
-                                     .ToImmutableArray();
-
-                IEnumerable<MetadataReference> metadataRefs;
-                IEnumerable<AnalyzerReference> analyzerRefs;
-                this.GetReferences(compilerInputs, executedProject, out metadataRefs, out analyzerRefs);
+                var additionalDocs = compilerInputs.AdditionalSources
+                        .Select(s => MakeDocumentFileInfo(projectDirectory, s))
+                        .ToImmutableArray();
 
                 var outputPath = Path.Combine(this.GetOutputDirectory(), compilerInputs.OutputFileName);
                 var assemblyName = this.GetAssemblyName();
-                var msbuildData = _msbuildHost.Create(compilerInputs.Options);
 
                 return new ProjectFileInfo(
                     outputPath,
                     assemblyName,
-                    msbuildData.CompilationOptions,
-                    msbuildData.ParseOptions,
-                    compilerInputs.CodePage,
+                    compilerInputs.CommandLineArgs,
                     docs,
                     additionalDocs,
-                    this.GetProjectReferences(executedProject),
-                    metadataRefs,
-                    analyzerRefs);
+                    this.GetProjectReferences(executedProject));
             }
 
-            private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, MSB.Framework.ITaskItem item)
+            private DocumentFileInfo MakeDocumentFileInfo(string projectDirectory, ITaskItem item)
             {
                 var filePath = GetDocumentFilePath(item);
                 var logicalPath = GetDocumentLogicalPath(item, projectDirectory);
@@ -126,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated);
             }
 
-            private ImmutableArray<string> GetAliases(MSB.Framework.ITaskItem item)
+            private ImmutableArray<string> GetAliases(ITaskItem item)
             {
                 var aliasesText = item.GetMetadata("Aliases");
 
@@ -136,66 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return ImmutableArray.CreateRange(aliasesText.Split(new char[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries));
-            }
-
-            private void GetReferences(
-                CSharpCompilerInputs compilerInputs,
-                MSB.Execution.ProjectInstance executedProject,
-                out IEnumerable<MetadataReference> metadataReferences,
-                out IEnumerable<AnalyzerReference> analyzerReferences)
-            {
-                // use command line parser to do reference translation same as command line compiler
-
-                var args = new List<string>();
-
-                if (compilerInputs.LibPaths != null && compilerInputs.LibPaths.Count > 0)
-                {
-                    args.Add("/lib:\"" + string.Join(";", compilerInputs.LibPaths) + "\"");
-                }
-
-                foreach (var mr in compilerInputs.References)
-                {
-                    if (!IsProjectReferenceOutputAssembly(mr))
-                    {
-                        var filePath = GetDocumentFilePath(mr);
-
-                        var aliases = GetAliases(mr);
-                        if (aliases.IsDefaultOrEmpty)
-                        {
-                            args.Add("/r:\"" + filePath + "\"");
-                        }
-                        else
-                        {
-                            foreach (var alias in aliases)
-                            {
-                                args.Add("/r:" + alias + "=\"" + filePath + "\"");
-                            }
-                        }
-                    }
-                }
-
-                foreach (var ar in compilerInputs.AnalyzerReferences)
-                {
-                    var filePath = GetDocumentFilePath(ar);
-                    args.Add("/a:\"" + filePath + "\"");
-                }
-
-                if (compilerInputs.NoStandardLib)
-                {
-                    args.Add("/nostdlib");
-                }
-
-                var commandLineArgs = _commandLineArgumentsFactoryService.CreateCommandLineArguments(args, executedProject.Directory, isInteractive: false, sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
-
-                var resolver = new MetadataFileReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
-                metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, _metadataService.GetProvider()));
-
-                var analyzerLoader = _analyzerService.GetLoader();
-                foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
-                {
-                    analyzerLoader.AddDependencyLocation(path);
-                }
-                analyzerReferences = commandLineArgs.ResolveAnalyzerReferences(analyzerLoader);
             }
 
             private void InitializeFromModel(CSharpCompilerInputs compilerInputs, MSB.Execution.ProjectInstance executedProject)
@@ -209,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilerInputs.SetCodePage(this.ReadPropertyInt(executedProject, "CodePage"));
                 compilerInputs.SetDebugType(this.ReadPropertyString(executedProject, "DebugType"));
                 compilerInputs.SetDefineConstants(this.ReadPropertyString(executedProject, "DefineConstants"));
+                compilerInputs.SetFeatures(this.ReadPropertyString(executedProject, "Features"));
 
                 var delaySignProperty = this.GetProperty("DelaySign");
                 compilerInputs.SetDelaySign(delaySignProperty != null && !string.IsNullOrEmpty(delaySignProperty.EvaluatedValue), this.ReadPropertyBool(executedProject, "DelaySign"));
@@ -277,28 +198,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly CSharpProjectFile _projectFile;
 
                 internal bool Initialized { get; private set; }
-                internal HostBuildOptions Options { get; private set; }
-                internal int CodePage { get; private set; }
-                internal IEnumerable<MSB.Framework.ITaskItem> Sources { get; private set; }
-                internal IEnumerable<MSB.Framework.ITaskItem> References { get; private set; }
-                internal IEnumerable<MSB.Framework.ITaskItem> AnalyzerReferences { get; private set; }
-                internal IEnumerable<MSB.Framework.ITaskItem> AdditionalFiles { get; private set; }
-                internal IReadOnlyList<string> LibPaths { get; private set; }
-                internal bool NoStandardLib { get; private set; }
+                internal string ProjectDirectory { get; }
+                internal string OutputDirectory { get; }
                 internal string OutputFileName { get; private set; }
+                internal List<string> CommandLineArgs { get; }
+                internal IEnumerable<ITaskItem> Sources { get; private set; }
+                internal IEnumerable<ITaskItem> AdditionalSources { get; private set; }
+
+                private bool _emitDebugInfo;
+                private string _debugType;
+
+                private string _targetType;
+                private string _platform;
 
                 internal CSharpCompilerInputs(CSharpProjectFile projectFile)
                 {
                     _projectFile = projectFile;
-                    this.Options = new HostBuildOptions();
-                    this.Sources = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
-                    this.References = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
-                    this.AnalyzerReferences = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
-                    this.AdditionalFiles = SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
-                    this.LibPaths = SpecializedCollections.EmptyReadOnlyList<string>();
-
-                    this.Options.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
-                    this.Options.OutputDirectory = projectFile.GetOutputDirectory();
+                    this.CommandLineArgs = new List<string>();
+                    this.Sources = SpecializedCollections.EmptyEnumerable<ITaskItem>();
+                    this.AdditionalSources = SpecializedCollections.EmptyEnumerable<ITaskItem>();
+                    this.ProjectDirectory = Path.GetDirectoryName(projectFile.FilePath);
+                    this.OutputDirectory = projectFile.GetOutputDirectory();
                 }
 
                 public bool Compile()
@@ -315,36 +235,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.Initialized = true;
                     errorMessage = string.Empty;
                     errorCode = 0;
-                    return true;
-                }
 
-                public bool SetHighEntropyVA(bool highEntropyVA)
-                {
-                    // we don't capture emit options
-                    return true;
-                }
+                    if (_emitDebugInfo)
+                    {
+                        if (string.Equals(_debugType, "none", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // does this mean not debug???
+                            this.CommandLineArgs.Add("/debug");
+                        }
+                        else if (string.Equals(_debugType, "pdbonly", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:pdbonly");
+                        }
+                        else if (string.Equals(_debugType, "full", StringComparison.OrdinalIgnoreCase))
+                        {
+                            this.CommandLineArgs.Add("/debug:full");
+                        }
+                    }
 
-                public bool SetPlatformWith32BitPreference(string platformWith32BitPreference)
-                {
-                    this.Options.PlatformWith32BitPreference = platformWith32BitPreference;
-                    return true;
-                }
+                    if (!string.IsNullOrWhiteSpace(_platform))
+                    {
+                        if (string.Equals("anycpu32bitpreferred", _platform, StringComparison.InvariantCultureIgnoreCase)
+                            && (string.Equals("library", _targetType, StringComparison.InvariantCultureIgnoreCase)
+                                || string.Equals("module", _targetType, StringComparison.InvariantCultureIgnoreCase)
+                                || string.Equals("winmdobj", _targetType, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            _platform = "anycpu";
+                        }
 
-                public bool SetSubsystemVersion(string subsystemVersion)
-                {
-                    // we don't capture emit options
-                    return true;
-                }
+                        this.CommandLineArgs.Add("/platform:" + _platform);
+                    }
 
-                public bool SetApplicationConfiguration(string applicationConfiguration)
-                {
-                    this.Options.ApplicationConfiguration = applicationConfiguration;
-                    return true;
-                }
-
-                public bool SetWin32Manifest(string win32Manifest)
-                {
-                    // Not used?
                     return true;
                 }
 
@@ -358,170 +279,286 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
+                public bool SetHighEntropyVA(bool highEntropyVA)
+                {
+                    if (highEntropyVA)
+                    {
+                        this.CommandLineArgs.Add("/highentropyva");
+                    }
+
+                    return true;
+                }
+
+                public bool SetSubsystemVersion(string subsystemVersion)
+                {
+                    if (!string.IsNullOrWhiteSpace(subsystemVersion))
+                    {
+                        this.CommandLineArgs.Add("/subsystemversion:" + subsystemVersion);
+                    }
+
+                    return true;
+                }
+
+                public bool SetApplicationConfiguration(string applicationConfiguration)
+                {
+                    if (!string.IsNullOrWhiteSpace(applicationConfiguration))
+                    {
+                        this.CommandLineArgs.Add("/appconfig:" + applicationConfiguration);
+                    }
+
+                    return true;
+                }
+
+                public bool SetWin32Manifest(string win32Manifest)
+                {
+                    if (!string.IsNullOrWhiteSpace(win32Manifest))
+                    {
+                        this.CommandLineArgs.Add("/win32manifest:\"" + win32Manifest + "\"");
+                    }
+
+                    return true;
+                }
+
                 public bool SetAddModules(string[] addModules)
                 {
-                    // ???
+                    if (addModules != null && addModules.Length > 0)
+                    {
+                        this.CommandLineArgs.Add("/addmodule:\"" + string.Join(";", addModules) + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetAdditionalLibPaths(string[] additionalLibPaths)
                 {
-                    this.LibPaths = additionalLibPaths;
+                    if (additionalLibPaths != null && additionalLibPaths.Length > 0)
+                    {
+                        this.CommandLineArgs.Add("/lib:\"" + string.Join(";", additionalLibPaths) + "\"");
+                    }
                     return true;
                 }
 
                 public bool SetAllowUnsafeBlocks(bool allowUnsafeBlocks)
                 {
-                    this.Options.AllowUnsafeBlocks = allowUnsafeBlocks;
+                    if (allowUnsafeBlocks)
+                    {
+                        this.CommandLineArgs.Add("/unsafe");
+                    }
+
                     return true;
                 }
 
                 public bool SetBaseAddress(string baseAddress)
                 {
-                    // we don't capture emit options
+                    if (!string.IsNullOrWhiteSpace(baseAddress))
+                    {
+                        this.CommandLineArgs.Add("/baseaddress:" + baseAddress);
+                    }
+
                     return true;
                 }
 
                 public bool SetCheckForOverflowUnderflow(bool checkForOverflowUnderflow)
                 {
-                    this.Options.CheckForOverflowUnderflow = checkForOverflowUnderflow;
+                    if (checkForOverflowUnderflow)
+                    {
+                        this.CommandLineArgs.Add("/checked");
+                    }
+
                     return true;
                 }
 
                 public bool SetCodePage(int codePage)
                 {
-                    this.CodePage = codePage;
+                    if (codePage != 0)
+                    {
+                        this.CommandLineArgs.Add("/codepage:" + codePage);
+                    }
+
                     return true;
                 }
 
                 public bool SetDebugType(string debugType)
                 {
-                    // ignore, just check for expected values for backwards compat
-                    return string.Equals(debugType, "none", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(debugType, "pdbonly", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(debugType, "full", StringComparison.OrdinalIgnoreCase);
+                    _debugType = debugType;
+                    return true;
                 }
 
                 public bool SetDefineConstants(string defineConstants)
                 {
-                    this.Options.DefineConstants = defineConstants;
+                    if (!string.IsNullOrWhiteSpace(defineConstants))
+                    {
+                        this.CommandLineArgs.Add("/define:" + defineConstants);
+                    }
+
                     return true;
                 }
 
                 private static readonly char[] s_preprocessorSymbolSeparators = new char[] { ';', ',' };
 
+                public bool SetFeatures(string features)
+                {
+                    foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
+                    {
+                        this.CommandLineArgs.Add($"/features:{feature}");
+                    }
+
+                    return true;
+                }
+
                 public bool SetDelaySign(bool delaySignExplicitlySet, bool delaySign)
                 {
-                    this.Options.DelaySign = Tuple.Create(delaySignExplicitlySet, delaySign);
+                    if (delaySignExplicitlySet)
+                    {
+                        this.CommandLineArgs.Add("/delaysign" + (delaySign ? "+" : "-"));
+                    }
+
                     return true;
                 }
 
                 public bool SetDisabledWarnings(string disabledWarnings)
                 {
-                    this.SetWarnings(disabledWarnings, ReportDiagnostic.Suppress);
-                    return true;
-                }
-
-                private void SetWarnings(string warnings, ReportDiagnostic reportStyle)
-                {
-                    if (!string.IsNullOrEmpty(warnings))
+                    if (!string.IsNullOrWhiteSpace(disabledWarnings))
                     {
-                        foreach (var warning in warnings.Split(s_preprocessorSymbolSeparators, StringSplitOptions.None))
-                        {
-                            int warningId;
-                            if (int.TryParse(warning, out warningId))
-                            {
-                                this.Options.Warnings["CS" + warningId.ToString("0000")] = reportStyle;
-                            }
-                            else
-                            {
-                                this.Options.Warnings[warning] = reportStyle;
-                            }
-                        }
+                        this.CommandLineArgs.Add("/nowarn:" + disabledWarnings);
                     }
+
+                    return true;
                 }
 
                 public bool SetDocumentationFile(string documentationFile)
                 {
-                    this.Options.DocumentationFile = documentationFile;
+                    if (!string.IsNullOrWhiteSpace(documentationFile))
+                    {
+                        this.CommandLineArgs.Add("/doc:\"" + documentationFile + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetEmitDebugInformation(bool emitDebugInformation)
                 {
-                    // we don't capture emit options
+                    _emitDebugInfo = emitDebugInformation;
                     return true;
                 }
 
                 public bool SetErrorReport(string errorReport)
                 {
-                    // ?? prompt?
+                    if (!string.IsNullOrWhiteSpace(errorReport))
+                    {
+                        this.CommandLineArgs.Add("/errorreport:" + errorReport.ToLower());
+                    }
+
                     return true;
                 }
 
                 public bool SetFileAlignment(int fileAlignment)
                 {
-                    // we don't capture emit options
+                    this.CommandLineArgs.Add("/filealign:" + fileAlignment);
                     return true;
                 }
 
                 public bool SetGenerateFullPaths(bool generateFullPaths)
                 {
-                    // ??
+                    if (generateFullPaths)
+                    {
+                        this.CommandLineArgs.Add("/fullpaths");
+                    }
+
                     return true;
                 }
 
                 public bool SetKeyContainer(string keyContainer)
                 {
-                    this.Options.KeyContainer = keyContainer;
+                    if (!string.IsNullOrWhiteSpace(keyContainer))
+                    {
+                        this.CommandLineArgs.Add("/keycontainer:\"" + keyContainer + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetKeyFile(string keyFile)
                 {
-                    this.Options.KeyFile = keyFile;
+                    if (!string.IsNullOrWhiteSpace(keyFile))
+                    {
+                        // keyFile = FileUtilities.ResolveRelativePath(keyFile, this.ProjectDirectory);
+                        this.CommandLineArgs.Add("/keyfile:\"" + keyFile + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetLangVersion(string langVersion)
                 {
-                    this.Options.LanguageVersion = langVersion;
+                    if (!string.IsNullOrWhiteSpace(langVersion))
+                    {
+                        this.CommandLineArgs.Add("/langversion:" + langVersion);
+                    }
+
                     return true;
                 }
 
-                public bool SetLinkResources(MSB.Framework.ITaskItem[] linkResources)
+                public bool SetLinkResources(ITaskItem[] linkResources)
                 {
-                    // ??
+                    if (linkResources != null && linkResources.Length > 0)
+                    {
+                        foreach (var lr in linkResources)
+                        {
+                            this.CommandLineArgs.Add("/linkresource:\"" + _projectFile.GetDocumentFilePath(lr) + "\"");
+                        }
+                    }
+
                     return true;
                 }
 
                 public bool SetMainEntryPoint(string targetType, string mainEntryPoint)
                 {
-                    this.Options.MainEntryPoint = mainEntryPoint;
+                    if (!string.IsNullOrWhiteSpace(mainEntryPoint))
+                    {
+                        this.CommandLineArgs.Add("/main:\"" + mainEntryPoint + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetModuleAssemblyName(string moduleAssemblyName)
                 {
-                    this.Options.ModuleAssemblyName = moduleAssemblyName;
+                    if (!string.IsNullOrWhiteSpace(moduleAssemblyName))
+                    {
+                        this.CommandLineArgs.Add("/moduleassemblyname:\"" + moduleAssemblyName + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetNoConfig(bool noConfig)
                 {
-                    // ??
+                    if (noConfig)
+                    {
+                        this.CommandLineArgs.Add("/noconfig");
+                    }
+
                     return true;
                 }
 
                 public bool SetNoStandardLib(bool noStandardLib)
                 {
-                    this.NoStandardLib = noStandardLib;
+                    if (noStandardLib)
+                    {
+                        this.CommandLineArgs.Add("/nostdlib");
+                    }
+
                     return true;
                 }
 
                 public bool SetOptimize(bool optimize)
                 {
-                    this.Options.Optimize = optimize;
+                    if (optimize)
+                    {
+                        this.CommandLineArgs.Add("/optimize");
+                    }
+
                     return true;
                 }
 
@@ -529,63 +566,127 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // ?? looks to be output file in obj directory not binaries\debug directory
                     this.OutputFileName = Path.GetFileName(outputAssembly);
+                    this.CommandLineArgs.Add("/out:\"" + outputAssembly + "\"");
                     return true;
                 }
 
                 public bool SetPdbFile(string pdbFile)
                 {
-                    // ??
+                    if (!string.IsNullOrWhiteSpace(pdbFile))
+                    {
+                        this.CommandLineArgs.Add($"/pdb:\"{pdbFile}\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetPlatform(string platform)
                 {
-                    this.Options.Platform = platform;
+                    _platform = platform;
                     return true;
                 }
 
-                public bool SetReferences(MSB.Framework.ITaskItem[] references)
+                public bool SetPlatformWith32BitPreference(string platformWith32BitPreference)
                 {
-                    this.References = references ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    SetPlatform(platformWith32BitPreference);
                     return true;
                 }
 
-                public bool SetAnalyzers(MSB.Framework.ITaskItem[] analyzerReferences)
+                public bool SetReferences(ITaskItem[] references)
                 {
-                    this.AnalyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    if (references != null)
+                    {
+                        foreach (var mr in references)
+                        {
+                            if (!_projectFile.IsProjectReferenceOutputAssembly(mr))
+                            {
+                                var filePath = _projectFile.GetDocumentFilePath(mr);
+
+                                var aliases = _projectFile.GetAliases(mr);
+                                if (aliases.IsDefaultOrEmpty)
+                                {
+                                    this.CommandLineArgs.Add("/reference:\"" + filePath + "\"");
+                                }
+                                else
+                                {
+                                    foreach (var alias in aliases)
+                                    {
+                                        this.CommandLineArgs.Add("/reference:" + alias + "=\"" + filePath + "\"");
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+
+                public bool SetAnalyzers(ITaskItem[] analyzerReferences)
+                {
+                    if (analyzerReferences != null)
+                    {
+                        foreach (var ar in analyzerReferences)
+                        {
+                            var filePath = _projectFile.GetDocumentFilePath(ar);
+                            this.CommandLineArgs.Add("/analyzer:\"" + filePath + "\"");
+                        }
+                    }
+
                     return true;
                 }
 
                 public bool SetAdditionalFiles(ITaskItem[] additionalFiles)
                 {
-                    this.AdditionalFiles = additionalFiles ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    if (additionalFiles != null && additionalFiles.Length > 0)
+                    {
+                        this.AdditionalSources = additionalFiles;
+                    }
+
                     return true;
                 }
 
-                public bool SetResources(MSB.Framework.ITaskItem[] resources)
+                public bool SetResources(ITaskItem[] resources)
                 {
-                    // ??
+                    if (resources != null && resources.Length > 0)
+                    {
+                        foreach (var r in resources)
+                        {
+                            this.CommandLineArgs.Add("/resource:\"" + _projectFile.GetDocumentFilePath(r) + "\"");
+                        }
+                    }
+
                     return true;
                 }
 
-                public bool SetResponseFiles(MSB.Framework.ITaskItem[] responseFiles)
+                public bool SetResponseFiles(ITaskItem[] responseFiles)
                 {
-                    // ??
+                    if (responseFiles != null && responseFiles.Length > 0)
+                    {
+                        foreach (var rf in responseFiles)
+                        {
+                            this.CommandLineArgs.Add("@\"" + _projectFile.GetDocumentFilePath(rf) + "\"");
+                        }
+                    }
+
                     return true;
                 }
 
-                public bool SetSources(MSB.Framework.ITaskItem[] sources)
+                public bool SetSources(ITaskItem[] sources)
                 {
-                    this.Sources = sources ?? SpecializedCollections.EmptyEnumerable<MSB.Framework.ITaskItem>();
+                    if (sources != null && sources.Length > 0)
+                    {
+                        this.Sources = sources;
+                    }
+
                     return true;
                 }
 
                 public bool SetTargetType(string targetType)
                 {
-                    OutputKind kind;
-                    if (ProjectFile.TryGetOutputKind(targetType, out kind))
+                    if (!string.IsNullOrWhiteSpace(targetType))
                     {
-                        this.Options.OutputKind = kind;
+                        _targetType = targetType.ToLower();
+                        this.CommandLineArgs.Add("/target:" + _targetType);
                     }
 
                     return true;
@@ -593,41 +694,67 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public bool SetRuleSet(string ruleSetFile)
                 {
-                    this.Options.RuleSetFile = ruleSetFile;
+                    if (!string.IsNullOrWhiteSpace(ruleSetFile))
+                    {
+                        this.CommandLineArgs.Add("/ruleset:\"" + ruleSetFile + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetTreatWarningsAsErrors(bool treatWarningsAsErrors)
                 {
-                    this.Options.WarningsAsErrors = treatWarningsAsErrors;
+                    if (treatWarningsAsErrors)
+                    {
+                        this.CommandLineArgs.Add("/warningaserror");
+                    }
+
                     return true;
                 }
 
                 public bool SetWarningLevel(int warningLevel)
                 {
-                    this.Options.WarningLevel = warningLevel;
+                    this.CommandLineArgs.Add("/warn:" + warningLevel);
                     return true;
                 }
 
                 public bool SetWarningsAsErrors(string warningsAsErrors)
                 {
-                    this.SetWarnings(warningsAsErrors, ReportDiagnostic.Error);
+                    if (!string.IsNullOrWhiteSpace(warningsAsErrors))
+                    {
+                        this.CommandLineArgs.Add("/warnaserror+:" + warningsAsErrors);
+                    }
+
                     return true;
                 }
 
                 public bool SetWarningsNotAsErrors(string warningsNotAsErrors)
                 {
-                    this.SetWarnings(warningsNotAsErrors, ReportDiagnostic.Default);
+                    if (!string.IsNullOrWhiteSpace(warningsNotAsErrors))
+                    {
+                        this.CommandLineArgs.Add("/warnaserror-:" + warningsNotAsErrors);
+                    }
+
                     return true;
                 }
 
                 public bool SetWin32Icon(string win32Icon)
                 {
+                    if (!string.IsNullOrWhiteSpace(win32Icon))
+                    {
+                        this.CommandLineArgs.Add("/win32icon:\"" + win32Icon + "\"");
+                    }
+
                     return true;
                 }
 
                 public bool SetWin32Resource(string win32Resource)
                 {
+                    if (!string.IsNullOrWhiteSpace(win32Resource))
+                    {
+                        this.CommandLineArgs.Add("/win32res:\"" + win32Resource + "\"");
+                    }
+
                     return true;
                 }
             }

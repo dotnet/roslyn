@@ -973,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Not HaveDiagnostics(infosBuffer))
             GenerateVarianceDiagnosticsForType(method.ReturnType, VarianceKind.Out, VarianceContext.Return, infosBuffer)
             If HaveDiagnostics(infosBuffer) Then
-                Dim location As location
+                Dim location As Location
                 Dim syntax As MethodBaseSyntax = method.GetDeclaringSyntaxNode(Of MethodBaseSyntax)()
 
                 If syntax Is Nothing AndAlso method.MethodKind = MethodKind.DelegateInvoke Then
@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 GenerateVarianceDiagnosticsForType(param.Type, requiredVariance, context, infosBuffer)
                 If HaveDiagnostics(infosBuffer) Then
-                    Dim location As location
+                    Dim location As Location
                     Dim syntax As ParameterSyntax = param.GetDeclaringSyntaxNode(Of ParameterSyntax)()
 
                     If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
@@ -1047,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each constraint As TypeSymbol In param.ConstraintTypesNoUseSiteDiagnostics
                     GenerateVarianceDiagnosticsForType(constraint, VarianceKind.In, VarianceContext.Constraint, infosBuffer)
                     If HaveDiagnostics(infosBuffer) Then
-                        Dim location As location = param.Locations(0)
+                        Dim location As Location = param.Locations(0)
 
                         For Each constraintInfo As TypeParameterConstraint In param.GetConstraints()
                             If constraintInfo.TypeConstraint IsNot Nothing AndAlso
@@ -1087,7 +1087,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             GenerateVarianceDiagnosticsForType([property].Type, requiredVariance, context, infosBuffer)
             If HaveDiagnostics(infosBuffer) Then
-                Dim location As location
+                Dim location As Location
                 Dim syntax As PropertyStatementSyntax = [property].GetDeclaringSyntaxNode(Of PropertyStatementSyntax)()
 
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
@@ -1123,7 +1123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             GenerateVarianceDiagnosticsForType(type, VarianceKind.In, VarianceContext.Complex, infosBuffer)
 
             If HaveDiagnostics(infosBuffer) Then
-                Dim location As location
+                Dim location As Location
                 Dim syntax As EventStatementSyntax = [event].GetDeclaringSyntaxNode(Of EventStatementSyntax)()
 
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
@@ -1302,13 +1302,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public NotOverridable Overrides ReadOnly Property IsSubmissionClass As Boolean
-            Get
-                Dim kind = _declaration.Declarations(0).Kind
-                Return kind = DeclarationKind.Submission
-            End Get
-        End Property
-
         Public NotOverridable Overrides ReadOnly Property IsImplicitClass As Boolean
             Get
                 Return _declaration.Declarations(0).Kind = DeclarationKind.ImplicitClass
@@ -1404,9 +1397,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Return GetDeclaringSyntaxReferenceHelper(SyntaxReferences)
+                ' PERF: Declaring references are cached for compilations with event queue.
+                Return If(Me.DeclaringCompilation?.EventQueue IsNot Nothing, GetCachedDeclaringReferences(), ComputeDeclaringReferencesCore())
             End Get
         End Property
+
+        Private Function GetCachedDeclaringReferences() As ImmutableArray(Of SyntaxReference)
+            Dim declaringReferences As ImmutableArray(Of SyntaxReference) = Nothing
+            If Not Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(Me, DeclaringCompilation, declaringReferences) Then
+                declaringReferences = ComputeDeclaringReferencesCore()
+                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(Me, DeclaringCompilation, declaringReferences)
+            End If
+
+            Return declaringReferences
+        End Function
+
+        Private Function ComputeDeclaringReferencesCore() As ImmutableArray(Of SyntaxReference)
+            Return GetDeclaringSyntaxReferenceHelper(SyntaxReferences)
+        End Function
 #End Region
 
 #Region "Member from Syntax"
@@ -2348,7 +2356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If initializerSet IsNot Nothing Then
                 For Each initializers In initializerSet
                     For Each initializer In initializers
-                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperty
+                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperties
 
                         If Not fieldOrPropertyArray.IsDefault Then
                             Debug.Assert(fieldOrPropertyArray.Length > 0)
@@ -2757,6 +2765,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim isDebuggable As Boolean = anyInitializersToInject
 
                 EnsureCtor(members, isShared, isDebuggable, diagnostics)
+            End If
+
+            If Not isShared AndAlso IsScriptClass Then
+                ' a submission can only have a single declaration:
+                Dim syntaxRef = SyntaxReferences.Single()
+                Dim scriptInitializer = New SynthesizedInteractiveInitializerMethod(syntaxRef, Me, diagnostics)
+                AddSymbolToMembers(scriptInitializer, members.Members)
+                Dim scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics)
+                AddSymbolToMembers(scriptEntryPoint, members.Members)
             End If
         End Sub
 
@@ -3331,7 +3348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Only Modules can declare extension methods.
 
                 If _lazyContainsExtensionMethods = ThreeState.Unknown Then
-                    If Not (_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.TypeKind = TypeKind.Module AndAlso Me.AnyMemberHasAttributes) Then
+                    If Not (_containingSymbol.Kind = SymbolKind.Namespace AndAlso Me.AllowsExtensionMethods() AndAlso Me.AnyMemberHasAttributes) Then
                         _lazyContainsExtensionMethods = ThreeState.False
                     End If
                 End If

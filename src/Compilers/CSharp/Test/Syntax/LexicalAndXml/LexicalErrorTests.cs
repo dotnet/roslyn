@@ -164,7 +164,7 @@ using System;
 # r ""foo""
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_PPReferenceFollowsToken, "r"));
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Script, Diagnostic(ErrorCode.ERR_PPReferenceFollowsToken, "r"));
         }
 
         [Fact]

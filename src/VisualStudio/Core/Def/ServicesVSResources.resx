@@ -300,16 +300,13 @@ Use the dropdown to view and navigate to other items in this file.</value>
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
   </data>
-  <data name="ErrorCategory" xml:space="preserve">
-    <value>Roslyn.HostError</value>
-  </data>
-  <data name="ERR_CantReadRulesetFileId" xml:space="preserve">
+  <data name="ERR_CantReadRulesetFileTitle" xml:space="preserve">
     <value>ErrorReadingRuleset</value>
   </data>
   <data name="ERR_CantReadRulesetFileMessage" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
   </data>
-  <data name="WRN_AnalyzerChangedId" xml:space="preserve">
+  <data name="WRN_AnalyzerChangedTitle" xml:space="preserve">
     <value>AnalyzerChangedOnDisk</value>
   </data>
   <data name="WRN_AnalyzerChangedMessage" xml:space="preserve">
@@ -414,15 +411,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="NavigationMustBePerformedOnTheForegroundThread" xml:space="preserve">
     <value>Navigation must be performed on the foreground thread.</value>
   </data>
-  <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
-    <value>An instance of analyzer {0} cannot be created from {1}: {2}.</value>
-  </data>
-  <data name="WRN_NoAnalyzerInAssembly" xml:space="preserve">
-    <value>The assembly {0} does not contain any analyzers.</value>
-  </data>
-  <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
-    <value>Unable to load Analyzer assembly {0}: {1}</value>
-  </data>
   <data name="PreviewChangesAddedPrefix" xml:space="preserve">
     <value>[+] </value>
   </data>
@@ -441,7 +429,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="PreviewChangesProjectReference" xml:space="preserve">
     <value>Project reference to '{0}' in project '{1}'</value>
   </data>
-  <data name="WRN_AnalyzerDependencyConflictId" xml:space="preserve">
+  <data name="WRN_AnalyzerDependencyConflictTitle" xml:space="preserve">
     <value>AnalyzerDependencyConflict</value>
   </data>
   <data name="WRN_AnalyzerDependencyConflictMessage" xml:space="preserve">
@@ -483,10 +471,40 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="BuildTableSourceName" xml:space="preserve">
     <value>C#/VB Build Table Data Source</value>
   </data>
-  <data name="WRN_MissingAnalyzerReferenceId" xml:space="preserve">
+  <data name="WRN_MissingAnalyzerReferenceTitle" xml:space="preserve">
     <value>MissingAnalyzerReference</value>
   </data>
   <data name="WRN_MissingAnalyzerReferenceMessage" xml:space="preserve">
-    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly.</value>
+    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
+  </data>
+  <data name="SuppressionStateColumnHeader" xml:space="preserve">
+    <value>Suppression State</value>
+  </data>
+  <data name="SuppressionStateActive" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="SuppressionStateSuppressed" xml:space="preserve">
+    <value>Suppressed</value>
+  </data>
+  <data name="SuppressMultipleOccurrences" xml:space="preserve">
+    <value>Suppress diagnostics</value>
+  </data>
+  <data name="ComputingSuppressionFix" xml:space="preserve">
+    <value>Computing suppressions fix...</value>
+  </data>
+  <data name="ApplyingSuppressionFix" xml:space="preserve">
+    <value>Applying suppressions fix...</value>
+  </data>
+  <data name="RemoveSuppressMultipleOccurrences" xml:space="preserve">
+    <value>Remove suppressions</value>
+  </data>
+  <data name="ComputingRemoveSuppressionFix" xml:space="preserve">
+    <value>Computing remove suppressions fix...</value>
+  </data>
+  <data name="ApplyingRemoveSuppressionFix" xml:space="preserve">
+    <value>Applying remove suppressions fix...</value>
+  </data>
+  <data name="ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread" xml:space="preserve">
+    <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
 </root>

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // CONSIDER: We know that no one will ask for NotOverriddenAbstractMembers again
+            // CONSIDER: We know that no-one will ask for NotOverriddenAbstractMembers again
             // (since this class is concrete), so we could just call the construction method
             // directly to avoid storing the result.
             foreach (var abstractMember in this.AbstractMembers)
@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal Location GetImplementsLocation(NamedTypeSymbol implementedInterface)
         {
-            // We ideally want to identify the interface location in the baselist with an exact match but
+            // We ideally want to identify the interface location in the base list with an exact match but
             // will fall back and use the first derived interface if exact interface is not present.
-            // this is the similar logic as the VB Implementation.
+            // this is the similar logic as the VB implementation.
             Debug.Assert(this.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(implementedInterface));
             HashSet<DiagnosticInfo> unuseddiagnostics = null;
 
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             TypeSymbol overriddenMemberType = overriddenProperty.Type;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
-                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiers: true, ignoreDynamic: true))
+                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
@@ -736,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             TypeSymbol overriddenMemberType = overriddenEvent.Type;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
-                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiers: true, ignoreDynamic: true))
+                            if (!overridingMemberType.Equals(overriddenMemberType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType);
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
@@ -984,6 +984,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         interface1.OriginalDefinition == interface2.OriginalDefinition &&
                         interface1.CanUnifyWith(interface2))
                     {
+                        if (GetImplementsLocation(interface1).SourceSpan.Start > GetImplementsLocation(interface2).SourceSpan.Start)
+                        {
+                            // Mention interfaces in order of their appearance in the base list, for consistency.
+                            var temp = interface1;
+                            interface1 = interface2;
+                            interface2 = temp;
+                        }
+            
                         diagnostics.Add(ErrorCode.ERR_UnifyingInterfaceInstantiations, this.Locations[0], this, interface1, interface2);
                     }
                 }

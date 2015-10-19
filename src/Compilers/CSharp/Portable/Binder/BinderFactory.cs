@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 50 is more or less a guess, but it seems to work fine for scenarios that I tried.
             // we need something big enough to keep binders for most classes and some methods 
             // in a typical syntax tree.
-            // On the other side, note that the whole factory is weakly referenced and therefore shortlived, 
+            // On the other side, note that the whole factory is weakly referenced and therefore short lived, 
             // making this cache big is not very useful.
             // I noticed that while compiling Roslyn C# compiler most caches never see 
             // more than 50 items added before getting collected.
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return _syntaxTree.Options.Kind == SourceCodeKind.Interactive || _syntaxTree.Options.Kind == SourceCodeKind.Script;
+                return _syntaxTree.Options.Kind == SourceCodeKind.Script;
             }
         }
 
@@ -127,7 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Specify <see cref="NamespaceDeclarationSyntax"/> imports in the corresponding namespace, or
         /// <see cref="CompilationUnitSyntax"/> for top-level imports.
         /// </param>
-        internal InContainerBinder GetImportsBinder(CSharpSyntaxNode unit)
+        /// <param name="inUsing">True if the binder will be used to bind a using directive.</param>
+        internal InContainerBinder GetImportsBinder(CSharpSyntaxNode unit, bool inUsing = false)
         {
             switch (unit.Kind())
             {
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Position = 0;
-                        var result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: false);
+                        var result = visitor.VisitNamespaceDeclaration((NamespaceDeclarationSyntax)unit, unit.SpanStart, inBody: true, inUsing: inUsing);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
@@ -145,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
                         visitor.Position = 0;
-                        var result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: false, inScript: InScript);
+                        var result = visitor.VisitCompilationUnit((CompilationUnitSyntax)unit, inUsing: inUsing, inScript: InScript);
                         _binderFactoryVisitorPool.Free(visitor);
                         return result;
                     }
@@ -153,27 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     return null;
             }
-        }
-
-        internal InteractiveUsingsBinder GetInteractiveUsingsBinder()
-        {
-            Debug.Assert(_compilation.IsSubmission);
-
-            BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
-            visitor.Position = 0;
-
-            Binder binder = visitor.VisitCompilationUnit(_syntaxTree.GetCompilationUnitRoot(), inUsing: false, inScript: true);
-            _binderFactoryVisitorPool.Free(visitor);
-
-            if (_compilation.HostObjectType != null)
-            {
-                binder = binder.Next;
-                Debug.Assert(binder is HostObjectModelBinder);
-            }
-
-            Debug.Assert(binder.Next is InContainerBinder);
-
-            return (InteractiveUsingsBinder)binder.Next.Next;
         }
     }
 }

@@ -134,12 +134,25 @@ namespace Microsoft.CodeAnalysis
         public bool ConcurrentBuild { get; protected set; }
 
         /// <summary>
+        /// Specifies whether the compilation should be deterministic.
+        /// </summary>
+        public bool Deterministic { get; protected set; }
+
+        /// <summary>
         /// Emit extended custom debug information to the PDB file.
         /// </summary>
         internal bool ExtendedCustomDebugInformation { get; private set; }
 
         // TODO: change visibility of the ExtendedCustomDebugInformation setter to internal & protected
         internal bool ExtendedCustomDebugInformation_internal_protected_set { set { ExtendedCustomDebugInformation = value; } }
+
+        /// <summary>
+        /// Emit mode that favors debuggability. 
+        /// </summary>
+        internal bool DebugPlusMode { get; private set; }
+
+        // TODO: change visibility of the DebugPlusMode setter to internal & protected
+        internal bool DebugPlusMode_internal_protected_set { set { DebugPlusMode = value; } }
 
         /// <summary>
         /// Import internal/private members from all references regardless of "internals-visible-to" relationship.
@@ -160,6 +173,11 @@ namespace Microsoft.CodeAnalysis
         /// Warning report option for each warning.
         /// </summary>
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions { get; protected set; }
+
+        /// <summary>
+        /// Whether diagnostics suppressed in source, i.e. <see cref="Diagnostic.IsSuppressed"/> is true, should be reported.
+        /// </summary>
+        public bool ReportSuppressedDiagnostics { get; protected set; }
 
         /// <summary>
         /// Resolves paths to metadata references specified in source via #r directives.
@@ -212,6 +230,7 @@ namespace Microsoft.CodeAnalysis
         // Expects correct arguments.
         internal CompilationOptions(
             OutputKind outputKind,
+            bool reportSuppressedDiagnostics,
             string moduleName,
             string mainTypeName,
             string scriptClassName,
@@ -226,7 +245,9 @@ namespace Microsoft.CodeAnalysis
             int warningLevel,
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool concurrentBuild,
+            bool deterministic,
             bool extendedCustomDebugInformation,
+            bool debugPlusMode,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
@@ -247,9 +268,12 @@ namespace Microsoft.CodeAnalysis
             this.GeneralDiagnosticOption = generalDiagnosticOption;
             this.WarningLevel = warningLevel;
             this.SpecificDiagnosticOptions = specificDiagnosticOptions;
+            this.ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
+            this.Deterministic = deterministic;
             this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
+            this.DebugPlusMode = debugPlusMode;
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
             this.MetadataReferenceResolver = metadataReferenceResolver;
@@ -302,6 +326,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal abstract ImmutableArray<string> GetImports();
+
         /// <summary>
         /// Creates a new options instance with the specified general diagnostic option.
         /// </summary>
@@ -324,6 +350,22 @@ namespace Microsoft.CodeAnalysis
         public CompilationOptions WithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> value)
         {
             return CommonWithSpecificDiagnosticOptions(value);
+        }
+
+        /// <summary>
+        /// Creates a new options instance with the specified suppressed diagnostics reporting option.
+        /// </summary>
+        public CompilationOptions WithReportSuppressedDiagnostics(bool value)
+        {
+            return CommonWithReportSuppressedDiagnostics(value);
+        }
+
+        /// <summary>
+        /// Creates a new options instance with the deterministic property set accordingly.
+        /// </summary>
+        public CompilationOptions WithDeterministic(bool deterministic)
+        {
+            return CommonWithDeterministic(deterministic);
         }
 
         /// <summary>
@@ -375,6 +417,7 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
@@ -386,6 +429,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
+        protected abstract CompilationOptions CommonWithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics);
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
@@ -416,7 +460,9 @@ namespace Microsoft.CodeAnalysis
             bool equal =
                    this.CheckOverflow == other.CheckOverflow &&
                    this.ConcurrentBuild == other.ConcurrentBuild &&
+                   this.Deterministic == other.Deterministic &&
                    this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
+                   this.DebugPlusMode == other.DebugPlusMode &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
                    this.CryptoPublicKey.SequenceEqual(other.CryptoPublicKey) &&
@@ -428,6 +474,7 @@ namespace Microsoft.CodeAnalysis
                    this.OptimizationLevel == other.OptimizationLevel &&
                    this.OutputKind == other.OutputKind &&
                    this.Platform == other.Platform &&
+                   this.ReportSuppressedDiagnostics == other.ReportSuppressedDiagnostics &&
                    string.Equals(this.ScriptClassName, other.ScriptClassName, StringComparison.Ordinal) &&
                    this.SpecificDiagnosticOptions.SequenceEqual(other.SpecificDiagnosticOptions, (left, right) => (left.Key == right.Key) && (left.Value == right.Value)) &&
                    this.WarningLevel == other.WarningLevel &&
@@ -446,7 +493,9 @@ namespace Microsoft.CodeAnalysis
         {
             return Hash.Combine(this.CheckOverflow,
                    Hash.Combine(this.ConcurrentBuild,
+                   Hash.Combine(this.Deterministic,
                    Hash.Combine(this.ExtendedCustomDebugInformation,
+                   Hash.Combine(this.DebugPlusMode,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
                    Hash.Combine(this.CryptoKeyFile != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyFile) : 0,
                    Hash.Combine(Hash.CombineValues(this.CryptoPublicKey, 16),
@@ -457,6 +506,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine((int)this.OptimizationLevel,
                    Hash.Combine((int)this.OutputKind,
                    Hash.Combine((int)this.Platform,
+                   Hash.Combine(this.ReportSuppressedDiagnostics,
                    Hash.Combine(this.ScriptClassName != null ? StringComparer.Ordinal.GetHashCode(this.ScriptClassName) : 0,
                    Hash.Combine(Hash.CombineValues(this.SpecificDiagnosticOptions),
                    Hash.Combine(this.WarningLevel,
@@ -464,7 +514,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 0)))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

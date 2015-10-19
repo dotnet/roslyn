@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // with all the potential breaks.
                 // NOTE: It's not clear why dev11 is looking in interfaces at all. Maybe
                 // it was only supposed to happen for interface types?
-                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics) // NOTE: would be handrolled in a standalone component.
+                foreach (NamedTypeSymbol @interface in type.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics) // NOTE: would be hand-rolled in a standalone component.
                 {
                     if (!IsAccessibleOutsideAssembly(@interface)) continue;
 
@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// This check (the only one that uses the "context" parameter is based on CLS Rule 46,
         /// as implemented by LangCompiler::IsCLSAccessible.  The idea is that C&lt;int&gt; and C&lt;char&gt;
-        /// are separate types in CLS, so they can't touch eachother's protected members.
+        /// are separate types in CLS, so they can't touch each other's protected members.
         /// TODO: This should really have a separate error code - it's logically separate and requires explanation.
         /// </remarks>
         /// <param name="type">Check the accessibility of this type (probably a parameter or return type).</param>

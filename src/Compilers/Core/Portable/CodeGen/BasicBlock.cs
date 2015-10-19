@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //parent builder
             internal ILBuilder builder;
 
-            private Cci.BlobWriter _lazyRegularInstructions;
-            public Cci.BlobWriter Writer
+            private Cci.PooledBlobBuilder _lazyRegularInstructions;
+            public Cci.PooledBlobBuilder Writer
             {
                 get
                 {
                     if (_lazyRegularInstructions == null)
                     {
-                        _lazyRegularInstructions = Cci.BlobWriter.GetInstance();
+                        _lazyRegularInstructions = Cci.PooledBlobBuilder.GetInstance();
                     }
 
                     return _lazyRegularInstructions;
@@ -248,14 +248,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             /// <summary>
             /// Instructions that are not branches.
             /// </summary>
-            public Cci.BlobWriter RegularInstructions => _lazyRegularInstructions;
+            public Cci.BlobBuilder RegularInstructions => _lazyRegularInstructions;
 
             /// <summary>
             /// The block contains only the final branch or nothing at all
             /// </summary>
             public bool HasNoRegularInstructions => _lazyRegularInstructions == null;
 
-            public int RegularInstructionsLength => _lazyRegularInstructions?.Length ?? 0;
+            public int RegularInstructionsLength => _lazyRegularInstructions?.Count ?? 0;
 
             /// <summary>
             /// Updates position of the current block to account for shorter sizes of previous blocks.
@@ -408,6 +408,26 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         var diff = this.BranchCode.Size() + this.BranchCode.BranchOperandSize();
                         delta -= diff;
                         this.SetBranch(null, ILOpCode.Nop);
+
+                        // If current block has no regular instructions the resulting block is a trivial noop
+                        // TryOptimizeBranchOverUncondBranch relies on an invariant that 
+                        // trivial blocks are not targeted by branches,
+                        // make sure we are not breaking this condition.
+                        if (this.HasNoRegularInstructions)
+                        {
+                            var labelInfos = builder._labelInfos;
+                            var labels = labelInfos.Keys;
+                            foreach (var label in labels)
+                            {
+                                var info = labelInfos[label];
+                                if (info.bb == this)
+                                {
+                                    // move the label from "this" to "next"
+                                    labelInfos[label] = info.WithNewTarget(next);
+                                }
+                            }
+                        }
+
                         return true;
                     }
                 }
@@ -427,19 +447,18 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                     if (revBrOp != ILOpCode.Nop)
                     {
-                        // we are effectively removing "next" from the block chain.
-                        // that is ok, since branch-to-branch should already eliminate any possible branches to "next"
-                        // and it was only reachable from current via NextBlock which we are re-directing.
-                        // Also, if there are any blocks between "next" and BranchBlock, they are all empty
-                        // so we do not even care if they are reachable or not.
-                        Debug.Assert(!builder._labelInfos.Values.Any(li => li.bb == next), "nothing should branch to a branch at this point");
-
-                        var intermediateNext = this.NextBlock;
-                        while (intermediateNext != next)
+                        // we are effectively removing blocks between this and the BranchBlock (including next) from the block chain.
+                        // that is ok, since branch-to-branch should already eliminate any possible branches to these blocks
+                        // and they were only reachable from current via NextBlock which we are re-directing.
+                        var toRemove = this.NextBlock;
+                        var branchBlock = this.BranchBlock;
+                        while (toRemove != branchBlock)
                         {
-                            Debug.Assert(intermediateNext.TotalSize == 0);
-                            intermediateNext.Reachability = ILBuilder.Reachability.NotReachable;
-                            intermediateNext = intermediateNext.NextBlock;
+                            Debug.Assert(toRemove == next || toRemove.TotalSize == 0);
+                            Debug.Assert(!builder._labelInfos.Values.Any(li => li.bb == toRemove), 
+                                "nothing should branch to a trivial block at this point");
+                            toRemove.Reachability = ILBuilder.Reachability.NotReachable;
+                            toRemove = toRemove.NextBlock;
                         }
 
                         next.Reachability = Reachability.NotReachable;
@@ -533,33 +552,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
             private static bool AreIdentical(BasicBlock one, BasicBlock another)
             {
                 if (one._branchCode == another._branchCode &&
-                     !one._branchCode.CanFallThrough() &&
-                     one._branchLabel == another._branchLabel)
+                    !one._branchCode.CanFallThrough() &&
+                    one._branchLabel == another._branchLabel)
                 {
                     var instr1 = one.RegularInstructions;
                     var instr2 = another.RegularInstructions;
-
-                    if (instr1 == instr2)
-                    {
-                        return true;
-                    }
-
-                    if (instr1 != null && instr2 != null && instr1.Length == instr2.Length)
-                    {
-                        for (int i = 0, l = (int)instr1.Length; i < l; i++)
-                        {
-                            if (instr1.Buffer[i] != instr2.Buffer[i])
-                            {
-                                return false;
-                            }
-                        }
-                        return true;
-                    }
+                    return instr1 == instr2 || instr1?.ContentEquals(instr2) == true;
                 }
 
                 return false;
             }
-
 
             /// <summary>
             /// Returns reversed branch operation for the current block.
@@ -721,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 get
                 {
                     Debug.Assert(BranchLabels != null);
-                    return (uint)BranchLabels.Count();
+                    return (uint)BranchLabels.Length;
                 }
             }
 

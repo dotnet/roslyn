@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             TestProperty(Function(old, value) old.WithOptionCompareText(value), Function(opt) opt.OptionCompareText, True)
 
             TestProperty(Function(old, value) old.WithParseOptions(value), Function(opt) opt.ParseOptions,
-                         New VisualBasicParseOptions(kind:=SourceCodeKind.Interactive))
+                         New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
 
             TestProperty(Function(old, value) old.WithEmbedVbCoreRuntime(value), Function(opt) opt.EmbedVbCoreRuntime, True)
             TestProperty(Function(old, value) old.WithOptimizationLevel(value), Function(opt) opt.OptimizationLevel, OptimizationLevel.Release)
@@ -72,13 +72,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             TestProperty(Function(old, value) old.WithSpecificDiagnosticOptions(value), Function(opt) opt.SpecificDiagnosticOptions,
                 New Dictionary(Of String, ReportDiagnostic) From {{"VB0001", ReportDiagnostic.Error}}.ToImmutableDictionary())
+            TestProperty(Function(old, value) old.WithReportSuppressedDiagnostics(value), Function(opt) opt.ReportSuppressedDiagnostics, True)
 
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
             TestProperty(Function(old, value) old.WithExtendedCustomDebugInformation(value), Function(opt) opt.ExtendedCustomDebugInformation, False)
+            TestProperty(Function(old, value) old.WithDebugPlusMode(value), Function(opt) opt.DebugPlusMode, True)
 
             TestProperty(Function(old, value) old.WithXmlReferenceResolver(value), Function(opt) opt.XmlReferenceResolver, New XmlFileResolver(Nothing))
             TestProperty(Function(old, value) old.WithSourceReferenceResolver(value), Function(opt) opt.SourceReferenceResolver, New SourceFileResolver(ImmutableArray(Of String).Empty, Nothing))
-            TestProperty(Function(old, value) old.WithMetadataReferenceResolver(value), Function(opt) opt.MetadataReferenceResolver, New AssemblyReferenceResolver(New MetadataFileReferenceResolver({}, Nothing), New MetadataFileReferenceProvider()))
+            TestProperty(Function(old, value) old.WithMetadataReferenceResolver(value), Function(opt) opt.MetadataReferenceResolver, New TestMetadataReferenceResolver())
             TestProperty(Function(old, value) old.WithAssemblyIdentityComparer(value), Function(opt) opt.AssemblyIdentityComparer, New DesktopAssemblyIdentityComparer(New AssemblyPortabilityPolicy()))
             TestProperty(Function(old, value) old.WithStrongNameProvider(value), Function(opt) opt.StrongNameProvider, New DesktopStrongNameProvider())
         End Sub

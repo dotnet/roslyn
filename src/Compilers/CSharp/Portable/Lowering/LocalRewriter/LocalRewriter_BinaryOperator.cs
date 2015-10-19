@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var stack = ArrayBuilder<BoundBinaryOperator>.GetInstance();
 
-            for (BoundBinaryOperator current = node; current != null; current = current.Left as BoundBinaryOperator)
+            for (BoundBinaryOperator current = node; current != null && current.ConstantValue == null; current = current.Left as BoundBinaryOperator)
             {
                 stack.Push(current);
             }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var conditionalLeft = loweredLeft as BoundLoweredConditionalAccess;
 
-            // NOTE: we could in theory handle sideeffecting loweredRight here too
+            // NOTE: we could in theory handle side-effecting loweredRight here too
             //       by including it as a part of whenNull, but there is a concern 
             //       that it can lead to code duplication
             var optimize = conditionalLeft != null &&

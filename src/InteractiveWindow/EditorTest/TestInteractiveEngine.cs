@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         public string FormatClipboard()
         {
-            return "";
+            return null;
         }
 
         public void AbortExecution()

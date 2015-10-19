@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 ushort Cci.IMethodBody.MaxStack => 0;
 
-                byte[] Cci.IMethodBody.IL => SpecializedCollections.EmptyArray<byte>();
+                ImmutableArray<byte> Cci.IMethodBody.IL => ImmutableArray<byte>.Empty;
 
                 bool Cci.IMethodBody.HasAnySequencePoints => false;
 

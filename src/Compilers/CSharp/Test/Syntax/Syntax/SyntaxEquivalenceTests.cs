@@ -422,5 +422,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
         }
+
+        [Fact]
+        public void TestUpdateInterpolatedString()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree("namespace N { class C { void Foo() { Console.Write($\"Hello{123:N1}\"); } } }");
+            var tree2 = tree1.WithReplaceFirst("N1", "N2");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+
+            tree2 = tree1.WithReplaceFirst("Hello", "World");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
     }
 }

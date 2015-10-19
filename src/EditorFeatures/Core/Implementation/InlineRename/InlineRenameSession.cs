@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private bool _dismissed;
         private bool _isApplyingEdit;
+        private string _replacementText;
         private OptionSet _optionSet;
         private Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = new Dictionary<ITextBuffer, OpenTextBufferManager>();
 
@@ -48,7 +50,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// If non-null, the current text of the replacement. Linked spans added will automatically be updated with this
         /// text.
         /// </summary>
-        public string ReplacementText { get; private set; }
+        public string ReplacementText
+        {
+            get
+            {
+                return _replacementText;
+            }
+            private set
+            {
+                _replacementText = value;
+                ReplacementTextChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
 
         /// <summary>
         /// The task which computes the main rename locations against the original workspace
@@ -193,6 +206,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             AssertIsForeground();
             VerifyNotDismissed();
 
+            if (_workspace.Kind == WorkspaceKind.Interactive)
+            {
+                Debug.Assert(documents.Count() == 1); // No linked files.
+                Debug.Assert(buffer.IsReadOnly(0) == buffer.IsReadOnly(Span.FromBounds(0, buffer.CurrentSnapshot.Length))); // All or nothing.
+                if (buffer.IsReadOnly(0))
+                {
+                    return false;
+                }
+            }
+
             var documentSupportsRefactoringService = _workspace.Services.GetService<IDocumentSupportsSuggestionService>();
 
             if (!_openTextBuffers.ContainsKey(buffer) && documents.All(d => documentSupportsRefactoringService.SupportsRename(d)))
@@ -240,10 +263,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool HasRenameOverloads { get { return _renameInfo.HasOverloads; } }
         public bool ForceRenameOverloads { get { return _renameInfo.ForceRenameOverloads; } }
 
-        public IInlineRenameUndoManager UndoManager { get; private set; }
+        public IInlineRenameUndoManager UndoManager { get; }
 
         public event EventHandler<IList<InlineRenameLocation>> ReferenceLocationsChanged;
         public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
+        public event EventHandler ReplacementTextChanged;
 
         internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
         {

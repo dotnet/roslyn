@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     type = boundExpr.Type;
 
-                    // Use of local befor declaration requires some additional fixup.
+                    // Use of local before declaration requires some additional fixup.
                     // Due to complications around implicit locals and type inference, we do not
                     // try to obtain a type of a local when it is used before declaration, we use
                     // a special error type symbol. However, semantic model should return the same
@@ -3115,7 +3115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if ((object)typeOfThis == ErrorTypeSymbol.UnknownResultType)
                         {
-                            // in an instance member, but binder considered this/base unreferencable
+                            // in an instance member, but binder considered this/base unreferenceable
                             thisParam = new ThisParameterSymbol(containingMember as MethodSymbol, containingType);
                             resultKind = LookupResultKind.NotReferencable;
                         }
@@ -3321,7 +3321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // In cases where we are binding C in "[C(...)]", the bound nodes return the symbol for the type. However, we've
-        // decided that we want this case to return the constructor of the type intead. This affects attributes. 
+        // decided that we want this case to return the constructor of the type instead. This affects attributes. 
         // This method checks for this situation and adjusts the syntax and method or property group.
         private void AdjustSymbolsForObjectCreation(BoundExpression boundNode,
                                                     BoundNode boundNodeForSyntacticParent,
@@ -3649,6 +3649,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
 
+                    case BoundKind.Conversion:
+                        // If we are looking for info on "M" in "(Action)M" 
+                        // we want to get the symbol that overload resolution chose for M, not the whole method group M.
+                        var conversion = (BoundConversion)boundNodeForSyntacticParent;
+
+                        var method = conversion.SymbolOpt;
+                        if ((object)method != null)
+                        {
+                            Debug.Assert(conversion.ConversionKind == ConversionKind.MethodGroup);
+
+                            if (conversion.IsExtensionMethod)
+                            {
+                                method = ReducedExtensionMethodSymbol.Create(method);
+                            }
+
+                            symbols = ImmutableArray.Create((Symbol)method);
+                            resultKind = conversion.ResultKind;
+                        }
+                        else
+                        {
+                            goto default;
+                        }
+
+                        break;
+
                     case BoundKind.DynamicInvocation:
                         var dynamicInvocation = (BoundDynamicInvocation)boundNodeForSyntacticParent;
                         symbols = dynamicInvocation.ApplicableMethods.Cast<MethodSymbol, Symbol>();
@@ -3934,6 +3959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options = LookupOptions.Default;
                 }
 
+                binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
                 foreach (var scope in new ExtensionMethodScopes(binder))
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
@@ -3943,7 +3969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                              name,
                                                              arity,
                                                              options,
-                                                             isCallerSemanticModel: true);
+                                                             originalBinder: binder);
 
                     foreach (var method in extensionMethods)
                     {
@@ -4484,14 +4510,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
-        internal override ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken)
+        internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
-            return CSharpDeclarationComputer.GetDeclarationsInSpan(this, span, getSymbol, cancellationToken);
+            CSharpDeclarationComputer.ComputeDeclarationsInSpan(this, span, getSymbol, builder, cancellationToken);
         }
 
-        internal override ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null)
+        internal override void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
-            return CSharpDeclarationComputer.GetDeclarationsInNode(this, node, getSymbol, cancellationToken, levelsToCompute);
+            CSharpDeclarationComputer.ComputeDeclarationsInNode(this, node, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
