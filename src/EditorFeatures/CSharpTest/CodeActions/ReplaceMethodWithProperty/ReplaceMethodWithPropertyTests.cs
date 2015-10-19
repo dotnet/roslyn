@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         {
             Test(
 @"class C { int [||]GetFoo() => 0; }",
-@"class C { int Foo { get; } => 0; }");
+@"class C { int Foo => 0; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]

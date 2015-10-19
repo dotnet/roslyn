@@ -74,16 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var getAccessor = CreateGetAccessor(getAndSetMethods);
             var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods);
 
-            var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
-            if (setAccessor != null)
-            {
-                accessorList = accessorList.AddAccessors(new[] { setAccessor });
-            }
-
             var property = SyntaxFactory.PropertyDeclaration(
                 getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers, 
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier, 
-                GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged), accessorList);
+                GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged), accessorList: null);
 
             IEnumerable<SyntaxTrivia> trivia = getMethodDeclaration.GetLeadingTrivia();
             var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
@@ -97,6 +91,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             {
                 property = property.WithExpressionBody(getMethodDeclaration.ExpressionBody);
                 property = property.WithSemicolonToken(getMethodDeclaration.SemicolonToken);
+            }
+            else
+            {
+                var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
+                if (setAccessor != null)
+                {
+                    accessorList = accessorList.AddAccessors(new[] { setAccessor });
+                }
+
+                property = property.WithAccessorList(accessorList);
             }
 
             return property.WithAdditionalAnnotations(Formatter.Annotation);
