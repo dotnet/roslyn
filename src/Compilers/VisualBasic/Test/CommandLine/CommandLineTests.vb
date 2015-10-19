@@ -7207,6 +7207,27 @@ End Class
         End Sub
 
         <Fact>
+        <WorkItem(3707, "https://github.com/dotnet/roslyn/issues/3707")>
+        Public Sub AnalyzerExceptionDiagnosticCanBeConfigured()
+            Dim source As String = Temp.CreateFile().WriteAllText(<text>
+Class C
+End Class
+</text>.Value).Path
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/t:library", $"/warnaserror:{AnalyzerExecutor.AnalyzerExceptionDiagnosticId}", source},
+                                                  analyzer:=New AnalyzerThatThrowsInGetMessage)
+            Dim outWriter = New StringWriter()
+            Dim exitCode = vbc.Run(outWriter, Nothing)
+            Assert.NotEqual(0, exitCode)
+            Dim output = outWriter.ToString()
+
+            ' Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal)
+            Assert.Contains(NameOf(NotImplementedException), output, StringComparison.Ordinal)
+            CleanupAllGeneratedFiles(source)
+        End Sub
+
+        <Fact>
         <WorkItem(4589, "https://github.com/dotnet/roslyn/issues/4589")>
         Public Sub AnalyzerReportsMisformattedDiagnostic()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
