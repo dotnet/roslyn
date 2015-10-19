@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Editor.Interactive;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {

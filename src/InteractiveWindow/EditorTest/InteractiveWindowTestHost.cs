@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Editor.Interactive;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
@@ -16,7 +15,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
 
         private static readonly Lazy<AggregateCatalog> _lazyCatalog = new Lazy<AggregateCatalog>(() =>
         {
-            var types = new[] { typeof(TestInteractiveEngine), typeof(InteractiveWindow), typeof(InteractiveContentTypeDefinitions) }.Concat(GetVisualStudioTypes());
+            var types = new[] { typeof(TestInteractiveEngine), typeof(InteractiveWindow) }.Concat(GetVisualStudioTypes());
             return new AggregateCatalog(types.Select(t => new AssemblyCatalog(t.Assembly)));
         });
 

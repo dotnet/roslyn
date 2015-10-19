@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.CodeAnalysis.Editor.Interactive;
-using Roslyn.Utilities;
+using Roslyn.Utilities; 
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {

@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     internal sealed class InteractivePasteCommandHandler : ICommandHandler<PasteCommandArgs>
     {
+        // Originally defined at `Microsoft.VisualStudio.InteractiveWindow.PredefinedInteractiveContentTypes`
+        private const string InteractiveContentTypeName = "Interactive Content";
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
         {
-            if (args.TextView.TextBuffer.ContentType.TypeName != PredefinedInteractiveContentTypes.InteractiveContentTypeName &&
+            if (args.TextView.TextBuffer.ContentType.TypeName != InteractiveContentTypeName &&
                 Clipboard.ContainsData(ClipboardFormats.Interactive))
             {
                 var editorOperation = _editorOperationsFactoryService.GetEditorOperations(args.TextView);

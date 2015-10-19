@@ -98,9 +98,11 @@
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
     <Compile Include="IInteractiveWindowOperations2.cs" />
+    <Compile Include="InteractiveContentTypeDefinitions.cs" />
     <Compile Include="InteractiveWindowClipboard.cs" />
     <Compile Include="InteractiveWindow.SpanRangeEdit.cs" />
     <Compile Include="InteractiveWindow.SystemClipboard.cs" />
+    <Compile Include="PredefinedInteractiveContentTypes.cs" />
     <Compile Include="ProjectionBufferExtensions.cs" />
     <Compile Include="InteractiveWindow.PendingSubmission.cs" />
     <Compile Include="InteractiveWindow.EditResolver.cs" />

@@ -134,13 +134,12 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandHandlers\InteractivePasteCommandHandler.cs" />
-    <Compile Include="Interactive\BufferBlock.cs" />
     <Compile Include="CommandArgs.cs" />
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
     <Compile Include="CommandHandlers\CompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\IntelliSenseCommandHandler.cs" />
+    <Compile Include="CommandHandlers\InteractivePasteCommandHandler.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.QuickInfoSource.cs" />
     <Compile Include="CommandHandlers\SignatureHelpCommandHandler.cs" />
@@ -655,9 +654,8 @@
     <Compile Include="Implementation\Workspaces\ProjectCacheService.SimpleMRUCache.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
+    <Compile Include="Interactive\BufferBlock.cs" />
     <Compile Include="Interactive\ClipboardFormats.cs" />
-    <Compile Include="Interactive\InteractiveContentTypeDefinitions.cs" />
-    <Compile Include="Interactive\PredefinedInteractiveContentTypes.cs" />
     <Compile Include="Interactive\ReplSpanKind.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
     <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />

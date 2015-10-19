@@ -9,7 +9,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.Editor.Interactive;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
 {
