@@ -1,1 +1,3 @@
-
+Microsoft.CodeAnalysis.Editor.Interactive.PredefinedInteractiveContentTypes
+const Microsoft.CodeAnalysis.Editor.Interactive.PredefinedInteractiveContentTypes.InteractiveContentTypeName = "Interactive Content" -> string
+const Microsoft.CodeAnalysis.Editor.Interactive.PredefinedInteractiveContentTypes.InteractiveOutputContentTypeName = "Interactive Output" -> string

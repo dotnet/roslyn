@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    internal static class PredefinedInteractiveContentTypes
+    public static class PredefinedInteractiveContentTypes
     {
         public const string InteractiveContentTypeName = "Interactive Content";
         public const string InteractiveOutputContentTypeName = "Interactive Output";
