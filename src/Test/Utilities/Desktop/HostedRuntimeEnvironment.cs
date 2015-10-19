@@ -727,8 +727,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     if (dumpDirectory == null)
                     {
-                        dumpDirectory = Path.Combine(Path.GetTempPath(), "RoslynTestFailureDump", Guid.NewGuid().ToString());
-                        Directory.CreateDirectory(dumpDirectory);
+                        var assemblyLocation = typeof(HostedRuntimeEnvironment).Assembly.Location;
+                        dumpDirectory = Path.Combine(
+                            Path.GetDirectoryName(assemblyLocation),
+                            "Dumps");
+                        try
+                        {
+                             Directory.CreateDirectory(dumpDirectory);
+                        }
+                        catch
+                        {
+                            // Okay if directory already exists
+                        }
                     }
 
                     string fileName;
