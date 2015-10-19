@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract partial class AbstractSymbolCompletionProvider : AbstractCompletionProvider
+    internal abstract partial class AbstractSymbolCompletionProvider : CompletionListProvider
     {
         // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
         // compute identical contexts. This actually shows up on the 2-core typing test.
@@ -150,19 +150,41 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return SpecializedTasks.EmptyEnumerable<ISymbol>();
         }
 
-        protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(
-            Document document, int position, CompletionTriggerInfo triggerInfo,
-            CancellationToken cancellationToken)
+        public override async Task ProduceCompletionListAsync(CompletionListContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var triggerInfo = context.TriggerInfo;
+            var options = context.Options;
+            var cancellationToken = context.CancellationToken;
+
+            // If we were triggered by typing a character, then do a semantic check to make sure
+            // we're still applicable.  If not, then return immediately.
+            if (triggerInfo.TriggerReason == CompletionTriggerReason.TypeCharCommand)
+            {
+                var isSemanticTriggerCharacter = await IsSemanticTriggerCharacterAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
+                if (!isSemanticTriggerCharacter)
+                {
+                    return;
+                }
+            }
+
+            if (IsExclusive())
+            {
+                context.MakeExclusive(true);
+            }
+
             using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
             {
-                var regularItems = await GetItemsWorkerAsync(document, position, triggerInfo, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                var preselectedItems = await GetItemsWorkerAsync(document, position, triggerInfo, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                return regularItems.Concat(preselectedItems);
+                var regularItems = await GetItemsWorkerAsync(document, position, triggerInfo, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                context.AddItems(regularItems);
+
+                var preselectedItems = await GetItemsWorkerAsync(document, position, triggerInfo, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                context.AddItems(preselectedItems);
             }
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, bool preselect, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options, bool preselect, CancellationToken cancellationToken)
         {
             var relatedDocumentIds = document.GetLinkedDocumentIds();
             var relatedDocuments = relatedDocumentIds.Concat(document.Id).Select(document.Project.Solution.GetDocument);
@@ -184,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var context = await GetOrCreateContext(document, position, cancellationToken).ConfigureAwait(false);
-            var options = GetOptions(document, triggerInfo, context);
+            options = GetUpdatedRecommendationOptions(options, document.Project.Language);
 
             if (!relatedDocumentIds.Any())
             {
@@ -204,6 +226,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var textChangeSpan = await GetTextChangeSpanAsync(position, context, cancellationToken).ConfigureAwait(false);
 
             return CreateItems(position, unionedSymbolsList, textChangeSpan, originatingContextMap, missingSymbolsMap, totalProjects, preselect: preselect, cancellationToken: cancellationToken);
+        }
+
+        protected virtual bool IsExclusive()
+        {
+            return false;
+        }
+
+        protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.True;
         }
 
         private async Task<TextSpan> GetTextChangeSpanAsync(int position, AbstractSyntaxContext context, CancellationToken cancellationToken)
@@ -266,16 +298,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return !syntaxFacts.IsInInactiveRegion(context.SyntaxTree, context.Position, cancellationToken);
         }
 
-        protected OptionSet GetOptions(Document document, CompletionTriggerInfo triggerInfo, AbstractSyntaxContext context)
+        protected OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
         {
-            var optionService = context.GetWorkspaceService<IOptionService>();
-            var filterOutOfScopeLocals = !triggerInfo.IsDebugger;
-            var hideAdvancedMembers = document.ShouldHideAdvancedMembers();
-            var options = optionService
-                .GetOptions()
-                .WithChangedOption(RecommendationOptions.FilterOutOfScopeLocals, context.SemanticModel.Language, filterOutOfScopeLocals)
-                .WithChangedOption(RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language, hideAdvancedMembers);
-            return options;
+            var filterOutOfScopeLocals = options.GetOption(CompletionOptions.FilterOutOfScopeLocals);
+            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, language);
+
+            return options
+                .WithChangedOption(RecommendationOptions.FilterOutOfScopeLocals, language, filterOutOfScopeLocals)
+                .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
         }
 
         protected abstract Task<AbstractSyntaxContext> CreateContext(Document document, int position, CancellationToken cancellationToken);

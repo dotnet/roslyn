@@ -1123,7 +1123,7 @@ end namespace
                                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
 
-            ' making sure that types still get escaped if no special type formatting was choosen
+            ' making sure that types still get escaped if no special type formatting was chosen
             TestSymbolDescription(
                 text,
                 findSymbol,
@@ -1151,7 +1151,7 @@ end namespace
                                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers Or SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-            ' making sure that types don't get escaped if special type formatting was choosen
+            ' making sure that types don't get escaped if special type formatting was chosen
             TestSymbolDescription(
                 text,
                 findSymbol,
@@ -1179,7 +1179,7 @@ end namespace
                     typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
                     miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers)
 
-            ' making sure that types don't get escaped if special type formatting was choosen
+            ' making sure that types don't get escaped if special type formatting was chosen
             TestSymbolDescription(
                 text,
                 findSymbol,

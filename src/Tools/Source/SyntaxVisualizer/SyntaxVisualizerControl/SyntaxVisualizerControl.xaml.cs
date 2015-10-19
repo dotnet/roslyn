@@ -778,7 +778,7 @@ namespace Roslyn.SyntaxVisualizer.Control
                 else
                 {
                     typeTextLabel.Visibility = Visibility.Visible;
-                    typeValueLabel.Content = value.Value.GetType().Name;
+                    typeValueLabel.Content = value.Value?.GetType().Name ?? "<null>";
                     _propertyGrid.SelectedObject = value;
                 }
             }

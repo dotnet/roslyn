@@ -642,14 +642,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = RewriteAsDirectCast(rewrittenConversion)
 
                 ElseIf underlyingTypeFrom.IsStringType() AndAlso
-                     (underlyingTypeTo.IsCharArrayRankOne() OrElse underlyingTypeTo.IsIntrinsicValueType()) Then
+                     (underlyingTypeTo.IsCharSZArray() OrElse underlyingTypeTo.IsIntrinsicValueType()) Then
                     result = RewriteFromStringConversion(rewrittenConversion, underlyingTypeFrom, underlyingTypeTo)
 
                 ElseIf underlyingTypeTo.IsStringType() AndAlso
-                    (underlyingTypeFrom.IsCharArrayRankOne() OrElse underlyingTypeFrom.IsIntrinsicValueType()) Then
+                    (underlyingTypeFrom.IsCharSZArray() OrElse underlyingTypeFrom.IsIntrinsicValueType()) Then
                     result = RewriteToStringConversion(rewrittenConversion, underlyingTypeFrom, underlyingTypeTo)
 
-                ElseIf underlyingTypeFrom.IsReferenceType AndAlso underlyingTypeTo.IsCharArrayRankOne() Then
+                ElseIf underlyingTypeFrom.IsReferenceType AndAlso underlyingTypeTo.IsCharSZArray() Then
                     result = RewriteReferenceTypeToCharArrayRankOneConversion(rewrittenConversion, underlyingTypeFrom, underlyingTypeTo)
 
                 ElseIf underlyingTypeTo.IsReferenceType Then
@@ -713,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function RewriteReferenceTypeToCharArrayRankOneConversion(node As BoundConversion, typeFrom As TypeSymbol, typeTo As TypeSymbol) As BoundExpression
-            Debug.Assert(typeFrom.IsReferenceType AndAlso typeTo.IsCharArrayRankOne())
+            Debug.Assert(typeFrom.IsReferenceType AndAlso typeTo.IsCharSZArray())
 
             Dim result As BoundExpression = node
             Const member As WellKnownMember = WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ToCharArrayRankOneObject
@@ -834,7 +834,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundExpression = node
             Dim memberSymbol As MethodSymbol = Nothing
 
-            If underlyingTypeFrom.IsCharArrayRankOne() Then
+            If underlyingTypeFrom.IsCharSZArray() Then
                 Const memberId As SpecialMember = SpecialMember.System_String__CtorSZArrayChar
                 memberSymbol = DirectCast(ContainingAssembly.GetSpecialTypeMember(memberId), MethodSymbol)
 
@@ -940,7 +940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SpecialType.System_DateTime : member = WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ToDateString
                 Case SpecialType.System_Char : member = WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ToCharString
                 Case Else
-                    If underlyingTypeTo.IsCharArrayRankOne() Then
+                    If underlyingTypeTo.IsCharSZArray() Then
                         member = WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ToCharArrayRankOneString
                     End If
             End Select

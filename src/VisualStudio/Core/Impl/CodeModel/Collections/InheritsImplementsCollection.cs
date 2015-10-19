@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             if (index < currentIndex + inheritsNodeCount)
             {
                 var child = inheritsNodes.ElementAt(index - currentIndex);
-                element = FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(child);
+                element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
                 return true;
             }
 
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             if (index < currentIndex + implementsNodeCount)
             {
                 var child = implementsNodes.ElementAt(index - currentIndex);
-                element = FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(child);
+                element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
                 return true;
             }
 
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 CodeModelService.GetInheritsNamespaceAndOrdinal(node, child, out childName, out ordinal);
                 if (childName == name)
                 {
-                    element = FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(child);
+                    element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
                     return true;
                 }
             }
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 CodeModelService.GetImplementsNamespaceAndOrdinal(node, child, out childName, out ordinal);
                 if (childName == name)
                 {
-                    element = FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(child);
+                    element = FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(child);
                     return true;
                 }
             }

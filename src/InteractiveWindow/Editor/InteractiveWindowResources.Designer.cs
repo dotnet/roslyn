@@ -70,11 +70,164 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace the current submission with a subsequent submission (after having previously navigated backwards)..
+        /// </summary>
+        internal static string AltDownArrowHelp {
+            get {
+                return ResourceManager.GetString("AltDownArrowHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace the current submission with a previous submission..
+        /// </summary>
+        internal static string AltUpArrowHelp {
+            get {
+                return ResourceManager.GetString("AltUpArrowHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clears the contents of the editor window, leaving history and execution context intact..
+        /// </summary>
+        internal static string ClearScreenCommandDescription {
+            get {
+                return ResourceManager.GetString("ClearScreenCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Command &apos;{0}&apos; failed: {1}.
+        /// </summary>
+        internal static string CommandFailed {
+            get {
+                return ResourceManager.GetString("CommandFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [command-name].
+        /// </summary>
+        internal static string CommandNamePlaceholder {
+            get {
+                return ResourceManager.GetString("CommandNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First press, select the submission containing the cursor.  Second press, select all text in the window..
+        /// </summary>
+        internal static string CtrlAHelp {
+            get {
+                return ResourceManager.GetString("CtrlAHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace the current submission with a subsequent submission beginning with the same text (after having previously navigated backwards)..
+        /// </summary>
+        internal static string CtrlAltDownArrowHelp {
+            get {
+                return ResourceManager.GetString("CtrlAltDownArrowHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace the current submission with a previous submission beginning with the same text..
+        /// </summary>
+        internal static string CtrlAltUpArrowHelp {
+            get {
+                return ResourceManager.GetString("CtrlAltUpArrowHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste and execute the selection before any pending input in the interactive buffer..
+        /// </summary>
+        internal static string CtrlECtrlEnterHelp {
+            get {
+                return ResourceManager.GetString("CtrlECtrlEnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Within the current submission, evaluate the current submission..
+        /// </summary>
+        internal static string CtrlEnterHelp1 {
+            get {
+                return ResourceManager.GetString("CtrlEnterHelp1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Within a previous submission, append the previous submission to the current submission..
+        /// </summary>
+        internal static string CtrlEnterHelp2 {
+            get {
+                return ResourceManager.GetString("CtrlEnterHelp2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste the selection at the end of interactive buffer, leave caret at the end of input..
+        /// </summary>
+        internal static string CtrlKCtrlEnterHelp {
+            get {
+                return ResourceManager.GetString("CtrlKCtrlEnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At the end of the current submission, replace the current submission with a subsequent submission (after having previously navigated backwards)..
+        /// </summary>
+        internal static string DownArrowHelp1 {
+            get {
+                return ResourceManager.GetString("DownArrowHelp1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Elsewhere, move the cursor down one line..
+        /// </summary>
+        internal static string DownArrowHelp2 {
+            get {
+                return ResourceManager.GetString("DownArrowHelp2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A command with the name &apos;{0}&apos; has already been registered..
         /// </summary>
         internal static string DuplicateCommand {
             get {
                 return ResourceManager.GetString("DuplicateCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line..
+        /// </summary>
+        internal static string EnterHelp {
+            get {
+                return ResourceManager.GetString("EnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear the current submission..
+        /// </summary>
+        internal static string EscapeHelp {
+            get {
+                return ResourceManager.GetString("EscapeHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display help on specified command, or all available commands and key bindings if none specified..
+        /// </summary>
+        internal static string HelpCommandDescription {
+            get {
+                return ResourceManager.GetString("HelpCommandDescription", resourceCulture);
             }
         }
         
@@ -88,11 +241,47 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keyboard shortcuts:.
+        /// </summary>
+        internal static string KeyboardShortcuts {
+            get {
+                return ResourceManager.GetString("KeyboardShortcuts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The command of type &apos;{0}&apos; has no command names..
         /// </summary>
         internal static string MissingCommandName {
             get {
                 return ResourceManager.GetString("MissingCommandName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interactive window has not yet been initialized..
+        /// </summary>
+        internal static string NotInitialized {
+            get {
+                return ResourceManager.GetString("NotInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parameters:.
+        /// </summary>
+        internal static string Parameters {
+            get {
+                return ResourceManager.GetString("Parameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to REPL commands:.
+        /// </summary>
+        internal static string ReplCommands {
+            get {
+                return ResourceManager.GetString("ReplCommands", resourceCulture);
             }
         }
         
@@ -111,6 +300,69 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string RequireUIThread {
             get {
                 return ResourceManager.GetString("RequireUIThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset the execution environment to the initial state, keep history..
+        /// </summary>
+        internal static string ResetCommandDescription {
+            get {
+                return ResourceManager.GetString("ResetCommandDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset to a clean environment (only mscorlib referenced), do not run initialization script..
+        /// </summary>
+        internal static string ResetCommandParametersDescription {
+            get {
+                return ResourceManager.GetString("ResetCommandParametersDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert a new line..
+        /// </summary>
+        internal static string ShiftEnterHelp {
+            get {
+                return ResourceManager.GetString("ShiftEnterHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown command &apos;{0}&apos;.
+        /// </summary>
+        internal static string UnknownCommand {
+            get {
+                return ResourceManager.GetString("UnknownCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to At the end of the current submission, replace the current submission with a previous submission..
+        /// </summary>
+        internal static string UpArrowHelp1 {
+            get {
+                return ResourceManager.GetString("UpArrowHelp1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Elsewhere, move the cursor up one line..
+        /// </summary>
+        internal static string UpArrowHelp2 {
+            get {
+                return ResourceManager.GetString("UpArrowHelp2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Usage:.
+        /// </summary>
+        internal static string Usage {
+            get {
+                return ResourceManager.GetString("Usage", resourceCulture);
             }
         }
     }

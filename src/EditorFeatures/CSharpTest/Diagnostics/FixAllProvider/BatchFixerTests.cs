@@ -152,7 +152,7 @@ class C
     </Project>
 </Workspace>";
 
-            Test(input, expected, isLine: false, compareTokens: false);
+            Test(input, expected, compareTokens: false);
         }
 
         #endregion

@@ -129,6 +129,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _history.Add(entry);
             }
 
+            //If text at current location in history is not the same as the text you are adding then
+            //new command was typed and submitted while navigating history. In this case the _current
+            //gets reset.
             if (_history[(_current == -1) ? Length - 1 : _current].Text != text)
             {
                 _current = -1;
@@ -144,10 +147,22 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
         }
 
-        private Entry Get(string pattern, int step)
+        internal Entry GetNext(string pattern)
+        {
+            var next = MoveNext(pattern);
+            if (next == null)
+            {
+                // if we hit the end of history list, reset _current to stop navigating history.
+                _current = -1;
+            }
+            return next;
+        }
+
+        internal Entry GetPrevious(string pattern)
         {
             var startPos = _current;
-            var next = Move(pattern, step);
+            Entry next;
+            next = MovePrevious(pattern);
             if (next == null)
             {
                 _current = startPos;
@@ -157,80 +172,80 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             return next;
         }
 
-        internal Entry GetNext(string pattern = null)
+        private Entry MoveNext(string pattern)
         {
-            return Get(pattern, step: +1);
-        }
+            if (Length == 0) return null;
 
-        internal Entry GetPrevious(string pattern = null)
-        {
-            return Get(pattern, step: -1);
-        }
+            bool wasCurrentUninitialized = (_current == -1);
 
-        private Entry Move(string pattern, int step)
-        {
-            Debug.Assert(step == -1 || step == +1);
+            // if current in un-initialized then we are not navigating history yet so
+            // there is no next entry.
+            if (wasCurrentUninitialized) return null;
 
-            bool wasLive = _live;
+            //indicates that history search/navigation is in progress
             _live = true;
 
-            if (Length == 0)
+            _current++;
+
+            for (; _current < Length; _current++)
             {
-                return null;
+                Entry entry;
+                if (TryMatch(pattern, out entry)) return entry;
+            }
+
+            return null;
+        }
+
+        private Entry MovePrevious(string pattern)
+        {
+            if (Length == 0) return null;
+            bool wasLive = _live;
+
+            //indicates that history search/navigation is in progress
+            _live = true;
+
+            bool wasCurrentUninitialized = (_current == -1);
+
+            // if current in un-initialized then we are not navigating history yet so
+            // current needs to be set to last entry before navigating previous.
+            if (wasCurrentUninitialized)
+            {
+                _current = Length - 1;
+                Entry entry;
+                if (TryMatch(pattern, out entry)) return entry;
             }
 
             bool patternEmpty = string.IsNullOrWhiteSpace(pattern);
-
-            int start, end;
-            if (step > 0)
+            if (!wasLive && patternEmpty)
             {
-                start = 0;
-                end = Length - 1;
+                //return the current entry again ( handles case up, up, enter, up)
+                Entry entry;
+                if (TryMatch(pattern, out entry)) return entry;
+            }
+
+            for (_current--; _current >= 0; _current--)
+            {
+                Entry entry;
+                if (TryMatch(pattern, out entry)) return entry;
+            }
+
+            return null;
+        }
+
+
+        private bool TryMatch(string pattern, out Entry entry)
+        {
+            bool patternEmpty = string.IsNullOrWhiteSpace(pattern);
+            var tmpEntry = _history[_current];
+            if (patternEmpty || Matches(tmpEntry.Text, pattern))
+            {
+                entry = tmpEntry;
+                return true;
             }
             else
             {
-                start = Length - 1;
-                end = 0;
-            }
-
-            // no search in progress:
-            if (_current == -1)
-            {
-                _current = start;
-            }
-
-            int visited = 0;
-            while (true)
-            {
-                if (_current == end)
-                {
-                    if (visited < Length)
-                    {
-                        _current = start;
-                    }
-                    else
-                    {
-                        // we cycled through the entire history:
-                        return null;
-                    }
-                }
-                else if (!wasLive && patternEmpty)
-                {
-                    // Handles up up up enter up
-                    // Do nothing
-                }
-                else
-                {
-                    _current += step;
-                }
-
-                var entry = _history[_current];
-                if (patternEmpty || Matches(entry.Text, pattern))
-                {
-                    return entry;
-                }
-
-                visited++;
+                entry = null;
+                return false;
             }
         }
 

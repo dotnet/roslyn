@@ -33,7 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
             Dim localDiagnostics = DiagnosticBag.GetInstance()
 
-            Dim loweredBody = LocalRewriter.Rewrite(body,
+            Try
+                Dim loweredBody = LocalRewriter.Rewrite(body,
                                                     method,
                                                     compilationState,
                                                     previousSubmissionFields,
@@ -44,29 +45,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     flags,
                                                     currentMethod:=Nothing)
 
-            If loweredBody.HasErrors OrElse localDiagnostics.HasAnyErrors Then
-                diagnostics.AddRangeAndFree(localDiagnostics)
-                Return loweredBody
-            End If
+                If loweredBody.HasErrors OrElse localDiagnostics.HasAnyErrors Then
+                    diagnostics.AddRangeAndFree(localDiagnostics)
+                    Return loweredBody
+                End If
 
 #If DEBUG Then
-            For Each node In rewrittenNodes.ToArray
-                If node.Kind = BoundKind.Literal Then
-                    rewrittenNodes.Remove(node)
-                End If
-            Next
+                For Each node In rewrittenNodes.ToArray
+                    If node.Kind = BoundKind.Literal Then
+                        rewrittenNodes.Remove(node)
+                    End If
+                Next
 #End If
 
-            If lazyVariableSlotAllocator Is Nothing Then
-                ' synthesized lambda methods are handled in LambdaRewriter.RewriteLambdaAsMethod
-                Debug.Assert(TypeOf method IsNot SynthesizedLambdaMethod)
-                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method)
-            End If
+                If lazyVariableSlotAllocator Is Nothing Then
+                    ' synthesized lambda methods are handled in LambdaRewriter.RewriteLambdaAsMethod
+                    Debug.Assert(TypeOf method IsNot SynthesizedLambdaMethod)
+                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method)
+                End If
 
-            ' Lowers lambda expressions into expressions that construct delegates.    
-            Dim bodyWithoutLambdas = loweredBody
-            If sawLambdas Then
-                bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody,
+                ' Lowers lambda expressions into expressions that construct delegates.    
+                Dim bodyWithoutLambdas = loweredBody
+                If sawLambdas Then
+                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody,
                                                             method,
                                                             methodOrdinal,
                                                             lambdaDebugInfoBuilder,
@@ -77,15 +78,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             If(symbolsCapturedWithoutCopyCtor, SpecializedCollections.EmptySet(Of Symbol)),
                                                             localDiagnostics,
                                                             rewrittenNodes)
-            End If
+                End If
 
-            If bodyWithoutLambdas.HasErrors OrElse localDiagnostics.HasAnyErrors Then
+                If bodyWithoutLambdas.HasErrors OrElse localDiagnostics.HasAnyErrors Then
+                    diagnostics.AddRangeAndFree(localDiagnostics)
+                    Return bodyWithoutLambdas
+                End If
+
+                Dim bodyWithoutIteratorAndAsync = RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, localDiagnostics, lazyVariableSlotAllocator, stateMachineTypeOpt)
+
                 diagnostics.AddRangeAndFree(localDiagnostics)
-                Return bodyWithoutLambdas
-            End If
 
-            diagnostics.AddRangeAndFree(localDiagnostics)
-            Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, lazyVariableSlotAllocator, stateMachineTypeOpt)
+                Return bodyWithoutIteratorAndAsync
+
+            Catch ex As BoundTreeVisitor.CancelledByStackGuardException
+                diagnostics.AddRangeAndFree(localDiagnostics)
+                ex.AddAnError(diagnostics)
+                Return New BoundBlock(body.Syntax, body.StatementListSyntax, body.Locals, body.Statements, hasErrors:=True)
+            End Try
         End Function
 
         Friend Shared Function RewriteIteratorAndAsync(bodyWithoutLambdas As BoundBlock,

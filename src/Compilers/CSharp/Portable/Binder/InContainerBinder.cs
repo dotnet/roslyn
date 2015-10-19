@@ -210,15 +210,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var imports = GetImports(basesBeingResolved: null);
 
-                imports.AddLookupSymbolsInfoInAliases(this, result, options);
+                imports.AddLookupSymbolsInfoInAliases(originalBinder, result, options);
 
                 // Add types within namespaces imported through usings, but don't add nested namespaces.
                 LookupOptions usingOptions = (options & ~(LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) | LookupOptions.MustNotBeNamespace;
-                Imports.AddLookupSymbolsInfoInUsings(imports.Usings, this, result, usingOptions);
+                Imports.AddLookupSymbolsInfoInUsings(imports.Usings, originalBinder, result, usingOptions);
             }
         }
 
         protected override SourceLocalSymbol LookupLocal(SyntaxToken nameToken)
+        {
+            return null;
+        }
+
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
         {
             return null;
         }

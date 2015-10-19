@@ -676,7 +676,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     return type;
                 }
 
-                return new ArrayTypeSymbol(this.RetargetingAssembly, newElement, newModifiers, type.Rank);
+                if (type.IsSZArray)
+                {
+                    return ArrayTypeSymbol.CreateSZArray(this.RetargetingAssembly, newElement, newModifiers);
+                }
+
+                return ArrayTypeSymbol.CreateMDArray(this.RetargetingAssembly, newElement, type.Rank, type.Sizes, type.LowerBounds, newModifiers);
             }
 
             internal ImmutableArray<CustomModifier> RetargetModifiers(ImmutableArray<CustomModifier> oldModifiers, out bool modifiersHaveChanged)

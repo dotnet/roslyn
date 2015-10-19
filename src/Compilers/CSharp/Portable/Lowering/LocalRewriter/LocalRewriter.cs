@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.RuntimeMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class LocalRewriter : BoundTreeRewriter
+    internal sealed partial class LocalRewriter : BoundTreeRewriterWithStackGuard
     {
         private readonly CSharpCompilation _compilation;
         private readonly SyntheticBoundNodeFactory _factory;
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _allowOmissionOfConditionalCalls;
         private readonly LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
+        private bool _sawLocalFunctions;
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics,
             out bool sawLambdas,
+            out bool sawLocalFunctions,
             out bool sawAwaitInExceptionHandler)
         {
             Debug.Assert(statement != null);
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter._sawLambdas;
+                sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
                 var block = loweredStatement as BoundBlock;
                 var result = (block == null) ? loweredStatement : InsertPrologueSequencePoint(block, method);
@@ -77,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                sawLambdas = sawAwaitInExceptionHandler = false;
+                sawLambdas = sawLocalFunctions = sawAwaitInExceptionHandler = false;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var visited = (BoundExpression)base.Visit(node);
+            var visited = VisitExpressionWithStackGuard(node);
 
             // If you *really* need to change the type, consider using an indirect method
             // like compound assignment does (extra flag only passed when it is an expression
@@ -202,6 +205,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentMethod = node.Symbol;
                 return base.VisitLambda(node);
+            }
+            finally
+            {
+                _factory.CurrentMethod = oldContainingSymbol;
+            }
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            _sawLocalFunctions = true;
+            var oldContainingSymbol = _factory.CurrentMethod;
+            try
+            {
+                _factory.CurrentMethod = node.Symbol;
+                return base.VisitLocalFunctionStatement(node);
             }
             finally
             {

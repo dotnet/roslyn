@@ -313,6 +313,25 @@ public partial class C { }
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(3623, "https://github.com/dotnet/roslyn/issues/3623")>
+        Public Sub RenameTypeInLinkedFiles()
+            Dim workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                            <Document FilePath="C.cs"><![CDATA[
+public class [|$$C|] { }
+]]></Document>
+                        </Project>
+                        <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                            <Document IsLinkFile="true" LinkAssemblyName="CSProj" LinkFilePath="C.cs"/>
+                        </Project>
+                    </Workspace>)
+
+            VerifyRenameOptionChangedSessionCommit(workspace, "C", "AB")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem(700923), WorkItem(700925), WorkItem(1486, "https://github.com/dotnet/roslyn/issues/1486")>
         Public Sub RenameInCommentsAndStringsCSharp()
             Dim workspace = CreateWorkspaceWithWaiter(

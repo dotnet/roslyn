@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                             var regions = await outliningService.GetOutliningSpansAsync(document, cancellationToken).ConfigureAwait(false);
                             if (regions != null)
                             {
-                                regions = GetMultiLineRegions(regions, snapshotSpan.Snapshot);
+                                regions = GetMultiLineRegions(outliningService, regions, snapshotSpan.Snapshot);
 
                                 // Create the outlining tags.
                                 var tagSpans =
@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                                                       region.BannerText,
                                                       hintSpan,
                                                       region.AutoCollapse,
+                                                      region.IsDefaultCollapsed,
                                                       _textEditorFactoryService,
                                                       _projectionBufferFactoryService,
                                                       _editorOptionsFactoryService)
@@ -143,7 +144,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             }
         }
 
-        private IList<OutliningSpan> GetMultiLineRegions(IList<OutliningSpan> regions, ITextSnapshot snapshot)
+        private static bool exceptionReported = false;
+
+        private IList<OutliningSpan> GetMultiLineRegions(IOutliningService service, IList<OutliningSpan> regions, ITextSnapshot snapshot)
         {
             // Remove any spans that aren't multiline.
             var multiLineRegions = new List<OutliningSpan>(regions.Count);
@@ -151,6 +154,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             {
                 if (region != null && region.TextSpan.Length > 0)
                 {
+                    // Check if any clients produced an invalid OutliningSpan.  If so, filter them
+                    // out and report a non-fatal watson so we can attempt to determine the source
+                    // of the issue.
+                    var snapshotSpan = snapshot.GetFullSpan().Span;
+                    var regionSpan = region.TextSpan.ToSpan();
+                    if (!snapshotSpan.Contains(regionSpan))
+                    {
+                        if (!exceptionReported)
+                        {
+                            exceptionReported = true;
+                            try
+                            {
+                                throw new InvalidOutliningRegionException(service, snapshot, snapshotSpan, regionSpan);
+                            }
+                            catch (InvalidOutliningRegionException e) when (FatalError.ReportWithoutCrash(e))
+                            {
+                            }
+                        }
+                        continue;
+                    }
+
                     var startLine = snapshot.GetLineNumberFromPosition(region.TextSpan.Start);
                     var endLine = snapshot.GetLineNumberFromPosition(region.TextSpan.End);
                     if (startLine != endLine)

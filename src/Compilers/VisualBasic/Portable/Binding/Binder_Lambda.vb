@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class LambdaRelaxationVisitor
-            Inherits BoundTreeWalker
+            Inherits StatementWalker
 
             Private ReadOnly _lambdaSymbol As LambdaSymbol
             Private ReadOnly _isIterator As Boolean
@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class CheckAwaitWalker
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _binder As Binder
             Private ReadOnly _diagnostics As DiagnosticBag
@@ -603,11 +603,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ) As Boolean
                 Debug.Assert(binder.IsInAsyncContext())
 
-                Dim walker As New CheckAwaitWalker(binder, diagnostics)
-                walker.Visit(block)
-                Debug.Assert(Not walker._isInCatchFinallyOrSyncLock)
+                Try
+                    Dim walker As New CheckAwaitWalker(binder, diagnostics)
+                    walker.Visit(block)
+                    Debug.Assert(Not walker._isInCatchFinallyOrSyncLock)
 
-                Return walker._containsAwait
+                    Return walker._containsAwait
+                Catch ex As CancelledByStackGuardException
+                    ex.AddAnError(diagnostics)
+                    Return True
+                End Try
             End Function
 
             Public Overrides Function VisitTryStatement(node As BoundTryStatement) As BoundNode
@@ -965,7 +970,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If lambdaReturnType Is Nothing Then
                         ' "Cannot infer a return type. Specifying the return type might correct this error."
                         ReportDiagnostic(diagnostics, LambdaHeaderErrorNode(source), ERRID.ERR_LambdaNoType)
-                        lambdaReturnType = lambdaSymbol.ReturnTypeIsUnknown
+                        lambdaReturnType = LambdaSymbol.ReturnTypeIsUnknown
 
                     ElseIf lambdaReturnType.IsRestrictedTypeOrArrayType(restrictedType) Then
                         ReportDiagnostic(diagnostics, LambdaHeaderErrorNode(source), ERRID.ERR_RestrictedType1, restrictedType)
@@ -1022,7 +1027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Class LambdaReturnStatementsVisitor
-            Inherits BoundTreeWalker
+            Inherits StatementWalker
 
             Private ReadOnly _builder As ArrayBuilder(Of BoundExpression)
             Private ReadOnly _isIterator As Boolean

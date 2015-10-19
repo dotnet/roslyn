@@ -11,5 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     internal interface IVisualStudioHostProjectContainer
     {
         IEnumerable<IVisualStudioHostProject> GetProjects();
+
+        void NotifyNonDocumentOpenedForProject(IVisualStudioHostProject project);
     }
 }

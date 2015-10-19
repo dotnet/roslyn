@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BaseParameterListSyntax syntax,
             bool allowRefOrOut,
             out SyntaxToken arglistToken,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool beStrict)
         {
             arglistToken = default(SyntaxToken);
 
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterIndex,
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    diagnostics);
+                    diagnostics,
+                    beStrict);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
 
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());
             }
-            else if (parameter.IsParams && !parameterType.IsSingleDimensionalArray())
+            else if (parameter.IsParams && !parameterType.IsSZArray())
             {
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());

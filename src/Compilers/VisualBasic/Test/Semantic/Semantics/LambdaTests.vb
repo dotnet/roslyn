@@ -2097,5 +2097,70 @@ End Class
 ]]>)
         End Sub
 
+        <WorkItem(1207506, "DevDiv"), WorkItem(4899, "https://github.com/dotnet/roslyn/issues/4899")>
+        <Fact()>
+        Public Sub InitClosureInsideABlockInAConstructor()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module Module1
+
+    Sub Main()
+        Dim f As New FpB(100, 100)
+        System.Console.WriteLine(f.FPixels.Length)
+    End Sub
+
+End Module
+
+Public Class FpB
+    Public Property FPixels() As FloatPointF(,)
+        Get
+            System.Console.WriteLine("In getter")
+            Return m_FPixels
+        End Get
+        Set(value As FloatPointF(,))
+            m_FPixels = value
+        End Set
+    End Property
+    Private m_FPixels As FloatPointF(,)
+
+
+    Public Sub New(width As Integer, height As Integer)
+        Try
+            Dim w As Integer = width
+            Dim h As Integer = height
+            Me.FPixels = New FloatPointF(w - 1, h - 1) {}
+            CallDelegate(Sub(y)
+                             Dim x = Math.Min(0, w - 1)
+                         End Sub)
+        Catch ex As Exception
+            System.Console.WriteLine(ex.Message)
+        End Try
+    End Sub
+
+    Sub CallDelegate(d As Action(Of Integer))
+        d(1)
+    End Sub
+End Class
+
+Public Structure FloatPointF
+    Public X As Single
+    Public Y As Single
+End Structure
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+In getter
+10000
+]]>)
+        End Sub
+
     End Class
 End Namespace

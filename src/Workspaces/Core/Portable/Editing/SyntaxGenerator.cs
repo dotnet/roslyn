@@ -36,7 +36,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public static SyntaxGenerator GetGenerator(Document document)
         {
-            return document.Project.LanguageServices.GetService<SyntaxGenerator>();
+            return GetGenerator(document.Project);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the project.
+        /// </summary>
+        public static SyntaxGenerator GetGenerator(Project project)
+        {
+            return project.LanguageServices.GetService<SyntaxGenerator>();
         }
 
         #region Declarations
@@ -1052,7 +1060,15 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public virtual SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
         {
-            return root.RemoveNode(node, DefaultRemoveOptions);
+            return RemoveNode(root, node, DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Removes the node from the sub tree starting at the root.
+        /// </summary>
+        public virtual SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
+        {
+            return root.RemoveNode(node, options);
         }
 
         /// <summary>
@@ -1608,6 +1624,16 @@ namespace Microsoft.CodeAnalysis.Editing
         {
             return MemberAccessExpression(expression, IdentifierName(memberName));
         }
+
+        /// <summary>
+        /// Creates an array creation expression for a single dimensional array of specified size.
+        /// </summary>
+        public abstract SyntaxNode ArrayCreationExpression(SyntaxNode elementType, SyntaxNode size);
+
+        /// <summary>
+        /// Creates an array creation expression for a single dimensional array with specified initial element values.
+        /// </summary>
+        public abstract SyntaxNode ArrayCreationExpression(SyntaxNode elementType, IEnumerable<SyntaxNode> elements);
 
         /// <summary>
         /// Creates an object creation expression.

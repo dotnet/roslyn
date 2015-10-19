@@ -2730,6 +2730,57 @@ namespace ConsoleApplication1
 @"using System ; class C { void M() { var x = new System.Collections.Generic.Dictionary<int, bool> { { 1, T() } }; } private bool T() { throw new NotImplementedException(); } } ");
         }
 
+        [WorkItem(774321)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodEquivalenceKey()
+        {
+            TestEquivalenceKey(
+@"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
+string.Format(FeaturesResources.GenerateMethodIn, "M1", "C"));
+        }
+
+        [WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public void TestGenerateMethodLambdaOverload1()
+        {
+            Test(
+@"using System;
+using System.Collections.Concurrent;
+
+class JToken { }
+
+class Class1
+{
+    private static readonly ConcurrentDictionary<Type, Func<JToken, object>> _deserializeHelpers =
+        new ConcurrentDictionary<Type, Func<JToken, object>>();
+
+    private static object DeserializeObject(JToken token, Type type)
+    {
+        _deserializeHelpers.GetOrAdd(type, key => [|CreateDeserializeDelegate|](key));
+    }
+}",
+@"using System;
+using System.Collections.Concurrent;
+
+class JToken { }
+
+class Class1
+{
+    private static readonly ConcurrentDictionary<Type, Func<JToken, object>> _deserializeHelpers =
+        new ConcurrentDictionary<Type, Func<JToken, object>>();
+
+    private static object DeserializeObject(JToken token, Type type)
+    {
+        _deserializeHelpers.GetOrAdd(type, key => CreateDeserializeDelegate(key));
+    }
+
+    private static Func<JToken, object> CreateDeserializeDelegate(JToken key)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -2807,15 +2858,6 @@ namespace ConsoleApplication1
                 Test(
     @"class Digit { public Digit ( double d ) { val = d ; } public double val ; } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = [|( double ) dig|] ; } } ",
     @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static explicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = ( double ) dig ; } } ");
-            }
-
-            [WorkItem(774321)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public void TestEquivalenceKey()
-            {
-                TestEquivalenceKey(
-    @"class C { void M() { this.[|M1|](System.Exception.M2()); } } ",
-    string.Format(FeaturesResources.GenerateMethodIn, "C", "M1"));
             }
         }
     }

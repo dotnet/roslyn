@@ -71,6 +71,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Add Overloads.
+        '''</summary>
+        Friend ReadOnly Property AddOverloadsKeyword() As String
+            Get
+                Return ResourceManager.GetString("AddOverloadsKeyword", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Creates a delegate procedure instance that references the specified procedure.
         '''AddressOf &lt;procedureName&gt;.
         '''</summary>
@@ -379,15 +388,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property CatchKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("CatchKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Change &apos;{0}&apos; to &apos;{1}&apos;..
-        '''</summary>
-        Friend ReadOnly Property ChangeTo() As String
-            Get
-                Return ResourceManager.GetString("ChangeTo", resourceCulture)
             End Get
         End Property
         
@@ -1359,15 +1359,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property ImplicitMemberAccessCantB() As String
             Get
                 Return ResourceManager.GetString("ImplicitMemberAccessCantB", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Import &apos;{0}&apos;..
-        '''</summary>
-        Friend ReadOnly Property Import() As String
-            Get
-                Return ResourceManager.GetString("Import", resourceCulture)
             End Get
         End Property
         
@@ -2755,15 +2746,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property SubLambdaKeywordToolTip() As String
             Get
                 Return ResourceManager.GetString("SubLambdaKeywordToolTip", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to with #Disable directive.
-        '''</summary>
-        Friend ReadOnly Property SuppressWithPragma() As String
-            Get
-                Return ResourceManager.GetString("SuppressWithPragma", resourceCulture)
             End Get
         End Property
         

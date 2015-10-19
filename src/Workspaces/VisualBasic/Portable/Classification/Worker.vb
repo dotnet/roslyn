@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -79,10 +77,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Sub
 
-        Friend Sub ClassifyToken(token As SyntaxToken)
+        Friend Sub ClassifyToken(token As SyntaxToken, Optional type As String = Nothing)
             Dim span = token.Span
             If span.Length <> 0 AndAlso _textSpan.OverlapsWith(span) Then
-                Dim type = ClassificationHelpers.GetClassification(token)
+                type = If(type, ClassificationHelpers.GetClassification(token))
 
                 If type IsNot Nothing Then
                     AddClassification(token.Span, type)
@@ -151,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Sub
 
         Private Sub ClassifyDirectiveSyntax(directiveSyntax As SyntaxNode)
-            If Not _textSpan.OverlapsWith(directiveSyntax.Span) Then
+            If Not _textSpan.OverlapsWith(directiveSyntax.FullSpan) Then
                 Return
             End If
 
@@ -172,10 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                              SyntaxKind.WarningKeyword,
                              SyntaxKind.DisableKeyword
 
-                            Dim token = child.AsToken()
-
-                            AddClassification(token, ClassificationTypeNames.PreprocessorKeyword)
-                            ClassifyTrivia(token)
+                            ClassifyToken(child.AsToken(), ClassificationTypeNames.PreprocessorKeyword)
                         Case Else
                             ClassifyToken(child.AsToken())
                     End Select
@@ -184,6 +179,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 End If
             Next
         End Sub
-
     End Class
 End Namespace

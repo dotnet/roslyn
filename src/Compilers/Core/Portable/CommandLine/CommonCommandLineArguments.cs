@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Resolves metadata references stored in <see cref="MetadataReferences"/> using given file resolver and metadata provider.
         /// </summary>
-        /// <param name="metadataResolver"><see cref="MetadataFileReferenceResolver"/> to use for assembly name and relative path resolution.</param>
+        /// <param name="metadataResolver"><see cref="MetadataReferenceResolver"/> to use for assembly name and relative path resolution.</param>
         /// <returns>Yields resolved metadata references or <see cref="UnresolvedMetadataReference"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="metadataResolver"/> is null.</exception>
         public IEnumerable<MetadataReference> ResolveMetadataReferences(MetadataReferenceResolver metadataResolver)
@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        // TODO: change to private protected when available
         internal static ImmutableArray<PortableExecutableReference> ResolveMetadataReference(CommandLineReference cmdReference, MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt)
         {
             Debug.Assert(metadataResolver != null);

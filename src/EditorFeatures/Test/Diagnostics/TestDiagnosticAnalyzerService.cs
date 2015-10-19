@@ -2,11 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Roslyn.Utilities;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -24,8 +22,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        internal TestDiagnosticAnalyzerService(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-            : this(CreateHostAnalyzerManager(analyzersMap, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException)
+        internal TestDiagnosticAnalyzerService(
+            ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null,
+            IDiagnosticUpdateSourceRegistrationService registrationService = null)
+            : this(CreateHostAnalyzerManager(analyzersMap, hostDiagnosticUpdateSource), hostDiagnosticUpdateSource, onAnalyzerException, registrationService)
         {
         }
 
@@ -34,14 +36,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
         }
 
-        private TestDiagnosticAnalyzerService(HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException)
-            : base(hostAnalyzerManager, hostDiagnosticUpdateSource)
+        private TestDiagnosticAnalyzerService(
+            HostAnalyzerManager hostAnalyzerManager,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException,
+            IDiagnosticUpdateSourceRegistrationService registrationService = null)
+            : base(hostAnalyzerManager, hostDiagnosticUpdateSource, registrationService ?? new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }
 
         internal TestDiagnosticAnalyzerService(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), hostDiagnosticUpdateSource)
+           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), hostDiagnosticUpdateSource, new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }
@@ -72,56 +78,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal override Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId, DiagnosticLogAggregator diagnosticLogAggregator)
         {
             return _onAnalyzerException ?? base.GetOnAnalyzerException(projectId, diagnosticLogAggregator);
-        }
-
-        private class TestAnalyzerReferenceByLanguage : AnalyzerReference
-        {
-            private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzersMap;
-
-            public TestAnalyzerReferenceByLanguage(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
-            {
-                _analyzersMap = analyzersMap;
-            }
-
-            public override string FullPath
-            {
-                get
-                {
-                    return null;
-                }
-            }
-
-            public override string Display
-            {
-                get
-                {
-                    return nameof(TestAnalyzerReferenceByLanguage);
-                }
-            }
-
-            public override object Id
-            {
-                get
-                {
-                    return Display;
-                }
-            }
-
-            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            {
-                return _analyzersMap.SelectMany(kvp => kvp.Value).ToImmutableArray();
-            }
-
-            public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            {
-                ImmutableArray<DiagnosticAnalyzer> analyzers;
-                if (_analyzersMap.TryGetValue(language, out analyzers))
-                {
-                    return analyzers;
-                }
-
-                return ImmutableArray<DiagnosticAnalyzer>.Empty;
-            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -15,17 +16,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _containingType As NamedTypeSymbol
         Private ReadOnly _returnType As TypeSymbol
 
-        Friend Shared Function Create(containingType As NamedTypeSymbol, returnType As TypeSymbol, diagnostics As DiagnosticBag) As SynthesizedEntryPointSymbol
-            Dim compilation = containingType.DeclaringCompilation
-            If containingType.ContainingAssembly.IsInteractive Then
+        Friend Shared Function Create(initializerMethod As SynthesizedInteractiveInitializerMethod, diagnostics As DiagnosticBag) As SynthesizedEntryPointSymbol
+            Dim containingType = initializerMethod.ContainingType
+            Dim compilation = ContainingType.DeclaringCompilation
+            If compilation.IsSubmission Then
                 Dim submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object))
-                Dim useSiteDiagnostic = submissionArrayType.GetUseSiteErrorInfo()
-                If useSiteDiagnostic IsNot Nothing Then
-                    diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
-                End If
-                Return New SubmissionEntryPoint(containingType, returnType, submissionArrayType)
+                ReportUseSiteDiagnostics(submissionArrayType, diagnostics)
+                Return New SubmissionEntryPoint(containingType, initializerMethod.ReturnType, submissionArrayType)
             Else
-                Return New ScriptEntryPoint(containingType, returnType)
+                Dim taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task)
+#If DEBUG Then
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Debug.Assert(taskType.IsErrorType() OrElse initializerMethod.ReturnType.IsOrDerivedFrom(taskType, useSiteDiagnostics))
+#End If
+                ReportUseSiteDiagnostics(taskType, diagnostics)
+                Dim getAwaiterMethod = If(taskType.IsErrorType(),
+                    Nothing,
+                    GetRequiredMethod(taskType, WellKnownMemberNames.GetAwaiter, diagnostics))
+                Dim getResultMethod = If(getAwaiterMethod Is Nothing,
+                    Nothing,
+                    GetRequiredMethod(getAwaiterMethod.ReturnType, WellKnownMemberNames.GetResult, diagnostics))
+                Return New ScriptEntryPoint(
+                    containingType,
+                    compilation.GetSpecialType(SpecialType.System_Void),
+                    getAwaiterMethod,
+                    getResultMethod)
             End If
         End Function
 
@@ -174,14 +189,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return VisualBasicSyntaxTree.Dummy.GetRoot()
         End Function
 
+        Private Shared Sub ReportUseSiteDiagnostics(symbol As Symbol, diagnostics As DiagnosticBag)
+            Dim useSiteDiagnostic = symbol.GetUseSiteErrorInfo()
+            If useSiteDiagnostic IsNot Nothing Then
+                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
+            End If
+        End Sub
+
+        Private Shared Function GetRequiredMethod(type As TypeSymbol, methodName As String, diagnostics As DiagnosticBag) As MethodSymbol
+            Dim method = TryCast(type.GetMembers(methodName).SingleOrDefault(), MethodSymbol)
+            If method Is Nothing Then
+                diagnostics.Add(
+                    ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, type.MetadataName & "." & methodName),
+                    NoLocation.Singleton)
+            End If
+            Return method
+        End Function
+
+        Private Shared Function CreateParameterlessCall(syntax As VisualBasicSyntaxNode, receiver As BoundExpression, method As MethodSymbol) As BoundCall
+            Return New BoundCall(
+                syntax,
+                method,
+                methodGroupOpt:=Nothing,
+                receiverOpt:=receiver.MakeRValue(),
+                arguments:=ImmutableArray(Of BoundExpression).Empty,
+                constantValueOpt:=Nothing,
+                suppressObjectClone:=False,
+                type:=method.ReturnType).MakeCompilerGenerated()
+        End Function
+
         Private NotInheritable Class ScriptEntryPoint
             Inherits SynthesizedEntryPointSymbol
 
-            Friend Sub New(containingType As NamedTypeSymbol, returnType As TypeSymbol)
+            Private ReadOnly _getAwaiterMethod As MethodSymbol
+            Private ReadOnly _getResultMethod As MethodSymbol
+
+            Friend Sub New(containingType As NamedTypeSymbol, returnType As TypeSymbol, getAwaiterMethod As MethodSymbol, getResultMethod As MethodSymbol)
                 MyBase.New(containingType, returnType)
 
                 Debug.Assert(containingType.IsScriptClass)
                 Debug.Assert(returnType.SpecialType = SpecialType.System_Void)
+
+                _getAwaiterMethod = getAwaiterMethod
+                _getResultMethod = getResultMethod
             End Sub
 
             Public Overrides ReadOnly Property Name As String
@@ -198,9 +248,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Private Shared Sub <Main>()
             '     Dim script As New Script()
-            '     script.<Initialize>()
+            '     script.<Initialize>().GetAwaiter().GetResult()
             ' End Sub
             Friend Overrides Function CreateBody() As BoundBlock
+                ' CreateBody should only be called if no errors.
+                Debug.Assert(_getAwaiterMethod IsNot Nothing)
+                Debug.Assert(_getResultMethod IsNot Nothing)
+
                 Dim syntax = GetSyntax()
 
                 Dim ctor = _containingType.GetScriptConstructor()
@@ -228,18 +282,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             type:=_containingType).MakeCompilerGenerated(),
                         suppressObjectClone:=False).MakeCompilerGenerated()).MakeCompilerGenerated()
 
-                ' script.<Initialize>()
+                ' script.<Initialize>().GetAwaiter().GetResult()
                 Dim scriptInitialize = New BoundExpressionStatement(
                     syntax,
-                    New BoundCall(
+                    CreateParameterlessCall(
                         syntax,
-                        initializer,
-                        methodGroupOpt:=Nothing,
-                        receiverOpt:=scriptLocal.MakeRValue(),
-                        arguments:=ImmutableArray(Of BoundExpression).Empty,
-                        constantValueOpt:=Nothing,
-                        suppressObjectClone:=False,
-                        type:=initializer.ReturnType).MakeCompilerGenerated()).MakeCompilerGenerated()
+                        CreateParameterlessCall(
+                            syntax,
+                            CreateParameterlessCall(
+                                syntax,
+                                scriptLocal,
+                                initializer),
+                            _getAwaiterMethod),
+                        _getResultMethod)).MakeCompilerGenerated()
 
                 ' Return
                 Dim returnStatement = New BoundReturnStatement(
@@ -321,15 +376,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Return submission.<Initialize>()
                 Dim returnStatement = New BoundReturnStatement(
                     syntax,
-                    New BoundCall(
+                    CreateParameterlessCall(
                         syntax,
-                        initializer,
-                        methodGroupOpt:=Nothing,
-                        receiverOpt:=submissionLocal.MakeRValue(),
-                        arguments:=ImmutableArray(Of BoundExpression).Empty,
-                        constantValueOpt:=Nothing,
-                        suppressObjectClone:=False,
-                        type:=initializer.ReturnType).MakeCompilerGenerated().MakeRValue(),
+                        submissionLocal,
+                        initializer).MakeRValue(),
                     functionLocalOpt:=Nothing,
                     exitLabelOpt:=Nothing).MakeCompilerGenerated()
 

@@ -105,5 +105,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining
 
             AssertRegion(expectedRegion, actualRegion);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public void TestPropertyWithSpaceAfterIdentifier()
+        {
+            var tree = ParseLines("class C",
+                                        "{",
+                                        "  public int Foo    ",
+                                        "  {",
+                                        "    get { }",
+                                        "    set { }",
+                                        "  }",
+                                        "}");
+
+            var typeDecl = tree.DigToFirstTypeDeclaration();
+            var propDecl = typeDecl.DigToFirstNodeOfType<PropertyDeclarationSyntax>();
+
+            var actualRegion = GetRegion(propDecl);
+            var expectedRegion = new OutliningSpan(
+                TextSpan.FromBounds(32, 68),
+                TextSpan.FromBounds(14, 68),
+                CSharpOutliningHelpers.Ellipsis,
+                autoCollapse: true);
+
+            AssertRegion(expectedRegion, actualRegion);
+        }
     }
 }

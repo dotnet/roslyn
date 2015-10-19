@@ -470,6 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.DelegateInvoke:
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
+                case MethodKind.LocalFunction:
                 case MethodKind.UserDefinedOperator:
                 case MethodKind.Ordinary:
                 case MethodKind.PropertyGet:
@@ -608,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var array = (ArrayTypeSymbol)firstType;
-            return array.Rank == 1 && array.ElementType.SpecialType == SpecialType.System_String;
+            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
         }
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
@@ -991,6 +992,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return MethodKind.ReducedExtension;
                     case MethodKind.StaticConstructor:
                         return MethodKind.StaticConstructor;
+                    case MethodKind.LocalFunction:
+                        return MethodKind.LocalFunction;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.MethodKind);
                 }

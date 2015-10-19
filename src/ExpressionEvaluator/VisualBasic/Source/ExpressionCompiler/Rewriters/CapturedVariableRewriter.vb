@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
     Friend NotInheritable Class CapturedVariableRewriter
-        Inherits BoundTreeRewriter
+        Inherits BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
         Friend Shared Function Rewrite(
             targetMethodMeParameter As ParameterSymbol,
@@ -30,6 +30,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             _displayClassVariables = displayClassVariables
             _diagnostics = diagnostics
         End Sub
+
+        Public Overrides Function Visit(node As BoundNode) As BoundNode
+            ' Ignore nodes that will be rewritten to literals in the LocalRewriter.
+            If TryCast(node, BoundExpression)?.ConstantValueOpt IsNot Nothing Then
+                Return node
+            End If
+
+            Return MyBase.Visit(node)
+        End Function
 
         Public Overrides Function VisitBlock(node As BoundBlock) As BoundNode
             Dim rewrittenLocals = node.Locals.WhereAsArray(AddressOf IncludeLocal)

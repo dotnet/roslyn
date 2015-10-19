@@ -17,7 +17,7 @@
     <!-- copy any extra content files (like EULAs) that we need to include -->
     <Copy SourceFiles="@(Content)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
     <!-- package! -->
-    <Exec Command='..\..\..\.nuget\NuGet Pack "$(MSBuildProjectDirectory)\%(NuSpec.Identity)" -BasePath $(OutDir) -OutputDirectory $(NuGetOutDir) $(NuGetArguments)' />
+    <Exec Command='$(NuGetToolPath) Pack "$(MSBuildProjectDirectory)\%(NuSpec.Identity)" -BasePath $(OutDir) -OutputDirectory $(NuGetOutDir) $(NuGetArguments)' />
   </Target>
   <Target Name="Clean">
     <RemoveDir Directories="$(OutDir)NuGet" />

@@ -521,7 +521,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Property
 
         ''' <summary>
-        ''' Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement(Of T)(SyntaxNode)"/>
+        ''' Do not use this method directly! Instead, go through <see cref="FileCodeModel.GetOrCreateCodeElement(Of T)(SyntaxNode)"/>
         ''' </summary>
         Public Overloads Overrides Function CreateInternalCodeElement(
             state As CodeModelState,
@@ -3549,8 +3549,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Protected Overrides Function GetTypeSymbolFromPartialName(partialName As String, semanticModel As SemanticModel, position As Integer) As ITypeSymbol
             Dim parsedTypeName = SyntaxFactory.ParseTypeName(partialName)
 
-            Dim visualBasicSemanticModel = DirectCast(semanticModel, SemanticModel)
-            Return visualBasicSemanticModel.GetSpeculativeTypeInfo(position, parsedTypeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type
+            Return semanticModel.GetSpeculativeTypeInfo(position, parsedTypeName, SpeculativeBindingOption.BindAsTypeOrNamespace).Type
         End Function
 
         Public Overrides Function CreateReturnDefaultValueStatement(type As ITypeSymbol) As SyntaxNode
@@ -4322,5 +4321,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Public Overrides Sub EnsureBufferFormatted(buffer As ITextBuffer)
             _commitBufferManagerFactory.CreateForBuffer(buffer).CommitDirty(isExplicitFormat:=False, cancellationToken:=Nothing)
         End Sub
+
     End Class
 End Namespace

@@ -1,17 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeClass))]
-    public sealed class CodeClass : AbstractCodeType, EnvDTE.CodeClass, EnvDTE80.CodeClass2
+    [ComDefaultInterface(typeof(EnvDTE80.CodeClass2))]
+    public sealed class CodeClass : AbstractCodeType, EnvDTE.CodeClass, EnvDTE80.CodeClass2, ICodeClassBase
     {
+        private static readonly SymbolDisplayFormat s_BaseNameFormat =
+            new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         internal static EnvDTE.CodeClass Create(
             CodeModelState state,
             FileCodeModel fileCodeModel,
@@ -21,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             var element = new CodeClass(state, fileCodeModel, nodeKey, nodeKind);
             var result = (EnvDTE.CodeClass)ComAggregate.CreateAggregatedObject(element);
 
-            fileCodeModel.OnElementCreated(nodeKey, (EnvDTE.CodeElement)result);
+            fileCodeModel.OnCodeElementCreated(nodeKey, (EnvDTE.CodeElement)result);
 
             return result;
         }
@@ -192,6 +199,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
                 return FileCodeModel.AddVariable(LookupNode(), name, type, position, access);
             });
+        }
+
+        public int GetBaseName(out string pBaseName)
+        {
+            var typeSymbol = LookupTypeSymbol();
+            if (typeSymbol?.BaseType == null)
+            {
+                pBaseName = null;
+                return VSConstants.E_FAIL;
+            }
+
+            pBaseName = typeSymbol.BaseType.ToDisplayString(s_BaseNameFormat);
+            return VSConstants.S_OK;
         }
     }
 }

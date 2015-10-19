@@ -25,10 +25,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-        Public Sub TestLocalSuppressionOnEveryNodes()
+        Public Sub TestSuppressionWithAttributeOnEveryNodes()
             Dim facts = New VisualBasicSyntaxFactsService()
 
-            TestLocalSuppression(
+            TestSuppressionWithAttribute(
                 TestResource.AllInOneVisualBasicCode,
                 VisualBasicParseOptions.Default,
                 digInto:=Function(n)

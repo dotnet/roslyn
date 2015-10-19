@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var arraySource = (ArrayTypeSymbol)source;
             var arrayTarget = (ArrayTypeSymbol)target;
-            if (arraySource.Rank != arrayTarget.Rank)
+            if (!arraySource.HasSameShapeAs(arrayTarget))
             {
                 return false;
             }
@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target.IsArray())
             {
                 var arrayTarget = (ArrayTypeSymbol)target;
-                if (arrayTarget.Rank != source.Rank)
+                if (!arrayTarget.HasSameShapeAs(source))
                 {
                     return null;
                 }
@@ -1636,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Or it might be IEnum<T> and source is rank one.
 
-            if (source.Rank != 1)
+            if (!source.IsSZArray)
             {
                 return null;
             }

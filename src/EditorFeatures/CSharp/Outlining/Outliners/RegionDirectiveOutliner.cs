@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
                 spans.Add(new OutliningSpan(
                     TextSpan.FromBounds(regionDirective.SpanStart, match.Span.End),
                     GetBannerText(regionDirective),
-                    autoCollapse: true));
+                    autoCollapse: true,
+                    isDefaultCollapsed: true));
             }
         }
 

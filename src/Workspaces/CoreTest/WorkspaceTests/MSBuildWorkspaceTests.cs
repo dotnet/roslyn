@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,8 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -1024,6 +1027,67 @@ class C1
                 var ws = MSBuildWorkspace.Create();
                 ws.SkipUnrecognizedProjects = false;
                 var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+            },
+            e =>
+            {
+                Assert.Equal(true, e.Message.Contains("extension"));
+            });
+        }
+
+        private HostServices hostServicesWithoutCSharp = MefHostServices.Create(MefHostServices.DefaultAssemblies.Where(a => !a.FullName.Contains("CSharp")));
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
+        public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_Throws()
+        {
+            // proves that if the language libaries are missing then the appropriate error occurs
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            AssertThrows<InvalidOperationException>(() =>
+            {
+                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                ws.SkipUnrecognizedProjects = false;
+                var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+            },
+            e =>
+            {
+                Assert.Equal(true, e.Message.Contains("extension"));
+            });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
+        public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipTrue_SucceedsWithDiagnostic()
+        {
+            // proves that if the language libaries are missing then the appropriate error occurs
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+            ws.SkipUnrecognizedProjects = true;
+
+            var dx = new List<WorkspaceDiagnostic>();
+            ws.WorkspaceFailed += delegate (object sender, WorkspaceDiagnosticEventArgs e)
+            {
+                dx.Add(e.Diagnostic);
+            };
+
+            var solution = ws.OpenSolutionAsync(GetSolutionFileName(@"TestSolution.sln")).Result;
+
+            Assert.Equal(1, dx.Count);
+            Assert.True(dx[0].Message.Contains("extension"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
+        public void TestOpenProject_WithMissingLanguageLibraries_Throws()
+        {
+            // proves that if the language libaries are missing then the appropriate error occurs
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            AssertThrows<InvalidOperationException>(() =>
+            {
+                var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
+                var project = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             },
             e =>
             {
@@ -2851,6 +2915,32 @@ class C { }";
             var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             var docs = proj.Documents.ToList();
             Assert.Equal(3, docs.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_CommandLineArgsHaveNoErrors()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var ws = MSBuildWorkspace.Create();
+            var loader = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<IProjectFileLoader>();
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            var properties = ImmutableDictionary<string, string>.Empty;
+            var projectFile = loader.LoadProjectFileAsync(projectFilePath, properties, CancellationToken.None).Result;
+            var projectFileInfo = projectFile.GetProjectFileInfoAsync(CancellationToken.None).Result;
+
+            var commandLineParser = ws.Services.GetLanguageServices(loader.Language).GetRequiredService<ICommandLineParserService>();
+
+            var projectDirectory = Path.GetDirectoryName(projectFilePath);
+            var commandLineArgs = commandLineParser.Parse(
+                arguments: projectFileInfo.CommandLineArgs,
+                baseDirectory: projectDirectory,
+                isInteractive: false,
+                sdkDirectory: System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
+
+            Assert.Equal(0, commandLineArgs.Errors.Length);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

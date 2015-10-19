@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Get the current syntax tree for the document if the text is already loaded and the tree is already parsed.
-        /// Returns true if the syntax tree is already available, or false if getting the syntax tree would have incurred additional work.
+        /// In almost all cases, you should call <see cref="GetSyntaxTreeAsync"/> to fetch the tree, which will parse the tree
+        /// if it's not already parsed.
         /// </summary>
         public bool TryGetSyntaxTree(out SyntaxTree syntaxTree)
         {
@@ -88,7 +89,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Get the current syntax tree version for the document if the text is already loaded and the tree is already parsed.
-        /// Returns true if the syntax tree is already available, or false if getting the syntax tree would have incurred additional work.
+        /// In almost all cases, you should call <see cref="GetSyntaxVersionAsync"/> to fetch the version, which will load the tree
+        /// if it's not already available.
         /// </summary>
         public bool TryGetSyntaxVersion(out VersionStamp version)
         {
@@ -199,7 +201,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the root node of the current syntax tree if it is available.
+        /// Gets the root node of the current syntax tree if the syntax tree has already been parsed and the tree is still cached.
+        /// In almost all cases, you should call <see cref="GetSyntaxRootAsync"/> to fetch the root node, which will parse
+        /// the document if necessary.
         /// </summary>
         public bool TryGetSyntaxRoot(out SyntaxNode root)
         {
@@ -223,7 +227,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the current semantic model for this document if the model is already computed.
+        /// Gets the current semantic model for this document if the model is already computed and still cached.
+        /// In almost all cases, you should call <see cref="GetSemanticModelAsync"/>, which will compute the semantic model
+        /// if necessary.
         /// </summary>
         public bool TryGetSemanticModel(out SemanticModel semanticModel)
         {

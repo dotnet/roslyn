@@ -72,6 +72,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(CodePage), 0); }
         }
 
+        [Output]
+        public ITaskItem[] CommandLineArgs
+        {
+            set { _store[nameof(CommandLineArgs)] = value; }
+            get { return (ITaskItem[])_store[nameof(CommandLineArgs)]; }
+        }
+
         public string DebugType
         {
             set { _store[nameof(DebugType)] = value; }
@@ -88,6 +95,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(DelaySign)] = value; }
             get { return _store.GetOrDefault(nameof(DelaySign), false); }
+        }
+
+        public bool Deterministic
+        {
+            set { _store[nameof(Deterministic)] = value; }
+            get { return _store.GetOrDefault(nameof(Deterministic), false); }
         }
 
         public bool EmitDebugInformation
@@ -187,6 +200,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Prefer32Bit), false); }
         }
 
+        public bool ProvideCommandLineArgs
+        {
+            set { _store[nameof(ProvideCommandLineArgs)] = value; }
+            get { return _store.GetOrDefault(nameof(ProvideCommandLineArgs), false); }
+        }
+
         public ITaskItem[] References
         {
             set { _store[nameof(References)] = value; }
@@ -209,6 +228,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(ResponseFiles)] = value; }
             get { return (ITaskItem[])_store[nameof(ResponseFiles)]; }
+        }
+
+        public bool SkipCompilerExecution
+        {
+            set { _store[nameof(SkipCompilerExecution)] = value; }
+            get { return _store.GetOrDefault(nameof(SkipCompilerExecution), false); }
         }
 
         public ITaskItem[] Sources
@@ -312,6 +337,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            if (ProvideCommandLineArgs)
+            {
+                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
+                    .Select(arg => new TaskItem(arg)).ToArray();
+            }
+
+            if (SkipCompilerExecution)
+            {
+                return 0;
+            }
+
             if (!UseSharedCompilation || !String.IsNullOrEmpty(this.ToolPath))
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
@@ -321,6 +357,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 try
                 {
+                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
+                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
                     var responseTask = BuildClient.TryRunServerCompilation(
                         Language,
                         TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
@@ -496,9 +535,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
-            CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-            CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
-
             var commandLineArguments =
                 CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
             var responseFileArguments =
@@ -593,6 +629,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendWhenTrue("/nologo", this._store, "NoLogo");
             commandLine.AppendWhenTrue("/nowin32manifest", this._store, "NoWin32Manifest");
             commandLine.AppendPlusOrMinusSwitch("/optimize", this._store, "Optimize");
+            commandLine.AppendPlusOrMinusSwitch("/deterministic", this._store, "Deterministic");
             commandLine.AppendSwitchIfNotNull("/out:", this.OutputAssembly);
             commandLine.AppendSwitchIfNotNull("/ruleset:", this.CodeAnalysisRuleSet);
             commandLine.AppendSwitchIfNotNull("/errorlog:", this.ErrorLog);

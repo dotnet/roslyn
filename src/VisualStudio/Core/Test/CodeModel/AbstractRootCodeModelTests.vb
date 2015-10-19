@@ -2,20 +2,20 @@
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Public MustInherit Class AbstractRootCodeModelTests
-        Inherits AbstractCodeModelObjectTests(Of EnvDTE.CodeModel)
+        Inherits AbstractCodeModelObjectTests(Of EnvDTE80.CodeModel2)
 
-        Protected Sub TestRootCodeModel(workspaceDefinition As XElement, action As Action(Of EnvDTE.CodeModel))
+        Protected Sub TestRootCodeModel(workspaceDefinition As XElement, action As Action(Of EnvDTE80.CodeModel2))
             Using state = CreateCodeModelTestState(workspaceDefinition)
-                Dim rootCodeModel = state.RootCodeModel
+                Dim rootCodeModel = TryCast(state.RootCodeModel, EnvDTE80.CodeModel2)
                 Assert.NotNull(rootCodeModel)
 
                 action(rootCodeModel)
             End Using
         End Sub
 
-        Protected Sub TestRootCodeModelWithCodeFile(code As XElement, action As Action(Of EnvDTE.CodeModel))
+        Protected Sub TestRootCodeModelWithCodeFile(code As XElement, action As Action(Of EnvDTE80.CodeModel2))
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim rootCodeModel = state.RootCodeModel
+                Dim rootCodeModel = TryCast(state.RootCodeModel, EnvDTE80.CodeModel2)
                 Assert.NotNull(rootCodeModel)
 
                 action(rootCodeModel)

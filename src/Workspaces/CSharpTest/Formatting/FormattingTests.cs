@@ -1013,7 +1013,7 @@ class D
             string s = o        as       string;
             bool b   = o        is       string;
         }
-    }",  false, changingOptions);
+    }", false, changingOptions);
         }
 
         [WorkItem(772298, "DevDiv")]
@@ -1250,8 +1250,7 @@ class foo{int x = 0;}", false, changingOptions);
             AssertFormat(@"class Class5
 {
     delegate void Del(int x);
-    public int Age
-    { get { int age = 0; return age; } }
+    public int Age { get { int age = 0; return age; } }
     public int Age2
     {
         get { int age2 = 0; return age2; }
@@ -1278,8 +1277,7 @@ class foo{int x = 0;}", false, changingOptions);
         Del d = delegate (int k)
         { Console.WriteLine(); Console.WriteLine(); };
     }
-    void foo()
-    { int y = 0; int z = 0; }
+    void foo() { int y = 0; int z = 0; }
 }
 class foo
 {
@@ -4819,7 +4817,7 @@ class Program
         { }
         catch (System.Exception)
         { }
-        catch (System.Exception e)
+        catch (System.Exception e) when (true)
         { }
 
         using(somevar)
@@ -4861,7 +4859,7 @@ class Program
         { }
         catch ( System.Exception )
         { }
-        catch ( System.Exception e )
+        catch ( System.Exception e ) when ( true )
         { }
 
         using ( somevar )
@@ -4908,7 +4906,7 @@ class Program
 
         try
         { }
-        catch (System.Exception e)
+        catch (System.Exception e) when (true)
         { }
 
         using (somevar)
@@ -4942,7 +4940,7 @@ class Program
 
         try
         { }
-        catch(System.Exception e)
+        catch(System.Exception e) when(true)
         { }
 
         using(somevar)
@@ -5041,45 +5039,6 @@ class C
 }
 ";
             AssertFormat(expected, code);
-        }
-
-        [Fact]
-        [WorkItem(849870, "DevDiv")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void PropertyAccessorOptionOff()
-        {
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
-
-            var code = @"
-class C
-{
-    int P 
-    {
-        get
-        {
-            return 1;
-        }
-        set
-        {
-        }
-    }
-}
-";
-
-            var expected = @"
-class C
-{
-    int P {
-        get {
-            return 1;
-        }
-        set {
-        }
-    }
-}
-";
-            AssertFormat(expected, code, false, changingOptions);
         }
 
         [Fact]
@@ -6427,7 +6386,7 @@ class Program
 }";
             AssertFormat(expected, code, changedOptionSet: changingOptions);
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
         {
@@ -6446,6 +6405,156 @@ class Program
 		return // Note the missing semicolon
 	} // The tab here should stay a tab
 }", changedOptionSet: optionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        [WorkItem(849870, "DevDiv")]
+        public void NewLinesForBracesInPropertiesTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+            AssertFormat(@"class Class2
+{
+    int Foo {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
+}", @"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(849870, "DevDiv")]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        public void NewLinesForBracesInAccessorsTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAccessors, false);
+            AssertFormat(@"class Class2
+{
+    int Foo
+    {
+        get {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
+}", @"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(849870, "DevDiv")]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        public void NewLinesForBracesInPropertiesAndAccessorsTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAccessors, false);
+            AssertFormat(@"class Class2
+{
+    int Foo {
+        get {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
+}", @"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(111079, "devdiv.visualstudio.com")]
+        public void TestThrowInIfOnSingleLine()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        if (true) throw new Exception(
+            ""message"");
+    }
+}
+";
+
+            AssertFormat(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
+        public void SingleLinePropertiesPreservedWithLeaveStatementsAndMembersOnSingleLineFalse()
+        {
+            var changedOptionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.WrappingPreserveSingleLine, true },
+                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false},
+            };
+
+            AssertFormat(@"
+class C
+{
+    string Name { get; set; }
+}", @"
+class C
+{
+    string  Name    {    get    ;   set     ;    }
+}", changedOptionSet: changedOptionSet);
         }
     }
 }

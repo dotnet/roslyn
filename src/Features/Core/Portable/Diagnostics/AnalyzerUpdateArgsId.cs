@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Common;
+
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Base type of a type that is used as <see cref="DiagnosticsUpdatedArgs.Id"/> for live diagnostic
+    /// Base type of a type that is used as <see cref="UpdatedEventArgs.Id"/> for live diagnostic
     /// </summary>
     internal class AnalyzerUpdateArgsId : BuildToolId.Base<DiagnosticAnalyzer>, ISupportLiveUpdate
     {

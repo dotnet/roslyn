@@ -88,6 +88,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Applying remove suppressions fix....
+        /// </summary>
+        internal static string ApplyingRemoveSuppressionFix {
+            get {
+                return ResourceManager.GetString("ApplyingRemoveSuppressionFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applying suppressions fix....
+        /// </summary>
+        internal static string ApplyingSuppressionFix {
+            get {
+                return ResourceManager.GetString("ApplyingSuppressionFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Building Project.
         /// </summary>
         internal static string BuildingProject {
@@ -129,6 +147,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string CodefixOrRefactoringEncounteredError {
             get {
                 return ResourceManager.GetString("CodefixOrRefactoringEncounteredError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Computing remove suppressions fix....
+        /// </summary>
+        internal static string ComputingRemoveSuppressionFix {
+            get {
+                return ResourceManager.GetString("ComputingRemoveSuppressionFix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Computing suppressions fix....
+        /// </summary>
+        internal static string ComputingSuppressionFix {
+            get {
+                return ResourceManager.GetString("ComputingSuppressionFix", resourceCulture);
             }
         }
         
@@ -318,15 +354,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ERR_CantReadRulesetFileTitle {
             get {
                 return ResourceManager.GetString("ERR_CantReadRulesetFileTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Roslyn.HostError.
-        /// </summary>
-        internal static string ErrorCategory {
-            get {
-                return ResourceManager.GetString("ErrorCategory", resourceCulture);
             }
         }
         
@@ -958,6 +985,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove suppressions.
+        /// </summary>
+        internal static string RemoveSuppressMultipleOccurrences {
+            get {
+                return ResourceManager.GetString("RemoveSuppressMultipleOccurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resetting Interactive.
         /// </summary>
         internal static string ResettingInteractive {
@@ -1003,11 +1039,56 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Active.
+        /// </summary>
+        internal static string SuppressionStateActive {
+            get {
+                return ResourceManager.GetString("SuppressionStateActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppression State.
+        /// </summary>
+        internal static string SuppressionStateColumnHeader {
+            get {
+                return ResourceManager.GetString("SuppressionStateColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppressed.
+        /// </summary>
+        internal static string SuppressionStateSuppressed {
+            get {
+                return ResourceManager.GetString("SuppressionStateSuppressed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suppress diagnostics.
+        /// </summary>
+        internal static string SuppressMultipleOccurrences {
+            get {
+                return ResourceManager.GetString("SuppressMultipleOccurrences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IDs are not supported for this symbol type..
         /// </summary>
         internal static string SymbolTypeIdInvalid {
             get {
                 return ResourceManager.GetString("SymbolTypeIdInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This workspace only supports opening documents on the UI thread..
+        /// </summary>
+        internal static string ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread {
+            get {
+                return ResourceManager.GetString("ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread", resourceCulture);
             }
         }
         
@@ -1075,15 +1156,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An instance of analyzer {0} cannot be created from {1}: {2}..
-        /// </summary>
-        internal static string WRN_AnalyzerCannotBeCreated {
-            get {
-                return ResourceManager.GetString("WRN_AnalyzerCannotBeCreated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The analyzer assembly &apos;{0}&apos; has changed. Diagnostics may be incorrect until Visual Studio is restarted..
         /// </summary>
         internal static string WRN_AnalyzerChangedMessage {
@@ -1134,24 +1206,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string WRN_MissingAnalyzerReferenceTitle {
             get {
                 return ResourceManager.GetString("WRN_MissingAnalyzerReferenceTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The assembly {0} does not contain any analyzers..
-        /// </summary>
-        internal static string WRN_NoAnalyzerInAssembly {
-            get {
-                return ResourceManager.GetString("WRN_NoAnalyzerInAssembly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to load Analyzer assembly {0}: {1}.
-        /// </summary>
-        internal static string WRN_UnableToLoadAnalyzer {
-            get {
-                return ResourceManager.GetString("WRN_UnableToLoadAnalyzer", resourceCulture);
             }
         }
         

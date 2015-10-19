@@ -58,6 +58,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
+        public void UncommentSingleLineCommentInPseudoBlockComment()
+        {
+            var code = @"
+class C
+{
+    /// <include file='doc\Control.uex' path='docs/doc[@for=""Control.RtlTranslateAlignment1""]/*' />
+    protected void RtlTranslateAlignment2()
+    {
+        //[|int x = 0;|]
+    }
+    /* Hello world */
+}";
+
+            var expected = @"
+class C
+{
+    /// <include file='doc\Control.uex' path='docs/doc[@for=""Control.RtlTranslateAlignment1""]/*' />
+    protected void RtlTranslateAlignment2()
+    {
+        int x = 0;
+    }
+    /* Hello world */
+}";
+
+            UncommentSelection(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CommentSelection)]
         public void UncommentAndFormat3()
         {
             var code = @"class A

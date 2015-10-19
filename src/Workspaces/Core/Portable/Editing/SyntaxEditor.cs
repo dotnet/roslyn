@@ -85,8 +85,18 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="node">The node to remove that currently exists as part of the tree.</param>
         public void RemoveNode(SyntaxNode node)
         {
+            RemoveNode(node, SyntaxGenerator.DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Remove the node from the tree.
+        /// </summary>
+        /// <param name="node">The node to remove that currently exists as part of the tree.</param>
+        /// <param name="options">Options that affect how node removal works.</param>
+        public void RemoveNode(SyntaxNode node, SyntaxRemoveOptions options)
+        {
             CheckNodeInTree(node);
-            _changes.Add(new RemoveChange(node));
+            _changes.Add(new RemoveChange(node, options));
         }
 
         /// <summary>
@@ -109,6 +119,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public void ReplaceNode(SyntaxNode node, SyntaxNode newNode)
         {
             CheckNodeInTree(node);
+            if (node == newNode)
+            {
+                return;
+            }
+
             this.ReplaceNode(node, (n, g) => newNode);
         }
 
@@ -191,14 +206,17 @@ namespace Microsoft.CodeAnalysis.Editing
 
         private class RemoveChange : Change
         {
-            public RemoveChange(SyntaxNode node)
+            private readonly SyntaxRemoveOptions _options;
+
+            public RemoveChange(SyntaxNode node, SyntaxRemoveOptions options)
                 : base(node)
             {
+                _options = options;
             }
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
-                return generator.RemoveNode(root, root.GetCurrentNode(this.Node));
+                return generator.RemoveNode(root, root.GetCurrentNode(this.Node), _options);
             }
         }
 
