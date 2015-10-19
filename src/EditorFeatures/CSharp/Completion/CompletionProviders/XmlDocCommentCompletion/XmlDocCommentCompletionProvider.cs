@@ -28,11 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
 
         protected override async Task<IEnumerable<CompletionItem>> GetItemsWorkerAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
-            if (triggerInfo.IsDebugger)
-            {
-                return null;
-            }
-
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var parentTrivia = token.GetAncestor<DocumentationCommentTriviaSyntax>();

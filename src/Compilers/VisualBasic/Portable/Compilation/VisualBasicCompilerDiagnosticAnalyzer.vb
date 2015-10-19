@@ -21,6 +21,14 @@ Namespace Microsoft.CodeAnalysis.Diagnostics.VisualBasic
             Dim errorCodes As Array = [Enum].GetValues(GetType(ERRID))
             Dim builder = ImmutableArray.CreateBuilder(Of Integer)
             For Each errorCode As Integer In errorCodes
+
+                ' these errors are not supported by live analysis
+                If errorCode = ERRID.ERR_TypeRefResolutionError3 OrElse
+                   errorCode = ERRID.ERR_MissingRuntimeHelper OrElse
+                   errorCode = ERRID.ERR_CannotGotoNonScopeBlocksWithClosure Then
+                    Continue For
+                End If
+
                 If errorCode > ERRID.ERR_None AndAlso errorCode <= ERRID.ERRWRN_Last Then
                     builder.Add(errorCode)
                 End If

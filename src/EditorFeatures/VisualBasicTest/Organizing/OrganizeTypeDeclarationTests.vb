@@ -5,6 +5,10 @@ Imports System.Collections.Generic
 Imports System.Linq
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Organizing
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.EditorUtilities
@@ -938,6 +942,58 @@ End Namespace</element>
     End Class
 End Namespace</element>
             Check(initial, final)
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Organizing)>
+        <Trait(Traits.Feature, Traits.Features.Interactive)>
+        Public Sub OrganizingCommandsDisabledInSubmission()
+            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsCodeFixService)))
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+                <Workspace>
+                    <Submission Language="Visual Basic" CommonReferences="true">  
+                        Class C
+                            Private $foo As Object
+                        End Class
+                    </Submission>
+                </Workspace>,
+                workspaceKind:=WorkspaceKind.Interactive,
+                exportProvider:=exportProvider)
+
+                ' Force initialization.
+                workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
+
+                Dim textView = workspace.Documents.Single().GetTextView()
+
+                Dim handler = New OrganizeDocumentCommandHandler(workspace.GetService(Of Host.IWaitIndicator))
+                Dim delegatedToNext = False
+                Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+                Dim state = handler.GetCommandState(New Commands.SortImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+
+                delegatedToNext = False
+                state = handler.GetCommandState(New Commands.SortAndRemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+
+                delegatedToNext = False
+                state = handler.GetCommandState(New Commands.RemoveUnnecessaryImportsCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+
+                delegatedToNext = False
+                state = handler.GetCommandState(New Commands.OrganizeDocumentCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
+            End Using
         End Sub
     End Class
 End Namespace

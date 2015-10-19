@@ -11,6 +11,8 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
 
+using static Microsoft.CodeAnalysis.AnalyzerAssemblyLoadUtils;
+
 namespace Microsoft.CodeAnalysis
 {
     internal abstract class AbstractAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
@@ -147,42 +149,6 @@ namespace Microsoft.CodeAnalysis
         private bool FileMatchesAssemblyName(string path, string assemblySimpleName)
         {
             return Path.GetFileNameWithoutExtension(path).Equals(assemblySimpleName, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static AssemblyIdentity TryGetAssemblyIdentity(string filePath)
-        {
-            try
-            {
-                if (!File.Exists(filePath))
-                {
-                    return null;
-                }
-
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
-                using (var peReader = new PEReader(stream))
-                {
-                    var metadataReader = peReader.GetMetadataReader();
-
-                    AssemblyDefinition assemblyDefinition = metadataReader.GetAssemblyDefinition();
-
-                    string name = metadataReader.GetString(assemblyDefinition.Name);
-                    Version version = assemblyDefinition.Version;
-
-                    StringHandle cultureHandle = assemblyDefinition.Culture;
-                    string cultureName = (!cultureHandle.IsNil) ? metadataReader.GetString(cultureHandle) : null;
-                    AssemblyFlags flags = assemblyDefinition.Flags;
-
-                    bool hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
-                    BlobHandle publicKeyHandle = assemblyDefinition.PublicKey;
-                    ImmutableArray<byte> publicKeyOrToken = !publicKeyHandle.IsNil
-                        ? metadataReader.GetBlobBytes(publicKeyHandle).AsImmutableOrNull()
-                        : default(ImmutableArray<byte>);
-                    return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey);
-                }
-            }
-            catch { }
-
-            return null;
         }
     }
 }

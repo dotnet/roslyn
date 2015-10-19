@@ -2032,5 +2032,51 @@ End Interface
             TestFromXml(markup, MainDescription("Interface IFoo"), Documentation("summary for interface IFoo"))
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(4868, "https://github.com/dotnet/roslyn/issues/4868")>
+        Public Sub QuickInfoExceptions()
+            Test("
+Imports System
+Namespace MyNs
+    Class MyException1
+        Inherits Exception
+    End Class
+    Class MyException2
+        Inherits Exception
+    End Class
+    Class TestClass
+        ''' <exception cref=""MyException1""></exception>
+        ''' <exception cref=""T:MyNs.MyException2""></exception>
+        ''' <exception cref=""System.Int32""></exception>
+        ''' <exception cref=""Double""></exception>
+        ''' <exception cref=""Not_A_Class_But_Still_Displayed""></exception>
+        Sub M()
+            M$$()
+        End Sub
+    End Class
+End Namespace
+",
+                Exceptions($"{vbCrLf}{WorkspacesResources.Exceptions}{vbCrLf}  MyException1{vbCrLf}  MyException2{vbCrLf}  Integer{vbCrLf}  Double{vbCrLf}  Not_A_Class_But_Still_Displayed"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(1516, "https://github.com/dotnet/roslyn/issues/1516")>
+        Public Sub QuickInfoWithNonStandardSeeAttributesAppear()
+            Test("
+Class C
+    ''' <summary>
+    ''' <see cref=""System.String"" />
+    ''' <see href=""http://microsoft.com"" />
+    ''' <see langword=""Nothing"" />
+    ''' <see unsupported-attribute=""cat"" />
+    ''' </summary>
+    Sub M()
+        M$$()
+    End Sub
+End Class
+",
+                 Documentation("String http://microsoft.com Nothing cat"))
+        End Sub
+
     End Class
 End Namespace

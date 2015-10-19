@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -50,24 +51,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
                     else if (node is XmlEmptyElementSyntax)
                     {
                         var e = (XmlEmptyElementSyntax)node;
-                        var cref = e.Attributes.OfType<XmlCrefAttributeSyntax>().FirstOrDefault();
-                        if (cref != null)
+                        foreach (var attribute in e.Attributes)
                         {
-                            sb.Append(" ");
-                            sb.Append(cref.Cref.ToString());
-                        }
-
-                        var nameattribute = e.Attributes.OfType<XmlNameAttributeSyntax>().FirstOrDefault();
-                        if (nameattribute != null)
-                        {
-                            sb.Append(" ");
-                            sb.Append(nameattribute.Identifier.Identifier.Text);
-                        }
-
-                        var langword = e.Attributes.OfType<XmlTextAttributeSyntax>().FirstOrDefault(a => a.Name.LocalName.ToString() == "langword");
-                        if (langword != null)
-                        {
-                            AppendTextTokens(sb, langword.TextTokens);
+                            if (attribute is XmlCrefAttributeSyntax)
+                            {
+                                sb.Append(" ");
+                                sb.Append(((XmlCrefAttributeSyntax)attribute).Cref.ToString());
+                            }
+                            else if (attribute is XmlNameAttributeSyntax)
+                            {
+                                sb.Append(" ");
+                                sb.Append(((XmlNameAttributeSyntax)attribute).Identifier.Identifier.Text);
+                            }
+                            else if (attribute is XmlTextAttributeSyntax)
+                            {
+                                AppendTextTokens(sb, ((XmlTextAttributeSyntax)attribute).TextTokens);
+                            }
+                            else
+                            {
+                                Debug.Fail($"Unexpected XML syntax kind {attribute.Kind()}");
+                            }
                         }
                     }
                 }

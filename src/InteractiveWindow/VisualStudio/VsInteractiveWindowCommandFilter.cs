@@ -180,6 +180,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         return VSConstants.S_OK;
                 }
             }
+            else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
+            {
+                switch ((VSConstants.VSStd97CmdID)prgCmds[0].cmdID)
+                {
+                    // TODO: Add support of rotating clipboard ring 
+                    // https://github.com/dotnet/roslyn/issues/5651
+                    case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
+                        prgCmds[0].cmdf = CommandDisabled;
+                        return VSConstants.S_OK;
+                }
+            }
 
             return _editorCommandFilter.QueryStatus(ref pguidCmdGroup, cCmds, prgCmds, pCmdText);
         }
@@ -263,12 +274,38 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                     case VSConstants.VSStd2KCmdID.EOL_EXT:
                         _window.Operations.End(true);
                         return VSConstants.S_OK;
+                    case VSConstants.VSStd2KCmdID.CUTLINE:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.CutLine();
+                                return VSConstants.S_OK;
+                            }
+                        }
+                        break;
+                    case VSConstants.VSStd2KCmdID.DELETELINE:
+                        {
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.DeleteLine();
+                                return VSConstants.S_OK;
+                            }
+                        }
+                        break;
+
                 }
             }
             else if (pguidCmdGroup == VSConstants.GUID_VSStandardCommandSet97)
             {
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
+                    // TODO: Add support of rotating clipboard ring 
+                    // https://github.com/dotnet/roslyn/issues/5651
+                    case VSConstants.VSStd97CmdID.PasteNextTBXCBItem:
+                        return (int)OLE.Interop.Constants.OLECMDERR_E_NOTSUPPORTED;
+
                     case VSConstants.VSStd97CmdID.Paste:
                         _window.Operations.Paste();
                         return VSConstants.S_OK;
@@ -278,11 +315,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                         return VSConstants.S_OK;
 
                     case VSConstants.VSStd97CmdID.Copy:
-                        var operations = _window.Operations as IInteractiveWindowOperations2;
-                        if (operations != null)
                         {
-                            operations.Copy();
-                            return VSConstants.S_OK;
+                            var operations = _window.Operations as IInteractiveWindowOperations2;
+                            if (operations != null)
+                            {
+                                operations.Copy();
+                                return VSConstants.S_OK;
+                            }
                         }
                         break;
 
@@ -405,6 +444,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Shell
                 // undo/redo support:
                 switch ((VSConstants.VSStd97CmdID)nCmdID)
                 {
+                    // TODO: remove (https://github.com/dotnet/roslyn/issues/5642)
+                    case VSConstants.VSStd97CmdID.FindReferences:
+                        return VSConstants.S_OK;
                     case VSConstants.VSStd97CmdID.Undo:
                     case VSConstants.VSStd97CmdID.MultiLevelUndo:
                     case VSConstants.VSStd97CmdID.MultiLevelUndoList:

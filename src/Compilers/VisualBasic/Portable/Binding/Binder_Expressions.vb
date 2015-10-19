@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Create a BoundBadExpression node for the given childexpression, which is preserved as a sub-expression. 
+        ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' No ResultKind is associated
         ''' </summary>
         Private Shared Function BadExpression(node As VisualBasicSyntaxNode, expr As BoundNode, resultType As TypeSymbol) As BoundBadExpression
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
-        ''' Create a BoundBadExpression node for the given childexpression, which is preserved as a sub-expression. 
+        ''' Create a BoundBadExpression node for the given child-expression, which is preserved as a sub-expression. 
         ''' A ResultKind explains why the node is bad.
         ''' </summary>
         Private Shared Function BadExpression(node As VisualBasicSyntaxNode, expr As BoundNode, resultKind As LookupResultKind, resultType As TypeSymbol) As BoundBadExpression
@@ -1239,7 +1239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                  originalTargetType.SpecialType = SpecialType.System_Collections_Generic_IReadOnlyCollection_T) Then
 
                 targetElementType = targetType.TypeArgumentsNoUseSiteDiagnostics(0)
-                sourceType = New ArrayTypeSymbol(targetElementType, Nothing, 1, Compilation)
+                sourceType = ArrayTypeSymbol.CreateVBArray(targetElementType, Nothing, 1, Compilation)
 
             Else
                 ' Use the inferred type
@@ -3815,7 +3815,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim inferredElementType As TypeSymbol = Nothing
             Dim arrayInitializer = BindArrayInitializerList(node, knownSizes, hasDominantType, numberOfCandidates, inferredElementType, diagnostics)
 
-            Dim inferredArrayType = New ArrayTypeSymbol(inferredElementType, Nothing, knownSizes.Length, Compilation)
+            Dim inferredArrayType = ArrayTypeSymbol.CreateVBArray(inferredElementType, Nothing, knownSizes.Length, Compilation)
 
             Dim sizes As ImmutableArray(Of BoundExpression) = CreateArrayBounds(node, knownSizes, diagnostics)
 

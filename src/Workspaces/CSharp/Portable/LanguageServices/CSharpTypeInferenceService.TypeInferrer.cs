@@ -30,31 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override IEnumerable<ITypeSymbol> GetTypes_DoNotCallDirectly(ExpressionSyntax expression, bool objectAsDefault)
             {
-                IEnumerable<ITypeSymbol> types;
-
-                // BUG: (vladres) Are following expressions parenthesized correctly?
-                // BUG:
-                // BUG: (davip) It is parenthesized incorrectly. This problem was introduced in Changeset 822325 when 
-                // BUG: this method was changed from returning a single ITypeSymbol to returning an IEnumerable<ITypeSymbol> 
-                // BUG: to better deal with overloads. The old version was:
-                // BUG: 
-                // BUG:     if (!IsUnusableType(type = GetTypeSimple(expression)) ||
-                // BUG:         !IsUnusableType(type = GetTypeComplex(expression)))
-                // BUG:           { return type; }
-                // BUG: 
-                // BUG: The intent is to only use *usable* types, whether simple or complex. I have confirmed this intent with Ravi, who made the change. 
-                // BUG: 
-                // BUG: Note that the current implementation of GetTypesComplex and GetTypesSimple already ensure the returned value 
-                // BUG: is a usable type, so there should not (currently) be any observable effect of this logic error.
-                // BUG:
-                // BUG: (vladres) Please remove this comment once the bug is fixed.
-                if ((types = GetTypesSimple(expression).Where(IsUsableTypeFunc)).Any() ||
-                    (types = GetTypesComplex(expression)).Where(IsUsableTypeFunc).Any())
+                var types = GetTypesSimple(expression).Where(IsUsableTypeFunc);
+                if (types.Any())
                 {
                     return types;
                 }
 
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                return GetTypesComplex(expression).Where(IsUsableTypeFunc);
             }
 
             private static bool DecomposeBinaryOrAssignmentExpression(ExpressionSyntax expression, out SyntaxToken operatorToken, out ExpressionSyntax left, out ExpressionSyntax right)
@@ -591,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var typeArguments = method.ConstructedFrom.TypeParameters.Select(tp => bestMap.GetValueOrDefault(tp) ?? tp).ToArray();
-                return method.Construct(typeArguments);
+                return method.ConstructedFrom.Construct(typeArguments);
             }
 
             private Dictionary<ITypeParameterSymbol, ITypeSymbol> DetermineTypeParameterMapping(ITypeSymbol inferredType, ITypeSymbol returnType)
@@ -1541,10 +1523,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeForReturnStatement(ReturnStatementSyntax returnStatement, SyntaxToken? previousToken = null)
             {
+                bool isAsync;
+                IEnumerable<ITypeSymbol> types;
+
+                InferTypeForReturnStatement(returnStatement, previousToken, out isAsync, out types);
+
+                if (!isAsync)
+                {
+                    return types;
+                }
+
+                var taskOfT = this.Compilation.TaskOfTType();
+                if (taskOfT == null || types == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                }
+
+                return from t in types
+                       where t != null && t.OriginalDefinition.Equals(taskOfT)
+                       let nt = (INamedTypeSymbol)t
+                       where nt.TypeArguments.Length == 1
+                       select nt.TypeArguments[0];
+            }
+
+            private void InferTypeForReturnStatement(
+                ReturnStatementSyntax returnStatement, SyntaxToken? previousToken, out bool isAsync, out IEnumerable<ITypeSymbol> types)
+            {
+                isAsync = false;
+                types = SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+
                 // If we are position based, then we have to be after the return statement.
                 if (previousToken.HasValue && previousToken.Value != returnStatement.ReturnKeyword)
                 {
-                    return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                    return;
                 }
 
                 var ancestorExpressions = returnStatement.GetAncestorsOrThis<ExpressionSyntax>();
@@ -1554,11 +1565,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambda = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
                 if (lambda != null)
                 {
-                    return InferTypeInLambdaExpression(lambda);
+                    types= InferTypeInLambdaExpression(lambda);
+                    isAsync = lambda is ParenthesizedLambdaExpressionSyntax && ((ParenthesizedLambdaExpressionSyntax)lambda).AsyncKeyword.Kind() != SyntaxKind.None;
+                    return;
                 }
 
                 // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
-                var delegateExpression = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.AnonymousMethodExpression));
+                var delegateExpression = (AnonymousMethodExpressionSyntax)ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.AnonymousMethodExpression));
                 if (delegateExpression != null)
                 {
                     var delegateType = InferTypes(delegateExpression).FirstOrDefault();
@@ -1567,7 +1580,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateInvokeMethod = delegateType.GetDelegateType(this.Compilation).DelegateInvokeMethod;
                         if (delegateInvokeMethod != null)
                         {
-                            return SpecializedCollections.SingletonEnumerable(delegateInvokeMethod.ReturnType);
+                            types = SpecializedCollections.SingletonEnumerable(delegateInvokeMethod.ReturnType);
+                            isAsync = delegateExpression.AsyncKeyword.Kind() != SyntaxKind.None;
+                            return;
                         }
                     }
                 }
@@ -1577,30 +1592,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (memberSymbol.IsKind(SymbolKind.Method))
                 {
                     var method = memberSymbol as IMethodSymbol;
-                    if (method.IsAsync)
-                    {
-                        var typeArguments = method.ReturnType.GetTypeArguments();
-                        var taskOfT = this.Compilation.TaskOfTType();
 
-                        return taskOfT != null && method.ReturnType.OriginalDefinition == taskOfT && typeArguments.Any()
-                            ? SpecializedCollections.SingletonEnumerable(typeArguments.First())
-                            : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
-                    }
-                    else
-                    {
-                        return SpecializedCollections.SingletonEnumerable(method.ReturnType);
-                    }
+                    isAsync = method.IsAsync;
+                    types = SpecializedCollections.SingletonEnumerable(method.ReturnType);
+                    return;
                 }
                 else if (memberSymbol.IsKind(SymbolKind.Property))
                 {
-                    return SpecializedCollections.SingletonEnumerable((memberSymbol as IPropertySymbol).Type);
+                    types = SpecializedCollections.SingletonEnumerable((memberSymbol as IPropertySymbol).Type);
+                    return;
                 }
                 else if (memberSymbol.IsKind(SymbolKind.Field))
                 {
-                    return SpecializedCollections.SingletonEnumerable((memberSymbol as IFieldSymbol).Type);
+                    types = SpecializedCollections.SingletonEnumerable((memberSymbol as IFieldSymbol).Type);
+                    return;
                 }
-
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
             private ISymbol GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel currentSemanticModel, MemberDeclarationSyntax declarationInCurrentTree)

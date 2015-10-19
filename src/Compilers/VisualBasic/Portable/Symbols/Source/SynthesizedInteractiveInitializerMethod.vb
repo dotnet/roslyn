@@ -24,9 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             _syntaxReference = syntaxReference
             CalculateReturnType(containingType.DeclaringCompilation, diagnostics, ResultType, _returnType)
-            FunctionLocal = If(ResultType Is Nothing,
-                Nothing,
-                New SynthesizedLocal(Me, ResultType, SynthesizedLocalKind.FunctionReturnValue, Syntax))
+            FunctionLocal = New SynthesizedLocal(Me, ResultType, SynthesizedLocalKind.FunctionReturnValue, Syntax)
             ExitLabel = New GeneratedLabelSymbol("exit")
         End Sub
 
@@ -137,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New BoundBlock(
                 syntax,
                 Nothing,
-                If(FunctionLocal Is Nothing, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(FunctionLocal)),
+                ImmutableArray.Create(FunctionLocal),
                 ImmutableArray.Create(Of BoundStatement)(New BoundLabelStatement(syntax, ExitLabel)))
         End Function
 
@@ -151,19 +149,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ByRef resultType As TypeSymbol,
             ByRef returnType As TypeSymbol)
 
-            Dim submissionReturnType = compilation.SubmissionReturnType
-            If submissionReturnType Is Nothing Then
-                resultType = Nothing
-                returnType = compilation.GetSpecialType(SpecialType.System_Void)
-            Else
-                Dim taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
-                Dim useSiteDiagnostic = taskT.GetUseSiteErrorInfo()
-                If useSiteDiagnostic IsNot Nothing Then
-                    diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
-                End If
-                resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics)
-                returnType = taskT.Construct(resultType)
+            Dim submissionReturnType = If(compilation.SubmissionReturnType, GetType(Object))
+            Dim taskT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
+            Dim useSiteDiagnostic = taskT.GetUseSiteErrorInfo()
+            If useSiteDiagnostic IsNot Nothing Then
+                diagnostics.Add(useSiteDiagnostic, NoLocation.Singleton)
             End If
+            resultType = compilation.GetTypeByReflectionType(submissionReturnType, diagnostics)
+            returnType = taskT.Construct(resultType)
         End Sub
 
     End Class

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -18,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         private int _counter;
         private bool _trackActiveTokens;
         private HashSet<DiagnosticAsyncToken> _activeDiagnosticTokens = new HashSet<DiagnosticAsyncToken>();
+
+        public AsynchronousOperationListener()
+        {
+            _trackActiveTokens = Debugger.IsAttached;
+        }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null)
         {

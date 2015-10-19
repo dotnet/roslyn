@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.Commands
 {
     /// <summary>
-    /// Arguments for GoTo Definition.
+    /// Arguments for Go To Definition.
     /// </summary>
     [ExcludeFromCodeCoverage]
     internal class GoToDefinitionCommandArgs : CommandArgs

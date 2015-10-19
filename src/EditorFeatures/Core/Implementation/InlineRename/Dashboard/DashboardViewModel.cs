@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
+            _session.ReplacementTextChanged += OnReplacementTextChanged;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -93,6 +94,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             AllPropertiesChanged();
         }
 
+        private void OnReplacementTextChanged(object sender, EventArgs args)
+        {
+            // When the new name changes, we need to update the display of the new name or the
+            // instructional text, depending on whether the new name and the original name are
+            // distinct.
+            NotifyPropertyChanged(nameof(ShouldShowInstructions));
+            NotifyPropertyChanged(nameof(ShouldShowNewName));
+            NotifyPropertyChanged(nameof(NewNameDescription));
+        }
+
         private void NotifyPropertyChanged([CallerMemberName] string name = null)
         {
             var handler = this.PropertyChanged;
@@ -111,15 +122,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             if (referenceCount == 1 && fileCount == 1)
             {
-                _searchText = EditorFeaturesResources.FoundReferenceInFile;
+                _searchText = EditorFeaturesResources.RenameWillUpdateReferenceInFile;
             }
             else if (fileCount == 1)
             {
-                _searchText = string.Format(EditorFeaturesResources.FoundReferencesInFile, referenceCount);
+                _searchText = string.Format(EditorFeaturesResources.RenameWillUpdateReferencesInFile, referenceCount);
             }
             else
             {
-                _searchText = string.Format(EditorFeaturesResources.FoundReferencesInMultipleFiles, referenceCount, fileCount);
+                _searchText = string.Format(EditorFeaturesResources.RenameWillUpdateReferencesInMultipleFiles, referenceCount, fileCount);
             }
 
             NotifyPropertyChanged("SearchText");
@@ -152,13 +163,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get { return _severity; }
         }
 
-        public string Description
+        public string HeaderText
         {
             get
             {
                 return string.Format(EditorFeaturesResources.Rename1, GetTruncatedName(Session.OriginalSymbolName));
             }
         }
+
+        public string NewNameDescription
+        {
+            get
+            {
+                return string.Format(EditorFeaturesResources.NewName1, GetTruncatedName(Session.ReplacementText));
+            }
+        }
+
+        public bool ShouldShowInstructions
+        {
+            get
+            {
+                return Session.OriginalSymbolName == Session.ReplacementText;
+            }
+        }
+
+        public bool ShouldShowNewName
+        {
+            get
+            {
+                return !ShouldShowInstructions;
+            }
+        }
+
 
         private static string GetTruncatedName(string fullName)
         {
@@ -283,6 +319,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public void Dispose()
         {
+            _session.ReplacementTextChanged -= OnReplacementTextChanged;
             _session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
             _session.ReplacementsComputed -= OnReplacementsComputed;
         }

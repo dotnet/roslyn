@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,15 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
              bool systemSpecialCase,
              int index = 0)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup))
+            Test(initialMarkup, expected, index, options: new Dictionary<OptionKey, object>
             {
-                var optionServices = workspace.Services.GetService<IOptionService>();
-                optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(Microsoft.CodeAnalysis.Shared.Options.OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemSpecialCase));
-
-                var diagnosticsAndFix = this.GetDiagnosticAndFix(workspace);
-                var actions = diagnosticsAndFix.Item2.Fixes.Select(f => f.Action).ToList();
-                TestActions(workspace, expected, index, actions);
-            }
+                { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+            });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
@@ -702,18 +699,20 @@ compareTokens: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestWithReferenceDirective()
         {
-            // TODO: avoid using real file
-            string path = typeof(System.Linq.Expressions.Expression).Assembly.Location;
+            var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
+            {
+                { "exprs", AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference() }
+            });
 
             Test(
-@"#r """ + path + @"""
+@"#r ""exprs""
 [|Expression|]",
-@"#r """ + path + @"""
+@"#r ""exprs""
 using System.Linq.Expressions;
 
 Expression",
 parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)),
+compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
 compareTokens: false);
         }
 
@@ -1031,7 +1030,7 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
@@ -1093,7 +1092,7 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
@@ -1143,7 +1142,7 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
@@ -1653,7 +1652,7 @@ public class C
         C x = a?.B();
     }
 }";
-            Test(initialText, expectedText, isLine: false);
+            Test(initialText, expectedText);
         }
 
         [WorkItem(1064748)]
@@ -1705,7 +1704,7 @@ public class C
     {
     }
 }";
-            Test(initialText, expectedText, isLine: false);
+            Test(initialText, expectedText);
         }
 
         [WorkItem(1089138)]
@@ -1822,27 +1821,19 @@ class Program { static void Main ( string [ ] args ) { var a = File . OpenRead (
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestInaccessibleExtensionMethod()
         {
-            const string InitialWorkspace = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
-        <Document FilePath=""lib.cs"">
-namespace ProjectLib
+            const string initial = @"
+namespace N1
 {
-    public static class Class1
+    public static class C
     {
-        public static bool ExtMethod1(this string arg1)
+        private static bool ExtMethod1(this string arg1)
         {
-            Console.WriteLine(arg1);
             return true;
         }
     }
 }
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
-        <ProjectReference>lib</ProjectReference>
-        <Document FilePath=""Program.cs"">
-namespace ConsoleApplication1
+
+namespace N2
 {
     class Program
     {
@@ -1851,63 +1842,8 @@ namespace ConsoleApplication1
             var x = ""str1"".[|ExtMethod1()|];
         }
     }
-} 
-</Document>
-    </Project>
-</Workspace>";
-            const string ExpectedDocumentText = @"using ProjectLib;
-
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var x = ""str1"".ExtMethod1();
-        }
-    }
-}  
-";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestInaccessibleExtensionMethod2()
-        {
-            const string InitialWorkspace = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
-        <Document FilePath=""lib.cs"">
-namespace ProjectLib
-{
-    static class Class1
-    {
-        public static bool ExtMethod1(this string arg1)
-        {
-            Console.WriteLine(arg1);
-            return true;
-        }
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
-        <ProjectReference>lib</ProjectReference>
-        <Document FilePath=""Program.cs"">
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var x = ""str1"".[|ExtMethod1()|];
-        }
-    }
-} 
-</Document>
-    </Project>
-</Workspace>";
-            TestMissing(InitialWorkspace);
+}";
+            TestMissing(initial);
         }
 
         [WorkItem(1116011)]
@@ -2007,6 +1943,135 @@ namespace A.C
 @"using System . Linq ; using X ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? . All ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ");
         }
 
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified2()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified3()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using System ; using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using System ; using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified4()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using System ; using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using System ; using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified5()
+        {
+            Test(
+@"namespace Microsoft.MyApp
+{
+#if true
+    using Win32;
+#else
+    using System;
+#endif
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|SafeRegistryHandle|] h;
+        }
+    }
+}",
+@"namespace Microsoft.MyApp
+{
+#if true
+    using Win32;
+    using Win32.SafeHandles;
+#else
+    using System;
+#endif
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            SafeRegistryHandle h;
+        }
+    }
+}");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified6()
+        {
+            Test(
+@"namespace Microsoft.MyApp
+{
+    using System;
+#if false
+    using Win32;
+#endif
+    using Win32;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|SafeRegistryHandle|] h;
+        }
+    }
+}",
+@"namespace Microsoft.MyApp
+{
+    using System;
+#if false
+    using Win32;
+#endif
+    using Win32;
+    using Win32.SafeHandles;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            SafeRegistryHandle h;
+        }
+    }
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalUppercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var b = new [|B|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using Uppercase ; namespace A { class A { static void Main ( string [ ] args ) { var b = new B ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalLowercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var a = new [|b|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
+        }
+
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -2022,15 +2087,10 @@ namespace A.C
                  bool systemSpecialCase,
                  int index = 0)
             {
-                using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup))
+                Test(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
                 {
-                    var optionServices = workspace.Services.GetService<IOptionService>();
-                    optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(Microsoft.CodeAnalysis.Shared.Options.OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemSpecialCase));
-
-                    var diagnosticsAndFix = this.GetDiagnosticAndFix(workspace);
-                    var actions = diagnosticsAndFix.Item2.Fixes.Select(f => f.Action).ToList();
-                    TestActions(workspace, expected, index, actions);
-                }
+                    { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+                });
             }
 
             [WorkItem(752640)]

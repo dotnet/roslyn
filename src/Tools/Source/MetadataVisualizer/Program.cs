@@ -187,35 +187,42 @@ internal class Program : IDisposable
 
     private static unsafe void VisualizeGenerationIL(MetadataVisualizer visualizer, int generationIndex, GenerationData generation, MetadataReader mdReader)
     {
-        if (generation.PEReaderOpt != null)
+        try
         {
-            foreach (var methodHandle in mdReader.MethodDefinitions)
+            if (generation.PEReaderOpt != null)
             {
-                var method = mdReader.GetMethodDefinition(methodHandle);
-                var rva = method.RelativeVirtualAddress;
-                if (rva != 0)
+                foreach (var methodHandle in mdReader.MethodDefinitions)
                 {
-                    var body = generation.PEReaderOpt.GetMethodBody(rva);
-                    visualizer.VisualizeMethodBody(body, methodHandle);
-                }
-            }
-        }
-        else if (generation.DeltaILOpt != null)
-        {
-            fixed (byte* deltaILPtr = generation.DeltaILOpt)
-            {
-                foreach (var generationHandle in mdReader.MethodDefinitions)
-                {
-                    var method = mdReader.GetMethodDefinition(generationHandle);
+                    var method = mdReader.GetMethodDefinition(methodHandle);
                     var rva = method.RelativeVirtualAddress;
                     if (rva != 0)
                     {
-                        var body = MethodBodyBlock.Create(new BlobReader(deltaILPtr + rva, generation.DeltaILOpt.Length - rva));
-
-                        visualizer.VisualizeMethodBody(body, generationHandle, generationIndex);
+                        var body = generation.PEReaderOpt.GetMethodBody(rva);
+                        visualizer.VisualizeMethodBody(body, methodHandle);
                     }
                 }
             }
+            else if (generation.DeltaILOpt != null)
+            {
+                fixed (byte* deltaILPtr = generation.DeltaILOpt)
+                {
+                    foreach (var generationHandle in mdReader.MethodDefinitions)
+                    {
+                        var method = mdReader.GetMethodDefinition(generationHandle);
+                        var rva = method.RelativeVirtualAddress;
+                        if (rva != 0)
+                        {
+                            var body = MethodBodyBlock.Create(new BlobReader(deltaILPtr + rva, generation.DeltaILOpt.Length - rva));
+
+                            visualizer.VisualizeMethodBody(body, generationHandle, generationIndex);
+                        }
+                    }
+                }
+            }
+        }
+        catch (BadImageFormatException)
+        {
+            visualizer.WriteLine("<bad metadata>");
         }
     }
 

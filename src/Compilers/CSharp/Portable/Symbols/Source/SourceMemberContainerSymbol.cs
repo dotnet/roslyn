@@ -814,8 +814,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return SyntaxReferences;
+                // PERF: Declaring references are cached for compilations with event queue.
+                return this.DeclaringCompilation?.EventQueue != null ? GetCachedDeclaringReferences() : this.SyntaxReferences;
             }
+        }
+
+        private ImmutableArray<SyntaxReference> GetCachedDeclaringReferences()
+        {
+            ImmutableArray<SyntaxReference> declaringReferences;
+            if (!Diagnostics.AnalyzerDriver.TryGetCachedDeclaringReferences(this, this.DeclaringCompilation, out declaringReferences))
+            {
+                declaringReferences = this.SyntaxReferences;
+                Diagnostics.AnalyzerDriver.CacheDeclaringReferences(this, this.DeclaringCompilation, declaringReferences);
+            }
+
+            return declaringReferences;
         }
 
         #endregion
@@ -1894,13 +1907,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < op1.ParameterCount; ++p)
             {
-                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], ignoreCustomModifiers: true, ignoreDynamic: true))
+                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                 {
                     return false;
                 }
             }
 
-            if (!op1.ReturnType.Equals(op2.ReturnType, ignoreCustomModifiers: true, ignoreDynamic: true))
+            if (!op1.ReturnType.Equals(op2.ReturnType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
             {
                 return false;
             }
@@ -2563,7 +2576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var propertyParamType = ((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type;
-                if (!propertyParamType.Equals(methodParam.Type, ignoreCustomModifiers: true, ignoreDynamic: true))
+                if (!propertyParamType.Equals(methodParam.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                 {
                     return false;
                 }
@@ -2581,7 +2594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.Equals(methodParams[0].Type, ignoreCustomModifiers: true, ignoreDynamic: true);
+                eventSymbol.Type.Equals(methodParams[0].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)
@@ -2694,6 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case MethodKind.ExplicitInterfaceImplementation:
                         //CS0541 is handled in SourcePropertySymbol
                         case MethodKind.Ordinary:
+                        case MethodKind.LocalFunction:
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:
                         case MethodKind.EventAdd:
@@ -2814,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scriptInitializer = new SynthesizedInteractiveInitializerMethod(this, diagnostics);
                 members.Add(scriptInitializer);
-                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(this, scriptInitializer.ReturnType, diagnostics);
+                var scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics);
                 members.Add(scriptEntryPoint);
             }
         }

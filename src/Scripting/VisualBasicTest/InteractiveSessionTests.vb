@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Reflection
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Scripting.Test
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
@@ -14,14 +15,14 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
         Inherits TestBase
 
         <Fact>
-        Public Async Sub Fields()
+        Public Async Function Fields() As Task
             Dim s = Await VisualBasicScript.
                 RunAsync("Dim x As Integer = 1").
                 ContinueWith("Dim y As Integer = 2").
                 ContinueWith("?x + y")
 
             Assert.Equal(3, s.ReturnValue)
-        End Sub
+        End Function
 
         <Fact>
         Public Sub StatementExpressions_LineContinuation()

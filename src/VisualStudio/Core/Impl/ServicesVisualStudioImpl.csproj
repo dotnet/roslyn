@@ -50,30 +50,6 @@
       <Name>ServicesVisualStudio</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="System.Composition.AttributedModel">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
-    <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
-  </ItemGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -214,7 +190,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeModel\AbstractCodeModelObject.cs" />
@@ -271,9 +247,7 @@
     <Compile Include="CodeModel\ExternalElements\ExternalCodeStruct.cs" />
     <Compile Include="CodeModel\ExternalElements\ExternalCodeUnknown.cs" />
     <Compile Include="CodeModel\ExternalElements\ExternalCodeVariable.cs" />
-    <Compile Include="CodeModel\FileCodeModel.CleanableWeakComHandleTable.cs" />
     <Compile Include="CodeModel\FileCodeModel.cs" />
-    <Compile Include="CodeModel\FileCodeModel.ElementTable.cs" />
     <Compile Include="CodeModel\FileCodeModel_CodeGen.cs" />
     <Compile Include="CodeModel\FileCodeModel_Events.cs" />
     <Compile Include="CodeModel\FileCodeModel_Refactoring.cs" />
@@ -307,6 +281,7 @@
     <Compile Include="CodeModel\InternalElements\CodeVariable.cs" />
     <Compile Include="CodeModel\Interop\ApartmentSensitiveComObject.cs" />
     <Compile Include="CodeModel\Interop\CodeModelInterop.cs" />
+    <Compile Include="CodeModel\Interop\ICodeClassBase.cs" />
     <Compile Include="CodeModel\Interop\ICodeElements.cs" />
     <Compile Include="CodeModel\Interop\ICSCodeModelRefactoring.cs" />
     <Compile Include="CodeModel\Interop\IEventHandler.cs" />
@@ -321,7 +296,7 @@
     <Compile Include="CodeModel\MethodXml\AbstractMethodXmlBuilder.AutoTag.cs" />
     <Compile Include="CodeModel\MethodXml\AbstractMethodXmlBuilder.cs" />
     <Compile Include="CodeModel\MethodXml\BinaryOperatorKind.cs" />
-    <Compile Include="CodeModel\MethodXml\MetadataNameHelpers.cs" />
+    <Compile Include="CodeModel\MetadataNameHelpers.cs" />
     <Compile Include="CodeModel\MethodXml\VariableKind.cs" />
     <Compile Include="CodeModel\NodeKeyValidation.cs" />
     <Compile Include="CodeModel\ParentHandle.cs" />
@@ -358,6 +333,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

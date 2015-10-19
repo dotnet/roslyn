@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         {
             AssertIsForeground();
 
-            if (!args.SubjectBuffer.GetOption(InternalFeatureOnOffOptions.Snippets))
+            if (!AreSnippetsEnabled(args))
             {
                 nextHandler();
                 return;
@@ -49,6 +49,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public CommandState GetCommandState(SurroundWithCommandArgs args, Func<CommandState> nextHandler)
         {
+            AssertIsForeground();
+
+            if (!AreSnippetsEnabled(args))
+            {
+                return nextHandler();
+            }
+
             Workspace workspace;
             if (!Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {

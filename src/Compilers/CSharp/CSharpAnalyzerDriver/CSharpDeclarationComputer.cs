@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,20 +13,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpDeclarationComputer : DeclarationComputer
     {
-        public static ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, CancellationToken cancellationToken)
+        public static void ComputeDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
             ComputeDeclarations(model, model.SyntaxTree.GetRoot(cancellationToken),
                 (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level),
                 getSymbol, builder, null, cancellationToken);
-            return builder.ToImmutable();
         }
 
-        public static ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SemanticModel model, SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null)
+        public static void ComputeDeclarationsInNode(SemanticModel model, SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
-            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
             ComputeDeclarations(model, node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
-            return builder.ToImmutable();
         }
 
         private static bool InvalidLevel(int? level)
@@ -43,10 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             Func<SyntaxNode, int?, bool> shouldSkip,
             bool getSymbol,
-            ArrayBuilder<DeclarationInfo> builder,
+            List<DeclarationInfo> builder,
             int? levelsToCompute,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (shouldSkip(node, levelsToCompute))
             {
                 return;

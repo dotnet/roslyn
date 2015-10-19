@@ -991,7 +991,7 @@ class D
                     Assert.NotNull(parentElement)
 
                     Dim unknownCodeFunction = TryCast(element, EnvDTE.CodeFunction)
-                    Assert.Equal(unknownCodeFunction.Name, "operator implicit D")
+                    Assert.Equal(unknownCodeFunction.Name, "implicit operator D")
                 End Using
             End Using
         End Sub

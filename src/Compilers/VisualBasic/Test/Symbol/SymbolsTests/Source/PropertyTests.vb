@@ -2783,7 +2783,7 @@ End Module
 
             ' TODO: There are two issues (differences from Dev10) with the following:
             ' 1) We're currently using the property parameter name rather than the
-            ' accessor parametername in "Argument not specified for parameter '...'".
+            ' accessor parameter name in "Argument not specified for parameter '...'".
             ' 2) Not all the bogus properties are supported.
 #If False Then
             CompilationUtils.AssertTheseErrors(compilation,

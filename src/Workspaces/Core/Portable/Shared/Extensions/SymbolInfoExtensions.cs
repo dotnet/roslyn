@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static IEnumerable<ISymbol> GetAllSymbols(this SymbolInfo info)
         {
-            return GetAllSymbolsWorker(info).Distinct();
+            return info.Symbol == null && info.CandidateSymbols.Length == 0
+                ? SpecializedCollections.EmptyEnumerable<ISymbol>()
+                : GetAllSymbolsWorker(info).Distinct();
         }
 
         private static IEnumerable<ISymbol> GetAllSymbolsWorker(this SymbolInfo info)

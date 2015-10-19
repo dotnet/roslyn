@@ -20,11 +20,10 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -40,11 +39,10 @@ Console.WriteLine(o.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -59,11 +57,10 @@ Console.WriteLine(new { a = 1 }.ToString());
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -86,11 +83,10 @@ new CLS().M();
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
             CompileAndVerify(
-                CSharpCompilation.Create(
-                    assemblyName: "Test",
+                CreateCompilationWithMscorlib45(
+                    new[] { tree },
                     options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                    references: new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef },
-                    syntaxTrees: new[] { tree }),
+                    references: new[] { SystemCoreRef }),
                 expectedOutput: "{ a = 1 }"
             );
         }
@@ -111,11 +107,9 @@ new CLS().M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (5,30): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -138,11 +132,9 @@ M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (4,26): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -171,11 +163,9 @@ M();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (9,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -201,11 +191,9 @@ class CLS
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                                assemblyName: "Test",
-                                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                                references: new[] { MscorlibRef },
-                                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (9,8): error CS0836: Cannot use anonymous type in a constant expression
@@ -213,7 +201,7 @@ class CLS
                 Diagnostic(ErrorCode.ERR_AnonymousTypeNotAvailable, "new"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CompilationChain_AnonymousTypeTemplates()
         {
             var s0 = CreateSubmission("var x = new { a = 1 }; ");
@@ -236,7 +224,7 @@ class CLS
             Assert.False(sx.AnonymousTypeManager.AreTemplatesSealed);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CompilationChain_DynamicSiteDelegates()
         {
             // TODO: references should be inherited
@@ -260,7 +248,7 @@ class CLS
             Assert.False(sx.AnonymousTypeManager.AreTemplatesSealed);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void Submissions_EmitToPeStream()
         {
             var s0 = CreateSubmission("int a = 1;");
@@ -271,7 +259,7 @@ class CLS
             s12.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Generic()
         {
             var c0 = CreateSubmission(@"
@@ -293,7 +281,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit_GenericMethod()
         {
             var c0 = CreateSubmission(@"
@@ -315,7 +303,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -337,7 +325,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionGenericInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
             var c0 = CreateSubmission(@"
@@ -359,7 +347,7 @@ abstract public class C : I<int>
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void GenericInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
             var c0 = CreateSubmission(@"
@@ -376,7 +364,7 @@ abstract public class C : I<int>
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionInterfaceImplementation_Explicit_NoGenericParametersInSignature()
         {
             var c0 = CreateSubmission(@"
@@ -398,7 +386,7 @@ abstract public class C : I
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CrossSubmissionNestedGenericInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -423,7 +411,7 @@ abstract public class D : C<int>.I
             c1.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void NestedGenericInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -443,7 +431,7 @@ abstract public class D : C<int>.I
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ExternalInterfaceImplementation_Explicit()
         {
             var c0 = CreateSubmission(@"
@@ -465,7 +453,7 @@ abstract public class C : IEnumerable<int>
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void AbstractAccessors()
         {
             var c0 = CreateSubmission(@"
@@ -478,7 +466,7 @@ public abstract class C
             c0.VerifyEmitDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ExprStmtWithMethodCall()
         {
             var s0 = CreateSubmission("int Foo() { return 2;}");
@@ -486,6 +474,137 @@ public abstract class C
 
             s0.VerifyEmitDiagnostics();
             s1.VerifyEmitDiagnostics();
+        }
+
+        /// <summary>
+        /// The script entry point should complete synchronously.
+        /// </summary>
+        [WorkItem(4495)]
+        [Fact]
+        public void ScriptEntryPoint()
+        {
+            var source =
+@"{
+    await System.Threading.Tasks.Task.Delay(100);
+    System.Console.Write(""complete"");
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"complete");
+            var methodData = verifier.TestData.GetMethodData("<Initialize>");
+            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            methodData.VerifyIL(
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (<<Initialize>>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002f:  nop
+  IL_0030:  ldloc.0
+  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_003b:  ret
+}");
+            methodData = verifier.TestData.GetMethodData("<Main>");
+            Assert.True(methodData.Method.ReturnsVoid);
+            methodData.VerifyIL(
+@"{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""void System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+  IL_0017:  ret
+}");
+        }
+
+        [Fact]
+        public void InteractiveEntryPoint()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"{
+    await System.Threading.Tasks.Task.Delay(100);
+    System.Console.Write(""complete"");
+}";
+            var s0 = CSharpCompilation.CreateSubmission(
+                "s0.dll",
+                SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive),
+                references);
+            var verifier = CompileAndVerify(s0, verify: false);
+            var methodData = verifier.TestData.GetMethodData("<Initialize>");
+            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            methodData.VerifyIL(
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (<<Initialize>>d__0 V_0,
+                System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> V_1)
+  IL_0000:  newobj     ""<<Initialize>>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""Script <<Initialize>>d__0.<>4__this""
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Create()""
+  IL_0013:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  stfld      ""int <<Initialize>>d__0.<>1__state""
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0025:  stloc.1
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Start<<<Initialize>>d__0>(ref <<Initialize>>d__0)""
+  IL_002f:  nop
+  IL_0030:  ldloc.0
+  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <<Initialize>>d__0.<>t__builder""
+  IL_0036:  call       ""System.Threading.Tasks.Task<object> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.Task.get""
+  IL_003b:  ret
+}");
+            methodData = verifier.TestData.GetMethodData("<Factory>");
+            Assert.Equal("System.Threading.Tasks.Task<object>", methodData.Method.ReturnType.ToDisplayString());
+            methodData.VerifyIL(
+@"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     "".ctor(object[])""
+  IL_0006:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000b:  ret
+}");
+        }
+
+        [Fact]
+        public void ScriptEntryPoint_MissingMethods()
+        {
+            var source =
+@"System.Console.WriteLine(1);";
+            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1));
         }
     }
 }

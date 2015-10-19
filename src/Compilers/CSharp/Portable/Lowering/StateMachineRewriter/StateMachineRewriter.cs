@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType));
             return F.Block(
                 ImmutableArray.Create(stateMachineVariable),
+                ImmutableArray<LocalFunctionSymbol>.Empty,
                 bodyBuilder.ToImmutableAndFree());
         }
 

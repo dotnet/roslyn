@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string test = @"
 this[1]
 ";
-            var compilation = CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Interactive);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -53,7 +53,7 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -76,14 +76,14 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void NoReferences()
         {
             var submission = CSharpCompilation.CreateSubmission("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Interactive), returnType: typeof(int));
@@ -104,7 +104,7 @@ this[1]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Object").WithLocation(1, 1));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void Namespaces()
         {
             var c = CreateSubmission(@"
@@ -230,10 +230,9 @@ delegate void G();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             var global = compilation.GlobalNamespace;
             ImmutableArray<NamedTypeSymbol> members;
@@ -273,11 +272,9 @@ WriteLine(""hello"");
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
 
-            var compilation = CSharpCompilation.Create(
-                assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                syntaxTrees: new[] { tree },
-                references: new[] { MscorlibRef });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             var expr = (((tree.
                 GetCompilationUnitRoot() as CompilationUnitSyntax).
@@ -292,7 +289,7 @@ WriteLine(""hello"");
         }
 
         [WorkItem(3817, "https://github.com/dotnet/roslyn/issues/3817")]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void LabelLookup()
         {
             var source = "using System; 1";
@@ -302,7 +299,7 @@ WriteLine(""hello"");
         }
 
         [WorkItem(543890)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ThisIndexerAccessInSubmission()
         {
             string test = @"
@@ -335,7 +332,7 @@ this[1]
         /// </summary>
         [WorkItem(530986)]
         [WorkItem(1010871)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void LookupSymbols()
         {
             var text = "1 + ";
@@ -365,7 +362,7 @@ this[1]
             Assert.False(symbols.Any(s => s.Name == "Roslyn"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void HostObjectBinding_Diagnostics()
         {
             var submission = CreateSubmission("x",
@@ -383,7 +380,7 @@ this[1]
 decimal d = checked(2M + 1M);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -396,7 +393,7 @@ using System.IO;
 FileAccess fa = checked(FileAccess.Read + 1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -408,12 +405,12 @@ FileAccess fa = checked(FileAccess.Read + 1);
 System.Action a = null;
 a += null;
 ";
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
         [WorkItem(870885)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void Bug870885()
         {
             var source = @"var o = o.F;";
@@ -426,7 +423,7 @@ a += null;
         }
 
         [WorkItem(949595)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void GlobalAttributes()
         {
             var source = @"
@@ -442,7 +439,7 @@ a += null;
                 Diagnostic(ErrorCode.ERR_GlobalAttributesNotAllowed, "module"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void SealedOverride()
         {
             var source0 = @"
@@ -465,7 +462,7 @@ class Y : M
             CompileAndVerify(c1);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void PrivateNested()
         {
             var c0 = CreateSubmission(@"public class C { private static int foo() { return 1; } }");
@@ -476,7 +473,7 @@ class Y : M
                 Diagnostic(ErrorCode.ERR_BadAccess, "foo").WithArguments("C.foo()"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void InconsistentAccessibilityChecks()
         {
             var c0 = CreateSubmission(@"
@@ -548,7 +545,7 @@ public E e4;
                 Diagnostic(ErrorCode.ERR_BadVisFieldType, "x").WithArguments("x", "B"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CompilationChain_Fields()
         {
             var c0 = CreateSubmission(@"
@@ -562,7 +559,7 @@ int i = 2;
             c2.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_ObjectRequired, "i").WithArguments("i"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void CompilationChain_InStaticContext()
         {
             var c0 = CreateSubmission(@"
@@ -585,7 +582,7 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "z").WithArguments("z()"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void AccessToGlobalMemberFromNestedClass1()
         {
             var c0 = CreateSubmission(@"
@@ -602,7 +599,7 @@ class D
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "foo").WithArguments("foo()"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void AccessToGlobalMemberFromNestedClass2()
         {
             var c0 = CreateSubmission(@"
@@ -623,7 +620,7 @@ class D
         /// <summary>
         /// Previous submission has to have no errors.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void Submissions_ExecutionOrder3()
         {
             var s0 = CreateSubmission("int a = \"x\";");
@@ -635,7 +632,7 @@ class D
         }
 
         [WorkItem(3795, "https://github.com/dotnet/roslyn/issues/3795")]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ErrorInUsing()
         {
             var submission = CreateSubmission("using Unknown;");
@@ -650,7 +647,7 @@ class D
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void HostObjectBinding_MissingHostObjectContext()
         {
             var c = CreateSubmission("Z()", new[] { HostRef });
@@ -660,7 +657,7 @@ class D
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Z").WithArguments("Z"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void HostObjectBinding_InStaticContext()
         {
             var source = @"
@@ -684,7 +681,7 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Z").WithArguments(typeName + ".C.Z()"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void WRN_LowercaseEllSuffix()
         {
             var c = CreateSubmission("int i = 42l;");
@@ -696,7 +693,7 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "42l").WithArguments("long", "int"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ERR_RecursivelyTypedVariable()
         {
             var c = CreateSubmission("var x = x;");
@@ -706,33 +703,47 @@ static int Baz = w;
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "x").WithArguments("x"));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ERR_VariableUsedBeforeDeclaration()
         {
             var c = CreateSubmission("var x = 1; { var x = x;}");
 
             c.VerifyDiagnostics(
-                // (2,11): error CS0841: Cannot use local variable 'x' before it is declared
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x"));
+                // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
+                // var x = 1; { var x = x;}
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 22),
+                // (1,22): error CS0165: Use of unassigned local variable 'x'
+                // var x = 1; { var x = x;}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
-        public void ERR_ReturnNotAllowedInScript()
+        [Fact]
+        public void ERR_ReturnNotAllowedInScript_Void()
         {
-            var c1 = CreateSubmission("return;");
-
-            c1.VerifyDiagnostics(
+            var c = CreateSubmission("return;");
+            c.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return"));
-
-            var c2 = CreateSubmission("return 17;");
-
-            c2.VerifyDiagnostics(
-                // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return"));
+                // return;
+                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
+                // (1,1): warning CS0162: Unreachable code detected
+                // return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
+        public void ERR_ReturnNotAllowedInScript_Expr()
+        {
+            var c = CreateSubmission("return 17;");
+            c.VerifyDiagnostics(
+                // (1,1): error CS7020: You cannot use 'return' in top-level script code
+                // return 17;
+                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
+                // (1,1): warning CS0162: Unreachable code detected
+                // return 17;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
+        }
+
+        [Fact]
         public void ERR_FieldCantBeRefAny()
         {
             var c = CreateSubmission(@"
@@ -750,7 +761,7 @@ System.TypedReference c;
         }
 
         [WorkItem(529387)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void IsVariable_PreviousSubmission()
         {
             var c0 = CreateSubmission("var x = 1;");
@@ -762,7 +773,7 @@ System.TypedReference c;
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&x").WithLocation(1, 1));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void IsVariable_HostObject()
         {
             var c0 = CreateSubmission("&x", new[] { HostRef }, hostObjectType: typeof(B2));
@@ -774,7 +785,7 @@ System.TypedReference c;
         }
 
         [WorkItem(530404)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void DiagnosticsPass()
         {
             var source = "(System.Linq.Expressions.Expression<System.Func<object>>)(() => null ?? new object())";
@@ -787,7 +798,7 @@ System.TypedReference c;
         }
 
         [WorkItem(527850)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ArithmeticOperators_MultiplicationExpression()
         {
             var s0 = CreateSubmission("int i = 5;");
@@ -804,7 +815,7 @@ System.TypedReference c;
         [WorkItem(527850)]
         [WorkItem(522569)]
         [WorkItem(4737)]
-        [ClrOnlyFact(ClrOnlyReason.Submission, Skip = "4737")]
+        [Fact(Skip = "4737")]
         public void TopLevelLabel()
         {
             var s0 = CreateSubmission(@"
@@ -815,7 +826,7 @@ goto Label;");
         }
 
         [WorkItem(541210)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void TopLevelGoto()
         {
             var s0 = CreateSubmission("goto Object;");
@@ -826,7 +837,7 @@ goto Label;");
         }
 
         [WorkItem(541166)]
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void DefineExtensionMethods()
         {
             var references = new[] { TestReferences.NetFx.v4_0_30319.System_Core };

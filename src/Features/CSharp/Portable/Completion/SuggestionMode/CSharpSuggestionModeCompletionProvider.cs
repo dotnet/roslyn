@@ -30,12 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                if (triggerInfo.IsDebugger)
-                {
-                    // Aggressive Intellisense in the debugger: always show the builder 
-                    return CreateEmptyBuilder(text, position);
-                }
-
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var token = tree
                     .FindTokenOnLeftOfPosition(position, cancellationToken)

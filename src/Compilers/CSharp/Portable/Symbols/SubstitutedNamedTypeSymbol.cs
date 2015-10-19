@@ -200,25 +200,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
         {
-            return _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.GetDeclaredBaseType(basesBeingResolved));
+            return Map.SubstituteNamedType(OriginalDefinition.GetDeclaredBaseType(basesBeingResolved));
         }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
         {
-            return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.GetDeclaredInterfaces(basesBeingResolved));
+            return Map.SubstituteNamedTypes(OriginalDefinition.GetDeclaredInterfaces(basesBeingResolved));
         }
 
         internal sealed override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
             {
-                return _unbound ? null : Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
+                return Map.SubstituteNamedType(OriginalDefinition.BaseTypeNoUseSiteDiagnostics);
             }
         }
 
         internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved));
+            return Map.SubstituteNamedTypes(OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved));
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
@@ -231,14 +231,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Because declared types will have been checked for "uniqueness of implemented interfaces" (C# 4 spec, 13.4.2),
             // we are guaranteed that none of these substitutions collide in a correct program.  Consequently, we can simply
             // substitute the original interfaces.
-            return _unbound ? ImmutableArray<NamedTypeSymbol>.Empty : Map.SubstituteNamedTypes(OriginalDefinition.AllInterfacesNoUseSiteDiagnostics);
+            return Map.SubstituteNamedTypes(OriginalDefinition.AllInterfacesNoUseSiteDiagnostics);
         }
 
         public sealed override IEnumerable<string> MemberNames
         {
             get
             {
-                return _unbound ? new List<string>(GetTypeMembersUnordered().Select(s => s.Name).Distinct()) : _originalDefinition.MemberNames;
+                return _originalDefinition.MemberNames;
             }
         }
 
@@ -286,23 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var builder = ArrayBuilder<Symbol>.GetInstance();
 
-            if (_unbound)
+            foreach (var t in _originalDefinition.GetMembers())
             {
-                // Preserve order of members.
-                foreach (var t in _originalDefinition.GetMembers())
-                {
-                    if (t.Kind == SymbolKind.NamedType)
-                    {
-                        builder.Add(((NamedTypeSymbol)t).AsMember(this));
-                    }
-                }
-            }
-            else
-            {
-                foreach (var t in _originalDefinition.GetMembers())
-                {
-                    builder.Add(t.SymbolAsMember(this));
-                }
+                builder.Add(t.SymbolAsMember(this));
             }
 
             return builder.ToImmutableAndFree();
@@ -312,22 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var builder = ArrayBuilder<Symbol>.GetInstance();
 
-            if (_unbound)
+            foreach (var t in _originalDefinition.GetMembersUnordered())
             {
-                foreach (var t in _originalDefinition.GetMembersUnordered())
-                {
-                    if (t.Kind == SymbolKind.NamedType)
-                    {
-                        builder.Add(((NamedTypeSymbol)t).AsMember(this));
-                    }
-                }
-            }
-            else
-            {
-                foreach (var t in _originalDefinition.GetMembersUnordered())
-                {
-                    builder.Add(t.SymbolAsMember(this));
-                }
+                builder.Add(t.SymbolAsMember(this));
             }
 
             return builder.ToImmutableAndFree();
@@ -335,8 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override ImmutableArray<Symbol> GetMembers(string name)
         {
-            if (_unbound) return StaticCast<Symbol>.From(GetTypeMembers(name));
-
             ImmutableArray<Symbol> result;
             var cache = _lazyMembersByNameCache;
             if (cache != null && cache.TryGetValue(name, out result))

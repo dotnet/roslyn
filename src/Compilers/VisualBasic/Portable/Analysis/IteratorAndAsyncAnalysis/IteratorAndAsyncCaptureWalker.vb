@@ -49,6 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(info.Symbol.Kind = SymbolKind.Method)
 
             Dim walker As New IteratorAndAsyncCaptureWalker(info)
+
+            walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = True
+
             walker.Analyze()
             Debug.Assert(Not walker.InvalidRegionDetected)
 
@@ -145,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Protected Overrides Sub EnterParameter(parameter As ParameterSymbol)
-            ' parameters are NOT intially assigned here - if that is a problem, then
+            ' parameters are NOT initially assigned here - if that is a problem, then
             ' the parameters must be captured.
             MakeSlot(parameter)
 
@@ -250,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function TreatTheLocalAsAssignedWithinTheLambda(local As LocalSymbol, right As BoundExpression) As Boolean
             ' By the time this analysis is invoked, Lambda conversion 
-            ' is already rewritten into an objectc creation
+            ' is already rewritten into an object creation
             If right.Kind = BoundKind.ObjectCreationExpression Then
                 Dim objCreation = DirectCast(right, BoundObjectCreationExpression)
                 If TypeOf objCreation.Type Is LambdaFrame AndAlso objCreation.Arguments.Length = 1 Then

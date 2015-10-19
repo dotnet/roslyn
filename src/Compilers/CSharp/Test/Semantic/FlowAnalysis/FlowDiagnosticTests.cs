@@ -857,9 +857,17 @@ class Program
     }
 }";
             var comp = CreateCompilationWithMscorlib(program);
-            var parseErrors = comp.SyntaxTrees[0].GetDiagnostics();
-            var errors = comp.GetDiagnostics();
-            Assert.Equal(parseErrors.Count(), errors.Count());
+            comp.SyntaxTrees[0].GetDiagnostics().Verify(
+                // (6,21): error CS1031: Type expected
+                //         var s = foo<,int>(123);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(6, 21));
+            comp.VerifyDiagnostics(
+                // (6,21): error CS1031: Type expected
+                //         var s = foo<,int>(123);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(6, 21),
+                // (6,17): error CS0305: Using the generic method 'Program.foo<T>(int)' requires 1 type arguments
+                //         var s = foo<,int>(123);
+                Diagnostic(ErrorCode.ERR_BadArity, "foo<,int>").WithArguments("Program.foo<T>(int)", "method", "1").WithLocation(6, 17));
         }
 
         [Fact]
@@ -1961,6 +1969,64 @@ struct S<T>
                 //     public float Y;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Y").WithArguments("S.Y", "0")
                 );
+        }
+
+        [Fact]
+        [WorkItem(2470, "https://github.com/dotnet/roslyn/issues/2470")]
+        public void NoFieldNeverAssignedWarning()
+        {
+            string program = @"
+using System.Threading.Tasks;
+
+internal struct TaskEvent<T>
+{
+    private TaskCompletionSource<T> _tcs;
+
+    public Task<T> Task
+    {
+        get
+        {
+            if (_tcs == null)
+                _tcs = new TaskCompletionSource<T>();
+            return _tcs.Task;
+        }
+    }
+
+    public void Invoke(T result)
+    {
+        if (_tcs != null)
+        {
+            TaskCompletionSource<T> localTcs = _tcs;
+            _tcs = null;
+            localTcs.SetResult(result);
+        }
+    }
+}
+
+public class OperationExecutor
+{
+    private TaskEvent<float?> _nextValueEvent; // Field is never assigned warning
+
+    // Start some async operation
+    public Task<bool> StartOperation()
+    {
+        return null;
+    }
+
+    // Get progress or data during async operation
+    public Task<float?> WaitNextValue()
+    {
+        return _nextValueEvent.Task;
+    }
+
+    // Called externally
+    internal void OnNextValue(float? value)
+    {
+        _nextValueEvent.Invoke(value);
+    }
+}
+";
+            CreateCompilationWithMscorlib45(program).VerifyEmitDiagnostics();
         }
 
         #endregion

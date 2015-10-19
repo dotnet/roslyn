@@ -10,17 +10,30 @@ namespace Roslyn.Utilities
 {
     internal static class ReflectionUtilities
     {
+        public static Type TryGetType(string assemblyQualifiedName)
+        {
+            try
+            {
+                // Note that throwOnError=false only suppresses some exceptions, not all.
+                return Type.GetType(assemblyQualifiedName, throwOnError: false);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
         /// would exist in mscorlib.  This helps satisfy both the CoreCLR and Desktop scenarios. 
         /// </summary>
         public static Type GetTypeFromEither(string contractName, string desktopName)
         {
-            var type = Type.GetType(contractName, throwOnError: false);
+            var type = TryGetType(contractName);
 
             if (type == null)
             {
-                type = Type.GetType(desktopName, throwOnError: false);
+                type = TryGetType(desktopName);
             }
 
             return type;

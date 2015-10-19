@@ -98,6 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' exposed to public API consumer and disabled when used from command-line compiler. </summary>
         Private ReadOnly _suppressConstantExpressions As Boolean
 
+        Protected _recursionDepth As Integer
+
         ''' <summary>
         ''' Construct an object for outside-region analysis
         ''' </summary>
@@ -655,10 +657,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #Region "Visitors"
 
+        Public NotOverridable Overrides Function Visit(node As BoundNode) As BoundNode
+            Visit(node, dontLeaveRegion:=False)
+            Return Nothing
+        End Function
+
         ''' <summary>
         ''' Visit a node.
         ''' </summary>
-        Protected Overridable Shadows Sub Visit(node As BoundNode, Optional dontLeaveRegion As Boolean = False)
+        Protected Overridable Overloads Sub Visit(node As BoundNode, dontLeaveRegion As Boolean)
             VisitAlways(node, dontLeaveRegion:=dontLeaveRegion)
         End Sub
 
@@ -667,14 +674,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Protected Sub VisitAlways(node As BoundNode, Optional dontLeaveRegion As Boolean = False)
             If Me._firstInRegion Is Nothing Then
-                MyBase.Visit(node)
+                VisitWithStackGuard(node)
             Else
 
                 If node Is Me._firstInRegion AndAlso Me._regionPlace = RegionPlace.Before Then
                     Me.EnterRegion()
                 End If
 
-                MyBase.Visit(node)
+                VisitWithStackGuard(node)
 
                 If Not dontLeaveRegion AndAlso node Is Me._lastInRegion AndAlso IsInside Then
                     Me.LeaveRegion()
@@ -682,6 +689,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             End If
         End Sub
+
+        Private Shadows Function VisitWithStackGuard(node As BoundNode) As BoundNode
+            Dim expression = TryCast(node, BoundExpression)
+
+            If expression IsNot Nothing Then
+                Return VisitExpressionWithStackGuard(_recursionDepth, expression)
+            End If
+
+            Return MyBase.Visit(node)
+        End Function
+
+        Protected Overrides Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
+            Return DirectCast(MyBase.Visit(node), BoundExpression)
+        End Function
+
+        Protected Overrides Function ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException() As Boolean
+            Return False ' just let the original exception to bubble up.
+        End Function
 
         Protected Overridable Sub VisitLvalue(node As BoundExpression, Optional dontLeaveRegion As Boolean = False)
             ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'node' is not nothing
@@ -736,6 +761,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Visit(node, dontLeaveRegion:=True)
+
+            AdjustConditionalState(node)
+
+            ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'node' is not nothing
+            If node Is Me._lastInRegion AndAlso IsInside Then
+                Me.LeaveRegion()
+            End If
+        End Sub
+
+        Private Sub AdjustConditionalState(node As BoundExpression)
             If IsConstantTrue(node) Then
                 Me.Unsplit()
                 Me.SetConditionalState(Me.State, UnreachableState())
@@ -744,11 +779,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.SetConditionalState(UnreachableState(), Me.State)
             Else
                 Me.Split()
-            End If
-
-            ' NOTE: we can skip checking if Me._firstInRegion is nothing because 'node' is not nothing
-            If node Is Me._lastInRegion AndAlso IsInside Then
-                Me.LeaveRegion()
             End If
         End Sub
 
@@ -851,8 +881,8 @@ lUnsplitAndFinish:
                 Debug.Assert(Me._lastInRegion IsNot Nothing)
 
                 ' Check if the region defining node is somewhere inside OriginalExpression
-                If BoundNodeFinder.ContainsNode(node.OriginalExpression, Me._firstInRegion) Then
-                    Debug.Assert(BoundNodeFinder.ContainsNode(node.OriginalExpression, Me._lastInRegion))
+                If BoundNodeFinder.ContainsNode(node.OriginalExpression, Me._firstInRegion, _recursionDepth, ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()) Then
+                    Debug.Assert(BoundNodeFinder.ContainsNode(node.OriginalExpression, Me._lastInRegion, _recursionDepth, ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()))
 
                     origExpressionContainsRegion = True
 
@@ -866,7 +896,7 @@ lUnsplitAndFinish:
                         End If
 
                         regionEnclosesInitializers = True
-                        If Me._firstInRegion Is initializerExpr OrElse Not BoundNodeFinder.ContainsNode(Me._firstInRegion, initializerExpr) Then
+                        If Me._firstInRegion Is initializerExpr OrElse Not BoundNodeFinder.ContainsNode(Me._firstInRegion, initializerExpr, _recursionDepth, ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()) Then
                             regionEnclosesInitializers = False
                             Exit For
                         End If
@@ -893,7 +923,7 @@ lUnsplitAndFinish:
 
                     containedByInitializer = False
                     Debug.Assert(initializerExpr IsNot Nothing)
-                    If BoundNodeFinder.ContainsNode(initializerExpr, Me._firstInRegion) Then
+                    If BoundNodeFinder.ContainsNode(initializerExpr, Me._firstInRegion, _recursionDepth, ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()) Then
                         Debug.Assert(Not containedByInitializer)
                         containedByInitializer = True
                         Exit For
@@ -934,7 +964,7 @@ lUnsplitAndFinish:
                 ' The region was a part of the expression, but was not property processed/visited during
                 ' analysis of expression and body; this *may* indicate a bug in flow analysis, otherwise 
                 ' it is the case when a struct-typed lvalue expression was never used inside the body AND 
-                ' the region was defined by nodew which were not part of initializers; thus, we never
+                ' the region was defined by nodes which were not part of initializers; thus, we never
                 ' emitted/visited the node
                 Debug.Assert(Me._regionPlace = AbstractFlowPass(Of LocalState).RegionPlace.Before)
                 Me.SetInvalidRegion()
@@ -2058,96 +2088,114 @@ lUnsplitAndFinish:
         End Function
 
         Public NotOverridable Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
-            Select Case node.OperatorKind And BinaryOperatorKind.OpMask
-                Case BinaryOperatorKind.AndAlso
-                    VisitCondition(node.Left)
-                    Dim leftTrue As LocalState = Me.StateWhenTrue
-                    Dim leftFalse As LocalState = Me.StateWhenFalse
-                    Me.SetState(leftTrue)
-                    VisitCondition(node.Right)
-                    Dim resultTrue As LocalState = Me.StateWhenTrue
-                    Dim resultFalse As LocalState = leftFalse
-                    IntersectWith(resultFalse, Me.StateWhenFalse)
-                    Me.SetConditionalState(resultTrue, resultFalse)
-                    Exit Select
-                Case BinaryOperatorKind.OrElse
-                    VisitCondition(node.Left)
-                    Dim leftTrue As LocalState = Me.StateWhenTrue
-                    Dim leftFalse As LocalState = Me.StateWhenFalse
-                    Me.SetState(leftFalse)
-                    VisitCondition(node.Right)
-                    Dim resultTrue As LocalState = Me.StateWhenTrue
-                    IntersectWith(resultTrue, leftTrue)
-                    Dim resultFalse As LocalState = Me.StateWhenFalse
-                    Me.SetConditionalState(resultTrue, resultFalse)
-                    Exit Select
-                Case BinaryOperatorKind.Concatenate
-                    UnwindAndVisitConcatenationOperator(node)
-                Case Else
-                    VisitRvalue(node.Left)
-                    VisitRvalue(node.Right)
-            End Select
-            Return Nothing
-        End Function
+            ' Do not blow the stack due to a deep recursion on the left. 
 
-        Private Sub UnwindAndVisitConcatenationOperator(node As BoundBinaryOperator)
-            Debug.Assert((node.OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.Concatenate)
+            Dim stack = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
 
-            ' It is common in machine-generated code for there to be deep recursion on the left side of a binary
-            ' operator, for example, if you have "a + b + c + ... " then the bound tree will be deep on the left
-            ' hand side. To mitigate the risk of stack overflow we use an explicit stack.
-            '
-            ' Of course we must ensure that we visit the left hand side before the right hand side.
+            Dim binary As BoundBinaryOperator = node
+            Dim child As BoundExpression = node.Left
 
-            Dim leftmostConcatExpressions = ArrayBuilder(Of BoundBinaryOperator).GetInstance()
-            leftmostConcatExpressions.Add(node)
-
-            ' Collect all binary concatenation operators along the leftmost 
-            ' expression tree branch in leftmostConcatExpressions
-            Dim lastLeftOperand As BoundExpression = node.Left
             Do
-                If lastLeftOperand.Kind = BoundKind.BinaryOperator Then
-                    Dim binary = DirectCast(lastLeftOperand, BoundBinaryOperator)
-                    If (binary.OperatorKind And BinaryOperatorKind.OpMask) <> BinaryOperatorKind.Concatenate Then
-                        Exit Do
-                    End If
+                If child.Kind <> BoundKind.BinaryOperator Then
+                    Exit Do
+                End If
 
-                    ' As we emulate visiting the concatenate operator: enter the region if needed
-                    If binary Is Me._firstInRegion AndAlso Me._regionPlace = RegionPlace.Before Then
+                stack.Push(binary)
+                binary = DirectCast(child, BoundBinaryOperator)
+                child = binary.Left
+            Loop
+
+            ' As we emulate visiting, enter the region if needed. 
+            ' We shouldn't do this for the top most node, 
+            ' VisitBinaryOperator caller such as VisitRvalue(...) does this.
+            If Me._regionPlace = RegionPlace.Before Then
+                If stack.Count > 0 Then
+                    ' Skipping the first node
+                    Debug.Assert(stack(0) Is node)
+
+                    For i As Integer = 1 To stack.Count - 1
+                        If stack(i) Is Me._firstInRegion Then
+                            Me.EnterRegion()
+                            GoTo EnteredRegion
+                        End If
+                    Next
+
+                    ' Note, the last binary operator is not pushed to the stack, it is stored in [binary].
+                    Debug.Assert(binary IsNot node)
+
+                    If binary Is Me._firstInRegion Then
                         Me.EnterRegion()
                     End If
+EnteredRegion:
+                Else
+                    Debug.Assert(binary Is node)
+                End If
+            End If
 
-                    leftmostConcatExpressions.Push(binary)
-                    lastLeftOperand = binary.Left
+            Select Case binary.OperatorKind And BinaryOperatorKind.OpMask
+                Case BinaryOperatorKind.AndAlso,
+                     BinaryOperatorKind.OrElse
+                    VisitCondition(child)
+                Case Else
+                    VisitRvalue(child)
+            End Select
 
+            Do
+                Select Case binary.OperatorKind And BinaryOperatorKind.OpMask
+                    Case BinaryOperatorKind.AndAlso
+                        Dim leftTrue As LocalState = Me.StateWhenTrue
+                        Dim leftFalse As LocalState = Me.StateWhenFalse
+                        Me.SetState(leftTrue)
+                        VisitCondition(binary.Right)
+                        Dim resultTrue As LocalState = Me.StateWhenTrue
+                        Dim resultFalse As LocalState = leftFalse
+                        IntersectWith(resultFalse, Me.StateWhenFalse)
+                        Me.SetConditionalState(resultTrue, resultFalse)
+                        Exit Select
+                    Case BinaryOperatorKind.OrElse
+                        Dim leftTrue As LocalState = Me.StateWhenTrue
+                        Dim leftFalse As LocalState = Me.StateWhenFalse
+                        Me.SetState(leftFalse)
+                        VisitCondition(binary.Right)
+                        Dim resultTrue As LocalState = Me.StateWhenTrue
+                        IntersectWith(resultTrue, leftTrue)
+                        Dim resultFalse As LocalState = Me.StateWhenFalse
+                        Me.SetConditionalState(resultTrue, resultFalse)
+                        Exit Select
+                    Case Else
+                        VisitRvalue(binary.Right)
+                End Select
+
+                If stack.Count > 0 Then
+                    child = binary
+                    binary = stack.Pop()
+
+                    ' Do things that VisitCondition/VisitRvalue would have done for us if we were to call them
+                    ' for the child
+                    Select Case binary.OperatorKind And BinaryOperatorKind.OpMask
+                        Case BinaryOperatorKind.AndAlso,
+                             BinaryOperatorKind.OrElse
+                            ' Do things that VisitCondition would have done for us if we were to call it
+                            ' for the child
+                            AdjustConditionalState(child) ' VisitCondition does this
+                        Case Else
+                            Me.Unsplit() ' VisitRvalue does this
+                    End Select
+
+                    ' VisitCondition/VisitRvalue do this
+                    If child Is Me._lastInRegion AndAlso IsInside Then
+                        Me.LeaveRegion()
+                    End If
                 Else
                     Exit Do
                 End If
             Loop
 
-            ' Visit leftmost operand
-            VisitRvalue(lastLeftOperand)
+            Debug.Assert(binary Is node)
+            stack.Free()
 
-            ' emulate visiting binary concat operators
-            While leftmostConcatExpressions.Count > 0
-                Dim concat As BoundBinaryOperator = leftmostConcatExpressions.Pop()
-
-                ' Visit right operand
-                VisitRvalue(concat.Right)
-
-                ' Don't leave region for the uppermost concat operator, it should be done by 
-                ' VisitBinaryOperator caller such as VisitRValue(...)
-                If concat IsNot node Then
-                    ' As we emulate visiting the concatenate operator: leave region if needed
-                    Me.Unsplit()
-                    If concat Is Me._lastInRegion AndAlso IsInside Then
-                        Me.LeaveRegion()
-                    End If
-                End If
-            End While
-
-            leftmostConcatExpressions.Free()
-        End Sub
+            Return Nothing
+        End Function
 
         Public Overrides Function VisitUserDefinedBinaryOperator(node As BoundUserDefinedBinaryOperator) As BoundNode
             VisitRvalue(node.UnderlyingExpression)

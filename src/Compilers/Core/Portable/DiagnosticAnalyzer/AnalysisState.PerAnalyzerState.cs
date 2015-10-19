@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
 
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _declarationAnalyzerStateDataPool = declarationAnalyzerStateDataPool;
             }
 
-            public IEnumerable<CompilationEvent> PendingEvents_NoLock =>_pendingEvents.Keys;
+            public IEnumerable<CompilationEvent> PendingEvents_NoLock => _pendingEvents.Keys;
 
             public bool HasPendingSyntaxAnalysis(SyntaxTree treeOpt)
             {
@@ -166,67 +168,71 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public void MarkDeclarationsComplete(ISymbol symbol)
+            public void MarkDeclarationsComplete(ImmutableArray<SyntaxReference> declarations)
             {
                 lock (_gate)
                 {
-                    foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                    foreach (var syntaxRef in declarations)
                     {
                         MarkEntityProcessed_NoLock(syntaxRef.GetSyntax(), _pendingDeclarations, _declarationAnalyzerStateDataPool);
                     }
                 }
             }
 
-            public void OnCompilationEventGenerated_NoLock(CompilationEvent compilationEvent, ActionCounts actionCounts)
+            public void OnCompilationEventGenerated(CompilationEvent compilationEvent, ActionCounts actionCounts)
             {
-                var symbolEvent = compilationEvent as SymbolDeclaredCompilationEvent;
-                if (symbolEvent != null)
+                lock (_gate)
                 {
-                    var needsAnalysis = false;
-                    var symbol = symbolEvent.Symbol;
-                    if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbol) && actionCounts.SymbolActionsCount > 0)
+                    var symbolEvent = compilationEvent as SymbolDeclaredCompilationEvent;
+                    if (symbolEvent != null)
                     {
-                        needsAnalysis = true;
-                        _pendingSymbols[symbol] = null;
-                    }
-
-                    if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol) &&
-                        (actionCounts.SyntaxNodeActionsCount > 0 ||
-                        actionCounts.CodeBlockActionsCount > 0 ||
-                        actionCounts.CodeBlockStartActionsCount > 0))
-                    {
-                        foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
+                        var needsAnalysis = false;
+                        var symbol = symbolEvent.Symbol;
+                        if (!AnalysisScope.ShouldSkipSymbolAnalysis(symbolEvent) && actionCounts.SymbolActionsCount > 0)
                         {
                             needsAnalysis = true;
-                            _pendingDeclarations[syntaxRef.GetSyntax()]= null;
+                            _pendingSymbols[symbol] = null;
                         }
-                    }
 
-                    if (!needsAnalysis)
-                    {
-                        return;
-                    }
-                }
-                else if (compilationEvent is CompilationStartedEvent)
-                {
-                    if (actionCounts.SyntaxTreeActionsCount > 0)
-                    {
-                        var map = new Dictionary<SyntaxTree, AnalyzerStateData>();
-                        foreach (var tree in compilationEvent.Compilation.SyntaxTrees)
+                        if (!AnalysisScope.ShouldSkipDeclarationAnalysis(symbol) &&
+                            (actionCounts.SyntaxNodeActionsCount > 0 ||
+                            actionCounts.CodeBlockActionsCount > 0 ||
+                            actionCounts.CodeBlockStartActionsCount > 0))
                         {
-                            map[tree] = null;
+                            foreach (var syntaxRef in symbolEvent.DeclaringSyntaxReferences)
+                            {
+                                needsAnalysis = true;
+                                _pendingDeclarations[syntaxRef.GetSyntax()] = null;
+                            }
                         }
 
-                        _lazyPendingSyntaxAnalysisTrees = map;
+                        if (!needsAnalysis)
+                        {
+                            return;
+                        }
                     }
-
-                    if (actionCounts.CompilationActionsCount == 0)
+                    else if (compilationEvent is CompilationStartedEvent)
                     {
-                        return;
-                    }
-                }
+                        if (actionCounts.SyntaxTreeActionsCount > 0)
+                        {
+                            var trees = compilationEvent.Compilation.SyntaxTrees;
+                            var map = new Dictionary<SyntaxTree, AnalyzerStateData>(trees.Count());
+                            foreach (var tree in trees)
+                            {
+                                map[tree] = null;
+                            }
 
-                _pendingEvents[compilationEvent] = null;
+                            _lazyPendingSyntaxAnalysisTrees = map;
+                        }
+
+                        if (actionCounts.CompilationActionsCount == 0)
+                        {
+                            return;
+                        }
+                    }
+
+                    _pendingEvents[compilationEvent] = null;
+                }
             }
 
             public bool IsEventAnalyzed(CompilationEvent compilationEvent)
@@ -253,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // Have the node/code block actions executed for all symbol declarations?
-                foreach (var syntaxRef in symbolDeclaredEvent.Symbol.DeclaringSyntaxReferences)
+                foreach (var syntaxRef in symbolDeclaredEvent.DeclaringSyntaxReferences)
                 {
                     if (!IsEntityFullyProcessed_NoLock(syntaxRef.GetSyntax(), _pendingDeclarations))
                     {

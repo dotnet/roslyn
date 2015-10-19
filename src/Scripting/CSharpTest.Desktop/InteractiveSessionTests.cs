@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting.CSharp;
 using Microsoft.CodeAnalysis.Scripting.Test;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
     public class InteractiveSessionTests : TestBase
     {
         [Fact]
-        public async void CompilationChain_GlobalImportsRebinding()
+        public async Task CompilationChain_GlobalImportsRebinding()
         {
             var options = ScriptOptions.Default.AddNamespaces("System.Diagnostics");
 
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
         }
 
         [Fact]
-        public async void CompilationChain_UsingRebinding_AddReference()
+        public async Task CompilationChain_UsingRebinding_AddReference()
         {
             var s0 = await CSharpScript.RunAsync("using System.Diagnostics;");
 
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
         }
 
         [Fact]
-        public async void CompilationChain_UsingRebinding_Directive()
+        public async Task CompilationChain_UsingRebinding_Directive()
         {
             var s0 = await CSharpScript.RunAsync("using System.Diagnostics;");
 
@@ -98,7 +100,7 @@ Process.GetCurrentProcess()");
         [Fact]
         public void SearchPaths1()
         {
-            var options = ScriptOptions.Default.AddSearchPaths(RuntimeEnvironment.GetRuntimeDirectory());
+            var options = ScriptOptions.Default.WithDefaultMetadataResolution(RuntimeEnvironment.GetRuntimeDirectory());
 
             var result = CSharpScript.EvaluateAsync($@"
 #r ""System.Data.dll""
@@ -117,7 +119,7 @@ new System.Data.DataSet()
         public void SearchPaths_RemoveDefault()
         {
             // remove default paths:
-            var options = ScriptOptions.Default.WithSearchPaths();
+            var options = ScriptOptions.Default;
 
             var source = @"
 #r ""System.Data.dll""
@@ -133,42 +135,17 @@ new System.Data.DataSet()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Data").WithArguments("Data", "System"));
         }
 
-        private class MetadataReferenceProvider : Microsoft.CodeAnalysis.MetadataFileReferenceProvider
-        {
-            private readonly Dictionary<string, PortableExecutableReference> _metadata;
-
-            public MetadataReferenceProvider(Dictionary<string, PortableExecutableReference> metadata)
-            {
-                _metadata = metadata;
-                metadata.Add(typeof(object).Assembly.Location, (PortableExecutableReference)MscorlibRef);
-            }
-
-            public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
-            {
-                return _metadata[fullPath];
-            }
-        }
-
+        
         /// <summary>
         /// Look at base directory (or directory containing #r) before search paths.
         /// </summary>
         [Fact]
-        public async void SearchPaths_BaseDirectory()
+        public async Task SearchPaths_BaseDirectory()
         {
             var options = ScriptOptions.Default.
-                WithReferenceProvider(
-                    new MetadataReferenceProvider(new Dictionary<string, PortableExecutableReference>
-                    {
-                        { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef }
-                    })).
-                WithReferenceResolver(
-                    new VirtualizedFileReferenceResolver(
-                        existingFullPaths: new[]
-                        {
-                            @"C:\dir\x.dll"
-                        },
-                        baseDirectory: @"C:\foo\bar"
-                    ));
+                WithCustomMetadataResolution(new TestMetadataReferenceResolver(
+                    pathResolver: new VirtualizedRelativePathResolver(existingFullPaths: new[] { @"C:\dir\x.dll" }, baseDirectory: @"C:\foo\bar"),
+                    files: new Dictionary<string, PortableExecutableReference> { { @"C:\dir\x.dll", (PortableExecutableReference)SystemCoreRef } }));
 
             var script = CSharpScript.Create(@"
 #r ""x.dll""
@@ -183,7 +160,7 @@ var x = from a in new[] { 1, 2 ,3 } select a + 1;
         }
 
         [Fact]
-        public async void References1()
+        public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(
                 typeof(Process).Assembly, 
@@ -219,7 +196,7 @@ System.Drawing.Color.Coral
             var options3 = options2.AddReferences(typeof(System.Windows.Forms.Form).Assembly.Location);
 
             var s3 = await s2.ContinueWithAsync<System.Windows.Forms.Form>(@"
-new System.Windows.Forms.Form();
+new System.Windows.Forms.Form()
 ", options3);
 
             Assert.NotNull(s3.ReturnValue);
@@ -229,7 +206,7 @@ new System.Windows.Forms.Form();
         public void References2()
         {
             var options = ScriptOptions.Default.
-                WithSearchPaths(RuntimeEnvironment.GetRuntimeDirectory()).
+                WithDefaultMetadataResolution(RuntimeEnvironment.GetRuntimeDirectory()).
                 AddReferences("System.Core", "System.dll").
                 AddReferences(typeof(System.Data.DataSet).Assembly);
 
@@ -313,7 +290,7 @@ System.Collections.IEnumerable w = new Window();
         public class C { public int x = 1; }
 
         [Fact]
-        public async void HostObjectBinding_DuplicateReferences()
+        public async Task HostObjectBinding_DuplicateReferences()
         {
             var options = ScriptOptions.Default.
                 AddReferences(typeof(C).Assembly, typeof(C).Assembly);
@@ -323,9 +300,10 @@ System.Collections.IEnumerable w = new Window();
             // includes corlib, host type assembly by default:
             AssertEx.Equal(new[] 
             {
-                typeof(C).Assembly.Location,
-                typeof(C).Assembly.Location,
                 typeof(object).GetTypeInfo().Assembly.Location,
+                typeof(C).Assembly.Location,
+                Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")).Location, // TODO: remove
+                typeof(C).Assembly.Location,
                 typeof(C).Assembly.Location,
             }, s0.Script.GetCompilation().ExternalReferences.SelectAsArray(m => m.Display));
 

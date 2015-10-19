@@ -124,9 +124,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             referencedAssemblyIndex As Integer,
             ByRef emittedName As MetadataTypeName
         ) As TypeSymbol
-            Dim assembly As AssemblySymbol = moduleSymbol.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
+            Try
+                Dim assembly As AssemblySymbol = moduleSymbol.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
 
-            Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+                Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
+            Catch e As Exception When FatalError.Report(e) ' Trying to get more useful Watson dumps.
+                Throw ExceptionUtilities.Unreachable
+            End Try
         End Function
 
         ''' <summary>
@@ -432,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return Nothing
             End If
 
-            ' We're going to use a special decoder that can generate useable symbols for type parameters without full context.
+            ' We're going to use a special decoder that can generate usable symbols for type parameters without full context.
             ' (We're not just using a different type - we're also changing the type context.)
             Dim memberRefDecoder = New MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol)
             Return memberRefDecoder.FindMember(targetTypeSymbol, memberRef, methodsOnly)

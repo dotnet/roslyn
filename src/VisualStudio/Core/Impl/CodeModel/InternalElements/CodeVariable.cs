@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
     [ComVisible(true)]
-    [ComDefaultInterface(typeof(EnvDTE.CodeVariable))]
+    [ComDefaultInterface(typeof(EnvDTE80.CodeVariable2))]
     public sealed class CodeVariable : AbstractCodeMember, EnvDTE.CodeVariable, EnvDTE80.CodeVariable2
     {
         internal static EnvDTE.CodeVariable Create(
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             var element = new CodeVariable(state, fileCodeModel, nodeKey, nodeKind);
             var result = (EnvDTE.CodeVariable)ComAggregate.CreateAggregatedObject(element);
 
-            fileCodeModel.OnElementCreated(nodeKey, (EnvDTE.CodeElement)result);
+            fileCodeModel.OnCodeElementCreated(nodeKey, (EnvDTE.CodeElement)result);
 
             return result;
         }

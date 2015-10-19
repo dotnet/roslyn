@@ -900,6 +900,11 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public TextSpan GetInactiveRegionSpanAroundPosition(SyntaxTree tree, int position, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

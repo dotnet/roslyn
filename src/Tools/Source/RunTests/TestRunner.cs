@@ -127,7 +127,7 @@ namespace RunTests
             var errorOutput = new StringBuilder();
             var start = DateTime.UtcNow;
 
-            var xunitPath = UpgradedTests.Contains(assemblyName) ? Path.Combine($"{Path.GetDirectoryName(_xunitConsolePath)}", @"..\..\xunit.runner.console.2.1.0-beta4-build3109\tools", $"{Path.GetFileName(_xunitConsolePath)}") : _xunitConsolePath;
+            var xunitPath = UpgradedTests.Contains(assemblyName) ? Path.Combine($"{Path.GetDirectoryName(_xunitConsolePath)}", @"..\..\..\xunit.runner.console\2.1.0-beta4-build3109\tools", $"{Path.GetFileName(_xunitConsolePath)}") : _xunitConsolePath;
             var processOutput = await ProcessRunner.RunProcessAsync(
                 xunitPath,
                 builder.ToString(),

@@ -10,13 +10,10 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -1345,7 +1342,7 @@ class A
         public void GetEntryPoint_Script()
         {
             var source = @"System.Console.WriteLine(1);";
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
 
             var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
@@ -1366,7 +1363,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
                 //     static void Main() { }
@@ -1383,7 +1380,7 @@ class A
                 Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("A.Main()").WithLocation(4, 17));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void GetEntryPoint_Submission()
         {
             var source = @"1 + 1";
@@ -1402,7 +1399,7 @@ class A
             entryPoint.Diagnostics.Verify();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void GetEntryPoint_Submission_MainIgnored()
         {
             var source = @"
@@ -1586,8 +1583,7 @@ public class TestClass
         {
             var c1 = CSharpCompilation.Create("c", options: TestOptions.ReleaseDll);
 
-            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(
-                new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)));
+            var c2 = c1.WithOptions(TestOptions.ReleaseDll.WithMetadataReferenceResolver(new TestMetadataReferenceResolver()));
 
             Assert.False(c1.ReferenceManagerEquals(c2));
 
@@ -1926,7 +1922,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             });
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void SubmissionCompilation_Errors()
         {
             var genericParameter = typeof(List<>).GetGenericArguments()[0];
@@ -1969,7 +1965,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
             Assert.Equal(expectedHasValue, hasValue);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void SubmissionResultType()
         {
             var submission = CSharpCompilation.CreateSubmission("sub");
@@ -1992,7 +1988,7 @@ public class C { public static FrameworkName Foo() { return null; }}";
         /// <summary>
         /// Previous submission has to have no errors.
         /// </summary>
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void PreviousSubmissionWithError()
         {
             var s0 = CreateSubmission("int a = \"x\";");

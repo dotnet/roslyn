@@ -61,18 +61,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return GetCompletionService(document).GetCompletionRules();
         }
 
-        internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo)
+        internal static CompletionList GetCompletionList(CompletionListProvider provider, Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
         {
-            var context = new CompletionListContext(document, position, triggerInfo, CancellationToken.None);
+            options = options ?? document.Project.Solution.Workspace.Options;
+            var context = new CompletionListContext(document, position, triggerInfo, options, CancellationToken.None);
 
             provider.ProduceCompletionListAsync(context).Wait();
 
             return new CompletionList(context.GetItems(), context.Builder, context.IsExclusive);
         }
 
-        internal CompletionList GetCompletionList(Document document, int position, CompletionTriggerInfo triggerInfo)
+        internal CompletionList GetCompletionList(Document document, int position, CompletionTriggerInfo triggerInfo, OptionSet options = null)
         {
-            return GetCompletionList(this.CompletionProvider, document, position, triggerInfo);
+            return GetCompletionList(this.CompletionProvider, document, position, triggerInfo, options);
         }
 
         private void CheckResults(Document document, int position, string expectedItemOrNull, string expectedDescriptionOrNull, bool usePreviousCharAsTrigger, bool checkForAbsence, Glyph? glyph)

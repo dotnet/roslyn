@@ -197,5 +197,1228 @@ class Program {
 Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
                 );
         }
+
+        private static string arraysOfRank1IlSource = @"
+.class public auto ansi beforefieldinit Test
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method Test1::.ctor
+
+    .method public hidebysig newslot virtual 
+            instance float64[0...] Test1() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test1""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+                ldc.i4.0
+                ldc.i4.1
+                newobj instance void float64[...]::.ctor(int32, int32)
+                dup
+                ldc.i4.0
+                ldc.r8 -100
+                call instance void float64[...]::Set(int32, float64)
+      IL_000a:  ret
+    } // end of method Test::Test1
+
+    .method public hidebysig newslot virtual 
+            instance float64 Test2(float64[0...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  2
+      IL_0000:  ldstr      ""Test2""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+                ldarg.1
+                ldc.i4.0
+                call instance float64 float64[...]::Get(int32)
+      IL_000a:  ret
+    } // end of method Test::Test2
+
+    .method public hidebysig newslot virtual 
+            instance void Test3(float64[0...] x) cil managed
+    {
+      .param [1]
+      .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = ( 01 00 00 00 ) 
+      .maxstack  2
+      IL_000a:  ret
+    } // end of method Test::Test3
+
+    .method public hidebysig static void  M1<T>(!!T[0...] a) cil managed
+    {
+      // Code size       18 (0x12)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ldtoken    !!T
+      IL_0006:  call       class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
+      IL_000b:  call       void [mscorlib]System.Console::WriteLine(object)
+      IL_0010:  nop
+      IL_0011:  ret
+    } // end of method M1
+
+    .method public hidebysig static void  M2<T>(!!T[] a, !!T[0...] b) cil managed
+    {
+      // Code size       18 (0x12)
+      .maxstack  8
+      IL_0000:  nop
+      IL_0001:  ldtoken    !!T
+      IL_0006:  call       class [mscorlib]System.Type [mscorlib]System.Type::GetTypeFromHandle(valuetype [mscorlib]System.RuntimeTypeHandle)
+      IL_000b:  call       void [mscorlib]System.Console::WriteLine(object)
+      IL_0010:  nop
+      IL_0011:  ret
+    } // end of method M2
+
+} // end of class Test
+";
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_GetElement()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        System.Console.WriteLine(t.Test1()[0]);
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+-100");
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  callvirt   ""double[*] Test.Test1()""
+  IL_000a:  ldc.i4.0
+  IL_000b:  call       ""double[*].Get""
+  IL_0010:  call       ""void System.Console.WriteLine(double)""
+  IL_0015:  ret
+}
+");
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_SetElement()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        var a = t.Test1();
+        a[0] = 123;
+        System.Console.WriteLine(t.Test2(a));
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+Test2
+123");
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       40 (0x28)
+  .maxstack  4
+  .locals init (double[*] V_0) //a
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  dup
+  IL_0006:  callvirt   ""double[*] Test.Test1()""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.r8     123
+  IL_0017:  call       ""double[*].Set""
+  IL_001c:  ldloc.0
+  IL_001d:  callvirt   ""double Test.Test2(double[*])""
+  IL_0022:  call       ""void System.Console.WriteLine(double)""
+  IL_0027:  ret
+}
+");
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_ElementAddress()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        var a = t.Test1();
+        TestRef(ref a[0]);
+        System.Console.WriteLine(t.Test2(a));
+    }
+
+    static void TestRef(ref double val)
+    {
+        val = 123;
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+Test2
+123");
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (double[*] V_0) //a
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  dup
+  IL_0006:  callvirt   ""double[*] Test.Test1()""
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  call       ""double[*].Address""
+  IL_0013:  call       ""void C.TestRef(ref double)""
+  IL_0018:  ldloc.0
+  IL_0019:  callvirt   ""double Test.Test2(double[*])""
+  IL_001e:  call       ""void System.Console.WriteLine(double)""
+  IL_0023:  ret
+}
+");
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [Fact]
+        public void ArraysOfRank1_Overriding01()
+        {
+            var source =
+@"class C : Test
+{
+    public override double[] Test1()
+    {
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+    // (3,30): error CS0508: 'C.Test1()': return type must be 'double[*]' to match overridden member 'Test.Test1()'
+    //     public override double[] Test1()
+    Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Test1").WithArguments("C.Test1()", "Test.Test1()", "double[*]").WithLocation(3, 30)
+                );
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [Fact]
+        public void ArraysOfRank1_Overriding02()
+        {
+            var source =
+@"class C : Test
+{
+    public override double Test2(double[] x)
+    {
+        return x[0];
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+    // (3,28): error CS0115: 'C.Test2(double[])': no suitable method found to override
+    //     public override double Test2(double[] x)
+    Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Test2").WithArguments("C.Test2(double[])").WithLocation(3, 28)
+                );
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [Fact]
+        public void ArraysOfRank1_Conversions()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        double[] a1 = t.Test1();
+        double[] a2 = (double[])t.Test1();
+        System.Collections.Generic.IList<double> a3 = t.Test1();
+        double [] a4 = null;
+        t.Test2(a4);
+        var a5 = (System.Collections.Generic.IList<double>)t.Test1();
+        System.Collections.Generic.IList<double> ilist = new double [] {};
+        var mdarray = t.Test1();
+        mdarray = ilist;
+        mdarray = t.Test1();
+        mdarray = new [] { 3.0d };
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+    // (6,23): error CS0029: Cannot implicitly convert type 'double[*]' to 'double[]'
+    //         double[] a1 = t.Test1();
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "t.Test1()").WithArguments("double[*]", "double[]").WithLocation(6, 23),
+    // (7,23): error CS0030: Cannot convert type 'double[*]' to 'double[]'
+    //         double[] a2 = (double[])t.Test1();
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(double[])t.Test1()").WithArguments("double[*]", "double[]").WithLocation(7, 23),
+    // (8,55): error CS0029: Cannot implicitly convert type 'double[*]' to 'System.Collections.Generic.IList<double>'
+    //         System.Collections.Generic.IList<double> a3 = t.Test1();
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "t.Test1()").WithArguments("double[*]", "System.Collections.Generic.IList<double>").WithLocation(8, 55),
+    // (10,17): error CS1503: Argument 1: cannot convert from 'double[]' to 'double[*]'
+    //         t.Test2(a4);
+    Diagnostic(ErrorCode.ERR_BadArgType, "a4").WithArguments("1", "double[]", "double[*]").WithLocation(10, 17),
+    // (11,18): error CS0030: Cannot convert type 'double[*]' to 'System.Collections.Generic.IList<double>'
+    //         var a5 = (System.Collections.Generic.IList<double>)t.Test1();
+    Diagnostic(ErrorCode.ERR_NoExplicitConv, "(System.Collections.Generic.IList<double>)t.Test1()").WithArguments("double[*]", "System.Collections.Generic.IList<double>").WithLocation(11, 18),
+    // (14,19): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IList<double>' to 'double[*]'
+    //         mdarray = ilist;
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "ilist").WithArguments("System.Collections.Generic.IList<double>", "double[*]").WithLocation(14, 19),
+    // (16,19): error CS0029: Cannot implicitly convert type 'double[]' to 'double[*]'
+    //         mdarray = new [] { 3.0d };
+    Diagnostic(ErrorCode.ERR_NoImplicitConv, "new [] { 3.0d }").WithArguments("double[]", "double[*]").WithLocation(16, 19)
+                );
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [Fact]
+        public void ArraysOfRank1_TypeArgumentInference01()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        var md = t.Test1();
+        var sz = new double [] {};
+        
+        M1(sz);
+        M1(md);
+        M2(sz, sz);
+        M2(md, md);
+        M2(sz, md);
+        M2(md, sz);
+        M3(sz);
+        M3(md);
+
+        Test.M1(sz);
+        Test.M1(md);
+        Test.M2(sz, sz);
+        Test.M2(md, md);
+        Test.M2(sz, md);
+        Test.M2(md, sz);
+    }
+
+    static void M1<T>(T [] a){}
+    static void M2<T>(T a, T b){}
+    static void M3<T>(System.Collections.Generic.IList<T> a){}
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+    // (10,9): error CS0411: The type arguments for method 'C.M1<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         M1(md);
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(T[])").WithLocation(10, 9),
+    // (13,9): error CS0411: The type arguments for method 'C.M2<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         M2(sz, md);
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("C.M2<T>(T, T)").WithLocation(13, 9),
+    // (14,9): error CS0411: The type arguments for method 'C.M2<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         M2(md, sz);
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("C.M2<T>(T, T)").WithLocation(14, 9),
+    // (16,9): error CS0411: The type arguments for method 'C.M3<T>(IList<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         M3(md);
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M3").WithArguments("C.M3<T>(System.Collections.Generic.IList<T>)").WithLocation(16, 9),
+    // (18,14): error CS0411: The type arguments for method 'Test.M1<T>(T[*])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         Test.M1(sz);
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Test.M1<T>(T[*])").WithLocation(18, 14),
+    // (20,21): error CS1503: Argument 2: cannot convert from 'double[]' to 'double[*]'
+    //         Test.M2(sz, sz);
+    Diagnostic(ErrorCode.ERR_BadArgType, "sz").WithArguments("2", "double[]", "double[*]").WithLocation(20, 21),
+    // (21,17): error CS1503: Argument 1: cannot convert from 'double[*]' to 'double[]'
+    //         Test.M2(md, md);
+    Diagnostic(ErrorCode.ERR_BadArgType, "md").WithArguments("1", "double[*]", "double[]").WithLocation(21, 17),
+    // (23,14): error CS0411: The type arguments for method 'Test.M2<T>(T[], T[*])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         Test.M2(md, sz);
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M2").WithArguments("Test.M2<T>(T[], T[*])").WithLocation(23, 14)
+                );
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_TypeArgumentInference02()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        var md = t.Test1();
+        var sz = new double [] {};
+        
+        M2(md, md);
+
+        Test.M1(md);
+        Test.M2(sz, md);
+    }
+
+    static void M2<T>(T a, T b)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"Test1
+System.Double[*]
+System.Double
+System.Double
+");
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_ForEach()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        foreach (var d in t.Test1())
+        {
+            System.Console.WriteLine(d);
+        }
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+-100");
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       50 (0x32)
+  .maxstack  2
+  .locals init (double[*] V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  callvirt   ""double[*] Test.Test1()""
+  IL_000a:  stloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  callvirt   ""int System.Array.GetUpperBound(int)""
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  callvirt   ""int System.Array.GetLowerBound(int)""
+  IL_001a:  stloc.2
+  IL_001b:  br.s       IL_002d
+  IL_001d:  ldloc.0
+  IL_001e:  ldloc.2
+  IL_001f:  call       ""double[*].Get""
+  IL_0024:  call       ""void System.Console.WriteLine(double)""
+  IL_0029:  ldloc.2
+  IL_002a:  ldc.i4.1
+  IL_002b:  add
+  IL_002c:  stloc.2
+  IL_002d:  ldloc.2
+  IL_002e:  ldloc.1
+  IL_002f:  ble.s      IL_001d
+  IL_0031:  ret
+}
+");
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_Length()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        System.Console.WriteLine(t.Test1().Length);
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+1");
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  callvirt   ""double[*] Test.Test1()""
+  IL_000a:  callvirt   ""int System.Array.Length.get""
+  IL_000f:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_LongLength()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        System.Console.WriteLine(t.Test1().LongLength);
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+1");
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  callvirt   ""double[*] Test.Test1()""
+  IL_000a:  callvirt   ""long System.Array.LongLength.get""
+  IL_000f:  call       ""void System.Console.WriteLine(long)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [WorkItem(1211526, "DevDiv"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [Fact]
+        public void ArraysOfRank1_ParamArray()
+        {
+            var source =
+@"class C
+{
+    static void Main()
+    {
+        var t = new Test();
+        double d = 1.2;
+        t.Test3(d);
+        t.Test3(new double [] {d});
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, arraysOfRank1IlSource, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+    // (7,17): error CS1503: Argument 1: cannot convert from 'double' to 'params double[*]'
+    //         t.Test3(d);
+    Diagnostic(ErrorCode.ERR_BadArgType, "d").WithArguments("1", "double", "params double[*]").WithLocation(7, 17),
+    // (8,17): error CS1503: Argument 1: cannot convert from 'double[]' to 'params double[*]'
+    //         t.Test3(new double [] {d});
+    Diagnostic(ErrorCode.ERR_BadArgType, "new double [] {d}").WithArguments("1", "double[]", "params double[*]").WithLocation(8, 17)
+                );
+        }
+
+        [WorkItem(4954, "https://github.com/dotnet/roslyn/issues/4954")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SizesAndLowerBounds_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit Test
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method Test1::.ctor
+
+    .method public hidebysig newslot virtual 
+            instance float64[,] Test1() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test1""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[...,] Test2() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test2""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[...,...] Test3() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test3""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,] Test4() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test4""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,...] Test5() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test5""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,5] Test6() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test6""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,2...] Test7() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test7""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[5,2...8] Test8() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test8""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,] Test9() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test9""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,...] Test10() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test10""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,5] Test11() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test11""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,2...] Test12() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test12""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...5,2...8] Test13() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test13""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...,] Test14() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test14""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...,...] Test15() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test15""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance float64[1...,2...] Test16() cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test16""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0007:  ldnull
+      IL_000a:  ret
+    } 
+} // end of class Test
+";
+
+            var source =
+@"class C : Test
+{
+    static void Main()
+    {
+        double[,] a;
+
+        var t = new Test();
+        a = t.Test1();
+        a = t.Test2();
+        a = t.Test3();
+        a = t.Test4();
+        a = t.Test5();
+        a = t.Test6();
+        a = t.Test7();
+        a = t.Test8();
+        a = t.Test9();
+        a = t.Test10();
+        a = t.Test11();
+        a = t.Test12();
+        a = t.Test13();
+        a = t.Test14();
+        a = t.Test15();
+        a = t.Test16();
+
+        t = new C();
+        a = t.Test1();
+        a = t.Test2();
+        a = t.Test3();
+        a = t.Test4();
+        a = t.Test5();
+        a = t.Test6();
+        a = t.Test7();
+        a = t.Test8();
+        a = t.Test9();
+        a = t.Test10();
+        a = t.Test11();
+        a = t.Test12();
+        a = t.Test13();
+        a = t.Test14();
+        a = t.Test15();
+        a = t.Test16();
+    }
+
+    public override double[,] Test1()
+    {
+        System.Console.WriteLine(""Overriden 1"");
+        return null;
+    }
+    public override double[,] Test2()
+    {
+        System.Console.WriteLine(""Overriden 2"");
+        return null;
+    }
+    public override double[,] Test3()
+    {
+        System.Console.WriteLine(""Overriden 3"");
+        return null;
+    }
+    public override double[,] Test4()
+    {
+        System.Console.WriteLine(""Overriden 4"");
+        return null;
+    }
+    public override double[,] Test5()
+    {
+        System.Console.WriteLine(""Overriden 5"");
+        return null;
+    }
+    public override double[,] Test6()
+    {
+        System.Console.WriteLine(""Overriden 6"");
+        return null;
+    }
+    public override double[,] Test7()
+    {
+        System.Console.WriteLine(""Overriden 7"");
+        return null;
+    }
+    public override double[,] Test8()
+    {
+        System.Console.WriteLine(""Overriden 8"");
+        return null;
+    }
+    public override double[,] Test9()
+    {
+        System.Console.WriteLine(""Overriden 9"");
+        return null;
+    }
+    public override double[,] Test10()
+    {
+        System.Console.WriteLine(""Overriden 10"");
+        return null;
+    }
+    public override double[,] Test11()
+    {
+        System.Console.WriteLine(""Overriden 11"");
+        return null;
+    }
+    public override double[,] Test12()
+    {
+        System.Console.WriteLine(""Overriden 12"");
+        return null;
+    }
+    public override double[,] Test13()
+    {
+        System.Console.WriteLine(""Overriden 13"");
+        return null;
+    }
+    public override double[,] Test14()
+    {
+        System.Console.WriteLine(""Overriden 14"");
+        return null;
+    }
+    public override double[,] Test15()
+    {
+        System.Console.WriteLine(""Overriden 15"");
+        return null;
+    }
+    public override double[,] Test16()
+    {
+        System.Console.WriteLine(""Overriden 16"");
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+Test2
+Test3
+Test4
+Test5
+Test6
+Test7
+Test8
+Test9
+Test10
+Test11
+Test12
+Test13
+Test14
+Test15
+Test16
+Overriden 1
+Overriden 2
+Overriden 3
+Overriden 4
+Overriden 5
+Overriden 6
+Overriden 7
+Overriden 8
+Overriden 9
+Overriden 10
+Overriden 11
+Overriden 12
+Overriden 13
+Overriden 14
+Overriden 15
+Overriden 16
+");
+        }
+
+        [WorkItem(4954, "https://github.com/dotnet/roslyn/issues/4954")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void SizesAndLowerBounds_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit Test
+       extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+      IL_0006:  ret
+    } // end of method Test1::.ctor
+
+    .method public hidebysig newslot virtual 
+            instance void Test1(float64[,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test1""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test2(float64[...,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test2""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test3(float64[...,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test3""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test4(float64[5,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test4""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test5(float64[5,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test5""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test6(float64[5,5] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test6""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test7(float64[5,2...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test7""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test8(float64[5,2...8] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test8""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test9(float64[1...5,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test9""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test10(float64[1...5,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test10""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test11(float64[1...5,5] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test11""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test12(float64[1...5,2...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test12""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test13(float64[1...5,2...8] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test13""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test14(float64[1...,] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test14""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test15(float64[1...,...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test15""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+
+    .method public hidebysig newslot virtual 
+            instance void Test16(float64[1...,2...] x) cil managed
+    {
+      // Code size       11 (0xb)
+      .maxstack  4
+      IL_0000:  ldstr      ""Test16""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } 
+} // end of class Test
+";
+
+            var source =
+@"class C : Test
+{
+    static void Main()
+    {
+        double[,] a = new double [,] {};
+
+        var t = new Test();
+        t.Test1(a);
+        t.Test2(a);
+        t.Test3(a);
+        t.Test4(a);
+        t.Test5(a);
+        t.Test6(a);
+        t.Test7(a);
+        t.Test8(a);
+        t.Test9(a);
+        t.Test10(a);
+        t.Test11(a);
+        t.Test12(a);
+        t.Test13(a);
+        t.Test14(a);
+        t.Test15(a);
+        t.Test16(a);
+
+        t = new C();
+        t.Test1(a);
+        t.Test2(a);
+        t.Test3(a);
+        t.Test4(a);
+        t.Test5(a);
+        t.Test6(a);
+        t.Test7(a);
+        t.Test8(a);
+        t.Test9(a);
+        t.Test10(a);
+        t.Test11(a);
+        t.Test12(a);
+        t.Test13(a);
+        t.Test14(a);
+        t.Test15(a);
+        t.Test16(a);
+    }
+
+    public override void Test1(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 1"");
+    }
+    public override void Test2(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 2"");
+    }
+    public override void Test3(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 3"");
+    }
+    public override void Test4(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 4"");
+    }
+    public override void Test5(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 5"");
+    }
+    public override void Test6(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 6"");
+    }
+    public override void Test7(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 7"");
+    }
+    public override void Test8(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 8"");
+    }
+    public override void Test9(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 9"");
+    }
+    public override void Test10(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 10"");
+    }
+    public override void Test11(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 11"");
+    }
+    public override void Test12(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 12"");
+    }
+    public override void Test13(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 13"");
+    }
+    public override void Test14(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 14"");
+    }
+    public override void Test15(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 15"");
+    }
+    public override void Test16(double[,] x)
+    {
+        System.Console.WriteLine(""Overriden 16"");
+    }
+}
+";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+Test2
+Test3
+Test4
+Test5
+Test6
+Test7
+Test8
+Test9
+Test10
+Test11
+Test12
+Test13
+Test14
+Test15
+Test16
+Overriden 1
+Overriden 2
+Overriden 3
+Overriden 4
+Overriden 5
+Overriden 6
+Overriden 7
+Overriden 8
+Overriden 9
+Overriden 10
+Overriden 11
+Overriden 12
+Overriden 13
+Overriden 14
+Overriden 15
+Overriden 16
+");
+        }
+
     }
 }

@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.Kind == SymbolKind.ArrayType)
             {
                 var arrayType = (ArrayTypeSymbol)type;
-                if (arrayType.Rank != 1)
+                if (!arrayType.IsSZArray)
                 {
                     return TypedConstantKind.Error;
                 }
@@ -265,10 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.TypeKind == TypeKind.Array;
         }
 
-        public static bool IsSingleDimensionalArray(this TypeSymbol type)
+        public static bool IsSZArray(this TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).Rank == 1;
+            return type.TypeKind == TypeKind.Array && ((ArrayTypeSymbol)type).IsSZArray;
         }
 
         // If the type is a delegate type, it returns it. If the type is an
@@ -1082,6 +1082,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allTypeParameters.Free();
             return result;
+        }
+
+        /// <summary>
+        /// Return the nearest type parameter with the given name in
+        /// this symbol or any enclosing symbol.
+        /// </summary>
+        internal static TypeParameterSymbol FindEnclosingTypeParameter(this Symbol methodOrType, string name)
+        {
+            while (methodOrType != null)
+            {
+                switch (methodOrType.Kind)
+                {
+                    case SymbolKind.Method:
+                    case SymbolKind.NamedType:
+                    case SymbolKind.ErrorType:
+                    case SymbolKind.Field:
+                    case SymbolKind.Property:
+                    case SymbolKind.Event:
+                        break;
+                    default:
+                        return null;
+                }
+                foreach (var typeParameter in methodOrType.GetMemberTypeParameters())
+                {
+                    if (typeParameter.Name == name)
+                    {
+                        return typeParameter;
+                    }
+                }
+                methodOrType = methodOrType.ContainingSymbol;
+            }
+            return null;
         }
 
         /// <summary>

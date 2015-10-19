@@ -9101,7 +9101,7 @@ class B<T>
 
         [WorkItem(542430, "DevDiv")]
         [Fact]
-        public void UnboundTypeInvariants()
+        public void UnboundTypeInvariants1()
         {
             var sourceCode =
 @"using System;
@@ -9141,14 +9141,65 @@ class Program
             var a = type.ContainingType;
             Assert.Equal(constructedFrom, a.GetTypeMembers("B").Single());
             Assert.NotEqual(type.TypeParameters[0], type.OriginalDefinition.TypeParameters[0]); // alpha renamed
-            Assert.Null(type.BaseType);
+
+            Assert.NotNull(type.BaseType);
+            Assert.True(type.BaseType.SpecialType == SpecialType.System_Object);
+
             Assert.Empty(type.Interfaces);
             Assert.NotNull(constructedFrom.BaseType);
-            Assert.Empty(type.GetMembers());
+            Assert.NotEmpty(type.GetMembers());
             Assert.NotEmpty(constructedFrom.GetMembers());
             Assert.True(a.IsUnboundGenericType);
             Assert.False(a.ConstructedFrom.IsUnboundGenericType);
-            Assert.Equal(1, a.GetMembers().Length);
+            Assert.Equal(3, a.GetMembers().Length);
+        }
+
+        [WorkItem(542430, "DevDiv")]
+        [Fact]
+        public void UnboundTypeInvariants2()
+        {
+            var sourceCode =
+@"using System;
+
+public interface I<X>
+{
+}
+
+public class A<T>
+{
+    public T field;
+}
+
+public class B<U> : A<U>, I<U>
+{
+}
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(typeof(/*<bind>*/B<>/*</bind>*/));
+    }
+}";
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            var type = (NamedTypeSymbol)semanticInfo.Type;
+            Assert.Equal("B", type.Name);
+            Assert.True(type.IsUnboundGenericType);
+            Assert.False(type.IsErrorType());
+            Assert.True(type.TypeArguments[0].IsErrorType());
+
+            Assert.Null(type.GetMember("field"));
+
+            Assert.NotNull(type.BaseType);
+            Assert.Equal(type.BaseType.Name, "A");
+
+            var baseType = (NamedTypeSymbol)type.BaseType;
+            Assert.Equal(type.TypeArguments[0], baseType.TypeArguments[0]);
+
+            Assert.NotEmpty(type.Interfaces);
+            var interfaceType = (NamedTypeSymbol)type.Interfaces[0];
+            Assert.Equal(interfaceType.Name, "I");
+            Assert.Equal(type.TypeArguments[0], interfaceType.TypeArguments[0]);
         }
 
         [WorkItem(528659, "DevDiv")]

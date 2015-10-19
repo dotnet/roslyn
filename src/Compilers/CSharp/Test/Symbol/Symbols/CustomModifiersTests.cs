@@ -187,7 +187,7 @@ class CL3
             var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments);
             Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
             Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
-            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiers:true));
+            Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
             CompileAndVerify(compilation, expectedOutput: "Overriden");
@@ -799,11 +799,11 @@ class Module1
 
             Assert.True(base1.HasTypeArgumentsCustomModifiers);
             Assert.True(base2.HasTypeArgumentsCustomModifiers);
-            Assert.True(base1.Equals(base2, ignoreCustomModifiers:true));
+            Assert.True(base1.Equals(base2, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
             Assert.NotEqual(base1, base2);
 
             Assert.True(base3.HasTypeArgumentsCustomModifiers);
-            Assert.True(base1.Equals(base3, ignoreCustomModifiers: true));
+            Assert.True(base1.Equals(base3, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Assert.Equal(base1, base3);
             Assert.NotSame(base1, base3);
         }
@@ -1363,6 +1363,215 @@ class Test11 : Test1
     public override void Test(int [,] c)
     {
         System.Console.WriteLine(""Overriden"");
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Test
+Overriden");
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        public void ModifiersWithConstructedType_01()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006:
+        ret
+    } // end of method CL1`1::.ctor
+
+    .method public hidebysig newslot virtual
+            instance void  Test(!T1 modopt(valuetype [mscorlib]System.Nullable`1<!T1>) t1) cil managed 
+    {
+      // Code size       1 (0x1)
+      .maxstack  1
+      IL_0000:  ldstr      ""Test""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } // end of method CL1`1::Test
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        var x = new CL2();
+        x.Test(1);
+        x = new CL3();
+        x.Test(1);
+    }
+}
+
+class CL3 : CL2
+{
+    public override void Test(int c)
+    {
+        System.Console.WriteLine(""Overriden"");
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Test
+Overriden");
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        public void ModifiersWithConstructedType_02()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006:
+        ret
+    } // end of method CL1`1::.ctor
+
+    .method public hidebysig newslot virtual
+            instance void  Test(!T1 modopt(valuetype [mscorlib]System.Nullable`1) t1) cil managed 
+    {
+      // Code size       1 (0x1)
+      .maxstack  1
+      IL_0000:  ldstr      ""Test""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } // end of method CL1`1::Test
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        var x = new CL2();
+        x.Test(1);
+        x = new CL3();
+        x.Test(1);
+    }
+}
+
+class CL3 : CL2
+{
+    public override void Test(int c)
+    {
+        System.Console.WriteLine(""Overriden"");
+    }
+}";
+            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Test
+Overriden");
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        public void ModifiersWithConstructedType_03()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006:
+        ret
+    } // end of method CL1`1::.ctor
+
+    .method public hidebysig newslot virtual
+            instance int32 modopt(CL2) modopt(valuetype [mscorlib]System.Nullable`1<!T1>) modopt(valuetype [mscorlib]System.Nullable`1<!T1>) modopt(CL2) [] Test(!T1 t1) cil managed 
+    {
+      // Code size       1 (0x1)
+      .maxstack  1
+      IL_0000:  ldstr      ""Test""
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0006:  ldnull
+      IL_000a:  ret
+    } // end of method CL1`1::Test
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+";
+
+            var source = @"
+class Test
+{
+    static void Main()
+    {
+        var x = new CL2();
+        x.Test(1);
+        x = new CL3();
+        x.Test(1);
+    }
+}
+
+class CL3 : CL2
+{
+    public override int[] Test(int c)
+    {
+        System.Console.WriteLine(""Overriden"");
+        return null;
     }
 }";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);

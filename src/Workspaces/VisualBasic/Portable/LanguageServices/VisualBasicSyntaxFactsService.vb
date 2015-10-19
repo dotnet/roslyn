@@ -435,7 +435,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFactsService.GetExpressionOfMemberAccessExpression
-            Return DirectCast(node, MemberAccessExpressionSyntax).GetExpressionOfMemberAccessExpression()
+            Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression()
         End Function
 
         Public Function GetExpressionOfConditionalMemberAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalMemberAccessExpression
@@ -940,6 +940,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.IdentifierName
                     Dim identifier = DirectCast(node, IdentifierNameSyntax).Identifier
                     Return If(identifier.IsMissing, missingTokenPlaceholder, identifier.Text)
+                Case SyntaxKind.IncompleteMember
+                    Return missingTokenPlaceholder
                 Case SyntaxKind.NamespaceBlock
                     Dim nameSyntax = CType(node, NamespaceBlockSyntax).NamespaceStatement.Name
                     If nameSyntax.Kind() = SyntaxKind.GlobalName Then
@@ -1151,5 +1153,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
         End Sub
+
+        Public Function GetInactiveRegionSpanAroundPosition(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TextSpan Implements ISyntaxFactsService.GetInactiveRegionSpanAroundPosition
+            Dim trivia = tree.FindTriviaToLeft(position, cancellationToken)
+            If trivia.Kind = SyntaxKind.DisabledTextTrivia Then
+                Return trivia.FullSpan
+            End If
+
+            Return Nothing
+        End Function
     End Class
 End Namespace

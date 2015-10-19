@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         for (int i = node.RankSpecifiers.Count - 1; i >= 0; i--)
                         {
                             var a = node.RankSpecifiers[i];
-                            type = new ArrayTypeSymbol(this.Compilation.Assembly, type, ImmutableArray<CustomModifier>.Empty, a.Rank);
+                            type = ArrayTypeSymbol.CreateCSharpArray(this.Compilation.Assembly, type, ImmutableArray<CustomModifier>.Empty, a.Rank);
                         }
 
                         return type;
@@ -546,8 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsTypeInContextWhichNeedsDynamicAttribute())
             {
-                if ((object)this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) == null ||
-                    (object)this.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) == null)
+                if (!Compilation.HasDynamicEmitAttributes())
                 {
                     // CONSIDER:    Native compiler reports error CS1980 for each syntax node which binds to dynamic type, we do the same by reporting a diagnostic here.
                     //              However, this means we generate multiple duplicate diagnostics, when a single one would suffice.
@@ -847,6 +846,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
+                if (typeSyntax.Kind() == SyntaxKind.GenericName)
+                {
+                    var genericName = (GenericNameSyntax)typeSyntax;
+                    if (genericName.IsUnboundGenericName && IsUnboundTypeAllowed(genericName))
+                    {
+                        return type.AsUnboundGenericType(withUseSiteDiagnostic: false);
+                    }
+                }
+
                 // Note: lookup won't have reported this, since the arity was correct.
                 // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
                 Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
@@ -889,6 +897,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(members.Count > 0);
+
+            if (!hasErrors)
+            {
+                // The common case is that if that members contains a local function symbol,
+                // there is only one element. Still do a foreach for potential error cases.
+                foreach (var member in members)
+                {
+                    if (!(member is LocalFunctionSymbol))
+                    {
+                        continue;
+                    }
+                    Debug.Assert(members.Count == 1 && member.Locations.Length == 1);
+                    var localSymbolLocation = member.Locations[0];
+                    bool usedBeforeDecl =
+                        syntax.SyntaxTree == localSymbolLocation.SourceTree &&
+                        syntax.SpanStart < localSymbolLocation.SourceSpan.Start;
+                    if (usedBeforeDecl)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, syntax, syntax);
+                    }
+                }
+            }
 
             switch (members[0].Kind)
             {

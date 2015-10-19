@@ -279,6 +279,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             };
         }
 
+        protected Action<object> Exceptions(string expectedText)
+        {
+            return (content) =>
+            {
+                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
+                Assert.Equal(expectedText, quickInfoContent.ExceptionText.ClassifiableContent.GetFullText());
+            };
+        }
+
         protected static bool CanUseSpeculativeSemanticModel(Document document, int position)
         {
             var service = document.Project.LanguageServices.GetService<ISyntaxFactsService>();

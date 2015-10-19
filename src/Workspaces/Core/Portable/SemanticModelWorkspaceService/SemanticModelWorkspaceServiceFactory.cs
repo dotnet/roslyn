@@ -485,7 +485,15 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         }
 
                         var documentId = newProject.GetDocumentId(newTree);
-                        Contract.Requires(documentId != null);
+
+                        // GetDocumentId will return null for #load'ed trees.
+                        // TODO:  Remove this check and add logic to fetch the #load'ed tree's
+                        // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
+                        if (documentId == null)
+                        {
+                            Debug.Assert(newProject.Solution.Workspace.Kind == "Interactive");
+                            continue;
+                        }
 
                         map = map.SetItem(documentId, newTree);
                     }

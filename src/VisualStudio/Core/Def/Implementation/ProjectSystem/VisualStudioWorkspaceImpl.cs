@@ -8,6 +8,7 @@ using System.Text;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -46,6 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         // document worker coordinator
         private ISolutionCrawlerRegistrationService _registrationService;
+
+        private readonly ForegroundThreadAffinitizedObject foregroundObject = new ForegroundThreadAffinitizedObject();
 
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
@@ -672,6 +675,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentNullException(nameof(documentId));
             }
 
+            if (!foregroundObject.IsForeground())
+            {
+                throw new InvalidOperationException(ServicesVSResources.ThisWorkspaceOnlySupportsOpeningDocumentsOnTheUIThread);
+            }
+
             var document = this.GetHostDocument(documentId);
             if (document != null && document.Project != null)
             {
@@ -776,9 +784,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             switch (hostProject.Language)
             {
                 case LanguageNames.CSharp:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".cs" : ".csx";
+                    return ".cs";
                 case LanguageNames.VisualBasic:
-                    return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    // TODO: uncomment when fixing https://github.com/dotnet/roslyn/issues/5325
+                    //return sourceCodeKind == SourceCodeKind.Regular ? ".vb" : ".vbx";
+                    return ".vb";
                 default:
                     throw new InvalidOperationException();
             }
@@ -1032,6 +1044,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             where TInterface : class
         {
             return this.ServiceProvider.GetService(typeof(TService)) as TInterface;
+        }
+
+        public object GetVsService(Type serviceType)
+        {
+            return ServiceProvider.GetService(serviceType);
+        }
+
+        public DTE GetVsDte()
+        {
+            return GetVsService<SDTE, DTE>();
         }
 
         /// <summary>
