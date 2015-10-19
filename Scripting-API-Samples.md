@@ -3,7 +3,7 @@ The scripting APIs enable .NET applications to instatiate a C# engine and execut
 > **Note:** most samples require the following usings: <br/>
 > ```using Microsoft.CodeAnalysis.CSharp.Scripting;``` <br/>
 
-You can also view the [source code](http://source.roslyn.io/#Microsoft.CodeAnalysis.CSharp.Scripting/CSharpScript.cs).
+You can also view the [source code](http://source.roslyn.io/#Microsoft.CodeAnalysis.CSharp.Scripting/CSharpScript.cs). There may be some changes to the API after it was finalized early October 2015.
 
 ## Scenarios
 * [Evaluate a C# expression](#expr)
