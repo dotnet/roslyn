@@ -39,36 +39,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             ''' <summary>
-            ''' That said, when current and other use spans are regular spans we can have 
-            ''' only 2 conflict cases:
-            '''      [1, 3) conflicts with [0, 2) 
-            '''      [1, 3) conflicts with [2, 4) 
+            ''' when current And other use spans are regular spans we can have only 2 conflict cases:
+            ''' [1, 3) conflicts with [0, 2)
+            ''' [1, 3) conflicts with [2, 4)
             ''' 
-            ''' specifically: 
-            '''      [1, 3) does not conflict with [0, 1) 
+            ''' NOTE: With regular spans, it is not possible for two spans to share an edge point 
+            ''' unless they belong to the same local. (because we cannot aceess two real locals at the same time)
             ''' 
-            ''' NOTE: with regular spans, it is not possible to have start1 == start2 or 
-            ''' end1 == end2 since at the same node we can access only one real local.
-            ''' 
-            ''' However at the same node we can access one or more dummy locals. So we can 
-            ''' have start1 == start2 and end1 == end2 scenarios, but only if the other span 
-            ''' is a span of a dummy. 
+            ''' specifically:
+            ''' [1, 3) does Not conflict with [0, 1)   since such spans would need to belong to the same local
             ''' </summary>
             Public Function ConflictsWith(other As LocalDefUseSpan) As Boolean
-                ' NOTE: this logic is moved from CS as-is
-                ' TODO: revise the definition of ConflictsWith
-                Dim containsStart As Boolean = other.ContainsStart(Me.Start)
-                Dim containsEnd = other.ContainsEnd(Me.End)
-                Return containsStart Xor containsEnd
+                Return Contains(other.Start) Xor Contains(other.End)
             End Function
 
-            Private Function ContainsStart(otherStart As Integer) As Boolean
-                Return Me.Start <= otherStart AndAlso Me.End > otherStart
+            Private Function Contains(val As Integer) As Boolean
+                Return Me.Start < val AndAlso Me.End > val
             End Function
 
-            Private Function ContainsEnd(otherEnd As Integer) As Boolean
-                Return Me.Start < otherEnd AndAlso Me.End > otherEnd
+            ''' <summary>
+            ''' Dummy locals represent implicit control flow
+            ''' it is not allowed for a regular local span to cross into or 
+            ''' be immediately adjacent to a dummy span.
+            ''' 
+            ''' specifically:
+            ''' [1, 3) does conflict with [0, 1)   since that would imply a value flowing into or out of a span surrounded by a branch/label
+            ''' 
+            ''' </summary>
+            Public Function ConflictsWithDummy(dummy As LocalDefUseSpan) As Boolean
+                Return Includes(dummy.Start) Xor Includes(dummy.End)
             End Function
+
+            Private Function Includes(val As Integer) As Boolean
+                Return Me.Start <= val AndAlso Me.End >= val
+            End Function
+
 
         End Class
 

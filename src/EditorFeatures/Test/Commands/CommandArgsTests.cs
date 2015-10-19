@@ -4,13 +4,14 @@ using System;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.EditorUtilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Commands
 {
     public class CommandArgsTests
     {
-        [Fact]
+        [WpfFact]
         public void CreateBackspaceCommandArgsWithNullTextView()
         {
             var buffer = EditorFactory.CreateBuffer(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, "class C { }");
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Commands
                 new BackspaceKeyCommandArgs(null, buffer));
         }
 
-        [Fact]
+        [WpfFact]
         public void CreateBackspaceCommandArgsWithNullSubjectBuffer()
         {
             var view = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, "class C { }");
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Commands
                 new BackspaceKeyCommandArgs(view, null));
         }
 #if false
-        [Fact]
+        [WpfFact]
         public void TestTextViewProperty()
         {
             var view = new StandardBufferView(EditorFactory.CreateView(TestExportProvider.ExportProvider, "class C { }"));
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Commands
             Assert.Equal(view, args.TextView);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestSubjectProperty()
         {
             var view = new StandardBufferView(EditorFactory.CreateView(TestExportProvider.ExportProvider, "class C { }"));
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Commands
             Assert.Equal(view.TextBuffer, args.SubjectBuffer);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestInvokeQuickInfoCommandArgs()
         {
             var view = new StandardBufferView(EditorFactory.CreateView(TestExportProvider.ExportProvider, "class C { }"));

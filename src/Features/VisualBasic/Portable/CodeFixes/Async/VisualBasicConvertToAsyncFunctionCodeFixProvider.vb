@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
     Friend Class VisualBasicConvertToAsyncFunctionCodeFixProvider
         Inherits AbstractChangeToAsyncCodeFixProvider
 
-        Friend Const BC37001 As String = "BC37001" ' error BC37001: 'Blah' Does not return a Task and is not awaited consider changing to and Aync Function.
+        Friend Const BC37001 As String = "BC37001" ' error BC37001: 'Blah' Does not return a Task and is not awaited consider changing to an Async Function.
 
         Friend ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(Of String)(BC37001)
 

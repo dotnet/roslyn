@@ -607,7 +607,7 @@ lSelect:
                 ' Note, for extension methods we are dropping the "Me" parameter to remove
                 ' BoundCollectionInitializerExpression.PlaceholderOpt references from the tree.
                 ' Otherwise, IL generation fails because it doesn't know what to do with it.
-                ' At run-time, this code is going to throw because ElementInit API doesnt accept
+                ' At run-time, this code is going to throw because ElementInit API doesn't accept
                 ' shared methods. We don't fail compilation in this scenario due to backward
                 ' compatibility reasons.
                 newInitializers(i) = _factory.Convert(
@@ -666,7 +666,7 @@ lSelect:
             ' All other cases are not supported, note that some cases of invalid
             ' sequences are handled in DiagnosticsPass, but we still want to catch
             ' here those sequences created in lowering
-            Return GenerateDiagnosticAndReturnDummyExpression(ERRID.ERR_ExpressionTreeNotSupported, value)
+            Return GenerateDiagnosticAndReturnDummyExpression(ERRID.ERR_ExpressionTreeNotSupported, node)
         End Function
 
         Private Function VisitArrayLength(node As BoundArrayLength) As BoundExpression

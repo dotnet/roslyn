@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestInterProject()
             Dim input =
                 <Workspace>
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
 
 #Region "Identifiers"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestConstructorIdentifier()
             Dim input = <Code>
 Class Foo
@@ -110,7 +110,7 @@ End Class
         End Sub
 
         <WorkItem(542058)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestConstructorNew1()
             Dim input = <Code>
 Class C
@@ -138,7 +138,7 @@ End Class
         End Sub
 
         <WorkItem(542058)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestConstructorNew2()
             Dim input = <Code>
 Class B
@@ -174,7 +174,7 @@ End Class
         End Sub
 
         <WorkItem(542058)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestConstructorNew3()
             Dim input = <Code>
 Class C
@@ -203,7 +203,7 @@ End Class
 
         <WorkItem(542058)>
         <WorkItem(543999)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestConstructorNew4()
             Dim input = <Code>
 Class C
@@ -235,7 +235,7 @@ End Class
         End Sub
 
         <WorkItem(541352)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestAlias1()
             Dim input = <Code>
 Imports S = System.String
@@ -254,7 +254,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestClassIdentifier()
             Dim input = <Code>
 Class Foo
@@ -277,7 +277,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestStructureIdentifier()
             Dim input = <Code>
 Structure Foo
@@ -300,7 +300,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestEnumIdentifier()
             Dim input = <Code>
 Enum Foo
@@ -329,7 +329,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestMethodIdentifier()
             Dim input = <Code>
 Class C
@@ -350,7 +350,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestMethodParameterLocalIdentifier()
             Dim input = <Code>
 Class C
@@ -372,7 +372,7 @@ End Class
         End Sub
 
         <WorkItem(4680, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestNamedParameterIdentifier()
             Dim input = <Code>
 Class C
@@ -393,7 +393,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestLocalIdentifier()
             Dim input = <Code>
 Class C
@@ -416,7 +416,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPropertyIdentifier()
             Dim input = <Code>
 Class C
@@ -441,7 +441,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestFieldIdentifier()
             Dim input = <Code>
 Class C
@@ -466,7 +466,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestEnumMemberIdentifier()
             Dim input = <Code>
 Class C
@@ -497,7 +497,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestDelegateInvocation()
             Dim input = <Code>
 Class C
@@ -524,7 +524,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestDefaultProperty1()
             Dim input = <Code>
 Class X
@@ -585,7 +585,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestDefaultProperty2()
             Dim input = <Code>
 Class X
@@ -646,7 +646,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         <WorkItem(599333)>
         Public Sub TestPartialMethodName1()
             Dim input = <Code>
@@ -676,7 +676,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         <WorkItem(599333)>
         Public Sub TestPartialMethodName2()
             ' Partial methods must be SUBs
@@ -709,7 +709,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         <WorkItem(599333)>
         Public Sub TestPartialMethodParameterName1()
             ' Partial method with parameters
@@ -740,7 +740,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         <WorkItem(599333)>
         Public Sub TestPartialMethodParameterName2()
             ' Multiple overloaded partial methods
@@ -783,7 +783,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         <WorkItem(599333)>
         Public Sub TestPartialMethodParameterName3()
             ' Partial method with different parameter names.
@@ -818,7 +818,7 @@ End Class
         End Sub
 
         <WorkItem(608626)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestOverloadResolutionFailure()
             Dim input = <Code>
 Option Strict On
@@ -842,7 +842,7 @@ End Class
         End Sub
 
         <WorkItem(1949, "https://github.com/dotnet/roslyn/issues/1949")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestUnResolvedTypeDoesNotBindToAnyAccessibleSymbol()
             Dim unchangeCode = <Code>
 Option Strict On
@@ -863,7 +863,7 @@ End Class
 
 #Region "Keywords and type suffixes"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestIfElseThenKeywords()
             Dim input = <Code>
 Class C
@@ -884,7 +884,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         <WorkItem(17313, "DevDiv_Projects/Roslyn")>
         Public Sub TestElseIfKeyword()
             Dim input =
@@ -904,7 +904,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestTrueFalseKeywords()
             Dim input = <Code>
 Class C
@@ -928,7 +928,7 @@ End Class
         End Sub
 
         <WorkItem(538930)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestCharacterTypeSuffix()
             Dim input = <Code>
@@ -951,7 +951,7 @@ End Class
         End Sub
 
         <WorkItem(538930)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestULTypeSuffix()
             Dim input = <Code>
@@ -976,7 +976,7 @@ End Class
         End Sub
 
         <WorkItem(538930)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestFTypeSuffix()
             Dim input = <Code>
@@ -999,7 +999,7 @@ End Class
         End Sub
 
         <WorkItem(538930)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestRTypeSuffix()
             Dim input = <Code>
@@ -1022,7 +1022,7 @@ End Class
         End Sub
 
         <WorkItem(538930)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestDTypeSuffix()
             Dim input = <Code>
@@ -1045,7 +1045,7 @@ End Class
         End Sub
 
         <WorkItem(538930)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestDateLiteral()
             Dim input = <Code>
@@ -1070,7 +1070,7 @@ End Class
         End Sub
 
         <WorkItem(539020)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestEscaping1()
             Dim input = <Code>
@@ -1093,7 +1093,7 @@ End Namespace
         End Sub
 
         <WorkItem(539020)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestEscaping2()
             Dim input = <Code>
@@ -1136,7 +1136,7 @@ End Module
         End Sub
 
         <WorkItem(539356)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestREMInComment()
             Dim input = <Code>
 rem this is a comment
@@ -1150,7 +1150,7 @@ REM this is a comment
         End Sub
 
         <WorkItem(529938), WorkItem(529935)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestFullwidthREMInComment()
             Dim input = <Code>
 ＲＥＭ this is a comment
@@ -1163,7 +1163,7 @@ REM this is a comment
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestNameOf()
             Dim input = <Code>
 Module M
@@ -1185,7 +1185,7 @@ End Module
 #Region "Preprocessor"
 
         <WorkItem(539308)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessor()
             Dim input = <Code>
 #if true then
@@ -1201,7 +1201,7 @@ End Module
         End Sub
 
         <WorkItem(539352)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessorLiterals()
             Dim input = <Code>
 #const foo = 2.0d
@@ -1215,7 +1215,7 @@ End Module
         End Sub
 
         <WorkItem(539352)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessorInMethodBodies()
             Dim input = <Code>
 Module Program
@@ -1239,7 +1239,7 @@ End Module
         End Sub
 
         <WorkItem(539352)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessorAroundClass()
             Dim input = <Code>
 #if true then
@@ -1259,7 +1259,7 @@ End Class
         End Sub
 
         <WorkItem(539472)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestRemCommentAfterPreprocessor()
             Dim input = <Code>
 #const foo = 42 rem foo
@@ -1273,7 +1273,7 @@ End Class
         End Sub
 
         <WorkItem(5568, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessorIdentifierBasic()
             Dim input = <Code>
 #Const ccConst = 0
@@ -1291,7 +1291,7 @@ End Class
         End Sub
 
         <WorkItem(5568, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessorIdentifierBracketed()
             Dim input = <Code>
 #Const [Const] = 0
@@ -1333,7 +1333,7 @@ End Class
         End Sub
 
         <WorkItem(5568, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessorIdentifierInCCExpression()
             Dim input = <Code>
 #Const ccConst = "SomeValue"
@@ -1379,7 +1379,7 @@ End Module
         End Sub
 
         <WorkItem(5568, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestPreprocessorIdentifierErrorCases()
             Dim input = <Code>
 #Const ccConst = "SomeValue"
@@ -1420,7 +1420,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestWarningDirectives()
             Dim input = <Code>
 #disable warning bc123, BC456, SomeOtherId 'comment
@@ -1441,7 +1441,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestWarningDirectives_FullWidth()
             Dim input = <Code>
 Module Module1
@@ -1467,7 +1467,7 @@ End Module
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestWarningDirectives_ErrorCases()
             Dim input = <Code>
 #disable warning bc123, 'comment
@@ -1489,7 +1489,7 @@ End Module
 
 #Region "Other tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub Test1()
             Dim input =
 <Text>
@@ -1522,7 +1522,7 @@ End Class</Text>
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestAll()
 
             Dim input =
@@ -1917,7 +1917,7 @@ End Namespace
         End Sub
 
         <WorkItem(542110)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub SkippedTokens()
             Dim input =
 <Text>
@@ -1935,7 +1935,7 @@ End Namespace
         End Sub
 
         <WorkItem(544395)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestAttribute()
             Dim input =
 <Text><![CDATA[
@@ -1963,7 +1963,7 @@ End Enum
         End Sub
 
         <WorkItem(530927)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestNewOnRightSideOfDot()
             Dim input =
 <Text><![CDATA[
@@ -2016,7 +2016,7 @@ End Class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CaseCorrection)>
         Public Sub TestAlias()
             Dim input =
 <Text>

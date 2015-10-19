@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
 {
     public class MapTests
     {
-        [Fact]
+        [WpfFact]
         public void TestEnumerator()
         {
             var map = ImmutableDictionary.Create<string, int>().Add("1", 1);
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCounts()
         {
             var map = ImmutableDictionary.Create<string, int>()
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.Equal(5, map.Values.Count());
         }
 
-        [Fact]
+        [WpfFact]
         public void TestRemove()
         {
             var map = ImmutableDictionary.Create<string, int>()
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Collections.Immutable.Maps
             Assert.Equal(0, map.Count);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestPathology()
         {
             var map = ImmutableDictionary.Create<string, int>(new PathologicalComparer<string>())

@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 // See if we can find a possible base type for the type being generated.
                 // NOTE(cyrusn): I currently limit this to when we have an object creation node.
-                // That's because that's when we would have an expression that could be coverted to
+                // That's because that's when we would have an expression that could be converted to
                 // something else.  i.e. if the user writes "IList<int> list = new Foo()" then we can
                 // infer a base interface for 'Foo'.  However, if they write "IList<int> list = Foo"
                 // then we don't really want to infer a base type for 'Foo'.

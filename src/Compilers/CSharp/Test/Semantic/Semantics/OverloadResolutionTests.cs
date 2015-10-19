@@ -8237,5 +8237,47 @@ RemoveDetail
 RemoveDetail
 RemoveDetail");
         }
+
+        [Fact, WorkItem(2544, "https://github.com/dotnet/roslyn/issues/2544")]
+        public void GetSymbolOnfo_Inaccessible()
+        {
+            var source =
+@"
+class C
+{
+    private void M(D d)
+    {
+        d.M(1);
+    }
+}
+
+class D
+{
+    private void M(int i) { }
+    private void M(double d) { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+
+            compilation.VerifyDiagnostics(
+    // (6,11): error CS0122: 'D.M(int)' is inaccessible due to its protection level
+    //         d.M(1);
+    Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("D.M(int)").WithLocation(6, 11)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(callSyntax);
+
+            Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason);
+            var candidates = symbolInfo.CandidateSymbols;
+            Assert.Equal(2, candidates.Length);
+            Assert.Equal("void D.M(System.Int32 i)", candidates[0].ToTestDisplayString());
+            Assert.Equal("void D.M(System.Double d)", candidates[1].ToTestDisplayString());
+        }
+
     }
 }

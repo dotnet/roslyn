@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -211,14 +212,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Verify we can get compilations for both projects
             var projects = solution.Projects.ToArray();
 
-            // Exactly one of them should have a reference to the other. Which one it is is unspecced
+            // Exactly one of them should have a reference to the other. Which one it is, is unspecced
             Assert.True(projects[0].ProjectReferences.Any(r => r.ProjectId == projects[1].Id) ||
                         projects[1].ProjectReferences.Any(r => r.ProjectId == projects[0].Id));
 
             var compilation1 = projects[0].GetCompilationAsync().Result;
             var compilation2 = projects[1].GetCompilationAsync().Result;
 
-            // Exactly one of them should have a compilation to the other. Which one it is is unspecced
+            // Exactly one of them should have a compilation to the other. Which one it is, is unspecced
             Assert.True(compilation1.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation2) ||
                         compilation2.References.OfType<CompilationReference>().Any(c => c.Compilation == compilation1));
         }
@@ -1039,7 +1040,7 @@ class C1
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipFalse_Throws()
         {
-            // proves that if the language libaries are missing then the appropriate error occurs
+            // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             AssertThrows<InvalidOperationException>(() =>
@@ -1058,7 +1059,7 @@ class C1
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenSolution_WithMissingLanguageLibraries_WithSkipTrue_SucceedsWithDiagnostic()
         {
-            // proves that if the language libaries are missing then the appropriate error occurs
+            // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             var ws = MSBuildWorkspace.Create(hostServicesWithoutCSharp);
@@ -1080,7 +1081,7 @@ class C1
         [WorkItem(3931, "https://github.com/dotnet/roslyn/issues/3931")]
         public void TestOpenProject_WithMissingLanguageLibraries_Throws()
         {
-            // proves that if the language libaries are missing then the appropriate error occurs
+            // proves that if the language libraries are missing then the appropriate error occurs
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             AssertThrows<InvalidOperationException>(() =>
@@ -2914,6 +2915,32 @@ class C { }";
             var proj = ws.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj")).Result;
             var docs = proj.Documents.ToList();
             Assert.Equal(3, docs.Count);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_CommandLineArgsHaveNoErrors()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var ws = MSBuildWorkspace.Create();
+            var loader = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<IProjectFileLoader>();
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            var properties = ImmutableDictionary<string, string>.Empty;
+            var projectFile = loader.LoadProjectFileAsync(projectFilePath, properties, CancellationToken.None).Result;
+            var projectFileInfo = projectFile.GetProjectFileInfoAsync(CancellationToken.None).Result;
+
+            var commandLineParser = ws.Services.GetLanguageServices(loader.Language).GetRequiredService<ICommandLineParserService>();
+
+            var projectDirectory = Path.GetDirectoryName(projectFilePath);
+            var commandLineArgs = commandLineParser.Parse(
+                arguments: projectFileInfo.CommandLineArgs,
+                baseDirectory: projectDirectory,
+                isInteractive: false,
+                sdkDirectory: System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory());
+
+            Assert.Equal(0, commandLineArgs.Errors.Length);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

@@ -86,14 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithModifiers SubstituteType(AbstractTypeMap typeMap)
         {
+            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
             var newTypeWithModifiers = typeMap.SubstituteType(this.Type);
-            if (!newTypeWithModifiers.Is(this.Type))
+            if (!newTypeWithModifiers.Is(this.Type) || newCustomModifiers != this.CustomModifiers)
             {
-                return new TypeWithModifiers(newTypeWithModifiers.Type, this.CustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+                return new TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
             }
             else
             {
-                return this; // substitution had no effect on the type
+                return this; // substitution had no effect on the type or modifiers
             }
         }
     }

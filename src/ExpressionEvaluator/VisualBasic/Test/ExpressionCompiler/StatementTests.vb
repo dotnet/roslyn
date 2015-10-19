@@ -80,7 +80,7 @@ End Module
                 methodName:="Module1.Main",
                 expr:="args(1)",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30454: Expression is not a method.", errorMessage)
+            Assert.Equal("error BC30454: Expression is not a method.", errorMessage)
 
             testData = EvaluateStatement(
                 source,
@@ -353,7 +353,7 @@ End Class
                 methodName:="C.M",
                 expr:="x",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30454: Expression is not a method.", errorMessage)
+            Assert.Equal("error BC30454: Expression is not a method.", errorMessage)
         End Sub
 
         <Fact>
@@ -375,14 +375,14 @@ End Class
                 methodName:="C.M",
                 expr:="  If True Then x = 1",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30035: Syntax error.", errorMessage)
+            Assert.Equal("error BC30035: Syntax error.", errorMessage)
 
             testData = EvaluateStatement(
                 source,
                 methodName:="C.M",
                 expr:="  If True Then x = 1 Else x = 2",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30035: Syntax error.", errorMessage)
+            Assert.Equal("error BC30035: Syntax error.", errorMessage)
         End Sub
 
         <Fact>
@@ -535,14 +535,14 @@ End Class
                 methodName:="C.M",
                 expr:="? ",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30201: Expression expected.", errorMessage)
+            Assert.Equal("error BC30201: Expression expected.", errorMessage)
 
             testData = EvaluateStatement(
                 source,
                 methodName:="C.M",
                 expr:="??x = 1",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30201: Expression expected.", errorMessage)
+            Assert.Equal("error BC30201: Expression expected.", errorMessage)
 
             testData = EvaluateStatement(
                 source,
@@ -581,7 +581,7 @@ End Class
                 methodName:="C.M",
                 expr:="?AddressOf System.Console.WriteLine",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30491: Expression does not produce a value.", errorMessage)
+            Assert.Equal("error BC30491: Expression does not produce a value.", errorMessage)
 
             testData = EvaluateStatement(
                 source,
@@ -626,7 +626,7 @@ End Class
                 methodName:="C.M",
                 expr:="?ReDim a(2), a(3)",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30201: Expression expected.", errorMessage)
+            Assert.Equal("error BC30201: Expression expected.", errorMessage)
         End Sub
 
         <Fact>
@@ -813,7 +813,7 @@ End Class
                 methodName:="C.M",
                 expr:="  While True :: End While",
                 errorMessage:=errorMessage)
-            Assert.Equal("(1) : error BC30035: Syntax error.", errorMessage) ' not the best error, but not worth modifying parsing to improve...
+            Assert.Equal("error BC30035: Syntax error.", errorMessage) ' not the best error, but not worth modifying parsing to improve...
         End Sub
 
         Private Function EvaluateStatement(source As String, methodName As String, expr As String, <Out> ByRef errorMessage As String, Optional atLineNumber As Integer = -1) As CompilationTestData
@@ -836,7 +836,7 @@ End Class
                     expr,
                     compilationFlags,
                     NoAliases,
-                    VisualBasicDiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     resultProperties,
                     errorMessage,
                     missingAssemblyIdentities,

@@ -484,7 +484,7 @@ End Class
 #End Region
 
 #Region "DllImportAttribute, MethodImplAttribute, PreserveSigAttribute"
-        ''' 6879: Pseudo DllImport looks very different in metadata Metadata: pinvokeimpl(...) +
+        ''' 6879: Pseudo DllImport looks very different in metadata: pinvokeimpl(...) +
         ''' PreserveSig
         <WorkItem(540573, "DevDiv")>
         <Fact>

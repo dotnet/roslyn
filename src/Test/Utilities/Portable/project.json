@@ -5,6 +5,7 @@
   },
   "dependencies": {
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "System.Collections.Concurrent": "4.0.10"
   },
   "frameworks": {
     "dotnet": {

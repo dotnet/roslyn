@@ -61,6 +61,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CommandLineRunnerTests.cs" />
+    <Compile Include="TestCompilationFactory.cs" />
     <Compile Include="InteractiveSessionFixtures.cs" />
     <Compile Include="InteractiveSessionTests.cs" />
     <Compile Include="ObjectFormatterTests.cs" />
@@ -70,6 +71,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">

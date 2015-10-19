@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartTokenFormatterFormatRangeTests
     {
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void BeginningOfFile()
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             Assert.NotNull(Record.Exception(() => AutoFormatOnSemicolon(code, expected, SyntaxKind.None)));
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace1()
         {
@@ -61,7 +61,7 @@ namespace NS
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace2()
         {
@@ -84,7 +84,7 @@ namespace NS
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace3()
         {
@@ -97,7 +97,7 @@ namespace NS { }";
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace4()
         {
@@ -113,7 +113,7 @@ namespace NS
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace5()
         {
@@ -132,7 +132,7 @@ namespace NS
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace6()
         {
@@ -154,7 +154,7 @@ namespace NS
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace7()
         {
@@ -180,7 +180,7 @@ namespace NS
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Namespace8()
         {
@@ -193,7 +193,7 @@ namespace NS { class Class { } namespace NS2 { } }";
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Class1()
         {
@@ -209,7 +209,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Class2()
         {
@@ -231,7 +231,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Class3()
         {
@@ -250,7 +250,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Class4()
         {
@@ -269,7 +269,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Class5()
         {
@@ -294,7 +294,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Interface1()
         {
@@ -315,7 +315,7 @@ interface II
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Struct1()
         {
@@ -338,7 +338,7 @@ struct Struct
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Enum1()
         {
@@ -359,7 +359,7 @@ enum Enum
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AccessorList1()
         {
@@ -376,7 +376,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AccessorList2()
         {
@@ -393,7 +393,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.IntKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AccessorList3()
         {
@@ -414,7 +414,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.IntKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AccessorList4()
         {
@@ -435,7 +435,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.GetKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AccessorList5()
         {
@@ -458,7 +458,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.GetKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AccessorList6()
         {
@@ -484,7 +484,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.IntKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AccessorList7()
         {
@@ -513,7 +513,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block1()
         {
@@ -532,7 +532,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block2()
         {
@@ -549,7 +549,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block3()
         {
@@ -571,7 +571,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block4()
         {
@@ -593,7 +593,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block5()
         {
@@ -614,7 +614,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block6()
         {
@@ -637,7 +637,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block7()
         {
@@ -658,7 +658,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Block8()
         {
@@ -684,7 +684,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SwitchStatement1()
         {
@@ -716,7 +716,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SwitchStatement2()
         {
@@ -737,7 +737,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SwitchStatement3()
         {
@@ -762,7 +762,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.ColonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SwitchStatement4()
         {
@@ -790,7 +790,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.ColonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Initializer1()
         {
@@ -811,7 +811,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.NewKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Initializer2()
         {
@@ -834,7 +834,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.NewKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Initializer3()
         {
@@ -860,7 +860,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.NewKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Initializer4()
         {
@@ -881,7 +881,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.NewKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Initializer5()
         {
@@ -906,7 +906,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.NewKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Initializer6()
         {
@@ -931,7 +931,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.NewKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement1()
         {
@@ -952,7 +952,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement2()
         {
@@ -978,7 +978,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement3()
         {
@@ -1001,7 +1001,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement4()
         {
@@ -1027,7 +1027,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement5()
         {
@@ -1055,7 +1055,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement6()
         {
@@ -1081,7 +1081,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement7()
         {
@@ -1107,7 +1107,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement8()
         {
@@ -1133,7 +1133,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement9()
         {
@@ -1156,7 +1156,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FieldlInitializer()
         {
@@ -1175,7 +1175,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void ArrayFieldlInitializer()
         {
@@ -1198,7 +1198,7 @@ namespace NS
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void ExpressionValuedPropertyInitializer()
         {
@@ -1217,7 +1217,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement10()
         {
@@ -1242,7 +1242,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement11()
         {
@@ -1263,7 +1263,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement12()
         {
@@ -1286,7 +1286,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement13()
         {
@@ -1311,7 +1311,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement14()
         {
@@ -1332,7 +1332,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement15()
         {
@@ -1355,7 +1355,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement16()
         {
@@ -1380,7 +1380,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void EmbeddedStatement17()
         {
@@ -1407,7 +1407,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement1()
         {
@@ -1426,7 +1426,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement2()
         {
@@ -1457,7 +1457,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.CloseBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement3()
         {
@@ -1492,7 +1492,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.CloseBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement4()
         {
@@ -1515,7 +1515,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement5()
         {
@@ -1540,7 +1540,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement6()
         {
@@ -1553,7 +1553,7 @@ using System.Linq;";
             AutoFormatOnSemicolon(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement7()
         {
@@ -1580,7 +1580,7 @@ namespace NS2
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.CloseBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FollowPreviousElement8()
         {
@@ -1613,7 +1613,7 @@ namespace NS
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.CloseBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void IfStatement1()
         {
@@ -1640,7 +1640,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void IfStatement2()
         {
@@ -1673,7 +1673,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void IfStatement3()
         {
@@ -1706,7 +1706,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void IfStatement4()
         {
@@ -1735,7 +1735,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void TryStatement1()
         {
@@ -1762,7 +1762,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void TryStatement2()
         {
@@ -1795,7 +1795,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void TryStatement3()
         {
@@ -1834,7 +1834,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void TryStatement4()
         {
@@ -1867,7 +1867,7 @@ class Class
             AutoFormatOnCloseBrace(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         [WorkItem(537555)]
         public void SingleLine()
@@ -1879,7 +1879,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void StringLiterals()
         {
@@ -1889,7 +1889,7 @@ class Class
             AutoFormatOnMarker(code, expected, SyntaxKind.StringLiteralToken, SyntaxKind.None);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void CharLiterals()
         {
@@ -1899,7 +1899,7 @@ class Class
             AutoFormatOnMarker(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void CharLiterals1()
         {
@@ -1909,7 +1909,7 @@ class Class
             AutoFormatOnMarker(code, expected, SyntaxKind.EndOfFileToken, SyntaxKind.None);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Comments()
         {
@@ -1919,7 +1919,7 @@ class Class
             AutoFormatOnMarker(code, expected, SyntaxKind.OpenBraceToken, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FirstLineInFile()
         {
@@ -1928,7 +1928,7 @@ class Class
             AutoFormatOnSemicolon(code, "using System;", SyntaxKind.UsingKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Label1()
         {
@@ -1949,7 +1949,7 @@ class Class
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Label2()
         {
@@ -1972,7 +1972,7 @@ int             i               =               20;$$
             AutoFormatOnSemicolon(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Label3()
         {
@@ -1997,7 +1997,7 @@ int             i               =               20;$$
             AutoFormatOnSemicolon(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Label4()
         {
@@ -2024,7 +2024,7 @@ int         nextLine            =           30          ;$$
             AutoFormatOnSemicolon(code, expected, SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Label6()
         {
@@ -2050,7 +2050,7 @@ int         nextLine            =           30          ;$$
         }
 
         [WorkItem(537776)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void DisappearedTokens()
         {
@@ -2074,7 +2074,7 @@ int         nextLine            =           30          ;$$
         }
 
         [WorkItem(537779)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void DisappearedTokens2()
         {
@@ -2100,7 +2100,7 @@ int         nextLine            =           30          ;$$
         }
 
         [WorkItem(537793)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Delegate1()
         {
@@ -2115,7 +2115,7 @@ int         nextLine            =           30          ;$$
         }
 
         [WorkItem(537827)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void DoubleInitializer()
         {
@@ -2142,7 +2142,7 @@ int         nextLine            =           30          ;$$
         }
 
         [WorkItem(537825)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void MissingToken1()
         {
@@ -2162,7 +2162,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.PublicKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void ArrayInitializer1()
         {
@@ -2188,7 +2188,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.NewKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void ArrayInitializer2()
         {
@@ -2214,7 +2214,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(537825)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void MalformedCode()
@@ -2241,7 +2241,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(537804)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Colon_SwitchLabel()
@@ -2280,7 +2280,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(584599)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Colon_SwitchLabel_Comment()
@@ -2321,7 +2321,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(584599)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Colon_SwitchLabel_Comment2()
@@ -2364,7 +2364,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.ColonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(537804)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Colon_Label()
@@ -2397,7 +2397,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.None);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(538793)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void Colon_Label2()
@@ -2430,7 +2430,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(3186, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SemicolonInElseIfStatement()
@@ -2479,7 +2479,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(538391)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SemicolonInElseIfStatement2()
@@ -2514,7 +2514,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(8385, "DevDiv_Projects/Roslyn")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void NullCoalescingOperator()
@@ -2541,7 +2541,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(541517)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SwitchDefault()
@@ -2586,7 +2586,7 @@ class Program
                 SyntaxKind.SemicolonToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(542538)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void MissingTokens1()
@@ -2614,7 +2614,7 @@ class Program
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(542538)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void MissingTokens2()
@@ -2629,7 +2629,7 @@ class Program
                 SyntaxKind.EqualsGreaterThanToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(542953)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void UsingAlias()
@@ -2644,7 +2644,7 @@ class Program
                 SyntaxKind.UsingKeyword);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(542953)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void NoLineChangeWithSyntaxError()
@@ -2671,7 +2671,7 @@ class Program{
                 SyntaxKind.OpenBraceToken);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(620568)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void SkippedTokens1()
@@ -2683,7 +2683,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(530830)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AutoPropertyAccessor()
@@ -2701,7 +2701,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(530830)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AutoPropertyAccessor2()
@@ -2719,7 +2719,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(530830)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AutoPropertyAccessor3()
@@ -2737,7 +2737,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(784674)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AutoPropertyAccessor4()
@@ -2755,7 +2755,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(924469)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AutoPropertyAccessor5()
@@ -2772,7 +2772,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(924469)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AutoPropertyAccessor6()
@@ -2790,7 +2790,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(924469)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void AutoPropertyAccessor7()
@@ -2808,7 +2808,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void NestedUsingStatement()
@@ -2834,7 +2834,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void NestedNotUsingStatement()
@@ -2860,7 +2860,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FormattingRangeForFirstStatementOfBlock()
@@ -2883,7 +2883,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FormattingRangeForFirstMemberofType()
@@ -2906,7 +2906,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FormattingRangeForFirstMethodMemberofType()
@@ -2923,7 +2923,7 @@ class Program{
             AutoFormatToken(code, expected);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(954386)]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FormattingRangeForFirstMemberOfNamespace()
@@ -2941,7 +2941,7 @@ class Program{
         }
 
         [WorkItem(981821)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDirectiveTriviaAlwaysToColumnZero()
         {
@@ -2969,7 +2969,7 @@ class Program{
         }
 
         [WorkItem(981821)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDirectiveTriviaAlwaysToColumnZeroWithCode()
         {
@@ -2999,7 +2999,7 @@ class Program{
         }
 
         [WorkItem(981821)]
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDirectiveTriviaAlwaysToColumnZeroWithBrokenElseDirective()
         {

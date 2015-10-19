@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return this;
         }
 
-        private static Image GetSeverityIconForDiagnostic(Diagnostic diagnostic)
+        private static Image GetSeverityIconForDiagnostic(DiagnosticData diagnostic)
         {
             ImageMoniker? moniker = null;
             switch (diagnostic.Severity)
@@ -56,16 +56,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return null;
         }
 
-        private static Uri GetHelpLink(Diagnostic diagnostic, string language, string projectType, out string helpLinkToolTipText)
+        private static Uri GetHelpLink(DiagnosticData diagnostic, string language, string projectType, out string helpLinkToolTipText)
         {
             var isBing = false;
             helpLinkToolTipText = string.Empty;
 
             Uri helpLink;
-            if (!BrowserHelper.TryGetUri(diagnostic.Descriptor.HelpLinkUri, out helpLink))
+            if (!BrowserHelper.TryGetUri(diagnostic.HelpLink, out helpLink))
             {
                 // We use the ENU version of the message for bing search.
-                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.GetBingHelpMessage(), language, projectType);
+                helpLink = BrowserHelper.CreateBingQueryUri(diagnostic.Id, diagnostic.ENUMessageForBingSearch, language, projectType);
                 isBing = true;
             }
 
@@ -80,9 +80,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return helpLink;
         }
 
-        object IPreviewPaneService.GetPreviewPane(Diagnostic diagnostic, string language, string projectType, object previewContent)
+        object IPreviewPaneService.GetPreviewPane(DiagnosticData diagnostic, string language, string projectType, object previewContent)
         {
-            var title = diagnostic?.GetMessage();
+            var title = diagnostic?.Message;
 
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -104,11 +104,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             return new PreviewPane(
                 severityIcon: GetSeverityIconForDiagnostic(diagnostic),
                 id: diagnostic.Id, title: title,
-                description: diagnostic.Descriptor.Description.ToString(CultureInfo.CurrentUICulture),
+                description: diagnostic.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: helpLink,
                 helpLinkToolTipText: helpLinkToolTipText,
                 previewContent: previewContent,
-                logIdVerbatimInTelemetry: diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry));
+                logIdVerbatimInTelemetry: diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry));
         }
     }
 }

@@ -4,7 +4,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     Public Class CrossLanguageReferenceHighlightingTests
         Inherits AbstractReferenceHighlightingTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub VerifyHighlightsWithNonCompilationProject()
             VerifyHighlights(
                 <Workspace>

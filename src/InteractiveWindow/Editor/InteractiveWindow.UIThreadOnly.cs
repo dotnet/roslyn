@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private int _currentOutputProjectionSpan;
             private int _outputTrackingCaretPosition = -1;
 
-            private readonly IRtfBuilderService _rtfBuilderService;
+            private readonly IRtfBuilderService2 _rtfBuilderService;
 
             // Read-only regions protecting initial span of the corresponding buffers:
             private readonly IReadOnlyRegion[] _standardInputProtection = new IReadOnlyRegion[2];
@@ -79,6 +80,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private readonly IContentType _inertType;
 
             private readonly OutputBuffer _buffer;
+
+            private readonly IWaitIndicator _waitIndicator;
 
             public readonly ITextBuffer OutputBuffer;
             public readonly ITextBuffer StandardInputBuffer;
@@ -134,13 +137,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 IRtfBuilderService rtfBuilderService,
                 IIntellisenseSessionStackMapService intellisenseSessionStackMap,
                 ISmartIndentationService smartIndenterService,
-                IInteractiveEvaluator evaluator)
+                IInteractiveEvaluator evaluator,
+                IWaitIndicator waitIndicator)
             {
                 _window = window;
                 _factory = factory;
-                _rtfBuilderService = rtfBuilderService;
+                _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
                 _smartIndenterService = smartIndenterService;
+                _waitIndicator = waitIndicator;
                 Evaluator = evaluator;
 
                 var replContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName);
@@ -2163,37 +2168,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         textBuffer).Value);
             }
 
-            /// <summary>Implements <see cref="IInteractiveWindowOperations.Delete"/>.</summary>
-            public bool Delete()
-            {
-                _historySearch = null;
-                bool handled = false;
-                if (!TextView.Selection.IsEmpty)
-                {
-                    if (CutOrDeleteSelection(isCut: false))
-                    {
-                        MoveCaretToClosestEditableBuffer();
-                        handled = true;
-                    }
-                }
-                else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
-                {
-                    MoveCaretToClosestEditableBuffer();
-                }
-                return handled;
-            }
+            private bool OverlapsWithEditableBuffer(NormalizedSnapshotSpanCollection spans)
+            {                                                              
+                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer; 
 
-            private bool IsStreamSelectionInEditableBuffer(ITextSelection selection)
-            {
-                Debug.Assert(selection.Mode == TextSelectionMode.Stream);
-
-                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
-                var selectedSpans = selection.SelectedSpans;
-
-                foreach (var selectedSpan in selectedSpans)
+                foreach (var span in spans)
                 {
-                    var spans = TextView.BufferGraph.MapDownToBuffer(selectedSpan, SpanTrackingMode.EdgeInclusive, editableBuffer);
-                    if (spans.Count > 0)
+                    var editableSpans = TextView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeInclusive, editableBuffer);
+                    if (editableSpans.Count > 0)
                     {
                         return true;
                     }
@@ -2347,7 +2329,72 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     IsInActivePrompt(caretPosition))
                 {
                     CutOrDeleteCurrentLine(isCut: true);
+                    Home(false);
+                }
+            }
+
+            /// <summary>Implements <see cref="IInteractiveWindowOperations.Delete"/>.</summary>
+            public bool Delete()
+            {
+                _historySearch = null;
+                bool handled = false;
+                if (!TextView.Selection.IsEmpty)
+                {
+                    if (CutOrDeleteSelection(isCut: false))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                        handled = true;
+                    }
+                }
+                else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                {
                     MoveCaretToClosestEditableBuffer();
+                }
+                return handled;
+            }
+
+            /// <summary>Implements <see cref="IInteractiveWindowOperations2.DeleteLine"/>.</summary>
+            public void DeleteLine()
+            {
+                _historySearch = null;
+                CutOrDeleteLine(isCut: false);
+            }
+
+            /// <summary>Implements <see cref="IInteractiveWindowOperations2.CutLine"/>.</summary>
+            public void CutLine()
+            {
+                _historySearch = null;
+                CutOrDeleteLine(isCut: true);
+            }
+
+            /// <summary>Cut/Delete all selected lines, or the current line if no selection. </summary>                  
+            private void CutOrDeleteLine(bool isCut)
+            {
+                if (TextView.Selection.IsEmpty)
+                {
+                    var caret = TextView.Caret;
+                    var position = caret.Position.BufferPosition;
+                    if (MapToEditableBuffer(position) != null ||
+                        IsInActivePrompt(position))
+                    {
+                        CutOrDeleteCurrentLine(isCut); 
+                        Home(extendSelection: false);                
+                    }
+                }
+                else
+                {
+                    var selection = TextView.Selection;       
+                    var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(selection.Start.Position.GetContainingLine().Start,
+                                                                                                selection.End.Position.GetContainingLine().EndIncludingLineBreak), 
+                                                                               SpanTrackingMode.EdgeInclusive, 
+                                                                               _projectionBuffer.CurrentSnapshot);                                                                                                                             
+                    if (OverlapsWithEditableBuffer(projectionSpans))
+                    {
+                        CutOrDelete(projectionSpans, isCut);
+                        selection.Clear();
+                        MoveCaretToClosestEditableBuffer();
+                        TextView.Caret.EnsureVisible();
+                    }
                 }
             }
 
@@ -2368,16 +2415,20 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>                 
             private bool CutOrDeleteSelection(bool isCut)
             {
-                if (!TextView.Selection.IsEmpty)
+                var selection = TextView.Selection;
+                if (!selection.IsEmpty)
                 {
-                    bool isEditable = TextView.Selection.Mode == TextSelectionMode.Stream ?
-                                        IsStreamSelectionInEditableBuffer(TextView.Selection) :
-                                        ReduceBoxSelectionToEditableBox();
+                    // Even though `OverlapsWithEditableBuffer` and `CutOrDelete` is sufficient to 
+                    // delete editable selection,  we still need to handle box selection 
+                    // differently to move caret to appropiate location after deletion.
+                    bool isEditable = selection.Mode == TextSelectionMode.Stream 
+                                                            ? OverlapsWithEditableBuffer(selection.SelectedSpans) 
+                                                            : ReduceBoxSelectionToEditableBox();
                     if (isEditable)
                     {                               
-                        CutOrDelete(TextView.Selection.SelectedSpans, isCut);
+                        CutOrDelete(selection.SelectedSpans, isCut);
                         // if the selection spans over prompts the prompts remain selected, so clear manually:
-                        TextView.Selection.Clear();
+                        selection.Clear();
                         return true;
                     }
                 }
@@ -2466,14 +2517,43 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var text = GetText(spans);
                 var blocks = GetTextBlocks(spans);
-                var rtf = _rtfBuilderService.GenerateRtf(spans, TextView);
+                string rtf = null;
+                try
+                {
+                    rtf = GenerateRtf(spans);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore cancellation when doing a copy. The user may not even want RTF text so preventing the normal text from being copied would be overkill.
+                }
                 var data = new DataObject();
                 data.SetData(DataFormats.StringFormat, text);
                 data.SetData(DataFormats.Text, text);
                 data.SetData(DataFormats.UnicodeText, text);
-                data.SetData(DataFormats.Rtf, rtf);
+                if (rtf != null)
+                {
+                    data.SetData(DataFormats.Rtf, rtf);
+                }
                 data.SetData(ClipboardFormat, blocks);
                 return data;
+            }
+
+            private string GenerateRtf(NormalizedSnapshotSpanCollection spans)
+            {
+                // This behavior is consistent with VS editor. 
+                // Don't generate RTF for large spans (since it is expensive and probably not wanted).
+                int length = spans.Sum((span) => span.Length);
+                if (length < 1000000)
+                {                                           
+                    using (var dialog = _waitIndicator.StartWait(InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage, allowCancel: true))
+                    {                           
+                        return _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken);
+                    }
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             /// <summary>

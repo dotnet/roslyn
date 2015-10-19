@@ -56,12 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
-            {
-                return memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
-            }
-
             var switchSection = node as SwitchSectionSyntax;
             if (switchSection != null)
             {

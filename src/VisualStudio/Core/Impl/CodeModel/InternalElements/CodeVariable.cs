@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
             var element = new CodeVariable(state, fileCodeModel, nodeKey, nodeKind);
             var result = (EnvDTE.CodeVariable)ComAggregate.CreateAggregatedObject(element);
 
-            fileCodeModel.OnElementCreated(nodeKey, (EnvDTE.CodeElement)result);
+            fileCodeModel.OnCodeElementCreated(nodeKey, (EnvDTE.CodeElement)result);
 
             return result;
         }

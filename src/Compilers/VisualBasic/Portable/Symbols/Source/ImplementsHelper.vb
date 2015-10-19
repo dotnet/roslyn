@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-        ' Given an an implementing symbol, and an implemented symbol, get the location of the 
+        ' Given an implementing symbol, and an implemented symbol, get the location of the 
         ' syntax in the implements clause that matches that implemented symbol. Should only use for 
         ' symbols from source.
         '

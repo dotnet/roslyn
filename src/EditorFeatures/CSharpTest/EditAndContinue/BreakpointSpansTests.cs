@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.Debugging
 
         #endregion
 
-        [Fact]
+        [WpfFact]
         public void GetBreakpointSequence1()
         {
             TestAll(@"
@@ -131,7 +131,7 @@ class C
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GetBreakpointSequence2()
         {
             TestAll(@"
@@ -157,7 +157,7 @@ class C
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GetBreakpointSequence3()
         {
             TestAll(@"
@@ -186,7 +186,7 @@ class C
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GetBreakpointSequence4()
         {
             TestAll(@"
@@ -210,7 +210,7 @@ class C
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GetBreakpointSequence5()
         {
             TestAll(@"
@@ -221,7 +221,7 @@ class C
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GetBreakpointSequence6()
         {
             TestAll(@"
@@ -248,7 +248,7 @@ class C
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementInitializer1a()
         {
             TestSpan(
@@ -263,7 +263,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementInitializer1b()
         {
             TestSpan(
@@ -278,7 +278,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementInitializer1c()
         {
             TestSpan(
@@ -293,7 +293,7 @@ $$    for ([|i = 0|], j = 0; i < 10 && j < 10; i++, j++)
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementInitializer1d()
         {
             TestSpan(
@@ -310,7 +310,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementInitializer2()
         {
             TestSpan(
@@ -325,13 +325,13 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementInitializer3()
         {
             TestSpan("class C { void M() { for([|i = 0$$|]; ; }; }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementCondition()
         {
             TestSpan(
@@ -346,7 +346,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementIncrementor1()
         {
             TestSpan(
@@ -361,7 +361,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForStatementIncrementor2()
         {
             TestSpan(
@@ -376,7 +376,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ForEachStatementExpression()
         {
             TestSpan(
@@ -393,7 +393,7 @@ $$    (
 
         #region Lambdas
 
-        [Fact]
+        [WpfFact]
         public void SimpleLambdaBody()
         {
             TestSpan(
@@ -406,7 +406,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ParenthesizedLambdaBody()
         {
             TestSpan(
@@ -419,7 +419,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void AnonymousMethod1()
         {
             TestSpan(
@@ -432,7 +432,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void AnonymousMethod2()
         {
             TestSpan(
@@ -449,7 +449,7 @@ $$    (
 
         #region Queries
 
-        [Fact]
+        [WpfFact]
         public void FirstFromClauseExpression()
         {
             TestSpan(
@@ -464,7 +464,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SecondFromClauseExpression()
         {
             TestSpan(
@@ -479,7 +479,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FromInQueryContinuation1()
         {
             TestSpan(
@@ -496,7 +496,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FromInQueryContinuation2()
         {
             TestSpan(
@@ -513,7 +513,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void JoinClauseLeftExpression()
         {
             TestSpan(
@@ -528,7 +528,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void JoinClauseRightExpression()
         {
             TestSpan(
@@ -543,7 +543,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void LetClauseExpression()
         {
             TestSpan(
@@ -559,7 +559,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void WhereClauseExpression()
         {
             TestSpan(
@@ -575,7 +575,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void WhereClauseKeyword()
         {
             TestSpan(
@@ -590,7 +590,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SimpleOrdering1()
         {
             TestSpan(
@@ -606,7 +606,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SimpleOrdering2()
         {
             TestSpan(
@@ -622,7 +622,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void AscendingOrdering1()
         {
             TestSpan(
@@ -638,7 +638,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void AscendingOrdering2()
         {
             TestSpan(
@@ -654,7 +654,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void DescendingOrdering1()
         {
             TestSpan(
@@ -670,7 +670,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void DescendingOrdering2()
         {
             TestSpan(
@@ -686,19 +686,19 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OrderByKeyword()
         {
             TestSpan("class C { void M() { from string s in null ord$$erby [|s.A|] ascending } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void AscendingKeyword()
         {
             TestSpan("class C { void M() { from string s in null orderby [|s.A|] $$ascending } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SelectExpression()
         {
             TestSpan(
@@ -714,7 +714,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void AnonymousTypeAfterSelect()
         {
             TestSpan(
@@ -730,7 +730,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GroupExpression()
         {
             TestSpan(
@@ -747,7 +747,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GroupByKeyword()
         {
             TestSpan(
@@ -764,7 +764,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void GroupByExpression()
         {
             TestSpan(
@@ -781,7 +781,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InFrontOfFirstFromClause()
         {
             TestSpan(
@@ -801,7 +801,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InFrontOfSecondFromClause()
         {
             TestSpan(
@@ -821,7 +821,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InFrontOfLetClause()
         {
             TestSpan(
@@ -841,7 +841,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InFrontOfJoinClause()
         {
             TestSpan(
@@ -861,7 +861,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InFrontOfOrderByClause()
         {
             TestSpan(
@@ -881,7 +881,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InFrontOfGroupByClause()
         {
             TestSpan(
@@ -900,7 +900,7 @@ $$    (
   }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InFrontOfSelectClause()
         {
             TestSpan(
@@ -919,7 +919,7 @@ $$    (
   }");
         }
 
-        [Fact]
+        [WpfFact]
         public void Select1()
         {
             TestSpan(
@@ -930,7 +930,7 @@ $$    (
 ");
         }
 
-        [Fact]
+        [WpfFact]
         public void Select_NoLambda1()
         {
             TestSpan(
@@ -941,7 +941,7 @@ $$    (
 ");
         }
 
-        [Fact]
+        [WpfFact]
         public void Select_NoLambda2()
         {
             TestSpan(
@@ -952,7 +952,7 @@ $$    (
 ");
         }
 
-        [Fact]
+        [WpfFact]
         public void GroupBy1()
         {
             TestSpan(
@@ -963,7 +963,7 @@ $$    (
 ");
         }
 
-        [Fact]
+        [WpfFact]
         public void GroupBy_NoLambda1()
         {
             TestSpan(
@@ -974,7 +974,7 @@ $$    (
 ");
         }
 
-        [Fact]
+        [WpfFact]
         public void GroupBy_NoLambda2()
         {
             TestSpan(
@@ -985,7 +985,7 @@ $$    (
 ");
         }
 
-        [Fact]
+        [WpfFact]
         public void GroupBy_NoLambda3()
         {
             TestSpan(
@@ -998,7 +998,7 @@ $$    (
 
         #endregion
 
-        [Fact]
+        [WpfFact]
         public void FieldDeclarator_WithoutInitializer1()
         {
             TestMissing(
@@ -1008,7 +1008,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldDeclarator_WithoutInitializer2()
         {
             TestMissing(
@@ -1018,7 +1018,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldDeclarator1()
         {
             TestSpan(
@@ -1028,7 +1028,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldDeclarator2()
         {
             TestSpan(
@@ -1038,7 +1038,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldDeclarator3()
         {
             TestSpan(
@@ -1049,7 +1049,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldDeclarator4()
         {
             TestSpan(
@@ -1059,7 +1059,7 @@ $$    (
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FieldDeclarator5()
         {
             TestSpan(
@@ -1069,50 +1069,50 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstVariableDeclarator0()
         {
             TestMissing("class C { void Foo() { const int a = $$1; } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstVariableDeclarator1()
         {
             TestMissing("class C { void Foo() { const $$int a = 1; } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstVariableDeclarator2()
         {
             TestMissing("class C { void Foo() { $$const int a = 1; } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstFieldVariableDeclarator0()
         {
             TestMissing("class C { const int a = $$1; }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstFieldVariableDeclarator1()
         {
             TestMissing("class C { const $$int a = 1; }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ConstFieldVariableDeclarator2()
         {
             TestMissing("class C { $$const int a = 1; }");
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(538777)]
         public void VariableDeclarator0()
         {
             TestMissing("class C { void Foo() { int$$ } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator1()
         {
             TestMissing(
@@ -1125,7 +1125,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator2a()
         {
             TestSpan(
@@ -1138,7 +1138,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator2b()
         {
             TestSpan(
@@ -1151,7 +1151,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator2c()
         {
             TestSpan(
@@ -1164,7 +1164,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator3a()
         {
             TestSpan(
@@ -1177,7 +1177,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
         public void VariableDeclarator3b()
         {
             TestSpan(
@@ -1190,7 +1190,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingBreakpoints)]
         public void VariableDeclarator3c()
         {
             TestSpan(
@@ -1203,7 +1203,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator4()
         {
             TestSpan(
@@ -1216,7 +1216,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator5()
         {
             TestSpan(
@@ -1226,7 +1226,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator6()
         {
             TestSpan(
@@ -1236,7 +1236,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator7()
         {
             TestSpan(
@@ -1246,7 +1246,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator8()
         {
             TestSpan(
@@ -1256,7 +1256,7 @@ $$    [|private int i = 3;|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator9()
         {
             TestSpan(
@@ -1266,13 +1266,13 @@ $$  [|private int i = 0|], j = 1;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator10()
         {
             TestSpan("class C { void M() { [|int i = 0$$;|] } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators0()
         {
             TestSpan(
@@ -1285,7 +1285,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators1()
         {
             TestSpan(
@@ -1298,7 +1298,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators2()
         {
             TestSpan(
@@ -1311,7 +1311,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators3()
         {
             TestSpan(
@@ -1324,7 +1324,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators4()
         {
             TestSpan(
@@ -1337,7 +1337,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators5()
         {
             TestSpan(
@@ -1350,7 +1350,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators6()
         {
             TestSpan(
@@ -1363,7 +1363,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators7()
         {
             TestSpan(
@@ -1376,7 +1376,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators8()
         {
             TestSpan(
@@ -1389,7 +1389,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void VariableDeclarator_Separators9()
         {
             TestSpan(
@@ -1402,7 +1402,7 @@ $$    [|int i = 0|], j = 1, k = 2;
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator1()
         {
             TestSpan(
@@ -1412,7 +1412,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator2()
         {
             TestSpan(
@@ -1422,7 +1422,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator3()
         {
             TestSpan(
@@ -1432,7 +1432,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator4()
         {
             TestSpan(
@@ -1442,7 +1442,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator5()
         {
             TestSpan(
@@ -1452,7 +1452,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator6()
         {
             TestSpan(
@@ -1462,7 +1462,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator7()
         {
             TestSpan(
@@ -1472,7 +1472,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventFieldDeclarator8()
         {
             TestSpan(
@@ -1482,25 +1482,25 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventAccessorAdd()
         {
             TestSpan("class C { eve$$nt Action Foo { add [|{|] } remove { } } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventAccessorAdd2()
         {
             TestSpan("class C { event Action Foo { ad$$d [|{|] } remove { } } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EventAccessorRemove()
         {
             TestSpan("class C { event Action Foo { add { } $$remove [|{|] } } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ElseClauseWithBlock()
         {
             TestSpan(
@@ -1518,7 +1518,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ElseClauseWithStatement()
         {
             TestSpan(
@@ -1535,7 +1535,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void ElseIf()
         {
             TestSpan(
@@ -1552,7 +1552,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void EmptyCatch()
         {
             TestSpan(
@@ -1570,7 +1570,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void CatchWithType()
         {
             TestSpan(
@@ -1588,7 +1588,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void CatchWithTypeInType()
         {
             TestSpan(
@@ -1606,7 +1606,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void CatchWithTypeAndNameInType()
         {
             TestSpan(
@@ -1624,7 +1624,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void CatchWithTypeAndNameInName()
         {
             TestSpan(
@@ -1642,7 +1642,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void Filter1()
         {
             TestSpan(
@@ -1660,7 +1660,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void Filter3()
         {
             TestSpan(
@@ -1678,7 +1678,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void Filter4()
         {
             TestSpan(
@@ -1696,7 +1696,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void Filter5()
         {
             TestSpan(
@@ -1714,7 +1714,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SimpleFinally()
         {
             TestSpan(
@@ -1732,7 +1732,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void FinallyWithCatch()
         {
             TestSpan(
@@ -1753,7 +1753,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SwitchLabelWithBlock()
         {
             TestSpan(
@@ -1771,7 +1771,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SwitchLabelWithStatement()
         {
             TestSpan(
@@ -1788,7 +1788,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SwitchLabelWithStatement2()
         {
             TestSpan(
@@ -1806,13 +1806,13 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SwitchLabelWithoutStatement()
         {
             TestSpan("class C { void M() { [|switch |]{ case 1$$: } } }");
         }
 
-        [Fact]
+        [WpfFact]
         public void MultipleLabelsOnFirstLabel()
         {
             TestSpan(
@@ -1834,7 +1834,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void MultipleLabelsOnSecondLabel()
         {
             TestSpan(
@@ -1856,7 +1856,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void MultipleLabelsOnLabelWithDefault()
         {
             TestSpan(
@@ -1878,7 +1878,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void MultipleLabelsOnDefault()
         {
             TestSpan(
@@ -1900,7 +1900,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockBeforeStartToken()
         {
             TestSpan(
@@ -1913,7 +1913,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockBeforeStartToken2()
         {
             TestSpan(
@@ -1926,7 +1926,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockAfterStartToken()
         {
             TestSpan(
@@ -1939,7 +1939,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockAfterStartToken2()
         {
             TestSpan(
@@ -1952,7 +1952,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockBeforeEndToken1()
         {
             TestSpan(
@@ -1964,7 +1964,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockBeforeEndToken2()
         {
             TestSpan(
@@ -1976,7 +1976,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockAfterEndToken1()
         {
             TestSpan(
@@ -1988,7 +1988,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void BlockAfterEndToken2()
         {
             TestSpan(
@@ -2000,7 +2000,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void SingleDeclarationOnType()
         {
             TestMissing(
@@ -2013,7 +2013,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void MultipleDeclarationsOnType()
         {
             TestSpan(
@@ -2026,7 +2026,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void Label()
         {
             TestSpan(
@@ -2040,7 +2040,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void WhileInWhile()
         {
             TestSpan(
@@ -2055,7 +2055,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void WhileInExpr()
         {
             TestSpan(
@@ -2070,7 +2070,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnWhileBlock()
         {
             TestSpan(
@@ -2085,7 +2085,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnDoKeyword()
         {
             TestSpan(
@@ -2101,7 +2101,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnDoBlock()
         {
             TestSpan(
@@ -2117,7 +2117,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnDoWhile()
         {
             TestSpan(
@@ -2133,7 +2133,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnDoWhile_MissingSemicolon()
         {
             TestSpan(
@@ -2149,7 +2149,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnDoExpression()
         {
             TestSpan(
@@ -2165,7 +2165,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForWithDeclaration1()
         {
             TestSpan(
@@ -2180,7 +2180,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForWithDeclaration2()
         {
             TestSpan(
@@ -2195,7 +2195,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForWithCondition()
         {
             TestSpan(
@@ -2210,7 +2210,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForWithIncrementor1()
         {
             TestSpan(
@@ -2225,7 +2225,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForWithIncrementor2()
         {
             TestSpan(
@@ -2240,7 +2240,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnEmptyFor()
         {
             TestSpan(
@@ -2255,7 +2255,7 @@ $$    [|public event EventHandler MyEvent = delegate { };|]
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachKeyword1()
         {
             TestSpan(
@@ -2270,7 +2270,7 @@ $$    [|foreach|] (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachKeyword2()
         {
             TestSpan(
@@ -2285,7 +2285,7 @@ $$    [|foreach|] (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachKeyword3()
         {
             TestSpan(
@@ -2301,7 +2301,7 @@ $$    [|foreach|] (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachKeyword4()
         {
             TestSpan(
@@ -2317,7 +2317,7 @@ $$         (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachKeyword5()
         {
             TestSpan(
@@ -2332,7 +2332,7 @@ $$         (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachType1()
         {
             TestSpan(
@@ -2348,7 +2348,7 @@ $$         (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachType2()
         {
             TestSpan(
@@ -2363,7 +2363,7 @@ $$         (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachIdentifier()
         {
             TestSpan(
@@ -2378,7 +2378,7 @@ $$         (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachIn1()
         {
             TestSpan(
@@ -2393,7 +2393,7 @@ $$         (var v in expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachIn2()
         {
             TestSpan(
@@ -2409,7 +2409,7 @@ $$         [|in|] expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachIn3()
         {
             TestSpan(
@@ -2426,7 +2426,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachExpr1()
         {
             TestSpan(
@@ -2441,7 +2441,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachExpr2()
         {
             TestSpan(
@@ -2457,7 +2457,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachExpr3()
         {
             TestSpan(
@@ -2474,7 +2474,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachStatement()
         {
             TestSpan(
@@ -2489,7 +2489,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnForEachBlock1()
         {
             TestSpan(
@@ -2504,7 +2504,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithDecl1()
         {
             TestSpan(
@@ -2519,7 +2519,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithDecl2()
         {
             TestSpan(
@@ -2534,7 +2534,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithDeclType()
         {
             TestSpan(
@@ -2549,7 +2549,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithDeclIdentifier1()
         {
             TestSpan(
@@ -2564,7 +2564,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithDeclIdentifier2()
         {
             TestSpan(
@@ -2579,7 +2579,7 @@ expr().blah())
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithDeclIdentifier3()
         {
             TestSpan(
@@ -2594,7 +2594,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithDeclExpression()
         {
             TestSpan(
@@ -2609,7 +2609,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithExpression1()
         {
             TestSpan(
@@ -2624,7 +2624,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUsingWithExpression2()
         {
             TestSpan(
@@ -2639,7 +2639,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnFixed1()
         {
             TestSpan(
@@ -2654,7 +2654,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnFixed2()
         {
             TestSpan(
@@ -2669,7 +2669,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnFixed3()
         {
             TestSpan(
@@ -2684,7 +2684,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnFixed4()
         {
             TestSpan(
@@ -2699,7 +2699,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnFixed5()
         {
             TestSpan(
@@ -2714,7 +2714,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnFixed6()
         {
             TestSpan(
@@ -2729,7 +2729,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnChecked1()
         {
             TestSpan(
@@ -2744,7 +2744,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUnchecked1()
         {
             TestSpan(
@@ -2759,7 +2759,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnUnsafe1()
         {
             TestSpan(
@@ -2774,7 +2774,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnLock1()
         {
             TestSpan(
@@ -2789,7 +2789,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnLock2()
         {
             TestSpan(
@@ -2804,7 +2804,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIf1()
         {
             TestSpan(
@@ -2819,7 +2819,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIf2()
         {
             TestSpan(
@@ -2834,7 +2834,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIfBlock()
         {
             TestSpan(
@@ -2849,7 +2849,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnSwitch1()
         {
             TestSpan(
@@ -2866,7 +2866,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnSwitch2()
         {
             TestSpan(
@@ -2883,7 +2883,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnSwitch3()
         {
             TestSpan(
@@ -2900,7 +2900,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnSwitch4()
         {
             TestSpan(
@@ -2917,7 +2917,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnTry1()
         {
             TestSpan(
@@ -2935,7 +2935,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnTry2()
         {
             TestSpan(
@@ -2953,7 +2953,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnGotoStatement1()
         {
             TestSpan(
@@ -2966,7 +2966,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnGotoStatement2()
         {
             TestSpan(
@@ -2979,7 +2979,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnGotoCaseStatement1()
         {
             TestSpan(
@@ -2996,7 +2996,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnGotoCaseStatement2()
         {
             TestSpan(
@@ -3013,7 +3013,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnGotoCaseStatement3()
         {
             TestSpan(
@@ -3030,7 +3030,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnGotoDefault1()
         {
             TestSpan(
@@ -3047,7 +3047,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnGotoDefault2()
         {
             TestSpan(
@@ -3064,7 +3064,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnBreak1()
         {
             TestSpan(
@@ -3080,7 +3080,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnContinue1()
         {
             TestSpan(
@@ -3096,7 +3096,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnReturn1()
         {
             TestSpan(
@@ -3109,7 +3109,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnReturn2()
         {
             TestSpan(
@@ -3122,7 +3122,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnReturn3()
         {
             TestSpan(
@@ -3135,7 +3135,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnYieldReturn1()
         {
             TestSpan(
@@ -3148,7 +3148,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnYieldReturn2()
         {
             TestSpan(
@@ -3161,7 +3161,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnYieldReturn3()
         {
             TestSpan(
@@ -3174,7 +3174,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnYieldBreak1()
         {
             TestSpan(
@@ -3187,7 +3187,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnYieldBreak2()
         {
             TestSpan(
@@ -3200,7 +3200,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnThrow1()
         {
             TestSpan(
@@ -3213,7 +3213,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnThrow2()
         {
             TestSpan(
@@ -3226,7 +3226,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnThrow3()
         {
             TestSpan(
@@ -3239,7 +3239,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnThrow4()
         {
             TestSpan(
@@ -3252,7 +3252,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnExpressionStatement1()
         {
             TestSpan(
@@ -3265,7 +3265,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnEmptyStatement1()
         {
             TestSpan(
@@ -3278,7 +3278,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnEmptyStatement2()
         {
             TestSpan(
@@ -3294,7 +3294,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyAccessor1()
         {
             TestSpan(
@@ -3309,7 +3309,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyAccessor2()
         {
             TestSpan(
@@ -3322,7 +3322,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyAccessor3()
         {
             TestSpan(
@@ -3341,7 +3341,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyAccessor4()
         {
             TestSpan(
@@ -3354,7 +3354,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnProperty1()
         {
             TestSpan(
@@ -3373,7 +3373,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnProperty2()
         {
             TestSpan(
@@ -3388,7 +3388,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [WorkItem(932711)]
-        [Fact]
+        [WpfFact]
         public void OnPropertyWithInitializer()
         {
             TestSpan(
@@ -3422,7 +3422,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyExpressionBody1()
         {
             TestSpan(
@@ -3432,7 +3432,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyExpressionBody2()
         {
             TestSpan(
@@ -3442,7 +3442,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyExpressionBody3()
         {
             TestSpan(
@@ -3452,7 +3452,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnPropertyExpressionBody4()
         {
             TestSpan(
@@ -3462,7 +3462,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIndexerExpressionBody1()
         {
             TestSpan(
@@ -3472,7 +3472,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIndexer1()
         {
             TestSpan(
@@ -3491,7 +3491,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIndexer2()
         {
             TestSpan(
@@ -3505,7 +3505,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIndexerExpressionBody2()
         {
             TestSpan(
@@ -3515,7 +3515,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIndexerExpressionBody3()
         {
             TestSpan(
@@ -3525,7 +3525,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIndexerExpressionBody4()
         {
             TestSpan(
@@ -3535,7 +3535,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnIndexerExpressionBody5()
         {
             TestSpan(
@@ -3545,7 +3545,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethod1()
         {
             TestSpan(
@@ -3557,7 +3557,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethod2()
         {
             TestSpan(
@@ -3569,7 +3569,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethod3()
         {
             TestSpan(
@@ -3581,7 +3581,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethod4()
         {
             TestSpan(
@@ -3593,7 +3593,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethod5()
         {
             TestSpan(
@@ -3605,7 +3605,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethodWithExpressionBody1()
         {
             TestSpan(
@@ -3615,7 +3615,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethodWithExpressionBody2()
         {
             TestSpan(
@@ -3625,7 +3625,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethodWithExpressionBody3()
         {
             TestSpan(
@@ -3635,7 +3635,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnMethodWithExpressionBody4()
         {
             TestSpan(
@@ -3645,7 +3645,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void MissingOnMethod()
         {
             TestMissing(
@@ -3655,7 +3655,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceConstructor_NoInitializer()
         {
             // a sequence point for base constructor call
@@ -3668,7 +3668,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceConstructor_NoInitializer_Attributes()
         {
             TestSpan(
@@ -3684,7 +3684,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceConstructor_BaseInitializer()
         {
             // a sequence point for base constructor call
@@ -3698,7 +3698,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceConstructor_ThisInitializer()
         {
             // a sequence point for this constructor call
@@ -3712,7 +3712,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void StaticConstructor()
         {
             TestSpan(
@@ -3724,7 +3724,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void InstanceConstructorInitializer()
         {
             // a sequence point for this constructor call
@@ -3739,7 +3739,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [WorkItem(543968)]
-        [Fact]
+        [WpfFact]
         public void ConstructorInitializer()
         {
             // a sequence point for base constructor call
@@ -3754,7 +3754,7 @@ $$    using ([|var vv = foo()|])
 ");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnStaticConstructor()
         {
             TestSpan(
@@ -3766,7 +3766,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnDestructor()
         {
             TestSpan(
@@ -3778,7 +3778,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnOperator()
         {
             TestSpan(
@@ -3790,7 +3790,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnOperatorWithExpressionBody1()
         {
             TestSpan(
@@ -3800,7 +3800,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnOperatorWithExpressionBody2()
         {
             TestSpan(
@@ -3810,7 +3810,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnOperatorWithExpressionBody3()
         {
             TestSpan(
@@ -3820,7 +3820,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnOperatorWithExpressionBody4()
         {
             TestSpan(
@@ -3830,7 +3830,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnConversionOperator()
         {
             TestSpan(
@@ -3842,7 +3842,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnConversionOperatorWithExpressionBody1()
         {
             TestSpan(
@@ -3852,7 +3852,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnConversionOperatorWithExpressionBody2()
         {
             TestSpan(
@@ -3862,7 +3862,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnConversionOperatorWithExpressionBody3()
         {
             TestSpan(
@@ -3872,7 +3872,7 @@ $$    using ([|var vv = foo()|])
 }");
         }
 
-        [Fact]
+        [WpfFact]
         public void OnConversionOperatorWithExpressionBody4()
         {
             TestSpan(
@@ -3883,7 +3883,7 @@ $$    using ([|var vv = foo()|])
         }
 
         [WorkItem(3557, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [WpfFact]
         public void InFrontOfAttribute()
         {
             TestSpan(
@@ -3897,7 +3897,7 @@ $$ [method: Obsolete]
         }
 
         [WorkItem(538058)]
-        [Fact]
+        [WpfFact]
         public void InInactivePPRegion()
         {
             TestLine(
@@ -3909,7 +3909,7 @@ $$fooby
         }
 
         [WorkItem(538777)]
-        [Fact]
+        [WpfFact]
         public void WithIncompleteDeclaration()
         {
             TestMissing(
@@ -3924,7 +3924,7 @@ $$        int
         }
 
         [WorkItem(937290)]
-        [Fact]
+        [WpfFact]
         public void OnGetter()
         {
             TestSpan(
@@ -3953,7 +3953,7 @@ $$        int
         }
 
         [WorkItem(937290)]
-        [Fact]
+        [WpfFact]
         public void OnSetter()
         {
             TestSpan(

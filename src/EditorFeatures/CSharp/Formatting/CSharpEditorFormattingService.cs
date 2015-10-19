@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var options = document.Project.Solution.Workspace.Options;
 
-            // dont attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
+            // don't attempt to format on close brace if autoformat on close brace feature is off, instead just smart indent
             bool smartIndentOnly =
                 token.IsKind(SyntaxKind.CloseBraceToken) &&
                 !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, document.Project.Language);

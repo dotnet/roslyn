@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             private readonly CompletionRules _completionRules;
 
             // When we issue filter tasks, provide them with a (monotonically increasing) id.  That
-            // way, when they run we can bail on computation if they've been superceded by another
+            // way, when they run we can bail on computation if they've been superseded by another
             // filter task.  
             private int _filterId;
 

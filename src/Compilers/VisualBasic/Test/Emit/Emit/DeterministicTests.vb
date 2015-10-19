@@ -47,7 +47,7 @@ End Class"
             Assert.True(resultNonDeterministic.Success)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5813")>
         Public Sub CompareAllBytesEmitted_Release()
             Dim source =
 "Class Program
@@ -63,7 +63,7 @@ End Class"
             AssertEx.Equal(result3, result4)
         End Sub
 
-        <Fact, WorkItem(926)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/5813"), WorkItem(926)>
         Public Sub CompareAllBytesEmitted_Debug()
             Dim source =
 "Class Program

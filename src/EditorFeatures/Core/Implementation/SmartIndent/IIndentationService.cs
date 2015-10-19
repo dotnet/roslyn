@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor
     /// <summary>
     /// An indentation result represents where the indent should be placed.  It conveys this through
     /// a pair of values.  A position in the existing document where the indent should be relative,
-    /// and the number of columns after that that the indent should be placed at.  
+    /// and the number of columns after that the indent should be placed at.  
     /// 
     /// This pairing provides flexibility to the implementor to compute the indentation results in
     /// a variety of ways.  For example, one implementation may wish to express indentation of a 

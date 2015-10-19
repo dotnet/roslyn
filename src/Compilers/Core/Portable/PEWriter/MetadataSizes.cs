@@ -13,11 +13,16 @@ namespace Microsoft.Cci
 
         public const ulong DebugMetadataTablesMask = 
             1UL << (int)TableIndex.Document |
-            1UL << (int)TableIndex.MethodBody |
+            1UL << (int)TableIndex.MethodDebugInformation |
             1UL << (int)TableIndex.LocalScope |
             1UL << (int)TableIndex.LocalVariable |
             1UL << (int)TableIndex.LocalConstant |
             1UL << (int)TableIndex.ImportScope |
+            1UL << (int)TableIndex.StateMachineMethod |
+            1UL << (int)TableIndex.CustomDebugInformation;
+
+        public const ulong SortedDebugTables =
+            1UL << (int)TableIndex.LocalScope |
             1UL << (int)TableIndex.StateMachineMethod |
             1UL << (int)TableIndex.CustomDebugInformation;
 
@@ -51,6 +56,7 @@ namespace Microsoft.Cci
         public readonly byte TypeDefOrRefCodedIndexSize;
         public readonly byte TypeOrMethodDefCodedIndexSize;
 
+        public readonly byte DocumentIndexSize;
         public readonly byte LocalVariableIndexSize;
         public readonly byte LocalConstantIndexSize;
         public readonly byte ImportScopeIndexSize;
@@ -211,6 +217,7 @@ namespace Microsoft.Cci
             this.TypeDefOrRefCodedIndexSize = this.GetReferenceByteSize(2, TableIndex.TypeDef, TableIndex.TypeRef, TableIndex.TypeSpec);
             this.TypeOrMethodDefCodedIndexSize = this.GetReferenceByteSize(1, TableIndex.TypeDef, TableIndex.MethodDef);
 
+            this.DocumentIndexSize = this.GetReferenceByteSize(0, TableIndex.Document);
             this.LocalVariableIndexSize = this.GetReferenceByteSize(0, TableIndex.LocalVariable);
             this.LocalConstantIndexSize = this.GetReferenceByteSize(0, TableIndex.LocalConstant);
             this.ImportScopeIndexSize = this.GetReferenceByteSize(0, TableIndex.ImportScope);
@@ -293,7 +300,7 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.GenericParamConstraint, this.GenericParamIndexSize + this.TypeDefOrRefCodedIndexSize);
 
             size += GetTableSize(TableIndex.Document, this.BlobIndexSize + this.GuidIndexSize + this.BlobIndexSize + this.GuidIndexSize);
-            size += GetTableSize(TableIndex.MethodBody, this.BlobIndexSize);
+            size += GetTableSize(TableIndex.MethodDebugInformation, this.DocumentIndexSize + this.BlobIndexSize);
             size += GetTableSize(TableIndex.LocalScope, this.MethodDefIndexSize + this.ImportScopeIndexSize + this.LocalVariableIndexSize + this.LocalConstantIndexSize + 4 + 4);
             size += GetTableSize(TableIndex.LocalVariable, 2 + 2 + this.StringIndexSize);
             size += GetTableSize(TableIndex.LocalConstant, this.StringIndexSize + this.BlobIndexSize);
@@ -333,8 +340,8 @@ namespace Microsoft.Cci
             get
             {
                 const int RegularStreamHeaderSizes = 76;
-                const int MinimalDeltaMarkerStreamSize = 16;
-                const int StandalonePdbStreamSize = 16;
+                const int MinimalDeltaMarkerStreamHeaderSize = 16;
+                const int StandalonePdbStreamHeaderSize = 16;
 
                 Debug.Assert(RegularStreamHeaderSizes ==
                     GetMetadataStreamHeaderSize("#~") +
@@ -343,8 +350,8 @@ namespace Microsoft.Cci
                     GetMetadataStreamHeaderSize("#GUID") +
                     GetMetadataStreamHeaderSize("#Blob"));
 
-                Debug.Assert(MinimalDeltaMarkerStreamSize == GetMetadataStreamHeaderSize("#JTD"));
-                Debug.Assert(StandalonePdbStreamSize == GetMetadataStreamHeaderSize("#Pdb"));
+                Debug.Assert(MinimalDeltaMarkerStreamHeaderSize == GetMetadataStreamHeaderSize("#JTD"));
+                Debug.Assert(StandalonePdbStreamHeaderSize == GetMetadataStreamHeaderSize("#Pdb"));
 
                 return
                     sizeof(uint) +                 // signature
@@ -355,9 +362,9 @@ namespace Microsoft.Cci
                     MetadataVersionPaddedLength +  // metadata version
                     sizeof(ushort) +               // storage header: reserved
                     sizeof(ushort) +               // stream count
+                    (IsStandaloneDebugMetadata ? StandalonePdbStreamHeaderSize : 0) + 
                     RegularStreamHeaderSizes +
-                    (IsMinimalDelta ? MinimalDeltaMarkerStreamSize : 0) +
-                    (IsStandaloneDebugMetadata ? StandalonePdbStreamSize : 0);
+                    (IsMinimalDelta ? MinimalDeltaMarkerStreamHeaderSize : 0);
             }
         }
 
@@ -403,9 +410,12 @@ namespace Microsoft.Cci
             return result;
         }
 
+        internal const int PdbIdSize = 20;
+
         internal int CalculateStandalonePdbStreamSize()
         {
-            int result = sizeof(int) +        // EntryPoint
+            int result = PdbIdSize +          // PDB ID
+                         sizeof(int) +        // EntryPoint
                          sizeof(long);        // ReferencedTypeSystemTables
 
             // external table row counts

@@ -10,7 +10,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "Imports statements"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Add1()
             Dim code =
 <Code>
@@ -25,7 +25,7 @@ Imports System
                  Add("System"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Add2()
             Dim code =
 <Code>
@@ -44,7 +44,7 @@ Imports System.Collections.Generic
                  Add("System.Linq"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Add3()
             Dim code =
 <Code>
@@ -63,7 +63,7 @@ Imports System.Collections.Generic
                  Add("System.Linq"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Add4()
             Dim code =
 <Code>
@@ -82,7 +82,7 @@ Imports System.Collections.Generic
                  Add("System.Linq"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Add5()
             Dim code =
 <Code>
@@ -100,7 +100,7 @@ Imports System.Collections.Generic
                  Add("System.Linq"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Add6()
             Dim code =
 <Code>
@@ -118,7 +118,7 @@ Imports System.Collections.Generic
                  Add("System.Linq"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Add7()
             Dim code =
 <Code>
@@ -136,7 +136,7 @@ Imports System.Collections.Generic
                  Add("System.Linq"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Remove1()
             Dim code =
 <Code>
@@ -151,7 +151,7 @@ Imports System
                  Remove("System", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Remove2()
             Dim code =
 <Code>
@@ -170,7 +170,7 @@ Imports System.Collections.Generic
                  Remove("System.Linq", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Remove3()
             Dim code =
 <Code>
@@ -189,7 +189,7 @@ Imports System.Collections.Generic
                  Remove("System.Linq", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Remove4()
             Dim code =
 <Code>
@@ -208,7 +208,7 @@ Imports System.Collections.Generic
                  Remove("System.Linq", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Remove5()
             Dim code =
 <Code>
@@ -230,7 +230,7 @@ End Class
                  Remove("System.Linq", Nothing),
                  Remove("C", Nothing))
         End Sub
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Remove6()
             Dim code =
 <Code>
@@ -253,7 +253,7 @@ End Class
             Test(code, changedCode)
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestImportsStatement_Rename1()
             Dim code =
 <Code>
@@ -273,7 +273,7 @@ Imports System.Linq
 
 #Region "Option statements"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Add1()
             Dim code =
 <Code>
@@ -288,7 +288,7 @@ Option Strict On
                  Add("Option Strict On"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Add2()
             Dim code =
 <Code>
@@ -307,7 +307,7 @@ Option Infer On
                  Add("Option Explicit On"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Add3()
             Dim code =
 <Code>
@@ -326,7 +326,7 @@ Option Infer On
                  Add("Option Explicit On"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Add4()
             Dim code =
 <Code>
@@ -345,7 +345,7 @@ Option Explicit On
                  Add("Option Explicit On"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Remove1()
             Dim code =
 <Code>
@@ -360,7 +360,7 @@ Option Strict On
                  Remove("Option Strict On", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Remove2()
             Dim code =
 <Code>
@@ -379,7 +379,7 @@ Option Infer On
                  Remove("Option Explicit On", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Remove3()
             Dim code =
 <Code>
@@ -398,7 +398,7 @@ Option Infer On
                  Remove("Option Explicit On", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Remove4()
             Dim code =
 <Code>
@@ -417,7 +417,7 @@ Option Infer On
                  Remove("Option Explicit On", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Rename1()
             Dim code =
 <Code>
@@ -433,7 +433,7 @@ Option Strict Off
                  Rename("Option Strict Off"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Rename2()
             Dim code =
 <Code>
@@ -449,7 +449,7 @@ Option Explicit On
                  Rename("Option Explicit On"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestOptionsStatement_Rename3()
             ' Note: This represents a change from the legacy VB code model where
             ' the following test would result in Remove event being fired for "Option Strict On"
@@ -474,7 +474,7 @@ Option Strict Foo
 
 #Region "File-level attributes"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_Add1()
             Dim code =
 <Code>
@@ -491,7 +491,7 @@ Imports System
                  Add("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_Add2()
             Dim code =
 <Code>
@@ -514,7 +514,7 @@ Imports System.Reflection
                  Add("AssemblyTitle"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_Add3()
             Dim code =
 <Code>
@@ -537,7 +537,7 @@ Imports System.Reflection
                  Add("AssemblyTitle"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_Add4()
             Dim code =
 <Code>
@@ -559,7 +559,7 @@ Imports System.Reflection
                  Add("AssemblyTitle"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_Add5()
             Dim code =
 <Code>
@@ -581,7 +581,7 @@ Imports System.Reflection
                  Add("AssemblyTitle"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_ChangeSpecifier1()
             Dim code =
 <Code>
@@ -603,7 +603,7 @@ Imports System.Reflection
                  Unknown("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_AddArgument1()
             Dim code =
 <Code>
@@ -626,7 +626,7 @@ Imports System.Reflection
                  ArgChange("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_RemoveArgument1()
             Dim code =
 <Code>
@@ -649,7 +649,7 @@ Imports System.Reflection
                  ArgChange("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_OmitArgument1()
             Dim code =
 <Code>
@@ -698,7 +698,7 @@ End Class
                  ArgChange("Foo"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_RenameArgument1()
             Dim code =
 <Code>
@@ -721,7 +721,7 @@ Imports System.Reflection
                  ArgChange("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_ChangeArgument1()
             Dim code =
 <Code>
@@ -744,7 +744,7 @@ Imports System.Reflection
                  ArgChange("CLSCompliant"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestFileLevelAttribute_ChangeArgument2()
             Dim code =
 <Code>
@@ -765,7 +765,7 @@ Imports System.Reflection
 
 #Region "Namespaces"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Add1()
             Dim code =
 <Code>
@@ -780,7 +780,7 @@ Namespace N
                  Add("N"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Add2()
             Dim code =
 <Code>
@@ -796,7 +796,7 @@ End Namespace
                  Add("N"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Add3()
             Dim code =
 <Code>
@@ -815,7 +815,7 @@ End Namespace
                  Add("N2", "N1"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Remove1()
             Dim code =
 <Code>
@@ -830,7 +830,7 @@ Namespace N
                  Remove("N", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Remove2()
             Dim code =
 <Code>
@@ -846,7 +846,7 @@ End Namespace
                  Remove("N", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Remove3()
             Dim code =
 <Code>
@@ -865,7 +865,7 @@ End Namespace
                  Remove("N2", "N1"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Rename1()
             Dim code =
 <Code>
@@ -883,7 +883,7 @@ End Namespace
                  Rename("N2"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestNamespace_Rename2()
             Dim code =
 <Code>
@@ -909,7 +909,7 @@ End Namespace
 
 #Region "Classes"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Add1()
             Dim code =
 <Code>
@@ -925,7 +925,7 @@ End Class
                  Add("C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Add2()
             Dim code =
 <Code>
@@ -945,7 +945,7 @@ End Namespace
                  Add("C", "N"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Add3()
             Dim code =
 <Code>
@@ -969,7 +969,7 @@ End Namespace
                  Add("C", "B"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Remove1()
             Dim code =
 <Code>
@@ -985,7 +985,7 @@ End Class
                  Remove("C", Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Remove2()
             Dim code =
 <Code>
@@ -1005,7 +1005,7 @@ End Namespace
                  Remove("C", "N"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Remove3()
             Dim code =
 <Code>
@@ -1029,7 +1029,7 @@ End Namespace
                  Remove("C", "B"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_ReplaceWithTwoClasses1()
             Dim code =
 <Code>
@@ -1050,7 +1050,7 @@ End Class
                  Unknown(Nothing))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_ReplaceWithTwoClasses2()
             Dim code =
 <Code>
@@ -1075,7 +1075,7 @@ End Namespace
                  Unknown("N"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_ChangeBaseList()
             Dim code =
 <Code>
@@ -1105,7 +1105,7 @@ End Namespace
                  BaseChange("C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Rename1()
             Dim code =
 <Code>
@@ -1123,7 +1123,7 @@ End Class
                  Rename("D"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_Rename2()
             Dim code =
 <Code>
@@ -1145,7 +1145,7 @@ End Namespace
                  Rename("D"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestClass_AddBaseClass()
             Dim code =
 <Code>
@@ -1168,7 +1168,7 @@ End Class
 
 #Region "Enums"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestEnum_Add1()
             Dim code =
 <Code>
@@ -1184,7 +1184,7 @@ End Enum
                  Add("Foo"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestEnum_Rename1()
             Dim code =
 <Code>
@@ -1206,7 +1206,7 @@ End Enum
 
 #Region "Fields"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Add1()
             Dim code =
 <Code>
@@ -1225,7 +1225,7 @@ End Class
                  Add("i", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Add2()
             Dim code =
 <Code>
@@ -1246,7 +1246,7 @@ End Class
                  Add("j", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Add3()
             Dim code =
 <Code>
@@ -1266,7 +1266,7 @@ End Class
                  Add("j", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Add4()
             Dim code =
 <Code>
@@ -1286,7 +1286,7 @@ End Class
                  Add("j", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Add5()
             Dim code =
 <Code>
@@ -1306,7 +1306,7 @@ End Class
                  Add("j", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Remove1()
             Dim code =
 <Code>
@@ -1325,7 +1325,7 @@ End Class
                  Remove("i", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Remove2()
             Dim code =
 <Code>
@@ -1346,7 +1346,7 @@ End Class
                  Remove("j", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Remove3()
             Dim code =
 <Code>
@@ -1366,7 +1366,7 @@ End Class
                  Remove("j", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Remove4()
             Dim code =
 <Code>
@@ -1386,7 +1386,7 @@ End Class
                  Remove("j", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_Remove5()
             Dim code =
 <Code>
@@ -1407,7 +1407,7 @@ End Class
         End Sub
 
         <WorkItem(844611)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_AddAttributeToField()
             Dim code =
 <Code>
@@ -1429,7 +1429,7 @@ End Class
         End Sub
 
         <WorkItem(844611)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_AddAttributeToTwoFields()
             Dim code =
 <Code>
@@ -1452,7 +1452,7 @@ End Class
         End Sub
 
         <WorkItem(844611)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_RemoveAttributeFromField()
             Dim code =
 <Code>
@@ -1474,7 +1474,7 @@ End Class
         End Sub
 
         <WorkItem(844611)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_RemoveAttributeFromTwoFields()
             Dim code =
 <Code>
@@ -1497,7 +1497,7 @@ End Class
         End Sub
 
         <WorkItem(844611)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_ChangeAttributeOnField()
             Dim code =
 <Code>
@@ -1524,7 +1524,7 @@ End Class
 
         <WorkItem(1147865)>
         <WorkItem(844611)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_ChangeAttributeOnTwoFields()
             Dim code =
 <Code>
@@ -1551,7 +1551,7 @@ End Class
         End Sub
 
         <WorkItem(1147865)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_AddOneMoreAttribute()
             Dim code =
 <Code>
@@ -1574,7 +1574,7 @@ End Class
         End Sub
 
         <WorkItem(1147865)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestField_RemoveOneAttribute()
             Dim code =
 <Code>
@@ -1599,7 +1599,7 @@ End Class
 
 #Region "Methods"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestMethod_Add1()
             Dim code =
 <Code>
@@ -1619,7 +1619,7 @@ End Class
                  Add("M", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestMethod_Remove1()
             Dim code =
 <Code>
@@ -1639,7 +1639,7 @@ End Class
                  Remove("M", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestMethod_RemoveOperator1()
             Dim code =
 <Code>
@@ -1659,7 +1659,7 @@ End Class
                  Remove("*", "C"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestMethod_ChangeType1()
             Dim code =
 <Code>
@@ -1681,7 +1681,7 @@ End Class
                  TypeRefChange("M"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestMethod_ChangeType2()
             Dim code =
 <Code>
@@ -1707,7 +1707,7 @@ End Class
 
 #Region "Parameters"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestParameter_Add1()
             Dim code =
 <Code>
@@ -1729,7 +1729,7 @@ End Class
                  Add("i", "M"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestParameter_Add2()
             Dim code =
 <Code>
@@ -1751,7 +1751,7 @@ End Class
                  Add("j", "M"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestParameter_Remove1()
             Dim code =
 <Code>
@@ -1773,7 +1773,7 @@ End Class
                  Remove("i", "M"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestParameter_ChangeModifier1()
             Dim code =
 <Code>
@@ -1795,7 +1795,7 @@ End Class
                  Unknown("i"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub TestParameter_ChangeModifier2()
             Dim code =
 <Code>
@@ -1817,11 +1817,55 @@ End Class
                  Unknown("i"))
         End Sub
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestParameter_ChangeTypeToTypeCharacter()
+            Dim code =
+<Code>
+Class C
+    Sub M(b As Boolean)
+    End Sub
+End Class
+</Code>
+
+            Dim changedCode =
+<Code>
+Class C
+    Sub M(b%)
+    End Sub
+End Class
+</Code>
+
+            Test(code, changedCode,
+                 TypeRefChange("b"))
+        End Sub
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        Public Sub TestParameter_ChangeTypeFromTypeCharacter()
+            Dim code =
+<Code>
+Class C
+    Sub M(b%)
+    End Sub
+End Class
+</Code>
+
+            Dim changedCode =
+<Code>
+Class C
+    Sub M(b As Boolean)
+    End Sub
+End Class
+</Code>
+
+            Test(code, changedCode,
+                 TypeRefChange("b"))
+        End Sub
+
 #End Region
 
 #Region "Attribute Arguments"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub Attribute_AddArgument1()
             Dim code =
 <Code>
@@ -1848,7 +1892,7 @@ End Class
                  ArgChange("AttributeUsage"))
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub Attribute_AddArgument2()
             Dim code =
 <Code>
@@ -1879,7 +1923,7 @@ End Class
 
 #Region "Other"
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub RenameInterfaceMethod()
             Dim code =
 <Code>
@@ -1926,7 +1970,7 @@ End Class
         End Sub
 
         <WorkItem(575666)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub DontFireEventsForGarbage1()
             Dim code =
 <Code>
@@ -1952,7 +1996,7 @@ End Class
         End Sub
 
         <WorkItem(578249)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub DontFireEventsForGarbage2()
             Dim code =
 <Code>
@@ -1986,7 +2030,7 @@ Partial C
         End Sub
 
         <WorkItem(1101185)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub ComparePropertyStatementBeforeMethodBase()
             Dim code =
 <Code>
@@ -2025,7 +2069,7 @@ End Class
         End Sub
 
         <WorkItem(1101185)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub CompareEventStatementBeforeMethodBase()
             Dim code =
 <Code>
@@ -2062,7 +2106,7 @@ End Class
         End Sub
 
         <WorkItem(1101185)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub CompareEventStatementBeforeMethodBase_WithMethods_1()
             Dim code =
 <Code>
@@ -2104,7 +2148,7 @@ End Class
         End Sub
 
         <WorkItem(1101185)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub CompareEventStatementBeforeMethodBase_WithMethods_2()
             Dim code =
 <Code>
@@ -2146,7 +2190,7 @@ End Class
         End Sub
 
         <WorkItem(1101185)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub CompareEventStatementBeforeMethodBase_WithMethods_3()
             Dim code =
 <Code>
@@ -2188,7 +2232,7 @@ End Class
         End Sub
 
         <WorkItem(1101185)>
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModelEvents)>
         Public Sub CompareMethodsOnly()
             Dim code =
 <Code>

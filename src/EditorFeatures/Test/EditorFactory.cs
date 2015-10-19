@@ -1,10 +1,14 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Roslyn.Test.EditorUtilities
 {
@@ -41,6 +45,8 @@ namespace Roslyn.Test.EditorUtilities
             ExportProvider exportProvider,
             params string[] lines)
         {
+            TestWorkspace.ResetThreadAffinity();
+
             var buffer = CreateBuffer(contentType, exportProvider, lines);
             return exportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(buffer);
         }

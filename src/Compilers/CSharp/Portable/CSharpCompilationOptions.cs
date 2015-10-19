@@ -218,6 +218,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        internal override ImmutableArray<string> GetImports()
+        {
+            return Usings;
+        }
+
         public new CSharpCompilationOptions WithOutputKind(OutputKind kind)
         {
             if (kind == this.OutputKind)
@@ -443,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { ConcurrentBuild = concurrentBuild };
         }
 
-        public CSharpCompilationOptions WithDeterministic(bool deterministic)
+        public new CSharpCompilationOptions WithDeterministic(bool deterministic)
         {
             if (deterministic == this.Deterministic)
             {
@@ -533,6 +538,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
+        }
+
+        protected override CompilationOptions CommonWithDeterministic(bool deterministic)
+        {
+            return WithDeterministic(deterministic);
         }
 
         protected override CompilationOptions CommonWithOutputKind(OutputKind kind)

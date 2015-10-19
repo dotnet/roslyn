@@ -89,7 +89,15 @@
                         </imaging:CrispImage>
                     </Grid>
 
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding HeaderText}" FontWeight="Bold" TextWrapping="Wrap" FontSize="14" MaxWidth="400" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="1"
+                               Text="{Binding HeaderText}"
+                               FontWeight="Bold"
+                               TextTrimming="CharacterEllipsis"
+                               FontSize="14"
+                               MaxWidth="260"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Left">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
@@ -120,12 +128,12 @@
 
                 <!-- Display the new name if it has been adjusted, or instructional text if it has not. -->
                 
-                <TextBlock Text="{Binding NewNameDescription}" 
-                           TextWrapping="Wrap" 
-                           MaxWidth="400" 
-                           Padding="0,3,0,12" 
-                           VerticalAlignment="Center" 
-                           HorizontalAlignment="Stretch"
+                <TextBlock Text="{Binding NewNameDescription}"
+                           MaxWidth="280"
+                           TextTrimming="CharacterEllipsis"
+                           Padding="0,3,0,12"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"
                            Visibility="{Binding ShouldShowNewName, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                 <TextBlock Name="Instructions" 

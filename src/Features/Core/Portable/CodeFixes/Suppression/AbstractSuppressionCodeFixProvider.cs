@@ -143,14 +143,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         nestedActions.Add(new GlobalSuppressMessageCodeAction(suppressionTargetInfo.TargetSymbol, project, diagnostic, this));
                     }
 
-                    result.Add(new CodeFix(new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
+                    result.Add(new CodeFix(project, new SuppressionCodeAction(diagnostic, nestedActions), diagnostic));
                 }
                 else if (!skipUnsuppress)
                 {
                     var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
                     if (codeAction != null)
                     {
-                        result.Add(new CodeFix(codeAction, diagnostic));
+                        result.Add(new CodeFix(project, codeAction, diagnostic));
                     }
                 }
             }
@@ -176,25 +176,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
             // Find the start token to attach leading pragma disable warning directive.
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            SyntaxTrivia containingTrivia = root.FindTrivia(span.Start);
             var lines = syntaxTree.GetText(cancellationToken).Lines;
-            int indexOfLine;
-            if (containingTrivia == default(SyntaxTrivia))
-            {
-                indexOfLine = lines.IndexOf(span.Start);
-            }
-            else
-            {
-                indexOfLine = lines.IndexOf(containingTrivia.Token.SpanStart);
-            }
-
+            var indexOfLine = lines.IndexOf(span.Start);
             var lineAtPos = lines[indexOfLine];
             var startToken = root.FindToken(lineAtPos.Start);
             startToken = GetAdjustedTokenForPragmaDisable(startToken, root, lines, indexOfLine);
 
             // Find the end token to attach pragma restore warning directive.
-            // This should be the last token on the line that contains the start token.
-            indexOfLine = lines.IndexOf(startToken.Span.End);
+            var spanEnd = Math.Max(startToken.Span.End, span.End);
+            indexOfLine = lines.IndexOf(spanEnd);
             lineAtPos = lines[indexOfLine];
             var endToken = root.FindToken(lineAtPos.End);
             endToken = GetAdjustedTokenForPragmaRestore(endToken, root, lines, indexOfLine);
