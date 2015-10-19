@@ -1,8 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -17,6 +21,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         public Script Script { get; }
 
         internal ScriptExecutionState ExecutionState { get; }
+
+        private ImmutableArray<ScriptVariable> _lazyVariables;
+        private IReadOnlyDictionary<string, int> _lazyVariableMap;
 
         internal ScriptState(ScriptExecutionState executionState, Script script)
         {
@@ -33,22 +40,81 @@ namespace Microsoft.CodeAnalysis.Scripting
         public object ReturnValue => GetReturnValue();
         internal abstract object GetReturnValue();
 
-        private ScriptVariables _lazyVariables;
-
         /// <summary>
-        /// The global variables accessible to or declared by the script.
+        /// Returns variables defined by the scripts in the declaration order.
         /// </summary>
-        public ScriptVariables Variables
+        public ImmutableArray<ScriptVariable> Variables
         {
             get
             {
                 if (_lazyVariables == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyVariables, new ScriptVariables(ExecutionState), null);
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyVariables, CreateVariables());
                 }
 
                 return _lazyVariables;
             }
+        }
+
+        /// <summary>
+        /// Returns a script variable of the specified name. 
+        /// </summary> 
+        /// <remarks>
+        /// If multiple script variables are defined in the script (in distinct submissions) returns the last one.
+        /// Namve lookup is case sensitive in C# scripts and case insensitive in VB scripts.
+        /// </remarks>
+        /// <returns><see cref="ScriptVariable"/> or null, if no variable of the specified <paramref name="name"/> is defined in the script.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/> is null.</exception>
+        public ScriptVariable GetVariable(string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            int index;
+            return GetVariableMap().TryGetValue(name, out index) ? Variables[index] : null;
+        }
+
+        private ImmutableArray<ScriptVariable> CreateVariables()
+        {
+            var result = ImmutableArray.CreateBuilder<ScriptVariable>();
+
+            var executionState = ExecutionState;
+
+            // Don't include the globals object (slot #0)
+            for (int i = 1; i < executionState.SubmissionStateCount; i++)
+            {
+                var state = executionState.GetSubmissionState(i);
+                Debug.Assert(state != null);
+
+                foreach (var field in state.GetType().GetTypeInfo().DeclaredFields)
+                {
+                    // TODO: synthesized fields of submissions shouldn't be public
+                    if (field.IsPublic && field.Name.Length > 0 && (char.IsLetterOrDigit(field.Name[0]) || field.Name[0] == '_'))
+                    {
+                        result.Add(new ScriptVariable(state, field));
+                    }
+                }
+            }
+
+            return result.ToImmutable();
+        }
+
+        private IReadOnlyDictionary<string, int> GetVariableMap()
+        {
+            if (_lazyVariableMap == null)
+            {
+                var map = new Dictionary<string, int>(Script.Compiler.IdentifierComparer);
+                for (int i = 0; i < Variables.Length; i++)
+                {
+                    map[Variables[i].Name] = i;
+                }
+
+                _lazyVariableMap = map;
+            }
+
+            return _lazyVariableMap;
         }
 
         public Task<ScriptState<object>> ContinueWithAsync(string code, ScriptOptions options = null, CancellationToken cancellationToken = default(CancellationToken))

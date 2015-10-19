@@ -7,8 +7,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -23,24 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class SuppressionSuggestedAction : SuggestedAction, ITelemetryDiagnosticID<string>
     {
         private readonly CodeFix _fix;
+        private readonly Func<CodeAction, SuggestedActionSet> _getFixAllSuggestedActionSet;
 
         public SuppressionSuggestedAction(
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             CodeFix fix,
-            object provider) :
+            object provider,
+            Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet) :
                 base(workspace, subjectBuffer, editHandler, fix.Action, provider)
         {
             _fix = fix;
+            _getFixAllSuggestedActionSet = getFixAllSuggestedActionSet;
         }
 
         public override bool HasActionSets
         {
             get
             {
-                var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-                return (suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any();
+                return this.CodeAction.GetCodeActions().Any();
             }
         }
 
@@ -54,18 +56,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return Task.FromResult(_actionSets);
             }
 
-            var suppressionAction = (SuppressionCodeAction)this.CodeAction;
-            if ((suppressionAction.NestedActions != null) && suppressionAction.NestedActions.Any())
+            if (this.CodeAction.GetCodeActions().Any())
             {
                 var nestedSuggestedActions = ImmutableArray.CreateBuilder<SuggestedAction>();
+                var fixCount = this.CodeAction.GetCodeActions().Length;
 
-                foreach (var c in suppressionAction.NestedActions)
+                foreach (var c in this.CodeAction.GetCodeActions())
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var fixAllSuggestedActionSet = _getFixAllSuggestedActionSet(c);
                     nestedSuggestedActions.Add(new CodeFixSuggestedAction(
                             this.Workspace, this.SubjectBuffer, this.EditHandler,
-                            new CodeFix(c, _fix.Diagnostics), this.Provider, null));
+                            new CodeFix(_fix.Project, c, _fix.Diagnostics), c, this.Provider, fixAllSuggestedActionSet));
                 }
 
                 _actionSets = ImmutableArray.Create(
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             // if it is from third party, we use hashcode
-            return diagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
+            return diagnostic.Id.GetHashCode().ToString(CultureInfo.InvariantCulture);
         }
     }
 }

@@ -20,6 +20,7 @@
         </Strings>
       </Button>
 
+      <!-- https://github.com/dotnet/roslyn/issues/4688
       <Button guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
         <Parent guid="guidCSharpInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -30,6 +31,7 @@
           <LocCanonicalName>ResetC#InteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+      -->
     </Buttons>
 
     <Bitmaps>
@@ -41,10 +43,12 @@
     <VisibilityItem context="guidCSProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
   </VisibilityConstraints>
   
+  <!-- https://github.com/dotnet/roslyn/issues/3941
   <KeyBindings>
     <KeyBinding guid="guidCSharpInteractiveCommandSet" id="cmdidCSharpInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" mod2="Control" key2="I" />
     <KeyBinding guid="guidCSharpInteractiveCommandSet" id="cmdidCSharpInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" key2="I" />
   </KeyBindings>
+  -->
 
   <Symbols>
     <GuidSymbol name="guidCSharpReplPackageId" value="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}" />

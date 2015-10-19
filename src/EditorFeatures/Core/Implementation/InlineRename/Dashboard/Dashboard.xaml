@@ -11,7 +11,7 @@
              xmlns:utilities="clr-namespace:Microsoft.CodeAnalysis.Editor.Shared.Utilities"
              x:ClassModifier="internal"
              mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
-             MinWidth="180"
+             MinWidth="300"
              Cursor="Arrow"
              Focusable="True"
              AutomationProperties.AutomationId="Rename"
@@ -23,6 +23,8 @@
                 <ResourceDictionary Source="Colors.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            
             <SolidColorBrush x:Key="ForegroundText" Color="{DynamicResource {x:Static utilities:CodeAnalysisColors.SystemCaptionTextColorKey}}"/>
 
             <Style TargetType="CheckBox">
@@ -45,52 +47,60 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" BorderBrush="Transparent" 
+        <Border Grid.Row="0" BorderBrush="Transparent"
             Background="{DynamicResource {x:Static utilities:CodeAnalysisColors.BackgroundBrushKey}}"  
             BorderThickness="0" 
             Padding="7">
             <StackPanel>
 
-                <Grid Height="16">
-
+                <!-- Heading: Display the old and new identifier names, and an indication if something is wrong (but not the full description, which goes in the Summary section below) -->
+                
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- error or info icon -->
-                    <imaging:CrispImage Grid.Column="0" Height="16" Width="16" Margin="0,0,4,0" VerticalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                        <!-- determine the image visibility and icon from the severity -->
-                        <imaging:CrispImage.Style>
-                            <Style TargetType="imaging:CrispImage">
-                                <Setter Property="Visibility" Value="Collapsed"/>
+                    <Grid>
+                        <imaging:CrispImage Grid.Row ="0" Grid.Column="0" Height="16" Width="16" Margin="0,0,4,0" VerticalAlignment="Center">
+                            <imaging:CrispImage.Style>
+                                <Style TargetType="imaging:CrispImage">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
 
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusError}"/>
-                                    </DataTrigger>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusError}"/>
+                                        </DataTrigger>
 
-                                    <DataTrigger Binding="{Binding Path=Severity}" Value="Info">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                        <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusInformation}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </imaging:CrispImage.Style>
+                                        <DataTrigger Binding="{Binding Path=Severity}" Value="Info">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Setter Property="Moniker" Value="{x:Static imagecatalog:KnownMonikers.StatusInformation}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </imaging:CrispImage.Style>
+                        </imaging:CrispImage>
+                    </Grid>
 
-                    </imaging:CrispImage>
-
-                    <!-- description text -->
-                    <TextBlock Grid.Column="1" Text="{Binding Path=Description, Mode=OneTime}" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Stretch">
-                        
-                        <!-- if severity is error, make the description text red -->
+                    <TextBlock Grid.Row="0"
+                               Grid.Column="1"
+                               Text="{Binding HeaderText}"
+                               FontWeight="Bold"
+                               TextTrimming="CharacterEllipsis"
+                               FontSize="14"
+                               MaxWidth="260"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Left">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
-
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
                                         <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}"/>
@@ -103,6 +113,7 @@
 
                     <Button 
                     Name="CloseButton"
+                    Grid.Row ="0"
                     Grid.Column="2"
                     Width="18" Height="18"
                     Margin="4,0,0,0"
@@ -113,14 +124,40 @@
                     HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
                     Click="CloseButton_Click"
                     ToolTip="{Binding ElementName=dashboard, Path=CancelToolTip}"/>
-
                 </Grid>
 
-                <TextBlock Text="{Binding Path=SearchText}" Margin="0,4,0,8" Foreground="{StaticResource ForegroundText}"/>
+                <!-- Display the new name if it has been adjusted, or instructional text if it has not. -->
+                
+                <TextBlock Text="{Binding NewNameDescription}"
+                           MaxWidth="280"
+                           TextTrimming="CharacterEllipsis"
+                           Padding="0,3,0,12"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Left"
+                           Visibility="{Binding ShouldShowNewName, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-                <!-- conflicts and errors -->
-                <StackPanel Margin="0,0,0,8">
+                <TextBlock Name="Instructions" 
+                           Text="{Binding ElementName=dashboard, Path=RenameInstructions}" 
+                           Padding="0,3,0,12"
+                           TextWrapping="Wrap" 
+                           Width="Auto"
+                           Foreground="{StaticResource ForegroundText}" FontStyle="Italic"
+                           Visibility="{Binding ShouldShowInstructions, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                
+                <!-- Settings -->
 
+                <CheckBox Content="{Binding ElementName=dashboard, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}"
+                      Name="OverloadsCheckbox" Visibility="{Binding ElementName=dashboard, Path=RenameOverloadsVisibility}" IsEnabled="{Binding ElementName=dashboard, Path=IsRenameOverloadsEditable}" />
+                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" />
+                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" />
+
+                <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=dashboard, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" />
+
+                <!-- Summary: Includes the number of references to be updated and any conflict information -->
+                
+                <TextBlock Text="{Binding Path=SearchText}" Margin="0,12,0,0" Foreground="{StaticResource ForegroundText}"/>
+                
+                <StackPanel Margin="0,8,0,0">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -180,16 +217,9 @@
                     </TextBlock>
                 </StackPanel>
 
-                <CheckBox Content="{Binding ElementName=dashboard, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}"
-                      Name="OverloadsCheckbox" Visibility="{Binding ElementName=dashboard, Path=RenameOverloadsVisibility}" IsEnabled="{Binding ElementName=dashboard, Path=IsRenameOverloadsEditable}" />
-                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" />
-                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" />
-
-                <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=dashboard, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" />
-
                 <Button Name="ApplyButton" Click="Apply_Click" IsDefault="True" MinWidth="75" MinHeight="23" Padding="10,1,10,1" Margin="0,8,0,0" HorizontalAlignment="Right"
                     ToolTip="{Binding ElementName=dashboard, Path=ApplyToolTip}"
-                    Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}" >
+                    Style="{DynamicResource {x:Static utilities:CodeAnalysisColors.ButtonStyleKey}}">
                     <AccessText Text="{Binding ElementName=dashboard, Path=ApplyRename}" />
                 </Button>
             </StackPanel>

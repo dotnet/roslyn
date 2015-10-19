@@ -30,7 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debuggin
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestSimpleNameInClass()
             Dim text =
 <text>
@@ -50,7 +50,7 @@ end class</text>.Value
             Test(text, "Foo(Integer)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestSimpleNameInNamespace()
             Dim text =
 <text>
@@ -75,7 +75,7 @@ end namespace</text>.Value
             Test(text, "Foo(a)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestSimpleNameInGenericClassNamespace()
             Dim text =
 <text>
@@ -101,7 +101,7 @@ end namespace</text>.Value
             Test(text, "Foo(a)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestGenericNameInClassNamespace()
             Dim text =
 <text>
@@ -132,7 +132,7 @@ end namespace</text>.Value
             Test(text, "Foo(of T)(a)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestOverloadsInSingleClass()
             Dim text =
 <text>
@@ -157,7 +157,7 @@ end class
             Test(text, "Foo(i)", "C.Foo(Integer)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestMethodsInMultipleClasses()
             Dim text =
 <text>
@@ -188,7 +188,7 @@ end namespace</text>.Value
             Test(text, "Foo(i)", "N1.C.Foo(Integer)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestMethodsWithDifferentArityInMultipleClasses()
             Dim text =
 <text>
@@ -223,7 +223,7 @@ end namespace</text>.Value
             Test(text, "Foo(of T)(i)", "N1.C.Foo(Of T)(Integer)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestOverloadsWithMultipleParametersInSingleClass()
             Dim text =
 <text>
@@ -256,7 +256,7 @@ end class</text>.Value
             Test(text, "Foo(i, s, c)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub Properties()
             Dim text =
 <text>
@@ -298,7 +298,7 @@ End Class</text>.Value
             Test(text, "property5(j, i)", "C.Property5(Integer, String)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub NegativeTests()
             Dim text =
 <text>
@@ -342,7 +342,7 @@ End Class</text>.Value
             Test(text, "")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestInstanceConstructors()
             Dim text =
 <text>
@@ -383,7 +383,7 @@ End Class</text>.Value
             Test(text, "C.C()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestStaticConstructors()
             Dim text =
 <text>
@@ -408,7 +408,7 @@ end class</text>.Value
             Test(text, "C.cctor()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestAllConstructors()
             Dim text =
 <text>
@@ -434,7 +434,7 @@ end class</text>.Value
             Test(text, "C.C()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestPartialMethods()
             Dim text =
 <text>
@@ -466,7 +466,7 @@ End Class</text>.Value
             Test(text, "M3(y)", "C.M3(Integer)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestLeadingAndTrailingText()
             Dim text =
 <text>
@@ -481,7 +481,7 @@ End Class</text>.Value
             Test(text, "Foo() ' comment", "C.Foo()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestEscapedKeywords()
             Dim text =
                 <text>
@@ -503,7 +503,7 @@ End Class</text>.Value
             Test(text, "False", "[for].False()")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestGlobalQualifiedNames()
             Dim text =
 <text>
@@ -518,7 +518,7 @@ End Class</text>.Value
             Test(text, "C.Foo(Global.C)", "C.Foo(C)")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestRootNamespaces()
             Dim text =
 <text>
@@ -541,7 +541,7 @@ End Namespace</text>.Value
             TestWithRootNamespace("Root", text, "Root.Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestNestedTypesAndNamespaces()
             Dim text =
 <text>
@@ -585,7 +585,7 @@ End Namespace</text>.Value
             Test(text, "N5.C.Foo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.DebuggingNameResolver)>
         Public Sub TestInterfaces()
             Dim text =
 <text>

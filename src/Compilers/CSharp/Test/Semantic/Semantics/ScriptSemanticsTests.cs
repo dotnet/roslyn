@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string test = @"
 this[1]
 ";
-            var compilation = CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Interactive);
+            var compilation = CreateCompilationWithMscorlib45(test, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -53,7 +53,7 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -76,7 +76,7 @@ this[1]
 
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
 
-            var compilation = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             compilation.VerifyDiagnostics(
                 // (1,13): warning CS7022: The entry point of the program is global script code; ignoring 'Main()' entry point.
@@ -86,7 +86,7 @@ this[1]
         [Fact]
         public void NoReferences()
         {
-            var submission = CSharpCompilation.CreateSubmission("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Interactive), returnType: typeof(int));
+            var submission = CSharpCompilation.CreateScriptCompilation("test", syntaxTree: SyntaxFactory.ParseSyntaxTree("1", options: TestOptions.Script), returnType: typeof(int));
             submission.VerifyDiagnostics(
                 // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // 1
@@ -230,10 +230,9 @@ delegate void G();
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
 
-            var compilation = CSharpCompilation.Create(
-                assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                syntaxTrees: new[] { tree });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             var global = compilation.GlobalNamespace;
             ImmutableArray<NamedTypeSymbol> members;
@@ -273,11 +272,9 @@ WriteLine(""hello"");
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
 
-            var compilation = CSharpCompilation.Create(
-                assemblyName: "Test",
-                options: TestOptions.ReleaseExe.WithScriptClassName("Script"),
-                syntaxTrees: new[] { tree },
-                references: new[] { MscorlibRef });
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
 
             var expr = (((tree.
                 GetCompilationUnitRoot() as CompilationUnitSyntax).
@@ -383,7 +380,7 @@ this[1]
 decimal d = checked(2M + 1M);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -396,7 +393,7 @@ using System.IO;
 FileAccess fa = checked(FileAccess.Read + 1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -408,7 +405,7 @@ FileAccess fa = checked(FileAccess.Read + 1);
 System.Action a = null;
 a += null;
 ";
-            var compilation = CreateCompilationWithMscorlib(Parse(source, options: TestOptions.Script));
+            var compilation = CreateCompilationWithMscorlib45(new[] { Parse(source, options: TestOptions.Script) });
             compilation.VerifyDiagnostics();
         }
 
@@ -712,24 +709,38 @@ static int Baz = w;
             var c = CreateSubmission("var x = 1; { var x = x;}");
 
             c.VerifyDiagnostics(
-                // (2,11): error CS0841: Cannot use local variable 'x' before it is declared
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x"));
+                // (1,22): error CS0841: Cannot use local variable 'x' before it is declared
+                // var x = 1; { var x = x;}
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 22),
+                // (1,22): error CS0165: Use of unassigned local variable 'x'
+                // var x = 1; { var x = x;}
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(1, 22));
         }
 
         [Fact]
-        public void ERR_ReturnNotAllowedInScript()
+        public void ERR_ReturnNotAllowedInScript_Void()
         {
-            var c1 = CreateSubmission("return;");
-
-            c1.VerifyDiagnostics(
+            var c = CreateSubmission("return;");
+            c.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return"));
+                // return;
+                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
+                // (1,1): warning CS0162: Unreachable code detected
+                // return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
+        }
 
-            var c2 = CreateSubmission("return 17;");
-
-            c2.VerifyDiagnostics(
+        [Fact]
+        public void ERR_ReturnNotAllowedInScript_Expr()
+        {
+            var c = CreateSubmission("return 17;");
+            c.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return"));
+                // return 17;
+                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
+                // (1,1): warning CS0162: Unreachable code detected
+                // return 17;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
         }
 
         [Fact]

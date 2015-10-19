@@ -1,83 +1,83 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Scripting
+namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     /// <summary>
-    /// Extends MetadataFileReferenceResolver to enable resolution of assembly
-    /// simple names in the GAC.
+    /// Resolves assembly identities in Global Assembly Cache.
     /// </summary>
-    internal sealed class GacFileResolver
+    internal sealed class GacFileResolver : IEquatable<GacFileResolver>
     {
-        private readonly ImmutableArray<ProcessorArchitecture> _architectures;
-        private readonly CultureInfo _preferredCulture;
+        // Consider a better availability check (perhaps the presence of Assembly.GlobalAssemblyCache once CoreCLR mscorlib is cleaned up).
+        // https://github.com/dotnet/roslyn/issues/5538
 
         /// <summary>
-        /// A resolver that is configured to resolve against the GAC associated
-        /// with the bitness of the currently executing process.
+        /// Returns true if GAC is available on the platform.
         /// </summary>
-        internal static GacFileResolver Default = new GacFileResolver(
-            architectures: GlobalAssemblyCache.CurrentArchitectures,
-            preferredCulture: null);
-
-        /// <summary>
-        /// Constructs an instance of a <see cref="GacFileResolver"/>
-        /// </summary>
-        /// <param name="architectures">Supported architectures used to filter GAC assemblies.</param>
-        /// <param name="preferredCulture">A culture to use when choosing the best assembly from 
-        /// among the set filtered by <paramref name="architectures"/></param>
-        public GacFileResolver(
-            ImmutableArray<ProcessorArchitecture> architectures,
-            CultureInfo preferredCulture)
-        {
-            _architectures = architectures;
-            _preferredCulture = preferredCulture;
-        }
+        public static bool IsAvailable => CoreClrShim.AssemblyLoadContext.Type == null;
 
         /// <summary>
         /// Architecture filter used when resolving assembly references.
         /// </summary>
-        public ImmutableArray<ProcessorArchitecture> Architectures
-        {
-            get { return _architectures; }
-        }
+        public ImmutableArray<ProcessorArchitecture> Architectures { get; }
 
         /// <summary>
-        /// CultureInfo used when resolving assembly references.
+        /// <see cref="CultureInfo"/> used when resolving assembly references, or null to prefer no culture.
         /// </summary>
-        public CultureInfo PreferredCulture
-        {
-            get { return _preferredCulture; }
-        }
+        public CultureInfo PreferredCulture { get; }
 
-        public string ResolveReference(string reference)
+        /// <summary>
+        /// Creates an instance of a <see cref="GacFileResolver"/>, if available on the platform (check <see cref="IsAvailable"/>).
+        /// </summary>
+        /// <param name="architectures">Supported architectures used to filter GAC assemblies.</param>
+        /// <param name="preferredCulture">A culture to use when choosing the best assembly from 
+        /// among the set filtered by <paramref name="architectures"/></param>
+        /// <exception cref="PlatformNotSupportedException">The platform doesn't support GAC.</exception>
+        public GacFileResolver(
+            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>), 
+            CultureInfo preferredCulture = null)
         {
-            if (PathUtilities.IsFilePath(reference))
+            if (!IsAvailable)
             {
-                return null;
+                throw new PlatformNotSupportedException();
             }
 
-            string path;
-            GlobalAssemblyCache.ResolvePartialName(reference, out path, _architectures, this.PreferredCulture);
-            return (path != null && PortableShim.File.Exists(path)) ? path : null;
+            if (architectures.IsDefault)
+            {
+                architectures = GlobalAssemblyCache.CurrentArchitectures;
+            }
+
+            Architectures = architectures;
+            PreferredCulture = preferredCulture;
         }
 
-        public override bool Equals(object obj)
+        public string Resolve(string assemblyName)
         {
-            var other = obj as GacFileResolver;
-            return (other != null) &&
-                _architectures.SequenceEqual(other._architectures) &&
-                _preferredCulture == other._preferredCulture;
+            string path;
+            GlobalAssemblyCache.ResolvePartialName(assemblyName, out path, Architectures, this.PreferredCulture);
+            return File.Exists(path) ? path : null;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_preferredCulture, Hash.CombineValues(_architectures));
+            return Hash.Combine(PreferredCulture, Hash.CombineValues(Architectures));
         }
+
+        public bool Equals(GacFileResolver other)
+        {
+            return ReferenceEquals(this, other) ||
+                other != null &&
+                Architectures.SequenceEqual(other.Architectures) &&
+                PreferredCulture == other.PreferredCulture;
+        }
+
+        public override bool Equals(object obj) => Equals(obj as GacFileResolver);
     }
 }

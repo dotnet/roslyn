@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -9,43 +10,30 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    /// <summary>
-    /// Base class that allows some helpers for detecting whether we're on the main WPF foreground thread, or
-    /// a background thread.  It also allows scheduling work to the foreground thread at below input priority.
-    /// </summary>
-    internal class ForegroundThreadAffinitizedObject
+    internal enum ForegroundThreadDataKind
     {
-        private static Thread s_foregroundThread;
-        private static TaskScheduler s_foregroundTaskScheduler;
+        Wpf,
+        StaUnitTest,
+        Unknown
+    }
 
-        internal static Thread ForegroundThread
+    internal sealed class ForegroundThreadData
+    {
+        internal readonly Thread Thread;
+        internal readonly TaskScheduler TaskScheduler;
+        internal readonly ForegroundThreadDataKind Kind;
+
+        internal ForegroundThreadData(Thread thread, TaskScheduler taskScheduler, ForegroundThreadDataKind kind)
         {
-            get { return s_foregroundThread; }
+            Thread = thread;
+            TaskScheduler = taskScheduler;
+            Kind = kind;
         }
 
-        internal static TaskScheduler ForegroundTaskScheduler
+        internal static ForegroundThreadData CreateDefault()
         {
-            get { return s_foregroundTaskScheduler; }
-        }
-
-        // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
-        // AppDomain.  This method should be deleted in favor of forcing derivations of this type
-        // to either explicitly inherit WPF Dispatcher thread or provide an explicit thread 
-        // they believe to be the foreground. 
-        static ForegroundThreadAffinitizedObject()
-        {
-            Initialize(force: true);
-        }
-
-        // This static initialization method *must* be invoked on the UI thread to ensure that the static 'foregroundThread' field is correctly initialized.
-        public static ForegroundThreadAffinitizedObject Initialize(bool force = false)
-        {
-            if (s_foregroundThread != null && !force)
-            {
-                return new ForegroundThreadAffinitizedObject();
-            }
-
-            s_foregroundThread = Thread.CurrentThread;
+            TaskScheduler taskScheduler;
+            ForegroundThreadDataKind kind;
 
             var previousContext = SynchronizationContext.Current;
             try
@@ -54,20 +42,71 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 // So instead of using the default priority which is above user input, we use Background priority which is 1 level
                 // below user input.
                 SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher, DispatcherPriority.Background));
-                s_foregroundTaskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                kind = previousContext?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
+                    ? ForegroundThreadDataKind.Wpf
+                    : ForegroundThreadDataKind.Unknown;
             }
             finally
             {
                 SynchronizationContext.SetSynchronizationContext(previousContext);
             }
 
-            return new ForegroundThreadAffinitizedObject();
+            return new ForegroundThreadData(Thread.CurrentThread, taskScheduler, kind);
+        }
+    }
+
+    /// <summary>
+    /// Base class that allows some helpers for detecting whether we're on the main WPF foreground thread, or
+    /// a background thread.  It also allows scheduling work to the foreground thread at below input priority.
+    /// </summary>
+    internal class ForegroundThreadAffinitizedObject
+    {
+        private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
+        private static ForegroundThreadData s_defaultForegroundThreadData;
+        private readonly ForegroundThreadData _foregroundThreadData;
+
+        internal static ForegroundThreadData FallbackForegroundThreadData
+        {
+            get { return s_fallbackForegroundThreadData; }
         }
 
-        public ForegroundThreadAffinitizedObject(bool assertIsForeground = false)
+        internal static ForegroundThreadData DefaultForegroundThreadData
         {
+            get { return s_defaultForegroundThreadData ?? s_fallbackForegroundThreadData; }
+            set { s_defaultForegroundThreadData = value; }
+        }
+
+        internal ForegroundThreadData ForegroundThreadData
+        {
+            get { return _foregroundThreadData; }
+        }
+
+        internal Thread ForegroundThread
+        {
+            get { return _foregroundThreadData.Thread; }
+        }
+
+        internal TaskScheduler ForegroundTaskScheduler
+        {
+            get { return _foregroundThreadData.TaskScheduler; }
+        }
+
+        // HACK: This is a dangerous way of establishing the 'foreground' thread affinity of an 
+        // AppDomain.  This method should be deleted in favor of forcing derivations of this type
+        // to either explicitly inherit WPF Dispatcher thread or provide an explicit thread 
+        // they believe to be the foreground. 
+        static ForegroundThreadAffinitizedObject()
+        {
+            s_fallbackForegroundThreadData = ForegroundThreadData.CreateDefault();
+        }
+
+        public ForegroundThreadAffinitizedObject(ForegroundThreadData foregroundThreadData = null, bool assertIsForeground = false)
+        {
+            _foregroundThreadData = foregroundThreadData ?? DefaultForegroundThreadData;
+
             // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's
-            Contract.ThrowIfFalse(Application.Current == null || Application.Current.Dispatcher.Thread == ForegroundThreadAffinitizedObject.s_foregroundThread);
+            Contract.ThrowIfFalse(Application.Current == null || Application.Current.Dispatcher.Thread == ForegroundThread);
 
             // ForegroundThreadAffinitizedObject might not necessarily be created on a foreground thread.
             // AssertIsForeground here only if the object must be created on a foreground thread.
@@ -79,7 +118,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public bool IsForeground()
         {
-            return Thread.CurrentThread == ForegroundThreadAffinitizedObject.s_foregroundThread;
+            return Thread.CurrentThread == ForegroundThread;
+        }
+
+        /// <summary>
+        /// Ensure this is a supported scheduling context like Wpf or explicit STA scheduler.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsValid()
+        {
+            return _foregroundThreadData.Kind != ForegroundThreadDataKind.Unknown;
         }
 
         public void AssertIsForeground()
@@ -104,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             }
             else
             {
-                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundThreadAffinitizedObject.s_foregroundTaskScheduler);
+                return Task.Factory.SafeStartNew(action, cancellationToken, ForegroundTaskScheduler); 
             }
         }
 

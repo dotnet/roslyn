@@ -267,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         /// <summary>
-        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.GetOrCreateCodeElement{T}(SyntaxNode)"/>
         /// </summary>
         public abstract EnvDTE.CodeElement CreateInternalCodeElement(
             CodeModelState state,
@@ -362,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw new InvalidOperationException();
             }
 
-            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
+            var parent = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
             var accessorKind = GetAccessorKind(node);
 
@@ -377,7 +377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (IsParameterNode(parentNode))
             {
-                var parentElement = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
+                var parentElement = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
                 parentObject = ComAggregate.GetManagedObject<AbstractCodeElement>(parentElement);
             }
             else
@@ -397,7 +397,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 {
                     parentNode = fileCodeModel.LookupNode(nodeKey);
 
-                    var parentElement = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
+                    var parentElement = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
                     parentObject = ComAggregate.GetManagedObject<AbstractCodeElement>(parentElement);
                 }
             }
@@ -419,7 +419,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             AbstractCodeElement parentObj = null;
             if (parentNode != null)
             {
-                var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
+                var parent = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
                 parentObj = ComAggregate.GetManagedObject<AbstractCodeElement>(parent);
             }
 
@@ -439,7 +439,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             string name = GetParameterName(node);
 
-            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
+            var parent = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
 
             return CodeParameter.Create(state, parentObj, name);
@@ -469,7 +469,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             int ordinal;
             GetInheritsNamespaceAndOrdinal(parentNode, node, out namespaceName, out ordinal);
 
-            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
+            var parent = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
 
             return CodeInheritsStatement.Create(state, parentObj, namespaceName, ordinal);
@@ -490,7 +490,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             int ordinal;
             GetImplementsNamespaceAndOrdinal(parentNode, node, out namespaceName, out ordinal);
 
-            var parent = fileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(parentNode);
+            var parent = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
             var parentObj = ComAggregate.GetManagedObject<AbstractCodeMember>(parent);
 
             return CodeImplementsStatement.Create(state, parentObj, namespaceName, ordinal);

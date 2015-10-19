@@ -234,11 +234,11 @@
   <data name="GenerateLocal" xml:space="preserve">
     <value>Generate local '{0}'</value>
   </data>
-  <data name="GenerateForInNewFile" xml:space="preserve">
-    <value>Generate {0} for '{1}' in '{2}' (in new file)</value>
+  <data name="Generate_0_1_in_new_file" xml:space="preserve">
+    <value>Generate {0} '{1}' in new file</value>
   </data>
-  <data name="GenerateForIn" xml:space="preserve">
-    <value>Generate {0} for '{1}' in '{2}'</value>
+  <data name="Generate_nested_0_1" xml:space="preserve">
+    <value>Generate nested {0} '{1}'</value>
   </data>
   <data name="GlobalNamespace" xml:space="preserve">
     <value>Global Namespace</value>
@@ -365,9 +365,6 @@
   </data>
   <data name="ExtractInterface" xml:space="preserve">
     <value>Extract Interface...</value>
-  </data>
-  <data name="ChangeTo" xml:space="preserve">
-    <value>Change '{0}' to '{1}.{2}'.</value>
   </data>
   <data name="UpdatingAWillPrevent" xml:space="preserve">
     <value>Updating '{0}' will prevent the debug session from continuing.</value>
@@ -697,11 +694,17 @@ Do you want to continue?</value>
   <data name="UseTheNavigationBarToSwitchContext" xml:space="preserve">
     <value>You can use the navigation bar to switch context.</value>
   </data>
-  <data name="SuppressWithGlobalSuppressMessage" xml:space="preserve">
-    <value>with SuppressMessageAttribute (separate file)</value>
+  <data name="SuppressWithPragma" xml:space="preserve">
+    <value>in Source</value>
   </data>
-  <data name="SuppressWithLocalSuppressMessage" xml:space="preserve">
-    <value>with SuppressMessageAttribute</value>
+  <data name="SuppressWithGlobalSuppressMessage" xml:space="preserve">
+    <value>in Suppression File</value>
+  </data>
+  <data name="RemoveSuppressionForId" xml:space="preserve">
+    <value>Remove Suppression {0}</value>
+  </data>
+  <data name="RemoveSuppressionEquivalenceKeyPrefix" xml:space="preserve">
+    <value>Remove Suppression</value>
   </data>
   <data name="SuppressionPendingJustification" xml:space="preserve">
     <value>&lt;Pending&gt;</value>
@@ -733,6 +736,9 @@ Do you want to continue?</value>
   <data name="SuppressionCodeActionTitle" xml:space="preserve">
     <value>Suppress {0}</value>
   </data>
+  <data name="TriageCodeActionTitleForTriagedDiagnostic" xml:space="preserve">
+    <value>Re-triage {0}(currently '{1}')</value>
+  </data>
   <data name="ArgumentElementCannotBeNull" xml:space="preserve">
     <value>Argument cannot have a null element.</value>
   </data>
@@ -741,6 +747,12 @@ Do you want to continue?</value>
   </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
+  </data>
+  <data name="ComputingFixAllOccurrences" xml:space="preserve">
+    <value>Computing fix all occurrences code fix...</value>
+  </data>
+  <data name="FixAllOccurrences" xml:space="preserve">
+    <value>Fix all occurrences</value>
   </data>
   <data name="FixAllTitle_Document" xml:space="preserve">
     <value>Document</value>
@@ -830,5 +842,44 @@ Do you want to continue?</value>
   </data>
   <data name="Attribute" xml:space="preserve">
     <value>attribute</value>
+  </data>
+  <data name="UseAutoProperty" xml:space="preserve">
+    <value>Use auto property</value>
+  </data>
+  <data name="Replace0and1WithProperty" xml:space="preserve">
+    <value>Replace '{0}' and '{1}' with property</value>
+  </data>
+  <data name="Replace0WithProperty" xml:space="preserve">
+    <value>Replace '{0}' with property</value>
+  </data>
+  <data name="MethodReferencedImplicitly" xml:space="preserve">
+    <value>Method referenced implicitly</value>
+  </data>
+  <data name="Generate_type" xml:space="preserve">
+    <value>Generate type</value>
+  </data>
+  <data name="Generate_0_1" xml:space="preserve">
+    <value>Generate {0} '{1}'</value>
+  </data>
+  <data name="ChangeTo" xml:space="preserve">
+    <value>Change '{0}' to '{1}'.</value>
+  </data>
+  <data name="NonInvokedMethodCannotBeReplacedWithProperty" xml:space="preserve">
+    <value>Non-invoked method cannot be replaced with property.</value>
+  </data>
+  <data name="OnlyMethodsWithASingleArgumentCanBeReplacedWithAProperty" xml:space="preserve">
+    <value>Only methods with a single argument can be replaced with a property.</value>
+  </data>
+  <data name="ErrorCategory" xml:space="preserve">
+    <value>Roslyn.HostError</value>
+  </data>
+  <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
+    <value>An instance of analyzer {0} cannot be created from {1}: {2}.</value>
+  </data>
+  <data name="WRN_NoAnalyzerInAssembly" xml:space="preserve">
+    <value>The assembly {0} does not contain any analyzers.</value>
+  </data>
+  <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
+    <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
 </root>

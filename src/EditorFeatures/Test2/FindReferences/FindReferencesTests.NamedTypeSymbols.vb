@@ -5,7 +5,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 #Region "FAR on reference types"
 
         <WorkItem(541155)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInaccessibleVar1()
             Dim input =
 <Workspace>
@@ -32,7 +32,7 @@ class B : A
         End Sub
 
         <WorkItem(541155)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInaccessibleVar2()
             Dim input =
 <Workspace>
@@ -59,7 +59,7 @@ class B : A
         End Sub
 
         <WorkItem(541151)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestGenericVar1()
             Dim input =
 <Workspace>
@@ -84,7 +84,7 @@ class {|Definition:$$var|}<T> { }
         End Sub
 
         <WorkItem(541151)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestGenericVar2()
             Dim input =
 <Workspace>
@@ -108,7 +108,7 @@ class var<T> { }
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Class()
             Dim input =
 <Workspace>
@@ -133,7 +133,7 @@ class var<T> { }
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_NestedClass()
             Dim input =
 <Workspace>
@@ -153,7 +153,7 @@ class var<T> { }
             Test(input)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_ExplicitCast()
             Dim input =
 <Workspace>
@@ -195,7 +195,7 @@ class var<T> { }
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Events()
             Dim input =
 <Workspace>
@@ -230,7 +230,7 @@ class var<T> { }
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_TypeOfOperator()
             Dim input =
 <Workspace>
@@ -250,7 +250,7 @@ class var<T> { }
         End Sub
 
         <WorkItem(539799)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_InaccessibleType()
             Dim input =
 <Workspace>
@@ -276,7 +276,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_OneDimensionalArray()
             Dim input =
 <Workspace>
@@ -297,7 +297,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_BaseList()
             Dim input =
 <Workspace>
@@ -311,7 +311,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_StaticConstructor()
             Dim input =
 <Workspace>
@@ -329,7 +329,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_GenericClass()
             Dim input =
 <Workspace>
@@ -349,7 +349,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_GenericClass1()
             Dim input =
 <Workspace>
@@ -369,7 +369,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_GenericClass2()
             Dim input =
 <Workspace>
@@ -392,7 +392,7 @@ class A
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_GenericClass3()
             Dim input =
 <Workspace>
@@ -416,7 +416,7 @@ class A
         End Sub
 
         <WorkItem(539883)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadedMembersFromConstructedInterfaces1()
             Dim input =
 <Workspace>
@@ -449,7 +449,7 @@ public class Basic : I1<int>
         End Sub
 
         <WorkItem(539883)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadedMembersFromConstructedInterfaces2()
             Dim input =
 <Workspace>
@@ -482,7 +482,7 @@ public class Basic : I1<int>
         End Sub
 
         <WorkItem(539883)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadedMembersFromConstructedInterfaces3()
             Dim input =
 <Workspace>
@@ -515,7 +515,7 @@ public class Basic : I1<int>
         End Sub
 
         <WorkItem(539883)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadedMembersFromConstructedInterfaces4()
             Dim input =
 <Workspace>
@@ -539,7 +539,7 @@ class C : I<int>, I<string>
         End Sub
 
         <WorkItem(539883)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadedMembersFromConstructedInterfaces5()
             Dim input =
 <Workspace>
@@ -563,7 +563,7 @@ class C : I<int>, I<string>
         End Sub
 
         <WorkItem(539883)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCascadedMembersFromConstructedInterfaces6()
             Dim input =
 <Workspace>
@@ -586,7 +586,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_MultipleFiles()
             Dim input =
 <Workspace>
@@ -607,7 +607,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_MultipleFiles_InOneFileOnly()
             Dim input =
 <Workspace>
@@ -629,7 +629,7 @@ class C : I<int>, I<string>
             Test(input, searchSingleFileOnly:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpImplicitConstructor()
             Dim input =
 <Workspace>
@@ -648,7 +648,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpExplicitConstructor()
             Dim input =
 <Workspace>
@@ -669,7 +669,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBImplicitConstructor()
             Dim input =
 <Workspace>
@@ -686,7 +686,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpConstructorCallUsingNewOperator1()
             Dim input =
 <Workspace>
@@ -710,7 +710,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpConstructorCallUsingNewOperator2()
             Dim input =
 <Workspace>
@@ -734,7 +734,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBConstructorCallUsingNewOperator()
             Dim input =
 <Workspace>
@@ -755,7 +755,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBModule()
             Dim input =
 <Workspace>
@@ -778,7 +778,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_PartialClass()
             Dim input =
 <Workspace>
@@ -801,7 +801,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Interface()
             Dim input =
 <Workspace>
@@ -821,7 +821,7 @@ class C : I<int>, I<string>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_GenericInterface()
             Dim input =
 <Workspace>
@@ -844,7 +844,7 @@ class C : I<int>, I<string>
         End Sub
 
         <WorkItem(539065)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Delegate()
             Dim input =
 <Workspace>
@@ -868,7 +868,7 @@ class C : I<int>, I<string>
         End Sub
 
         <WorkItem(539065)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Delegate1()
             Dim input =
 <Workspace>
@@ -890,7 +890,7 @@ class C : I<int>, I<string>
         End Sub
 
         <WorkItem(539065)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Delegate2()
             Dim input =
 <Workspace>
@@ -912,7 +912,7 @@ class C : I<int>, I<string>
         End Sub
 
         <WorkItem(539614)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Delegate3()
             Dim input =
 <Workspace>
@@ -939,7 +939,7 @@ class Program
         End Sub
 
         <WorkItem(539614)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Delegate4()
             Dim input =
 <Workspace>
@@ -966,7 +966,7 @@ class Program
         End Sub
 
         <WorkItem(539614)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Delegate5()
             Dim input =
 <Workspace>
@@ -993,7 +993,7 @@ class Program
         End Sub
 
         <WorkItem(539646)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Delegate6()
             Dim input =
 <Workspace>
@@ -1022,7 +1022,7 @@ class Program
         End Sub
 
         <WorkItem(537966)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CalledDynamic1()
             Dim input =
 <Workspace>
@@ -1041,7 +1041,7 @@ class Program
         End Sub
 
         <WorkItem(537966)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CalledDynamic2()
             Dim input =
 <Workspace>
@@ -1062,7 +1062,7 @@ class Program
         End Sub
 
         <WorkItem(538842)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CalledSystemString1()
             Dim input =
 <Workspace>
@@ -1083,7 +1083,7 @@ class Program
         End Sub
 
         <WorkItem(538842)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CalledSystemString2()
             Dim input =
 <Workspace>
@@ -1104,7 +1104,7 @@ class Program
         End Sub
 
         <WorkItem(538926)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CalledSystemString3()
             Dim input =
 <Workspace>
@@ -1125,7 +1125,7 @@ namespace System
         End Sub
 
         <WorkItem(539299)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_LeftSideOfMemberAccessExpression1()
             Dim input =
 <Workspace>
@@ -1147,7 +1147,7 @@ public class C
         End Sub
 
         <WorkItem(539299)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_LeftSideOfMemberAccessExpression2()
             Dim input =
 <Workspace>
@@ -1169,7 +1169,7 @@ public class C
         End Sub
 
         <WorkItem(539299)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_LeftSideOfMemberAccessExpression3()
             Dim input =
 <Workspace>
@@ -1189,7 +1189,7 @@ End Class
         End Sub
 
         <WorkItem(539299)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_LeftSideOfMemberAccessExpression4()
             Dim input =
 <Workspace>
@@ -1208,7 +1208,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefNamedType()
             Dim input =
 <Workspace>
@@ -1228,7 +1228,7 @@ class {|Definition:Program|}
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefNamedType2()
             Dim input =
 <Workspace>
@@ -1249,7 +1249,7 @@ class {|Definition:Progr$$am|}
         End Sub
 
         <WorkItem(775925)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_LeftSideOfGreaterThanTokenInAttribute()
             Dim input =
 <Workspace>
@@ -1271,7 +1271,7 @@ End Class
 #End Region
 
 #Region "FAR on primitive types"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_PrimitiveTypeAsMethodParameter()
             Dim input =
 <Workspace>
@@ -1299,7 +1299,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_PrimitiveTypeAsField()
             Dim input =
 <Workspace>
@@ -1329,7 +1329,7 @@ End Class
 #End Region
 
 #Region "FAR on value types"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Struct()
             Dim input =
 <Workspace>
@@ -1346,7 +1346,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_Enum()
             Dim input =
 <Workspace>
@@ -1368,7 +1368,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_EnumMembers()
             Dim input =
 <Workspace>
@@ -1392,7 +1392,7 @@ End Class
 #End Region
 
 #Region "FAR on across projects"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_NonDependentProjectCSharpRefsCSharp()
             Dim input =
 <Workspace>
@@ -1415,7 +1415,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_NonDependentProjectVBRefsCSharp()
             Dim input =
 <Workspace>
@@ -1437,7 +1437,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_InDependentProjectCSharpRefsCSharp()
             Dim input =
 <Workspace>
@@ -1461,7 +1461,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_InDependentProjectVBRefsCSharp()
             Dim input =
 <Workspace>
@@ -1486,7 +1486,7 @@ End Class
 #End Region
 
 #Region "FAR in namespaces"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_InNamespace()
             Dim input =
 <Workspace>
@@ -1510,7 +1510,7 @@ End Class
 #End Region
 
 #Region "FAR with case sensitivity"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CaseSensitivity()
             Dim input =
 <Workspace>
@@ -1553,7 +1553,7 @@ End Class
 #End Region
 
 #Region "FAR through alias"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_ThroughAlias()
             Dim input =
 <Workspace>
@@ -1578,7 +1578,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_ThroughAliasNestedType()
             Dim input =
 <Workspace>
@@ -1606,7 +1606,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_ThroughAliasGenericType()
             Dim input =
 <Workspace>
@@ -1633,7 +1633,7 @@ End Class
 #End Region
 
 #Region "FAR on object initializers"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_ReferenceInObjectInitializers()
             Dim input =
 <Workspace>
@@ -1653,7 +1653,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_ReferenceInObjectInitializersConstructorTakesNoParms()
             Dim input =
 <Workspace>
@@ -1681,7 +1681,7 @@ End Class
 #End Region
 
 #Region "FAR on collection initializers"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocal_CSharpColInitWithMultipleExpressionContainSameIdentifier()
             Dim input =
 <Workspace>
@@ -1701,7 +1701,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestLocal_VBColInitWithMultipleExpressionContainSameIdentifier()
             Dim input =
 <Workspace>
@@ -1723,7 +1723,7 @@ End Class
 #End Region
 
 #Region "FAR on array initializers"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpArrayInitializerContainsALongExpression()
             Dim input =
 <Workspace>
@@ -1747,7 +1747,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBArrayInitializerContainsALongExpression()
             Dim input =
 <Workspace>
@@ -1768,7 +1768,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpArrayInitializerContansANestedArrayInitializer()
             Dim input =
 <Workspace>
@@ -1792,7 +1792,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBArrayInitializerContainsANestedArrayInitializer()
             Dim input =
 <Workspace>
@@ -1813,7 +1813,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpArrayInitializerDifferentTypesWithImplicitCasting()
             Dim input =
 <Workspace>
@@ -1834,7 +1834,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBArrayInitializerDifferentTypesWithImplicitCasting()
             Dim input =
 <Workspace>
@@ -1853,7 +1853,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpImplicitlyTypedArray()
             Dim input =
 <Workspace>
@@ -1874,7 +1874,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBImplicitlyTypedArray()
             Dim input =
 <Workspace>
@@ -1895,7 +1895,7 @@ End Class
 #End Region
 
 #Region "FAR on query expressions"
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpQueryExpressionInitializedViaColInitializer()
             Dim input =
 <Workspace>
@@ -1915,7 +1915,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBQueryExpressionInitializedViaColInitializer()
             Dim input =
 <Workspace>
@@ -1933,7 +1933,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CSharpQueryExpressionThatIncludeColInit()
             Dim input =
 <Workspace>
@@ -1954,7 +1954,7 @@ End Class
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_VBQueryExpressionThatIncludeColInit()
             Dim input =
 <Workspace>
@@ -1977,7 +1977,7 @@ End Class
 #Region "FAR in Venus Contexts"
 
         <WorkItem(545325)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestHiddenCodeIsNotVisibleFromUI()
             Dim input =
 <Workspace>
@@ -1997,7 +1997,7 @@ public class _Default
         End Sub
 
         <WorkItem(545325)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestHiddenCodeIsAccessibleViaApis()
             Dim input =
 <Workspace>
@@ -2019,7 +2019,7 @@ public class {|Definition:_Default|}
 #End Region
 
         <WorkItem(542949)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_DoNotFindDestructor1()
             Dim input =
 <Workspace>
@@ -2033,7 +2033,7 @@ class {|Definition:$$A|} {    ~{|Definition:A|}()    {        Console.WriteLine(
         End Sub
 
         <WorkItem(546229)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestNamedType_CrossLanguageModule()
             Dim input =
 <Workspace>
@@ -2061,7 +2061,7 @@ class C
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRetargetingType_Basic()
             Dim input =
 <Workspace>
@@ -2092,7 +2092,7 @@ class Class2
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestRetargetingType_GenericType()
             Dim input =
 <Workspace>
@@ -2126,7 +2126,7 @@ class Class2
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub DuplicatePublicTypeWithDuplicateConstructors()
             Dim input =
 <Workspace>
@@ -2157,7 +2157,7 @@ public class D { }
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         <WorkItem(1174256)>
         Public Sub TestFarWithInternalsVisibleToNull()
             Dim input =

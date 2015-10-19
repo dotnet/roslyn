@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Perform a first analysis pass in preparation for removing all lambdas from a method body.  The entry point is Analyze.
         ''' The results of analysis are placed in the fields seenLambda, blockParent, variableBlock, captured, and captures.
         ''' </summary>
-        Friend Class Analysis
-            Inherits BoundTreeWalker
+        Friend NotInheritable Class Analysis
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _diagnostics As DiagnosticBag
             Private ReadOnly _method As MethodSymbol
@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '   and outermost scope is -1
                     '   Such lambda will be placed in a closure frame that corresponds to the method's outer block
                     '   and this frame will also lift original Me as a field when created by its parent.
-                    '   Note that is is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
+                    '   Note that it is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     If innermostScope IsNot Nothing Then
                         lambdaScopes.Add(kvp.Key, innermostScope)
 
@@ -497,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitConditionalGoto(node As BoundConditionalGoto) As BoundNode
-                ' if whe have seen this label already
+                ' if we have seen this label already
                 ' it is a back-branch
                 If labelBlock.ContainsKey(node.Label) Then
                     seenBackBranches = True
@@ -516,13 +516,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
 #Else
                 'TODO:  synthetic gotos should be marked as compiler generated. 
-                '       Tere are lots of them and they are not supposed to be ever illegal.
+                '       There are lots of them and they are not supposed to be ever illegal.
                 Return Not node.WasCompilerGenerated
 #End If
             End Function
 
             Public Overrides Function VisitGotoStatement(node As BoundGotoStatement) As BoundNode
-                ' if whe have seen this label already
+                ' if we have seen this label already
                 ' it is a back-branch
                 If labelBlock.ContainsKey(node.Label) Then
                     seenBackBranches = True

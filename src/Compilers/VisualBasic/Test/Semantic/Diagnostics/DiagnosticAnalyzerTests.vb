@@ -13,138 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class DiagnosticAnalyzerTests
         Inherits BasicTestBase
 
-        <Serializable>
-        Public Class TestDiagnostic
-            Inherits Diagnostic
-            Implements ISerializable
-
-            Private ReadOnly _kind As String
-            Private ReadOnly _severity As DiagnosticSeverity
-            Private ReadOnly _location As Location
-            Private ReadOnly _message As String
-            Private ReadOnly _isWarningAsError As Boolean
-            Private ReadOnly _arguments As Object()
-            Private ReadOnly _descriptor As DiagnosticDescriptor
-
-            Public Sub New(id As String,
-                           kind As String,
-                           severity As DiagnosticSeverity,
-                           location As Location,
-                           message As String,
-                           ParamArray arguments As Object())
-                Me.New(New DiagnosticDescriptor(id, String.Empty, message, id, severity, True), kind, severity, location, message, arguments)
-            End Sub
-
-            Private Sub New(info As SerializationInfo, context As StreamingContext)
-                Dim id = info.GetString("id")
-                Me._kind = info.GetString("kind")
-                Me._message = info.GetString("message")
-                Me._location = CType(info.GetValue("location", GetType(Location)), Location)
-                Me._severity = CType(info.GetValue("severity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
-                Dim defaultSeverity = CType(info.GetValue("defaultSeverity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
-                Me._arguments = CType(info.GetValue("arguments", GetType(Object())), Object())
-                Me._descriptor = New DiagnosticDescriptor(id, String.Empty, _message, id, defaultSeverity, True)
-            End Sub
-
-            Private Sub New(descriptor As DiagnosticDescriptor,
-                           kind As String,
-                           severity As DiagnosticSeverity,
-                           location As Location,
-                           message As String,
-                           ParamArray arguments As Object())
-                Me._descriptor = descriptor
-                Me._kind = kind
-                Me._severity = severity
-                Me._location = location
-                Me._message = message
-                Me._arguments = arguments
-            End Sub
-
-            Public Overrides ReadOnly Property AdditionalLocations As IReadOnlyList(Of Location)
-                Get
-                    Dim loc As Location() = New Location(0) {}
-                    Return loc
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property Id As String
-                Get
-                    Return _descriptor.Id
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property Descriptor As DiagnosticDescriptor
-                Get
-                    Return _descriptor
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property Location As Location
-                Get
-                    Return _location
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property Severity As DiagnosticSeverity
-                Get
-                    Return _severity
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property WarningLevel As Integer
-                Get
-                    Return 2
-                End Get
-            End Property
-
-            Public Sub GetObjectData(info As SerializationInfo, context As StreamingContext) Implements ISerializable.GetObjectData
-                info.AddValue("id", Me._descriptor.Id)
-                info.AddValue("kind", Me._kind)
-                info.AddValue("message", Me._message)
-                info.AddValue("location", Me._location, GetType(Location))
-                info.AddValue("severity", Me._severity, GetType(DiagnosticSeverity))
-                info.AddValue("defaultSeverity", Me._descriptor.DefaultSeverity, GetType(DiagnosticSeverity))
-                info.AddValue("arguments", Me._arguments, GetType(Object()))
-            End Sub
-
-            Friend Overrides Function WithLocation(location As Location) As Diagnostic
-                Throw New NotImplementedException()
-            End Function
-
-            Public Overrides Function GetMessage(Optional formatProvider As IFormatProvider = Nothing) As String
-                Return String.Format(_message, _arguments)
-            End Function
-
-            Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(Me._descriptor.GetHashCode(), Me._kind.GetHashCode())
-            End Function
-
-            Public Overloads Overrides Function Equals(obj As Object) As Boolean
-                Return Me.Equals(TryCast(obj, TestDiagnostic))
-            End Function
-
-            Public Overloads Overrides Function Equals(obj As Diagnostic) As Boolean
-                Return Me.Equals(TryCast(obj, TestDiagnostic))
-            End Function
-
-            Public Overloads Function Equals(other As TestDiagnostic) As Boolean
-                If other Is Nothing OrElse Me.GetType() <> other.GetType() Then Return False
-                Return Me._descriptor.Id = other._descriptor.Id AndAlso
-                    Me._kind = other._kind AndAlso
-                    Me._location = other._location AndAlso
-                    Me._message = other._message AndAlso
-                    SameData(Me._arguments, other._arguments)
-            End Function
-
-            Private Shared Function SameData(d1 As Object(), d2 As Object()) As Boolean
-                Return (d1 Is Nothing) = (d2 Is Nothing) AndAlso (d1 Is Nothing OrElse d1.SequenceEqual(d2))
-            End Function
-
-            Friend Overrides Function WithSeverity(severity As DiagnosticSeverity) As Diagnostic
-                Return New TestDiagnostic(Me._descriptor.Id, Me._kind, severity, Me._location, Me._message, Me._arguments)
-            End Function
-        End Class
-
         Public Class ComplainAboutX
             Inherits DiagnosticAnalyzer
 
@@ -729,6 +597,62 @@ End Class
                     Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z As Integer]]>),
                     Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim x2 = 0, y2 = 0]]>),
                     Diagnostic("FieldDeclarationDiagnostic", <![CDATA[Dim z2 = 0]]>))
+        End Sub
+
+        <Fact, WorkItem(4745, "https://github.com/dotnet/roslyn/issues/4745")>
+        Public Sub TestNamespaceDeclarationAnalyzer()
+            Dim analyzer = New VisualBasicNamespaceDeclarationAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Namespace Foo.Bar.FooBar
+End Namespace
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    Diagnostic(VisualBasicNamespaceDeclarationAnalyzer.DiagnosticId, <![CDATA[Namespace Foo.Bar.FooBar]]>))
+        End Sub
+
+        <Fact, WorkItem(5463, "https://github.com/dotnet/roslyn/issues/5463")>
+        Public Sub TestObjectCreationInCodeBlockAnalyzer()
+            Dim analyzer = New VisualBasicCodeBlockObjectCreationAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public Class C1
+End Class
+
+Public Class C2
+End Class
+
+Public Class C3
+End Class
+
+Public Class D
+    Dim x As C1 = New C1()
+    Dim y As New C2()
+    Public ReadOnly Property Z As New C3()
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing, False,
+                    Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C1()]]>),
+                    Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C2()]]>),
+                    Diagnostic(VisualBasicCodeBlockObjectCreationAnalyzer.DiagnosticDescriptor.Id, <![CDATA[New C3()]]>))
         End Sub
 
         <Fact, WorkItem(1473, "https://github.com/dotnet/roslyn/issues/1473")>

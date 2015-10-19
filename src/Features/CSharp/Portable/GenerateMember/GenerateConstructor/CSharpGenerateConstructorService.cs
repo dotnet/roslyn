@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
@@ -178,7 +179,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             return compilation.ClassifyConversion(sourceType, targetType).IsImplicit;
         }
 
-        internal override IMethodSymbol GetDelegatingConstructor(State state, SemanticDocument document, int argumentCount, INamedTypeSymbol namedType, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken)
+        internal override IMethodSymbol GetDelegatingConstructor(
+            State state,
+            SemanticDocument document, 
+            int argumentCount, 
+            INamedTypeSymbol namedType, 
+            ISet<IMethodSymbol> candidates, 
+            CancellationToken cancellationToken)
         {
             var oldToken = state.Token;
             var tokenKind = oldToken.Kind();
@@ -207,7 +214,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                 if (document.SemanticModel.TryGetSpeculativeSemanticModel(ctorInitializer.Span.Start, newCtorInitializer, out speculativeModel))
                 {
                     var symbolInfo = speculativeModel.GetSymbolInfo(newCtorInitializer, cancellationToken);
-                    return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType);
+                    return GenerateConstructorHelpers.GetDelegatingConstructor(
+                        document, symbolInfo, candidates, namedType, state.ParameterTypes);
                 }
             }
             else
@@ -257,7 +265,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
                 if (speculativeModel != null)
                 {
                     var symbolInfo = speculativeModel.GetSymbolInfo(newTypeName.Parent, cancellationToken);
-                    return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType);
+                    return GenerateConstructorHelpers.GetDelegatingConstructor(
+                        document, symbolInfo, candidates, namedType, state.ParameterTypes);
                 }
             }
 

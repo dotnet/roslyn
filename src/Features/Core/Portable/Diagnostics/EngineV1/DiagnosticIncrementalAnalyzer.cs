@@ -456,17 +456,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             _stateManager.RemoveStateSet(projectId);
         }
 
-        public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, CancellationToken cancellationToken)
+        public override async Task<bool> TryAppendDiagnosticsForSpanAsync(Document document, TextSpan range, List<DiagnosticData> diagnostics, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var getter = new LatestDiagnosticsForSpanGetter(this, document, root, range, blockForData: false, diagnostics: diagnostics, cancellationToken: cancellationToken);
+            var getter = new LatestDiagnosticsForSpanGetter(this, document, root, range, blockForData: false, diagnostics: diagnostics, includeSuppressedDiagnostics: includeSuppressedDiagnostics, cancellationToken: cancellationToken);
             return await getter.TryGetAsync().ConfigureAwait(false);
         }
 
-        public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var getter = new LatestDiagnosticsForSpanGetter(this, document, root, range, blockForData: true, cancellationToken: cancellationToken);
+            var getter = new LatestDiagnosticsForSpanGetter(this, document, root, range, blockForData: true, includeSuppressedDiagnostics: includeSuppressedDiagnostics, cancellationToken: cancellationToken);
 
             var result = await getter.TryGetAsync().ConfigureAwait(false);
             Contract.Requires(result);
@@ -770,7 +770,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     mappedEndLine: mappedLineInfo.EndLinePosition.Line,
                     mappedEndColumn: mappedLineInfo.EndLinePosition.Character),
                 description: diagnostic.Description,
-                helpLink: diagnostic.HelpLink);
+                helpLink: diagnostic.HelpLink,
+                isSuppressed: diagnostic.IsSuppressed);
         }
 
         private static IEnumerable<DiagnosticData> GetDiagnosticData(Document document, SyntaxTree tree, TextSpan? span, IEnumerable<Diagnostic> diagnostics)

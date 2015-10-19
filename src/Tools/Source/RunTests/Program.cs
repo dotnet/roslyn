@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,6 +48,7 @@ namespace RunTests
             var testRunner = new TestRunner(xunit, useHtml);
             var start = DateTime.Now;
             Console.WriteLine("Running {0} tests", list.Count);
+            OrderAssemblyList(list);
             var result = testRunner.RunAllAsync(list, cts.Token).Result;
             var span = DateTime.Now - start;
             if (!result)
@@ -84,6 +86,28 @@ namespace RunTests
                 {
                     break;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Order the assembly list so the known slower test begin running earlier.  This
+        /// should really be dynamically calculated and not hard coded like this.
+        /// </summary>
+        /// <param name="list"></param>
+        private static void OrderAssemblyList(List<string> list)
+        {
+            var regex = new Regex(@"Roslyn.Services.Editor.(\w+).UnitTests", RegexOptions.IgnoreCase);
+            var i = 1;
+            while (i < list.Count)
+            {
+                var cur = list[i];
+                if (regex.IsMatch(cur))
+                {
+                    list.RemoveAt(i);
+                    list.Insert(0, cur);
+                }
+
+                i++;
             }
         }
     }

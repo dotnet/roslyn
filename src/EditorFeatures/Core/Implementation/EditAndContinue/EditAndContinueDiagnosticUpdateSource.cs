@@ -9,11 +9,9 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
-    [Export(typeof(IDiagnosticUpdateSource))]
     [Export(typeof(EditAndContinueDiagnosticUpdateSource))]
     [Shared]
     internal sealed class EditAndContinueDiagnosticUpdateSource : IDiagnosticUpdateSource
@@ -21,15 +19,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         internal static object DebuggerErrorId = new object();
         internal static object EmitErrorId = new object();
 
-        public EditAndContinueDiagnosticUpdateSource()
+        [ImportingConstructor]
+        public EditAndContinueDiagnosticUpdateSource(IDiagnosticUpdateSourceRegistrationService registrationService)
         {
+            registrationService.Register(this);
         }
 
         public bool SupportGetDiagnostics { get { return false; } }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
 
-        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+        public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ImmutableArray<DiagnosticData>.Empty;
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         {
             var argsByDocument = ImmutableArray.CreateRange(
                 from diagnostic in diagnostics
-                let document = solution.GetDocument(diagnostic.Location.SourceTree)
+                let document = solution.GetDocument(diagnostic.Location.SourceTree, projectId)
                 where document != null
                 let item = MakeDiagnosticData(projectId, document, solution, diagnostic)
                 group item by document.Id into itemsByDocumentId

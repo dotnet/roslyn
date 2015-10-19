@@ -127,20 +127,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
 #if false
         // TODO(jasonmal): Figure out how to test these.
-        [Fact, Trait(Traits.Feature, Traits.Features.Adornments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Adornments)]
         public void Create()
         {
             Assert.NotNull(new AdornmentManagerTester().Manager);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Adornments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Adornments)]
         public void LayoutChanged()
         {
             var tester = new AdornmentManagerTester();
             tester.RaiseLayoutChanged();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Adornments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Adornments)]
         public void TagsChanged()
         {
             var tester = new AdornmentManagerTester();

@@ -2356,7 +2356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If initializerSet IsNot Nothing Then
                 For Each initializers In initializerSet
                     For Each initializer In initializers
-                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperty
+                        Dim fieldOrPropertyArray As ImmutableArray(Of Symbol) = initializer.FieldsOrProperties
 
                         If Not fieldOrPropertyArray.IsDefault Then
                             Debug.Assert(fieldOrPropertyArray.Length > 0)
@@ -2772,7 +2772,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim syntaxRef = SyntaxReferences.Single()
                 Dim scriptInitializer = New SynthesizedInteractiveInitializerMethod(syntaxRef, Me, diagnostics)
                 AddSymbolToMembers(scriptInitializer, members.Members)
-                Dim scriptEntryPoint = SynthesizedEntryPointSymbol.Create(Me, scriptInitializer.ReturnType, diagnostics)
+                Dim scriptEntryPoint = SynthesizedEntryPointSymbol.Create(scriptInitializer, diagnostics)
                 AddSymbolToMembers(scriptEntryPoint, members.Members)
             End If
         End Sub

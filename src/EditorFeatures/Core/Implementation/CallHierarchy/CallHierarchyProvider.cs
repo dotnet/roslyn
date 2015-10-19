@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
                     finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember, project, _asyncListener, this));
                 }
 
-                if (symbol.IsImplementable())
+                if (symbol.IsImplementableMember())
                 {
                     finders.Add(new ImplementerFinder(symbol, project, _asyncListener, this));
                 }
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         {
             var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
-            project.Solution.Workspace.Services.GetService<ISymbolNavigationService>().TryNavigateToSymbol(resolution.Symbol, project, usePreviewTab: true);
+            project.Solution.Workspace.Services.GetService<ISymbolNavigationService>().TryNavigateToSymbol(resolution.Symbol, project, usePreviewTab: true, cancellationToken: cancellationToken);
         }
     }
 }

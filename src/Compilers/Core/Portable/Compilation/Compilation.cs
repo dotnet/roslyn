@@ -32,9 +32,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Compilation
     {
-        // Inverse of syntaxTrees array (i.e. maps tree to index)
-        internal readonly ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap;
-
         /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
@@ -55,37 +52,28 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IReadOnlyDictionary<string, string> _features;
 
+        public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
+        internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }
+
         internal Compilation(
             string name,
             ImmutableArray<MetadataReference> references,
-            Type submissionReturnType,
-            Type hostObjectType,
+            IReadOnlyDictionary<string, string> features,
             bool isSubmission,
-            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
             AsyncQueue<CompilationEvent> eventQueue)
         {
             Debug.Assert(!references.IsDefault);
+            Debug.Assert(features != null);
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
-            this.syntaxTreeOrdinalMap = syntaxTreeOrdinalMap;
             this.EventQueue = eventQueue;
 
-            if (isSubmission)
-            {
-                _lazySubmissionSlotIndex = SubmissionSlotIndexToBeAllocated;
-                this.SubmissionReturnType = submissionReturnType ?? typeof(object);
-                this.HostObjectType = hostObjectType;
-            }
-            else
-            {
-                _lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
-            }
-
-            _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
+            _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
+            _features = features;
         }
 
-        private IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
         {
             IReadOnlyDictionary<string, string> set = null;
 
@@ -121,11 +109,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string Language { get; }
 
-        internal static void ValidateSubmissionParameters(Compilation previousSubmission, Type returnType, ref Type hostObjectType)
+        internal static void ValidateScriptCompilationParameters(Compilation previousScriptCompilation, Type returnType, ref Type globalsType)
         {
-            if (hostObjectType != null && !IsValidHostObjectType(hostObjectType))
+            if (globalsType != null && !IsValidHostObjectType(globalsType))
             {
-                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, nameof(hostObjectType));
+                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, nameof(globalsType));
             }
 
             if (returnType != null && !IsValidSubmissionReturnType(returnType))
@@ -133,19 +121,19 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeVoidByRefOrOpen, nameof(returnType));
             }
 
-            if (previousSubmission != null)
+            if (previousScriptCompilation != null)
             {
-                if (hostObjectType == null)
+                if (globalsType == null)
                 {
-                    hostObjectType = previousSubmission.HostObjectType;
+                    globalsType = previousScriptCompilation.HostObjectType;
                 }
-                else if (hostObjectType != previousSubmission.HostObjectType)
+                else if (globalsType != previousScriptCompilation.HostObjectType)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, nameof(hostObjectType));
+                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, nameof(globalsType));
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousSubmission.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }
@@ -317,7 +305,7 @@ namespace Microsoft.CodeAnalysis
             if (_lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
             {
                 // TODO (tomat): remove recursion
-                int lastSlotIndex = PreviousSubmission?.GetSubmissionSlotIndex() ?? 0;
+                int lastSlotIndex = ScriptCompilationInfo.PreviousScriptCompilation?.GetSubmissionSlotIndex() ?? 0;
                 _lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
             }
 
@@ -335,7 +323,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type object that represents the type of submission result the host requested.
         /// </summary>
-        internal Type SubmissionReturnType { get; }
+        internal Type SubmissionReturnType => ScriptCompilationInfo?.ReturnType;
 
         internal static bool IsValidSubmissionReturnType(Type type)
         {
@@ -343,9 +331,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The type of the host object or null if not specified for this compilation.
+        /// The type of the globals object or null if not specified for this compilation.
         /// </summary>
-        internal Type HostObjectType { get; }
+        internal Type HostObjectType => ScriptCompilationInfo?.GlobalsType;
 
         internal static bool IsValidHostObjectType(Type type)
         {
@@ -379,32 +367,10 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="hasValue"/> is false in the former case and true
         /// in the latter.
         /// </remarks>
-        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
-        {
-            return CommonGetSubmissionResultType(out hasValue);
-        }
+        internal abstract ITypeSymbol GetSubmissionResultType(out bool hasValue);
 
-        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
-
-        /// <summary>
-        /// The previous submission compilation, or null if either this
-        /// compilation doesn't represent a submission or the submission is the
-        /// first submission in a submission chain.
-        /// </summary>
-        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
-
-        protected abstract Compilation CommonPreviousSubmission { get; }
-
-        /// <summary>
-        /// Returns a new compilation with the given compilation set as the
-        /// previous submission.
-        /// </summary>
-        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
-        {
-            return CommonWithPreviousSubmission(newPreviousSubmission);
-        }
-
-        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        public Compilation WithCompilationScriptInfo(ScriptCompilationInfo info) => CommonWithCompilationScriptInfo(info);
+        protected abstract Compilation CommonWithCompilationScriptInfo(ScriptCompilationInfo info);
 
         #endregion
 
@@ -740,10 +706,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="assemblySymbol">The target symbol.</param>
         public MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            return CommonGetMetadataReference(assemblySymbol);
+            return GetBoundReferenceManager().GetMetadataReference(assemblySymbol);
         }
-
-        protected abstract MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol);
 
         /// <summary>
         /// Assembly identities of all assemblies directly referenced by this compilation.
@@ -1421,6 +1385,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void EnsureAnonymousTypeTemplates(CancellationToken cancellationToken)
         {
+            Debug.Assert(IsSubmission);
+
             if (this.GetSubmissionSlotIndex() >= 0 && HasCodeToEmit())
             {
                 if (!this.CommonAnonymousTypeManager.AreTemplatesSealed)
@@ -1454,7 +1420,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                this.PreviousSubmission?.EnsureAnonymousTypeTemplates(cancellationToken);
+                this.ScriptCompilationInfo.PreviousScriptCompilation?.EnsureAnonymousTypeTemplates(cancellationToken);
             }
         }
 
@@ -1480,7 +1446,7 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken)
         {
             return Emit(
-                peStream, 
+                peStream,
                 pdbStream,
                 xmlDocumentationStream,
                 win32Resources,
@@ -1512,7 +1478,7 @@ namespace Microsoft.CodeAnalysis
         /// are the same method (Main). A non-executable program has no entry point. Runtimes that implement a custom loader may specify debug entry-point
         /// to force the debugger to skip over complex custom loader logic executing at the beginning of the .exe and thus improve debugging experience.
         /// 
-        /// Unlike ordinary entry-point whcih is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
+        /// Unlike ordinary entry-point which is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
         /// method other than having a method body (extern, interface, or abstract methods are not allowed).
         /// </param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
@@ -1805,7 +1771,7 @@ namespace Microsoft.CodeAnalysis
             return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
 
-        internal bool IsEmitDeterministic => this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+        internal bool IsEmitDeterministic => this.Options.Deterministic;
 
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
@@ -2137,14 +2103,10 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(this.ContainsSyntaxTree(tree1));
             Debug.Assert(this.ContainsSyntaxTree(tree2));
 
-            return this.syntaxTreeOrdinalMap[tree1] - this.syntaxTreeOrdinalMap[tree2];
+            return this.GetSyntaxTreeOrdinal(tree1) - this.GetSyntaxTreeOrdinal(tree2);
         }
 
-        internal int GetSyntaxTreeOrdinal(SyntaxTree tree)
-        {
-            Debug.Assert(this.ContainsSyntaxTree(tree));
-            return this.syntaxTreeOrdinalMap[tree];
-        }
+        internal abstract int GetSyntaxTreeOrdinal(SyntaxTree tree);
 
         /// <summary>
         /// Compare two source locations, using their containing trees, and then by Span.First within a tree. 

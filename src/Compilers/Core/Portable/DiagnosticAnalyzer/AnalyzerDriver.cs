@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(_initializeTask == null);
 
             var diagnosticQueue = DiagnosticQueue.Create(categorizeDiagnostics);
-            var addDiagnostic = GetDiagnosticSinkWithSuppression(diagnosticQueue.Enqueue, compilation);
-            var addLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSinkWithSuppression(diagnosticQueue.EnqueueLocal, compilation) : null;
-            var addNonLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSinkWithSuppression(diagnosticQueue.EnqueueNonLocal, compilation) : null;
+            var addDiagnostic = GetDiagnosticSink(diagnosticQueue.Enqueue, compilation);
+            var addLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSink(diagnosticQueue.EnqueueLocal, compilation) : null;
+            var addNonLocalDiagnosticOpt = categorizeDiagnostics ? GetDiagnosticSink(diagnosticQueue.EnqueueNonLocal, compilation) : null;
 
             Action<Exception, DiagnosticAnalyzer, Diagnostic> newOnAnalyzerException;
             if (analysisOptions.OnAnalyzerException != null)
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// If <see cref="CompilationEventQueue"/> has been completed with all compilation events, then it waits for
         /// <see cref="WhenCompletedTask"/> task for the driver to finish processing all events and generate remaining analyzer diagnostics.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync()
+        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Compilation compilation)
         {
             var allDiagnostics = DiagnosticBag.GetInstance();
             if (CompilationEventQueue.IsCompleted)
@@ -387,23 +387,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
+            var suppressMessageState = GetOrCreateCachedCompilationData(compilation).SuppressMessageAttributeState;
+            var reportSuppressedDiagnostics = compilation.Options.ReportSuppressedDiagnostics;
             Diagnostic d;
             while (DiagnosticQueue.TryDequeue(out d))
             {
-                allDiagnostics.Add(d);
+                d = SuppressMessageAttributeState.ApplySourceSuppressions(d, compilation);
+                if (reportSuppressedDiagnostics || !d.IsSuppressed)
+                {
+                    allDiagnostics.Add(d);
+                }                
             }
 
             return allDiagnostics.ToReadOnlyAndFree();
         }
 
-        public ImmutableArray<Diagnostic> DequeueLocalDiagnostics(DiagnosticAnalyzer analyzer, bool syntax)
+        public ImmutableArray<Diagnostic> DequeueLocalDiagnostics(DiagnosticAnalyzer analyzer, bool syntax, Compilation compilation)
         {
-            return syntax ? DiagnosticQueue.DequeueLocalSyntaxDiagnostics(analyzer) : DiagnosticQueue.DequeueLocalSemanticDiagnostics(analyzer);
+            var diagnostics = syntax ? DiagnosticQueue.DequeueLocalSyntaxDiagnostics(analyzer) : DiagnosticQueue.DequeueLocalSemanticDiagnostics(analyzer);
+            return FilterDiagnosticsSuppressedInSource(diagnostics, compilation);
         }
 
-        public ImmutableArray<Diagnostic> DequeueNonLocalDiagnostics(DiagnosticAnalyzer analyzer)
+        public ImmutableArray<Diagnostic> DequeueNonLocalDiagnostics(DiagnosticAnalyzer analyzer, Compilation compilation)
         {
-            return DiagnosticQueue.DequeueNonLocalDiagnostics(analyzer);
+            var diagnostics = DiagnosticQueue.DequeueNonLocalDiagnostics(analyzer);
+            return FilterDiagnosticsSuppressedInSource(diagnostics, compilation);
+        }
+
+        private static ImmutableArray<Diagnostic> FilterDiagnosticsSuppressedInSource(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
+        {
+            if (diagnostics.IsEmpty)
+            {
+                return diagnostics;
+            }
+
+            var suppressMessageState = GetOrCreateCachedCompilationData(compilation).SuppressMessageAttributeState;
+            var reportSuppressedDiagnostics = compilation.Options.ReportSuppressedDiagnostics;
+            var builder = ImmutableArray.CreateBuilder<Diagnostic>();
+            for (var i = 0; i < diagnostics.Length; i++)
+            {
+                var diagnostic = SuppressMessageAttributeState.ApplySourceSuppressions(diagnostics[i], compilation);
+                if (reportSuppressedDiagnostics || !diagnostic.IsSuppressed)
+                {
+                    builder.Add(diagnostic);
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -572,7 +602,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // When the queue is completed with a pending DequeueAsync return then a 
                         // TaskCanceledException will be thrown.  This just signals the queue is 
                         // complete and we should finish processing it.
-                        Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
+
+                        // This failure is being tracked by https://github.com/dotnet/roslyn/issues/5962
+                        // Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
                         break;
                     }
 
@@ -668,18 +700,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(DiagnosticQueue.Enqueue, symbolEvent.Compilation, symbol);
-            Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticForSymbol = analysisScope.CategorizeDiagnostics ? GetDiagnosticSinkWithSuppression(DiagnosticQueue.EnqueueLocal, symbolEvent.Compilation, symbol) : null;
-            Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticForSymbol = analysisScope.CategorizeDiagnostics ? GetDiagnosticSinkWithSuppression(DiagnosticQueue.EnqueueNonLocal, symbolEvent.Compilation, symbol) : null;
-
             foreach (var analyzer in analysisScope.Analyzers)
             {
                 // Invoke symbol analyzers only for source symbols.
                 ImmutableArray<ImmutableArray<SymbolAnalyzerAction>> actionsByKind;
                 if (_symbolActionsByKind.TryGetValue(analyzer, out actionsByKind) && (int)symbol.Kind < actionsByKind.Length)
                 {
-                    analyzerExecutor.ExecuteSymbolActions(actionsByKind[(int)symbol.Kind], analyzer, symbol, addDiagnosticForSymbol,
-                        addLocalDiagnosticForSymbol, addNonLocalDiagnosticForSymbol, GetTopmostNodeForAnalysis, analysisScope, analysisStateOpt);
+                    analyzerExecutor.ExecuteSymbolActions(actionsByKind[(int)symbol.Kind], analyzer, symbol, GetTopmostNodeForAnalysis, analysisScope, analysisStateOpt);
                 }
                 else
                 {
@@ -773,11 +800,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal static Action<Diagnostic> GetDiagnosticSinkWithSuppression(Action<Diagnostic> addDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)
+        internal static Action<Diagnostic> GetDiagnosticSink(Action<Diagnostic> addDiagnosticCore, Compilation compilation)
         {
             return diagnostic =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation);
                 if (filteredDiagnostic != null)
                 {
                     addDiagnosticCore(filteredDiagnostic);
@@ -785,11 +812,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer, bool> GetDiagnosticSinkWithSuppression(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)
+        internal static Action<Diagnostic, DiagnosticAnalyzer, bool> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer, bool> addLocalDiagnosticCore, Compilation compilation)
         {
             return (diagnostic, analyzer, isSyntaxDiagnostic) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation);
                 if (filteredDiagnostic != null)
                 {
                     addLocalDiagnosticCore(filteredDiagnostic, analyzer, isSyntaxDiagnostic);
@@ -797,11 +824,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        internal static Action<Diagnostic, DiagnosticAnalyzer> GetDiagnosticSinkWithSuppression(Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticCore, Compilation compilation, ISymbol symbolOpt = null)
+        internal static Action<Diagnostic, DiagnosticAnalyzer> GetDiagnosticSink(Action<Diagnostic, DiagnosticAnalyzer> addNonLocalDiagnosticCore, Compilation compilation)
         {
             return (diagnostic, analyzer) =>
             {
-                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation, symbolOpt);
+                var filteredDiagnostic = GetFilteredDiagnostic(diagnostic, compilation);
                 if (filteredDiagnostic != null)
                 {
                     addNonLocalDiagnosticCore(filteredDiagnostic, analyzer);
@@ -809,19 +836,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             };
         }
 
-        private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation, ISymbol symbolOpt = null)
+        private static Diagnostic GetFilteredDiagnostic(Diagnostic diagnostic, Compilation compilation)
         {
-            var filteredDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
-            if (filteredDiagnostic != null)
-            {
-                var suppressMessageState = GetCachedCompilationData(compilation).SuppressMessageAttributeState;
-                if (suppressMessageState.IsDiagnosticSuppressed(filteredDiagnostic, symbolOpt: symbolOpt))
-                {
-                    return null;
-                }
-            }
-
-            return filteredDiagnostic;
+            return compilation.Options.FilterDiagnostic(diagnostic);
         }
 
         private static Task<AnalyzerActions> GetAnalyzerActionsAsync(
@@ -1096,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // NOTE: The driver guarantees that only a single thread will be performing analysis on individual declaration.
             // However, there might be multiple threads analyzing different trees at the same time, so we need to lock the map for read/write.
 
-            var map = GetCachedCompilationData(compilation).DeclarationAnalysisDataMap;
+            var map = GetOrCreateCachedCompilationData(compilation).DeclarationAnalysisDataMap;
 
             DeclarationAnalysisData data;
             lock (map)
@@ -1159,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
             var topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
-            ComputeDeclarationsInNode(semanticModel, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
+            ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
             var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var nodesToAnalyze = shouldExecuteSyntaxNodeActions ?
                     GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor) :
@@ -1173,11 +1190,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return declarationAnalysisData;
         }
 
-        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, List<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
             // We only care about the top level symbol declaration and its immediate member declarations.
             int? levelsToCompute = 2;
-            var getSymbol = topmostNodeForAnalysis != declaringReferenceSyntax;
+            var getSymbol = topmostNodeForAnalysis != declaringReferenceSyntax || declaredSymbol.Kind == SymbolKind.Namespace;
             semanticModel.ComputeDeclarationsInNode(topmostNodeForAnalysis, getSymbol, builder, cancellationToken, levelsToCompute);
         }
 

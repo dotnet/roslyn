@@ -85,6 +85,7 @@
     <Compile Include="ChangeSignature\ParameterConfiguration.cs" />
     <Compile Include="ChangeSignature\SignatureChange.cs" />
     <Compile Include="CodeFixes\CodeFixContextExtensions.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleCodeAction.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllCodeAction.cs" />
     <Compile Include="CodeFixes\AddImport\AbstractAddImportCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\AbstractAddAsyncAwaitCodeFixProvider.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="CodeFixes\CodeFixService.cs" />
     <Compile Include="CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
     <Compile Include="CodeFixes\FullyQualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ICodeFixService.cs" />
@@ -105,10 +107,24 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
-    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaWarningCodeAction.cs" />
-    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.LocalSuppressMessageCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaHelpers.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction.BatchFixer.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction_Attribute.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction_Pragma.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.RemoveSuppressionCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\SuppressionHelpers.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractSuppressionCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.FixAllProvider.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.AbstractGlobalSuppressMessageCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.GlobalSuppressMessageCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaWarningBatchFixAllProvider.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaWarningCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\NestedSuppressionCodeAction.cs" />
+    <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.GlobalSuppressMessageFixAllCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\ExportSuppressionFixProviderAttribute.cs" />
+    <Compile Include="CodeFixes\Suppression\WrapperCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\ISuppressionFixProvider.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContextExtensions.cs" />
@@ -135,8 +151,7 @@
     <Compile Include="Completion\CompletionTriggerInfo.cs" />
     <Compile Include="Completion\CompletionTriggerReason.cs" />
     <Compile Include="Completion\ICompletionService.cs" />
-    <Compile Include="Completion\Providers\AbstractCompletionProvider.cs" />
-    <Compile Include="Completion\Providers\AbstractCompletionProvider.UnionCompletionitemComparer.cs" />
+    <Compile Include="Completion\Providers\UnionCompletionItemComparer.cs" />
     <Compile Include="Completion\Providers\AbstractKeywordCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectCreationCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectInitializerCompletionProvider.cs" />
@@ -154,7 +169,10 @@
     <Compile Include="Diagnostics\AnalyzerHelper.cs" />
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\AnalyzerUpdateArgsId.cs" />
+    <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
+    <Compile Include="Common\UpdatedEventArgs.cs" />
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
+    <Compile Include="Diagnostics\IDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptionsProvider.cs" />
     <Compile Include="Diagnostics\PredefinedBuildTools.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_BuildSynchronization.cs" />
@@ -174,7 +192,6 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\DiagnosticCategory.cs" />
     <Compile Include="Diagnostics\DiagnosticCustomTags.cs" />
-    <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticLogAggregator.cs" />
     <Compile Include="Diagnostics\Log\DiagnosticLogger.cs" />
     <Compile Include="Diagnostics\DiagnosticProviderMetadata.cs" />
@@ -191,9 +208,7 @@
     <Compile Include="Diagnostics\IDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\IDiagnosticService.cs" />
     <Compile Include="Diagnostics\IDiagnosticUpdateSource.cs" />
-    <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\IWorkspaceDiagnosticAnalyzerProviderService.cs" />
-    <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
     <Compile Include="Diagnostics\ISupportLiveUpdate.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
@@ -222,6 +237,9 @@
     <Compile Include="IntroduceVariable\AbstractIntroduceVariableService.IntroduceVariableAllOccurrenceCodeAction.cs" />
     <Compile Include="LanguageServices\ProjectInfoService\IProjectInfoService.cs" />
     <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
+    <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
+    <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />
     <Compile Include="Shared\Options\OrganizerOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceComponentOnOffOptionsProvider.cs" />
     <Compile Include="Shared\Options\ServiceFeatureOnOffOptions.cs" />
@@ -445,7 +463,6 @@
     <Compile Include="Organizing\OrganizingService.cs" />
     <Compile Include="ProjectManagement\IProjectManagementService.cs" />
     <Compile Include="RemoveUnnecessaryImports\IRemoveUnnecessaryImportsService.cs" />
-    <Compile Include="RemoveUnnecessaryImports\RemoveUnnecessaryImportsService.cs" />
     <Compile Include="Shared\Extensions\DiagnosticAnalyzerExtensions.cs" />
     <Compile Include="Shared\Extensions\DocumentExtensions.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />
@@ -511,6 +528,9 @@
     <Compile Include="SolutionCrawler\WorkCoordinator.SemanticChangeProcessor.cs" />
     <Compile Include="SolutionCrawler\WorkCoordinator.WorkItem.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerRegistrationService.cs" />
+    <Compile Include="SpellCheck\AbstractSpellCheckCodeFixProvider.cs" />
+    <Compile Include="UseAutoProperty\AbstractUseAutoPropertyCodeFixProvider.cs" />
+    <Compile Include="UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
   </ItemGroup>
@@ -533,6 +553,5 @@
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

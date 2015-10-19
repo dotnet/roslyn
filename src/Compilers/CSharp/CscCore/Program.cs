@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
         public static int Main(string[] args)
             => Csc.Run(args: args,
                        clientDirectory: AppContext.BaseDirectory,
-                       sdkDirectory: @"C:\Windows\Microsoft.NET\Framework\v4.0.30319",
-                       analyzerLoader: new NoOpAnalyzerAssemblyLoader());
+                       sdkDirectory: null,
+                       analyzerLoader: CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
     }
 }

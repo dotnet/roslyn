@@ -13,7 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
     Public Class ContainedDocumentTests_AdjustIndentation
         Inherits AbstractContainedDocumentTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub NoNewLines()
             Dim subjectBuffer =
                 <Text>
@@ -33,7 +33,7 @@ public class Default
             AssertAdjustIndentation(HtmlMarkup, subjectBuffer, spansToAdjust, baseIndentations, Enumerable.Empty(Of TextChange)(), LanguageNames.CSharp)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub OnSingleLine()
             Dim subjectBuffer =
                 <Text>
@@ -56,7 +56,7 @@ int x = 1;
             AssertAdjustIndentation(HtmlMarkup, subjectBuffer, spansToAdjust, baseIndentations, {New TextChange(New TextSpan(startOfIndent, 0), "       ")}, LanguageNames.CSharp)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub OnMultipleLines()
             Dim subjectBuffer =
                 <Text>
@@ -103,7 +103,7 @@ if(true)
                                     LanguageNames.CSharp)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub IndentationInNestedStatements()
             Dim subjectBuffer =
                 <Text>
@@ -143,7 +143,7 @@ Console.WriteLine(5);
                                     LanguageNames.CSharp)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub InQuery()
             Dim subjectBuffer =
                 <Text>
@@ -185,7 +185,7 @@ select n;
                                     LanguageNames.CSharp)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub AtEndOfSpan()
             Dim subjectBuffer =
                 <Text>
@@ -205,7 +205,7 @@ public class Default
             AssertAdjustIndentation(HtmlMarkup, subjectBuffer, spansToAdjust, baseIndentations, {expected}, LanguageNames.CSharp)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Venus), WorkItem(529885)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Venus), WorkItem(529885)>
         Public Sub EndInSpan()
             Dim subjectBuffer =
                 <Text>

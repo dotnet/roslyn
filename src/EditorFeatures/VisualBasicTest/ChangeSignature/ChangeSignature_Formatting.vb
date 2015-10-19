@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_KeepCountsPerLine()
             Dim markup = <Text><![CDATA[
 Class C
@@ -37,7 +37,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_SubMethods()
             Dim markup = <Text><![CDATA[
 Class C
@@ -61,7 +61,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_FunctionMethods()
             Dim markup = <Text><![CDATA[
 Class C
@@ -85,7 +85,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_Events()
             Dim markup = <Text><![CDATA[
 Class C
@@ -103,7 +103,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_CustomEvents()
             Dim markup = <Text><![CDATA[
 Class C
@@ -141,7 +141,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_Constructors()
             Dim markup = <Text><![CDATA[
 Class C
@@ -171,7 +171,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_Properties()
             Dim markup = <Text><![CDATA[
 Class C
@@ -215,7 +215,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_Attribute()
             Dim markup = <Text><![CDATA[
 <Custom(1,
@@ -239,7 +239,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_DelegateFunction()
             Dim markup = <Text><![CDATA[
 Class C
@@ -257,7 +257,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_MultilineSubLambda()
             Dim markup = <Text><![CDATA[
 Class C
@@ -283,7 +283,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_MultilineFunctionLambda()
             Dim markup = <Text><![CDATA[
 Class C
@@ -311,7 +311,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_SingleLineSubLambda()
             Dim markup = <Text><![CDATA[
 Class C
@@ -335,7 +335,7 @@ End Class
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ChangeSignature_Formatting_SingleLineFunctionLambda()
             Dim markup = <Text><![CDATA[
 Class C

@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
         {
-            return trivia.IsSingleLineComment() || trivia.IsMultiLineComment();
+            return trivia.IsSingleLineComment() || trivia.IsMultiLineComment() || trivia.IsShebangDirective();
         }
 
         public static bool IsRegularOrDocComment(this SyntaxTrivia trivia)
         {
-            return trivia.IsSingleLineComment() || trivia.IsMultiLineComment() || trivia.IsDocComment();
+            return trivia.IsRegularComment() || trivia.IsDocComment();
         }
 
         public static bool IsSingleLineComment(this SyntaxTrivia trivia)
@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsMultiLineComment(this SyntaxTrivia trivia)
         {
             return trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
+        }
+
+        public static bool IsShebangDirective(this SyntaxTrivia trivia)
+        {
+            return trivia.Kind() == SyntaxKind.ShebangDirectiveTrivia;
         }
 
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)

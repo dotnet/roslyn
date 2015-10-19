@@ -120,75 +120,67 @@ public class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.M", @"
 {
-  // Code size       85 (0x55)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (int V_0, //j
                 int V_1, //i
-                int V_2,
-                bool V_3,
-                int V_4, //i
-                bool V_5,
-                bool V_6)
+                bool V_2,
+                int V_3, //i
+                bool V_4,
+                bool V_5)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.1
-  IL_0003:  br.s       IL_0012
+  IL_0003:  br.s       IL_0010
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""void System.Console.WriteLine(int)""
   IL_000b:  nop
   IL_000c:  ldloc.1
-  IL_000d:  stloc.2
-  IL_000e:  ldloc.2
-  IL_000f:  ldc.i4.1
-  IL_0010:  add
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.1
-  IL_0013:  ldc.i4.1
-  IL_0014:  clt
-  IL_0016:  stloc.3
-  IL_0017:  ldloc.3
-  IL_0018:  brtrue.s   IL_0005
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.s    V_4
-  IL_001d:  br.s       IL_002e
-  IL_001f:  ldc.i4.2
-  IL_0020:  call       ""void System.Console.WriteLine(int)""
-  IL_0025:  nop
-  IL_0026:  ldloc.s    V_4
-  IL_0028:  stloc.2
-  IL_0029:  ldloc.2
-  IL_002a:  ldc.i4.1
-  IL_002b:  add
-  IL_002c:  stloc.s    V_4
-  IL_002e:  ldloc.s    V_4
-  IL_0030:  ldc.i4.2
-  IL_0031:  clt
-  IL_0033:  stloc.s    V_5
-  IL_0035:  ldloc.s    V_5
-  IL_0037:  brtrue.s   IL_001f
-  IL_0039:  ldc.i4.1
-  IL_003a:  stloc.0
-  IL_003b:  br.s       IL_004a
-  IL_003d:  ldc.i4.3
-  IL_003e:  call       ""void System.Console.WriteLine(int)""
-  IL_0043:  nop
-  IL_0044:  ldloc.0
-  IL_0045:  stloc.2
-  IL_0046:  ldloc.2
-  IL_0047:  ldc.i4.1
-  IL_0048:  add
-  IL_0049:  stloc.0
-  IL_004a:  ldloc.0
-  IL_004b:  ldc.i4.3
-  IL_004c:  clt
-  IL_004e:  stloc.s    V_6
-  IL_0050:  ldloc.s    V_6
-  IL_0052:  brtrue.s   IL_003d
-  IL_0054:  ret
+  IL_000d:  ldc.i4.1
+  IL_000e:  add
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  clt
+  IL_0014:  stloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  brtrue.s   IL_0005
+  IL_0018:  ldc.i4.1
+  IL_0019:  stloc.3
+  IL_001a:  br.s       IL_0027
+  IL_001c:  ldc.i4.2
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  nop
+  IL_0023:  ldloc.3
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.3
+  IL_0028:  ldc.i4.2
+  IL_0029:  clt
+  IL_002b:  stloc.s    V_4
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  brtrue.s   IL_001c
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0040
+  IL_0035:  ldc.i4.3
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  nop
+  IL_003c:  ldloc.0
+  IL_003d:  ldc.i4.1
+  IL_003e:  add
+  IL_003f:  stloc.0
+  IL_0040:  ldloc.0
+  IL_0041:  ldc.i4.3
+  IL_0042:  clt
+  IL_0044:  stloc.s    V_5
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  brtrue.s   IL_0035
+  IL_004a:  ret
 }
 ");
-            v0.VerifyPdb("C.M", @"
-<symbols>
+            v0.VerifyPdb("C.M", @"<symbols>
   <methods>
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
@@ -198,7 +190,6 @@ public class C
         <encLocalSlotMap>
           <slot kind=""0"" offset=""135"" />
           <slot kind=""0"" offset=""20"" />
-          <slot kind=""temp"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""0"" offset=""79"" />
           <slot kind=""1"" offset=""70"" />
@@ -211,36 +202,35 @@ public class C
         <entry offset=""0x3"" hidden=""true"" />
         <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" />
         <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" />
-        <entry offset=""0x12"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" />
-        <entry offset=""0x17"" hidden=""true"" />
-        <entry offset=""0x1a"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" />
-        <entry offset=""0x1d"" hidden=""true"" />
-        <entry offset=""0x1f"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" />
-        <entry offset=""0x26"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" />
-        <entry offset=""0x2e"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" />
-        <entry offset=""0x35"" hidden=""true"" />
-        <entry offset=""0x39"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" />
-        <entry offset=""0x3b"" hidden=""true"" />
-        <entry offset=""0x3d"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" />
-        <entry offset=""0x44"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" />
-        <entry offset=""0x4a"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" />
-        <entry offset=""0x50"" hidden=""true"" />
-        <entry offset=""0x54"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
+        <entry offset=""0x10"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" />
+        <entry offset=""0x15"" hidden=""true"" />
+        <entry offset=""0x18"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" />
+        <entry offset=""0x1a"" hidden=""true"" />
+        <entry offset=""0x1c"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" />
+        <entry offset=""0x23"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" />
+        <entry offset=""0x27"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" />
+        <entry offset=""0x2d"" hidden=""true"" />
+        <entry offset=""0x31"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" />
+        <entry offset=""0x33"" hidden=""true"" />
+        <entry offset=""0x35"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" />
+        <entry offset=""0x3c"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" />
+        <entry offset=""0x40"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" />
+        <entry offset=""0x46"" hidden=""true"" />
+        <entry offset=""0x4a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x55"">
+      <scope startOffset=""0x0"" endOffset=""0x4b"">
         <namespace name=""System"" />
-        <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x55"" attributes=""0"" />
-        <scope startOffset=""0x1"" endOffset=""0x1a"">
-          <local name=""i"" il_index=""1"" il_start=""0x1"" il_end=""0x1a"" attributes=""0"" />
+        <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x4b"" attributes=""0"" />
+        <scope startOffset=""0x1"" endOffset=""0x18"">
+          <local name=""i"" il_index=""1"" il_start=""0x1"" il_end=""0x18"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x1a"" endOffset=""0x39"">
-          <local name=""i"" il_index=""4"" il_start=""0x1a"" il_end=""0x39"" attributes=""0"" />
+        <scope startOffset=""0x18"" endOffset=""0x31"">
+          <local name=""i"" il_index=""3"" il_start=""0x18"" il_end=""0x31"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
             var symReader = v0.CreateSymReader();
 
             var testData0 = new CompilationTestData();
@@ -257,72 +247,64 @@ public class C
             // check that all user-defined and long-lived synthesized local slots are reused
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       91 (0x5b)
+  // Code size       75 (0x4b)
   .maxstack  2
   .locals init (int V_0, //j
                 int V_1, //i
-                [int] V_2,
-                bool V_3,
-                int V_4, //i
-                bool V_5,
-                bool V_6,
-                int V_7)
+                bool V_2,
+                int V_3, //i
+                bool V_4,
+                bool V_5)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.1
-  IL_0003:  br.s       IL_0014
+  IL_0003:  br.s       IL_0010
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""void System.Console.WriteLine(int)""
   IL_000b:  nop
   IL_000c:  ldloc.1
-  IL_000d:  stloc.s    V_7
-  IL_000f:  ldloc.s    V_7
+  IL_000d:  ldc.i4.1
+  IL_000e:  add
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
   IL_0011:  ldc.i4.1
-  IL_0012:  add
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldc.i4.1
-  IL_0016:  clt
-  IL_0018:  stloc.3
-  IL_0019:  ldloc.3
-  IL_001a:  brtrue.s   IL_0005
-  IL_001c:  ldc.i4.1
-  IL_001d:  stloc.s    V_4
-  IL_001f:  br.s       IL_0032
-  IL_0021:  ldc.i4.2
-  IL_0022:  call       ""void System.Console.WriteLine(int)""
-  IL_0027:  nop
-  IL_0028:  ldloc.s    V_4
-  IL_002a:  stloc.s    V_7
-  IL_002c:  ldloc.s    V_7
-  IL_002e:  ldc.i4.1
-  IL_002f:  add
-  IL_0030:  stloc.s    V_4
-  IL_0032:  ldloc.s    V_4
-  IL_0034:  ldc.i4.2
-  IL_0035:  clt
-  IL_0037:  stloc.s    V_5
-  IL_0039:  ldloc.s    V_5
-  IL_003b:  brtrue.s   IL_0021
+  IL_0012:  clt
+  IL_0014:  stloc.2
+  IL_0015:  ldloc.2
+  IL_0016:  brtrue.s   IL_0005
+  IL_0018:  ldc.i4.1
+  IL_0019:  stloc.3
+  IL_001a:  br.s       IL_0027
+  IL_001c:  ldc.i4.2
+  IL_001d:  call       ""void System.Console.WriteLine(int)""
+  IL_0022:  nop
+  IL_0023:  ldloc.3
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.3
+  IL_0028:  ldc.i4.2
+  IL_0029:  clt
+  IL_002b:  stloc.s    V_4
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  brtrue.s   IL_001c
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.0
+  IL_0033:  br.s       IL_0040
+  IL_0035:  ldc.i4.3
+  IL_0036:  call       ""void System.Console.WriteLine(int)""
+  IL_003b:  nop
+  IL_003c:  ldloc.0
   IL_003d:  ldc.i4.1
-  IL_003e:  stloc.0
-  IL_003f:  br.s       IL_0050
+  IL_003e:  add
+  IL_003f:  stloc.0
+  IL_0040:  ldloc.0
   IL_0041:  ldc.i4.3
-  IL_0042:  call       ""void System.Console.WriteLine(int)""
-  IL_0047:  nop
-  IL_0048:  ldloc.0
-  IL_0049:  stloc.s    V_7
-  IL_004b:  ldloc.s    V_7
-  IL_004d:  ldc.i4.1
-  IL_004e:  add
-  IL_004f:  stloc.0
-  IL_0050:  ldloc.0
-  IL_0051:  ldc.i4.3
-  IL_0052:  clt
-  IL_0054:  stloc.s    V_6
-  IL_0056:  ldloc.s    V_6
-  IL_0058:  brtrue.s   IL_0041
-  IL_005a:  ret
+  IL_0042:  clt
+  IL_0044:  stloc.s    V_5
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  brtrue.s   IL_0035
+  IL_004a:  ret
 }
 ");
         }
@@ -1949,103 +1931,100 @@ class C
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
 
             diff1.VerifyIL("C.M",
-@"{
-  // Code size      145 (0x91)
+@"
+{
+  // Code size      137 (0x89)
   .maxstack  4
   .locals init ([unchanged] V_0,
-                [unchanged] V_1,
-                [int] V_2,
+                [int] V_1,
+                A V_2,
                 A V_3,
-                A V_4,
-                bool V_5,
-                A V_6,
-                object V_7, //o
-                A V_8,
-                A V_9,
-                int V_10)
+                bool V_4,
+                A V_5,
+                object V_6, //o
+                A V_7,
+                int V_8)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  stloc.s    V_8
-  IL_0004:  call       ""A C.F()""
-  IL_0009:  stloc.s    V_9
-  IL_000b:  ldloc.s    V_8
-  IL_000d:  ldloc.s    V_9
-  IL_000f:  callvirt   ""int A.this[A].get""
-  IL_0014:  stloc.s    V_10
-  IL_0016:  ldloc.s    V_8
-  IL_0018:  ldloc.s    V_9
-  IL_001a:  ldloc.s    V_10
-  IL_001c:  ldc.i4.1
-  IL_001d:  add
-  IL_001e:  callvirt   ""void A.this[A].set""
-  IL_0023:  nop
-  IL_0024:  call       ""A C.F()""
-  IL_0029:  stloc.3
+  IL_0002:  call       ""A C.F()""
+  IL_0007:  stloc.s    V_7
+  IL_0009:  dup
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  callvirt   ""int A.this[A].get""
+  IL_0011:  stloc.s    V_8
+  IL_0013:  ldloc.s    V_7
+  IL_0015:  ldloc.s    V_8
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  callvirt   ""void A.this[A].set""
+  IL_001e:  nop
+  IL_001f:  call       ""A C.F()""
+  IL_0024:  stloc.2
   .try
   {
-    IL_002a:  nop
-    IL_002b:  nop
-    IL_002c:  leave.s    IL_0039
+    IL_0025:  nop
+    IL_0026:  nop
+    IL_0027:  leave.s    IL_0034
   }
   finally
   {
-    IL_002e:  ldloc.3
-    IL_002f:  brfalse.s  IL_0038
-    IL_0031:  ldloc.3
-    IL_0032:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0037:  nop
-    IL_0038:  endfinally
+    IL_0029:  ldloc.2
+    IL_002a:  brfalse.s  IL_0033
+    IL_002c:  ldloc.2
+    IL_002d:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0032:  nop
+    IL_0033:  endfinally
   }
-  IL_0039:  call       ""A C.F()""
-  IL_003e:  stloc.s    V_4
-  IL_0040:  ldc.i4.0
-  IL_0041:  stloc.s    V_5
+  IL_0034:  call       ""A C.F()""
+  IL_0039:  stloc.3
+  IL_003a:  ldc.i4.0
+  IL_003b:  stloc.s    V_4
   .try
   {
-    IL_0043:  ldloc.s    V_4
-    IL_0045:  ldloca.s   V_5
-    IL_0047:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_004c:  nop
-    IL_004d:  nop
-    IL_004e:  nop
-    IL_004f:  leave.s    IL_005e
+    IL_003d:  ldloc.3
+    IL_003e:  ldloca.s   V_4
+    IL_0040:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0045:  nop
+    IL_0046:  nop
+    IL_0047:  nop
+    IL_0048:  leave.s    IL_0056
   }
   finally
   {
-    IL_0051:  ldloc.s    V_5
-    IL_0053:  brfalse.s  IL_005d
-    IL_0055:  ldloc.s    V_4
-    IL_0057:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_005c:  nop
-    IL_005d:  endfinally
+    IL_004a:  ldloc.s    V_4
+    IL_004c:  brfalse.s  IL_0055
+    IL_004e:  ldloc.3
+    IL_004f:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0054:  nop
+    IL_0055:  endfinally
   }
-  IL_005e:  nop
-  IL_005f:  call       ""B C.G()""
-  IL_0064:  callvirt   ""A B.GetEnumerator()""
-  IL_0069:  stloc.s    V_6
+  IL_0056:  nop
+  IL_0057:  call       ""B C.G()""
+  IL_005c:  callvirt   ""A B.GetEnumerator()""
+  IL_0061:  stloc.s    V_5
   .try
   {
-    IL_006b:  br.s       IL_0078
-    IL_006d:  ldloc.s    V_6
-    IL_006f:  callvirt   ""object A.Current.get""
-    IL_0074:  stloc.s    V_7
-    IL_0076:  nop
-    IL_0077:  nop
-    IL_0078:  ldloc.s    V_6
-    IL_007a:  callvirt   ""bool A.MoveNext()""
-    IL_007f:  brtrue.s   IL_006d
-    IL_0081:  leave.s    IL_0090
+    IL_0063:  br.s       IL_0070
+    IL_0065:  ldloc.s    V_5
+    IL_0067:  callvirt   ""object A.Current.get""
+    IL_006c:  stloc.s    V_6
+    IL_006e:  nop
+    IL_006f:  nop
+    IL_0070:  ldloc.s    V_5
+    IL_0072:  callvirt   ""bool A.MoveNext()""
+    IL_0077:  brtrue.s   IL_0065
+    IL_0079:  leave.s    IL_0088
   }
   finally
   {
-    IL_0083:  ldloc.s    V_6
-    IL_0085:  brfalse.s  IL_008f
-    IL_0087:  ldloc.s    V_6
-    IL_0089:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_008e:  nop
-    IL_008f:  endfinally
+    IL_007b:  ldloc.s    V_5
+    IL_007d:  brfalse.s  IL_0087
+    IL_007f:  ldloc.s    V_5
+    IL_0081:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0086:  nop
+    IL_0087:  endfinally
   }
-  IL_0090:  ret
+  IL_0088:  ret
 }");
         }
 
@@ -2722,7 +2701,7 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.<>c.<M>b__1_0()", @"
 {
-  // Code size       36 (0x24)
+  // Code size       34 (0x22)
   .maxstack  2
   .locals init (object V_0,
                 bool V_1)
@@ -2750,8 +2729,7 @@ class C
     IL_001f:  nop
     IL_0020:  endfinally
   }
-  IL_0021:  br.s       IL_0023
-  IL_0023:  ret
+  IL_0021:  ret
 }");
 
 #if TODO // identify the lambda in a semantic edit

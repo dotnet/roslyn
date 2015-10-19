@@ -24,11 +24,11 @@
     <ProjectReference Include="..\..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
       <Name>Workspaces.Desktop</Name>
-      <Aliases>global,WORKSPACES</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Scripting\Core\Scripting.csproj">
       <Project>{12A68549-4E8C-42D6-8703-A09335F97997}</Project>
       <Name>Scripting</Name>
+      <Aliases>global,Scripting</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
@@ -110,6 +110,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <!-- The rest are for test purposes only. -->
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -125,15 +126,15 @@
   <ItemGroup>
     <Compile Include="CommandHandlers\InteractiveCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\InteractiveIntelliSenseCommandHandler.cs" />
+    <Compile Include="Completion\GlobalAssemblyCacheCompletionHelper.cs" />
+    <Compile Include="Completion\AbstractReferenceDirectiveCompletionProvider.cs" />
+    <Compile Include="Completion\AbstractReferenceDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Extensibility\Interactive\CSharpVBResetCommand.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveCommandHandler.cs" />
     <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
-    <Compile Include="Extensibility\Interactive\InteractiveMetadataReferenceResolver.cs" />
     <Compile Include="Extensibility\Interactive\CSharpVBInteractiveCommandContentTypes.cs" />
     <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
     <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />
-    <Compile Include="Implementation\Interactive\Commands\CommandArgumentsParser.cs" />
-    <Compile Include="Implementation\Interactive\Commands\LoadCommand.cs" />
     <Compile Include="Implementation\Interactive\InertClassifierProvider.cs" />
     <Compile Include="Implementation\Interactive\InertClassifierProvider.InertClassifier.cs" />
     <Compile Include="Implementation\Interactive\InteractiveCommandContentTypeLanguageService.cs" />
@@ -142,14 +143,23 @@
     <Compile Include="Implementation\Interactive\InteractiveGlobalUndoServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveTextUndoHistoryWorkspaceServiceFactory.cs" />
     <Compile Include="Implementation\Interactive\InteractiveWorkspace.cs" />
-    <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.ItemRules.cs" />
-    <Compile Include="Implementation\Interactive\LoadCommandCompletionProvider.cs" />
+    <Compile Include="Implementation\Interactive\InteractiveDocumentSupportsSuggestionService.cs" />
+    <Compile Include="InteractiveEditorFeaturesResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>InteractiveEditorFeaturesResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="InteractiveEditorFeaturesResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>InteractiveEditorFeaturesResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

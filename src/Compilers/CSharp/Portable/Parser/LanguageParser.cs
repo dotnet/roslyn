@@ -12,21 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser : SyntaxParser
     {
-        // Keep this value in sync with Parser.vb
-        //
-        // This number is meant to represent the minimum depth which is necessary for a parser implementation
-        // to function.  Anything less than this represents an environment where a sufficiently complex C# 
-        // program could not be compiled.  The following factors went into choosing this number 
-        //
-        //  1. The Task<T> implementation has a similar problem with unbounded recursion and came to similar
-        //     conclusions on how to prevent such a problem (major difference is they use a hand rolled
-        //     implementation of ensureSufficientExecutionStack).  They settled on 20 as a minimum 
-        //     expectation 
-        //  2. A modified version of the parser was run on the Roslyn source base and the maximum depth 
-        //     discovered was 7.  Having 20 as a minimum seems reasonable in that context 
-        //
-        internal const int MaxUncheckedRecursionDepth = 20;
-
         // list pools - allocators for lists that are used to build sequences of nodes. The lists
         // can be reused (hence pooled) since the syntax factory methods don't keep references to
         // them
@@ -414,9 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return parseFunc();
             }
-            // TODO (DevDiv workitem 966425): Replace exception name test with a type test once the type 
-            // is available in the PCL
-            catch (Exception ex) when (ex.GetType().Name == "InsufficientExecutionStackException")
+            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
             {
                 return CreateForGlobalFailure(lexer.TextWindow.Position, createEmptyNodeFunc());
             }
@@ -445,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NamespaceKeyword);
             var namespaceToken = this.EatToken(SyntaxKind.NamespaceKeyword);
 
-            if (IsScript || IsInteractive)
+            if (IsScript)
             {
                 namespaceToken = this.AddError(namespaceToken, ErrorCode.ERR_NamespaceNotAllowedInScript);
             }
@@ -6356,10 +6339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             try
             {
                 _recursionDepth++;
-                if (_recursionDepth > MaxUncheckedRecursionDepth)
-                {
-                    PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
-                }
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
                 if (this.IsIncrementalAndFactoryContextMatches && this.CurrentNode is CSharp.Syntax.StatementSyntax)
                 {
@@ -8042,7 +8022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private ExpressionStatementSyntax ParseExpressionStatement(ExpressionSyntax expression)
         {
             SyntaxToken semicolon;
-            if (IsInteractive && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
+            if (IsScript && this.CurrentToken.Kind == SyntaxKind.EndOfFileToken)
             {
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
@@ -8251,7 +8231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPossibleAwaitExpressionStatement()
         {
-            return (this.IsInteractive || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            return (this.IsScript || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
         }
 
         private bool IsAwaitExpression()
@@ -8301,10 +8281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             _recursionDepth++;
 
-            if (_recursionDepth > MaxUncheckedRecursionDepth)
-            {
-                PortableShim.RuntimeHelpers.EnsureSufficientExecutionStack();
-            }
+            StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
 
             var result = ParseSubExpressionCore(precedence);
 

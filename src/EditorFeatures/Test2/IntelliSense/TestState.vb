@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
@@ -43,8 +44,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Sub New(workspaceElement As XElement,
                         extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
-                        Optional extraExportedTypes As List(Of Type) = Nothing)
-            MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes))
+                        Optional extraExportedTypes As List(Of Type) = Nothing,
+                        Optional workspaceKind As String = Nothing)
+            MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -125,21 +127,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 workspaceElement As XElement,
                 Optional extraCompletionProviders As CompletionListProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
-                Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
+                Optional extraExportedTypes As List(Of Type) = Nothing,
+                Optional workspaceKind As String = Nothing) As TestState
             Return New TestState(
                 workspaceElement,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.VisualBasic, roles:=Nothing),
                 CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.VisualBasic),
-                extraExportedTypes)
+                extraExportedTypes,
+                workspaceKind)
         End Function
 
 #Region "IntelliSense Operations"
 
-        Public Overloads Sub SendEscape(Optional block As Boolean = False)
-            If block Then
-                WaitForAsynchronousOperations()
-            End If
-
+        Public Overloads Sub SendEscape()
             MyBase.SendEscape(Sub(a, n) IntelliSenseCommandHandler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
@@ -169,20 +169,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendPageUp(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendCut(Optional block As Boolean = False)
-            If block Then
-                WaitForAsynchronousOperations()
-            End If
-
+        Public Overloads Sub SendCut()
             Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of CutCommandArgs))
             MyBase.SendCut(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendPaste(Optional block As Boolean = False)
-            If block Then
-                WaitForAsynchronousOperations()
-            End If
-
+        Public Overloads Sub SendPaste()
             Dim handler = DirectCast(CompletionCommandHandler, ICommandHandler(Of PasteCommandArgs))
             MyBase.SendPaste(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
@@ -198,7 +190,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
-            WaitForAsynchronousOperations()
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
@@ -222,27 +213,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendSelectAll(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Sub AssertNoCompletionSession(Optional block As Boolean = True)
+        Public Async Function AssertNoCompletionSession(Optional block As Boolean = True) As Task
             If block Then
-                WaitForAsynchronousOperations()
+                Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             End If
-
             Assert.Null(Me.CurrentCompletionPresenterSession)
-        End Sub
+        End Function
 
-        Public Sub AssertCompletionSession()
-            WaitForAsynchronousOperations()
+        Public Async Function AssertCompletionSession() As Task
+            Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
-        End Sub
+        End Function
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
-            WaitForAsynchronousOperations()
+            AssertNoAsynchronousOperationsRunning()
             Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
                                        Function(i) i.DisplayText = v))
         End Function
 
         Public Function CompletionItemsContainsAny(displayText As String()) As Boolean
-            WaitForAsynchronousOperations()
+            AssertNoAsynchronousOperationsRunning()
             Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
                                        Function(i) i.DisplayText = v))
         End Function
@@ -325,18 +315,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             CurrentSignatureHelpPresenterSession.SetSelectedItem(item)
         End Sub
 
-        Public Sub AssertNoSignatureHelpSession(Optional block As Boolean = True)
+        Public Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
             If block Then
-                WaitForAsynchronousOperations()
+                Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             End If
 
             Assert.Null(Me.CurrentSignatureHelpPresenterSession)
-        End Sub
+        End Function
 
-        Public Sub AssertSignatureHelpSession()
-            WaitForAsynchronousOperations()
+        Public Async Function AssertSignatureHelpSession() As Task
+            Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             Assert.NotNull(Me.CurrentSignatureHelpPresenterSession)
-        End Sub
+        End Function
 
         Private Function GetDisplayText(item As SignatureHelpItem, selectedParameter As Integer) As String
             Dim suffix = If(selectedParameter < item.Parameters.Count,
@@ -368,10 +358,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
         End Function
 
-        Public Sub AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
+        Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
-                               Optional selectedParameter As String = Nothing)
-            WaitForAsynchronousOperations()
+                               Optional selectedParameter As String = Nothing) As Task
+            Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
 
             If displayText IsNot Nothing Then
                 Assert.Equal(displayText, GetDisplayText(Me.CurrentSignatureHelpPresenterSession.SelectedItem, Me.CurrentSignatureHelpPresenterSession.SelectedParameter.Value))
@@ -386,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     Me.CurrentSignatureHelpPresenterSession.SelectedItem.Parameters(
                         Me.CurrentSignatureHelpPresenterSession.SelectedParameter.Value).DisplayParts))
             End If
-        End Sub
+        End Function
 #End Region
     End Class
 End Namespace

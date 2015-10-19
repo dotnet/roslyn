@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var containingScopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             typedSymReader.GetScopes(methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive, allScopes, containingScopes);
             var methodContextReuseConstraints = allScopes.GetReuseConstraints(moduleVersionId, methodToken, methodVersion, ilOffset, IsLocalScopeEndInclusive);
-            allScopes.Free();
 
             var localNames = containingScopes.GetLocalNames();
 
@@ -201,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 try
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/702): switch on the type of typedSymReader and call the appropriate helper.
-                    methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion, localNames.FirstOrDefault());
+                    methodDebugInfo = typedSymReader.GetMethodDebugInfo(methodToken, methodVersion, allScopes);
                     var inScopeHoistedLocalIndices = methodDebugInfo.GetInScopeHoistedLocalIndices(ilOffset, ref methodContextReuseConstraints);
                     inScopeHoistedLocals = new CSharpInScopeHoistedLocals(inScopeHoistedLocalIndices);
                 }
@@ -210,6 +209,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     // bad CDI, ignore
                 }
             }
+
+            allScopes.Free();
 
             var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(methodToken);
             var currentFrame = compilation.GetMethod(moduleVersionId, methodHandle);
@@ -502,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static void GetConstants(
             ArrayBuilder<LocalSymbol> builder,
             MethodSymbol method,
-            IEnumerable<ISymUnmanagedScope> scopes,
+            ArrayBuilder<ISymUnmanagedScope> scopes,
             MetadataDecoder metadataDecoder,
             ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap,
             SourceAssemblySymbol containingAssembly)
@@ -519,6 +520,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     Debug.Assert(!info.IsByRef);
                     Debug.Assert(!info.IsPinned);
                     var type = info.Type;
+                    if (type.IsErrorType())
+                    {
+                        continue;
+                    }
 
                     var constantValue = PdbHelpers.GetConstantValue(type.EnumUnderlyingType(), rawValue);
 

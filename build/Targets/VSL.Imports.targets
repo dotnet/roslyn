@@ -49,10 +49,40 @@
     </When>
   </Choose>
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
+  <!-- Work around mono + msbuild bug https://github.com/Microsoft/msbuild/issues/191 -->
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore' and '$(OS)' != 'Windows_NT'">
+      <!-- Manually set assembly search paths so they don't get mangled later -->
+      <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
+          {RawFileName};
+          $(OutDir)
+      </AssemblySearchPaths>
+      <RemoveAssemblyFoldersIfNoTargetFramework>false</RemoveAssemblyFoldersIfNoTargetFramework>
+  </PropertyGroup>
+
+  <!-- Work around issue in dotnet/roslyn issue #5213
+       Since MSBuild wants a reference assembly location and DNXCore doesn't have one,
+       trick MSBuild into using the .NETPortable,v5.0 reference assembly path which happens
+       to have the same set of reference assemblies as DNXCore (i.e., none). -->
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
+    <_TargetFrameworkDirectories>$([System.String]::Join(";", $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies(".NETPortable", "v5.0", ""))))</_TargetFrameworkDirectories>
+    <_FullFrameworkReferenceAssemblyPaths>$(_TargetFrameworkDirectories)</_FullFrameworkReferenceAssemblyPaths>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
+      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
+          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
+          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
+          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"
+          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
 
   <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
@@ -139,6 +169,30 @@
       <VSIXSourceItemLocalOnly Include="@(Content)" Condition="'%(Content.IncludeInVSIXLocalOnly)'=='true' AND '%(Content.VSIXSubPath)'!=''" />
     </ItemGroup>
   </Target>
+
+  <!-- ====================================================================================
+
+         Force-include our NuGet-consumed assets into VSIX projects
+
+         NOTE: this is a very specialized behavior we need for producing the Roslyn VSIXes.
+           It should not be copied into other projects without careful thought and
+           understanding of the VSSDK VSIX targets.
+
+       ==================================================================================== -->
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
+    <ItemGroup Condition="'$(IncludeCopyLocalReferencesInVSIXContainer)' == 'true'">
+      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''">
+        <ForceIncludeInVsix>true</ForceIncludeInVsix>
+        <Private>true</Private>
+      </VSIXCopyLocalReferenceSourceItem>
+    </ItemGroup>
+  </Target>
+
 
   <!-- ====================================================================================
 

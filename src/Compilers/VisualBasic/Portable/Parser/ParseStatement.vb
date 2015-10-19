@@ -1805,7 +1805,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 optionalExpression = ParseExpressionCore()
             End If
 
-            'TODO - not resynching here may cause errors to differ from Dev10.
+            'TODO - not resyncing here may cause errors to differ from Dev10.
 
             'No need to resync on error.  This will be handled by GetStatementTerminator
 
@@ -1864,7 +1864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' skip possible statement terminator
             Dim lookahead = PeekToken(1)
 
-            If lookahead.Kind <> SyntaxKind.EndOfFileToken OrElse _scanner.Options.Kind <> SourceCodeKind.Interactive Then
+            If lookahead.Kind <> SyntaxKind.EndOfFileToken OrElse _scanner.Options.Kind = SourceCodeKind.Regular Then
                 result = result.AddError(ERRID.ERR_UnexpectedExpressionStatement)
             End If
 

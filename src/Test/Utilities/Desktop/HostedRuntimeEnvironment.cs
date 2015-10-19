@@ -140,9 +140,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static void EmitReferences(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics)
         {
-            if (compilation.PreviousSubmission != null)
+            var previousSubmission = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previousSubmission != null)
             {
-                EmitDependentCompilation(compilation.PreviousSubmission, dependencies, diagnostics);
+                EmitDependentCompilation(previousSubmission, dependencies, diagnostics);
             }
 
             foreach (MetadataReference r in compilation.References)

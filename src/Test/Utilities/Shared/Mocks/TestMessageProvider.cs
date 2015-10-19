@@ -34,7 +34,7 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
-        public override int ERR_NoScriptsSpecified
+        public override int ERR_ExpectedSingleScript
         {
             get { throw new NotImplementedException(); }
         }

@@ -110,9 +110,6 @@
   <data name="DisplayNameOrPathCannotBe" xml:space="preserve">
     <value>Display name or path cannot be empty.</value>
   </data>
-  <data name="AssemblyNotFound" xml:space="preserve">
-    <value>Assembly not found.</value>
-  </data>
   <data name="AbsolutePathExpected" xml:space="preserve">
     <value>Absolute path expected</value>
   </data>
@@ -133,5 +130,32 @@
   </data>
   <data name="GlobalVariablesWithoutGlobalType" xml:space="preserve">
     <value>Global variables passed to a script without a global type</value>
+  </data>
+  <data name="PlusAdditionalError" xml:space="preserve">
+    <value>+ additional {0} error</value>
+  </data>
+  <data name="PlusAdditionalErrors" xml:space="preserve">
+    <value>+ additional {0} errors</value>
+  </data>
+  <data name="AtFileLine" xml:space="preserve">
+    <value> at {0} : {1}</value>
+  </data>
+  <data name="CannotSetReadOnlyVariable" xml:space="preserve">
+    <value>Cannot set a read-only variable</value>
+  </data>
+  <data name="CannotSetConstantVariable" xml:space="preserve">
+    <value>Cannot set a constant variable</value>
+  </data>
+  <data name="HelpPrompt" xml:space="preserve">
+    <value>Type "#help" for more information.</value>
+  </data>
+  <data name="HelpText" xml:space="preserve">
+    <value>Keyboard shortcuts:
+  Enter         If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.
+  Escape        Clear the current submission.
+  UpArrow       Replace the current submission with a previous submission.
+  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
+REPL commands:
+  #help         Display help on available commands and key bindings.</value>
   </data>
 </root>

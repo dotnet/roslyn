@@ -59,19 +59,16 @@ System.Console.WriteLine(1+1)
                 Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "System.Console.WriteLine(1+1)"))
         End Sub
 
-
         <Fact>
         Public Sub ReturnStatement()
             Dim source = <text>
-Return Foo
+Return 1
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = VisualBasicCompilation.Create("Test", {tree}, LatestVbReferences)
+            Dim c = CreateCompilationWithMscorlib45({tree})
 
-            c.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_ReturnFromNonFunction, "Return Foo").WithLocation(2, 1),
-                Diagnostic(ERRID.ERR_NameNotDeclared1, "Foo").WithArguments("Foo").WithLocation(2, 8))
+            c.VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -180,30 +177,30 @@ Next
         Public Sub ChainingAnonymousTypeTemplates()
             Dim references = LatestVbReferences
 
-            Dim s0 = VisualBasicCompilation.CreateSubmission("s0.dll",
+            Dim s0 = VisualBasicCompilation.CreateScriptCompilation("s0.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "Dim x = New With {.a = 1}", options:=TestOptions.Interactive),
+                                                      "Dim x = New With {.a = 1}", options:=TestOptions.Script),
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
-            Dim s__ = VisualBasicCompilation.CreateSubmission("s__.dll",
+            Dim s__ = VisualBasicCompilation.CreateScriptCompilation("s__.dll",
                                                    syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                       "Dim y = New With {.b = 1}", options:=TestOptions.Interactive),
-                                                   previousSubmission:=s0,
+                                                       "Dim y = New With {.b = 1}", options:=TestOptions.Script),
+                                                   previousScriptCompilation:=s0,
                                                    references:=references,
                                                    returnType:=GetType(Object))
 
-            Dim s1 = VisualBasicCompilation.CreateSubmission("s1.dll",
+            Dim s1 = VisualBasicCompilation.CreateScriptCompilation("s1.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "Dim y = New With {.a = New With {.b = 1} }", options:=TestOptions.Interactive),
-                                                  previousSubmission:=s0,
+                                                      "Dim y = New With {.a = New With {.b = 1} }", options:=TestOptions.Script),
+                                                  previousScriptCompilation:=s0,
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
-            Dim s2 = VisualBasicCompilation.CreateSubmission("s2.dll",
+            Dim s2 = VisualBasicCompilation.CreateScriptCompilation("s2.dll",
                                                   syntaxTree:=VisualBasicSyntaxTree.ParseText(
-                                                      "? x.GetType() Is y.GetType()", options:=TestOptions.Interactive),
-                                                  previousSubmission:=s1,
+                                                      "? x.GetType() Is y.GetType()", options:=TestOptions.Script),
+                                                  previousScriptCompilation:=s1,
                                                   references:=references,
                                                   returnType:=GetType(Object))
 
@@ -259,7 +256,7 @@ Next
         Public Sub LabelLookup()
             Const source = "Imports System : 1"
             Dim tree = Parse(source, options:=TestOptions.Script)
-            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", tree, {MscorlibRef})
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", tree, {MscorlibRef})
             Dim model = submission.GetSemanticModel(tree)
             Assert.Empty(model.LookupLabels(source.Length - 1))
         End Sub
@@ -267,7 +264,7 @@ Next
         <WorkItem(3795, "https:'github.com/dotnet/roslyn/issues/3795")>
         <Fact>
         Public Sub ErrorInUsing()
-            Dim submission = VisualBasicCompilation.CreateSubmission("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub1", Parse("Imports Unknown", options:=TestOptions.Script), {MscorlibRef})
 
             Dim expectedErrors = <errors><![CDATA[
 BC40056: Namespace or type specified in the Imports 'Unknown' doesn't contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn't use any aliases.
@@ -283,6 +280,122 @@ Imports Unknown
             End Using
 
             submission.GetDiagnostics().AssertTheseDiagnostics(expectedErrors)
+        End Sub
+
+        ''' <summary>
+        ''' The script entry point should complete synchronously.
+        ''' </summary>
+        <WorkItem(4495)>
+        <Fact>
+        Public Sub ScriptEntryPoint()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(
+                <compilation>
+                    <file name="a.vbx"><![CDATA[
+System.Threading.Tasks.Task.Delay(100)
+System.Console.Write("complete")
+]]></file>
+                </compilation>,
+                parseOptions:=TestOptions.Script,
+                options:=TestOptions.DebugExe,
+                additionalRefs:={SystemCoreRef})
+            Dim verifier = CompileAndVerify(comp, expectedOutput:="complete")
+            Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
+            Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
+            methodData.VerifyIL(
+"{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (Script.VB$StateMachine_1_<Initialize> V_0)
+  IL_0000:  newobj     ""Sub Script.VB$StateMachine_1_<Initialize>..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""Script.VB$StateMachine_1_<Initialize>.$VB$Me As Script""
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.m1
+  IL_000f:  stfld      ""Script.VB$StateMachine_1_<Initialize>.$State As Integer""
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).Create() As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_001a:  stfld      ""Script.VB$StateMachine_1_<Initialize>.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_001f:  ldloc.0
+  IL_0020:  ldflda     ""Script.VB$StateMachine_1_<Initialize>.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).Start(Of Script.VB$StateMachine_1_<Initialize>)(ByRef Script.VB$StateMachine_1_<Initialize>)""
+  IL_002c:  nop
+  IL_002d:  ldloc.0
+  IL_002e:  ldflda     ""Script.VB$StateMachine_1_<Initialize>.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_0033:  call       ""Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).get_Task() As System.Threading.Tasks.Task(Of Object)""
+  IL_0038:  ret
+}")
+            methodData = verifier.TestData.GetMethodData("Script.<Main>")
+            Assert.True(methodData.Method.ReturnsVoid)
+            methodData.VerifyIL(
+"{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (System.Runtime.CompilerServices.TaskAwaiter V_0)
+  IL_0000:  newobj     ""Sub Script..ctor()""
+  IL_0005:  callvirt   ""Function Script.<Initialize>() As System.Threading.Tasks.Task(Of Object)""
+  IL_000a:  callvirt   ""Function System.Threading.Tasks.Task.GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter""
+  IL_000f:  stloc.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""Sub System.Runtime.CompilerServices.TaskAwaiter.GetResult()""
+  IL_0017:  ret
+}")
+        End Sub
+
+        <Fact>
+        Public Sub SubmissionEntryPoint()
+            Dim parseOptions = TestOptions.Script
+            Dim references = {MscorlibRef_v4_0_30316_17626, SystemCoreRef, MsvbRef}
+            Dim source0 = <![CDATA[
+System.Threading.Tasks.Task.Delay(100)
+System.Console.Write("complete")
+]]>
+            Dim s0 = VisualBasicCompilation.CreateScriptCompilation(
+                "s0.dll",
+                syntaxTree:=Parse(source0.Value, parseOptions),
+                references:=references)
+            Dim verifier = CompileAndVerify(s0, verify:=False)
+            Dim methodData = verifier.TestData.GetMethodData("Script.<Initialize>")
+            Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
+            methodData.VerifyIL(
+"{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (Script.VB$StateMachine_1_<Initialize> V_0)
+  IL_0000:  newobj     ""Sub Script.VB$StateMachine_1_<Initialize>..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""Script.VB$StateMachine_1_<Initialize>.$VB$Me As Script""
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.m1
+  IL_000f:  stfld      ""Script.VB$StateMachine_1_<Initialize>.$State As Integer""
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).Create() As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_001a:  stfld      ""Script.VB$StateMachine_1_<Initialize>.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_001f:  ldloc.0
+  IL_0020:  ldflda     ""Script.VB$StateMachine_1_<Initialize>.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).Start(Of Script.VB$StateMachine_1_<Initialize>)(ByRef Script.VB$StateMachine_1_<Initialize>)""
+  IL_002c:  nop
+  IL_002d:  ldloc.0
+  IL_002e:  ldflda     ""Script.VB$StateMachine_1_<Initialize>.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object)""
+  IL_0033:  call       ""Function System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Object).get_Task() As System.Threading.Tasks.Task(Of Object)""
+  IL_0038:  ret
+}")
+            methodData = verifier.TestData.GetMethodData("Script.<Factory>")
+            Assert.Equal("System.Threading.Tasks.Task(Of Object)", methodData.Method.ReturnType.ToDisplayString())
+            methodData.VerifyIL(
+"{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  newobj     ""Sub Script..ctor(Object())""
+  IL_0006:  callvirt   ""Function Script.<Initialize>() As System.Threading.Tasks.Task(Of Object)""
+  IL_000b:  ret
+}")
         End Sub
 
     End Class

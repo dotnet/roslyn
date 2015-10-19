@@ -428,9 +428,9 @@ static class Program
                 // (9,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool x = s.Foo is Action;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "s.Foo is Action").WithLocation(9, 18),
-                // (12,20): error CS1061: 'int' does not contain a definition for 'Foo' and no extension method 'Foo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                // (12,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool y = i.Foo is Action;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Foo").WithArguments("int", "Foo").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "i.Foo is Action").WithLocation(12, 18),
                 // (9,18): error CS0165: Use of unassigned local variable 's'
                 //         bool x = s.Foo is Action;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "s").WithArguments("s").WithLocation(9, 18),
@@ -3682,14 +3682,14 @@ class C
 }
 var o = new object();
 o.F();";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
         }
 
         [Fact]
         public void InteractiveExtensionMethods()
         {
-            var parseOptions = TestOptions.Interactive;
+            var parseOptions = TestOptions.Script;
             var references = new[] { MscorlibRef, SystemCoreRef };
             var source0 =
 @"static object F(this object o) { return 0; }
@@ -3699,15 +3699,17 @@ o.F();";
 @"static object G(this object o) { return 1; }
 var o = new object();
 o.G().F();";
-            var s0 = CSharpCompilation.CreateSubmission(
+
+            var s0 = CSharpCompilation.CreateScriptCompilation(
                 "s0.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source0, options: parseOptions),
                 references: references);
             s0.VerifyDiagnostics();
-            var s1 = CSharpCompilation.CreateSubmission(
+
+            var s1 = CSharpCompilation.CreateScriptCompilation(
                 "s1.dll",
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(source1, options: parseOptions),
-                previousSubmission: s0,
+                previousScriptCompilation: s0,
                 references: references);
             s1.VerifyDiagnostics();
         }

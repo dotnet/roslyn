@@ -128,7 +128,6 @@
     <Compile Include="Binder\Imports.cs" />
     <Compile Include="Binder\InContainerBinder.cs" />
     <Compile Include="Binder\InMethodBinder.cs" />
-    <Compile Include="Binder\InteractiveUsingsBinder.cs" />
     <Compile Include="Binder\LocalBinderFactory.cs" />
     <Compile Include="Binder\LocalInProgressBinder.cs" />
     <Compile Include="Binder\LocalScopeBinder.cs" />
@@ -188,7 +187,6 @@
     <Compile Include="Binder\SwitchBinder.cs" />
     <Compile Include="Binder\SimpleLocalScopeBinder.cs" />
     <Compile Include="Binder\TypeofBinder.cs" />
-    <Compile Include="Binder\UsingsBinder.cs" />
     <Compile Include="Binder\UsingStatementBinder.cs" />
     <Compile Include="Binder\WhileBinder.cs" />
     <Compile Include="Binder\WithClassTypeParametersBinder.cs" />
@@ -223,13 +221,16 @@
     <Compile Include="CodeGen\EmitOperators.cs" />
     <Compile Include="CodeGen\EmitStatement.cs" />
     <Compile Include="CodeGen\Optimizer.cs" />
-    <Compile Include="CommandLine\CommandLineArguments.cs" />
+    <Compile Include="CommandLine\CSharpCommandLineArguments.cs" />
     <Compile Include="CommandLine\CommandLineDiagnosticFormatter.cs" />
-    <Compile Include="CommandLine\CommandLineParser.cs" />
+    <Compile Include="CommandLine\CSharpCommandLineParser.cs" />
     <Compile Include="CommandLine\CSharpCompiler.cs" />
     <Compile Include="Compilation\AttributeSemanticModel.cs" />
     <Compile Include="Compilation\AwaitExpressionInfo.cs" />
     <Compile Include="Compilation\BuiltInOperators.cs" />
+    <Compile Include="Compilation\CSharpScriptCompilationInfo.cs" />
+    <Compile Include="Compilation\SyntaxAndDeclarationManager.cs" />
+    <Compile Include="Compilation\SyntaxAndDeclarationManager.LazyState.cs" />
     <Compile Include="Compilation\CSharpCompilerDiagnosticAnalyzer.cs" />
     <Compile Include="Compilation\CSharpCompilation.cs" />
     <Compile Include="Compilation\CSharpCompilationReference.cs" />
@@ -744,6 +745,8 @@
     <Compile Include="Syntax\DirectiveTriviaSyntax.cs" />
     <Compile Include="Syntax\ExpressionStatementSyntax.cs" />
     <Compile Include="Syntax\GenericNameSyntax.cs" />
+    <Compile Include="Syntax\InternalSyntax\BinaryExpressionSyntax.cs" />
+    <Compile Include="Syntax\CSharpSyntaxTree.DebuggerSyntaxTree.cs" />
     <Compile Include="Syntax\PropertyDeclarationSyntax.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.cs" />
     <Compile Include="Syntax\InternalSyntax\ChildSyntaxList.Enumerator.cs" />
@@ -867,6 +870,7 @@
     <InternalsVisibleTo Include="csc" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
@@ -891,6 +895,5 @@
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

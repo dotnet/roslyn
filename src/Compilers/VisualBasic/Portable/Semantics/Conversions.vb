@@ -3144,7 +3144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         If mightSucceedAtRuntime = Nothing Then
-                            ' CLR spec $8.7 says that integral()->integral() is possible so long as they have the same bitsize.
+                            ' CLR spec $8.7 says that integral()->integral() is possible so long as they have the same bit size.
                             ' It claims that bool is to be taken as the same size as int8/uint8, so allowing e.g. bool()->uint8().
                             ' That isn't allowed in practice by the current CLR runtime, but since it's in the spec,
                             ' we'll return "ConversionKind.MightSucceedAtRuntime" to mean that it might potentially possibly occur.
@@ -4335,6 +4335,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property Rank As Integer
             Get
                 Return _arrayLiteral.InferredType.Rank
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property HasDefaultSizesAndLowerBounds As Boolean
+            Get
+                Return _arrayLiteral.InferredType.HasDefaultSizesAndLowerBounds
             End Get
         End Property
 

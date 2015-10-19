@@ -24,15 +24,18 @@
     <Compile Include="AnalyzerFileReferenceTests.cs" />
     <Compile Include="AssemblyUtilitiesTests.cs" />
     <Compile Include="AsyncQueueTests.cs" />
+    <Compile Include="Collections\ArrayBuilderTests.cs" />
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
+    <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="Text\LargeEncodedTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
@@ -106,7 +109,7 @@
     <Compile Include="DiffUtilTests.cs" />
     <Compile Include="Emit\EmitBaselineTests.cs" />
     <Compile Include="FileLinePositionSpanTests.cs" />
-    <Compile Include="MetadataFileReferenceResolverTests.cs" />
+    <Compile Include="FileSystem\RelativePathResolverTests.cs" />
     <Compile Include="FileUtilitiesTests.cs" />
     <Compile Include="InternalUtilities\ConcurrentLruCacheTests.cs" />
     <Compile Include="InternalUtilities\EnumerableExtensionsTests.cs" />
@@ -163,6 +166,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources/default.win32manifest" />
     <None Include="Resources/nativeWithStringIDsAndTypesAndIntTypes.res" />
@@ -175,6 +179,5 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

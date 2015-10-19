@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Return outliner.GetOutliningSpans(documentationComment, CancellationToken.None).WhereNotNull()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestDocumentationCommentWithoutSummaryTag1()
             Dim syntaxTree = ParseLines("''' XML doc comment",
                                   "''' some description",
@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestDocumentationCommentWithoutSummaryTag2()
             Dim syntaxTree = ParseLines("''' <param name=""syntaxTree""></param>",
                                   "Class C1",
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestDocumentationComment()
             Dim syntaxTree = ParseLines("''' <summary>",
                                   "''' Hello VB!",
@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestDocumentationCommentWithLongBannerText()
             Dim syntaxTree = ParseLines("''' <summary>",
                                   "''' " & New String("x"c, 240),
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestIndentedDocumentationComment()
             Dim syntaxTree = ParseLines("    ''' <summary>",
                                   "    ''' Hello VB!",
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestDocumentationCommentOnASingleLine()
             Dim syntaxTree = ParseLines("''' <summary>Hello VB!</summary>",
                                   "Class C1",
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestIndentedDocumentationCommentOnASingleLine()
             Dim syntaxTree = ParseLines("    ''' <summary>Hello VB!</summary>",
                                   "    Class C1",
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestMultilineSummaryInDocumentationComment1()
             Dim syntaxTree = ParseLines("''' <summary>",
                                   "''' Hello",
@@ -204,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Sub TestMultilineSummaryInDocumentationComment2()
             Dim syntaxTree = ParseLines("''' <summary>",
                                   "''' Hello",
@@ -230,13 +230,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             AssertRegion(expectedRegion, actualRegion)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         <WorkItem(2129, "https://github.com/dotnet/roslyn/issues/2129")>
         Public Sub CrefInSummary()
             Dim tree = ParseLines("Class C",
                                   "    ''' <summary>",
                                   "    ''' Summary with <see cref=""SeeClass"" />, <seealso cref=""SeeAlsoClass"" />,",
-                                  "    ''' <see langword=""Nothing"" />, <typeparamref name=""T"" />, and <paramref name=""t"" />.",
+                                  "    ''' <see langword=""Nothing"" />, <typeparamref name=""T"" />, <paramref name=""t"" />, and <see unsupported-attribute=""not-supported"" />.",
                                   "    ''' </summary>",
                                   "    Sub M(Of T)(t as T)",
                                   "    End Sub",
@@ -248,8 +248,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Dim docComment = DirectCast(trivia.Single(Function(t) t.HasStructure).GetStructure(), DocumentationCommentTriviaSyntax)
             Dim actualRegion = GetRegion(docComment)
             Dim expectedRegion = New OutliningSpan(
-                         TextSpan.FromBounds(13, 217),
-                         "''' <summary> Summary with SeeClass , SeeAlsoClass , Nothing , T , and t .",
+                         TextSpan.FromBounds(13, 264),
+                         "''' <summary> Summary with SeeClass , SeeAlsoClass , Nothing , T , t , and not-supported .",
                          autoCollapse:=True)
 
             AssertRegion(expectedRegion, actualRegion)

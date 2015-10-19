@@ -212,11 +212,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(parent != null);
             var proxyTypeAndInfo = new TypeAndCustomInfo(_proxyValue.Type);
             var fullName = parent.ChildFullNamePrefix;
-            var sawInvalidIdentifier = false;
+            bool unused;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier), fullName);
-            Debug.Assert(!sawInvalidIdentifier); // Expected proxy type name is "System.Linq.SystemCore_EnumerableDebugView".
+                formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused), fullName);
             return new EvalResultDataItem(
                 ExpansionKind.ResultsView,
                 Resources.ResultsView,
@@ -251,9 +250,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, ResultsFormatSpecifier);
             }
-            bool sawInvalidIdentifier;
-            var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out sawInvalidIdentifier), fullName);
-            Debug.Assert(!sawInvalidIdentifier); // Expected proxy type name is "System.Linq.SystemCore_EnumerableDebugView".
+            bool unused;
+            var childFullNamePrefix = formatter.GetObjectCreationExpression(formatter.GetTypeName(proxyTypeAndInfo, escapeKeywordIdentifiers: true, sawInvalidIdentifier: out unused), fullName);
             return new EvalResultDataItem(
                 ExpansionKind.Default,
                 name,

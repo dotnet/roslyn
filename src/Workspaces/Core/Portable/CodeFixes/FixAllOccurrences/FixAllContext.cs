@@ -246,6 +246,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
         {
+            // TODO: We should change this API to be a virtual method, as the class is not sealed.
+            //       For now, special case FixMultipleContext.
+            var fixMultipleContext = this as FixMultipleContext;
+            if (fixMultipleContext != null)
+            {
+                return fixMultipleContext.WithCancellationToken(cancellationToken);
+            }
+
             if (this.CancellationToken == cancellationToken)
             {
                 return this;

@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expr,
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,

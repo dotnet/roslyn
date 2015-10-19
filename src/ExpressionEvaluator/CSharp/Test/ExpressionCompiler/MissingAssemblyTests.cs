@@ -95,7 +95,7 @@ public class C
                 "parameter",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -119,7 +119,7 @@ public class C
             var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
             var context = CreateMethodContextWithReferences(comp, "C.M", MscorlibRef);
 
-            var expectedError = "(1,11): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
+            var expectedError = "error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?";
             var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
             ResultProperties resultProperties;
@@ -130,7 +130,7 @@ public class C
                 "from i in array select i",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -168,7 +168,7 @@ public class C
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -181,7 +181,7 @@ public class C
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -231,7 +231,7 @@ namespace System.Linq
                 "array.Count()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -244,7 +244,7 @@ namespace System.Linq
                 "array.NoSuchMethod()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -308,7 +308,7 @@ class C
                 "new global::Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -323,7 +323,7 @@ class C
                 "new Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -338,7 +338,7 @@ class C
                 "new NS.Forwarded()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -488,7 +488,7 @@ class C
                 "$stowedexception",
                 DkmEvaluationFlags.TreatAsExpression,
                 ImmutableArray.Create(ExceptionAlias("Microsoft.CSharp.RuntimeBinder.RuntimeBinderException, Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", stowed: true)),
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -524,7 +524,7 @@ class C
                 "typeof(@Windows.UI.Colors)",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -563,7 +563,7 @@ class C
                 "typeof(Windows.@UI.Xaml.Application)",
                 DkmEvaluationFlags.None,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out actualError,
                 out actualMissingAssemblyIdentities,
@@ -694,6 +694,7 @@ class UseLinq
             var compileResult = ExpressionCompilerTestHelpers.CompileExpressionWithRetry(
                 runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                 "args.Where(a => a.Length > 0)",
+                ImmutableArray<Alias>.Empty,
                 (_1, _2) => context, // ignore new blocks and just keep using the same failed context...
                 (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                 {

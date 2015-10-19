@@ -10,13 +10,14 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class IProjectionBufferFactoryServiceExtensionsTests
     {
-        [Fact]
+        [WpfFact]
         public void TestCreateElisionBufferWithoutIndentation()
         {
             var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCreateProjectionBuffer()
         {
             var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
             Assert.Equal(lines[3].GetText(), "  line 4");
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCreateProjectionBufferWithoutIndentation()
         {
             var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;

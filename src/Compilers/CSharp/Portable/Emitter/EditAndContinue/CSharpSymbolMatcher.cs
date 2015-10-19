@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return ArrayTypeSymbol.CreateSZArray(_otherAssembly, otherElementType, otherModifiers);
                 }
 
-                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, otherElementType, symbol.Rank, otherModifiers);
+                return ArrayTypeSymbol.CreateMDArray(_otherAssembly, otherElementType, symbol.Rank, symbol.Sizes, symbol.LowerBounds, otherModifiers);
             }
 
             public override Symbol VisitEvent(EventSymbol symbol)
@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return ArrayTypeSymbol.CreateSZArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, translatedModifiers);
                 }
 
-                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, symbol.Rank, translatedModifiers);
+                return ArrayTypeSymbol.CreateMDArray(symbol.BaseTypeNoUseSiteDiagnostics.ContainingAssembly, translatedElementType, symbol.Rank, symbol.Sizes, symbol.LowerBounds, translatedModifiers);
             }
 
             public override Symbol VisitDynamicType(DynamicTypeSymbol symbol)

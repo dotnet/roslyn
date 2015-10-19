@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
             }
 
-            if (trivia.IsSingleLineComment())
+            if (trivia.IsSingleLineComment() || trivia.IsShebangDirective())
             {
                 var span = trivia.FullSpan;
 

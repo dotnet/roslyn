@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         private InteractiveHost CreateProcess()
         {
-            var p = new InteractiveHost(typeof(CSharpRepl), GetInteractiveHostPath(), ".", millisecondsTimeout: 1);
+            var p = new InteractiveHost(typeof(CSharpReplServiceProvider), GetInteractiveHostPath(), ".", millisecondsTimeout: 1);
             _processes.Add(p);
             return p;
         }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
                 t.Start();
             });
 
-            p.ResetAsync(InteractiveHostOptions.Default).Wait();
+            p.ResetAsync(new InteractiveHostOptions()).Wait();
 
             for (int j = 0; j < 10; j++)
             {

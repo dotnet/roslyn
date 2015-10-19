@@ -312,8 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(this.ContainingType, frame);
                 CompilationState.AddSynthesizedMethod(
                     frame.Constructor,
-                    FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                    frame.Constructor));
+                    FlowAnalysisPass.AppendImplicitReturn(
+                        MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                        frame.Constructor));
             }
 
             return frame;
@@ -358,8 +359,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // add its ctor
                     CompilationState.AddSynthesizedMethod(
                         frame.Constructor,
-                        FlowAnalysisPass.AppendImplicitReturn(MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
-                        frame.Constructor));
+                        FlowAnalysisPass.AppendImplicitReturn(
+                            MethodCompiler.BindMethodBody(frame.Constructor, CompilationState, null),
+                            frame.Constructor));
 
                     // associate the frame with the first lambda that caused it to exist. 
                     // we need to associate this with some syntax.
@@ -991,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var newType = VisitType(node.Type);
                 var newBody = (BoundBlock)Visit(node.Body);
                 node = node.Update(node.Symbol, newBody, node.Diagnostics, node.Binder, newType);
-                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, Diagnostics);
+                var result0 = wasInExpressionLambda ? node : ExpressionLambdaRewriter.RewriteLambda(node, CompilationState, TypeMap, RecursionDepth, Diagnostics);
                 _inExpressionLambda = wasInExpressionLambda;
                 return result0;
             }

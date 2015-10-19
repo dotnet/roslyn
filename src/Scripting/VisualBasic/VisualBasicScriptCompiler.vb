@@ -1,50 +1,74 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
 Imports System.Reflection
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Scripting.Hosting
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
-    Friend Class VisualBasicScriptCompiler
+    Friend NotInheritable Class VisualBasicScriptCompiler
         Inherits ScriptCompiler
 
         Public Shared ReadOnly Instance As ScriptCompiler = New VisualBasicScriptCompiler()
 
-        Private Shared ReadOnly s_defaultInteractive As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Interactive)
-        Private Shared ReadOnly s_defaultScript As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
+        Private Shared ReadOnly s_defaultOptions As VisualBasicParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)
+        Private Shared ReadOnly s_vbRuntimeReference As MetadataReference = MetadataReference.CreateFromAssemblyInternal(GetType(CompilerServices.NewLateBinding).GetTypeInfo().Assembly)
 
         Private Sub New()
         End Sub
 
+        Public Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
+            Get
+                Return VisualBasicDiagnosticFormatter.Instance
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property IdentifierComparer As StringComparer
+            Get
+                Return CaseInsensitiveComparison.Comparer
+            End Get
+        End Property
+
+        Public Overrides Function IsCompleteSubmission(tree As SyntaxTree) As Boolean
+            ' TODO: https://github.com/dotnet/roslyn/issues/5235
+            Return True
+        End Function
+
+        Public Overrides Function ParseSubmission(text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
+            Return SyntaxFactory.ParseSyntaxTree(text, s_defaultOptions, cancellationToken:=cancellationToken)
+        End Function
+
         Private Shared Function GetGlobalImportsForCompilation(script As Script) As IEnumerable(Of GlobalImport)
             ' TODO: remember these per options instance so we don't need to reparse each submission
-            ' TODO: get imports out of compilation???
-            Return script.Options.Namespaces.Select(Function(n) GlobalImport.Parse(n))
+            ' TODO: get imports out of compilation??? https://github.com/dotnet/roslyn/issues/5854
+            Return script.Options.Imports.Select(Function(n) GlobalImport.Parse(n))
         End Function
 
         Public Overrides Function CreateSubmission(script As Script) As Compilation
-            Dim references = script.GetReferencesForCompilation()
-
-            Dim previousSubmission As Compilation = Nothing
-
+            Dim previousSubmission As VisualBasicCompilation = Nothing
             If script.Previous IsNot Nothing Then
-                previousSubmission = script.Previous.GetCompilation()
-            Else
-                references = references.Add(MetadataReference.CreateFromAssemblyInternal(GetType(CompilerServices.NewLateBinding).GetTypeInfo().Assembly))
+                previousSubmission = DirectCast(script.Previous.GetCompilation(), VisualBasicCompilation)
             End If
 
-            Dim globalImports = GetGlobalImportsForCompilation(script)
+            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim references = script.GetReferencesForCompilation(MessageProvider.Instance, diagnostics, s_vbRuntimeReference)
+
+            '  TODO report Diagnostics
+            diagnostics.Free()
 
             ' parse:
-            Dim parseOptions = If(script.Options.IsInteractive, s_defaultInteractive, s_defaultScript)
-            Dim tree = VisualBasicSyntaxTree.ParseText(script.Code, parseOptions, script.Options.Path)
+            Dim tree = VisualBasicSyntaxTree.ParseText(script.Code, s_defaultOptions, script.Options.FilePath)
 
             ' create compilation:
             Dim assemblyName As String = Nothing
             Dim submissionTypeName As String = Nothing
             script.Builder.GenerateSubmissionId(assemblyName, submissionTypeName)
 
-            Dim submission = VisualBasicCompilation.CreateSubmission(assemblyName,
+            Dim globalImports = GetGlobalImportsForCompilation(script)
+
+            Dim submission = VisualBasicCompilation.CreateScriptCompilation(
+                assemblyName,
                 tree,
                 references,
                 New VisualBasicCompilationOptions(
@@ -59,7 +83,9 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
                     optionCompareText:=False,
                     embedVbCoreRuntime:=False,
                     checkOverflow:=False,
-                    metadataReferenceResolver:=script.Options.ReferenceResolver,
+                    xmlReferenceResolver:=Nothing, ' don't support XML file references in interactive (permissions & doc comment includes)
+                    sourceReferenceResolver:=SourceFileResolver.Default,
+                    metadataReferenceResolver:=script.Options.MetadataResolver,
                     assemblyIdentityComparer:=DesktopAssemblyIdentityComparer.Default),
                 previousSubmission,
                 script.ReturnType,
@@ -67,11 +93,5 @@ Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic
 
             Return submission
         End Function
-
-        Public Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
-            Get
-                Return VisualBasicDiagnosticFormatter.Instance
-            End Get
-        End Property
     End Class
 End Namespace

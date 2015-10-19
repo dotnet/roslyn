@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsWithEvents As Boolean
             Get
-                'NOTE: If noone set the IsWithEvents, getting the value will permanently set it to Unknown.
+                'NOTE: If no-one set the IsWithEvents, getting the value will permanently set it to Unknown.
                 If Me._isWithEvents = ThreeState.Unknown Then
                     SetIsWithEvents(MyBase.IsWithEvents)
                 End If
