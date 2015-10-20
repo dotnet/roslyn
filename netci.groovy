@@ -199,7 +199,7 @@ set TMP=%TEMP%
             addWrappers(myJob)
 
             addUnitPublisher(myJob)
-            addArtifactArchiving(myJob, "Binaries\\*", "Binaries\\Obj\\*")
+            addArtifactArchiving(myJob, "**/Binaries/**", "**/Binaries/Obj/**")
 
             if (branchName == 'prtest') {
               switch (buildTarget) {
