@@ -1432,8 +1432,8 @@ class C
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
-        public void TestGetTagsOnBufferTagger()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestGetTagsOnBufferTagger()
         {
             // don't crash
             using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile("class C { C c; }"))
@@ -1452,7 +1452,7 @@ class C
                 var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
                 using (var disposable = (IDisposable)tagger)
                 {
-                    waiter.CreateWaitTask().PumpingWait();
+                    await waiter.CreateWaitTask().ConfigureAwait(true);
 
                     var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
                     var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
