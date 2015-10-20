@@ -53,6 +53,22 @@ static void addWrappers(def myJob) {
   }
 }
 
+static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
+  myJob.with {
+    publishers {
+      archiveArtifacts {
+        allowEmpty(false)
+        defaultExcludes(false)
+        exclude(excludeString)
+        fingerprint(false)
+        latestOnly(false)
+        onlyIfSuccessful(false)
+        pattern(patternString)
+      }
+    }
+  }
+}
+
 static void addEmailPublisher(def myJob) {
   myJob.with {
     publishers {
@@ -182,6 +198,7 @@ set TMP=%TEMP%
             addWrappers(myJob)
 
             addUnitPublisher(myJob)
+            addArtifactArchiving(myJob, "Binaries\\*", "Binaries\\Obj\\*")
 
             if (branchName == 'prtest') {
               switch (buildTarget) {
