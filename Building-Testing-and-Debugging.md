@@ -20,7 +20,7 @@ Please see the [known contributor issues](https://github.com/dotnet/roslyn/label
 ## Running Unit Tests
 To run the unit tests:
 
-> msbuild /v:m /m BuildAndTest.proj /p:PublicBuild=true /p:DeployExtension=false
+> msbuild /v:m /m BuildAndTest.proj
 
 This command will build and run all of the code / tests which are supported on the current public build of Visual Studio 2015.  
 
