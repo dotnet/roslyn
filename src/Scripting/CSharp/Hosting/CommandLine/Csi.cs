@@ -5,15 +5,17 @@ using System.IO;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        internal CSharpInteractiveCompiler(string responseFile, string baseDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(CSharpCommandLineParser.Interactive, responseFile, args, AppContext.BaseDirectory, baseDirectory, null, null, analyzerLoader)
+        internal CSharpInteractiveCompiler(string responseFile, string baseDirectory, string sdkDirectoryOpt, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+            // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
+            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, AppContext.BaseDirectory, baseDirectory, sdkDirectoryOpt, null, analyzerLoader)
         {
         }
 

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
     public class XmlTagCompletionTests : AbstractXmlTagCompletionTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void SimpleTagCompletion()
         {
             var text = @"
@@ -27,7 +27,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void NestedTagCompletion()
         {
             var text = @"
@@ -45,7 +45,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void CompleteBeforeIncompleteTag()
         {
             var text = @"
@@ -61,7 +61,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void NotEmptyElement()
         {
             var text = @"
@@ -75,7 +75,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void NotAlreadyCompleteTag()
         {
             var text = @"
@@ -89,7 +89,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void NotAlreadyCompleteTag2()
         {
             var text = @"
@@ -107,7 +107,7 @@ class c { }";
             Verify(text, expected, '>');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void SimpleSlashCompletion()
         {
             var text = @"
@@ -121,7 +121,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void NestedSlashTagCompletion()
         {
             var text = @"
@@ -139,7 +139,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void SlashCompleteBeforeIncompleteTag()
         {
             var text = @"
@@ -155,7 +155,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void SlashNotEmptyElement()
         {
             var text = @"
@@ -169,7 +169,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void SlashNotAlreadyCompleteTag()
         {
             var text = @"
@@ -183,7 +183,7 @@ class c { }";
             Verify(text, expected, '/');
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void SlashNotAlreadyCompleteTag2()
         {
             var text = @"
@@ -202,7 +202,7 @@ class c { }";
         }
 
         [WorkItem(638800)]
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void NestedIdenticalTags()
         {
             var text = @"
@@ -217,7 +217,7 @@ class c { }";
         }
 
         [WorkItem(638800)]
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void MultipleNestedIdenticalTags()
         {
             var text = @"
@@ -232,7 +232,7 @@ class c { }";
         }
 
         [WorkItem(638235)]
-        [Fact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.XmlTagCompletion)]
         public void SlashNotIfCloseTagFollows()
         {
             var text = @"

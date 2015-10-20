@@ -6,8 +6,8 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
     Public Class ContainsChildrenGraphQueryTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub ContainsChildrenForDocument()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function ContainsChildrenForDocument() As Threading.Tasks.Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self).ConfigureAwait(True)
 
                 Dim node = outputContext.Graph.Nodes.Single()
 
@@ -35,10 +35,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub ContainsChildrenForEmptyDocument()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function ContainsChildrenForEmptyDocument() As Threading.Tasks.Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </Workspace>)
 
                 Dim inputGraph = testState.GetGraphWithDocumentNode(filePath:="Z:\Project.cs")
-                Dim outputContext = testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
+                Dim outputContext = Await testState.GetGraphContextAfterQuery(inputGraph, New ContainsChildrenGraphQuery(), GraphContextDirection.Self).ConfigureAwait(True)
 
                 AssertSimplifiedGraphIs(
                     outputContext.Graph,
@@ -63,12 +63,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
-        End Sub
+        End Function
 
         <WorkItem(789685)>
         <WorkItem(794846)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
-        Public Sub ContainsChildrenForNotYetLoadedSolution()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Progression)>
+        Public Async Function ContainsChildrenForNotYetLoadedSolution() As Threading.Tasks.Task
             Using testState = New ProgressionTestState(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" FilePath="Z:\Project.csproj">
@@ -85,7 +85,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
                 Dim oldSolution = testState.GetSolution()
                 Dim newSolution = oldSolution.RemoveProject(oldSolution.ProjectIds.FirstOrDefault())
-                Dim outputContext = testState.GetGraphContextAfterQueryWithSolution(inputGraph, newSolution, New ContainsChildrenGraphQuery(), GraphContextDirection.Self)
+                Dim outputContext = Await testState.GetGraphContextAfterQueryWithSolution(inputGraph, newSolution, New ContainsChildrenGraphQuery(), GraphContextDirection.Self).ConfigureAwait(True)
 
                 ''' ContainsChildren should be set to false, so following updates will be tractable.
 
@@ -103,6 +103,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                     </DirectedGraph>)
 
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     {
         private static CSharpCompilation CreateCompilation(string source, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
-            SynchronizationContext.SetSynchronizationContext(null);
-
             options = options ?? TestOptions.ReleaseExe;
 
             IEnumerable<MetadataReference> asyncRefs = new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef };
@@ -28,8 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null)
         {
-            SynchronizationContext.SetSynchronizationContext(null);
-
             var compilation = CreateCompilation(source, references: references, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
@@ -3644,8 +3640,8 @@ System.Console.WriteLine(x);";
 }";
             var source1 =
 @"await F()";
-            var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
-            var s1 = CSharpCompilation.CreateSubmission("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Interactive), references, previousSubmission: s0);
+            var s0 = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script), references);
+            var s1 = CSharpCompilation.CreateScriptCompilation("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Script), references, previousScriptCompilation: s0);
             s1.VerifyDiagnostics();
         }
 
@@ -3655,18 +3651,7 @@ System.Console.WriteLine(x);";
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"await System.Threading.Tasks.Task.FromResult(5);";
-            var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
-            s0.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void AwaitInInteractiveDeclaration()
-        {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
-            var source0 =
-@"int x = await System.Threading.Tasks.Task.Run(() => 4);
-System.Console.WriteLine(x);";
-            var s0 = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive), references);
+            var s0 = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script), references);
             s0.VerifyDiagnostics();
         }
 
@@ -3689,21 +3674,6 @@ int y = x +
                 // (2,5): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
                 //     await System.Threading.Tasks.Task.FromResult(1);
                 Diagnostic(ErrorCode.ERR_BadAwaitInStaticVariableInitializer, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(2, 5));
-        }
-
-        [WorkItem(5787)]
-        [Fact]
-        public void AwaitInInteractiveStaticInitializer()
-        {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
-            var source =
-@"static int x = await System.Threading.Tasks.Task.FromResult(1);
-int y = await System.Threading.Tasks.Task.FromResult(2);";
-            var compilation = CSharpCompilation.CreateSubmission("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Interactive), references);
-            compilation.VerifyDiagnostics(
-                // (1,16): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
-                // static int x = await System.Threading.Tasks.Task.FromResult(1);
-                Diagnostic(ErrorCode.ERR_BadAwaitInStaticVariableInitializer, "await System.Threading.Tasks.Task.FromResult(1)").WithLocation(1, 16));
         }
 
         [Fact, WorkItem(4839, "https://github.com/dotnet/roslyn/issues/4839")]

@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Friend Overrides ReadOnly Property DiagnosticFormatter As DiagnosticFormatter
             Get
-                Return VisualBasicDiagnosticFormatter.Instance
+                Return DebuggerDiagnosticFormatter.Instance
             End Get
         End Property
 

@@ -23,24 +23,25 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
-    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IUseFixture<TWorkspaceFixture>
+    public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestBase, IClassFixture<TWorkspaceFixture>
         where TWorkspaceFixture : TestWorkspaceFixture, new()
     {
         protected readonly Mock<ICompletionSession> MockCompletionSession;
         internal CompletionListProvider CompletionProvider;
         protected TWorkspaceFixture WorkspaceFixture;
 
-        public AbstractCompletionProviderTests()
+        protected AbstractCompletionProviderTests(TWorkspaceFixture workspaceFixture)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-
             MockCompletionSession = new Mock<ICompletionSession>(MockBehavior.Strict);
-        }
 
-        public void SetFixture(TWorkspaceFixture workspaceFixture)
-        {
             this.WorkspaceFixture = workspaceFixture;
             this.CompletionProvider = CreateCompletionProvider();
+        }
+
+        public override void Dispose()
+        {
+            this.WorkspaceFixture.CloseTextView();
+            base.Dispose();
         }
 
         protected static bool CanUseSpeculativeSemanticModel(Document document, int position)
@@ -382,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
             else
             {
-                // nothing was commited, but we should insert the commit character.
+                // nothing was committed, but we should insert the commit character.
                 var textChange = new TextChange(new TextSpan(firstItem.FilterSpan.End, 0), commitChar.ToString());
                 text = text.WithChanges(textChange);
             }

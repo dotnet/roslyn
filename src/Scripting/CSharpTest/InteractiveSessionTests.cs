@@ -10,14 +10,19 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
+    using CodeAnalysis.Test.Utilities;
+    using static TestCompilationFactory;
+
     public class HostModel
     {
         public readonly int Foo;
@@ -25,13 +30,8 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 
     public class InteractiveSessionTests : TestBase
     {
-        private static readonly Assembly s_lazySystemRuntimeAssembly;
-        internal static readonly Assembly SystemRuntimeAssembly = s_lazySystemRuntimeAssembly ?? (s_lazySystemRuntimeAssembly = Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")));
         internal static readonly Assembly HostAssembly = typeof(InteractiveSessionTests).GetTypeInfo().Assembly;
-
-        // TODO: shouldn't be needed
-        private static readonly ScriptOptions OptionsWithFacades = ScriptOptions.Default.AddReferences(SystemRuntimeAssembly);
-
+        
         #region Namespaces, Types
 
         [Fact]
@@ -212,15 +212,15 @@ new object[] { new[] { a, c }, new[] { b, d } }
         [Fact]
         public void Dynamic_Expando()
         {
-            var options = OptionsWithFacades.
+            var options = ScriptOptions.Default.
                 AddReferences(
                     typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).GetTypeInfo().Assembly,
                     typeof(System.Dynamic.ExpandoObject).GetTypeInfo().Assembly).
-                AddNamespaces(
+                AddImports(
                     "System.Dynamic");
 
             var script = CSharpScript.Create(@"
-dynamic expando = new ExpandoObject();
+dynamic expando = new ExpandoObject();  
 ", options).ContinueWith(@"
 expando.foo = 1;
 ").ContinueWith(@"
@@ -402,7 +402,7 @@ pi = i + j + k + l;
         public void CompilationChain_GlobalNamespaceAndUsings()
         {
             var result = 
-                CSharpScript.Create("using InteractiveFixtures.C;", OptionsWithFacades.AddReferences(HostAssembly)).
+                CSharpScript.Create("using InteractiveFixtures.C;", ScriptOptions.Default.AddReferences(HostAssembly)).
                 ContinueWith("using InteractiveFixtures.C;").
                 ContinueWith("System.Environment.ProcessorCount").
                 EvaluateAsync().Result;
@@ -413,7 +413,7 @@ pi = i + j + k + l;
         [Fact]
         public void CompilationChain_CurrentSubmissionUsings()
         {
-            var s0 = CSharpScript.RunAsync("", OptionsWithFacades.AddReferences(HostAssembly));
+            var s0 = CSharpScript.RunAsync("", ScriptOptions.Default.AddReferences(HostAssembly));
 
             var state = s0.
                 ContinueWith("class X { public int foo() { return 1; } }").
@@ -453,7 +453,7 @@ Environment.ProcessorCount
         [Fact]
         public void CompilationChain_GlobalImports()
         {
-            var options = ScriptOptions.Default.AddNamespaces("System");
+            var options = ScriptOptions.Default.AddImports("System");
 
             var state = CSharpScript.RunAsync("Environment.ProcessorCount", options);
             Assert.Equal(Environment.ProcessorCount, state.Result.ReturnValue);
@@ -600,7 +600,7 @@ Environment.ProcessorCount
         [Fact]
         public async Task ObjectOverrides1()
         {
-            var state0 = await CSharpScript.RunAsync("", OptionsWithFacades, new HostObjectWithOverrides());
+            var state0 = await CSharpScript.RunAsync("", globals: new HostObjectWithOverrides());
 
             var state1 = await state0.ContinueWithAsync<bool>("Equals(null)");
             Assert.True(state1.ReturnValue);
@@ -615,7 +615,7 @@ Environment.ProcessorCount
         [Fact]
         public async Task ObjectOverrides2()
         {
-            var state0 = await CSharpScript.RunAsync("", OptionsWithFacades, new object());
+            var state0 = await CSharpScript.RunAsync("", globals: new object());
             var state1 = await state0.ContinueWithAsync<bool>(@"
 object x = 1;
 object y = x;
@@ -633,7 +633,7 @@ ReferenceEquals(x, y)");
         [Fact]
         public void ObjectOverrides3()
         {
-            var state0 = CSharpScript.RunAsync("", OptionsWithFacades);
+            var state0 = CSharpScript.RunAsync("");
 
             var src1 = @"
 Equals(null);
@@ -1077,7 +1077,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
         {
             var options = ScriptOptions.Default.
                 AddReferences(typeof(Task).GetTypeInfo().Assembly).
-                AddNamespaces("System.Threading.Tasks");
+                AddImports("System.Threading.Tasks");
 
             var state = 
                 CSharpScript.RunAsync("int i = 0;", options).
@@ -1095,7 +1095,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
         {
             var options = ScriptOptions.Default.
                 AddReferences(typeof(Task).GetTypeInfo().Assembly).
-                AddNamespaces("System.Threading.Tasks");
+                AddImports("System.Threading.Tasks");
 
             var state =
                 CSharpScript.Create("int i = 0;", options).
@@ -1136,7 +1136,7 @@ new Metadata.ICSPropImpl()
             string dir = Path.Combine(Path.GetDirectoryName(path), "subdir");
 
             var script = CSharpScript.Create($@"#r ""..\{fileName}""", 
-                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+                ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
 
             script.GetCompilation().VerifyDiagnostics();
         }
@@ -1151,9 +1151,26 @@ new Metadata.ICSPropImpl()
             string dir = Path.Combine(root, "foo", "bar", "baz");
 
             var script = CSharpScript.Create($@"#r ""\{unrooted}""",
-                ScriptOptions.Default.WithPath(Path.Combine(dir, "a.csx")));
+                ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
 
             script.GetCompilation().VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6015")]
+        public void UsingExternalAliasesForHiding()
+        {
+            string source = @"
+namespace N { public class C { } }
+public class D { }
+public class E { }
+";
+
+            var libRef = CreateCompilationWithMscorlib(source, "lib").EmitToImageReference();
+
+            var script = CSharpScript.Create(@"new C()", 
+                ScriptOptions.Default.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
+
+            script.Build().Verify();
         }
 
         #endregion
@@ -1177,7 +1194,7 @@ d
         public void Usings1()
         {
             var options = ScriptOptions.Default.
-                AddNamespaces("System", "System.Linq").
+                AddImports("System", "System.Linq").
                 AddReferences(typeof(Enumerable).GetTypeInfo().Assembly);
 
             object result = CSharpScript.EvaluateAsync("new int[] { 1, 2, 3 }.First()", options).Result;
@@ -1189,13 +1206,13 @@ d
         public void Usings2()
         {
             var options = ScriptOptions.Default.
-                 AddNamespaces("System", "System.Linq").
+                 AddImports("System", "System.Linq").
                  AddReferences(typeof(Enumerable).GetTypeInfo().Assembly);
 
             var s1 = CSharpScript.RunAsync("new int[] { 1, 2, 3 }.First()", options);
             Assert.Equal(1, s1.Result.ReturnValue);
 
-            var s2 = s1.ContinueWith("new List<int>()", options.AddNamespaces("System.Collections.Generic"));
+            var s2 = s1.ContinueWith("new List<int>()", options.AddImports("System.Collections.Generic"));
             Assert.IsType<List<int>>(s2.Result.ReturnValue);
         }
 
@@ -1203,7 +1220,7 @@ d
         public void AddNamespaces_Errors()
         {
             // no immediate error, error is reported if the namespace can't be found when compiling:
-            var options = ScriptOptions.Default.AddNamespaces("?1", "?2");
+            var options = ScriptOptions.Default.AddImports("?1", "?2");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS0246: The type or namespace name '?1' could not be found (are you missing a using directive or an assembly reference?)
@@ -1211,19 +1228,19 @@ d
                 // error CS0246: The type or namespace name '?2' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("?2"));
 
-            options = ScriptOptions.Default.AddNamespaces("");
+            options = ScriptOptions.Default.AddImports("");
             
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            options = ScriptOptions.Default.AddNamespaces(".abc");
+            options = ScriptOptions.Default.AddImports(".abc");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: '.abc'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ".abc"));
 
-            options = ScriptOptions.Default.AddNamespaces("a\0bc");
+            options = ScriptOptions.Default.AddImports("a\0bc");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: '.abc'.
@@ -1257,7 +1274,7 @@ d
                 // Can't use Verify() because the version number of the test dll is different in the build lab.
             }
 
-            var options = OptionsWithFacades.AddReferences(HostAssembly);
+            var options = ScriptOptions.Default.AddReferences(HostAssembly);
 
             var cint = CSharpScript.EvaluateAsync<C<int>>("null", options).Result;
             Assert.Equal(null, cint);
@@ -1340,7 +1357,7 @@ new List<ArgumentException>()
         {
             var c = new C();
             
-            var s0 = CSharpScript.RunAsync<int>("x + Y + Z()", OptionsWithFacades, globals: c);
+            var s0 = CSharpScript.RunAsync<int>("x + Y + Z()", globals: c);
             Assert.Equal(6, s0.Result.ReturnValue);
 
             var s1 = s0.ContinueWith<int>("x");
@@ -1356,7 +1373,7 @@ new List<ArgumentException>()
         public void HostObjectBinding_PublicGenericClassMembers()
         {
             var m = new M<string>();
-            var result = CSharpScript.EvaluateAsync<string>("G()", OptionsWithFacades, globals: m);
+            var result = CSharpScript.EvaluateAsync<string>("G()", globals: m);
             Assert.Equal(null, result.Result);
         }
 
@@ -1365,7 +1382,7 @@ new List<ArgumentException>()
         {
             var c = new C();
             
-            var s0 = await CSharpScript.RunAsync<int>("Z()", OptionsWithFacades, c, typeof(I));
+            var s0 = await CSharpScript.RunAsync<int>("Z()", globals: c, globalsType: typeof(I));
             Assert.Equal(3, s0.ReturnValue);
 
             ScriptingTestHelpers.AssertCompilationError(s0, @"x + Y",
@@ -1382,7 +1399,7 @@ new List<ArgumentException>()
         {
             var c = new PrivateClass();
             
-            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", OptionsWithFacades, c),
+            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", globals: c),
                 // (1,1): error CS0122: '<Fully Qualified Name of PrivateClass>.Z()' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "Z").WithArguments(typeof(PrivateClass).FullName.Replace("+", ".") + ".Z()"));
         }
@@ -1392,7 +1409,7 @@ new List<ArgumentException>()
         {
             object c = new M<int>();
 
-            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", OptionsWithFacades, c),
+            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", globals: c),
                 // (1,1): error CS0103: The name 'z' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Z").WithArguments("Z"));
         }

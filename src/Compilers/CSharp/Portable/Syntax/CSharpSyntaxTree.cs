@@ -103,10 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.HasCompilationUnitRoot);
+                Debug.Assert(HasCompilationUnitRoot);
 
-                return (Options.Kind == SourceCodeKind.Interactive || Options.Kind == SourceCodeKind.Script) &&
-                        this.GetCompilationUnitRoot().GetReferenceDirectives().Count > 0;
+                return Options.Kind == SourceCodeKind.Script && GetCompilationUnitRoot().GetReferenceDirectives().Count > 0;
             }
         }
 
@@ -114,16 +113,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.HasCompilationUnitRoot);
+                Debug.Assert(HasCompilationUnitRoot);
 
-                if (Options.Kind == SourceCodeKind.Interactive || Options.Kind == SourceCodeKind.Script)
+                if (Options.Kind == SourceCodeKind.Script)
                 {
-                    var compilationUnitRoot = this.GetCompilationUnitRoot();
+                    var compilationUnitRoot = GetCompilationUnitRoot();
                     return compilationUnitRoot.GetReferenceDirectives().Count > 0 || compilationUnitRoot.GetLoadDirectives().Count > 0;
                 }
 
                 return false;
             }
+        }
+
+        internal virtual bool SupportsLocations
+        {
+            get { return this.HasCompilationUnitRoot; }
         }
 
         #region Preprocessor Symbols
@@ -326,18 +330,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
         /// </summary>
-        internal static SyntaxTree Create(CSharpSyntaxNode root, SourceText text)
+        /// <remarks>This is used by the ExpressionEvaluator.</remarks>
+        internal static SyntaxTree CreateForDebugger(CSharpSyntaxNode root, SourceText text)
         {
             Debug.Assert(root != null);
 
-            return new ParsedSyntaxTree(
-                textOpt: text,
-                encodingOpt: text.Encoding,
-                checksumAlgorithm: text.ChecksumAlgorithm,
-                path: "",
-                options: CSharpParseOptions.Default,
-                root: root,
-                directives: InternalSyntax.DirectiveStack.Empty);
+            return new DebuggerSyntaxTree(root, text);
         }
 
         /// <summary>

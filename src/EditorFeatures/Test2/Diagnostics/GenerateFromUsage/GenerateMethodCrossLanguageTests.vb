@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
             End If
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestSimpleInstanceMethod_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -57,7 +57,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestSimpleStaticMethod_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -94,7 +94,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestParameters_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -136,7 +136,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestExplicitInterface_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -170,7 +170,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestDelegate_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -212,7 +212,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestAbstractMethod_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -248,7 +248,7 @@ end class
             Test(input, expected, codeActionIndex:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestSimpleInstanceMethod_VisualBasicToCSharp()
             Dim input =
         <Workspace>
@@ -287,7 +287,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedType_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -328,7 +328,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedGenericType_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -369,7 +369,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedType_VisualBasicToCSharp()
             Dim input =
         <Workspace>
@@ -414,7 +414,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedGenericType_VisualBasicToCSharp()
             Dim input =
         <Workspace>
@@ -460,7 +460,7 @@ end class
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_SingleNamedType()
             Dim input =
         <Workspace>
@@ -515,7 +515,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints()
             Dim input =
         <Workspace>
@@ -585,7 +585,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints_Interfaces()
             Dim input =
         <Workspace>
@@ -655,7 +655,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_NoCommonDerived()
             Dim input =
         <Workspace>
@@ -823,7 +823,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedNestedType()
             Dim input =
         <Workspace>
@@ -908,7 +908,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedInstantiatedTypes()
             Dim input =
         <Workspace>
@@ -1000,7 +1000,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_InstantiatedGenerics()
             Dim input =
         <Workspace>

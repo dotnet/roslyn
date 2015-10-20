@@ -189,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             }
 
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
-            _workspace.CurrentSolution.GetCompilationAsync(document.Project, System.Threading.CancellationToken.None);
+            document.Project.GetCompilationAsync(System.Threading.CancellationToken.None);
 
             _textView.TextBuffer.ChangeContentType(_contentType, null);
 

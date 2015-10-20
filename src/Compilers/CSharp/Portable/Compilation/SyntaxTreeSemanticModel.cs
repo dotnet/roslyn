@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -27,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly BinderFactory _binderFactory;
         private Func<CSharpSyntaxNode, MemberSemanticModel> _createMemberModelFunction;
         private readonly bool _ignoresAccessibility;
+        private ScriptLocalScopeBinder.Labels _globalStatementLabels;
 
         private static readonly Func<CSharpSyntaxNode, bool> s_isMemberDeclarationFunction = IsMemberDeclaration;
 
@@ -996,14 +996,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GlobalStatement:
                     {
                         Debug.Assert(!this.IsRegularCSharp);
+                        var parent = node.Parent;
                         // TODO (tomat): handle misplaced global statements
-                        if (node.Parent.Kind() == SyntaxKind.CompilationUnit)
+                        if (parent.Kind() == SyntaxKind.CompilationUnit)
                         {
-                            var scriptConstructor = this.Compilation.ScriptClass.InstanceConstructors.First();
+                            var scriptInitializer = _compilation.ScriptClass.GetScriptInitializer();
+                            Debug.Assert((object)scriptInitializer != null);
+                            if ((object)scriptInitializer == null)
+                            {
+                                return null;
+                            }
+
+                            // Share labels across all global statements.
+                            if (_globalStatementLabels == null)
+                            {
+                                Interlocked.CompareExchange(ref _globalStatementLabels, new ScriptLocalScopeBinder.Labels(scriptInitializer, (CompilationUnitSyntax)parent), null);
+                            }
+
                             return MethodBodySemanticModel.Create(
                                 this.Compilation,
-                                scriptConstructor,
-                                outer,
+                                scriptInitializer,
+                                new ScriptLocalScopeBinder(_globalStatementLabels, outer),
                                 node);
                         }
                     }
@@ -1665,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             InContainerBinder binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports();
+            var imports = binder.GetImports(basesBeingResolved: null);
             var alias = imports.UsingAliases[declarationSyntax.Alias.Name.Identifier.ValueText];
 
             if ((object)alias.Alias == null)
@@ -1696,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckSyntaxNode(declarationSyntax);
 
             var binder = _binderFactory.GetImportsBinder(declarationSyntax.Parent);
-            var imports = binder.GetImports();
+            var imports = binder.GetImports(basesBeingResolved: null);
 
             // TODO: If this becomes a bottleneck, put the extern aliases in a dictionary, as for using aliases.
             foreach (var alias in imports.ExternAliases)

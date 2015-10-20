@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.E
         End Function
 
         <WorkItem(540686)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestExtractReturnExpression()
             Test(
 NewLines("Class Module1 \n Private Delegate Function Func(i As Integer) \n Shared Sub Main(args As String()) \n Dim temp As Integer = 2 \n Dim fnc As Func = Function(arg As Integer) \n temp = arg \n Return [|arg|] \n End Function \n End Sub \n End Class"),
@@ -31,7 +31,7 @@ index:=0)
         End Sub
 
         <WorkItem(540755)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestExtractMultilineLambda()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n If True Then Dim q As Action = [|Sub() \n End Sub|] \n End Sub \n End Module"),
@@ -40,7 +40,7 @@ index:=0)
         End Sub
 
         <WorkItem(541515)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestCollectionInitializerInObjectCollectionInitializer()
             Test(
 NewLines("Class Program \n Sub Main() \n [|Dim x As New List(Of Program) From {New Program}|] \n End Sub \n Public Property Name As String \n End Class"),
@@ -50,7 +50,7 @@ index:=0)
 
         <WorkItem(542251)>
         <WorkItem(543030)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestLambdaSelection()
             Test(
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim q As Object \n If True Then q = [|Sub() \n End Sub|] \n End Sub \n End Module"),
@@ -58,7 +58,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
         End Sub
 
         <WorkItem(542904)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub FormatBeforeAttribute()
             Test(
 <Text>Module Program
@@ -89,7 +89,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(545262)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestInTernaryConditional()
             Test(
 NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Nothing \n Dim Obj1 = If(New With {.a = True}.a, p, [|Nothing|]) \n End Sub \n End Module"),
@@ -97,7 +97,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim p As Object = Noth
         End Sub
 
         <WorkItem(545547)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestInRangeArgumentUpperBound()
             Test(
 NewLines("Module Program \n Sub Main() \n Dim x(0 To [|1 + 2|]) ' Extract method \n End Sub \n End Module"),
@@ -105,14 +105,14 @@ NewLines("Module Program \n Sub Main() \n Dim x(0 To {|Rename:NewMethod|}()) ' E
         End Sub
 
         <WorkItem(545655)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestInWhileUntilCondition()
             Test(
 NewLines("Module M \n Sub Main() \n Dim x = 0 \n Do While [|x * x < 100|] \n x += 1 \n Loop \n End Sub \n End Module"),
 NewLines("Module M \n Sub Main() \n Dim x = 0 \n Do While {|Rename:NewMethod|}(x) \n x += 1 \n Loop \n End Sub \n Private Function NewMethod(x As Integer) As Boolean \n Return x * x < 100 \n End Function \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestInInterpolation1()
             Test(
 NewLines("Module M \n Sub Main() \n Dim v As New Object \n [|System.Console.WriteLine($""{v}"")|] \n System.Console.WriteLine(v) \n End Sub \n End Module"),
@@ -130,7 +130,7 @@ End Module"),
 compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestInInterpolation2()
             Test(
 NewLines("Module M \n Sub Main() \n Dim v As New Object \n System.Console.WriteLine([|$""{v}""|]) \n System.Console.WriteLine(v) \n End Sub \n End Module"),
@@ -149,7 +149,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(545829)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub TestMissingOnImplicitMemberAccess()
             Test(
 NewLines("Module Program \n Sub Main() \n With """""""" \n Dim x = [|.GetHashCode|] Xor &H7F3E ' Introduce Local \n End With \n End Sub \n End Module"),
@@ -157,7 +157,7 @@ NewLines("Module Program \n Sub Main() \n {|Rename:NewMethod|}() \n End Sub \n P
         End Sub
 
         <WorkItem(984831)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub PreserveCommentsBeforeDeclaration_1()
             Test(
 <Text>Class Program
@@ -202,7 +202,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(984831)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub PreserveCommentsBeforeDeclaration_2()
             Test(
 <Text>Class Program
@@ -251,7 +251,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(984831)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod)>
         Public Sub PreserveCommentsBeforeDeclaration_3()
             Test(
 <Text>Class Program

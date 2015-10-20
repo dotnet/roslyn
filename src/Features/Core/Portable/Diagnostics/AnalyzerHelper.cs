@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 messageFormat: FeaturesResources.UserDiagnosticAnalyzerThrows,
                 description: string.Format(FeaturesResources.UserDiagnosticAnalyzerThrowsDescription, analyzerName, e.ToString()),
                 category: AnalyzerExceptionDiagnosticCategory,
-                defaultSeverity: DiagnosticSeverity.Info,
+                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
 

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixes = GetCodeFixes(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
                     var refactorings = GetRefactorings(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
 
-                    var result = fixes == null ? refactorings : refactorings == null 
+                    var result = fixes == null ? refactorings : refactorings == null
                                                ? fixes : fixes.Concat(refactorings);
 
                     if (result == null)
@@ -254,8 +255,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// </summary>
             private IEnumerable<SuggestedActionSet> OrganizeFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, bool hasSuppressionFixes)
             {
-                var map = ImmutableDictionary.CreateBuilder<Diagnostic, IList<SuggestedAction>>();
-                var order = ImmutableArray.CreateBuilder<Diagnostic>();
+                var map = ImmutableDictionary.CreateBuilder<DiagnosticData, IList<SuggestedAction>>();
+                var order = ImmutableArray.CreateBuilder<DiagnosticData>();
 
                 // First group fixes by issue (diagnostic).
                 GroupFixes(workspace, fixCollections, map, order, hasSuppressionFixes);
@@ -267,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// <summary>
             /// Groups fixes by the diagnostic being addressed by each fix.
             /// </summary>
-            private void GroupFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, IDictionary<Diagnostic, IList<SuggestedAction>> map, IList<Diagnostic> order, bool hasSuppressionFixes)
+            private void GroupFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, IDictionary<DiagnosticData, IList<SuggestedAction>> map, IList<DiagnosticData> order, bool hasSuppressionFixes)
             {
                 foreach (var fixCollection in fixCollections)
                 {
@@ -293,8 +294,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                         fix, nestedAction, fixCollection.Provider, getFixAllSuggestedActionSet(nestedAction)));
                                 }
 
-                                var diag = fix.Diagnostics[0];
-                                var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, GetApplicableToSpan(diag));
+                                var diag = fix.PrimaryDiagnostic;
+                                var set = new SuggestedActionSet(nestedActions, SuggestedActionSetPriority.Medium, diag.Location.SourceSpan.ToSpan());
 
                                 suggestedAction = new SuggestedAction(workspace, _subjectBuffer, _owner._editHandler,
                                     fix.Action, fixCollection.Provider, new[] { set });
@@ -335,10 +336,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
             }
 
-            private static void AddFix(CodeFix fix, SuggestedAction suggestedAction, IDictionary<Diagnostic, IList<SuggestedAction>> map, IList<Diagnostic> order)
+            private static void AddFix(CodeFix fix, SuggestedAction suggestedAction, IDictionary<DiagnosticData, IList<SuggestedAction>> map, IList<DiagnosticData> order)
             {
-                var diag = fix.PrimaryDiagnostic;
-
+                var diag = fix.GetPrimaryDiagnosticData();
                 if (!map.ContainsKey(diag))
                 {
                     // Remember the order of the keys for the 'map' dictionary.
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// the priority of such <see cref="SuggestedActionSet"/>s is set to <see cref="SuggestedActionSetPriority.None"/> so that suppression fixes
             /// always show up last after all other fixes (and refactorings) for the selected line of code.
             /// </remarks>
-            private static IEnumerable<SuggestedActionSet> PrioritizeFixGroups(IDictionary<Diagnostic, IList<SuggestedAction>> map, IList<Diagnostic> order)
+            private static IEnumerable<SuggestedActionSet> PrioritizeFixGroups(IDictionary<DiagnosticData, IList<SuggestedAction>> map, IList<DiagnosticData> order)
             {
                 var sets = ImmutableArray.CreateBuilder<SuggestedActionSet>();
 
@@ -368,17 +368,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixes = map[diag];
 
                     var priority = fixes.All(s => s is SuppressionSuggestedAction) ? SuggestedActionSetPriority.None : SuggestedActionSetPriority.Medium;
-                    var applicableToSpan = GetApplicableToSpan(diag);
 
-                    sets.Add(new SuggestedActionSet(fixes, priority, applicableToSpan));
+                    // diagnostic from things like build shouldn't reach here since we don't support LB for those diagnostics
+                    Contract.Requires(diag.HasTextSpan);
+                    sets.Add(new SuggestedActionSet(fixes, priority, diag.TextSpan.ToSpan()));
                 }
 
                 return sets.ToImmutable();
-            }
-
-            private static Span GetApplicableToSpan(Diagnostic diag)
-            {
-                return new Span(diag.Location.SourceSpan.Start, diag.Location.SourceSpan.Length);
             }
 
             private IEnumerable<SuggestedActionSet> GetRefactorings(
@@ -629,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private void OnWorkspaceChanged(object sender, EventArgs e)
             {
                 // REVIEW: this event should give both old and new workspace as argument so that
-                // one doesnt need to hold onto workspace in field.
+                // one doesn't need to hold onto workspace in field.
 
                 // remove existing event registration
                 if (_workspace != null)

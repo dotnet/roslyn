@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         Inherits AbstractOutlinerTests
 
 #If False Then
-        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Sub DirectivesAtEndOfFile()
             Dim code = "Class C" & vbCrLf &
 "End Class" & vbCrLf &

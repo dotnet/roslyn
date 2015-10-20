@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public partial class CSharpSyntaxTree
     {
-        private partial class ParsedSyntaxTree : CSharpSyntaxTree
+        private class ParsedSyntaxTree : CSharpSyntaxTree
         {
             private readonly CSharpParseOptions _options;
             private readonly string _path;

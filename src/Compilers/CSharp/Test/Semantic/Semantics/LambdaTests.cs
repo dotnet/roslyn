@@ -1396,5 +1396,46 @@ public interface IColumn { }
             var compilation = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
+
+        [Fact, WorkItem(4527, "https://github.com/dotnet/roslyn/issues/4527")]
+        public void AnonymousMethodExpressionWithoutParameterList()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+namespace RoslynAsyncDelegate
+{
+    class Program
+    {
+        static EventHandler MyEvent;
+
+        static void Main(string[] args)
+        {
+           MyEvent += async delegate { await Task.Delay(0); };
+        }
+    }
+}
+
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.AnonymousMethodExpression)).Single();
+
+            Assert.Equal("async delegate { await Task.Delay(0); }", node1.ToString());
+
+            Assert.Equal("void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)", model.GetTypeInfo(node1).ConvertedType.GetMembers("Invoke").Single().ToTestDisplayString());
+
+            var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
+
+            Assert.Equal("System.Object <sender>", lambdaParameters[0].ToTestDisplayString());
+            Assert.Equal("System.EventArgs <e>", lambdaParameters[1].ToTestDisplayString());
+
+            CompileAndVerify(compilation);
+        }
     }
 }

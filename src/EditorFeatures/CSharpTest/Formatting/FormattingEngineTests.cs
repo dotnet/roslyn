@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class FormattingEngineTests : FormattingEngineTestBase
     {
-        [Fact]
+        [WpfFact]
         [WorkItem(539682)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentCommandHandler()
@@ -48,7 +48,7 @@ int y;
             AssertFormatWithView(expected, code);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(539682)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentPasteCommandHandler()
@@ -76,7 +76,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(547261)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentReadOnlyWorkspacePasteCommandHandler()
@@ -104,7 +104,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: false);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatUsingStatementOnReturn()
@@ -132,7 +132,7 @@ int y;
             AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
-        [Fact]
+        [WpfFact]
         [WorkItem(912965)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatNotUsingStatementOnReturn()
@@ -161,7 +161,7 @@ int y;
         }
 
         [WorkItem(977133)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatRangeButFormatTokenOnOpenBrace()
         {
             var code = @"class C
@@ -182,7 +182,7 @@ int y;
         }
 
         [WorkItem(1007071)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatPragmaWarningInbetweenDelegateDeclarationStatement()
         {
             var code = @"using System;
@@ -215,7 +215,7 @@ class Program
         }
 
         [WorkItem(771761)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatHashRegion()
         {
             var code = @"using System;
@@ -240,7 +240,7 @@ class Program
         }
 
         [WorkItem(771761)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatHashEndRegion()
         {
             var code = @"using System;
@@ -267,7 +267,7 @@ class Program
         }
 
         [WorkItem(987373)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatSpansIndividuallyWithoutCollapsing()
         {
             var code = @"class C
@@ -362,7 +362,7 @@ class Program
         }
 
         [WorkItem(987373)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatSpansWithCollapsing()
         {
             var code = @"class C
@@ -458,7 +458,7 @@ class Program
         }
 
         [WorkItem(1044118)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void SemicolonInCommentOnLastLineDoesNotFormat()
         {
             var code = @"using System;
@@ -485,7 +485,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideSingleLineRegularComment_1()
         {
             var code = @"class Program
@@ -510,7 +510,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideSingleLineRegularComment_2()
         {
             var code = @"class Program
@@ -537,7 +537,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideMultiLineRegularComment_1()
         {
             var code = @"class Program
@@ -560,7 +560,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideMultiLineRegularComment_2()
         {
             var code = @"class Program
@@ -585,7 +585,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideMultiLineRegularComment_3()
         {
             var code = @"class Program
@@ -610,7 +610,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideSingleLineDocComment_1()
         {
             var code = @"class Program
@@ -635,7 +635,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideSingleLineDocComment_2()
         {
             var code = @"class Program
@@ -660,7 +660,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideMultiLineDocComment_1()
         {
             var code = @"class Program
@@ -685,7 +685,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideMultiLineDocComment_2()
         {
             var code = @"class Program
@@ -712,7 +712,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideMultiLineDocComment_3()
         {
             var code = @"class Program
@@ -739,7 +739,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideInactiveCode()
         {
             var code = @"class Program
@@ -770,7 +770,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideStringLiteral()
         {
             var code = @"class Program
@@ -793,7 +793,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideCharLiteral()
         {
             var code = @"class Program
@@ -816,7 +816,7 @@ class Program
 
         [WorkItem(449)]
         [WorkItem(1077103)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void NoFormattingInsideCommentsOfPreprocessorDirectives()
         {
             var code = @"class Program
@@ -843,7 +843,7 @@ class Program
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ColonInSwitchCase()
         {
             var code = @"class Program
@@ -874,7 +874,7 @@ class Program
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ColonInDefaultSwitchCase()
         {
             var code = @"class Program
@@ -907,7 +907,7 @@ class Program
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void ColonInLabeledStatement()
         {
             var code = @"class Program
@@ -930,7 +930,7 @@ class Program
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInTargetAttribute()
         {
             var code = @"using System;
@@ -949,7 +949,7 @@ class C : Attribute
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInBaseList()
         {
             var code = @"class C   :$$   Attribute
@@ -964,7 +964,7 @@ class C : Attribute
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInThisConstructor()
         {
             var code = @"class Foo
@@ -993,7 +993,7 @@ class C : Attribute
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInConditionalOperator()
         {
             var code = @"class Program
@@ -1016,7 +1016,7 @@ class C : Attribute
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInArgument()
         {
             var code = @"class Program
@@ -1039,7 +1039,7 @@ class C : Attribute
 
         [WorkItem(464)]
         [WorkItem(908729)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatColonInTypeParameter()
         {
             var code = @"class Program<T>
@@ -1063,7 +1063,7 @@ class C : Attribute
         }
 
         [WorkItem(2224, "https://github.com/dotnet/roslyn/issues/2224")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DontSmartFormatBracesOnSmartIndentNone()
         {
             var code = @"class Program<T>
@@ -1084,7 +1084,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void StillAutoIndentCloseBraceWhenFormatOnCloseBraceIsOff()
         {
@@ -1116,7 +1116,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected, optionSet);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly1()
         {
             var code = @"namespace ConsoleApplication1
@@ -1140,7 +1140,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly2()
         {
             var code = @"namespace ConsoleApplication1
@@ -1160,7 +1160,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatIncompleteBlockOnSingleLineIfNotTypingCloseCurly3()
         {
             var code = @"namespace ConsoleApplication1
@@ -1180,7 +1180,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly1()
         {
             var code = @"namespace ConsoleApplication1
@@ -1202,7 +1202,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DoNotFormatCompleteBlockOnSingleLineIfTypingCloseCurly2()
         {
             var code = @"namespace ConsoleApplication1
@@ -1220,7 +1220,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly1()
         {
             var code = @"namespace ConsoleApplication1
@@ -1246,7 +1246,7 @@ class C : Attribute
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatIncompleteBlockOnMultipleLinesIfTypingCloseCurly2()
         {
             var code = @"namespace ConsoleApplication1

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
 Public Class DiagnosticAnalyzerDriverTests
-    <Fact>
+    <WpfFact>
     Public Sub DiagnosticAnalyzerDriverAllInOne()
         Dim source = TestResource.AllInOneVisualBasicCode
         Dim analyzer = New BasicTrackingDiagnosticAnalyzer()
@@ -24,7 +24,7 @@ Public Class DiagnosticAnalyzerDriverTests
         End Using
     End Sub
 
-    <Fact, WorkItem(908658)>
+    <WpfFact, WorkItem(908658)>
     Public Sub DiagnosticAnalyzerDriverVsAnalyzerDriverOnCodeBlock()
         Dim methodNames As String() = {"Initialize", "AnalyzeCodeBlock"}
         Dim source = <file><![CDATA[
@@ -58,7 +58,7 @@ End Class
         End Using
     End Sub
 
-    <Fact>
+    <WpfFact>
     <WorkItem(759)>
     Public Sub DiagnosticAnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         Dim source = TestResource.AllInOneVisualBasicCode
@@ -70,7 +70,7 @@ End Class
     End Sub
 
     <WorkItem(908621)>
-    <Fact>
+    <WpfFact>
     Public Sub DiagnosticServiceIsSafeAgainstAnalyzerExceptions()
         Dim analyzer = New ThrowingDiagnosticAnalyzer(Of SyntaxKind)()
         analyzer.ThrowOn(GetType(DiagnosticAnalyzer).GetProperties().Single().Name)
@@ -82,7 +82,7 @@ End Class
         diagnosticService.GetDiagnosticDescriptors(projectOpt:=Nothing)
     End Sub
 
-    <Fact>
+    <WpfFact>
     Public Sub AnalyzerOptionsArePassedToAllAnalyzers()
         Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromFile(TestResource.AllInOneVisualBasicCode)
             Dim currentProject = workspace.CurrentSolution.Projects.Single()

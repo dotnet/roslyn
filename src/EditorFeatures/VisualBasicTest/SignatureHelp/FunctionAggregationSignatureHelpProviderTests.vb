@@ -1,6 +1,7 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
 
@@ -8,12 +9,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class FunctionAggregationSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
             Return New FunctionAggregationSignatureHelpProvider()
         End Function
 
         <WorkItem(529682)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub AggregateFunctionInAggregateClause()
             Dim markup = <Text><![CDATA[
 Imports System.Linq
@@ -34,7 +39,7 @@ End Module
 
 #Region "EditorBrowsable tests"
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_FunctionAggregation_BrowsableStateAlways()
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -73,7 +78,7 @@ End Module
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_FunctionAggregation_BrowsableStateNever()
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -112,7 +117,7 @@ End Module
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_FunctionAggregation_BrowsableStateAdvanced()
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic
@@ -160,7 +165,7 @@ End Module
         End Sub
 
         <WorkItem(7336, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_FunctionAggregation_BrowsableStateMixed()
             Dim markup = <Text><![CDATA[
 Imports System.Collections.Generic

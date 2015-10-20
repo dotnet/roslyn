@@ -4,6 +4,10 @@ using System.IO;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -283,6 +287,48 @@ namespace RoslynYield
     }
 }";
             CompileAndVerify(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(5390, "https://github.com/dotnet/roslyn/issues/5390")]
+        public void TopLevelYieldReturn()
+        {
+            // The imcomplete statement is intended
+            var text =
+@"yield return int.";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Script);
+            comp.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 18),
+                                   Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 18),
+                                   Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
+                                   Diagnostic(ErrorCode.ERR_NoSuchMember, "").WithArguments("int", "").WithLocation(1, 18));
+
+            var tree = comp.SyntaxTrees[0];     
+            var yieldNode = (YieldStatementSyntax)tree.GetRoot().DescendantNodes().Where(n => n is YieldStatementSyntax).SingleOrDefault();
+
+            Assert.NotNull(yieldNode);
+            Assert.Equal(SyntaxKind.YieldReturnStatement, yieldNode.Kind());
+
+            var model = comp.GetSemanticModel(tree);          
+            var typeInfo = model.GetTypeInfo(yieldNode.Expression);
+
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+        }
+
+        [Fact]
+        [WorkItem(5390, "https://github.com/dotnet/roslyn/issues/5390")]
+        public void TopLevelYieldBreak()
+        {
+            var text =
+@"yield break;";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Script);
+            comp.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
+                                   Diagnostic(ErrorCode.WRN_UnreachableCode, "yield").WithLocation(1, 1));
+
+            var tree = comp.SyntaxTrees[0];
+            var yieldNode = (YieldStatementSyntax)tree.GetRoot().DescendantNodes().Where(n => n is YieldStatementSyntax).SingleOrDefault();
+
+            Assert.NotNull(yieldNode);
+            Assert.Equal(SyntaxKind.YieldBreakStatement, yieldNode.Kind()); 
         }
     }
 }

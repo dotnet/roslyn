@@ -1,4 +1,8 @@
 ﻿{
+  "supports": {
+    "net46.app": { },
+    "dnxcore50.app": { }
+  },
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.1-beta-23401",
     "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23401",
@@ -24,6 +28,7 @@
     "System.Runtime.Handles": "4.0.1-beta-23401",
     "System.Runtime.InteropServices": "4.0.21-beta-23401",
     "System.Runtime.Loader": "4.0.0-beta-23401",
+    "System.Runtime.Numerics": "4.0.1-beta-23401",
     "System.Runtime.Serialization.Json": "4.0.1-beta-23401",
     "System.Security.Cryptography.Algorithms": "4.0.0-beta-23401",
     "System.Text.Encoding": "4.0.11-beta-23401",
@@ -42,7 +47,7 @@
     }
   },
   "runtimes": {
-    "win7-x64": {},
-    "ubuntu.14.04-x64": {}
+    "win7-x64": { },
+    "ubuntu.14.04-x64": { }
   }
 }

@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         ''' <remarks></remarks>
         Public Class FlowAnalysis
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestExitSub()
                 Dim code = <text>Class Test
     Sub Test()
@@ -21,7 +21,7 @@ End Class</text>
                 ExpectExtractMethodToFail(code)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestExitFunction()
                 Dim code = <text>Class Test
     Function Test1() As Integer
@@ -36,7 +36,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540046)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestReturnStatement()
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -61,7 +61,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestDoBranch()
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -96,7 +96,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestDoBranchInvalidSelection()
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -131,7 +131,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestDoBranchWithContinue()
                 Dim code = <text>Class A
     Function Test1() As Integer
@@ -170,7 +170,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestInvalidSelectionLeftOfAssignment()
                 Dim code = <text>Class A
     Protected x As Integer = 1
@@ -193,7 +193,7 @@ End Class</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestInvalidSelectionOfArrayLiterals()
                 Dim code = <text>Class A
     Public Sub Test()
@@ -215,7 +215,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540154)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6313()
                 Dim code = <text>Imports System
 
@@ -247,7 +247,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540154)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6313_1()
                 Dim code = <text>Imports System
 
@@ -264,7 +264,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540154)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6313_2()
                 Dim code = <text>Imports System
 
@@ -281,7 +281,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540154)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6313_3()
                 Dim code = <text>Imports System
 
@@ -327,7 +327,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540154)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6313_4()
                 Dim code = <text>Imports System
 
@@ -385,7 +385,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540154)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6313_5()
                 Dim code = <text>Imports System
 
@@ -423,7 +423,7 @@ End Class</text>
             End Sub
 
             <WorkItem(540154), WorkItem(541484)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub BugFix6313_6()
                 Dim code = <text>Imports System
 
@@ -443,7 +443,7 @@ End Class</text>
             End Sub
 
             <WorkItem(543670)>
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub AnonymousLambdaInVarDecl()
                 Dim code = <text>Imports System
 
@@ -457,7 +457,7 @@ End Module</text>
                 ExpectExtractMethodToFail(code)
             End Sub
 
-            <Fact, WorkItem(531451), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, WorkItem(531451), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestInvalidSelectionNonExecutableStatementSyntax_01()
                 Dim code = <text>Module Program
     Sub Main(args As String())
@@ -478,7 +478,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, WorkItem(547156), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, WorkItem(547156), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestInvalidSelectionNonExecutableStatementSyntax_02()
                 Dim code = <text>Module Program
     Sub Main()
@@ -490,7 +490,7 @@ End Module</text>
                 ExpectExtractMethodToFail(code)
             End Sub
 
-            <Fact, WorkItem(530625), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, WorkItem(530625), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestUnreachableEndInFunction()
                 Dim code = <text>Module Program
     Function Foo() As Integer
@@ -521,7 +521,7 @@ End Module</text>
                 TestExtractMethod(code, expected)
             End Sub
 
-            <Fact, WorkItem(578066), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
+            <WpfFact, WorkItem(578066), Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Sub TestExitAsSupportedExitPoints()
                 Dim code = <text>Imports System.Threading
 Imports System.Threading.Tasks

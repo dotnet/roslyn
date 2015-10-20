@@ -470,5 +470,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert((char)GeneratedNameKind.ReusableHoistedLocalField == '7');
             return "<>7__wrap" + StringExtensions.GetNumeral(number);
         }
+
+        internal static string LambdaCopyParameterName(ParameterSymbol sourceParameter)
+        {
+            return "<" + sourceParameter.Name + ">";
+        }
     }
 }

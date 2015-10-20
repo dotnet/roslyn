@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -82,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return diagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
         }
 
-        protected override Diagnostic GetDiagnostic()
+        protected override DiagnosticData GetDiagnostic()
         {
-            return _fix.PrimaryDiagnostic;
+            return _fix.GetPrimaryDiagnosticData();
         }
 
         protected override SuggestedActionSet GetFixAllSuggestedActionSet()

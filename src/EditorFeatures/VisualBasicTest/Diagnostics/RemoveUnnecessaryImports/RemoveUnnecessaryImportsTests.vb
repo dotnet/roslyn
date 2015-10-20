@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Remove
             Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer(), New RemoveUnnecessaryImportsCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestProjectLevelMemberImport1()
             Test(
 NewLines("[|Imports System \n Module Program \n Sub Main(args As DateTime()) \n End Sub \n End Module|]"),
@@ -25,69 +25,69 @@ parseOptions:=TestOptions.Regular,
 compilationOptions:=TestOptions.ReleaseExe.WithGlobalImports({GlobalImport.Parse("System")}))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestProjectLevelMemberImport2()
             TestMissing(
 NewLines("[|Imports System \n Module Program \n Sub Main(args As DateTime()) \n End Sub \n End Module|]"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestNoImports()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module|]"),
 NewLines("Module Program \n Sub Main(args As String()) \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestSimpleTypeName()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim s As DateTime \n End Sub \n End Module|]"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim s As DateTime \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestGenericTypeName()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim s As List(Of Integer) \n End Sub \n End Module|]"),
 NewLines("Imports System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Dim s As List(Of Integer) \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestNamespaceName()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n Dim s As Collections.Generic.List(Of Integer) \n End Sub \n End Module|]"),
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim s As Collections.Generic.List(Of Integer) \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestAliasName()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports G = System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Dim s As G.List(Of Integer) \n End Sub \n End Module|]"),
 NewLines("Imports G = System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Dim s As G.List(Of Integer) \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestExtensionMethod()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Module Program \n Sub Main(args As String()) \n args.Where(Function(a) a.Length > 21) \n End Sub \n End Module|]"),
 NewLines("Imports System.Linq \n Module Program \n Sub Main(args As String()) \n args.Where(Function(a) a.Length > 21) \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestModuleMember()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Imports System.Linq \n Imports Foo \n Namespace Foo \n Public Module M \n Public Sub Bar(i As Integer) \n End Sub \n End Module \n End Namespace \n Module Program \n Sub Main(args As String()) \n Bar(0) \n End Sub \n End Module|]"),
 NewLines("Imports Foo \n Namespace Foo \n Public Module M \n Public Sub Bar(i As Integer) \n End Sub \n End Module \n End Namespace \n Module Program \n Sub Main(args As String()) \n Bar(0) \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestInvalidCodeRemovesImports()
             Test(
 NewLines("[|Imports System \n Imports System.Collections.Generic \n Module Program \n Sub Main() \n gibberish Dim lst As List(Of String) \n Console.WriteLine(""TEST"") \n End Sub \n End Module|]"),
 NewLines("Imports System \n Module Program \n Sub Main() \n gibberish Dim lst As List(Of String) \n Console.WriteLine(""TEST"") \n End Sub \n End Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestExcludedCodeIsIgnored()
             Test(
 NewLines("[|Imports System \n Module Program \n Sub Main() \n #If False Then \n Console.WriteLine(""TEST"") \n #End If \n End Sub \n End Module|]"),
@@ -95,7 +95,7 @@ NewLines("Module Program \n Sub Main() \n #If False Then \n Console.WriteLine(""
         End Sub
 
         <WorkItem(541744)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestCommentsAroundImportsStatement()
             Test(
 <Text>'c1
@@ -121,20 +121,20 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(541747)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestAttribute()
             TestMissing(
 NewLines("[|Imports SomeNamespace \n <SomeAttr> \n Class Foo \n End Class \n Namespace SomeNamespace \n Public Class SomeAttrAttribute \n Inherits Attribute \n End Class \n End Namespace|]"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestAttributeArgument()
             TestMissing(
 NewLines("[|Imports System \n Imports SomeNamespace \n <SomeAttribute(Foo.C)> \n Module Program \n Sub Main(args As String()) \n End Sub \n End Module \n Namespace SomeNamespace \n Public Enum Foo \n A \n B \n C \n End Enum \n End Namespace \n Public Class SomeAttribute \n Inherits Attribute \n Public Sub New(x As SomeNamespace.Foo) \n End Sub \n End Class|]"))
         End Sub
 
         <WorkItem(541757)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImportsSurroundedByDirectives()
             Test(
 NewLines("#If True Then \n [|Imports System.Collections.Generic \n #End If \n Module Program \n End Module|]"),
@@ -142,7 +142,7 @@ NewLines("#If True Then \n #End If \n Module Program \n End Module"))
         End Sub
 
         <WorkItem(541758)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemovingUnbindableImports()
             Test(
 NewLines("[|Imports gibberish \n Module Program \n End Module|]"),
@@ -150,7 +150,7 @@ NewLines("Module Program \n End Module"))
         End Sub
 
         <WorkItem(541744)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestPreservePrecedingComments()
             Test(
 <Text>' c1
@@ -168,7 +168,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(541757)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestDirective1()
             Test(
 <Text>#If True Then
@@ -186,7 +186,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(541757)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestDirective2()
             Test(
 <Text>#If True Then
@@ -208,7 +208,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(541932)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImportsClauseRemoval1()
             Test(
 NewLines("[|Imports System, foo, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
@@ -216,7 +216,7 @@ NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Ma
         End Sub
 
         <WorkItem(541932)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImportsClauseRemoval2()
             Test(
 NewLines("[|Imports System, System.Collections.Generic, foo \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
@@ -224,7 +224,7 @@ NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Ma
         End Sub
 
         <WorkItem(541932)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImportsClauseRemoval3()
             Test(
 NewLines("[|Imports foo, System, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
@@ -232,7 +232,7 @@ NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Ma
         End Sub
 
         <WorkItem(541758)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestUnbindableNamespace()
             Test(
 NewLines("[|Imports gibberish \n Module Program \n End Module|]"),
@@ -240,7 +240,7 @@ NewLines("Module Program \n End Module"))
         End Sub
 
         <WorkItem(541780)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemoveClause()
             Test(
 NewLines("[|Imports System, foo, System.Collections.Generic \n Module Program \n Sub Main(args As String()) \n Console.WriteLine(""TEST"") \n Dim q As List(Of Integer) \n End Sub \n End Module \n Namespace foo \n Class bar \n End Class \n End Namespace|]"),
@@ -248,14 +248,14 @@ NewLines("Imports System, System.Collections.Generic \n Module Program \n Sub Ma
         End Sub
 
         <WorkItem(528603)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemoveClauseWithExplicitLC1()
             Test(
 NewLines("[|Imports A _ \n , B \n Module Program \n Sub Main(args As String()) \n Dim q As CA \n End Sub \n End Module \n Namespace A \n Public Class CA \n End Class \n End Namespace \n Namespace B \n Public Class CB \n End Class \n End Namespace|]"),
 NewLines("Imports A \n Module Program \n Sub Main(args As String()) \n Dim q As CA \n End Sub \n End Module \n Namespace A \n Public Class CA \n End Class \n End Namespace \n Namespace B \n Public Class CB \n End Class \n End Namespace"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemoveClauseWithExplicitLC2()
             Test(
 NewLines("[|Imports B _ \n , A \n Module Program \n Sub Main(args As String()) \n Dim q As CA \n End Sub \n End Module \n Namespace A \n Public Class CA \n End Class \n End Namespace \n Namespace B \n Public Class CB \n End Class \n End Namespace|]"),
@@ -263,7 +263,7 @@ NewLines("Imports A \n Module Program \n Sub Main(args As String()) \n Dim q As 
         End Sub
 
         <WorkItem(528603)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemoveClauseWithExplicitLC3()
             Test(
 <Text>[|Imports A _
@@ -317,7 +317,7 @@ End Namespace</Text>.NormalizedValue,
 compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestTypeImports()
             Test(
 <Text>[|Imports Foo
@@ -344,7 +344,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(528603)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestTypeImports_DoesNotRemove()
             TestMissing(
 <Text>[|Imports Foo
@@ -363,7 +363,7 @@ End Class|]</Text>.NormalizedValue, parseOptions:=Nothing)
             ' TODO: Enable testing in script when it comes online
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestAlias()
             Test(
 <Text>[|Imports F = SomeNS
@@ -389,7 +389,7 @@ End Namespace</Text>.NormalizedValue,
 compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestAlias_DoesNotRemove()
             TestMissing(
 <Text>[|Imports F = SomeNS
@@ -408,7 +408,7 @@ End Namespace|]</Text>.NormalizedValue)
 
         <WorkItem(541809)>
         <WorkItem(16488, "DevDiv_Projects/Roslyn")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImportsOnSameLine1()
             Test(
 <Text>[|Imports A : Imports B
@@ -448,7 +448,7 @@ End Namespace</Text>.NormalizedValue,
 compareTokens:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImportsOnSameLine2()
             Test(
 <Text>[|Imports A : Imports B
@@ -503,21 +503,21 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(541808)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestTypeImport1()
             TestMissing(
 NewLines("[|Imports Foo \n Module Program \n Sub Main() \n Bar() \n End Sub \n End Module \n Public Class Foo \n Shared Sub Bar() \n End Sub \n End Class|]"),
 parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestTypeImport2()
             TestMissing(
 NewLines("[|Imports Foo \n Module Program \n Sub Main() \n Dim q As Integer = Bar \n End Sub \n End Module \n Public Class Foo \n Public Shared Bar As Integer \n End Sub \n End Class|]"),
 parseOptions:=Nothing) 'TODO (tomat): modules not yet supported in script
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestUnusedTypeImportIsRemoved()
             Test(
 <Text>[|Imports SomeNS.Foo
@@ -544,7 +544,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(528643)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestExtensionMethodLinq()
             ' TODO: Enable script context testing.
 
@@ -575,7 +575,7 @@ End Namespace|]</Text>.NormalizedValue, parseOptions:=TestOptions.Regular)
         End Sub
 
         <WorkItem(543217)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestExtensionMethodLinq2()
             TestMissing(
 <Text>[|Imports System.Collections.Generic
@@ -597,7 +597,7 @@ End Module
         End Sub
 
         <WorkItem(542135)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImportedTypeUsedAsGenericTypeArgument()
             TestMissing(
 <Text>[|Imports GenericThingie
@@ -620,7 +620,7 @@ End Class|]</Text>.NormalizedValue)
         End Sub
 
         <WorkItem(542132)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemoveSuperfluousNewLines1()
             Test(
 <Text>[|Imports System
@@ -641,7 +641,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(542132)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemoveSuperfluousNewLines2()
             Test(
 <Text><![CDATA[[|Imports System
@@ -669,7 +669,7 @@ compareTokens:=False)
         End Sub
 
         <WorkItem(542895)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub RegressionFor10326()
             Test(
 NewLines("[|Imports System.ComponentModel \n <Foo(GetType(Category))> \n Class Category \n End Class|]"),
@@ -677,7 +677,7 @@ NewLines("<Foo(GetType(Category))> \n Class Category \n End Class"))
         End Sub
 
         <WorkItem(712656)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemovalSpan1()
             TestSpans(
 <text>    [|Imports System
@@ -692,7 +692,7 @@ End Namespace</text>.NormalizedValue)
 
         <WorkItem(545434)>
         <WorkItem(712656)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemovalSpan2()
             TestSpans(
 <text>
@@ -708,7 +708,7 @@ Imports System.Runtime.InteropServices|]</text>.NormalizedValue,
         End Sub
 
         <WorkItem(712656)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestRemovalSpan3()
             Test(
 <text>
@@ -725,7 +725,7 @@ Class C : Dim x As Action : End Class</text>.NormalizedValue)
         End Sub
 
         <WorkItem(545831)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestImplicitElementAtOrDefault()
             Test(
 <Text><![CDATA[[|Option Strict On
@@ -796,7 +796,7 @@ End Namespace]]></Text>.NormalizedValue)
         End Sub
 
         <WorkItem(545964)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Sub TestMissingOnSynthesizedEventType()
             TestMissing(
 NewLines("[|Class C \n Event E() \n End Class|]"))

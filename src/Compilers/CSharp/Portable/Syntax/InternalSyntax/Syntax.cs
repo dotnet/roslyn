@@ -92,10 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 return SyntaxTrivia.Create(SyntaxKind.MultiLineCommentTrivia, text);
             }
-            else if (text.StartsWith("#", StringComparison.Ordinal))
-            {
-                return SyntaxTrivia.Create(SyntaxKind.ShebangTrivia, text);
-            }
             else
             {
                 return SyntaxTrivia.Create(SyntaxKind.SingleLineCommentTrivia, text);
