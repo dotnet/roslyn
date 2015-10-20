@@ -168,6 +168,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                   label('windows-roslyn')
                   steps {
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
 set TMP=%TEMP%
 .\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
