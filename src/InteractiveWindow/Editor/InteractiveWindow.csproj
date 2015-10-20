@@ -11,10 +11,6 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.InteractiveWindow</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.InteractiveWindow</AssemblyName>
-    <!-- TODO -->
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
