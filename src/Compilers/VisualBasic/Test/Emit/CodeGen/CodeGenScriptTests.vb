@@ -398,6 +398,20 @@ System.Console.Write("complete")
 }")
         End Sub
 
+        <Fact>
+        Public Sub ScriptEntryPoint_MissingMethods()
+            Dim comp = CreateCompilationWithMscorlib(
+                <compilation>
+                    <file name="a.vbx"><![CDATA[
+System.Console.WriteLine(1)
+]]></file>
+                </compilation>,
+                parseOptions:=TestOptions.Script,
+                options:=TestOptions.DebugExe)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_MissingRuntimeHelper).WithArguments("Task.GetAwaiter").WithLocation(1, 1))
+        End Sub
+
     End Class
 End Namespace
 

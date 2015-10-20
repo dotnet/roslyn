@@ -38,6 +38,17 @@ namespace Microsoft.CodeAnalysis
         /// command line were resolved against.
         /// </remarks>
         public string BaseDirectory { get; internal set; }
+        
+        /// <summary>
+        /// A list of pairs of paths. This stores the value of the command-line compiler
+        /// option /pathMap:X1=Y1;X2=Y2... which causes a prefix of X1 followed by a path
+        /// separator to be replaced by Y1 followed by a path separator, and so on for each following pair.
+        /// </summary>
+        /// <remarks>
+        /// This option is used to help get build-to-build determinism even when the build
+        /// directory is different from one build to the next.  The prefix matching is case sensitive.
+        /// </remarks>
+        public ImmutableArray<KeyValuePair<string, string>> PathMap { get; internal set; }
 
         /// <summary>
         /// Sequence of absolute paths used to search for references.
