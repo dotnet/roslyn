@@ -887,19 +887,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                symbol As Symbol) As Boolean
             Debug.Assert(Me.DeclaringCompilation.EventQueue IsNot Nothing)
 
+            Dim change As Boolean = False
             SyncLock _diagnosticLock
-                Dim change = (variable And mask) = comparand
+                change = (variable And mask) = comparand
                 If change Then
-                    Me.DeclaringCompilation.SymbolDeclaredEvent(symbol)
-
                     If Not ThreadSafeFlagOperations.Set(variable, mask) Then
                         ' If this gets hit, then someone wrote to variable without going through this
                         ' routine, which is a bug.
                         Throw ExceptionUtilities.Unreachable
                     End If
                 End If
-                Return change
             End SyncLock
+
+            If change Then
+                ' Invoke the symbol declared event outside the lock.
+                ' Task scheduler might decide to inline the event processing, which can call back into analyzers,
+                ' and we don't want that to happen while holding onto _diagnosticLock.
+                ' See https://github.com/dotnet/roslyn/issues/6098
+                Me.DeclaringCompilation.SymbolDeclaredEvent(symbol)
+            End If
+
+            Return change
         End Function
 
         Friend Function AtomicStoreArrayAndDiagnostics(Of T)(ByRef variable As ImmutableArray(Of T),
