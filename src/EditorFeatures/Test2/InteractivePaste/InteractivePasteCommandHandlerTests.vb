@@ -1,8 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Text
-Imports System.Windows
-Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports System.WindowsImports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
