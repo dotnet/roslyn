@@ -20,6 +20,7 @@
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <RestorePackages>true</RestorePackages>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">

@@ -22,6 +22,7 @@
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <RestorePackages>true</RestorePackages>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
