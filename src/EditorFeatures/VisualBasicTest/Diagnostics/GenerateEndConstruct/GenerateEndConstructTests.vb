@@ -269,11 +269,30 @@ End Class</File>
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
-        Public Sub TestWriteonlyProperty()
+        Public Sub TestWriteOnlyProperty()
             Dim text = <File>
 Class C
     WriteOnly Property P As Integer[||]
         Set
+End Class</File>
+
+            Dim expected = <File>
+Class C
+    WriteOnly Property P As Integer
+        Set
+        End Set
+    End Property
+End Class</File>
+
+            Test(text.ConvertTestSourceTag(), expected.ConvertTestSourceTag(), compareTokens:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEndConstruct)>
+        Public Sub TestWriteOnlyPropertyFromSet()
+            Dim text = <File>
+Class C
+    WriteOnly Property P As Integer
+        Set[||]
 End Class</File>
 
             Dim expected = <File>
