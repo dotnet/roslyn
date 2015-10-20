@@ -50,13 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             get { return s_parseOptions; }
         }
 
-        protected override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver)
+        protected override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver, ImmutableArray<string> imports)
         {
             return new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 scriptClassName: name,
                 allowUnsafe: true,
                 xmlReferenceResolver: null, // no support for permission set and doc includes in interactive
+                usings: imports,
                 sourceReferenceResolver: sourceReferenceResolver,
                 metadataReferenceResolver: metadataReferenceResolver,
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);

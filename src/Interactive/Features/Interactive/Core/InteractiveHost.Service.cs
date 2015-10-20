@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var currentWorkingDirectory = Directory.GetCurrentDirectory();
 
                 var changedSourcePaths = currentSourcePaths.SequenceEqual(state.SourceSearchPaths) ? null : currentSourcePaths;
-                var changedReferencePaths = currentSourcePaths.SequenceEqual(state.ReferenceSearchPaths) ? null : currentReferencePaths;
+                var changedReferencePaths = currentReferencePaths.SequenceEqual(state.ReferenceSearchPaths) ? null : currentReferencePaths;
                 var changedWorkingDirectory = currentWorkingDirectory == state.WorkingDirectory ? null : currentWorkingDirectory;
 
                 operation.Completed(new RemoteExecutionResult(success, changedSourcePaths, changedReferencePaths, changedWorkingDirectory));
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // The base directory for relative paths is the directory that contains the .rsp file.
                         // Note that .rsp files included by this .rsp file will share the base directory (Dev10 behavior of csc/vbc).
                         var rspDirectory = Path.GetDirectoryName(initializationFileOpt);
-                        var args = parser.Parse(new[] { "@" + initializationFileOpt }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null /* TODO: pass a valid value*/);
+                        var args = parser.Parse(new[] { "@" + initializationFileOpt }, rspDirectory, RuntimeEnvironment.GetRuntimeDirectory(), null);
 
                         foreach (var error in args.Errors)
                         {
@@ -602,16 +602,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         if (args.Errors.Length == 0)
                         {
-                            // TODO (tomat): other arguments
-                            // TODO (tomat): parse options
-
                             var metadataResolver = CreateMetadataReferenceResolver(args.ReferencePaths, rspDirectory);
-
-                            _globals.ReferencePaths.Clear();
-                            _globals.ReferencePaths.AddRange(args.ReferencePaths);
-
-                            _globals.SourcePaths.Clear();
-
+                            var sourceResolver = CreateSourceReferenceResolver(args.SourcePaths, rspDirectory);
+                            
                             var metadataReferences = new List<PortableExecutableReference>();
                             foreach (CommandLineReference cmdLineReference in args.MetadataReferences)
                             {
@@ -625,37 +618,38 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 }
                             }
 
-                            // only search for scripts next to the .rsp file:
-                            var sourceSearchPaths = ImmutableArray<string>.Empty;
+                            var scriptPathOpt = args.SourceFiles.IsEmpty ? null : args.SourceFiles[0].Path;
 
                             var rspState = new EvaluationState(
                                 state.ScriptStateOpt,
-                                state.ScriptOptions.AddReferences(metadataReferences),
-                                sourceSearchPaths,
+                                state.ScriptOptions.
+                                    WithFilePath(scriptPathOpt).
+                                    WithReferences(metadataReferences).
+                                    WithImports(CommandLineHelpers.GetImports(args)).
+                                    WithMetadataResolver(metadataResolver).
+                                    WithSourceResolver(sourceResolver),
+                                args.SourcePaths,
                                 args.ReferencePaths,
                                 rspDirectory);
 
-                            foreach (CommandLineSourceFile file in args.SourceFiles)
-                            {
-                                // execute all files as scripts (matches csi/vbi semantics)
+                            _globals.ReferencePaths.Clear();
+                            _globals.ReferencePaths.AddRange(args.ReferencePaths);
 
-                                string fullPath = ResolveRelativePath(file.Path, rspDirectory, sourceSearchPaths, displayPath: true);
-                                if (fullPath != null)
+                            _globals.SourcePaths.Clear();
+                            _globals.SourcePaths.AddRange(args.SourcePaths);
+
+                            _globals.Args.AddRange(args.ScriptArguments);
+
+                            if (scriptPathOpt != null)
+                            {
+                                var newScriptState = await ExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
+                                if (newScriptState != null)
                                 {
-                                    var newScriptState = await ExecuteFileAsync(rspState, fullPath).ConfigureAwait(false);
-                                    if (newScriptState != null)
-                                    {
-                                        rspState = rspState.WithScriptState(newScriptState);
-                                    }
+                                    rspState = rspState.WithScriptState(newScriptState);
                                 }
                             }
 
-                            state = new EvaluationState(
-                                rspState.ScriptStateOpt,
-                                rspState.ScriptOptions,
-                                ImmutableArray<string>.Empty,
-                                args.ReferencePaths,
-                                state.WorkingDirectory);
+                            state = rspState;
                         }
                     }
 
