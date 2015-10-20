@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var isNonGeneric = !_topLevelMethod.IsGenericMethod;
                 if (isNonGeneric)
                 {
-                    _lazyStaticLambdaFrame = CompilationState.staticLambdaFrame;
+                    _lazyStaticLambdaFrame = CompilationState.StaticLambdaFrame;
                 }
 
                 if (_lazyStaticLambdaFrame == null)
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // non-generic static lambdas can share the frame
                     if (isNonGeneric)
                     {
-                        CompilationState.staticLambdaFrame = _lazyStaticLambdaFrame;
+                        CompilationState.StaticLambdaFrame = _lazyStaticLambdaFrame;
                     }
 
                     var frame = _lazyStaticLambdaFrame;
