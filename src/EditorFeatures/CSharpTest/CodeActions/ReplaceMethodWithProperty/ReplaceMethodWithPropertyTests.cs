@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public void TestMethodWithArrowBody()
         {
             Test(
