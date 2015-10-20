@@ -855,6 +855,72 @@ typeof(C).Assembly.GetName()");
         }
 
         [Fact]
+        public void DefaultUsings()
+        {
+            var rspFile = Temp.CreateFile();
+            rspFile.WriteAllText(@"
+/r:System
+/r:System.Core
+/r:Microsoft.CSharp
+/u:System
+/u:System.IO
+/u:System.Collections.Generic
+/u:System.Diagnostics
+/u:System.Dynamic
+/u:System.Linq
+/u:System.Linq.Expressions
+/u:System.Text
+/u:System.Threading.Tasks
+");
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
+            Execute(@"
+dynamic d = new ExpandoObject();
+Process p = new Process();
+Expression<Func<int>> e = () => 1;
+var squares = from x in new[] { 1, 2, 3 } select x * x;
+var sb = new StringBuilder();
+var list = new List<int>();
+var stream = new MemoryStream();
+await Task.Delay(10);
+
+Console.Write(""OK"")
+");
+
+            Assert.Equal("", ReadErrorOutputToEnd());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+OK
+", ReadOutputToEnd());
+        }
+
+        [Fact]
+        public void ScriptAndArguments()
+        {
+            var scriptFile = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
+
+            var rspFile = Temp.CreateFile();
+            rspFile.WriteAllText($@"
+{scriptFile}
+a
+b
+c
+");
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
+            Assert.Equal("", ReadErrorOutputToEnd());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
+""a""
+""b""
+""c""
+", ReadOutputToEnd());
+        }
+
+
+        [Fact]
         public void ReferenceDirectives()
         {
             Execute(@"
