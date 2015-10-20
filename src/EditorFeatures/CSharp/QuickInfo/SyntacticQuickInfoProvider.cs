@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
             SyntaxTrivia nearbyComment;
 
             var searchListAbove = openBrace.LeadingTrivia.Reverse();
-            if (FindFurthestNearbyComment(ref searchListAbove, out nearbyComment))
+            if (TryFindFurthestNearbyComment(ref searchListAbove, out nearbyComment))
             {
                 spanStart = nearbyComment.SpanStart;
                 return;
@@ -102,14 +102,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
             var nextToken = block.FindToken(openBrace.FullSpan.End);
             var searchListBelow = nextToken.LeadingTrivia;
-            if (FindFurthestNearbyComment(ref searchListBelow, out nearbyComment))
+            if (TryFindFurthestNearbyComment(ref searchListBelow, out nearbyComment))
             {
                 spanEnd = nearbyComment.Span.End;
                 return;
             }
         }
 
-        private static bool FindFurthestNearbyComment<T>(ref T triviaSearchList, out SyntaxTrivia nearbyTrivia)
+        private static bool TryFindFurthestNearbyComment<T>(ref T triviaSearchList, out SyntaxTrivia nearbyTrivia)
             where T : IEnumerable<SyntaxTrivia>
         {
             nearbyTrivia = default(SyntaxTrivia);
