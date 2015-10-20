@@ -68,7 +68,6 @@
     <Content Include="Resources\ReplToolBarImages.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BufferBlock.cs" />
     <Compile Include="Commands\CancelExecutionCommand.cs" />
     <Compile Include="Commands\ClearScreenCommand.cs" />
     <Compile Include="Commands\CommandClassifier.cs" />
@@ -98,7 +97,6 @@
     <Compile Include="InteractiveWindow.SystemClipboard.cs" />
     <Compile Include="ProjectionBufferExtensions.cs" />
     <Compile Include="InteractiveWindow.PendingSubmission.cs" />
-    <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
     <Compile Include="InteractiveWindow.EditResolver.cs" />
     <Compile Include="InteractiveWindow.State.cs" />
     <Compile Include="InteractiveWindow.UIThreadOnly.cs" />
@@ -142,6 +140,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

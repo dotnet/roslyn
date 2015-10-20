@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow
@@ -607,9 +608,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     InsertCode(format);
                 }
-                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
+                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormats.Interactive))
                 {
-                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
+                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormats.Interactive));
                     // Paste each block separately.
                     foreach (var block in blocks)
                     {
@@ -2534,7 +2535,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     data.SetData(DataFormats.Rtf, rtf);
                 }
-                data.SetData(ClipboardFormat, blocks);
+                data.SetData(ClipboardFormats.Interactive, blocks);
                 return data;
             }
 

@@ -21,6 +21,10 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
+      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
+      <Name>EditorFeatures</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
       <Name>ServicesTestUtilities</Name>

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -776,7 +777,7 @@ System.Console.WriteLine();",
             data.SetData(DataFormats.StringFormat, text);
             if (includeRepl)
             {
-                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
+                data.SetData(ClipboardFormats.Interactive, BufferBlock.Serialize(blocks));
             }
             _testClipboard.SetDataObject(data, false);
         }
@@ -1531,7 +1532,7 @@ System.Console.WriteLine();",
             Assert.Equal(expectedText, data?.GetData(DataFormats.StringFormat));
             Assert.Equal(expectedText, data?.GetData(DataFormats.Text));
             Assert.Equal(expectedText, data?.GetData(DataFormats.UnicodeText));
-            Assert.Equal(expectedRepl, (string)data?.GetData(InteractiveWindow.ClipboardFormat));
+            Assert.Equal(expectedRepl, (string)data?.GetData(ClipboardFormats.Interactive));
             var actualRtf = (string)data?.GetData(DataFormats.Rtf);
             if (expectedRtf == null)
             {

@@ -3,12 +3,6 @@
 using System;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Windows.Threading;
-using Microsoft.VisualStudio.Language.Intellisense.Utilities;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Test.Utilities;
 
