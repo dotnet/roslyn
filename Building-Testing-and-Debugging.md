@@ -2,7 +2,7 @@
 _This page contains instructions for building Roslyn on Windows. For special instructions on **building Roslyn on Linux** see [here](https://github.com/dotnet/roslyn/blob/master/docs/infrastructure/cross-platform.md)._
 
 ## Known Issues
-Please see the [known contributor issues](https://github.com/dotnet/roslyn/labels/Known%20Contributor%20Issue) that you might encounter contributing to Roslyn. If you issue isn't listed, please file it.
+Please see the [known contributor issues](https://github.com/dotnet/roslyn/labels/Contributor%20Pain) that you might encounter contributing to Roslyn. If you issue isn't listed, please file it.
 
 ## Required Software
 
