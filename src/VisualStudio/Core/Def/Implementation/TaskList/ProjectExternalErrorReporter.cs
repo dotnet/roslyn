@@ -209,7 +209,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             if (id != null)
             {
                 // save error line/column (surface buffer location) as mapped line/column so that we can display
-                // right location on closed venus file.
+                // right location on closed Venus file.
                 return GetDiagnosticData(
                     id, GetErrorId(error), error.bstrText, GetDiagnosticSeverity(error),
                     null, error.iLine, error.iCol, error.iLine, error.iCol, error.bstrFileName, line, column, line, column);

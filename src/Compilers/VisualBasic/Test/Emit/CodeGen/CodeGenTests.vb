@@ -13247,7 +13247,9 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <Fact(Skip:="Flaky Test"), WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6077")>
+        <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
+        <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
             Dim source =
 $"
@@ -13271,7 +13273,7 @@ End Class
             Dim builder = New System.Text.StringBuilder()
             Dim i As Integer
 
-            For i = 0 To 4095
+            For i = 0 To 8192 - 1
                 builder.Append("a(")
                 builder.Append(i)
                 builder.Append(")")
@@ -13359,7 +13361,7 @@ End Class
 5180801")
         End Sub
 
-        <Fact(Skip:="Flaky Test"), WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <Fact, WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
 $"
@@ -13401,6 +13403,74 @@ End Structure
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16),
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
                 )
+        End Sub
+
+
+        <Fact()>
+        Public Sub InplaceCtorUsesLocal()
+            Dim c = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+
+        <![CDATA[
+
+Module Module1
+    Private arr As S1() = New S1(1) {}
+
+    Structure S1
+        Public a, b As Integer
+
+        Public Sub New(a As Integer, b As Integer)
+            Me.a = a
+            Me.b = b
+        End Sub
+
+        Public Sub New(a As Integer)
+            Me.a = a
+        End Sub
+
+    End Structure
+
+    Sub Main()
+        Dim arg = System.Math.Max(1, 2)
+        Dim val = New S1(arg, arg)
+        arr(0) = val
+        System.Console.WriteLine(arr(0).a)
+    End Sub
+End Module
+
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe,
+                expectedOutput:="2")
+
+            c.VerifyIL("Module1.Main",
+            <![CDATA[
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (Integer V_0, //arg
+                Module1.S1 V_1) //val
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       "Function System.Math.Max(Integer, Integer) As Integer"
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       "Sub Module1.S1..ctor(Integer, Integer)"
+  IL_0011:  ldsfld     "Module1.arr As Module1.S1()"
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.1
+  IL_0018:  stelem     "Module1.S1"
+  IL_001d:  ldsfld     "Module1.arr As Module1.S1()"
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldelema    "Module1.S1"
+  IL_0028:  ldfld      "Module1.S1.a As Integer"
+  IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0032:  ret
+}
+]]>)
         End Sub
 
     End Class

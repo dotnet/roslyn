@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
                 new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer(), new RemoveUnnecessaryUsingsCodeFixProvider());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestNoReferences()
         {
             Test(
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"class Program { static void Main ( string [ ] args ) { } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestIdentifierReferenceInTypeContext()
         {
             Test(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestGenericReferenceInTypeContext()
         {
             Test(
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { List < int > list ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestMultipleReferences()
         {
             Test(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
 @"using System ; using System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { List < int > list ; DateTime d ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestExtensionMethodReference()
         {
             Test(
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.RemoveUnnec
         }
 
         [WorkItem(541827)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestExtensionMethodLinq()
         {
             // NOTE: Intentionally not running this test with Script options, because in Script,
@@ -99,7 +99,7 @@ namespace SomeNS
 }|]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestAliasQualifiedAliasReference()
         {
             Test(
@@ -107,7 +107,7 @@ namespace SomeNS
 @"using G = System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { G :: List < int > list ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestQualifiedAliasReference()
         {
             Test(
@@ -115,7 +115,7 @@ namespace SomeNS
 @"using G = System . Collections . Generic ; class Program { static void Main ( string [ ] args ) { G . List < int > list ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestNestedUnusedUsings()
         {
             Test(
@@ -123,7 +123,7 @@ namespace SomeNS
 @"namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestNestedUsedUsings()
         {
             Test(
@@ -132,7 +132,7 @@ namespace SomeNS
         }
 
         [WorkItem(712656)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestNestedUsedUsings2()
         {
             Test(
@@ -140,21 +140,21 @@ namespace SomeNS
 @"using System ; namespace N { using System ; class Program { static void Main ( string [ ] args ) { DateTime d ; } } } class F { DateTime d ; } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestAttribute()
         {
             TestMissing(
 @"[|using SomeNamespace ; [ SomeAttr ] class Foo { } namespace SomeNamespace { public class SomeAttrAttribute : System . Attribute { } } |]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestAttributeArgument()
         {
             TestMissing(
 @"[|using foo ; [ SomeAttribute ( typeof ( SomeClass ) ) ] class Program { static void Main ( ) { } } public class SomeAttribute : System . Attribute { public SomeAttribute ( object f ) { } } namespace foo { public class SomeClass { } } |]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveAllWithSurroundingPreprocessor()
         {
             Test(
@@ -185,7 +185,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveFirstWithSurroundingPreprocessor()
         {
             Test(
@@ -219,7 +219,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveAllWithSurroundingPreprocessor2()
         {
             Test(
@@ -256,7 +256,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveOneWithSurroundingPreprocessor2()
         {
             Test(
@@ -297,7 +297,7 @@ compareTokens: false);
         }
 
         [WorkItem(541817)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestComments8718()
         {
             Test(
@@ -354,7 +354,7 @@ compareTokens: false);
         }
 
         [WorkItem(528609)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestComments()
         {
             Test(
@@ -378,7 +378,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestUnusedUsing()
         {
             Test(
@@ -400,7 +400,7 @@ compareTokens: false);
         }
 
         [WorkItem(541827)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestSimpleQuery()
         {
             Test(
@@ -408,7 +408,7 @@ compareTokens: false);
 @"using System . Linq ; class Program { static void Main ( string [ ] args ) { var q = from a in args where a . Length > 21 select a ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestUsingStaticClassAccessField1()
         {
             Test(
@@ -417,14 +417,14 @@ compareTokens: false);
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestUsingStaticClassAccessField2()
         {
             TestMissing(
 @"[|using static SomeNS . Foo ; class Program { static void Main ( ) { var q = x ; } } namespace SomeNS { static class Foo { public static int x ; } } |]");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestUsingStaticClassAccessMethod1()
         {
             Test(
@@ -433,7 +433,7 @@ compareTokens: false);
                 CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestUsingStaticClassAccessMethod2()
         {
             TestMissing(
@@ -441,7 +441,7 @@ compareTokens: false);
         }
 
         [WorkItem(8846, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestUnusedTypeImportIsRemoved()
         {
             Test(
@@ -477,7 +477,7 @@ namespace SomeNS
         }
 
         [WorkItem(541817)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveTrailingComment()
         {
             Test(
@@ -503,7 +503,7 @@ compareTokens: false);
         }
 
         [WorkItem(541914)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemovingUnbindableUsing()
         {
             Test(
@@ -512,7 +512,7 @@ compareTokens: false);
         }
 
         [WorkItem(541937)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestAliasInUse()
         {
             TestMissing(
@@ -535,7 +535,7 @@ namespace Foo
         }
 
         [WorkItem(541914)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveUnboundUsing()
         {
             Test(
@@ -544,7 +544,7 @@ namespace Foo
         }
 
         [WorkItem(542016)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestLeadingNewlines1()
         {
             Test(
@@ -570,7 +570,7 @@ compareTokens: false);
         }
 
         [WorkItem(542016)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveLeadingNewLines2()
         {
             Test(
@@ -602,7 +602,7 @@ compareTokens: false);
         }
 
         [WorkItem(542134)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestImportedTypeUsedAsGenericTypeArgument()
         {
             TestMissing(
@@ -628,7 +628,7 @@ public class Program
         }
 
         [WorkItem(542723)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveCorrectUsing1()
         {
             Test(
@@ -638,7 +638,7 @@ parseOptions: null);
         }
 
         [WorkItem(542723)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestRemoveCorrectUsing2()
         {
             TestMissing(
@@ -646,7 +646,7 @@ parseOptions: null);
 parseOptions: null);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestSpan()
         {
             TestSpans(
@@ -661,7 +661,7 @@ parseOptions: null);
         }
 
         [WorkItem(543000)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestMissingWhenErrorsWouldBeGenerated()
         {
             TestMissing(
@@ -669,7 +669,7 @@ parseOptions: null);
         }
 
         [WorkItem(544976)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestMissingWhenMeaningWouldChangeInLambda()
         {
             TestMissing(
@@ -708,7 +708,7 @@ namespace Y
         }
 
         [WorkItem(544976)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestCasesWithLambdas1()
         {
             // NOTE: Y is used when speculatively binding "x => x.Foo()".  As such, it is marked as
@@ -748,7 +748,7 @@ namespace Y
         }
 
         [WorkItem(545646)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestCasesWithLambdas2()
         {
             TestMissing(
@@ -782,7 +782,7 @@ namespace N
         }
 
         [WorkItem(545741)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestMissingOnAliasedVar()
         {
             TestMissing(
@@ -790,7 +790,7 @@ namespace N
         }
 
         [WorkItem(546115)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestBrokenCode()
         {
             TestMissing(
@@ -808,7 +808,7 @@ public class QueryExpressionTest
         }
 
         [WorkItem(530980)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestReferenceInCref()
         {
             // parsing doc comments as simple trivia; System is unnecessary
@@ -826,7 +826,7 @@ public class QueryExpressionTest
         }
 
         [WorkItem(751283)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
         public void TestUnusedUsingOverLinq()
         {
             Test(

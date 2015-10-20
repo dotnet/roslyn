@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
                 Case WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor
                     ' The interface needs to have a coclass attribute so that we can tell at runtime that it should be
-                    ' instantiable. The attribute cannot refer directly to the coclass, however, because we can't embed
+                    ' instantiatable. The attribute cannot refer directly to the coclass, however, because we can't embed
                     ' classes, and we can't emit a reference to the PIA. We don't actually need
                     ' the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
                     Return New SynthesizedAttributeData(ctor,

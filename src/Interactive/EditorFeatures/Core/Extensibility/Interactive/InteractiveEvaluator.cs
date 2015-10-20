@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     .Where(r => !(r is UnresolvedMetadataReference));
 
                 var interactiveHelpersRef = metadataService.GetReference(typeof(Script).Assembly.Location, MetadataReferenceProperties.Assembly);
-                var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveHostObject).Assembly.Location, MetadataReferenceProperties.Assembly);
+                var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, MetadataReferenceProperties.Assembly);
 
                 _references = ImmutableHashSet.Create<MetadataReference>(
                     interactiveHelpersRef,
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     documents: null,
                     projectReferences: null,
                     metadataReferences: localReferences,
-                    hostObjectType: typeof(InteractiveHostObject),
+                    hostObjectType: typeof(InteractiveScriptGlobals),
                     isSubmission: true));
 
             if (_previousSubmissionProjectId != null)
@@ -553,9 +553,18 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 WorkingDirectory = changedWorkingDirectory;
             }
 
-            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            if (!changedReferenceSearchPaths.IsDefault)
             {
                 ReferenceSearchPaths = changedReferenceSearchPaths;
+            }
+
+            if (!changedSourceSearchPaths.IsDefault)
+            {
+                SourceSearchPaths = changedSourceSearchPaths;
+            }
+
+            if (!changedReferenceSearchPaths.IsDefault || changedWorkingDirectory != null)
+            {
                 _metadataReferenceResolver = CreateMetadataReferenceResolver(_workspace.CurrentSolution.Services.MetadataService, ReferenceSearchPaths, WorkingDirectory);
 
                 if (optionsOpt != null)
@@ -566,7 +575,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             if (!changedSourceSearchPaths.IsDefault || changedWorkingDirectory != null)
             {
-                SourceSearchPaths = changedSourceSearchPaths;
                 _sourceReferenceResolver = CreateSourceReferenceResolver(SourceSearchPaths, WorkingDirectory);
 
                 if (optionsOpt != null)

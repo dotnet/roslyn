@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// </summary>
         /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
         /// <param name="includeSelf">If true, the container is returned as well.</param>
-        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// <param name="recursive">If true, members are recursed to return descendant members as well
         /// as immediate children. For example, a namespace would return the namespaces and types within.
         /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
         /// also be returned.</param>
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         string AssemblyAttributeString { get; }
 
         /// <summary>
-        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.GetOrCreateCodeElement{T}(SyntaxNode)"/>
         /// </summary>
         EnvDTE.CodeElement CreateInternalCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);
         EnvDTE.CodeElement CreateExternalCodeElement(CodeModelState state, ProjectId projectId, ISymbol symbol);

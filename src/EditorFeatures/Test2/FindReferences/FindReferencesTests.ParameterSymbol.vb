@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParameterInMethod1()
             Dim input =
 <Workspace>
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParameterInMethod2()
             Dim input =
 <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParameterInMethod3()
             Dim input =
 <Workspace>
@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParameterCaseSensitivity1()
             Dim input =
 <Workspace>
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParameterCaseSensitivity2()
             Dim input =
 <Workspace>
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(542475)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestPartialParameter1()
             Dim input =
 <Workspace>
@@ -129,7 +129,7 @@ partial class program
         End Sub
 
         <WorkItem(542475)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestPartialParameter2()
             Dim input =
 <Workspace>
@@ -151,7 +151,7 @@ partial class program
 
 #Region "FAR on partial methods"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParameter_CSharpWithSignaturesMatchFARParameterOnDefDecl()
             Dim input =
 <Workspace>
@@ -171,7 +171,7 @@ partial class program
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParameter_VBWithSignaturesMatchFARParameterOnDefDecl()
             Dim input =
 <Workspace>
@@ -194,7 +194,7 @@ partial class program
 #End Region
 
         <WorkItem(543276)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousFunctionParameter1()
             Dim input =
 <Workspace>
@@ -217,7 +217,7 @@ End Module
         End Sub
 
         <WorkItem(624310)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousFunctionParameter3()
             Dim input =
 <Workspace>
@@ -237,7 +237,7 @@ End Module
         End Sub
 
         <WorkItem(624310)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousFunctionParameter4()
             Dim input =
 <Workspace>
@@ -256,7 +256,7 @@ class Program
         End Sub
 
         <WorkItem(543276)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousFunctionParameter2()
             Dim input =
 <Workspace>
@@ -279,7 +279,7 @@ End Module
         End Sub
 
         <WorkItem(529688)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestAnonymousFunctionParameter5()
             Dim input =
 <Workspace>
@@ -299,7 +299,7 @@ End Module
         End Sub
 
         <WorkItem(545654)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestReducedExtensionNamedParameter1()
             Dim input =
 <Workspace>
@@ -328,7 +328,7 @@ End Module
         End Sub
 
         <WorkItem(545654)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestReducedExtensionNamedParameter2()
             Dim input =
 <Workspace>
@@ -357,7 +357,7 @@ End Module
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_TestAnonymousMethodParameter1()
             Dim input =
 <Workspace>
@@ -380,7 +380,7 @@ class X
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_TestAnonymousMethodParameter2()
             Dim input =
 <Workspace>
@@ -403,7 +403,7 @@ class X
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_TestAnonymousMethodParameter3()
             Dim input =
 <Workspace>
@@ -426,7 +426,7 @@ class X
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub CSharp_TestAnonymousMethodParameter4()
             Dim input =
 <Workspace>
@@ -449,7 +449,7 @@ class X
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VB_TestAnonymousMethodParameter1()
             Dim input =
 <Workspace>
@@ -470,7 +470,7 @@ end class
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VB_TestAnonymousMethodParameter2()
             Dim input =
 <Workspace>
@@ -491,7 +491,7 @@ end class
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VB_TestAnonymousMethodParameter3()
             Dim input =
 <Workspace>
@@ -512,7 +512,7 @@ end class
         End Sub
 
         <WorkItem(545618)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub VB_TestAnonymousMethodParameter4()
             Dim input =
 <Workspace>

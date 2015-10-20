@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Return context.tagSpans
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestParens()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
                              "    Function Foo(x As Integer) As Integer",
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestNestedTouchingItems()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(
                 "Module Module1",
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestUnnestedTouchingItems()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
                      "    Dim arr()() As Integer",
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Sub TestAngles()
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines("Module Module1",
                      "    <Attribute()>",

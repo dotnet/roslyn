@@ -643,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim ch = Peek()
                 If IsWhitespace(ch) Then
-                    ' eat until linebreak or nonwhitespace
+                    ' eat until linebreak or non-whitespace
                     Dim wslen = GetWhitespaceLength(1)
 
                     If atNewLine Then
@@ -886,7 +886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetWhitespaceLength(len As Integer) As Integer
-            ' eat until linebreak or nonwhitespace
+            ' eat until linebreak or non-whitespace
             While CanGet(len) AndAlso IsWhitespace(Peek(len))
                 len += 1
             End While
@@ -894,7 +894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetXmlWhitespaceLength(len As Integer) As Integer
-            ' eat until linebreak or nonwhitespace
+            ' eat until linebreak or non-whitespace
             While CanGet(len) AndAlso IsXmlWhitespace(Peek(len))
                 len += 1
             End While
@@ -923,7 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             AdvanceChar()
 
-            ' eat until linebreak or nonwhitespace
+            ' eat until linebreak or non-whitespace
             While CanGet() AndAlso IsWhitespace(Peek)
                 AdvanceChar()
             End While
@@ -1890,14 +1890,14 @@ FullWidthRepeat2:
                     If TypeCharacter = TypeCharacter.Single OrElse TypeCharacter = TypeCharacter.SingleLiteral Then
                         ' // Attempt to convert to single
                         Dim SingleValue As Single
-                        If Not Single.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, SingleValue) Then
+                        If Not RealParser.TryParseFloat(LiteralSpelling, SingleValue) Then
                             Overflows = True
                         Else
                             FloatingValue = SingleValue
                         End If
                     Else
                         ' // Attempt to convert to double.
-                        If Not Double.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, FloatingValue) Then
+                        If Not RealParser.TryParseDouble(LiteralSpelling, FloatingValue) Then
                             Overflows = True
                         End If
                     End If

@@ -4,7 +4,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
     Public Class CSharpReferenceHighlightingTests
         Inherits AbstractReferenceHighlightingTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub VerifyNoHighlightsWhenOptionDisabled()
             VerifyHighlights(
                 <Workspace>
@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 optionIsEnabled:=False)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub VerifyHighlightsForClass()
             VerifyHighlights(
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>)
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub VerifyHighlightsForScriptReference()
             VerifyHighlights(
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub VerifyHighlightsForCSharpClassWithConstructor()
             VerifyHighlights(
                 <Workspace>
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
         End Sub
 
         <WorkItem(538721)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub VerifyHighlightsForCSharpClassWithSynthesizedConstructor()
             VerifyHighlights(
                 <Workspace>
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                 </Workspace>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         <WorkItem(528436)>
         Public Sub VerifyHighlightsOnCloseAngleOfGeneric()
             VerifyHighlights(
@@ -114,7 +114,7 @@ class {|Definition:Program|}
                 </Workspace>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         <WorkItem(570809)>
         Public Sub VerifyNoHighlightsOnAsyncLambda()
             VerifyHighlights(
@@ -140,7 +140,7 @@ class Program
         End Sub
 
         <WorkItem(543768)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestAlias1()
             Dim input =
             <Workspace>
@@ -165,7 +165,7 @@ namespace X
         End Sub
 
         <WorkItem(543768)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestAlias2()
             Dim input =
             <Workspace>
@@ -190,7 +190,7 @@ namespace X
         End Sub
 
         <WorkItem(543768)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestAlias3()
             Dim input =
             <Workspace>
@@ -215,7 +215,7 @@ namespace X
         End Sub
 
         <WorkItem(552000)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestAlias4()
             Dim input =
             <Workspace>
@@ -237,7 +237,7 @@ namespace N
         End Sub
 
         <WorkItem(542830)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestHighlightThroughVar1()
             Dim input =
             <Workspace>
@@ -261,7 +261,7 @@ class C
         End Sub
 
         <WorkItem(542830)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestHighlightThroughVar2()
             Dim input =
             <Workspace>
@@ -285,7 +285,7 @@ class C
         End Sub
 
         <WorkItem(542830)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestHighlightThroughVar3()
             Dim input =
             <Workspace>
@@ -311,7 +311,7 @@ class C
         End Sub
 
         <WorkItem(545648)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestUsingAliasAndTypeWithSameName1()
             Dim input =
 <Workspace>
@@ -327,7 +327,7 @@ class X { }
         End Sub
 
         <WorkItem(545648)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestUsingAliasAndTypeWithSameName2()
             Dim input =
 <Workspace>
@@ -343,7 +343,7 @@ class {|Definition:$$X|} { }
         End Sub
 
         <WorkItem(567959)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestAccessor1()
             Dim input =
 <Workspace>
@@ -371,7 +371,7 @@ class C
         End Sub
 
         <WorkItem(567959)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestAccessor2()
             Dim input =
 <Workspace>
@@ -399,7 +399,7 @@ class C
         End Sub
 
         <WorkItem(604466)>
-        <Fact(Skip:="604466"), Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact(Skip:="604466"), Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub ThisShouldNotHighlightTypeName()
             Dim input =
 <Workspace>
@@ -420,7 +420,7 @@ class C
         End Sub
 
         <WorkItem(531620)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestHighlightDynamicallyBoundMethod()
             Dim input =
             <Workspace>
@@ -451,7 +451,7 @@ class A
         End Sub
 
         <WorkItem(531624)>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestHighlightParameterizedPropertyParameter()
             Dim input =
             <Workspace>
@@ -474,7 +474,7 @@ class C
             VerifyHighlights(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestInterpolatedString1()
             Dim input =
             <Workspace>
@@ -496,7 +496,7 @@ class C
             VerifyHighlights(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestInterpolatedString2()
             Dim input =
             <Workspace>
@@ -518,7 +518,7 @@ class C
             VerifyHighlights(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestWrittenReference()
             Dim input =
             <Workspace>
@@ -539,7 +539,7 @@ class C
             VerifyHighlights(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
         Public Sub TestWrittenReference2()
             Dim input =
             <Workspace>

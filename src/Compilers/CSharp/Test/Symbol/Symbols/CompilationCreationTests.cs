@@ -2684,9 +2684,8 @@ System.Diagnostics.Process.GetCurrentProcess();
 ", options: TestOptions.Script)
             };
 
-            var compilation = CSharpCompilation.Create("foo",
-                syntaxTrees: trees,
-                references: new[] { MscorlibRef },
+            var compilation = CreateCompilationWithMscorlib45(
+                trees,
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)));
 
             compilation.VerifyDiagnostics();
@@ -2721,9 +2720,8 @@ System.Diagnostics.Process.GetCurrentProcess();
 ")
                 };
 
-            var compilation = CSharpCompilation.Create("foo",
-                syntaxTrees: trees,
-                references: new[] { MscorlibRef },
+            var compilation = CreateCompilationWithMscorlib45(
+                trees,
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)));
 
             compilation.VerifyDiagnostics(
@@ -2768,11 +2766,8 @@ System.Diagnostics.Process.GetCurrentProcess();
 #r """ + csInterfaces01 + @"""
 class C : Metadata.ICSPropImpl { }";
 
-            var compilation = CSharpCompilation.Create("foo",
-                syntaxTrees: new[]
-                    {
-                        Parse(source, options: TestOptions.Script)
-                    },
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { Parse(source, options: TestOptions.Script) },
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new DummyReferenceResolver(csClasses01)));
 
             compilation.VerifyDiagnostics();
@@ -2781,10 +2776,9 @@ class C : Metadata.ICSPropImpl { }";
         [Fact]
         public void CompilationWithReferenceDirective_NoResolver()
         {
-            var compilation = CSharpCompilation.Create("foo",
+            var compilation = CreateCompilationWithMscorlib45(
                 new[] { SyntaxFactory.ParseSyntaxTree(@"#r ""bar""", TestOptions.Script, "a.csx", Encoding.UTF8) },
-                new[] { MscorlibRef },
-                TestOptions.ReleaseDll.WithMetadataReferenceResolver(null));
+                options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(null));
 
             compilation.VerifyDiagnostics(
                 // a.csx(1,1): error CS7099: Metadata references not supported.
@@ -2809,11 +2803,9 @@ class C
 ")
             };
 
-            var compilation = CSharpCompilation.Create(
-                "foo",
-                options: TestOptions.ReleaseDll.WithUsings(ImmutableArray.Create("System.Console", "System")),
-                syntaxTrees: trees,
-                references: new[] { MscorlibRef });
+            var compilation = CreateCompilationWithMscorlib45(
+                trees,
+                options: TestOptions.ReleaseDll.WithUsings(ImmutableArray.Create("System.Console", "System")));
 
             var diagnostics = compilation.GetDiagnostics().ToArray();
 
@@ -2833,11 +2825,9 @@ Console.WriteLine(2);
 ", options: TestOptions.Script)
             };
 
-            var compilation = CSharpCompilation.Create(
-                "foo",
-                options: TestOptions.ReleaseDll.WithUsings("System.Console!", "Blah"),
-                syntaxTrees: trees,
-                references: new[] { MscorlibRef });
+            var compilation = CreateCompilationWithMscorlib45(
+                trees,
+                options: TestOptions.ReleaseDll.WithUsings("System.Console!", "Blah"));
 
             compilation.VerifyDiagnostics(
                 // error CS0234: The type or namespace name 'Console!' does not exist in the namespace 'System' (are you missing an assembly reference?)

@@ -10,7 +10,7 @@ usage()
     echo "  --os <os>           OS to run (Linux / Darwin)"
 }
 
-XUNIT_VERSION=2.0.0-alpha-build2576
+XUNIT_VERSION=2.1.0
 BUILD_CONFIGURATION=Debug
 OS_NAME=$(uname -s)
 USE_CACHE=true
@@ -58,8 +58,7 @@ done
 
 restore_nuget()
 {
-
-    local package_name="nuget.17.zip"
+    local package_name="nuget.25.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -155,8 +154,7 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-      bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc"
     fi
 
     echo Building CrossPlatform.sln
@@ -206,9 +204,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.3
+        MONO_TOOLSET_NAME=mono.mac.4
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.3
+        MONO_TOOLSET_NAME=mono.linux.4
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1
@@ -220,7 +218,7 @@ set_mono_path()
 
 test_roslyn()
 {
-    local xunit_runner=~/.nuget/packages/xunit.runners/$XUNIT_VERSION/tools/xunit.console.x86.exe
+    local xunit_runner=~/.nuget/packages/xunit.runner.console/$XUNIT_VERSION/tools/xunit.console.x86.exe
     local test_binaries=(
         Roslyn.Compilers.CSharp.CommandLine.UnitTests
         Roslyn.Compilers.CSharp.Syntax.UnitTests
@@ -229,9 +227,14 @@ test_roslyn()
         Roslyn.Compilers.VisualBasic.Syntax.UnitTests)
     local any_failed=false
 
+    # Need to copy over the execution dependencies.  This isn't being done correctly
+    # by msbuild at the moment. 
+    cp ~/.nuget/packages/xunit.extensibility.execution/$XUNIT_VERSION/lib/net45/xunit.execution.desktop.* Binaries/$BUILD_CONFIGURATION
+
     for i in "${test_binaries[@]}"
     do
-        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/$i.TestResults.xml -noshadow
+        mkdir -p Binaries/$BUILD_CONFIGURATION/xUnitResults/
+        mono $MONO_ARGS $xunit_runner Binaries/$BUILD_CONFIGURATION/$i.dll -xml Binaries/$BUILD_CONFIGURATION/xUnitResults/$i.dll.xml -noshadow
         if [ $? -ne 0 ]; then
             any_failed=true
         fi

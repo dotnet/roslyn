@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.PropertyDeclaration:
                     // The active span corresponding to a property declaration is the span corresponding to its initializer (if any),
-                    // not the span correspoding to the accessor.
+                    // not the span corresponding to the accessor.
                     // int P { [|get;|] } = [|<initializer>|];
                     var propertyDeclaration = (PropertyDeclarationSyntax)node;
 
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     {
                         // We enumerated all members and none of them has an initializer.
                         // We don't have any better place where to place the span than the initial field.
-                        // Consider: in nonpartial classes we could find a single constructor. 
+                        // Consider: in non-partial classes we could find a single constructor. 
                         // Otherwise, it would be confusing to select one arbitrarily.
                         yield return KeyValuePair.Create(statement, -1);
                     }
@@ -2780,7 +2780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             List<RudeEditDiagnostic> diagnostics,
             IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits,
             SyntaxNode oldStatement,
-            SyntaxNode newStatement)
+            TextSpan newStatementSpan)
         {
             foreach (var edit in exceptionHandlingEdits)
             {
@@ -2789,7 +2789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 if (edit.Kind != EditKind.Update || !AreExceptionClausesEquivalent(edit.OldNode, edit.NewNode))
                 {
-                    AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatement);
+                    AddRudeDiagnostic(diagnostics, edit.OldNode, edit.NewNode, newStatementSpan);
                 }
             }
         }
@@ -3053,7 +3053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             if (isRude)
             {
-                AddRudeDiagnostic(diagnostics, oldCheckedStatement, newCheckedStatement, newActiveStatement);
+                AddRudeDiagnostic(diagnostics, oldCheckedStatement, newCheckedStatement, newActiveStatement.Span);
             }
         }
 

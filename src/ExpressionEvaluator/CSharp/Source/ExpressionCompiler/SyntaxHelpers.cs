@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static SyntaxTree CreateSyntaxTree(this InternalSyntax.CSharpSyntaxNode root, SourceText text)
         {
-            return CSharpSyntaxTree.Create((CSharpSyntaxNode)root.CreateRed(), text);
+            return CSharpSyntaxTree.CreateForDebugger((CSharpSyntaxNode)root.CreateRed(), text);
         }
 
         private static ExpressionSyntax MakeDebuggerExpression(this InternalSyntax.ExpressionSyntax expression, SourceText text)

@@ -50,6 +50,9 @@
       <Link>Csi.cs</Link>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

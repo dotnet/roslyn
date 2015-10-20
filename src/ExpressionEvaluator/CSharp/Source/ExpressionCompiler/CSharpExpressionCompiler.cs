@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override DiagnosticFormatter DiagnosticFormatter
         {
-            get { return DiagnosticFormatter.Instance; }
+            get { return DebuggerDiagnosticFormatter.Instance; }
         }
 
         internal override DkmCompilerId CompilerId

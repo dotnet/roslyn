@@ -390,6 +390,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> has all the references it's expected to have.
+        /// </summary>
+        // TODO: make this public
+        internal Task<bool> HasCompleteReferencesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _solution.HasCompleteReferencesAsync(this, cancellationToken);
+        }
+
+        /// <summary>
         /// Gets an object that lists the added, changed and removed documents between this project and the specified project.
         /// </summary>
         public ProjectChanges GetChanges(Project oldProject)

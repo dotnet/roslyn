@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameter1()
             Dim input =
 <Workspace>
@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameter2()
             Dim input =
 <Workspace>
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameter3()
             Dim input =
 <Workspace>
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestGenericTypeArgsWithStaticCalls()
             Dim input =
 <Workspace>
@@ -87,7 +87,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameterCaseSensitivity()
             Dim input =
 <Workspace>
@@ -106,7 +106,7 @@ class Bar<T> { public static void StaticDoSomething() { } }]]></Document>
         End Sub
 
         <WorkItem(542598)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMethodTypeParameterExplicitImplementation1()
             Dim input =
 <Workspace>
@@ -128,7 +128,7 @@ class A : I
         End Sub
 
         <WorkItem(542598)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMethodTypeParameterExplicitImplementation2()
             Dim input =
 <Workspace>
@@ -150,7 +150,7 @@ class A : I
         End Sub
 
         <WorkItem(542598)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMethodTypeParameterExplicitImplementation3()
             Dim input =
 <Workspace>

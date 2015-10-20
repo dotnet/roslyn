@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private static async Task PersistProjectData(Project project, DiagnosticState state, AnalysisData data)
         {
             // TODO: Cancellation is not allowed here to prevent data inconsistency. But there is still a possibility of data inconsistency due to
-            //       things like exception. For now, I am letting it go and let v2 engine take care of it properly. If v2 doesnt come online soon enough
+            //       things like exception. For now, I am letting it go and let v2 engine take care of it properly. If v2 doesn't come online soon enough
             //       more refactoring is required on project state.
 
             // clear all existing data
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
         private bool ShouldRunAnalyzerForClosedFile(CompilationOptions options, bool openedDocument, DiagnosticAnalyzer analyzer)
         {
-            // we have opened document, doesnt matter
+            // we have opened document, doesn't matter
             if (openedDocument || analyzer.IsCompilerAnalyzer())
             {
                 return true;

@@ -4,13 +4,13 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ReturnKeywordRecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReturnInMethodBody()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "Return")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReturnInPropertyGet()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -22,7 +22,7 @@ End Property
 </ClassDeclaration>, "Return")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReturnInPropertySet()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -34,7 +34,7 @@ End Property
 </ClassDeclaration>, "Return")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReturnInLoopInClassDeclarationLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -46,7 +46,7 @@ End Sub
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReturnInClassDeclarationLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -55,14 +55,14 @@ End Sub
                                          </ClassDeclaration>, "Return")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReturnInClassDeclarationSingleLineLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub() |
                                          </ClassDeclaration>, "Return")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ReturnNotInFinallyBlock()
             Dim code =
 <MethodBody>

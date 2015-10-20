@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 }
 
                 // The node must be something that the FileCodeModel can create.
-                return this.FileCodeModel.CreateCodeElement<EnvDTE.CodeElement>(node);
+                return this.FileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(node);
             }
         }
     }

@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         End Sub
 #End Region
 
-        <Fact>
+        <WpfFact>
         Public Sub ErrorSpans_TopLevel()
             Dim source = <![CDATA[
 <span>Option Strict Off</span>
@@ -204,7 +204,7 @@ End Class
             TestSpans(source, Function(node) TopSyntaxComparer.HasLabel(node.Kind(), ignoreVariableDeclarations:=False))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub ErrorSpans_StatementLevel_Update()
             Dim source = <![CDATA[
 Class C
@@ -407,13 +407,13 @@ End Class
         ''' <summary>
         ''' Verifies that <see cref="CSharpEditAndContinueAnalyzer.GetDiagnosticSpanImpl"/> handles all <see cref="SyntaxKind"/> s.
         ''' </summary>
-        <Fact>
+        <WpfFact>
         Public Sub ErrorSpansAllKinds()
             TestErrorSpansAllKinds(AddressOf StatementSyntaxComparer.IgnoreLabeledChild)
             TestErrorSpansAllKinds(Function(kind) TopSyntaxComparer.HasLabel(kind, ignoreVariableDeclarations:=False))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AnalyzeDocumentAsync_InsignificantChangesInMethodBody()
             Dim source1 = "
 Class C
@@ -466,7 +466,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AnalyzeDocumentAsync_SyntaxError_NoChange1()
             Dim source = "
 Class C
@@ -488,7 +488,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AnalyzeDocumentAsync_SyntaxError_NoChange2()
             Dim source1 = "
 Class C
@@ -520,7 +520,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AnalyzeDocumentAsync_SemanticError_NoChange()
             Dim source = "
 Class C
@@ -543,7 +543,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AnalyzeDocumentAsync_SemanticError_Change()
             Dim source1 = "
 Class C
@@ -577,7 +577,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub FindMemberDeclaration1()
             Dim source = <text>
 Class C 
@@ -600,7 +600,7 @@ End Class
             Assert.Null(analyzer.FindMemberDeclaration(root, Int32.MinValue))
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub AnalyzeDocumentAsync_Adding_A_New_File()
             Dim source1 = "
 Class C

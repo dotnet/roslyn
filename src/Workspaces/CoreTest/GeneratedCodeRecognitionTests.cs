@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Test",
                 "Test.cs",
                 "Test.vb",
+                "AssemblyInfo.cs",
+                "AssemblyInfo.vb",
+                ".NETFramework,Version=v4.5.AssemblyAttributes.cs",
+                ".NETFramework,Version=v4.5.AssemblyAttributes.vb",
                 "Test.notgenerated.cs",
                 "Test.notgenerated.vb",
                 "Test.generated",
@@ -29,8 +33,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92",
                 "TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs",
                 "TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.vb",
-                "AssemblyInfo.cs",
-                "AssemblyInfo.vb",
                 "Test.designer.cs",
                 "Test.designer.vb",
                 "Test.Designer.cs",
@@ -40,9 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "Test.g.cs",
                 "Test.g.vb",
                 "Test.g.i.cs",
-                "Test.g.i.vb",
-                ".NETFramework,Version=v4.5.AssemblyAttributes.cs",
-                ".NETFramework,Version=v4.5.AssemblyAttributes.vb");
+                "Test.g.i.vb");
         }
 
         private static void TestFileNames(bool assertGenerated, params string[] fileNames)

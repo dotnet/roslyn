@@ -174,8 +174,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Justification = "We intentionally call GC.Collect when anticipate long period on inactivity.")]
         public void ListenAndDispatchConnections(string pipeName, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Debug.Assert(SynchronizationContext.Current == null);
-
             var isKeepAliveDefault = true;
             var connectionList = new List<Task<ConnectionData>>();
             Task gcTask = null;

@@ -22,7 +22,7 @@ using Foo = System.Data;")
             return (CodeImport)GetCodeElement(path);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Name()
         {
@@ -30,7 +30,7 @@ using Foo = System.Data;")
             AssertEx.Throws<COMException>(() => { var value = import.Name; });
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void FullName()
         {
@@ -38,7 +38,7 @@ using Foo = System.Data;")
             AssertEx.Throws<COMException>(() => { var value = import.FullName; });
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Kind()
         {
@@ -47,7 +47,7 @@ using Foo = System.Data;")
             Assert.Equal(vsCMElement.vsCMElementImportStmt, import.Kind);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Namespace()
         {
@@ -56,7 +56,7 @@ using Foo = System.Data;")
             Assert.Equal("System", import.Namespace);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void Alias()
         {
@@ -65,7 +65,7 @@ using Foo = System.Data;")
             Assert.Equal("Foo", import.Alias);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Attributes()
         {
@@ -73,7 +73,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_AttributesWithDelimiter()
         {
@@ -81,7 +81,7 @@ using Foo = System.Data;")
             AssertEx.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Body()
         {
@@ -89,7 +89,7 @@ using Foo = System.Data;")
             AssertEx.Throws<COMException>(() => import.GetStartPoint(vsCMPart.vsCMPartBody));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_BodyWithDelimiter()
         {
@@ -97,7 +97,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Header()
         {
@@ -105,7 +105,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_HeaderWithAttributes()
         {
@@ -113,7 +113,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Name()
         {
@@ -121,7 +121,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Navigate()
         {
@@ -132,7 +132,7 @@ using Foo = System.Data;")
             Assert.Equal(13, startPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_Whole()
         {
@@ -140,7 +140,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetStartPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetStartPoint_WholeWithAttributes()
         {
@@ -151,7 +151,7 @@ using Foo = System.Data;")
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Attributes()
         {
@@ -159,7 +159,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributes));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_AttributesWithDelimiter()
         {
@@ -167,7 +167,7 @@ using Foo = System.Data;")
             AssertEx.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartAttributesWithDelimiter));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Body()
         {
@@ -175,7 +175,7 @@ using Foo = System.Data;")
             AssertEx.Throws<COMException>(() => import.GetEndPoint(vsCMPart.vsCMPartBody));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_BodyWithDelimiter()
         {
@@ -183,7 +183,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartBodyWithDelimiter));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Header()
         {
@@ -191,7 +191,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeader));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_HeaderWithAttributes()
         {
@@ -199,7 +199,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartHeaderWithAttributes));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Name()
         {
@@ -207,7 +207,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartName));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Navigate()
         {
@@ -219,7 +219,7 @@ using Foo = System.Data;")
             Assert.Equal(24, endPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_Whole()
         {
@@ -227,7 +227,7 @@ using Foo = System.Data;")
             AssertEx.Throws<NotImplementedException>(() => import.GetEndPoint(vsCMPart.vsCMPartWhole));
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void GetEndPoint_WholeWithAttributes()
         {
@@ -239,7 +239,7 @@ using Foo = System.Data;")
             Assert.Equal(25, endPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void StartPoint()
         {
@@ -251,7 +251,7 @@ using Foo = System.Data;")
             Assert.Equal(1, startPoint.LineCharOffset);
         }
 
-        [ConditionalFact(typeof(x86))]
+        [ConditionalWpfFact(typeof(x86))]
         [Trait(Traits.Feature, Traits.Features.CodeModel)]
         public void EndPoint()
         {

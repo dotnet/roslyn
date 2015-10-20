@@ -20738,7 +20738,7 @@ BC42322: Runtime errors might occur when converting 'I' to 'String'.
                         Dim exampleFunc1 As Func(Of Integer) = Function() i
                     Next
 
-                    ' since Dev11 the scope for for each loops has been changed; no warnings here
+                    ' since Dev11 the scope for foreach loops has been changed; no warnings here
                     For each j as integer in (function(){1+j, 2+j})()
                         Dim exampleFunc2 As Func(Of Integer) = Function() j
                     Next
@@ -25906,7 +25906,7 @@ End Interface
 BC36716: Visual Basic 12.0 does not support partial modules.
 Partial Module Module1
 ~~~~~~~~~~~~~~~~~~~~~~
-BC36716: Visual Basic 12.0 does not support partial interafces.
+BC36716: Visual Basic 12.0 does not support partial interfaces.
 Partial Interface IFace
 ~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)

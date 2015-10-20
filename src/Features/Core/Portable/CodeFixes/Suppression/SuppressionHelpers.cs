@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 {
     internal static class SuppressionHelpers
     {
+        private const string SynthesizedExternalSourceDiagnosticTag = "SynthesizedExternalSourceDiagnostic";
+        public static readonly string[] SynthesizedExternalSourceDiagnosticCustomTags = new string[] { SynthesizedExternalSourceDiagnosticTag };
+
         public static bool CanBeSuppressed(Diagnostic diagnostic)
         {
             return CanBeSuppressedOrUnsuppressed(diagnostic, checkCanBeSuppressed: true);
@@ -69,9 +72,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             return HasCustomTag(diagnostic.Descriptor.CustomTags, WellKnownDiagnosticTags.Compiler);
         }
 
+        public static bool IsSynthesizedExternalSourceDiagnostic(DiagnosticData diagnostic)
+        {
+            return HasCustomTag(diagnostic.CustomTags, SynthesizedExternalSourceDiagnosticTag);
+        }
+
+        public static bool IsSynthesizedExternalSourceDiagnostic(Diagnostic diagnostic)
+        {
+            return HasCustomTag(diagnostic.Descriptor.CustomTags, SynthesizedExternalSourceDiagnosticTag);
+        }
+
         public static bool HasCustomTag(IEnumerable<string> customTags, string tagToFind)
         {
-            return customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
+            return customTags != null && customTags.Any(c => CultureInfo.InvariantCulture.CompareInfo.Compare(c, tagToFind) == 0);
         }
     }
 }

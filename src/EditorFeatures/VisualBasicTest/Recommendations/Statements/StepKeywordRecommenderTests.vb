@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class StepKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoop()
             VerifyRecommendationsContain(<MethodBody>For i = 1 To 10 |</MethodBody>, "Step")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopAfterLineContinuation()
             VerifyRecommendationsContain(
@@ -25,7 +25,7 @@ _
 |</MethodBody>, "Step")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopNotAfterEOL()
             VerifyRecommendationsMissing(
@@ -34,7 +34,7 @@ _
 |</MethodBody>, "Step")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub StepInForLoopNotAfterEOLWithLineContinuation()
             VerifyRecommendationsMissing(

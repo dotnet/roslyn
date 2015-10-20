@@ -1,11 +1,15 @@
-{
+﻿{
+  "supports": {
+    "net46.app": { },
+    "dnxcore50.app": { }
+  },
   "dependencies": {
     "Microsoft.NETCore.Platforms": "1.0.1-beta-23401",
     "Microsoft.NETCore.Runtime.CoreCLR": "1.0.1-beta-23401",
     "Microsoft.NETCore.TestHost": "1.0.0-beta-23401",
     "System.AppContext": "4.0.1-beta-23401",
     "System.Collections": "4.0.11-beta-23401",
-    "System.Collections.Immutable": "1.1.36",
+    "System.Collections.Immutable": "1.1.37",
     "System.Console": "4.0.0-beta-23401",
     "System.Diagnostics.Debug": "4.0.11-beta-23401",
     "System.Diagnostics.FileVersionInfo": "4.0.0-beta-23401",
@@ -34,7 +38,7 @@
     "System.Threading.Tasks.Parallel": "4.0.1-beta-23401",
     "System.Threading.Thread": "4.0.0-beta-23401",
     "System.Xml.XDocument": "4.0.11-beta-23401",
-    "System.Xml.XmlDocument": "4.0.1-beta-23401",
+    "System.Xml.XmlDocument": "4.0.1-beta-23401"
   },
   "frameworks": {
     "dnxcore50": {
@@ -43,6 +47,6 @@
   },
   "runtimes": {
     "win7-x64": { },
-    "ubuntu.14.04-x64": { },
+    "ubuntu.14.04-x64": { }
   }
 }

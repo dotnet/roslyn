@@ -52,6 +52,13 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                 }
                 while (!Reader.ReachedEnd(_reader));
 
+                if (_textReader.Eof)
+                {
+                    _reader.Dispose();
+                    _reader = null;
+                    _textReader.Reset();
+                }
+
                 return null;
             }
             catch (XmlException ex)

@@ -2,7 +2,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException1()
             Dim input =
 <Workspace>
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException1_VisualBasic()
             Dim input =
 <Workspace>
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException2()
             Dim input =
 <Workspace>
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException2_VisualBasic()
             Dim input =
 <Workspace>
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException3()
             Dim input =
 <Workspace>
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException3_VisualBasic()
             Dim input =
 <Workspace>
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException3_Inverse()
             Dim input =
 <Workspace>
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestException3_Inverse_VisualBasic()
             Dim input =
 <Workspace>
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefConstructor1()
             Dim input =
 <Workspace>
@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(769369)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefConstructor1_VisualBasic()
             Dim input =
 <Workspace>
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefConstructor2()
             Dim input =
 <Workspace>
@@ -315,7 +315,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact(Skip:="769477"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="769477"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestCrefConstructor2_VisualBasic()
             Dim input =
 <Workspace>
@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParam1()
             Dim input =
 <Workspace>
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParam1_VisualBasic()
             Dim input =
 <Workspace>
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParam2()
             Dim input =
 <Workspace>
@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParam2_VisualBasic()
             Dim input =
 <Workspace>
@@ -442,7 +442,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParam3()
             Dim input =
 <Workspace>
@@ -467,7 +467,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParam3_VisualBasic()
             Dim input =
 <Workspace>
@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParamRef1()
             Dim input =
 <Workspace>
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestParamRef1_VisualBasic()
             Dim input =
 <Workspace>
@@ -544,7 +544,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestPermission()
             Dim input =
 <Workspace>
@@ -565,7 +565,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestPermission_VisualBasic()
             Dim input =
 <Workspace>
@@ -586,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameters1()
             Dim input =
 <Workspace>
@@ -611,7 +611,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameters1_VisualBasic()
             Dim input =
 <Workspace>
@@ -640,7 +640,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameters2()
             Dim input =
 <Workspace>
@@ -664,7 +664,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParameters2_VisualBasic()
             Dim input =
 <Workspace>
@@ -690,7 +690,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParametersInCref()
             Dim input =
 <Workspace>
@@ -711,7 +711,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestTypeParametersInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -732,7 +732,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMethodParametersInCref()
             Dim input =
 <Workspace>
@@ -754,7 +754,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestMethodParametersInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -777,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestFieldInCref()
             Dim input =
 <Workspace>
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestFieldInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -839,7 +839,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestSpecialTypeSimpleNameInCref()
             Dim input =
 <Workspace>
@@ -865,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestSpecialTypeSimpleNameInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -890,7 +890,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInterfaceInCref1()
             Dim input =
 <Workspace>
@@ -919,7 +919,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInterfaceInCref1_VisualBasic()
             Dim input =
 <Workspace>
@@ -948,7 +948,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInterfaceInCref2()
             Dim input =
 <Workspace>
@@ -976,7 +976,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInterfaceInCref2_VisualBasic()
             Dim input =
 <Workspace>
@@ -1002,7 +1002,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInterfaceInCref3()
             Dim input =
 <Workspace>
@@ -1034,7 +1034,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInterfaceInCref3_VisualBasic()
             Dim input =
 <Workspace>
@@ -1065,7 +1065,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInheritanceInCref1()
             Dim input =
 <Workspace>
@@ -1096,7 +1096,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         End Sub
 
         <WorkItem(769369)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInheritanceInCref1_VisualBasic()
             Dim input =
 <Workspace>
@@ -1122,7 +1122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOverloadingInCref()
             Dim input =
 <Workspace>
@@ -1144,7 +1144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOverloadingInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -1167,7 +1167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInheritanceInCref()
             Dim input =
 <Workspace>
@@ -1193,7 +1193,7 @@ class Q : P
             Test(input)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestInheritanceInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -1216,7 +1216,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestConstructorInCref()
             Dim input =
 <Workspace>
@@ -1239,7 +1239,7 @@ End Class]]>
         End Sub
 
         <WorkItem(769369)>
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestConstructorInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -1262,7 +1262,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestDelegateInCref()
             Dim input =
 <Workspace>
@@ -1286,7 +1286,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestDelegateInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -1310,7 +1310,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestScopeInCref()
             Dim input =
 <Workspace>
@@ -1340,7 +1340,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestScopeInCref_VisualBasic()
             Dim input =
 <Workspace>
@@ -1365,7 +1365,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOperatorInCref()
             Dim input =
 <Workspace>
@@ -1395,7 +1395,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestOperatorInCrefVisualBasic()
             Dim input =
 <Workspace>
@@ -1422,7 +1422,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestIndexInCref1()
             Dim input =
 <Workspace>
@@ -1451,7 +1451,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestIndexInCref1_VisualBasic()
             Dim input =
 <Workspace>
@@ -1481,7 +1481,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestIndexInCref2()
             Dim input =
 <Workspace>
@@ -1510,7 +1510,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestIndexInCref2_VisualBasic()
             Dim input =
 <Workspace>
@@ -1540,7 +1540,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestIndexInCref3()
             Dim input =
 <Workspace>
@@ -1575,7 +1575,7 @@ End Class]]>
             Test(input)
         End Sub
 
-        <Fact(Skip:="783135"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="783135"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Sub TestIndexInCref3_VisualBasic()
             Dim input =
 <Workspace>

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
     public partial class SmartIndenterTests
     {
         // TODO: Author this as a performance test.
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
         public void RegionPerformance()
         {

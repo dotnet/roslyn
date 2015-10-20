@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub TestAllSignatureChanges_1This_3Regular_2Default()
             Dim markup = <Text><![CDATA[
 Option Strict On
@@ -49,7 +49,7 @@ End Module
             TestAllSignatureChanges(LanguageNames.VisualBasic, markup, signaturePartCounts)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub TestAllSignatureChanges_1This_3Regular_1ParamArray()
             Dim markup = <Text><![CDATA[
 Option Strict On
@@ -74,7 +74,7 @@ End Module
             TestAllSignatureChanges(LanguageNames.VisualBasic, markup, signaturePartCounts)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub TestAllSignatureChanges_Delegate_3()
             Dim markup = <Text><![CDATA[
 Option Strict On

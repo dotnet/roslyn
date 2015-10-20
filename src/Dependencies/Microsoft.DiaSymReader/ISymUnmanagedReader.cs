@@ -101,7 +101,7 @@ namespace Microsoft.DiaSymReader
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] ISymUnmanagedMethod[] methods);
 
         [PreserveSig]
-        int GetDocumentVersion(ISymUnmanagedDocument document, out int version, out bool isCurrent);
+        int GetDocumentVersion(ISymUnmanagedDocument document, out int version, [MarshalAs(UnmanagedType.Bool)]out bool isCurrent);
 
         [PreserveSig]
         int GetMethodVersion(ISymUnmanagedMethod method, out int version);

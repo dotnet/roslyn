@@ -117,6 +117,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
@@ -220,6 +221,7 @@
     <Compile Include="Extensibility\Completion\IAsyncCompletionService.cs" />
     <Compile Include="Extensibility\Completion\ICompletionPresenterSession.cs" />
     <Compile Include="Extensibility\Completion\ICustomCommitCompletionProvider.cs" />
+    <Compile Include="Extensibility\Completion\ICustomCompletionItemFormatter.cs" />
     <Compile Include="Extensibility\Completion\SnippetCompletionProvider.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionPresenterNames.cs" />
     <Compile Include="Extensibility\Completion\PredefinedCompletionProviderNames.cs" />
@@ -267,6 +269,9 @@
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpParameter.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerInfo.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpTriggerReason.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.Tagger.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationUtilities.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
@@ -328,7 +333,7 @@
     <Compile Include="Implementation\Classification\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />
-    <Compile Include="Implementation\Classification\SemanticClassificationTaggerProvider.cs" />
+    <Compile Include="Implementation\Classification\SemanticClassificationViewTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.TagComputer.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.TagComputer.LastLineCache.cs" />
@@ -650,6 +655,8 @@
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
+    <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.ViewSpanChangedEventSource.cs" />
+    <Compile Include="Shared\Utilities\SynchronizationContextTaskScheduler.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource_ReferenceCounting.cs" />

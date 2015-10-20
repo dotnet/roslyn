@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -33,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
             return new CodeRefactoringProvider();
         }
 
-        [Fact]
-        public void TestCodeActionPreviewAndApply()
+        [WpfFact]
+        public async Task TestCodeActionPreviewAndApply()
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
             {
@@ -42,16 +43,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
 
                 var expectedCode = "private class D { }";
 
-                TestActionsOnLinkedFiles(
+                await TestActionsOnLinkedFiles(
                     workspace,
                     expectedText: expectedCode,
                     index: 0,
                     actions: codeIssueOrRefactoring.Actions.ToList(),
-                    expectedPreviewContents: expectedCode);
+                    expectedPreviewContents: expectedCode).ConfigureAwait(true);
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestWorkspaceTryApplyChangesDirectCall()
         {
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(WorkspaceXml))
