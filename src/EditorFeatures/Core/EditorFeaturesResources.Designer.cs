@@ -1196,6 +1196,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Paste From Interactive Window.
+        /// </summary>
+        internal static string InteractivePaste {
+            get {
+                return ResourceManager.GetString("InteractivePaste", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interface Parts.
         /// </summary>
         internal static string InterfaceParts {
