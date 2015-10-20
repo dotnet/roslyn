@@ -140,13 +140,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return null;
             }
 
-            // TODO: https://github.com/dotnet/roslyn/issues/5854
-            var importedNamespaces = arguments.CompilationOptions.GetImports();
-
             return new ScriptOptions(
                 filePath: scriptPathOpt ?? "", 
                 references: ImmutableArray.CreateRange(resolvedReferences),
-                namespaces: importedNamespaces,
+                namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
                 sourceResolver: sourceResolver);
         }
