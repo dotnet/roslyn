@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     //    continue that session.
                     // 3. Otherwise, we're starting a new tracking session. Find and track the span of
                     //    the relevant word in the foreground, and use a task to figure out whether the
-                    //    original word was a renamable identifier or not.
+                    //    original word was a renameable identifier or not.
 
                     if (e.Changes.Count != 1 || ShouldClearTrackingSession(e.Changes.Single()))
                     {

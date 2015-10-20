@@ -88,7 +88,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 waiter = _waiters.Dequeue();
             }
 
-            waiter.SetResult(value);
+            // Invoke SetResult on a separate task, as this invocation could cause the underlying task to executing,
+            // which could be a long running operation that can potentially cause a deadlock if executed on the current thread.
+            Task.Run(() => waiter.SetResult(value));
+
             return true;
         }
 

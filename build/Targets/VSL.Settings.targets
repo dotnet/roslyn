@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" InitialTargets="RestoreToolsetPackagesWrapper" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
 
   <PropertyGroup>
     <ProjectDir>$(MSBuildThisFileDirectory)..\..\</ProjectDir>
@@ -16,42 +16,11 @@
   <!-- Import the global NuGet packages -->
   <PropertyGroup>
     <ToolsetCompilerPackageName>Microsoft.Net.Compilers</ToolsetCompilerPackageName>
-    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.1.0-beta1-20150727-01\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.Compilers\1.1.0-rc1-20151014-05\build\Microsoft.Net.Compilers.props</ToolsetCompilerPropsFilePath>
     <RoslynDiagnosticsPropsFilePath>$(NuGetPackageRoot)\Microsoft.Net.RoslynDiagnostics\1.1.1-beta1-20150818-01\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
     <AdditionalFileItemNames>$(AdditionalFileItemNames);PublicAPI</AdditionalFileItemNames>
   </PropertyGroup>
 
-  <!-- Wrap the RestoreToolsetPackages target to prevent the output from being
-      referenced by other targets -->
-  <Target Name="RestoreToolsetPackagesWrapper" DependsOnTargets="RestoreToolsetPackages" />
-
-  <Target Name="RestoreToolsetPackages"
-          Inputs="$(ProjectDir)build\ToolsetPackages\project.json"
-          Outputs="$(ToolsetPackagesSemaphore);
-                   $(ToolsetCompilerPropsFilePath);
-                   $(RoslynDiagnosticsPropsFilePath)"
-          Condition="'$(OS)' == 'Windows_NT'">
-    <Message Importance="High" Text="Restoring toolset packages..." />
-
-    <!-- Run restore -->
-    <Exec Command="$(NuGetToolPath) restore $(ToolsetPackagesDir)project.json" />
-
-    <Error Text="Toolset compilers were not restored correctly. Could not find: $(ToolsetCompilerPropsFilePath)"
-           Condition="!Exists('$(ToolsetCompilerPropsFilePath)')" />
-    <Error Text="RoslynDiagnostics package was not restored correctly. Could not find: $(RoslynDiagnosticsPropsFilePath)"
-           Condition="!Exists('$(RoslynDiagnosticsPropsFilePath)')" />
-
-    <Touch Files="$(ToolsetCompilerPropsFilePath);$(RoslynDiagnosticsPropsFilePath)"
-           ContinueOnError="WarnAndContinue"
-           ForceTouch="true" />
-
-    <!-- Touch semaphore to indicate we're up to date -->
-    <Touch Files="$(ToolsetPackagesSemaphore)"
-           ContinueOnError="WarnAndContinue"
-           AlwaysCreate="true"
-           ForceTouch="true" />
-
-  </Target>
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />

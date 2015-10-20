@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
         {
             var parseOptions = Arguments.ParseOptions;
+
+            // We compute script parse options once so we don't have to do it repeatedly in
+            // case there are many script files.
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
             bool hadErrors = false;
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var xmlFileResolver = new LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger);
-            var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, touchedFilesLogger);
+            var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger);
 
             MetadataReferenceResolver referenceDirectiveResolver;
             var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);

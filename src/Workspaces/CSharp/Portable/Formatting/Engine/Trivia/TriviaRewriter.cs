@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     SyntaxFactory.TriviaList(CreateTriviaListFromTo(triviaList, index + 1, triviaList.Count - 1)));
             }
 
-            // whitespace trivia case such as spaces/tabes/new lines
+            // whitespace trivia case such as spaces/tabs/new lines
             // these will always have a single text change
             var text = pair.Value.GetTextChanges(GetTextSpan(pair.Key)).Single().NewText;
             var trailingTrivia = SyntaxFactory.ParseTrailingTrivia(text);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return SyntaxFactory.TriviaList(csharpTriviaData.GetTriviaList(cancellationToken));
             }
 
-            // whitespace trivia case such as spaces/tabes/new lines
+            // whitespace trivia case such as spaces/tabs/new lines
             // these will always have single text changes
             var text = triviaData.GetTextChanges(GetTextSpan(pair)).Single().NewText;
             return SyntaxFactory.ParseLeadingTrivia(text);

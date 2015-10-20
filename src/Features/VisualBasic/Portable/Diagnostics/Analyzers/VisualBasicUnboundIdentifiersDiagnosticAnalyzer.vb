@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics
             Dim count = constructors.Value _
                 .WhereAsArray(Function(constructor) constructor.Parameters.Length = args.Count) _
                 .WhereAsArray(Function(constructor)
-                                  For index = 0 To constructor.Parameters.Length
+                                  For index = 0 To constructor.Parameters.Length - 1
                                       Dim typeInfo = semanticModel.GetTypeInfo(args(index).GetExpression)
                                       If Not constructor.Parameters(index).Type.Equals(typeInfo.ConvertedType) Then
                                           Return False

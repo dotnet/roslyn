@@ -49,30 +49,6 @@
     </When>
   </Choose>
 
-  <!-- Work around mono + msbuild bug https://github.com/Microsoft/msbuild/issues/191 -->
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore' and '$(OS)' != 'Windows_NT'">
-      <!-- Manually set assembly search paths so they don't get mangled later -->
-      <AssemblySearchPaths Condition=" '$(AssemblySearchPaths)' == ''">
-          {RawFileName};
-          $(OutDir)
-      </AssemblySearchPaths>
-      <RemoveAssemblyFoldersIfNoTargetFramework>false</RemoveAssemblyFoldersIfNoTargetFramework>
-  </PropertyGroup>
-
-  <!-- Work around issue in dotnet/roslyn issue #5213
-       Since MSBuild wants a reference assembly location and DNXCore doesn't have one,
-       trick MSBuild into using the .NETPortable,v5.0 reference assembly path which happens
-       to have the same set of reference assemblies as DNXCore (i.e., none). -->
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
-    <_TargetFrameworkDirectories>$([System.String]::Join(";", $([Microsoft.Build.Utilities.ToolLocationHelper]::GetPathToReferenceAssemblies(".NETPortable", "v5.0", ""))))</_TargetFrameworkDirectories>
-    <_FullFrameworkReferenceAssemblyPaths>$(_TargetFrameworkDirectories)</_FullFrameworkReferenceAssemblyPaths>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == 'DNXCore'">
-      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-      <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
-  </PropertyGroup>
-
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
           Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
@@ -88,6 +64,15 @@
   <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
+
+  <PropertyGroup Condition="
+      '$(TargetFrameworkIdentifier)' == '.NETPortable' AND
+      '$(TargetFrameworkVersion)' == 'v5.0' AND
+      '$(OutputType)' == 'Exe'">
+    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
+  </PropertyGroup>
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\' to '/', even when the '\'

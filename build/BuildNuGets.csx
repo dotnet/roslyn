@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
 
@@ -12,8 +13,9 @@ if (Args.Count() != 3)
     Environment.Exit(1);
 }
 
-var csiRoot = AppDomain.CurrentDomain.BaseDirectory;
-var slnRoot = Path.GetFullPath(Path.Combine(csiRoot, "../../"));
+string ScriptRoot([CallerFilePath]string path = "") => Path.GetDirectoryName(path);
+
+var slnRoot = Path.GetFullPath(Path.Combine(ScriptRoot(), "../"));
 
 // Strip trailing '\' characters because if the path is later passed on the
 // command line when surrounded by quotes (in case the path has spaces) some
