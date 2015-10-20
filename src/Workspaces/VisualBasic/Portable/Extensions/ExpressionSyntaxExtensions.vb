@@ -1182,7 +1182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim genericName = DirectCast(name, GenericNameSyntax)
                     replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier).WithLeadingTrivia(genericName.GetLeadingTrivia()).WithTrailingTrivia(genericName.GetTrailingTrivia())
 
-                    issueSpan = name.Span
+                    issueSpan = genericName.TypeArgumentList.Span
                     Return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken)
                 End If
 
