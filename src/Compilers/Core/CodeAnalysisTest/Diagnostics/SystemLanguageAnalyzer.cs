@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                     OperationKind.AssignmentExpression,
                                     OperationKind.CompoundAssignmentExpression);
 
-                                 compilationContext.RegisterOperationAction(
+                                 operationBlockContext.RegisterOperationAction(
                                      (operationContext) =>
                                      {
                                          IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;

@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ExecuteBlockActionsCore<CodeBlockStartAnalyzerAction<TLanguageKindEnum>, CodeBlockAnalyzerAction, SyntaxNodeAnalyzerAction<TLanguageKindEnum>, SyntaxNodeAnalyzerStateData, SyntaxNode, TLanguageKindEnum>(
                         codeBlockStartActions, codeBlockActions, codeBlockEndActions, analyzer,
-                        declaredNode, declaredSymbol, executableCodeBlocks, semanticModel, getKind, analyzerStateOpt?.CodeBlockAnalysisState);
+                        declaredNode, declaredSymbol, executableCodeBlocks, (codeBlocks) => codeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf()), semanticModel, getKind, analyzerStateOpt?.CodeBlockAnalysisState);
                 }
             }
             finally
@@ -494,6 +494,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer, 
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
+            ImmutableArray<IOperation> operationBlocks,
             ImmutableArray<IOperation> operations,
             SemanticModel semanticModel,
             SyntaxReference declaration,
@@ -508,7 +509,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, OperationAnalyzerStateData, IOperation, int>(
                         operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
-                        declaredNode, declaredSymbol, operations, semanticModel, null, analyzerStateOpt?.OperationBlockAnalysisState);
+                        declaredNode, declaredSymbol, operationBlocks, (blocks) => operations, semanticModel, null, analyzerStateOpt?.OperationBlockAnalysisState);
                 }
             }
             finally
@@ -525,6 +526,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            SyntaxNode declaredNode,
            ISymbol declaredSymbol,
            ImmutableArray<TNode> executableBlocks,
+           Func<ImmutableArray<TNode>, IEnumerable<TNode>> getNodesToAnalyze,
            SemanticModel semanticModel,
            Func<SyntaxNode, TLanguageKindEnum> getKind,
            AnalysisState.BlockAnalyzerStateData<TBlockAction, TNodeStateData> analyzerStateOpt)
@@ -628,14 +630,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (syntaxNodeActions != null)
                 {
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
-                    IEnumerable<SyntaxNode> executableCodeBlocks = (IEnumerable<SyntaxNode>)(object)executableBlocks;
-                    var nodesToAnalyze = executableCodeBlocks.SelectMany(cb => cb.DescendantNodesAndSelf());
-                    ExecuteSyntaxNodeActions(nodesToAnalyze, executableNodeActionsByKind, semanticModel, getKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
+                    var syntaxNodesToAnalyze = (IEnumerable<SyntaxNode>)getNodesToAnalyze(executableBlocks);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, semanticModel, getKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as SyntaxNodeAnalyzerStateData);
                 }
                 else if (operationActions != null)
                 {
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
-                    ExecuteOperationActions(operationBlocks, operationActionsByKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
+                    var operationsToAnalyze = (IEnumerable<IOperation>)getNodesToAnalyze(executableBlocks);
+                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, addDiagnostic, analyzerStateOpt?.ExecutableNodesAnalysisState as OperationAnalyzerStateData);
                 }
             }
 

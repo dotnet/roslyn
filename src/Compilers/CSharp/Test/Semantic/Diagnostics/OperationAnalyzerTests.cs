@@ -245,10 +245,10 @@ class C
 
         F4 = 4;
         F7 = 7;
-        M1(out F1);
+        M1(out F1, F5);
     }
 
-    public void M1(out int x)
+    public void M1(out int x, int y)
     {
         x = 10;
     }
@@ -257,7 +257,6 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
-                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F1").WithLocation(4, 9),
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 9),
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 9)
                 );
@@ -297,10 +296,11 @@ class C
 
         F4 = 4;
         F7 = 7;
-        M1(out F1);
+        M1(out F1, F5);
+        F7 = 7;
     }
 
-    public static void M1(out int x)
+    public static void M1(out int x, int y)
     {
         x = 10;
     }
@@ -309,7 +309,6 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
-                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F1").WithLocation(4, 16),
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 16),
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 16)
                 );

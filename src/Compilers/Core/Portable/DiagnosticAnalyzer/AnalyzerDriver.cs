@@ -1318,7 +1318,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         // Execute operation actions.
                         if ((shouldExecuteOperationActions || shouldExecuteOperationBlockActions) && executableCodeBlocks.Any())
                         {
-                            var operationsToAnalyze = GetOperationsToAnalyze(executableCodeBlocks, semanticModel, cancellationToken);
+                            var operationBlocksToAnalyze = GetOperationBlocksToAnalyze(executableCodeBlocks, semanticModel, cancellationToken);
+                            var operationsToAnalyze = GetOperationsToAnalyze(operationBlocksToAnalyze);
+
                             if (!operationsToAnalyze.IsEmpty)
                             {
                                 if (shouldExecuteOperationActions)
@@ -1341,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                         analyzerExecutor.ExecuteOperationBlockActions(
                                             analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
                                             analyzerActions.OpererationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                                            operationsToAnalyze, semanticModel, decl, analysisScope, analysisStateOpt);
+                                            operationBlocksToAnalyze, operationsToAnalyze, semanticModel, decl, analysisScope, analysisStateOpt);
                                     }
                                 }
                             }
@@ -1506,20 +1508,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return nodesToAnalyze;
         }
 
-        private static ImmutableArray<IOperation> GetOperationsToAnalyze(
+        private static ImmutableArray<IOperation> GetOperationBlocksToAnalyze(
             ImmutableArray<SyntaxNode> executableBlocks,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            ArrayBuilder<IOperation> operationsToAnalyze = ArrayBuilder<IOperation>.GetInstance();
+            ArrayBuilder<IOperation> operationBlocksToAnalyze = ArrayBuilder<IOperation>.GetInstance();
 
             foreach (SyntaxNode executableBlock in executableBlocks)
             {
                 IOperation operation = semanticModel.GetOperation(executableBlock, cancellationToken);
                 if (operation != null)
                 {
-                    operationsToAnalyze.AddRange(operation.DescendantsAndSelf());
+                    operationBlocksToAnalyze.AddRange(operation);
                 }
+            }
+
+            return operationBlocksToAnalyze.ToImmutableAndFree();
+        }
+
+        private static ImmutableArray<IOperation> GetOperationsToAnalyze(
+            ImmutableArray<IOperation> operationBlocks)
+        {
+            ArrayBuilder<IOperation> operationsToAnalyze = ArrayBuilder<IOperation>.GetInstance();
+
+            foreach (IOperation operationBlock in operationBlocks)
+            {
+                operationsToAnalyze.AddRange(operationBlock.DescendantsAndSelf());
             }
 
             return operationsToAnalyze.ToImmutableAndFree();

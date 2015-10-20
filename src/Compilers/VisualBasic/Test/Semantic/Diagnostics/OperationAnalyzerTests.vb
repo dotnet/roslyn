@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -228,6 +229,104 @@ End Class
                                            Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)").WithLocation(14, 9),
                                            Diagnostic(InvocationTestAnalyzer.BigParamarrayArgumentsDescriptor.Id, "M0(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)").WithLocation(15, 9),
                                            Diagnostic(InvocationTestAnalyzer.OutOfNumericalOrderArgumentsDescriptor.Id, "3").WithLocation(17, 21))
+        End Sub
+
+        <Fact>
+        Public Sub FieldCouldBeReadOnlyVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public F1 As Integer
+    Public Const F2 As Integer = 2
+    Public ReadOnly F3 As Integer
+    Public F4 As Integer
+    Public F5 As Integer
+    Public F6 As Integer = 6
+    Public F7 As Integer
+
+    Public Sub New()
+        F1 = 1
+        F4 = 4
+        F5 = 5
+    End Sub
+
+    Public Sub M0()
+        Dim x As Integer = F1
+        x = F2
+        x = F3
+        x = F4
+        x = F5
+        x = F6
+        x = F7
+
+        F4 = 4
+        F7 = 7
+        M1(F1, F5)
+    End Sub
+
+    Public Sub M1(ByRef X As Integer, Y As Integer)
+        x = 10
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New FieldCouldBeReadOnlyAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(6, 12),
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(7, 12))
+        End Sub
+
+        <Fact>
+        Public Sub StaticFieldCouldBeReadOnlyVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Shared F1 As Integer
+    Public Shared ReadOnly F2 As Integer = 2
+    Public Shared Readonly F3 As Integer
+    Public Shared F4 As Integer
+    Public Shared F5 As Integer
+    Public Shared F6 As Integer = 6
+    Public Shared F7 As Integer
+
+    Shared Sub New()
+        F1 = 1
+        F4 = 4
+        F5 = 5
+    End Sub
+
+    Public Shared Sub M0()
+        Dim x As Integer = F1
+        x = F2
+        x = F3
+        x = F4
+        x = F5
+        x = F6
+        x = F7
+
+        F4 = 4
+        F7 = 7
+        M1(F1, F5)
+    End Sub
+
+    Public Shared Sub M1(ByRef X As Integer, Y As Integer)
+        x = 10
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New FieldCouldBeReadOnlyAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(6, 19),
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(7, 19))
         End Sub
     End Class
 End Namespace
