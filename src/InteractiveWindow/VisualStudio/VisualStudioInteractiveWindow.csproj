@@ -5,7 +5,6 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ImportGroup Label="Settings">
-    <Import Project="..\Version.props" />
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
   <PropertyGroup>
