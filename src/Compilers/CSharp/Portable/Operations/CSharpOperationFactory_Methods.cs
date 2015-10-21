@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        internal IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression)
+        internal IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, BoundExpression expression, bool isImplicit)
         {
             var value = Create(expression);
 
@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                 semanticModel: _semanticModel,
                 syntax: value.Syntax,
                 type: value.Type,
-                constantValue: default);
+                constantValue: default,
+                isImplicit: isImplicit);
         }
 
         private ImmutableArray<IArgument> DeriveArguments(
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             {
                 // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
                 // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg));
+                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg, arg.WasCompilerGenerated));
             }
 
             return LocalRewriter.MakeArgumentsInEvaluationOrder(
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
                 ITypeSymbol type = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
-                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue);
+                var assignment = new SimpleAssignmentExpression(target, value, _semanticModel, syntax, type, constantValue, target.IsImplicit);
                 builder.Add(assignment);
             }
 
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, _semanticModel, switchSection.Syntax, type: null, constantValue: default(Optional<object>), isImplicit: switchSection.WasCompilerGenerated);
             });
         }
 
