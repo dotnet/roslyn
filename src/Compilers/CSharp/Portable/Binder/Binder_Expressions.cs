@@ -4252,9 +4252,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindUtf8String(Utf8StringExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var utf8type = Compilation.GetWellKnownType(WellKnownType.System_Text_Utf8_Utf8String);
-            var byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
-            var ctor = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Utf8_Utf8String__ctor);
+            var utf8type = GetWellKnownType(WellKnownType.System_Text_Utf8_Utf8String, diagnostics, node);
+            var ctor = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Text_Utf8_Utf8String__ctor, diagnostics, syntax: node);
+            if ((object)ctor == null)
+            {
+                return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, utf8type, hasErrors: true);
+            }
+
+            var byteType = GetSpecialType(SpecialType.System_Byte, diagnostics, node);
+            var int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
 
             // make initializer for utf8bytes 
             var text = node.Utf8StringToken.ValueText;
@@ -4269,9 +4275,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // one dimensional array of length utf8TextBytes.Length
             var bounds = ImmutableArray.Create<BoundExpression>(
-                new BoundLiteral(node, ConstantValue.Create(utf8TextBytes.Length), Compilation.GetSpecialType(SpecialType.System_Int32)));
+                new BoundLiteral(node, ConstantValue.Create(utf8TextBytes.Length), int32Type));
 
-            var arr = new BoundArrayCreation(node, bounds, init, ctor.Parameters[0].Type);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, byteType, ImmutableArray<CustomModifier>.Empty, rank: 1);
+            var arr = new BoundArrayCreation(node, bounds, init, arrayType);
 
             return new BoundObjectCreationExpression(node, ctor, arr);
         }
