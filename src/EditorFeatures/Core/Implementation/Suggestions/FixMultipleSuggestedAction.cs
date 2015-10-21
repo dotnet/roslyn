@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
             extensionManager.PerformAction(Provider, () =>
             {
-                newSolution = CodeAction.GetChangedSolutionInternalAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                // We don't need to post process changes here as the inner code action created for Fix multiple code fix already executes.
+                newSolution = CodeAction.GetChangedSolutionInternalAsync(postProcessChanges: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             });
 
             return newSolution;
