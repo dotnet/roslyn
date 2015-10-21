@@ -123,6 +123,11 @@ namespace Microsoft.CodeAnalysis
             return _builder.IndexOf(item);
         }
 
+        public int IndexOf(T item, int startIndex, int count)
+        {
+            return _builder.IndexOf(item, startIndex, count);
+        }
+
         public void RemoveAt(int index)
         {
             _builder.RemoveAt(index);
