@@ -369,7 +369,7 @@ Class C1
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'Public Shar ... End Sub')
   Locals: Local_1: a As C2
     Local_2: b As C2
@@ -418,9 +418,9 @@ IBlockStatement (6 statements, 4 locals) (OperationKind.BlockStatement, IsInvali
                         Instance Receiver: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'New C2() Wi ... .a = "foo"}')
                     Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "foo", IsInvalid) (Syntax: '"foo"')
   ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-  null
+    LabeledStatement: null
   IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
-  null
+    ReturnedValue: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
