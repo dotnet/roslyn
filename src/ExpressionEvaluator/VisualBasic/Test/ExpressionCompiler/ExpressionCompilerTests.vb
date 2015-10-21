@@ -4646,6 +4646,48 @@ End Class
             Assert.Equal("error BC30043: 'Me' is valid only within an instance method.", errorMessage)
         End Sub
 
+        <Fact>
+        Public Sub ImportsInAsyncLambda()
+            Const source =
+"Imports System.Linq
+Class C
+    Shared Sub M()
+        Dim f As System.Action =
+            Async Sub()
+                Dim c = {1, 2, 3}
+                c.Select(Function(i) i)
+            End Sub
+    End Sub
+End Class"
+            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim runtime = CreateRuntimeInstance(compilation0)
+            Dim context = CreateMethodContext(runtime, "C._Closure$__.VB$StateMachine___Lambda$__1-0.MoveNext")
+            Dim errorMessage As String = Nothing
+            Dim testData = New CompilationTestData()
+            context.CompileExpression("c.Where(Function(n) n > 0)", errorMessage, testData)
+            Assert.Null(errorMessage)
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C._Closure$__.VB$StateMachine___Lambda$__1-0.$VB$ResumableLocal_c$0 As Integer()""
+  IL_0006:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of Integer, Boolean)""
+  IL_000b:  brfalse.s  IL_0014
+  IL_000d:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of Integer, Boolean)""
+  IL_0012:  br.s       IL_002a
+  IL_0014:  ldsfld     ""<>x._Closure$__.$I As <>x._Closure$__""
+  IL_0019:  ldftn      ""Function <>x._Closure$__._Lambda$__0-0(Integer) As Boolean""
+  IL_001f:  newobj     ""Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)""
+  IL_0024:  dup
+  IL_0025:  stsfld     ""<>x._Closure$__.$I0-0 As System.Func(Of Integer, Boolean)""
+  IL_002a:  call       ""Function System.Linq.Enumerable.Where(Of Integer)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, Boolean)) As System.Collections.Generic.IEnumerable(Of Integer)""
+  IL_002f:  ret
+}")
+        End Sub
+
     End Class
 
 End Namespace
