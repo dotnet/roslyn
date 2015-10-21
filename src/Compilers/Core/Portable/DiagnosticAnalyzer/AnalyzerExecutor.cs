@@ -777,7 +777,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message };
             var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, e.ToString());
-            return CreateExceptionDiagnostic(AnalyzerExceptionDiagnosticId, title, description, messageFormat, messageArguments);
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
+            return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
         internal static Diagnostic CreateDriverExceptionDiagnostic(Exception e)
@@ -786,25 +787,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var messageFormat = CodeAnalysisResources.AnalyzerDriverThrows;
             var messageArguments = new[] { e.GetType().ToString(), e.Message };
             var description = string.Format(CodeAnalysisResources.AnalyzerDriverThrowsDescription, e.ToString());
-            return CreateExceptionDiagnostic(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat, messageArguments);
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat);
+            return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
-        private static Diagnostic CreateExceptionDiagnostic(string id, string title, string description, string messageFormat, string[] messageArguments)
+        internal static DiagnosticDescriptor GetAnalyzerExceptionDiagnosticDescriptor(string id = null, string title = null, string description = null, string messageFormat = null)
         {
             // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
             // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
-            var descriptor = new DiagnosticDescriptor(
+
+            id = id ?? AnalyzerExceptionDiagnosticId;
+            title = title ?? CodeAnalysisResources.CompilerAnalyzerFailure;
+            messageFormat = messageFormat ?? CodeAnalysisResources.CompilerAnalyzerThrows;
+            description = description ?? CodeAnalysisResources.CompilerAnalyzerFailure;
+
+            return new DiagnosticDescriptor(
                 id,
                 title,
                 messageFormat,
                 description: description,
                 category: DiagnosticCategory,
-                defaultSeverity: DiagnosticSeverity.Info,
+                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
-
-            return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
         internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)

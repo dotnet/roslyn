@@ -2504,7 +2504,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithAssemblyName(assemblyName)
         End Function
 
-        Protected Overrides Function CommonWithCompilationScriptInfo(info As ScriptCompilationInfo) As Compilation
+        Protected Overrides Function CommonWithScriptCompilationInfo(info As ScriptCompilationInfo) As Compilation
             Return WithScriptCompilationInfo(DirectCast(info, VisualBasicScriptCompilationInfo))
         End Function
 

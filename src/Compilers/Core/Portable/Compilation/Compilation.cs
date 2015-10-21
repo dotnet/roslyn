@@ -369,8 +369,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal abstract ITypeSymbol GetSubmissionResultType(out bool hasValue);
 
-        public Compilation WithCompilationScriptInfo(ScriptCompilationInfo info) => CommonWithCompilationScriptInfo(info);
-        protected abstract Compilation CommonWithCompilationScriptInfo(ScriptCompilationInfo info);
+        public Compilation WithScriptCompilationInfo(ScriptCompilationInfo info) => CommonWithScriptCompilationInfo(info);
+        protected abstract Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info);
 
         #endregion
 

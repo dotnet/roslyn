@@ -55,7 +55,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
             End Get
         End Property
 
-        Protected Overrides Function GetSubmissionCompilationOptions(name As String, metadataReferenceResolver As MetadataReferenceResolver, sourceReferenceResolver As SourceReferenceResolver) As CompilationOptions
+        Protected Overrides Function GetSubmissionCompilationOptions(name As String, metadataReferenceResolver As MetadataReferenceResolver, sourceReferenceResolver As SourceReferenceResolver, [imports] As ImmutableArray(Of String)) As CompilationOptions
+            ' TODO: imports
             Return New VisualBasicCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 scriptClassName:=name,
