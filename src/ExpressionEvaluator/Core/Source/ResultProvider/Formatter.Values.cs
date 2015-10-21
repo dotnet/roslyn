@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     // This class provides implementation for the "displaying values as strings" aspect of the default (C#) Formatter component.
     internal abstract partial class Formatter
     {
-        internal string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options, GetValueFlags flags)
+        // Note: The managed C++ EE overrides this function.  Do not remove the 'virtual' modifier, or you will break it.
+        internal virtual string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options, GetValueFlags flags)
         {
             if (value.IsError())
             {

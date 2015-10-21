@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         /// <returns>The qualified name (i.e. including containing types and namespaces) of a named,
         /// pointer, or array type.</returns>
-        internal string GetTypeName(TypeAndCustomInfo typeAndInfo, bool escapeKeywordIdentifiers, out bool sawInvalidIdentifier)
+        internal virtual string GetTypeName(TypeAndCustomInfo typeAndInfo, bool escapeKeywordIdentifiers, out bool sawInvalidIdentifier)
         {
+            // Note: Do not remove the 'virtual' modifier on this function; the managed C++ EE overrides this function, even though the C# and VB EE's do not.
             var type = typeAndInfo.Type;
             if (type == null)
             {

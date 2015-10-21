@@ -80,6 +80,31 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal abstract string TrimAndGetFormatSpecifiers(string expression, out ReadOnlyCollection<string> formatSpecifiers);
 
+        /// <returns>
+        /// The qualified name (i.e. including containing types and namespaces) of a named, pointer,
+        /// or array type followed by the qualified name of the actual runtime type, if provided.
+        /// 
+        /// The resultant string combines both the declared type and the runtime type of the value.
+        /// This is overridden by the managed C++ EE to handle special language-specific cases, such as C++ reference types.
+        /// </returns>
+        internal virtual string GetTypeNameOfValue(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, ExpansionKind kind)
+        {
+            var declaredLmrType = declaredType.GetLmrType();
+            var runtimeType = value.Type;
+            var runtimeLmrType = runtimeType.GetLmrType();
+            var declaredTypeName = inspectionContext.GetTypeName(declaredType, declaredTypeInfo, Formatter.NoFormatSpecifiers);
+            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, CustomTypeInfo: null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
+            var includeRuntimeTypeName =
+                !string.Equals(declaredTypeName, runtimeTypeName, StringComparison.OrdinalIgnoreCase) && // Names will reflect "dynamic", types will not.
+                !declaredLmrType.IsPointer &&
+                (kind != ExpansionKind.PointerDereference) &&
+                (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
+            return includeRuntimeTypeName ?
+                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) :
+                declaredTypeName;
+
+        }
+
         internal static readonly ReadOnlyCollection<string> NoFormatSpecifiers = new ReadOnlyCollection<string>(new string[0]);
 
         internal static ReadOnlyCollection<string> AddFormatSpecifier(ReadOnlyCollection<string> formatSpecifiers, string formatSpecifier)

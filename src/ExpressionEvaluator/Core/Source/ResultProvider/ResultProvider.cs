@@ -15,6 +15,10 @@ using Microsoft.VisualStudio.Debugger.Metadata;
 using Roslyn.Utilities;
 using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
+// BEGIN TEMPORARY HACK
+[assembly:System.Runtime.CompilerServices.InternalsVisibleTo("MCppEE, PublicKey=00240000048000009400000006020000002400005253413100040000010001003F81E1F9B7BC2E4636972B22A15EC7CF137D46193FCB868AB514ABD774A919B5DBE10DDC8EEE83CEA4DA8026537F990898150810607FA4991D5DC27FBFD59AA8773A88A024BFE367B5891A9FD551D8D7ECDFC91F58D62CF238C1247E57FB45A26367DFCC8C1A5285998111D5A6D6609BBB19D982A5AC21A5FEA9742ABC345E9A")]
+// END TEMPORARY HACK
+
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal delegate void CompletionRoutine();
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Formatter = formatter;
         }
 
-        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
+        public virtual void GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
             // TODO: Use full name
             var wl = new WorkList(workList, e => completionRoutine(DkmEvaluationAsyncResult.CreateErrorResult(e)));
@@ -73,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
+        public virtual void GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
             var dataItem = evaluationResult.GetDataItem<EvalResultDataItem>();
             if (dataItem == null)
@@ -87,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             GetChildrenAndContinue(dataItem, workList, stackFrame, initialRequestSize, inspectionContext, completionRoutine);
         }
 
-        void IDkmClrResultProvider.GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
+        public virtual void GetItems(DkmEvaluationResultEnumContext enumContext, DkmWorkList workList, int startIndex, int count, DkmCompletionRoutine<DkmEvaluationEnumAsyncResult> completionRoutine)
         {
             var dataItem = enumContext.GetDataItem<EnumContextDataItem>();
             if (dataItem == null)
@@ -711,7 +715,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 display = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
             }
 
-            var typeName = displayType ?? GetTypeName(inspectionContext, value, declaredType, declaredTypeInfo, dataItem.Kind);
+            var typeName = displayType ?? this.Formatter.GetTypeNameOfValue(inspectionContext, value, declaredType, declaredTypeInfo, dataItem.Kind);
 
             return CreateEvaluationResult(inspectionContext, value, name, typeName, display, dataItem);
         }
@@ -783,7 +787,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal Expansion GetTypeExpansion(
+        // Note: Do not remove the 'virtual' modifier or change the signature on this function.  It is overridden by the MC++ EE.
+        internal virtual Expansion GetTypeExpansion(
             DkmInspectionContext inspectionContext,
             TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
