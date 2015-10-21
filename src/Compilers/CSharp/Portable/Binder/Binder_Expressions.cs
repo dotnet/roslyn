@@ -4252,14 +4252,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindUtf8String(Utf8StringExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var type = Compilation.GetWellKnownType(WellKnownType.System_UTF8String);
-            var member = Compilation.GetWellKnownTypeMember(WellKnownMember.System_UTF8String__ctor);
+            var utf8type = Compilation.GetWellKnownType(WellKnownType.System_Text_Utf8_Utf8String);
+            var byteType = Compilation.GetSpecialType(SpecialType.System_Byte);
+            var ctor = (MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Utf8_Utf8String__ctor);
 
-            new BoundArrayCreation(node,
-                ImmutableArray.Create(new BoundLiteral(node, ConstantValue.Create(1), Compilation.GetSpecialType(SpecialType.System_Int32))),
-                new BoundArrayInitialization()
+            // make initializer for utf8bytes 
+            var text = node.Utf8StringToken.ValueText;
+            var utf8TextBytes = System.Text.UTF8Encoding.UTF8.GetBytes(text);
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(utf8TextBytes.Length);
+            foreach(var b in utf8TextBytes)
+            {
+                builder.Add(new BoundLiteral(node, ConstantValue.Create(b), byteType));
+            }
 
-            throw new Exception();
+            var init = new BoundArrayInitialization(node, builder.ToImmutableAndFree());
+
+            // one dimensional array of length utf8TextBytes.Length
+            var bounds = ImmutableArray.Create<BoundExpression>(
+                new BoundLiteral(node, ConstantValue.Create(utf8TextBytes.Length), Compilation.GetSpecialType(SpecialType.System_Int32)));
+
+            var arr = new BoundArrayCreation(node, bounds, init, ctor.Parameters[0].Type);
+
+            return new BoundObjectCreationExpression(node, ctor, arr);
         }
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, DiagnosticBag diagnostics)

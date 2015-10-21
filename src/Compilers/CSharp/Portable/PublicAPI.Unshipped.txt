@@ -32,8 +32,19 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithIsActive(b
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LoadDirectiveTrivia = 8923 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LoadKeyword = 8485 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ShebangDirectiveTrivia = 8922 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken utf8StringToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax.Utf8StringToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax.WithUtf8StringToken(Microsoft.CodeAnalysis.SyntaxToken utf8StringToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8StringExpression = 8657 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8StringToken = 8518 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitUtf8StringExpression(Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Utf8StringExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Utf8StringExpression(Microsoft.CodeAnalysis.SyntaxToken utf8StringToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitUtf8StringExpression(Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitUtf8StringExpression(Microsoft.CodeAnalysis.CSharp.Syntax.Utf8StringExpressionSyntax node) -> TResult
 override Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CommonWithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.ParseOptions
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
