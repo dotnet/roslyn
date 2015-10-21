@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading;
@@ -116,6 +117,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
+        }
+
+        [Fact]
+        public void TestFreeFormTokenFactoryExceptionMessage_SpecialTokenKinds()
+        {
+            // Make sure the exception message displays the correct namespace/class to use
+            List<SyntaxKind> syntaxKinds = new List<SyntaxKind>()
+            {
+                SyntaxKind.IdentifierToken,
+                SyntaxKind.CharacterLiteralToken,
+                SyntaxKind.NumericLiteralToken
+            };
+            foreach (var kind in syntaxKinds)
+            {
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), kind, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Contains("Microsoft.CodeAnalysis.CSharp.SyntaxFactory", e.Message);
+                }
+            }
         }
 
         [Fact]
