@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 var path = GacFileResolver.Resolve(referenceIdentity.GetDisplayName());
                 if (path != null)
                 {
-                    return _fileReferenceProvider(path, MetadataReferenceProperties.Assembly);
+                    return CreateReference(path);
                 }
             }
 
@@ -70,12 +70,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     var fullPath = pathWithoutExtension + extension;
                     if (File.Exists(fullPath))
                     {
-                        return _fileReferenceProvider(fullPath, MetadataReferenceProperties.Assembly);
+                        return CreateReference(fullPath);
                     }
                 }
             }
 
             return null;
+        }
+
+        private PortableExecutableReference CreateReference(string fullPath)
+        {
+            return _fileReferenceProvider(fullPath, MetadataReferenceProperties.Assembly.WithIsRecursive(true));
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
