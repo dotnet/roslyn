@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             ExpectedContent("if (true)\r\n{"));
         }
 
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_0()
         {
@@ -47,11 +48,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             ExpectedContent("{"));
         }
 
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_1()
         {
             TestInMethod(@"
-            if (true)
+            while (true)
             {
                 // some
                 // comment
@@ -65,27 +67,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {"));
         }
 
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_2()
         {
             TestInMethod(@"
-            if (true)
+            do
             {
                 /* comment */
                 {
                 }$$
             }
+            while (true);
 ",
             ExpectedContent(
 @"/* comment */
 {"));
         }
 
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_3()
         {
             TestInMethod(@"
             if (true)
+            {
+            }
+            else
             {
                 {
                     // some
@@ -99,11 +107,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     // comment"));
         }
 
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_4()
         {
             TestInMethod(@"
-            if (true)
+            using (var x = new X())
             {
                 {
                     /* comment */
@@ -113,6 +122,114 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             ExpectedContent(
 @"{
     /* comment */"));
+        }
+
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_5()
+        {
+            TestInMethod(@"
+            foreach (var x in xs)
+            {
+                // above
+                {
+                    /* below */
+                }$$
+            }
+",
+            ExpectedContent(
+@"// above
+{"));
+        }
+
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_6()
+        {
+            TestInMethod(@"
+            for (;;;)
+            {
+                /*************/
+
+                // part 1
+
+                // part 2
+                {
+                }$$
+            }
+",
+            ExpectedContent(
+@"/*************/
+
+// part 1
+
+// part 2
+{"));
+        }
+
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_7()
+        {
+            TestInMethod(@"
+            try
+            {
+                /*************/
+
+                // part 1
+
+                // part 2
+                {
+                }$$
+            }
+            catch { throw; }
+",
+            ExpectedContent(
+@"/*************/
+
+// part 1
+
+// part 2
+{"));
+        }
+
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_8()
+        {
+            TestInMethod(@"
+            {
+                /*************/
+
+                // part 1
+
+                // part 2
+            }$$
+",
+            ExpectedContent(
+@"{
+    /*************/
+
+    // part 1
+
+    // part 2"));
+        }
+
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_9()
+        {
+            TestInClass(@"
+            int Property
+            {
+                set
+                {
+                    {
+                    }$$
+                }
+            }
+",
+            ExpectedContent("{"));
         }
 
         private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
