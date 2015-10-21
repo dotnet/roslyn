@@ -97,25 +97,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private void SetSolutionProperties(string solutionFilePath)
         {
+            // When MSBuild is building an individual project, it doesn't define $(SolutionDir).
+            // However when building an .sln file, or when working inside Visual Studio,
+            // $(SolutionDir) is defined to be the directory where the .sln file is located.
+            // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
+            // use MSBuildProjectDirectory which is always defined).
             if (!string.IsNullOrEmpty(solutionFilePath))
             {
-                // When MSBuild is building an individual project, it doesn't define $(SolutionDir).
-                // However when building an .sln file, or when working inside Visual Studio,
-                // $(SolutionDir) is defined to be the directory where the .sln file is located.
-                // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
-                // use MSBuildProjectDirectory which is always defined).
-                if (!string.IsNullOrEmpty(solutionFilePath))
+                string solutionDirectory = Path.GetDirectoryName(solutionFilePath);
+                if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
                 {
-                    string solutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                    if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
-                    {
-                        solutionDirectory += @"\";
-                    }
+                    solutionDirectory += @"\";
+                }
 
-                    if (Directory.Exists(solutionDirectory))
-                    {
-                        _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
-                    }
+                if (Directory.Exists(solutionDirectory))
+                {
+                    _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
                 }
             }
         }
