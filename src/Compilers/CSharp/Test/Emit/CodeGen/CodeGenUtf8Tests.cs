@@ -64,5 +64,31 @@ namespace System.Text.Utf8
 ");
         }
 
+        [Fact]
+        public void TestUtf8Literal002
+    ()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        var ut8 = ""hello utf8""u8;
+        System.Console.WriteLine(ut8.ToString());
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+    // (7,19): error CS0518: Predefined type 'System.Text.Utf8.Utf8String' is not defined or imported
+    //         var ut8 = "hello utf8"u8;
+    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"""hello utf8""u8").WithArguments("System.Text.Utf8.Utf8String").WithLocation(7, 19),
+    // (7,19): error CS0656: Missing compiler required member 'System.Text.Utf8.Utf8String..ctor'
+    //         var ut8 = "hello utf8"u8;
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""hello utf8""u8").WithArguments("System.Text.Utf8.Utf8String", ".ctor").WithLocation(7, 19)
+);
+        }
+
     }
 }
