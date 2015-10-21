@@ -334,7 +334,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             };
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);
-            return result == WaitIndicatorResult.Completed;
+            if (result == WaitIndicatorResult.Canceled)
+            {
+                return false;
+            }
+
+            // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
+            Task.Run(() =>
+            {
+                var uniqueProjectIds = diagnosticsToFix.Where(d => d.ProjectId != null).Select(d => d.ProjectId).Distinct();
+                _diagnosticService.Reanalyze(_workspace, uniqueProjectIds);
+            });
+
+            return true;
         }
 
         private static IEnumerable<DiagnosticData> FilterDiagnostics(IEnumerable<DiagnosticData> diagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics)
