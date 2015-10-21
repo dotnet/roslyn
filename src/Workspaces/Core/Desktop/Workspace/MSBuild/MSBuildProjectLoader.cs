@@ -123,7 +123,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
-            IReadOnlyDictionary<string, ProjectId> projectPathToProjectIdMap = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (solutionFilePath == null)
@@ -233,7 +232,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath, 
-            IReadOnlyDictionary<string, ProjectId> projectPathToProjectIdMap = null, 
+            ImmutableDictionary<string, ProjectId> projectPathToProjectIdMap = null, 
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (projectFilePath == null)
