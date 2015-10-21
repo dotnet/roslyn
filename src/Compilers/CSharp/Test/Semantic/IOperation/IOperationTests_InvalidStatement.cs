@@ -103,15 +103,19 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x.T ... }')
   Switch expression: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
-        Clauses: ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.StringEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'case 1:')
-            IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '1')
-              ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+      Arguments(0)
+  Sections:
+      ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
+          Clauses:
+              ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.StringEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'case 1:')
+                IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '1')
+                  ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+          Body:
+              IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -139,7 +143,7 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = null')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program, IsInvalid) (Syntax: 'x = null')
@@ -147,6 +151,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }'
         Right: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: Program, Constant: null, IsInvalid) (Syntax: 'null')
             ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+  IfFalse: null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'Program' to 'bool'
@@ -176,18 +181,20 @@ class Program
 /*</bind>*/    }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+        Children(0)
   IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
   IfFalse: IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x) x; ... else')
       Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
           ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
       IfTrue: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x;')
-          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-      IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '')
-          IInvalidExpression (OperationKind.InvalidExpression, Type: ?) (Syntax: '')
+          ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+      IfFalse: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+          IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+            Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ')'
@@ -227,12 +234,15 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (P; x;) ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
-      ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
-  Before: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P')
-      IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'P')
+      ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+  Before:
+      IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P')
+        IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'P')
+          Children(0)
+  AtLoopBottom(0)
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -269,9 +279,10 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto case 1;')
-  Children(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+  Children(1):
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0159: No such label 'case 1:' within the scope of the goto statement
@@ -323,8 +334,9 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'break;')
+  Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0139: No enclosing loop out of which to break or continue
@@ -349,8 +361,9 @@ class Program
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'continue;')
+  Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0139: No enclosing loop out of which to break or continue

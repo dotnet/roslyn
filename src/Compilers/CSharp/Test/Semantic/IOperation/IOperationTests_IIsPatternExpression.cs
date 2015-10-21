@@ -414,12 +414,13 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
+string expectedOperationTree = @"
 IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x is /*</bind>*/')
   Expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
   Pattern: IConstantPattern (OperationKind.ConstantPattern, IsInvalid) (Syntax: '')
       Value: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
           IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+            Children(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term 'const'
@@ -463,10 +464,11 @@ class X
     }
 }
 ";
-            string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'string.Empty is string y')
-  Expression: IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
-  Pattern: IDeclarationPattern (Declared Symbol: System.String y) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'string y')
+string expectedOperationTree = @"
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'string.Empty is string y')
+  Expression: IFieldReferenceExpression: System.String System.String.Empty (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'string.Empty')
+      Instance Receiver: null
+  Pattern: IDeclarationPattern (Declared Symbol: System.String y) (OperationKind.DeclarationPattern) (Syntax: 'string y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1736: Default parameter value for 'x' must be a compile-time constant
@@ -487,10 +489,11 @@ class C
     private readonly bool b = /*<bind>*/o is int x/*</bind>*/ && x >= 5;
 }
 ";
-            string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
+string expectedOperationTree = @"
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
   Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
-  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
+      Instance Receiver: null
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
@@ -548,10 +551,11 @@ class C
     private const object o = 1;
 }
 ";
-            string expectedOperationTree = @"
-IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, IsInvalid) (Syntax: 'o is int x')
-  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1, IsInvalid) (Syntax: 'o')
-  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern, IsInvalid) (Syntax: 'int x')
+string expectedOperationTree = @"
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
+  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1) (Syntax: 'o')
+      Instance Receiver: null
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0134: 'C.o' is of type 'object'. A const field of a reference type other than string can only be initialized with null.

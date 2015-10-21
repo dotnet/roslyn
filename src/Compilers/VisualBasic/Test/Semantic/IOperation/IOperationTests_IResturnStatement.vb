@@ -17,8 +17,9 @@ Class C
     End Sub
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
+null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -74,8 +75,9 @@ Class C
     End Function
 End Class]]>.Value
 
-            Dim expectedOperationTree = <![CDATA[
+Dim expectedOperationTree = <![CDATA[
 IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return')
+null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

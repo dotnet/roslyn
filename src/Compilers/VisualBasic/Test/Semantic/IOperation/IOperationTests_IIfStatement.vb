@@ -29,6 +29,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... lue = count')
         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = count')
           Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
           Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -60,6 +61,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If count >  ... End If')
         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = count')
           Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
           Right: ILocalReferenceExpression: count (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'count')
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -131,6 +133,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If m > 10 T ... rnValue = n')
               ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = n')
                 Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
                 Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
+        IfFalse: null
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -160,6 +164,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 = 1 Th ... End If')
         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = True')
           Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
           Right: ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -187,6 +192,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If False Th ... End If')
         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Boolean) (Syntax: 'condition = False')
           Left: ILocalReferenceExpression: condition (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'condition')
           Right: ILiteralExpression (Text: False) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: False) (Syntax: 'False')
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -221,6 +227,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10  ... rnValue = n')
         ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: 'returnValue = n')
           Left: ILocalReferenceExpression: returnValue (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'returnValue')
           Right: ILocalReferenceExpression: n (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'n')
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -299,14 +306,23 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
               Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (n > 20) ... End If')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... "Result 1")')
-              IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 1"')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
+              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 1"')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
+                      InConversion: null
+                      OutConversion: null
+        IfFalse: null
   IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... "Result 2")')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... "Result 2")')
-        IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 2"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
+        IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 2"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
+                InConversion: null
+                OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -347,14 +363,23 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 10) ... End If')
               Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (n > 20) ... End If')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... "Result 1")')
-              IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 1"')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
+              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 1")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 1"')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 1") (Syntax: '"Result 1"')
+                      InConversion: null
+                      OutConversion: null
         IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... "Result 2")')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... "Result 2")')
-              IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 2"')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
+              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... "Result 2")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result 2"')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result 2") (Syntax: '"Result 2"')
+                      InConversion: null
+                      OutConversion: null
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -390,9 +415,14 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m >= n  ... End If')
             Right: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'p')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (m >= n  ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... r than m.")')
-        IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... r than m.")')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Nothing Is ... er than m."')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Nothing Is larger than m.") (Syntax: '"Nothing Is ... er than m."')
+        IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... r than m.")')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Nothing Is ... er than m."')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Nothing Is larger than m.") (Syntax: '"Nothing Is ... er than m."')
+                InConversion: null
+                OutConversion: null
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -426,9 +456,13 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... End If')
         Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (m > 20) ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result1")')
-        IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+        IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                InConversion: null
+                OutConversion: null
   IfFalse: IIfStatement (OperationKind.IfStatement) (Syntax: 'ElseIf (n > ... ("Result2")')
       Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(n > 10)')
           IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'n > 10')
@@ -436,14 +470,22 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... End If')
             Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
       IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'ElseIf (n > ... ("Result2")')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result2")')
-            IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result2")')
-              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result2"')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
+            IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result2")')
+              Instance Receiver: null
+              Arguments(1):
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result2"')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
+                    InConversion: null
+                    OutConversion: null
       IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... ("Result3")')
           IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result3")')
-            IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result3")')
-              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result3"')
-                  ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
+            IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result3")')
+              Instance Receiver: null
+              Arguments(1):
+                  IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result3"')
+                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
+                    InConversion: null
+                    OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -470,9 +512,13 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... ("Result3")')
         Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (m > 20) ... ("Result3")')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ("Result1")')
-        IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result1")')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+        IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result1")')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                InConversion: null
+                OutConversion: null
   IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else If (n  ... ("Result3")')
       IIfStatement (OperationKind.IfStatement) (Syntax: 'If (n > 10) ... ("Result3")')
         Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(n > 10)')
@@ -481,14 +527,22 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... ("Result3")')
               Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
         IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (n > 10) ... ("Result3")')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ("Result2")')
-              IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result2")')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result2"')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
+              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result2")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result2"')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result2") (Syntax: '"Result2"')
+                      InConversion: null
+                      OutConversion: null
         IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else System ... ("Result3")')
             IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... ("Result3")')
-              IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result3")')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result3"')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
+              IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... ("Result3")')
+                Instance Receiver: null
+                Arguments(1):
+                    IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result3"')
+                      ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result3") (Syntax: '"Result3"')
+                      InConversion: null
+                      OutConversion: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -514,16 +568,20 @@ Module Program
 End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If (m > 20) ... Else')
-  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean, IsInvalid) (Syntax: '(m > 20)')
-      IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, IsInvalid) (Syntax: 'm > 20')
-        Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'm')
-        Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If (m > 20) ... Else')
+IIfStatement (OperationKind.IfStatement) (Syntax: 'If (m > 20) ... Else')
+  Condition: IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: System.Boolean) (Syntax: '(m > 20)')
+      IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'm > 20')
+        Left: ILocalReferenceExpression: m (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'm')
+        Right: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (m > 20) ... Else')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result1")')
-        IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+        IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                InConversion: null
+                OutConversion: null
   IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Else')
 ]]>.Value
 
@@ -554,11 +612,17 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If () Then' ... En
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '()')
       IParenthesizedExpression (OperationKind.ParenthesizedExpression, Type: ?, IsInvalid) (Syntax: '()')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'If () Then' ... End If')
+          Children(0)
+  IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If () Then' ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.Wri ... ("Result1")')
-        IInvocationExpression (static Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+        IInvocationExpression (Sub System.Console.WriteLine(value As System.String)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.Wri ... ("Result1")')
+          Instance Receiver: null
+          Arguments(1):
+              IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '"Result1"')
+                ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "Result1") (Syntax: '"Result1"')
+                InConversion: null
+                OutConversion: null
+  IfFalse: null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -624,10 +688,14 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If (True) T ... End If')
       ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If (True) T ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A()')
-        IInvocationExpression (static Function Module1.A() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'A()')
+        IInvocationExpression (Function Module1.A() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'A()')
+          Instance Receiver: null
+          Arguments(0)
   IfFalse: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Else ... B()')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'B()')
-        IInvocationExpression (static Function Module1.B() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'B()')
+        IInvocationExpression (Function Module1.B() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'B()')
+          Instance Receiver: null
+          Arguments(0)
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

@@ -23,7 +23,9 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')";
+string expectedOperationTree = @"IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
+null
+";
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
