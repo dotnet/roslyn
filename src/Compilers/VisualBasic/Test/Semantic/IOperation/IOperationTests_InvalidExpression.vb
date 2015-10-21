@@ -23,8 +23,10 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2()')
-  Children(1): IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
-      Children(1): IOperation:  (OperationKind.None) (Syntax: 'Console')
+  Children(1):
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
+      Children(1):
+IOperation:  (OperationKind.None) (Syntax: 'Console')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -51,7 +53,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvocationExpression ( Sub Program.F(x As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'F(String.Empty)')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'F')
-  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'String.Empty')
+  Arguments(1):
+IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'String.Empty')
       IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'String.Empty')
         IFieldReferenceExpression: System.String.Empty As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'String.Empty')
 ]]>.Value
@@ -79,7 +82,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'F(String.Empty)')
-  Children(2): IOperation:  (OperationKind.None) (Syntax: 'F')
+  Children(2):
+IOperation:  (OperationKind.None) (Syntax: 'F')
     IFieldReferenceExpression: System.String.Empty As System.String (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'String.Empty')
 ]]>.Value
 
@@ -107,7 +111,8 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x.MissingField')
-  Children(1): ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+  Children(1):
+ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -261,7 +266,8 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
       Locals: Local_1: <anonymous local> As ?
       IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'F()')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'F()')
-          Children(1): IInvocationExpression (static Sub Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
+          Children(1):
+IInvocationExpression (static Sub Program.F()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'F()')
       ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() F()')
       IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() F()')
         ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: ?) (Syntax: 'Function() F()')
@@ -347,14 +353,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationExpression (Element Type: X) (OperationKind.ArrayCreationExpression, Type: X(), IsInvalid) (Syntax: 'New X(Program - 1) {{1}}')
-  Dimension Sizes(1): IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
+  Dimension Sizes(1):
+IBinaryOperatorExpression (BinaryOperationKind.IntegerAdd) (OperationKind.BinaryOperatorExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
       Left: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'Program - 1')
           IBinaryOperatorExpression (BinaryOperationKind.Invalid) (OperationKind.BinaryOperatorExpression, Type: ?, IsInvalid) (Syntax: 'Program - 1')
             Left: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
             Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
       Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'Program - 1')
   Initializer: IArrayInitializer (1 elements) (OperationKind.ArrayInitializer, IsInvalid) (Syntax: '{{1}}')
-      Element Values(1): IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{1}')
+      Element Values(1):
+IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '{1}')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -389,7 +397,8 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IParameterInitializer (Parameter: [p As System.Int32]) (OperationKind.ParameterInitializerAtDeclaration, IsInvalid) (Syntax: '= M()')
   IInvalidExpression (OperationKind.InvalidExpression, Type: System.Int32, IsInvalid) (Syntax: 'M()')
-    Children(1): IInvocationExpression (static Function Program.M() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M()')
+    Children(1):
+IInvocationExpression (static Function Program.M() As System.Int32) (OperationKind.InvocationExpression, Type: System.Int32) (Syntax: 'M()')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

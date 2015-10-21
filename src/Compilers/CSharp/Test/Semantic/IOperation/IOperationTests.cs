@@ -45,13 +45,15 @@ public class Cls
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
 @"IInvocationExpression (static void Cls.Test1(params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(null)')
-  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'null')
+  Arguments(1):
+IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'null')
       IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Int32[], Constant: null) (Syntax: 'null')
         ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");
 
             compilation.VerifyOperationTree(nodes[1], expectedOperationTree:
 @"IInvocationExpression (static void Cls.Test2(System.Int32 y, params System.Int32[] x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(new o ... ct(), null)')
-  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'new object()')
+  Arguments(2):
+IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'new object()')
       IObjectCreationExpression (Constructor: System.Object..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Object) (Syntax: 'new object()')
     IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: 'null')
       ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')");

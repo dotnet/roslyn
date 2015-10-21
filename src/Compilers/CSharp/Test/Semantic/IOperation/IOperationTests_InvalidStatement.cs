@@ -107,11 +107,14 @@ class Program
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x.T ... }')
   Switch expression: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
-        Clauses: ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.StringEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'case 1:')
+  Sections:
+ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'case 1: ... break;')
+        Clauses:
+ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.StringEquals) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'case 1:')
             IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.String, IsInvalid) (Syntax: '1')
               ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+        Body:
+IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0029: Cannot implicitly convert type 'int' to 'string'
@@ -231,7 +234,8 @@ class Program
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (P; x;) ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
       ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-  Before: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P')
+  Before:
+IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'P')
       IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'P')
   Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
@@ -271,7 +275,8 @@ class Program
 ";
             string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto case 1;')
-  Children(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+  Children(1):
+ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0159: No such label 'case 1:' within the scope of the goto statement

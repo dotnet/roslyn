@@ -238,7 +238,8 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'If x <> 0 T ... End If')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(x)')
         IInvocationExpression (static Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(x)')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
+          Arguments(1):
+IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'x')
               IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
 ]]>.Value
 
@@ -263,11 +264,13 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '10')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
+  Before:
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '0')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
         Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i = 0 T ... Next')
+  AtLoopBottom:
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i = 0 T ... Next')
       ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i = 0 T ... Next')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
         Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i = 0 T ... Next')
@@ -275,7 +278,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
   Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'For i = 0 T ... Next')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Console.Write(i)')
         IInvocationExpression (static Sub System.Console.Write(value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Console.Write(i)')
-          Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
+          Arguments(1):
+IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'i')
               ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
 ]]>.Value
 
@@ -331,24 +335,28 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:=
 "IInvocationExpression (static Sub Module1.Test1(ParamArray x As System.Int32())) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Test1(Nothing)')
-  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'Nothing')
+  Arguments(1):
+IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: 'Nothing')
       IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32(), Constant: null) (Syntax: 'Nothing')
         ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:=
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... ), Nothing)')
-  Children(3): IOperation:  (OperationKind.None) (Syntax: 'Test2')
+  Children(3):
+IOperation:  (OperationKind.None) (Syntax: 'Test2')
     IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid) (Syntax: 'New System.Guid()')
     ILiteralExpression (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'Nothing')")
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:=
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test1(AddressOf Main)')
-  Children(2): IOperation:  (OperationKind.None) (Syntax: 'Test1')
+  Children(2):
+IOperation:  (OperationKind.None) (Syntax: 'Test1')
     IOperation:  (OperationKind.None) (Syntax: 'AddressOf Main')")
 
             comp.VerifyOperationTree(nodes(3), expectedOperationTree:=
 "IInvalidExpression (OperationKind.InvalidExpression, Type: System.Void, IsInvalid) (Syntax: 'Test2(New S ... essOf Main)')
-  Children(3): IOperation:  (OperationKind.None) (Syntax: 'Test2')
+  Children(3):
+IOperation:  (OperationKind.None) (Syntax: 'Test2')
     IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid) (Syntax: 'New System.Guid()')
     IOperation:  (OperationKind.None) (Syntax: 'AddressOf Main')")
         End Sub

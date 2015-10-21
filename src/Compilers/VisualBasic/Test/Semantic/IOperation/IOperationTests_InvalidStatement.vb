@@ -52,9 +52,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
   Switch expression: IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'Program')
-  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'Case 1')
-        Clauses: ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: '1')
-        Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 1')
+  Sections:
+ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'Case 1')
+        Clauses:
+ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: '1')
+        Body:
+IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Case 1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -83,9 +86,12 @@ End Class]]>.Value
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'Select Case ... End Select')
   Switch expression: IInvocationExpression (virtual Function System.Object.ToString() As System.String) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
-  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'Case x ... Exit Select')
-        Clauses: ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'x')
-        Body: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case x ... Exit Select')
+  Sections:
+ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase, IsInvalid) (Syntax: 'Case x ... Exit Select')
+        Clauses:
+ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.Invalid) (CaseKind.SingleValue) (OperationKind.SingleValueCaseClause, IsInvalid) (Syntax: 'x')
+        Body:
+IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'Case x ... Exit Select')
             IBranchStatement (BranchKind.Break, Label: exit) (OperationKind.BranchStatement) (Syntax: 'Exit Select')
 ]]>.Value
 
@@ -152,7 +158,8 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'If Then'BIN ... El
       IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'ElseIf x Th ... x')
           IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x')
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
-              Children(1): ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
+              Children(1):
+ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
       IfFalse: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'Else')
 ]]>.Value
 
@@ -190,7 +197,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
   Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '')
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
       Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: '')
-  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
+  Before:
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '0')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
         Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -199,7 +207,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
         Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: '')
         Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '')
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
-  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i As In ... Next i')
+  AtLoopBottom:
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i As In ... Next i')
       ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'For i As In ... Next i')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
         Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: 'For i As In ... Next i')
@@ -242,7 +251,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
       IfFalse: IBinaryOperatorExpression (BinaryOperationKind.ObjectGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: '')
           Left: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: '')
           Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Object) (Syntax: '')
-  Before: IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+  Before:
+IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Object, IsInvalid) (Syntax: '')
         Left: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: '')
         Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Object, IsInvalid) (Syntax: '')
@@ -257,7 +267,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
         Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Object) (Syntax: 'For Step (M ... Next')
         Right: IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'For Step (M ... Next')
             ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'For Step (M ... Next')
-  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For Step (M ... Next')
+  AtLoopBottom:
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For Step (M ... Next')
       ICompoundAssignmentExpression (BinaryOperationKind.ObjectAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Object) (Syntax: 'For Step (M ... Next')
         Left: ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: '')
         Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Object) (Syntax: 'For Step (M ... Next')
@@ -304,7 +315,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
       IfFalse: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'Program')
           Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
           Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopLimitValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'Program')
-  Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
+  Before:
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
       ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '0')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
         Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -318,7 +330,8 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
         Left: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
         Right: IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'x')
             IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: 'x')
-  AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x')
+  AtLoopBottom:
+IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x')
       ICompoundAssignmentExpression (BinaryOperationKind.IntegerAdd) (OperationKind.CompoundAssignmentExpression, Type: System.Int32) (Syntax: 'x')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i As Integer')
         Right: ISyntheticLocalReferenceExpression (SynthesizedLocalKind.ForLoopStepValue) (OperationKind.SyntheticLocalReferenceExpression, Type: System.Int32) (Syntax: 'x')
@@ -351,7 +364,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'GoTo Label1')
-  Children(1): IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: 'Label1')
+  Children(1):
+IInvalidExpression (OperationKind.InvalidExpression, Type: null, IsInvalid) (Syntax: 'Label1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -448,7 +462,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'ElseIf args.Length = 0')
-  Children(1): IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'args.Length = 0')
+  Children(1):
+IBinaryOperatorExpression (BinaryOperationKind.IntegerEquals) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'args.Length = 0')
       Left: IPropertyReferenceExpression: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'args.Length')
           Instance Receiver: IParameterReferenceExpression: args (OperationKind.ParameterReferenceExpression, Type: System.String()) (Syntax: 'args')
       Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
