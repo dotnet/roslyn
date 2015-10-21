@@ -1134,8 +1134,9 @@ End Module]]>,
             CompileAndVerify(assembly2Compilation, <![CDATA[True]]>).VerifyDiagnostics()
         End Sub
 
+        <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
         <WorkItem(545185, "DevDiv")>
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6214")>
         Public Sub TestNameOfWithEventsSetterParameter()
             Dim comp = CreateVisualBasicCompilation("TestNameOfWithEventsSetterParameter",
             <![CDATA[Public Class c1
