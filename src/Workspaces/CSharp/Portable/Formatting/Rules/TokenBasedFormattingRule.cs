@@ -2,6 +2,7 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -243,9 +244,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * [
-            if (currentToken.IsKind(SyntaxKind.OpenBracketToken) && !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
+            if (currentToken.IsKind(SyntaxKind.OpenBracketToken) && 
+                !previousToken.IsOpenBraceOrCommaOfObjectInitializer())
             {
-                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                if (previousToken.IsOpenBraceOfAccessorList() ||
+                    previousToken.IsLastTokenOfNode<AccessorDeclarationSyntax>())
+                {
+                    return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
+                else
+                {
+                    return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+                }
             }
 
             // case * :
