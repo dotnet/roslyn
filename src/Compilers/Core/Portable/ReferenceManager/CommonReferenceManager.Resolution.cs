@@ -57,18 +57,19 @@ namespace Microsoft.CodeAnalysis
 
             // uninitialized aliases
             public ResolvedReference(int index, MetadataImageKind kind)
-                : this(index, kind, default(ImmutableArray<string>), default(ImmutableArray<string>))
             {
+                Debug.Assert(index >= 0);
+                _index = index + 1;
+                _kind = kind;
             }
 
             // initialized aliases
             public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt)
+                : this(index, kind)
             {
-                Debug.Assert(index >= 0);
-                Debug.Assert(_aliasesOpt.IsDefault || _recursiveAliasesOpt.IsDefault);
+                // We have to have non-default aliases (empty are ok). We can have both recursive and non-recursive aliases if two references were merged.
+                Debug.Assert(!aliasesOpt.IsDefault || !recursiveAliasesOpt.IsDefault);
 
-                _index = index + 1;
-                _kind = kind;
                 _aliasesOpt = aliasesOpt;
                 _recursiveAliasesOpt = recursiveAliasesOpt;
             }
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Aliases that should be applied to the referenced assembly. 
-            /// Empty array means {global} (all namespaces and global types are accessible without qualification).
+            /// Empty array means {"global"} (all namespaces and types in the global namespace of the assembly are accessible without qualification).
             /// Null if not applicable (the reference only has recursive aliases).
             /// </summary>
             public ImmutableArray<string> AliasesOpt
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Aliases that should be applied recursively to all dependent assemblies. 
-            /// Empty array means {global} (all namespaces and global types are accessible without qualification).
+            /// Empty array means {"global"} (all namespaces and types in the global namespace of the assembly are accessible without qualification).
             /// Null if not applicable (the reference only has simple aliases).
             /// </summary>
             public ImmutableArray<string> RecursiveAliasesOpt
@@ -417,7 +418,7 @@ namespace Microsoft.CodeAnalysis
                 aliasesOpt = mergedProperties.AliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
                 recursiveAliasesOpt = mergedProperties.RecursiveAliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
             }
-            else if (reference.Properties.IsRecursive)
+            else if (reference.Properties.HasRecursiveAliases)
             {
                 aliasesOpt = default(ImmutableArray<string>);
                 recursiveAliasesOpt = reference.Properties.Aliases;

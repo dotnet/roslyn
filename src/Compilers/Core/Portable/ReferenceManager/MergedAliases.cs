@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal void Merge(MetadataReference reference)
         {
-            if (reference.Properties.IsRecursive)
+            if (reference.Properties.HasRecursiveAliases)
             {
                 if (RecursiveAliasesOpt == null)
                 {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             Merge(
-                aliases: reference.Properties.IsRecursive ? RecursiveAliasesOpt : AliasesOpt, 
+                aliases: reference.Properties.HasRecursiveAliases ? RecursiveAliasesOpt : AliasesOpt, 
                 newAliases: reference.Properties.Aliases);
         }
 

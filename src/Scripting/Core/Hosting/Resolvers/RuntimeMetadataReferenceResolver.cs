@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private PortableExecutableReference CreateReference(string fullPath)
         {
-            return _fileReferenceProvider(fullPath, MetadataReferenceProperties.Assembly.WithIsRecursive(true));
+            return _fileReferenceProvider(fullPath, MetadataReferenceProperties.Assembly.WithRecursiveAliases(true));
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
