@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18077"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidVariableDeclarationStatement()
         {
@@ -51,6 +52,7 @@ IVariableDeclarationStatement (2 variables) (OperationKind.VariableDeclarationSt
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18080"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementExpression()
         {
@@ -84,6 +86,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'switch (Pro ... }')
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidSwitchStatementCaseLabel()
         {
@@ -103,7 +106,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x.T ... }')
   Switch expression: IInvocationExpression (virtual System.String System.Object.ToString()) (OperationKind.InvocationExpression, Type: System.String) (Syntax: 'x.ToString()')
       Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
@@ -126,6 +129,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfStatement()
         {
@@ -143,7 +147,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x = null')
       Operand: ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: Program, IsInvalid) (Syntax: 'x = null')
@@ -162,6 +166,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (x = nul ... }'
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidIfElseStatement()
         {
@@ -181,7 +186,7 @@ class Program
 /*</bind>*/    }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
       Operand: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
@@ -217,6 +222,7 @@ IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if () ... else')
             VerifyOperationTreeAndDiagnosticsForTest<IfStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidForStatement()
         {
@@ -234,7 +240,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Syntax: 'for (P; x;) ... }')
   Condition: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'x')
       Operand: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program, IsInvalid) (Syntax: 'x')
@@ -260,6 +266,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement, IsInvalid) (Synta
             VerifyOperationTreeAndDiagnosticsForTest<ForStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_MissingLabel()
         {
@@ -279,7 +286,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto case 1;')
   Children(1):
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
@@ -293,6 +300,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto cas
             VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18225"), WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidGotoCaseStatement_OutsideSwitchStatement()
         {
@@ -320,6 +328,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'goto cas
             VerifyOperationTreeAndDiagnosticsForTest<GotoStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidBreakStatement_OutsideLoopOrSwitch()
         {
@@ -334,7 +343,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'break;')
   Children(0)
 ";
@@ -347,6 +356,7 @@ IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'break;')
             VerifyOperationTreeAndDiagnosticsForTest<BreakStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17607, "https://github.com/dotnet/roslyn/issues/17607")]
         public void InvalidContinueStatement_OutsideLoopOrSwitch()
         {
@@ -361,7 +371,7 @@ class Program
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IInvalidStatement (OperationKind.InvalidStatement, IsInvalid) (Syntax: 'continue;')
   Children(0)
 ";

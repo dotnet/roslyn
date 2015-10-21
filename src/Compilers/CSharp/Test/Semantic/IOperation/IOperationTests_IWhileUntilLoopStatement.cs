@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_DoWhileLoopsTest()
         {
@@ -50,6 +52,7 @@ IWhileUntilLoopStatement (IsTopTest: False, IsWhile: True) (LoopKind.WhileUntil)
             VerifyOperationTreeForTest<DoStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileLoopsTest()
         {
@@ -89,6 +92,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileConditionTrue()
         {
@@ -136,6 +140,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithBreak()
         {
@@ -197,6 +202,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithThrow()
         {
@@ -256,6 +262,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithAssignment()
         {
@@ -309,6 +316,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileInvalidCondition()
         {
@@ -333,6 +341,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithReturn()
         {
@@ -378,6 +387,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithGoto()
         {
@@ -426,6 +436,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileMissingCondition()
         {
@@ -473,6 +484,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileMissingStatement()
         {
@@ -499,6 +511,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithContinue()
         {
@@ -548,6 +561,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileNested()
         {
@@ -613,6 +627,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileChangeOuterInnerValue()
         {
@@ -685,6 +700,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithDynamic()
         {
@@ -744,6 +760,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileIncrementInCondition()
         {
@@ -780,6 +797,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileInfiniteLoop()
         {
@@ -808,6 +826,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileConstantCheck()
         {
@@ -836,6 +855,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithTryCatch()
         {
@@ -888,6 +908,7 @@ IWhileUntilLoopStatement (IsTopTest: True, IsWhile: True) (LoopKind.WhileUntil) 
             VerifyOperationTreeForTest<WhileStatementSyntax>(source, expectedOperationTree);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IWhileUntilLoopStatement_WhileWithOutVar()
         {

@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_SimplePropertyAccess()
         {
@@ -36,6 +37,7 @@ IDynamicMemberReferenceExpression (Member Name: ""Prop1"", Containing Type: null
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_InvalidPropertyAccess()
         {
@@ -68,6 +70,7 @@ IDynamicMemberReferenceExpression (Member Name: """", Containing Type: null) (Op
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_SimpleMethodCall()
         {
@@ -98,6 +101,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.GetValue()')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_InvalidMethodCall_MissingName()
         {
@@ -130,6 +134,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.()')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_InvalidMethodCall_MissingCloseParen()
         {
@@ -162,6 +167,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.GetValue(/*</bind>*/')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReference_GenericMethodCall_SingleGeneric()
         {
@@ -191,6 +197,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.GetValue<int>()')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReference_GenericMethodCall_MultipleGeneric()
         {
@@ -221,6 +228,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.GetValue<int, C1>()')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_GenericPropertyAccess()
         {
@@ -256,6 +264,7 @@ IDynamicMemberReferenceExpression (Member Name: ""GetValue"", Containing Type: n
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_GenericMethodCall_InvalidGenericParam()
         {
@@ -290,6 +299,7 @@ IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'd.GetValue<int,>()')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_NestedDynamicPropertyAccess()
         {
@@ -318,6 +328,7 @@ IDynamicMemberReferenceExpression (Member Name: ""Prop2"", Containing Type: null
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_NestedDynamicMethodAccess()
         {
@@ -350,6 +361,7 @@ IOperation:  (OperationKind.None) (Syntax: 'd.Method1().Method2()')
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IDynamicMemberReferenceExpression_NestedDynamicPropertyAndMethodAccess()
         {

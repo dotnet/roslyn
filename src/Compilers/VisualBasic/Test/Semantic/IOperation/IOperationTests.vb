@@ -10,6 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub InvalidUserDefinedOperators()
             Dim source = <compilation>
@@ -136,6 +137,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
 ")
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub SimpleCompoundAssignment()
             Dim source = <compilation>
@@ -218,6 +220,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a += b')
 ")
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyOperationTree_IfStatement()
             Dim source = <![CDATA[
@@ -252,6 +255,7 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'If x <> 0 T ... End If')
             VerifyOperationTreeAndDiagnosticsForTest(Of MultiLineIfBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub VerifyOperationTree_ForStatement()
             Dim source = <![CDATA[
@@ -295,6 +299,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
             VerifyOperationTreeAndDiagnosticsForTest(Of ForBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         <WorkItem(382240, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=382240")>
         Public Sub NothingOrAddressOfInPlaceOfParamArray()
@@ -375,6 +380,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
       IOperation:  (OperationKind.None, IsInvalid) (Syntax: 'AddressOf Main')")
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub TestClone()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode
@@ -389,6 +395,7 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
             VerifyClone(model)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub TestParentOperations()
             Dim sourceCode = TestResource.AllInOneVisualBasicCode

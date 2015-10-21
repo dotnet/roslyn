@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithMemberInitializers()
         {
@@ -40,7 +41,7 @@ class C
     }/*</bind>*/
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
   Locals: Local_1: F x1
     Local_2: F x2
@@ -145,6 +146,7 @@ IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvali
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithCollectionInitializer()
         {
@@ -161,7 +163,7 @@ class C
 	}
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Int32>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: 'new List<in ...  y, field }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Int32>) (Syntax: '{ x, y, field }')
@@ -186,6 +188,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.I
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithNestedCollectionInitializer()
         {
@@ -206,7 +209,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: 'new List<Li ... }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: System.Collections.Generic.List<System.Collections.Generic.List<System.Int32>>) (Syntax: '{ ... }')
@@ -243,6 +246,7 @@ IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.C
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17588, "https://github.com/dotnet/roslyn/issues/17588")]
         public void ObjectCreationWithMemberAndCollectionInitializers()
         {
@@ -270,7 +274,7 @@ internal class Class
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IObjectCreationExpression (Constructor: Class..ctor()) (OperationKind.ObjectCreationExpression, Type: Class) (Syntax: 'new Class() ... }')
   Arguments(0)
   Initializer: IObjectOrCollectionInitializerExpression (OperationKind.ObjectOrCollectionInitializerExpression, Type: Class) (Syntax: '{ ... }')

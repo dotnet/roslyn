@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_VarPatternDeclaration()
         {
@@ -27,7 +28,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -44,6 +45,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_PrimitiveTypePatternDeclaration()
         {
@@ -62,7 +64,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -79,6 +81,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_ReferenceTypePatternDeclaration()
         {
@@ -96,7 +99,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -113,6 +116,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_TypeParameterTypePatternDeclaration()
         {
@@ -130,7 +134,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -147,6 +151,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_DynamicTypePatternDeclaration()
         {
@@ -164,7 +169,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -185,6 +190,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_MixedDeclarationPatternAndConstantPatternClauses()
         {
@@ -204,7 +210,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -230,6 +236,7 @@ ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_MixedDeclarationPatternAndConstantPatternClausesInSameSwitchSection()
         {
@@ -248,7 +255,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -270,6 +277,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_MixedDeclarationPatternAndConstantPatternWithDefaultLabel()
         {
@@ -289,7 +297,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -312,6 +320,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_GuardExpressionInPattern()
         {
@@ -329,7 +338,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -349,6 +358,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_PatternInGuardExpressionInPattern()
         {
@@ -366,7 +376,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -385,6 +395,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_SyntaxErrorInGuardExpressionInPattern()
         {
@@ -402,7 +413,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -425,6 +436,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_SemanticErrorInGuardExpressionInPattern()
         {
@@ -442,7 +454,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -464,6 +476,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_ConstantPattern()
         {
@@ -496,6 +509,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_DefaultLabel()
         {
@@ -514,7 +528,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -532,6 +546,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) 
             VerifyOperationTreeAndDiagnosticsForTest<DefaultSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_InvalidTypeSwitch()
         {
@@ -549,7 +564,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x.G ... }')
   Switch expression: IInvocationExpression ( System.Type System.Object.GetType()) (OperationKind.InvocationExpression, Type: System.Type) (Syntax: 'x.GetType()')
       Instance Receiver: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
@@ -576,6 +591,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CaseSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_UndefinedTypeInPatternDeclaration()
         {
@@ -593,7 +609,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
   Sections:
@@ -614,6 +630,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_InvalidTypeInPatternDeclaration()
         {
@@ -631,7 +648,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -652,6 +669,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_DuplicateLocalInPatternDeclaration()
         {
@@ -670,7 +688,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -694,6 +712,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CasePatternSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_InvalidConstDeclarationInPatternDeclaration()
         {
@@ -711,7 +730,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (x) ... }')
   Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32?) (Syntax: 'x')
   Sections:
@@ -752,6 +771,7 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
             VerifyOperationTreeAndDiagnosticsForTest<CaseSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
         public void TestPatternCaseClause_RedundantPatternDeclarationClauses()
         {
@@ -773,7 +793,7 @@ class X
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ISwitchStatement (3 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: 'switch (p) ... }')
   Switch expression: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'p')
   Sections:

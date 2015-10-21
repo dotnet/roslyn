@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public partial class IOperationTests : SemanticModelTestBase
     {
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NoConversions()
         {
@@ -36,6 +37,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NoConversions_ParentVariableDeclaration()
         {
@@ -65,6 +67,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversions()
         {
@@ -80,7 +83,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UInt32)) (Syntax: '(1, 2)')
   Elements(2):
       IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
@@ -93,6 +96,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.UI
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversions_ParentVariableDeclaration()
         {
@@ -108,7 +112,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, uint ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(uint, uint ... *</bind>*/;')
     Variables: Local_1: (System.UInt32, System.UInt32) t
@@ -125,6 +129,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionsWithTypedExpression()
         {
@@ -142,7 +147,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 a, System.Int64 b)) (Syntax: '(a, b)')
   Elements(2):
       IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'a')
@@ -155,6 +160,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int64 a, System.I
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionsWithTypedExpression_WithParentDeclaration()
         {
@@ -172,7 +178,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(long, long ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(long, long ... *</bind>*/;')
     Variables: Local_1: (System.Int64, System.Int64) t
@@ -189,6 +195,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionFromNull()
         {
@@ -204,7 +211,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.String)) (Syntax: '(1, null)')
   Elements(2):
       IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.UInt32, Constant: 1) (Syntax: '1')
@@ -217,6 +224,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32, System.St
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_ImplicitConversionFromNull_ParentVariableDeclaration()
         {
@@ -232,7 +240,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(uint, stri ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(uint, stri ... *</bind>*/;')
     Variables: Local_1: (System.UInt32, System.String) t
@@ -249,6 +257,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElements()
         {
@@ -275,6 +284,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 A, System.I
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElements_ParentVariableDeclaration()
         {
@@ -304,6 +314,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsInTupleType()
         {
@@ -330,6 +341,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Int
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsInTupleType_ParentVariableDeclaration()
         {
@@ -345,7 +357,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int A, int ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(int A, int ... *</bind>*/;')
     Variables: Local_1: (System.Int32 A, System.Int32 B) t
@@ -360,6 +372,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsAndImplicitConversions()
         {
@@ -375,7 +388,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16 A, System.String B)) (Syntax: '(A: 1, B: null)')
   Elements(2):
       IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int16, Constant: 1) (Syntax: '1')
@@ -395,6 +408,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16 A, System.S
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_NamedElementsAndImplicitConversions_ParentVariableDeclaration()
         {
@@ -410,7 +424,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(short, str ... *</bind>*/;')
     Variables: Local_1: (System.Int16, System.String) t
@@ -434,6 +448,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionsForArguments()
         {
@@ -470,7 +485,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.String c1)) (Syntax: '(new C(0), c1)')
   Elements(2):
       IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: System.Int16 C.op_Implicit(C c)) (OperationKind.ConversionExpression, Type: System.Int16) (Syntax: 'new C(0)')
@@ -489,6 +504,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int16, System.Str
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionsForArguments_ParentVariableDeclaration()
         {
@@ -525,7 +541,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(short, str ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(short, str ... *</bind>*/;')
     Variables: Local_1: (System.Int16, System.String) t
@@ -548,6 +564,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionFromTupleExpression()
         {
@@ -579,7 +596,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.String)) (Syntax: '(0, null)')
   Elements(2):
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -591,6 +608,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32, System.Str
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionFromTupleExpression_ParentVariableDeclaration()
         {
@@ -622,7 +640,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C t = (0, n ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C t = (0, n ... *</bind>*/;')
     Variables: Local_1: C t
@@ -639,6 +657,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionToTupleType()
         {
@@ -678,6 +697,7 @@ IParameterReferenceExpression: c1 (OperationKind.ParameterReferenceExpression, T
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_UserDefinedConversionToTupleType_ParentVariableDeclaration()
         {
@@ -709,7 +729,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: '(int, strin ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: '(int, strin ... *</bind>*/;')
     Variables: Local_1: (System.Int32, System.String) t
@@ -721,6 +741,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_InvalidConversion()
         {
@@ -778,6 +799,7 @@ ITupleExpression (OperationKind.TupleExpression, Type: (C, C c1), IsInvalid) (Sy
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_InvalidConversion_ParentVariableDeclaration()
         {
@@ -814,7 +836,7 @@ class C
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: '(short, str ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: '(short, str ... *</bind>*/;')
     Variables: Local_1: (System.Int16, System.String) t
@@ -839,6 +861,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_Deconstruction()
         {
@@ -869,7 +892,7 @@ class Class1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'var (x, y)  ... Point(0, 1)')
   Children(2):
       ITupleExpression (OperationKind.TupleExpression, Type: (System.Int32 x, System.Int32 y)) (Syntax: 'var (x, y)')
@@ -894,6 +917,7 @@ IOperation:  (OperationKind.None) (Syntax: 'var (x, y)  ... Point(0, 1)')
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_Deconstruction_ForEach()
         {
@@ -926,7 +950,7 @@ class Class1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... }')
   Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.IEnumerable) (Syntax: 'new Point[] ... int(0, 1) }')
       Operand: IArrayCreationExpression (Element Type: Point) (OperationKind.ArrayCreationExpression, Type: Point[]) (Syntax: 'new Point[] ... int(0, 1) }')
@@ -952,6 +976,7 @@ IForEachLoopStatement (Iteration variable: null) (LoopKind.ForEach) (OperationKi
             VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(10856, "https://github.com/dotnet/roslyn/issues/10856")]
         public void TupleExpression_DeconstructionWithConversion()
         {
@@ -982,7 +1007,7 @@ class Class1
     }
 }
 ";
-string expectedOperationTree = @"
+            string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: '(uint x, ui ... Point(0, 1)')
   Children(2):
       ITupleExpression (OperationKind.TupleExpression, Type: (System.UInt32 x, System.UInt32 y)) (Syntax: '(uint x, uint y)')
