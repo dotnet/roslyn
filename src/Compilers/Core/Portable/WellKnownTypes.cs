@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeId == WellKnownType.Last)
                 {
-                    typeIdName = "System.UTF8String";
+                    typeIdName = "System.Text.Utf8.Utf8String";
                 }
                 else if (typeId == WellKnownType.ExtSentinel)
                 {
