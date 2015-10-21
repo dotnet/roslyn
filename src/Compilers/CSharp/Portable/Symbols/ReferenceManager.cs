@@ -357,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Dictionary<MetadataReference, int> referencedAssembliesMap, referencedModulesMap;
                     ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies;
                     BuildReferencedAssembliesAndModulesMaps(
+                        bindingResult,
                         references,
                         referenceMap,
                         modules.Length,

@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis
             _kind = kind;
             _aliases = aliases;
             _embedInteropTypes = embedInteropTypes;
+            IsRecursive = false;
         }
 
         /// <summary>
@@ -99,6 +100,14 @@ namespace Microsoft.CodeAnalysis
         public MetadataReferenceProperties WithEmbedInteropTypes(bool embedInteropTypes)
         {
             return new MetadataReferenceProperties(_kind, _aliases, embedInteropTypes);
+        }
+
+        /// <summary>
+        /// Returns <see cref="MetadataReferenceProperties"/> with <see cref="IsRecursive"/> set to specified value.
+        /// </summary>
+        internal MetadataReferenceProperties WithIsRecursive(bool value)
+        {
+            return new MetadataReferenceProperties(_kind, _aliases, _embedInteropTypes) { IsRecursive = value };
         }
 
         /// <summary>
@@ -134,6 +143,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool EmbedInteropTypes => _embedInteropTypes;
 
+        internal bool IsRecursive { get; private set; }
+
         public override bool Equals(object obj)
         {
             return obj is MetadataReferenceProperties && Equals((MetadataReferenceProperties)obj);
@@ -143,12 +154,13 @@ namespace Microsoft.CodeAnalysis
         {
             return Aliases.SequenceEqual(other.Aliases)
                 && _embedInteropTypes == other._embedInteropTypes
-                && _kind == other._kind;
+                && _kind == other._kind
+                && IsRecursive == other.IsRecursive;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.CombineValues(Aliases), Hash.Combine(_embedInteropTypes, _kind.GetHashCode()));
+            return Hash.Combine(Hash.CombineValues(Aliases), Hash.Combine(_embedInteropTypes, Hash.Combine(IsRecursive, _kind.GetHashCode())));
         }
 
         public static bool operator ==(MetadataReferenceProperties left, MetadataReferenceProperties right)

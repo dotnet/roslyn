@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
             var metadataReferencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
 
             Dictionary<string, List<ReferencedAssemblyIdentity>> lazyResolvedReferencesBySimpleName = null;
-            Dictionary<MetadataReference, ArrayBuilder<string>> lazyAliasMap = null;
+            Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
 
             // metadata references and corresponding bindings of their references, used to calculate a fixed point:
             var referenceBindingsToProcess = ArrayBuilder<ValueTuple<MetadataReference, ArraySegment<AssemblyReferenceBinding>>>.GetInstance();
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
                     var referenceAndBindings = referenceBindingsToProcess.Pop();
                     var requestingReference = referenceAndBindings.Item1;
                     var bindings = referenceAndBindings.Item2;
-
+                    
                     foreach (var binding in bindings)
                     {
                         // only attempt to resolve unbound references (regardless of version difference of the bound ones)
@@ -380,14 +380,14 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<ResolvedReference> ToResolvedAssemblyReferences(
             ImmutableArray<MetadataReference> references,           
-            Dictionary<MetadataReference, ArrayBuilder<string>> aliasMapOpt,
+            Dictionary<MetadataReference, MergedAliases> propertyMapOpt,
             int explicitAssemblyCount)
         {
             var result = ArrayBuilder<ResolvedReference>.GetInstance(references.Length);
             for (int i = 0; i < references.Length; i++)
             {
                 // -1 for assembly being built
-                result.Add(new ResolvedReference(explicitAssemblyCount - 1 + i, MetadataImageKind.Assembly, GetAndFreeAliases(references[i], aliasMapOpt)));
+                result.Add(GetResolvedReferenceAndFreePropertyMapEntry(references[i], explicitAssemblyCount - 1 + i, MetadataImageKind.Assembly, propertyMapOpt));
             }
 
             return result.ToImmutableAndFree();
