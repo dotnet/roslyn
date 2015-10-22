@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV1;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -20,7 +22,7 @@ using Traits = Microsoft.CodeAnalysis.Test.Utilities.Traits;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    public class DiagnosticStateTests
+    public class DiagnosticStateTests : TestBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void SerializationTest_Document()
@@ -109,55 +111,97 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private void AssertDiagnostics(ImmutableArray<DiagnosticData> items1, ImmutableArray<DiagnosticData> items2)
+        [WorkItem(6104)]
+        [Fact]
+        public void DiagnosticEquivalence()
         {
-            Assert.Equal(items1.Length, items1.Length);
+#if DEBUG
+            var source =
+@"class C
+{
+    static int F(string s) { return 1; }
+    static int x = F(new { });
+    static int y = F(new { A = 1 });
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var options = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
+            var compilation = CSharpCompilation.Create(GetUniqueName(), new[] { tree }, new[] { MscorlibRef }, options);
+            var model = compilation.GetSemanticModel(tree);
+            // Each call to GetDiagnostics will bind field initializers
+            // (see https://github.com/dotnet/roslyn/issues/6264).
+            var diagnostics1 = model.GetDiagnostics().ToArray();
+            var diagnostics2 = model.GetDiagnostics().ToArray();
+            diagnostics1.Verify(
+                // (4,22): error CS1503: Argument 1: cannot convert from '<empty anonymous type>' to 'string'
+                //     static int x = F(new { });
+                Diagnostic(1503, "new { }").WithArguments("1", "<empty anonymous type>", "string").WithLocation(4, 22),
+                // (5,22): error CS1503: Argument 1: cannot convert from '<anonymous type: int A>' to 'string'
+                //     static int y = F(new { A = 1 });
+                Diagnostic(1503, "new { A = 1 }").WithArguments("1", "<anonymous type: int A>", "string").WithLocation(5, 22));
+            Assert.NotEqual(diagnostics1, diagnostics2);
+            Assert.True(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
+            // Verify that not all collections are treated as equivalent.
+            diagnostics1 = new[] { diagnostics1[0] };
+            diagnostics2 = new[] { diagnostics2[1] };
+            Assert.NotEqual(diagnostics1, diagnostics2);
+            Assert.False(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
+#endif
+        }
+
+        private static void AssertDiagnostics(ImmutableArray<DiagnosticData> items1, ImmutableArray<DiagnosticData> items2)
+        {
+            Assert.Equal(items1.Length, items2.Length);
 
             for (var i = 0; i < items1.Length; i++)
             {
-                Assert.Equal(items1[i].Id, items2[i].Id);
-                Assert.Equal(items1[i].Category, items2[i].Category);
-                Assert.Equal(items1[i].Message, items2[i].Message);
-                Assert.Equal(items1[i].ENUMessageForBingSearch, items2[i].ENUMessageForBingSearch);
-                Assert.Equal(items1[i].Severity, items2[i].Severity);
-                Assert.Equal(items1[i].IsEnabledByDefault, items2[i].IsEnabledByDefault);
-                Assert.Equal(items1[i].WarningLevel, items2[i].WarningLevel);
-                Assert.Equal(items1[i].DefaultSeverity, items2[i].DefaultSeverity);
-
-                Assert.Equal(items1[i].CustomTags.Count, items2[i].CustomTags.Count);
-                for (var j = 0; j < items1[i].CustomTags.Count; j++)
-                {
-                    Assert.Equal(items1[i].CustomTags[j], items2[i].CustomTags[j]);
-                }
-
-                Assert.Equal(items1[i].Properties.Count, items2[i].Properties.Count);
-                Assert.True(items1[i].Properties.SetEquals(items2[i].Properties));
-
-                Assert.Equal(items1[i].Workspace, items2[i].Workspace);
-                Assert.Equal(items1[i].ProjectId, items2[i].ProjectId);
-                Assert.Equal(items1[i].DocumentId, items2[i].DocumentId);
-
-                Assert.Equal(items1[i].HasTextSpan, items2[i].HasTextSpan);
-                if (items1[i].HasTextSpan)
-                {
-                    Assert.Equal(items1[i].TextSpan, items2[i].TextSpan);
-                }
-
-                Assert.Equal(items1[i].DataLocation?.MappedFilePath, items2[i].DataLocation?.MappedFilePath);
-                Assert.Equal(items1[i].DataLocation?.MappedStartLine, items2[i].DataLocation?.MappedStartLine);
-                Assert.Equal(items1[i].DataLocation?.MappedStartColumn, items2[i].DataLocation?.MappedStartColumn);
-                Assert.Equal(items1[i].DataLocation?.MappedEndLine, items2[i].DataLocation?.MappedEndLine);
-                Assert.Equal(items1[i].DataLocation?.MappedEndColumn, items2[i].DataLocation?.MappedEndColumn);
-
-                Assert.Equal(items1[i].DataLocation?.OriginalFilePath, items2[i].DataLocation?.OriginalFilePath);
-                Assert.Equal(items1[i].DataLocation?.OriginalStartLine, items2[i].DataLocation?.OriginalStartLine);
-                Assert.Equal(items1[i].DataLocation?.OriginalStartColumn, items2[i].DataLocation?.OriginalStartColumn);
-                Assert.Equal(items1[i].DataLocation?.OriginalEndLine, items2[i].DataLocation?.OriginalEndLine);
-                Assert.Equal(items1[i].DataLocation?.OriginalEndColumn, items2[i].DataLocation?.OriginalEndColumn);
-
-                Assert.Equal(items1[i].Description, items2[i].Description);
-                Assert.Equal(items1[i].HelpLink, items2[i].HelpLink);
+                AssertDiagnostics(items1[i], items2[i]);
             }
+        }
+
+        private static void AssertDiagnostics(DiagnosticData item1, DiagnosticData item2)
+        {
+            Assert.Equal(item1.Id, item2.Id);
+            Assert.Equal(item1.Category, item2.Category);
+            Assert.Equal(item1.Message, item2.Message);
+            Assert.Equal(item1.ENUMessageForBingSearch, item2.ENUMessageForBingSearch);
+            Assert.Equal(item1.Severity, item2.Severity);
+            Assert.Equal(item1.IsEnabledByDefault, item2.IsEnabledByDefault);
+            Assert.Equal(item1.WarningLevel, item2.WarningLevel);
+            Assert.Equal(item1.DefaultSeverity, item2.DefaultSeverity);
+
+            Assert.Equal(item1.CustomTags.Count, item2.CustomTags.Count);
+            for (var j = 0; j < item1.CustomTags.Count; j++)
+            {
+                Assert.Equal(item1.CustomTags[j], item2.CustomTags[j]);
+            }
+
+            Assert.Equal(item1.Properties.Count, item2.Properties.Count);
+            Assert.True(item1.Properties.SetEquals(item2.Properties));
+
+            Assert.Equal(item1.Workspace, item2.Workspace);
+            Assert.Equal(item1.ProjectId, item2.ProjectId);
+            Assert.Equal(item1.DocumentId, item2.DocumentId);
+
+            Assert.Equal(item1.HasTextSpan, item2.HasTextSpan);
+            if (item1.HasTextSpan)
+            {
+                Assert.Equal(item1.TextSpan, item2.TextSpan);
+            }
+
+            Assert.Equal(item1.DataLocation?.MappedFilePath, item2.DataLocation?.MappedFilePath);
+            Assert.Equal(item1.DataLocation?.MappedStartLine, item2.DataLocation?.MappedStartLine);
+            Assert.Equal(item1.DataLocation?.MappedStartColumn, item2.DataLocation?.MappedStartColumn);
+            Assert.Equal(item1.DataLocation?.MappedEndLine, item2.DataLocation?.MappedEndLine);
+            Assert.Equal(item1.DataLocation?.MappedEndColumn, item2.DataLocation?.MappedEndColumn);
+
+            Assert.Equal(item1.DataLocation?.OriginalFilePath, item2.DataLocation?.OriginalFilePath);
+            Assert.Equal(item1.DataLocation?.OriginalStartLine, item2.DataLocation?.OriginalStartLine);
+            Assert.Equal(item1.DataLocation?.OriginalStartColumn, item2.DataLocation?.OriginalStartColumn);
+            Assert.Equal(item1.DataLocation?.OriginalEndLine, item2.DataLocation?.OriginalEndLine);
+            Assert.Equal(item1.DataLocation?.OriginalEndColumn, item2.DataLocation?.OriginalEndColumn);
+
+            Assert.Equal(item1.Description, item2.Description);
+            Assert.Equal(item1.HelpLink, item2.HelpLink);
         }
 
         [ExportWorkspaceServiceFactory(typeof(IPersistentStorageService), "DiagnosticTest"), Shared]
