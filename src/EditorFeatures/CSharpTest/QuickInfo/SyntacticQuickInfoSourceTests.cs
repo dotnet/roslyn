@@ -26,6 +26,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     public class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void Brackets_0()
+        {
+            TestInMethodAndScript(@"
+            switch (true)
+            {
+            }$$
+",
+            ExpectedContent("switch (true)\r\n{"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Brackets_1()
         {
             TestInMethodAndScript(@"
