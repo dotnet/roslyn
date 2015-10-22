@@ -96,8 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
             return node.IsKind(SyntaxKind.Block)
                 && (parent.IsKind(SyntaxKind.Block)
                     || parent.IsKind(SyntaxKind.SwitchSection)
-                    || parent.IsKind(SyntaxKind.GlobalStatement
-                    ));
+                    || parent.IsKind(SyntaxKind.GlobalStatement));
         }
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)

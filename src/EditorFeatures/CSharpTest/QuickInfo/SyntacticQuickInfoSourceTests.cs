@@ -338,13 +338,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             string expectedDocumentationComment = null,
             CSharpParseOptions parseOptions = null)
         {
-            using ( var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions))
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions))
             {
                 var testDocument = workspace.Documents.Single();
                 var position = testDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-                if ( string.IsNullOrEmpty(expectedContent) )
+                if (string.IsNullOrEmpty(expectedContent))
                 {
                     AssertNoContent(workspace, document, position);
                 }
