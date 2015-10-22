@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
             return Tuple.Create<DiagnosticAnalyzer, CodeFixProvider>(null, new CSharpFullyQualifyCodeFixProvider());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestTypeFromMultipleNamespaces1()
         {
             Test(
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
 @"class Class { System.Collections.IDictionary Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestTypeFromMultipleNamespaces2()
         {
             Test(
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualif
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericWithNoArgs()
         {
             Test(
@@ -41,7 +41,7 @@ index: 1);
 @"class Class { System.Collections.Generic.List Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericWithCorrectArgs()
         {
             Test(
@@ -49,14 +49,22 @@ index: 1);
 @"class Class { System.Collections.Generic.List<int> Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public void TestSmartTagDisplayText()
+        {
+            TestSmartTagText(
+@"class Class { [|List<int>|] Method() { Foo(); } }",
+"System.Collections.Generic.List");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericWithWrongArgs()
         {
             TestMissing(
 @"class Class { [|List<int,string>|] Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericInLocalDeclaration()
         {
             Test(
@@ -64,7 +72,7 @@ index: 1);
 @"class Class { void Foo() { System.Collections.Generic.List<int> a = new List<int>(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericItemType()
         {
             Test(
@@ -72,7 +80,7 @@ index: 1);
 @"using System.Collections.Generic; class Class { List<System.Int32> l; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenerateWithExistingUsings()
         {
             Test(
@@ -80,7 +88,7 @@ index: 1);
 @"using System; class Class { System.Collections.Generic.List<int> Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenerateInNamespace()
         {
             Test(
@@ -88,7 +96,7 @@ index: 1);
 @"namespace N { class Class { System.Collections.Generic.List<int> Method() { Foo(); } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenerateInNamespaceWithUsings()
         {
             Test(
@@ -96,7 +104,7 @@ index: 1);
 @"namespace N { using System; class Class { System.Collections.Generic.List<int> Method() { Foo(); } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestExistingUsing()
         {
             TestActionCount(
@@ -108,21 +116,21 @@ count: 2);
 @"using System.Collections.Generic; class Class { System.Collections.IDictionary Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestMissingIfUniquelyBound()
         {
             TestMissing(
 @"using System; class Class { [|String|] Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestMissingIfUniquelyBoundGeneric()
         {
             TestMissing(
 @"using System.Collections.Generic; class Class { [|List<int>|] Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestOnEnum()
         {
             Test(
@@ -130,7 +138,7 @@ count: 2);
 @"class Class { void Foo() { var a = A.Colors.Red; } } namespace A { enum Colors {Red, Green, Blue} }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestOnClassInheritance()
         {
             Test(
@@ -138,7 +146,7 @@ count: 2);
 @"class Class : A.Class2 { } namespace A { class Class2 { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestOnImplementedInterface()
         {
             Test(
@@ -146,7 +154,7 @@ count: 2);
 @"class Class : A.IFoo { } namespace A { interface IFoo { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestAllInBaseList()
         {
             Test(
@@ -158,7 +166,7 @@ count: 2);
 @"class Class : B.IFoo, A.Class2 { } namespace A { class Class2 { } } namespace B { interface IFoo { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestAttributeUnexpanded()
         {
             Test(
@@ -166,7 +174,7 @@ count: 2);
 @"[System.Obsolete]class Class { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestAttributeExpanded()
         {
             Test(
@@ -175,7 +183,7 @@ count: 2);
         }
 
         [WorkItem(527360)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestExtensionMethods()
         {
             TestMissing(
@@ -183,7 +191,7 @@ count: 2);
         }
 
         [WorkItem(538018)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestAfterNew()
         {
             Test(
@@ -191,7 +199,7 @@ count: 2);
 @"class Class { void Foo() { List<int> l; l = new System.Collections.Generic.List<int>(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestArgumentsInMethodCall()
         {
             Test(
@@ -199,7 +207,7 @@ count: 2);
 @"class Class { void Test() { Console.WriteLine(System.DateTime.Today); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestCallSiteArgs()
         {
             Test(
@@ -207,7 +215,7 @@ count: 2);
 @"class Class { void Test(System.DateTime dt) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestUsePartialClass()
         {
             Test(
@@ -215,7 +223,7 @@ count: 2);
 @"namespace A { public class Class { B.PClass c; } } namespace B{ public partial class PClass { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericClassInNestedNamespace()
         {
             Test(
@@ -223,7 +231,7 @@ count: 2);
 @"namespace A { namespace B { class GenericClass<T> { } } } namespace C { class Class { A.B.GenericClass<int> c; } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestBeforeStaticMethod()
         {
             Test(
@@ -232,7 +240,7 @@ count: 2);
         }
 
         [WorkItem(538136)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestBeforeNamespace()
         {
             Test(
@@ -241,7 +249,7 @@ count: 2);
         }
 
         [WorkItem(527395)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestSimpleNameWithLeadingTrivia()
         {
             Test(
@@ -251,7 +259,7 @@ compareTokens: false);
         }
 
         [WorkItem(527395)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGenericNameWithLeadingTrivia()
         {
             Test(
@@ -261,7 +269,7 @@ compareTokens: false);
         }
 
         [WorkItem(538740)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestFullyQualifyTypeName()
         {
             Test(
@@ -270,7 +278,7 @@ compareTokens: false);
         }
 
         [WorkItem(538740)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestFullyQualifyTypeName_NotForGenericType()
         {
             TestMissing(
@@ -278,7 +286,7 @@ compareTokens: false);
         }
 
         [WorkItem(538764)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestFullyQualifyThroughAlias()
         {
             Test(
@@ -287,7 +295,7 @@ compareTokens: false);
         }
 
         [WorkItem(538763)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestFullyQualifyPrioritizeTypesOverNamespaces1()
         {
             Test(
@@ -296,7 +304,7 @@ compareTokens: false);
         }
 
         [WorkItem(538763)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestFullyQualifyPrioritizeTypesOverNamespaces2()
         {
             Test(
@@ -306,7 +314,7 @@ index: 1);
         }
 
         [WorkItem(539853)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void BugFix5950()
         {
             Test(
@@ -316,7 +324,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540318)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestAfterAlias()
         {
             TestMissing(
@@ -324,7 +332,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540942)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestMissingOnIncompleteStatement()
         {
             TestMissing(
@@ -332,7 +340,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(542643)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestAssemblyAttribute()
         {
             Test(
@@ -341,14 +349,14 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(543388)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestMissingOnAliasName()
         {
             TestMissing(
 @"using [|GIBBERISH|] = Foo . GIBBERISH ; class Program { static void Main ( string [ ] args ) { GIBBERISH x ; } } namespace Foo { public class GIBBERISH { } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestMissingOnAttributeOverloadResolutionError()
         {
             TestMissing(
@@ -356,7 +364,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(544950)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestNotOnAbstractConstructor()
         {
             TestMissing(
@@ -364,7 +372,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(545774)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -376,7 +384,7 @@ input,
         }
 
         [WorkItem(546027)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void TestGeneratePropertyFromAttribute()
         {
             TestMissing(
@@ -384,7 +392,7 @@ input,
         }
 
         [WorkItem(775448)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -410,7 +418,7 @@ class Test
         }
 
         [WorkItem(947579)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void AmbiguousTypeFix()
         {
             Test(
@@ -431,7 +439,7 @@ namespace n2 { class A { }}");
         }
 
         [WorkItem(995857)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public void NonPublicNamespaces()
         {
             Test(

@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
     ''' <summary>
     ''' Identifiers coming from IL can be just about any valid string and since VB doesn't have a way to escape all possible
-    ''' IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparsable code.
+    ''' IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     ''' </summary>
     Public Class InvalidIdentifierTests
         Inherits AbstractOutlinerTests
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Sub
 
         <WorkItem(1174405)>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub PrependDollarSign()
             Dim source = "
 Class C
@@ -36,7 +36,7 @@ End Class
         End Sub
 
         <WorkItem(1174405)>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub SymbolsAndPunctuation()
             Dim source = "
 Class C
@@ -47,7 +47,7 @@ End Class
         End Sub
 
         <WorkItem(1174405)>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Sub IdentifierThatLooksLikeCode()
             Dim source = "
 Class C

@@ -140,9 +140,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static void EmitReferences(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics)
         {
-            if (compilation.PreviousSubmission != null)
+            var previousSubmission = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previousSubmission != null)
             {
-                EmitDependentCompilation(compilation.PreviousSubmission, dependencies, diagnostics);
+                EmitDependentCompilation(previousSubmission, dependencies, diagnostics);
             }
 
             foreach (MetadataReference r in compilation.References)
@@ -449,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // The key is the manifest module MVID, which is unique for each distinct assembly. 
         private static readonly ConcurrentDictionary<Guid, Assembly> s_domainAssemblyCache;
         private static readonly ConcurrentDictionary<Guid, Assembly> s_domainReflectionOnlyAssemblyCache;
+        private static int s_dumpCount;
 
         // Modules managed by this manager. All such modules must have unique simple name.
         private readonly Dictionary<string, ModuleData> _modules;
@@ -722,12 +724,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             StringBuilder sb = new StringBuilder();
             foreach (var module in modules)
             {
+                // Limit the number of dumps to 10.  After 10 we're likely in a bad state and are 
+                // dumping lots of unnecessary data.
+                if (s_dumpCount > 10)
+                {
+                    break; 
+                }
+
                 if (module.InMemoryModule)
                 {
+                    Interlocked.Increment(ref s_dumpCount);
+
                     if (dumpDirectory == null)
                     {
-                        dumpDirectory = Path.Combine(Path.GetTempPath(), "RoslynTestFailureDump", Guid.NewGuid().ToString());
-                        Directory.CreateDirectory(dumpDirectory);
+                        var assemblyLocation = typeof(HostedRuntimeEnvironment).Assembly.Location;
+                        dumpDirectory = Path.Combine(
+                            Path.GetDirectoryName(assemblyLocation),
+                            "Dumps");
+                        try
+                        {
+                             Directory.CreateDirectory(dumpDirectory);
+                        }
+                        catch
+                        {
+                            // Okay if directory already exists
+                        }
                     }
 
                     string fileName;

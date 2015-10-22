@@ -4,7 +4,6 @@ Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
@@ -39,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End If
 
             If token.Span.IntersectsWith(span) OrElse token.GetAncestor(Of XmlElementSyntax)() IsNot Nothing Then
-                Dim visitor = New Visitor(token.Span, Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), document.Project.Solution.Workspace.Kind <> WorkspaceKind.MetadataAsSource, Me)
+                Dim visitor = New Visitor(token.Span, Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), document.Project.Solution.Workspace.Kind <> WorkspaceKind.MetadataAsSource, Me, cancellationToken)
                 visitor.Visit(token.Parent)
                 Return visitor.result
             End If
@@ -60,8 +59,66 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
         Private Function TokenIsHelpKeyword(token As SyntaxToken) As Boolean
             Return token.IsKind(SyntaxKind.SharedKeyword, SyntaxKind.WideningKeyword, SyntaxKind.CTypeKeyword, SyntaxKind.NarrowingKeyword,
-                                     SyntaxKind.OperatorKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.AnsiKeyword,
-                                     SyntaxKind.AutoKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.HandlesKeyword, SyntaxKind.NotKeyword)
+                                SyntaxKind.OperatorKeyword, SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.AnsiKeyword,
+                                SyntaxKind.AutoKeyword, SyntaxKind.UnicodeKeyword, SyntaxKind.HandlesKeyword, SyntaxKind.NotKeyword)
+        End Function
+
+        Private Function FormatNamespaceOrTypeSymbol(symbol As INamespaceOrTypeSymbol) As String
+            If symbol.IsAnonymousType() Then
+                Return HelpKeywords.AnonymousType
+            End If
+
+            Dim displayString = symbol.ToDisplayString(TypeFormat)
+            If symbol.GetTypeArguments().Any() Then
+                Return $"{displayString}`{symbol.GetTypeArguments().Length}"
+            End If
+
+            Return displayString
+        End Function
+
+        Public Overloads Overrides Function FormatSymbol(symbol As ISymbol) As String
+            Return FormatSymbol(symbol, isContainingType:=False)
+        End Function
+
+        Private Overloads Function FormatSymbol(symbol As ISymbol, isContainingType As Boolean) As String
+            Dim symbolType = symbol.GetSymbolType()
+
+            If TypeOf symbolType Is IArrayTypeSymbol Then
+                symbolType = DirectCast(symbolType, IArrayTypeSymbol).ElementType
+            End If
+
+            If (symbolType IsNot Nothing AndAlso symbolType.IsAnonymousType) OrElse symbol.IsAnonymousType() OrElse symbol.IsAnonymousTypeProperty() Then
+                Return HelpKeywords.AnonymousType
+            End If
+
+            If symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable) Then
+                Return FormatNamespaceOrTypeSymbol(symbol.GetSymbolType())
+            End If
+
+            If Not isContainingType AndAlso TypeOf symbol Is INamedTypeSymbol Then
+                Dim type = DirectCast(symbol, INamedTypeSymbol)
+                If type.SpecialType <> SpecialType.None Then
+                    Return "vb." + type.ToDisplayString(SpecialTypeFormat)
+                End If
+            End If
+
+            If TypeOf symbol Is ITypeSymbol OrElse TypeOf symbol Is INamespaceSymbol Then
+                Return FormatNamespaceOrTypeSymbol(DirectCast(symbol, INamespaceOrTypeSymbol))
+            End If
+
+            Dim containingType = FormatSymbol(symbol.ContainingType, isContainingType:=True)
+            Dim name = symbol.ToDisplayString(NameFormat)
+
+            If symbol.IsConstructor() Then
+                Return $"{containingType}.New"
+            End If
+
+            Dim arity = symbol.GetArity()
+            If arity > 0 Then
+                Return $"{containingType}.{name}``{arity}"
+            End If
+
+            Return $"{containingType}.{name}"
         End Function
     End Class
 End Namespace

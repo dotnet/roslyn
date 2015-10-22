@@ -357,6 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     var originalConversion = this.OriginalSemanticModel.ClassifyConversion(originalOtherPartOfConditional, originalExpressionType);
                     var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newOtherPartOfConditional, newExpressionType);
 
+                    // If this changes a boxing operation in one of the branches, we assume that semantics will change.
+                    if (originalConversion.IsBoxing != newConversion.IsBoxing)
+                    {
+                        return true;
+                    }
+
                     if (!ConversionsAreCompatible(originalConversion, newConversion))
                     {
                         return true;
@@ -415,6 +421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 return previousOriginalNode != null &&
                     ReplacementBreaksCollectionInitializerAddMethod((ExpressionSyntax)previousOriginalNode, (ExpressionSyntax)previousReplacedNode);
+            }
+            else if (currentOriginalNode.Kind() == SyntaxKind.Interpolation)
+            {
+                return ReplacementBreaksInterpolation((InterpolationSyntax)currentOriginalNode, (InterpolationSyntax)currentReplacedNode);
             }
 
             return false;
@@ -571,6 +581,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !TypesAreCompatible(conditionalAccessExpression, newConditionalAccessExpression) ||
                 !SymbolsAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull) ||
                 !TypesAreCompatible(conditionalAccessExpression.WhenNotNull, newConditionalAccessExpression.WhenNotNull);
+        }
+
+        private bool ReplacementBreaksInterpolation(InterpolationSyntax interpolation, InterpolationSyntax newInterpolation)
+        {
+            return !TypesAreCompatible(interpolation.Expression, newInterpolation.Expression);
         }
 
         private bool ReplacementBreaksIsOrAsExpression(BinaryExpressionSyntax originalIsOrAsExpression, BinaryExpressionSyntax newIsOrAsExpression)

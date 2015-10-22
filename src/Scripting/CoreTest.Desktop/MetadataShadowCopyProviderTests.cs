@@ -1,18 +1,17 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Scripting;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Runtime.InteropServices;
+using System.Globalization;
 
-namespace Roslyn.Services.UnitTests
+namespace Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests
 {
     // TODO: clean up and move to portable tests
 
@@ -28,7 +27,12 @@ namespace Roslyn.Services.UnitTests
 
         public MetadataShadowCopyProviderTests()
         {
-            _provider = new MetadataShadowCopyProvider(TempRoot.Root, s_systemNoShadowCopyDirectories);
+            _provider = CreateProvider(CultureInfo.InvariantCulture);
+        }
+
+        private static MetadataShadowCopyProvider CreateProvider(CultureInfo culture)
+        {
+            return new MetadataShadowCopyProvider(TempRoot.Root, s_systemNoShadowCopyDirectories, culture);
         }
 
         public override void Dispose()
@@ -52,12 +56,6 @@ namespace Roslyn.Services.UnitTests
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy("bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"\bar.dll"));
             Assert.Throws<ArgumentException>(() => _provider.SuppressShadowCopy(@"../bar.dll"));
-
-            Assert.Throws<ArgumentNullException>(() => _provider.GetReference(null));
-            Assert.Throws<ArgumentException>(() => _provider.GetReference("c:foo.dll"));
-            Assert.Throws<ArgumentException>(() => _provider.GetReference("bar.dll"));
-            Assert.Throws<ArgumentException>(() => _provider.GetReference(@"\bar.dll"));
-            Assert.Throws<ArgumentException>(() => _provider.GetReference(@"../bar.dll"));
 
             Assert.Throws<ArgumentOutOfRangeException>(() => _provider.GetMetadataShadowCopy(@"c:\foo.dll", (MetadataImageKind)Byte.MaxValue));
             Assert.Throws<ArgumentNullException>(() => _provider.GetMetadataShadowCopy(null, MetadataImageKind.Assembly));
@@ -134,12 +132,7 @@ namespace Roslyn.Services.UnitTests
             string path1 = dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2).Path;
             string path2 = dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3).Path;
 
-            var reference1 = _provider.GetReference(path0);
-            Assert.NotNull(reference1);
-            Assert.Equal(0, _provider.CacheSize);
-            Assert.Equal(path0, reference1.FilePath);
-
-            var metadata1 = reference1.GetMetadata() as AssemblyMetadata;
+            var metadata1 = _provider.GetMetadata(path0, MetadataImageKind.Assembly) as AssemblyMetadata;
             Assert.NotNull(metadata1);
             Assert.Equal(3, metadata1.GetModules().Length);
 
@@ -158,38 +151,20 @@ namespace Roslyn.Services.UnitTests
             }
 
             // should get the same metadata:
-            var metadata2 = reference1.GetMetadata() as AssemblyMetadata;
+            var metadata2 = _provider.GetMetadata(path0, MetadataImageKind.Assembly) as AssemblyMetadata;
             Assert.Same(metadata1, metadata2);
-
-            // a new reference is created:
-            var reference2 = _provider.GetReference(path0);
-            Assert.NotNull(reference2);
-            Assert.Equal(path0, reference2.FilePath);
-            Assert.NotSame(reference1, reference2);
-
-            // the original file wasn't modified so we still get the same metadata:
-            var metadata3 = reference2.GetMetadata() as AssemblyMetadata;
-            Assert.Same(metadata3, metadata2);
 
             // modify the file:
             File.SetLastWriteTimeUtc(path0, DateTime.Now + TimeSpan.FromHours(1));
 
-            // the reference doesn't own the metadata, so we get an updated image if we ask again:
-            var modifiedMetadata3 = reference2.GetMetadata() as AssemblyMetadata;
+            // we get an updated image if we ask again:
+            var modifiedMetadata3 = _provider.GetMetadata(path0, MetadataImageKind.Assembly) as AssemblyMetadata;
             Assert.NotSame(modifiedMetadata3, metadata2);
 
-            // a new reference is created, again we get the modified image (which is copied to the shadow copy directory):
-            var reference4 = _provider.GetReference(path0);
-            Assert.NotNull(reference4);
-            Assert.Equal(path0, reference4.FilePath);
-            Assert.NotSame(reference2, reference4);
-
             // the file has been modified - we get new metadata:
-            var metadata4 = reference4.GetMetadata() as AssemblyMetadata;
-            Assert.NotSame(metadata4, metadata3);
-            for (int i = 0; i < metadata4.GetModules().Length; i++)
+            for (int i = 0; i < metadata2.GetModules().Length; i++)
             {
-                Assert.NotSame(metadata4.GetModules()[i], metadata3.GetModules()[i]);
+                Assert.NotSame(metadata2.GetModules()[i], modifiedMetadata3.GetModules()[i]);
             }
         }
 
@@ -197,12 +172,10 @@ namespace Roslyn.Services.UnitTests
         public unsafe void DisposalOnFailure()
         {
             var f0 = Temp.CreateFile().WriteAllText("bogus").Path;
-            var r0 = _provider.GetReference(f0);
-            Assert.Throws<BadImageFormatException>(() => r0.GetMetadata());
+            Assert.Throws<BadImageFormatException>(() => _provider.GetMetadata(f0, MetadataImageKind.Assembly));
 
             string f1 = Temp.CreateFile().WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll).Path;
-            var r1 = _provider.GetReference(f1);
-            Assert.Throws<FileNotFoundException>(() => r1.GetMetadata());
+            Assert.Throws<FileNotFoundException>(() => _provider.GetMetadata(f1, MetadataImageKind.Assembly));
         }
 
         [Fact]
@@ -221,13 +194,48 @@ namespace Roslyn.Services.UnitTests
 
             // This needs to be in different folder from referencesdir to cause the other code path 
             // to be triggered for NeedsShadowCopy method
-            var dir2 = System.IO.Path.GetTempPath();
-            string dll2 = System.IO.Path.Combine(dir2, "a2.dll");
-            System.IO.File.WriteAllBytes(dll2, TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
+            var dir2 = Path.GetTempPath();
+            string dll2 = Path.Combine(dir2, "a2.dll");
+            File.WriteAllBytes(dll2, TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
 
             Assert.Equal(1, _provider.CacheSize);
             var sc3a = _provider.GetMetadataShadowCopy(dll2, MetadataImageKind.Module);
             Assert.Equal(2, _provider.CacheSize);
+        }
+
+        [Fact]
+        public void XmlDocComments_SpecificCulture()
+        {
+            var elGR = CultureInfo.GetCultureInfo("el-GR");
+            var arMA = CultureInfo.GetCultureInfo("ar-MA");
+
+            var dir = Temp.CreateDirectory();
+            var dll = dir.CreateFile("a.dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSClasses01);
+            var docInvariant = dir.CreateFile("a.xml").WriteAllText("Invariant");
+            var docGreek = dir.CreateDirectory(elGR.Name).CreateFile("a.xml").WriteAllText("Greek");
+
+            // invariant culture
+            var provider = CreateProvider(CultureInfo.InvariantCulture);
+            var sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
+            Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"a.xml"), sc.DocumentationFile.FullPath); 
+            Assert.Equal("Invariant", File.ReadAllText(sc.DocumentationFile.FullPath));
+
+            // Greek culture
+            provider = CreateProvider(elGR);
+            sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
+            Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"el-GR\a.xml"), sc.DocumentationFile.FullPath);
+            Assert.Equal("Greek", File.ReadAllText(sc.DocumentationFile.FullPath));
+
+            // Arabic culture (culture specific docs not found, use invariant)
+            provider = CreateProvider(arMA);
+            sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
+            Assert.Equal(Path.Combine(Path.GetDirectoryName(sc.PrimaryModule.FullPath), @"a.xml"), sc.DocumentationFile.FullPath);
+            Assert.Equal("Invariant", File.ReadAllText(sc.DocumentationFile.FullPath));
+
+            // no culture:
+            provider = CreateProvider(null);
+            sc = provider.GetMetadataShadowCopy(dll.Path, MetadataImageKind.Assembly);
+            Assert.Null(sc.DocumentationFile);
         }
     }
 }

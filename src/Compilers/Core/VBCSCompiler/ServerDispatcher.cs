@@ -73,6 +73,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var pipeName = args[0].Substring(pipeArgPrefix.Length);
 
+            // Grab the server mutex to prevent multiple servers from starting with the same
+            // pipename and consuming excess resources. If someone else holds the mutex
+            // exit immediately with a non-zero exit code
+            var serverMutexName = $"{pipeName}.server";
+            bool holdsMutex;
+            using (var serverMutex = new Mutex(initiallyOwned: true,
+                                               name: serverMutexName,
+                                               createdNew: out holdsMutex))
+            {
+                if (!holdsMutex)
+                {
+                    return CommonCompiler.Failed;
+                }
+
+                try
+                {
+                    return Run(keepAliveTimeout, compilerExeDirectory, pipeName);
+                }
+                finally
+                {
+                    serverMutex.ReleaseMutex();
+                }
+            }
+        }
+
+        private static int Run(TimeSpan? keepAliveTimeout, string compilerExeDirectory, string pipeName)
+        {
             try
             {
                 int keepAliveValue;
@@ -147,8 +174,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Justification = "We intentionally call GC.Collect when anticipate long period on inactivity.")]
         public void ListenAndDispatchConnections(string pipeName, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Debug.Assert(SynchronizationContext.Current == null);
-
             var isKeepAliveDefault = true;
             var connectionList = new List<Task<ConnectionData>>();
             Task gcTask = null;

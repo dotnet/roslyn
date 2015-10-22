@@ -97,25 +97,22 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private void SetSolutionProperties(string solutionFilePath)
         {
+            // When MSBuild is building an individual project, it doesn't define $(SolutionDir).
+            // However when building an .sln file, or when working inside Visual Studio,
+            // $(SolutionDir) is defined to be the directory where the .sln file is located.
+            // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
+            // use MSBuildProjectDirectory which is always defined).
             if (!string.IsNullOrEmpty(solutionFilePath))
             {
-                // When MSBuild is building an individual project, it doesn't define $(SolutionDir).
-                // However when building an .sln file, or when working inside Visual Studio,
-                // $(SolutionDir) is defined to be the directory where the .sln file is located.
-                // Some projects out there rely on $(SolutionDir) being set (although the best practice is to
-                // use MSBuildProjectDirectory which is always defined).
-                if (!string.IsNullOrEmpty(solutionFilePath))
+                string solutionDirectory = Path.GetDirectoryName(solutionFilePath);
+                if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
                 {
-                    string solutionDirectory = Path.GetDirectoryName(solutionFilePath);
-                    if (!solutionDirectory.EndsWith(@"\", StringComparison.Ordinal))
-                    {
-                        solutionDirectory += @"\";
-                    }
+                    solutionDirectory += @"\";
+                }
 
-                    if (Directory.Exists(solutionDirectory))
-                    {
-                        _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
-                    }
+                if (Directory.Exists(solutionDirectory))
+                {
+                    _properties = _properties.SetItem(SolutionDirProperty, solutionDirectory);
                 }
             }
         }
@@ -361,8 +358,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 isInteractive: false,
                 sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-            var resolver = new RelativePathReferenceResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory);
-            var metadataReferences = commandLineArgs.ResolveMetadataReferences(new AssemblyReferenceResolver(resolver, metadataService.GetProvider()));
+            // we only support file paths in /r command line arguments
+            var resolver = new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory));
+            var metadataReferences = commandLineArgs.ResolveMetadataReferences(resolver);
 
             var analyzerLoader = analyzerService.GetLoader();
             foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
@@ -417,7 +415,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             // project references
-            var resolvedReferences = await this.ResolveProjectReferencesAsync(
+            var resolvedReferences = await ResolveProjectReferencesAsync(
                 projectId, projectFilePath, projectFileInfo.ProjectReferences, preferMetadata, loadedProjects, cancellationToken).ConfigureAwait(false);
 
             // add metadata references for project refs converted to metadata refs
@@ -447,10 +445,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var compOptions = commandLineArgs.CompilationOptions
                     .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
                     .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
-                    .WithMetadataReferenceResolver(
-                        new AssemblyReferenceResolver(
-                            new RelativePathReferenceResolver(ImmutableArray<string>.Empty, projectDirectory),
-                            MetadataFileReferenceProvider.Default))
+                    // TODO: https://github.com/dotnet/roslyn/issues/4967
+                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
                     .WithStrongNameProvider(new DesktopStrongNameProvider(ImmutableArray.Create(projectDirectory, outputFilePath)))
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
@@ -712,6 +708,21 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     if (loader == null)
                     {
                         this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnrecognizedFileExtension, projectFilePath, Path.GetExtension(projectFilePath)));
+                        return false;
+                    }
+                }
+
+                // since we have both C# and VB loaders in this same library, it no longer indicates whether we have full language support available.
+                if (loader != null)
+                {
+                    language = loader.Language;
+
+                    // check for command line parser existing... if not then error.
+                    var commandLineParser = _workspace.Services.GetLanguageServices(language).GetService<ICommandLineParserService>();
+                    if (commandLineParser == null)
+                    {
+                        loader = null;
+                        this.ReportFailure(mode, string.Format(WorkspacesResources.CannotOpenProjectUnsupportedLanguage, projectFilePath, language));
                         return false;
                     }
                 }

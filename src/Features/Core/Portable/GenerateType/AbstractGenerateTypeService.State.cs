@@ -111,6 +111,16 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
+                if (char.IsLower(name[0]) && !document.SemanticModel.Compilation.IsCaseSensitive)
+                {
+                    // It's near universal in .Net that types start with a capital letter.  As such,
+                    // if this name starts with a lowercase letter, don't even bother to offer 
+                    // "generate type".  The user most likely wants to run 'Add Import' (which will
+                    // then fix up a case where they typed an existing type name in lowercase, 
+                    // intending the fix to case correct it).
+                    return false;
+                }
+
                 this.NameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression;
                 this.ObjectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt;
 
@@ -192,7 +202,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             {
                 // See if we can find a possible base type for the type being generated.
                 // NOTE(cyrusn): I currently limit this to when we have an object creation node.
-                // That's because that's when we would have an expression that could be coverted to
+                // That's because that's when we would have an expression that could be converted to
                 // something else.  i.e. if the user writes "IList<int> list = new Foo()" then we can
                 // infer a base interface for 'Foo'.  However, if they write "IList<int> list = Foo"
                 // then we don't really want to infer a base type for 'Foo'.

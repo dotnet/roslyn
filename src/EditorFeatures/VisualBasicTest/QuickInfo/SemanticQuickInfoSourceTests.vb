@@ -113,13 +113,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             TestWithImports(markupInClass, expectedResults)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestInt32()
             TestInClass("Dim i As $$Int32",
              MainDescription("Structure System.Int32"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestInteger()
             TestInClass("Dim i As $$Integer",
              MainDescription("Structure System.Int32",
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Struct("Int32"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestString()
             TestInClass("Dim i As $$String",
              MainDescription("Class System.String",
@@ -143,21 +143,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                [Class]("String"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestStringAtEndOfToken()
             TestInClass("Dim i As String$$",
              MainDescription("Class System.String"))
         End Sub
 
         <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestStringLiteral()
             TestInClass("Dim i = ""cat""$$",
              MainDescription("Class System.String"))
         End Sub
 
         <WorkItem(1280, "https://github.com/dotnet/roslyn/issues/1280")>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestInterpolatedStringLiteral()
             TestInClass("Dim i = $""cat""$$", MainDescription("Class System.String"))
             TestInClass("Dim i = $""c$$at""", MainDescription("Class System.String"))
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             TestInClass("Dim i = $""cat {1$$ + 2} dog""", MainDescription("Structure System.Int32"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestListOfString()
             TestInClass("Dim l As $$List(Of String)",
              MainDescription("Class System.Collections.Generic.List(Of T)",
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Keyword("String"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestListOfT()
             TestWithImports(<Text>
                     Class C(Of T)
@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Punctuation.CloseParen)))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestListOfT2()
             TestWithImports(<Text>
                     Class C(Of T)
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription("Class System.Collections.Generic.List(Of T)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestListOfT3()
             TestWithImports(<Text>
                     Class C(Of T)
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription("Class System.Collections.Generic.List(Of T)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestListOfT4()
             TestWithImports(<Text>
                     Class C(Of T)
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              Nothing)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDictionaryOfIntegerAndString()
             TestWithImports(<Text>
                     Class C
@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                  $"TValue {FeaturesResources.Is} String")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDictionaryOfTAndU()
             TestWithImports(<Text>
                     Class C(Of T, U)
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                  $"TValue {FeaturesResources.Is} U")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestIEnumerableOfInteger()
             TestInClass("Dim ie As $$IEnumerable(Of Integer)",
              MainDescription("Interface System.Collections.Generic.IEnumerable(Of Out T)"),
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Sub
 
         <WorkItem(542157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEvent()
             TestInMethod("AddHandler System.Console.$$CancelKeyPress, AddressOf S",
              MainDescription("Event Console.CancelKeyPress As ConsoleCancelEventHandler",
@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                [Delegate]("ConsoleCancelEventHandler"))))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEventHandler()
             TestInClass("Dim e As $$EventHandler",
              MainDescription("Delegate Sub System.EventHandler(sender As Object, e As System.EventArgs)",
@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Punctuation.CloseParen)))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestTypeParameter()
             Test(StringFromLines("Class C(Of T)",
                   "    Dim t As $$T",
@@ -337,14 +337,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription($"T {FeaturesResources.In} C(Of T)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestNullableOfInteger()
             TestInClass("Dim n As $$Nullable(Of Integer)",
              MainDescription("Structure System.Nullable(Of T As Structure)"),
              TypeParameterMap(vbCrLf & $"T {FeaturesResources.Is} Integer"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestGenericTypeDeclaredOnMethod1()
             Test(<Text>
                     Class C
@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
              MainDescription($"T1 {FeaturesResources.In} C.Meth1(Of T1)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestGenericTypeDeclaredOnMethod2()
             Test(<Text>
                     Class C
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Sub
 
         <WorkItem(538732)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestParameter()
             TestWithImports(<Text>
                     Module C
@@ -402,13 +402,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
                Punctuation.CloseParen)))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnFieldDeclaration()
             TestInClass("Dim $$i As Int32",
              MainDescription($"({FeaturesResources.Field}) C.i As Integer"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestMinimal1()
             Test(<Text>
                      Imports System.Collections.Generic
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
               MainDescription($"Sub List(Of String).New() (+ 2 {FeaturesResources.Overloads})"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestMinimal2()
             Test(<Text>
                      Imports System.Collections.Generic
@@ -430,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
               MainDescription("Function C.P() As List(Of String)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestAnd()
             Test(<Text>
                      Imports System.Collections.Generic
@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Sub
 
         <WorkItem(538822)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDelegate()
             Test(<Text>
                      Imports System
@@ -462,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Sub
 
         <WorkItem(538824)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnDelegateInvocation()
             Test(<Text>
                     Class Program
@@ -476,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Sub
 
         <WorkItem(538786)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnGenericOverloads1()
             Test(<Text>
 Module C
@@ -501,7 +501,7 @@ End Class
         End Sub
 
         <WorkItem(538786)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnGenericOverloads2()
             Test(<Text>
 Module C
@@ -526,7 +526,7 @@ End Class
         End Sub
 
         <WorkItem(538773)>
-        <Fact>
+        <WpfFact>
         Public Sub TestOverriddenMethod()
             Test(<Text>
 Class A
@@ -551,7 +551,7 @@ End Class
         End Sub
 
         <WorkItem(538918)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnMe()
             Test(<Text>
 class C
@@ -568,7 +568,7 @@ End class
         End Sub
 
         <WorkItem(539240)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnArrayCreation1()
             Test(<Text>
 class C
@@ -581,7 +581,7 @@ End class
         End Sub
 
         <WorkItem(539240)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestOnArrayCreation2()
             Test(<Text>
 class C
@@ -593,17 +593,17 @@ End class
             MainDescription("Structure System.Int32"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDimInFieldDeclaration()
             TestInClass("Dim$$ a As Integer", MainDescription("Structure System.Int32"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDimMultipleInFieldDeclaration()
             TestInClass("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.MultipleTypes))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDimInFieldDeclarationCustomType()
             Test(<Text>
 Module Program
@@ -615,17 +615,17 @@ End Module
             MainDescription("Class Program.CustomClass"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDimInLocalDeclaration()
             TestInMethod("Dim$$ a As Integer", MainDescription("Structure System.Int32"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDimMultipleInLocalDeclaration()
             TestInMethod("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.MultipleTypes))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDimInLocalDeclarationCustomType()
             Test(<Text>
 Module Program
@@ -639,7 +639,7 @@ End Module
             MainDescription("Class Program.CustomClass"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDefaultProperty1()
             Test(<Text>
 Class X
@@ -670,7 +670,7 @@ End Module
             MainDescription("ReadOnly Property X.Foo As Y"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDefaultProperty2()
             Test(<Text>
 Class X
@@ -702,7 +702,7 @@ End Module
         End Sub
 
         <WorkItem(541582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub LambdaExpression()
             Test(<Text>Imports System
 Imports System.Collections.Generic
@@ -718,13 +718,13 @@ End Module</Text>.NormalizedValue, Nothing)
         End Sub
 
         <WorkItem(541353)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestUnboundMethodInvocation()
             TestInMethod("Me.Fo$$o()", Nothing)
         End Sub
 
         <WorkItem(541582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestQuickInfoOnExtensionMethod()
             Test(<Text><![CDATA[Imports System.Runtime.CompilerServices
 Class Program
@@ -743,7 +743,7 @@ End Module]]></Text>.NormalizedValue,
             MainDescription($"<{VBFeaturesResources.Extension}> Function Integer.Count(items As IEnumerable(Of Integer)) As Boolean"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestQuickInfoOnExtensionMethodOverloads()
             Test(<Text><![CDATA[Imports System.Runtime.CompilerServices
 Class Program
@@ -767,7 +767,7 @@ End Module]]></Text>.NormalizedValue,
             MainDescription($"<{VBFeaturesResources.Extension}> Sub String.TestExt() (+ 2 {FeaturesResources.Overloads})"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestQuickInfoOnExtensionMethodOverloads2()
             Test(<Text><![CDATA[Imports System.Runtime.CompilerServices
 Class Program
@@ -792,7 +792,7 @@ End Module]]></Text>.NormalizedValue,
         End Sub
 
         <WorkItem(541960)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub DontRemoveAttributeSuffixAndProduceInvalidIdentifier1()
             Test(<Text><![CDATA[
 Imports System
@@ -805,7 +805,7 @@ End Class]]></Text>.NormalizedValue,
         End Sub
 
         <WorkItem(541960)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub DontRemoveAttributeSuffixAndProduceInvalidIdentifier2()
             Test(<Text><![CDATA[
 Imports System
@@ -818,7 +818,7 @@ End Class]]></Text>.NormalizedValue,
         End Sub
 
         <WorkItem(541960)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub DontRemoveAttributeSuffix1()
             Test(<Text><![CDATA[
 Imports System
@@ -831,7 +831,7 @@ End Class]]></Text>.NormalizedValue,
         End Sub
 
         <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub AttributeQuickInfoBindsToClassTest()
             Test("
 Imports System
@@ -854,7 +854,7 @@ End Class
         End Sub
 
         <WorkItem(1696, "https://github.com/dotnet/roslyn/issues/1696")>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub AttributeConstructorQuickInfo()
             Test("
 Imports System
@@ -877,7 +877,7 @@ End Class
         End Sub
 
         <WorkItem(542613)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestUnboundGeneric()
             Test(<Text><![CDATA[
 Imports System
@@ -892,7 +892,7 @@ End Class]]></Text>.NormalizedValue,
         End Sub
 
         <WorkItem(543209)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForAnonymousType1()
             Test(<Text><![CDATA[
 Class C
@@ -906,7 +906,7 @@ End Class]]></Text>.NormalizedValue,
         End Sub
 
         <WorkItem(543226)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForAnonymousType2()
             Test(<Text><![CDATA[
 Imports System.Linq
@@ -924,7 +924,7 @@ End Module]]></Text>.NormalizedValue,
         End Sub
 
         <WorkItem(543223)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForAnonymousType3()
             Test(<Text><![CDATA[
 Class C
@@ -939,7 +939,7 @@ End Class
         End Sub
 
         <WorkItem(543242)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForUnboundLabel()
             Test(<Text><![CDATA[
 Option Infer On
@@ -954,7 +954,7 @@ End Class]]></Text>.NormalizedValue,
 
         <WorkItem(543624)>
         <WorkItem(543275)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForAnonymousDelegate1()
             Test(<Text><![CDATA[
 Imports System
@@ -970,7 +970,7 @@ End Module
 
         <WorkItem(543624)>
         <WorkItem(543275)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForAnonymousDelegate2()
             Test(<Text><![CDATA[
 Imports System
@@ -985,7 +985,7 @@ End Module
         End Sub
 
         <WorkItem(543624)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForAnonymousDelegate3()
             Test(<Text><![CDATA[
 Imports System
@@ -1003,7 +1003,7 @@ End Module
 
         <WorkItem(543624)>
         <WorkItem(543275)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub QuickInfoForAnonymousDelegate4()
             Test(<Text><![CDATA[
 Imports System
@@ -1020,7 +1020,7 @@ End Module
         End Sub
 
         <WorkItem(543389)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub ImplicitMemberNameLocal1()
             Test(<Text><![CDATA[
 Imports System
@@ -1039,7 +1039,7 @@ End Module
         End Sub
 
         <WorkItem(543389)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub ImplicitMemberNameLocal2()
             Test(<Text><![CDATA[
 Imports System
@@ -1058,7 +1058,7 @@ End Module
         End Sub
 
         <WorkItem(543389)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub ImplicitMemberNameLocal3()
             Test(<Text><![CDATA[
 Imports System
@@ -1072,14 +1072,14 @@ End Module
             MainDescription("Function Program.Foo() As Integer"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub BinaryConditionalExpression()
             TestInMethod("Dim x = If$$(True, False)",
                 MainDescription($"If({Expression1}, {ExpressionIfNothing}) As Boolean"),
                 Documentation(ExpressionEvalReturns))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TernaryConditionalExpression()
             TestInMethod("Dim x = If$$(True, ""Foo"", ""Bar"")",
                 MainDescription($"If({Condition} As Boolean, {ExpressionIfTrue}, {ExpressionIfFalse}) As String"),
@@ -1087,7 +1087,7 @@ End Module
         End Sub
 
         <WorkItem(957082)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub AddHandlerStatement()
             TestInMethod("$$AddHandler foo, bar",
                 MainDescription($"AddHandler {Event1}, {Handler}"),
@@ -1096,7 +1096,7 @@ End Module
         End Sub
 
         <WorkItem(957082)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub RemoveHandlerStatement()
             TestInMethod("$$RemoveHandler foo, bar",
                 MainDescription($"RemoveHandler {Event1}, {Handler}"),
@@ -1104,7 +1104,7 @@ End Module
                 SymbolGlyph(Glyph.Keyword))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub GetTypeExpression()
             TestInMethod("Dim x = GetType$$(String)",
                 MainDescription("GetType(String) As Type"),
@@ -1112,7 +1112,7 @@ End Module
         End Sub
 
         <WorkItem(544140)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub GetXmlNamespaceExpression()
             TestWithReferences(
                 <text>
@@ -1127,166 +1127,166 @@ end class
                 Documentation(ReturnsXNamespaceObject))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TryCastExpression()
             TestInMethod("Dim x = TryCast$$(a, String)",
                 MainDescription($"TryCast({Expression1}, String) As String"),
                 Documentation(IntroducesSafeTypeConversion))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub DirectCastExpression()
             TestInMethod("Dim x = DirectCast$$(a, String)",
                 MainDescription($"DirectCast({Expression1}, String) As String"),
                 Documentation(IntroducesTypeConversion))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CTypeCastExpression()
             TestInMethod("Dim x = CType$$(a, String)",
                 MainDescription($"CType({Expression1}, String) As String"),
                 Documentation(ReturnsConvertResult))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CBoolExpression()
             TestInMethod("Dim x = CBool$$(a)",
                 MainDescription($"CBool({Expression1}) As Boolean"),
                 Documentation(String.Format(ConvertsToDataType, "Boolean")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CByteExpression()
             TestInMethod("Dim x = CByte$$(a)",
                 MainDescription($"CByte({Expression1}) As Byte"),
                 Documentation(String.Format(ConvertsToDataType, "Byte")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CCharExpression()
             TestInMethod("Dim x = CChar$$(a)",
                 MainDescription($"CChar({Expression1}) As Char"),
                 Documentation(String.Format(ConvertsToDataType, "Char")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CDateExpression()
             TestInMethod("Dim x = CDate$$(a)",
                 MainDescription($"CDate({Expression1}) As Date"),
                 Documentation(String.Format(ConvertsToDataType, "Date")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CDblExpression()
             TestInMethod("Dim x = CDbl$$(a)",
                 MainDescription($"CDbl({Expression1}) As Double"),
                 Documentation(String.Format(ConvertsToDataType, "Double")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CDecExpression()
             TestInMethod("Dim x = CDec$$(a)",
                 MainDescription($"CDec({Expression1}) As Decimal"),
                 Documentation(String.Format(ConvertsToDataType, "Decimal")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CIntExpression()
             TestInMethod("Dim x = CInt$$(a)",
                 MainDescription($"CInt({Expression1}) As Integer"),
                 Documentation(String.Format(ConvertsToDataType, "Integer")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CLngExpression()
             TestInMethod("Dim x = CLng$$(a)",
                 MainDescription($"CLng({Expression1}) As Long"),
                 Documentation(String.Format(ConvertsToDataType, "Long")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CObjExpression()
             TestInMethod("Dim x = CObj$$(a)",
                 MainDescription($"CObj({Expression1}) As Object"),
                 Documentation(String.Format(ConvertsToDataType, "Object")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CSByteExpression()
             TestInMethod("Dim x = CSByte$$(a)",
                 MainDescription($"CSByte({Expression1}) As SByte"),
                 Documentation(String.Format(ConvertsToDataType, "SByte")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CShortExpression()
             TestInMethod("Dim x = CShort$$(a)",
                 MainDescription($"CShort({Expression1}) As Short"),
                 Documentation(String.Format(ConvertsToDataType, "Short")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CSngExpression()
             TestInMethod("Dim x = CSng$$(a)",
                 MainDescription($"CSng({Expression1}) As Single"),
                 Documentation(String.Format(ConvertsToDataType, "Single")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CStrExpression()
             TestInMethod("Dim x = CStr$$(a)",
                 MainDescription($"CStr({Expression1}) As String"),
                 Documentation(String.Format(ConvertsToDataType, "String")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CUIntExpression()
             TestInMethod("Dim x = CUInt$$(a)",
                 MainDescription($"CUInt({Expression1}) As UInteger"),
                 Documentation(String.Format(ConvertsToDataType, "UInteger")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CULngExpression()
             TestInMethod("Dim x = CULng$$(a)",
                 MainDescription($"CULng({Expression1}) As ULong"),
                 Documentation(String.Format(ConvertsToDataType, "ULong")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CUShortExpression()
             TestInMethod("Dim x = CUShort$$(a)",
                 MainDescription($"CUShort({Expression1}) As UShort"),
                 Documentation(String.Format(ConvertsToDataType, "UShort")))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub MidAssignmentStatement1()
             TestInMethod("$$Mid(""foo"", 0) = ""bar""",
                 MainDescription($"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}"),
                 Documentation(ReplacesChars))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub MidAssignmentStatement2()
             TestInMethod("$$Mid(""foo"", 0, 0) = ""bar""",
                 MainDescription($"Mid({StringName}, {StartIndex}, [{Length}]) = {StringExpression}"),
                 Documentation(ReplacesChars))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantField()
             TestInClass("const $$F = 1",
                 MainDescription($"({FeaturesResources.Constant}) C.F As Integer = 1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestMultipleConstantFields()
             TestInClass("Public Const X As Double = 1.0, Y As Double = 2.0, $$Z As Double = 3.5",
                 MainDescription($"({FeaturesResources.Constant}) C.Z As Double = 3.5"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantDependencies()
             Test(<Text><![CDATA[
 Imports System
@@ -1302,7 +1302,7 @@ End Class
                 MainDescription($"({FeaturesResources.Constant}) A.X As Integer = B.Z + 1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantCircularDependencies()
             Test(<Text><![CDATA[
 Imports System
@@ -1318,13 +1318,13 @@ End Class
         End Sub
 
         <WorkItem(544620)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantOverflow()
             TestInClass("Public Const $$Z As Integer = Integer.MaxValue + 1",
                 MainDescription($"({FeaturesResources.Constant}) C.Z As Integer = Integer.MaxValue + 1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumInConstantField()
             Test(<Text><![CDATA[
 Public Class EnumTest
@@ -1345,7 +1345,7 @@ End Class
                 MainDescription($"({FeaturesResources.LocalConstant}) x As Integer = CInt(Days.Sun)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumInConstantField2()
             Test(<Text><![CDATA[
 Public Class EnumTest
@@ -1366,38 +1366,38 @@ End Class
                 MainDescription($"({FeaturesResources.LocalConstant}) x As Days = Days.Sun"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantParameter()
             TestInClass("Sub Bar(optional $$b as Integer = 1)",
                 MainDescription($"({FeaturesResources.Parameter}) b As Integer = 1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestConstantLocal()
             TestInMethod("const $$loc = 1",
                 MainDescription($"({FeaturesResources.LocalConstant}) loc As Integer = 1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumValue1()
             TestInMethod("Const $$sunday = DayOfWeek.Sunday",
                 MainDescription($"({FeaturesResources.LocalConstant}) sunday As DayOfWeek = DayOfWeek.Sunday"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumValue2()
             TestInMethod("Const $$v = AttributeTargets.Constructor or AttributeTargets.Class",
                 MainDescription($"({FeaturesResources.LocalConstant}) v As AttributeTargets = AttributeTargets.Constructor or AttributeTargets.Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestComplexConstantParameter()
             TestInClass("Sub Bar(optional $$b as Integer = 1 + True)",
                 MainDescription($"({FeaturesResources.Parameter}) b As Integer = 1 + True"))
         End Sub
 
         <WorkItem(546849)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestIndexedPropertyWithOptionalParameter()
             Test(<Text><![CDATA[
 Class Test
@@ -1418,7 +1418,7 @@ End Class
                  MainDescription("Property Test.Prop(p1 As Integer, [p2 As Integer = 0]) As Integer"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestAwaitableMethod()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1442,7 +1442,7 @@ End Class
                  MainDescription(description), Usage(doc))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestObsoleteItem()
             Test(<Text><![CDATA[
 Imports System
@@ -1457,7 +1457,7 @@ End Class
                 MainDescription($"({VBFeaturesResources.Deprecated}) Sub C.Foo()"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumMemberNameFromMetadata()
             Dim code =
 <Code>
@@ -1474,7 +1474,7 @@ End Class
                 MainDescription("ConsoleColor.Black = 0"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumMemberNameFromSource1()
             Dim code =
 <Code>
@@ -1495,7 +1495,7 @@ End Class
                 MainDescription("Foo.B = 1 << 1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestEnumMemberNameFromSource2()
             Dim code =
 <Code>
@@ -1516,7 +1516,7 @@ End Class
                 MainDescription("Foo.B = 1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TextOnlyDocComment()
             Test(<text><![CDATA[
 ''' <summary>
@@ -1526,7 +1526,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestTrimConcatMultiLine()
             Test(<text><![CDATA[
 ''' <summary>
@@ -1537,7 +1537,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("foo bar"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestCref()
             Test(<text><![CDATA[
 ''' <summary>
@@ -1548,7 +1548,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("C C"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub ExcludeTextOutsideSummaryBlock()
             Test(<text><![CDATA[
 ''' red
@@ -1560,7 +1560,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("green"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub NewlineAfterPara()
             Test(<text><![CDATA[
 ''' <summary>
@@ -1570,7 +1570,7 @@ Class C$$
 End Class]]></text>.NormalizedValue(), Documentation("foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub Param()
             Test(<text><![CDATA[
 ''' <summary></summary>
@@ -1583,7 +1583,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("First parameter of C.Foo(Of T)(String(), T)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub Param2()
             Test(<text><![CDATA[
 ''' <summary></summary>
@@ -1596,7 +1596,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("Another parameter of C.Foo(Of T)(String(), T)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TypeParam()
             Test(<text><![CDATA[
 ''' <summary></summary>
@@ -1609,7 +1609,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("A type parameter of C.Foo(Of T)(String(), T)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub UnboundCref()
             Test(<text><![CDATA[
 ''' <summary></summary>
@@ -1620,7 +1620,7 @@ Public Class C
         End Class]]></text>.NormalizedValue(), Documentation("A type parameter of foo(Of T) (string, T)"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CrefInConstructor()
             Test(<text><![CDATA[
 Public Class TestClass
@@ -1632,7 +1632,7 @@ Public Class TestClass
         End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to specify the TestClass constructor as a cref attribute."))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CrefInConstructorOverloaded()
             Test(<text><![CDATA[
 Public Class TestClass
@@ -1647,7 +1647,7 @@ Public Class TestClass
         End Sub
 
         <WorkItem(814191)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CrefInGenericMethod1()
             Test(<text><![CDATA[
 Public Class TestClass
@@ -1660,7 +1660,7 @@ Public Class TestClass
         End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to specify the TestClass.GetGenericValue(Of T)(T) method as a cref attribute."))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CrefInGenericMethod2()
             Test(<text><![CDATA[
 Public class TestClass
@@ -1674,7 +1674,7 @@ End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to s
         End Sub
 
         <WorkItem(813350)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CrefInMethodOverloading1()
             Test(<text><![CDATA[
 public class TestClass
@@ -1699,7 +1699,7 @@ End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to s
         End Sub
 
         <WorkItem(813350)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CrefInMethodOverloading2()
             Test(<text><![CDATA[
 public class TestClass
@@ -1723,7 +1723,7 @@ public class TestClass
 End Class]]></text>.NormalizedValue(), Documentation("This sample shows how to specify the GetGenericValue(OfT)(T) method as a cref attribute."))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub CrefInGenericType()
             Test(<text><![CDATA[
 ''' <summary>
@@ -1752,7 +1752,7 @@ End Class]]></text>.NormalizedValue(),
         ''' While implementing this story, determine the correct behavior for quick info on VB Await keyword (syntactic vs semantic) and update these tests.
         ''' </Remarks>
         <WorkItem(756226), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestAwaitKeywordOnTaskReturningAsync()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1774,7 +1774,7 @@ End Class
         End Sub
 
         <WorkItem(756226), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestAwaitKeywordOnGenericTaskReturningAsync()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1797,7 +1797,7 @@ End Class
         End Sub
 
         <WorkItem(756226), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestAwaitKeywordOnTaskReturningAsync2()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1819,7 +1819,7 @@ End Class
         End Sub
 
         <WorkItem(756226), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestNestedAwaitKeywords1()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1855,7 +1855,7 @@ End Class
         End Sub
 
         <WorkItem(756226), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestNestedAwaitKeywords2()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1891,7 +1891,7 @@ End Class
         End Sub
 
         <WorkItem(756226), WorkItem(756337), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestTaskType()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1913,7 +1913,7 @@ End Class
         End Sub
 
         <WorkItem(756226), WorkItem(756337), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestTaskOfTType()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1935,7 +1935,7 @@ End Class
         End Sub
 
         <WorkItem(756226), WorkItem(756337), WorkItem(522342)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestAwaitablePrefixOnCustomAwaiter()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -1978,7 +1978,7 @@ End Class
         End Sub
 
         <WorkItem(792629)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub GenericMethodWithConstraintsAtDeclaration()
             TestInClass("Private Function Fo$$o(Of TIn As Class, TOut)(arg As TIn) As TOut
     Foo(Of TIn, TOut)(Nothing)
@@ -1987,7 +1987,7 @@ End Function",
         End Sub
 
         <WorkItem(792629)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub GenericMethodWithMultipleConstraintsAtDeclaration()
             TestInClass("Private Function Fo$$o(Of TIn As {IComparable, New}, TOut)(arg As TIn) As TOut
     Foo(Of TIn, TOut)(Nothing)
@@ -1996,7 +1996,7 @@ End Function",
         End Sub
 
         <WorkItem(792629)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub UnConstructedGenericMethodWithConstraintsAtInvocation()
             TestInClass("Private Function Foo(Of TIn As {Class, New}, TOut)(arg As TIn) As TOut
     F$$oo(Of TIn, TOut)(Nothing)
@@ -2005,7 +2005,7 @@ End Function",
         End Sub
 
         <WorkItem(991466)>
-        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub TestDocumentationInImportsDirectiveWithAlias()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferencesNet45="true">
@@ -2030,6 +2030,52 @@ End Interface
                          </Workspace>.ToString()
 
             TestFromXml(markup, MainDescription("Interface IFoo"), Documentation("summary for interface IFoo"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(4868, "https://github.com/dotnet/roslyn/issues/4868")>
+        Public Sub QuickInfoExceptions()
+            Test("
+Imports System
+Namespace MyNs
+    Class MyException1
+        Inherits Exception
+    End Class
+    Class MyException2
+        Inherits Exception
+    End Class
+    Class TestClass
+        ''' <exception cref=""MyException1""></exception>
+        ''' <exception cref=""T:MyNs.MyException2""></exception>
+        ''' <exception cref=""System.Int32""></exception>
+        ''' <exception cref=""Double""></exception>
+        ''' <exception cref=""Not_A_Class_But_Still_Displayed""></exception>
+        Sub M()
+            M$$()
+        End Sub
+    End Class
+End Namespace
+",
+                Exceptions($"{vbCrLf}{WorkspacesResources.Exceptions}{vbCrLf}  MyException1{vbCrLf}  MyException2{vbCrLf}  Integer{vbCrLf}  Double{vbCrLf}  Not_A_Class_But_Still_Displayed"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(1516, "https://github.com/dotnet/roslyn/issues/1516")>
+        Public Sub QuickInfoWithNonStandardSeeAttributesAppear()
+            Test("
+Class C
+    ''' <summary>
+    ''' <see cref=""System.String"" />
+    ''' <see href=""http://microsoft.com"" />
+    ''' <see langword=""Nothing"" />
+    ''' <see unsupported-attribute=""cat"" />
+    ''' </summary>
+    Sub M()
+        M$$()
+    End Sub
+End Class
+",
+                 Documentation("String http://microsoft.com Nothing cat"))
         End Sub
 
     End Class

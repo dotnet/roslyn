@@ -2,12 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal class ObjectInitializerCompletionProvider : AbstractObjectInitializerCompletionProvider
     {
-        protected override async Task<bool> IsExclusiveAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<bool> IsExclusiveAsync(Document document, int position, CancellationToken cancellationToken)
         {
             // We're exclusive if this context could only be an object initializer and not also a
             // collection initializer. If we're initializing something that could be initialized as
             // an object or as a collection, say we're not exclusive. That way the rest of
-            // intellisense can be used in the collection intializer.
+            // intellisense can be used in the collection initializer.
             // 
             // Consider this case:
 
@@ -73,8 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return false;
             }
 
+            var enclosingSymbol = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             // Non-exclusive if initializedType can be initialized as a collection.
-            if (initializedType.CanSupportCollectionInitializer())
+            if (initializedType.CanSupportCollectionInitializer(enclosingSymbol))
             {
                 return false;
             }

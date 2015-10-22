@@ -128,6 +128,11 @@
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidHistoryPrevious" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="MoveUp" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/5295)
+        <Icon guid="ImageCatalogGuid" id="LastHistoryCommand" /> 
+        -->
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
@@ -139,6 +144,11 @@
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidHistoryNext" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
+        <Icon guid="ImageCatalogGuid" id="MoveDown" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/5295)
+        <Icon guid="ImageCatalogGuid" id="ListMembers" />
+        -->
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
@@ -169,7 +179,6 @@
           <LocCanonicalName>.InteractiveConsole.SearchHistoryPrevious</LocCanonicalName>
         </Strings>
       </Button>
-
 
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuClearGroup"/>
@@ -234,10 +243,16 @@
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0100">
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidReset" priority="0x0100">
       <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
     </CommandPlacement>
-    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidReset" priority="0x0100">
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidClearScreen" priority="0x0101">
+      <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidHistoryPrevious" priority="0x0110">
+      <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
+    </CommandPlacement>
+    <CommandPlacement guid="guidInteractiveWindowCmdSet" id="cmdidHistoryNext" priority="0x0111">
       <Parent guid="guidInteractiveWindowCmdSet" id="InteractiveToolbarGroup"/>
     </CommandPlacement>
 

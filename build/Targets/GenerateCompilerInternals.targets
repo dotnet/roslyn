@@ -51,7 +51,7 @@
     </PropertyGroup>
 
     <Exec
-      Command='$(SyntaxGenerator) @(SyntaxDefinition) $(GeneratedSyntaxModel)'
+      Command='$(SyntaxGenerator) "@(SyntaxDefinition)" "$(GeneratedSyntaxModel)"'
       Outputs="$(GeneratedSyntaxModel)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -144,7 +144,7 @@
     </PropertyGroup>
 
     <Exec
-      Command='$(BoundTreeGenerator) $(Language) @(BoundTreeDefinition) $(GeneratedBoundTree)'
+      Command='$(BoundTreeGenerator) $(Language) "@(BoundTreeDefinition)" "$(GeneratedBoundTree)"'
       Outputs="$(GeneratedBoundTree)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />
@@ -181,7 +181,7 @@
     </PropertyGroup>
 
     <Exec
-      Command='$(ErrorFactsGenerator) @(ErrorCode) $(GeneratedErrorFacts)'
+      Command='$(ErrorFactsGenerator) "@(ErrorCode)" "$(GeneratedErrorFacts)"'
       Outputs="$(GeneratedErrorFacts)"
     >
       <Output TaskParameter="Outputs" ItemName="FileWrites" />

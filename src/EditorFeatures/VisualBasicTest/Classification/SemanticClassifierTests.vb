@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TypeName1()
             TestInMethod(
                 className:="C(Of T)",
@@ -41,20 +41,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 expected:={[Class]("C")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub ImportsType()
             Test("Imports System.Console",
                 [Class]("Console"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub ImportsAlias()
             Test("Imports M = System.Math",
                  [Class]("M"),
                  [Class]("Math"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub MSCorlibTypes()
             Dim text = StringFromLines(
                 "Imports System",
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Class]("Console"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub ConstructedGenericWithInvalidTypeArg()
             TestInMethod(
                 className:="C(Of T)",
@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 expected:={[Class]("C")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub MethodCall()
             TestInMethod(
                 className:="Program",
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 expected:={[Class]("Program")})
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(538647)>
         Public Sub Regression4315_VariableNamesClassifiedAsType()
             Dim text = StringFromLines(
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Test(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541267)>
         Public Sub Regression7925_TypeParameterCantCastToMethod()
             Dim text = StringFromLines(
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 TypeParameter("T1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541610)>
         Public Sub Regression8394_AliasesShouldBeClassified1()
             Dim text = StringFromLines(
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Class]("S"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(541610)>
         Public Sub Regression8394_AliasesShouldBeClassified2()
             Dim text = StringFromLines(
@@ -137,7 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 [Interface]("D"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestConstructorNew1()
             Dim text = StringFromLines(
                 "Class C",
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestConstructorNew2()
             Dim text = StringFromLines(
                 "Class B",
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestConstructorNew3()
             Dim text = StringFromLines(
                 "Class C",
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestConstructorNew4()
             Dim text = StringFromLines(
                 "Class C",
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("New"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestAlias()
             Dim text = StringFromLines(
                 "Imports E = System.Exception",
@@ -219,13 +219,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Sub
 
         <WorkItem(542685)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptimisticallyColorFromInDeclaration()
             TestInExpression("From ", Keyword("From"))
         End Sub
 
         <WorkItem(542685)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptimisticallyColorFromInAssignment()
             TestInMethod(<text><![CDATA[
                             Dim q = 3
@@ -234,13 +234,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Sub
 
         <WorkItem(542685)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DontColorThingsOtherThanFromInDeclaration()
             TestInExpression("Fro ")
         End Sub
 
         <WorkItem(542685)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DontColorThingsOtherThanFromInAssignment()
             TestInMethod(<text><![CDATA[
                             Dim q = 3
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Sub
 
         <WorkItem(542685)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DontColorFromWhenBoundInDeclaration()
             TestInMethod(<text><![CDATA[
                             Dim From = 3
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Sub
 
         <WorkItem(542685)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DontColorFromWhenBoundInAssignment()
             TestInMethod(<text><![CDATA[
                             Dim From = 3
@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             ]]></text>.Value)
         End Sub
 
-        <Fact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, WorkItem(10507, "DevDiv_Projects/Roslyn"), Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestArraysInGetType()
             TestInMethod("GetType(System.Exception()",
                          [Class]("Exception"))
@@ -275,14 +275,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          [Class]("Exception"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub NewOfInterface()
             TestInMethod("Dim a = New System.IDisposable()",
                          [Interface]("IDisposable"))
         End Sub
 
         <WorkItem(543404)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub NewOfClassWithNoPublicConstructors()
             Dim text = StringFromLines(
                 "Public Class C1",
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub AsyncKeyword1()
             Dim text =
 <code>
@@ -316,7 +316,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub AsyncKeyword2()
             Dim text =
 <code>
@@ -332,7 +332,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub AsyncKeyword3()
             Dim text =
 <code>
@@ -348,7 +348,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub AsyncKeyword4()
             Dim text =
 <code>
@@ -362,7 +362,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub AsyncKeyword5()
             Dim text =
 <code>
@@ -376,7 +376,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub AsyncKeyword6()
             Dim text =
 <code>
@@ -389,7 +389,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub AsyncKeyword7()
             Dim text =
 <code>
@@ -402,7 +402,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IteratorKeyword1()
             Dim text =
 <code>
@@ -418,7 +418,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IteratorKeyword2()
             Dim text =
 <code>
@@ -434,7 +434,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IteratorKeyword3()
             Dim text =
 <code>
@@ -450,7 +450,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IteratorKeyword4()
             Dim text =
 <code>
@@ -464,7 +464,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IteratorKeyword5()
             Dim text =
 <code>
@@ -478,7 +478,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IteratorKeyword6()
             Dim text =
 <code>
@@ -491,7 +491,7 @@ End Class
         End Sub
 
         <WorkItem(578145)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IteratorKeyword7()
             Dim text =
 <code>
@@ -503,7 +503,7 @@ End Class
             Test(text)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub MyNamespace()
             Dim text =
 <code>
@@ -516,6 +516,32 @@ End Class
 
             Test(text,
                  Keyword("My"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Sub TestAwaitInNonAsyncFunction1()
+            Dim text =
+<code>
+dim m = Await
+</code>.NormalizedValue()
+
+            TestInMethod(text,
+                 Keyword("Await"))
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Sub TestAwaitInNonAsyncFunction2()
+            Dim text =
+<code>
+sub await()
+end sub
+
+sub test()
+    dim m = Await
+end sub
+</code>.NormalizedValue()
+
+            TestInClass(text)
         End Sub
 
     End Class

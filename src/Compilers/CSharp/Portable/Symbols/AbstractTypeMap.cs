@@ -145,9 +145,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new TypeWithModifiers(type, customModifiers).SubstituteType(this).CustomModifiers;
             }
 
-            return customModifiers;
+            return SubstituteCustomModifiers(customModifiers);
         }
 
+        internal ImmutableArray<CustomModifier> SubstituteCustomModifiers(ImmutableArray<CustomModifier> customModifiers)
+        {
+            if (customModifiers.IsDefaultOrEmpty)
+            {
+                return customModifiers;
+            }
+
+            for (int i = 0; i < customModifiers.Length; i++)
+            {
+                var modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
+                var substituted = SubstituteNamedType(modifier);
+
+                if (modifier != substituted)
+                {
+                    var builder = ArrayBuilder<CustomModifier>.GetInstance(customModifiers.Length);
+                    builder.AddRange(customModifiers, i);
+
+                    builder.Add(customModifiers[i].IsOptional ? CSharpCustomModifier.CreateOptional(substituted) : CSharpCustomModifier.CreateRequired(substituted));
+                    for (i++; i < customModifiers.Length; i++)
+                    {
+                        modifier = (NamedTypeSymbol)customModifiers[i].Modifier;
+                        substituted = SubstituteNamedType(modifier);
+
+                        if (modifier != substituted)
+                        {
+                            builder.Add(customModifiers[i].IsOptional ? CSharpCustomModifier.CreateOptional(substituted) : CSharpCustomModifier.CreateRequired(substituted));
+                        }
+                        else
+                        {
+                            builder.Add(customModifiers[i]);
+                        }
+                    }
+
+                    Debug.Assert(builder.Count == customModifiers.Length);
+                    return builder.ToImmutableAndFree();
+                }
+            }
+
+            return customModifiers;
+        }
+        
         protected virtual TypeSymbol SubstituteDynamicType()
         {
             return DynamicTypeSymbol.Instance;
@@ -167,29 +208,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return t;
             }
 
-            ImmutableArray<NamedTypeSymbol> interfaces = t.InterfacesNoUseSiteDiagnostics();
-            Debug.Assert(0 <= interfaces.Length && interfaces.Length <= 2);
+            if (t.IsSZArray)
+            {
+                ImmutableArray<NamedTypeSymbol> interfaces = t.InterfacesNoUseSiteDiagnostics();
+                Debug.Assert(0 <= interfaces.Length && interfaces.Length <= 2);
 
-            if (interfaces.Length == 1)
-            {
-                Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
-                interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly());
-            }
-            else if (interfaces.Length == 2)
-            {
-                Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
-                interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly(), (NamedTypeSymbol)SubstituteType(interfaces[1]).AsTypeSymbolOnly());
-            }
-            else if (interfaces.Length != 0)
-            {
-                throw ExceptionUtilities.Unreachable;
+                if (interfaces.Length == 1)
+                {
+                    Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
+                    interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly());
+                }
+                else if (interfaces.Length == 2)
+                {
+                    Debug.Assert(interfaces[0] is NamedTypeSymbol); // IList<T>
+                    interfaces = ImmutableArray.Create<NamedTypeSymbol>((NamedTypeSymbol)SubstituteType(interfaces[0]).AsTypeSymbolOnly(), (NamedTypeSymbol)SubstituteType(interfaces[1]).AsTypeSymbolOnly());
+                }
+                else if (interfaces.Length != 0)
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+
+                return ArrayTypeSymbol.CreateSZArray(
+                    element.Type,
+                    t.BaseTypeNoUseSiteDiagnostics,
+                    interfaces,
+                    element.CustomModifiers);
             }
 
-            return new ArrayTypeSymbol(
+            return ArrayTypeSymbol.CreateMDArray(
                 element.Type,
                 t.Rank,
+                t.Sizes,
+                t.LowerBounds,
                 t.BaseTypeNoUseSiteDiagnostics,
-                interfaces,
                 element.CustomModifiers);
         }
 

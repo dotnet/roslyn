@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -77,11 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             this.OnModelUpdated(result);
         }
 
-        IAsyncToken IController<TModel>.BeginAsyncOperation()
+        IAsyncToken IController<TModel>.BeginAsyncOperation(string name, object tag, string filePath, int lineNumber)
         {
             AssertIsForeground();
             VerifySessionIsActive();
-            return _asyncListener.BeginAsyncOperation(_asyncOperationId);
+            name = String.IsNullOrEmpty(name)
+                ? _asyncOperationId
+                : $"{_asyncOperationId} - {name}";
+            return _asyncListener.BeginAsyncOperation(name, tag, filePath: filePath, lineNumber: lineNumber);
         }
 
         protected void VerifySessionIsActive()
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // have even shown ui yet.
             var handledCommand = sessionOpt.InitialUnfilteredModel != null;
 
-            // In the presense of an escape, we always stop what we're doing.
+            // In the presence of an escape, we always stop what we're doing.
             this.StopModelComputation();
 
             return handledCommand;

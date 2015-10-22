@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.PortableExecutable;
 using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Roslyn.Utilities;
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
-        internal sealed override IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        internal sealed override Cci.IMethodReference Translate(IMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
         {
             return Translate((TMethodSymbol)symbol, diagnostics, needDeclaration);
         }
@@ -294,28 +292,21 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> CalculateAssemblyReferenceAliases(EmitContext context)
         {
-            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance(_compilation.ExternalReferences.Length);
+            var result = ArrayBuilder<Cci.AssemblyReferenceAlias>.GetInstance();
 
-            var referenceManager = _compilation.GetBoundReferenceManager();
-
-            // Enumerate external references (#r's don't define aliases) to preserve the order.
-            foreach (MetadataReference reference in _compilation.ExternalReferences)
+            foreach (var assemblyAndAliases in _compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases())
             {
-                // duplicate references might have been skipped by the assembly binder:
+                var assembly = assemblyAndAliases.Item1;
+                var aliases = assemblyAndAliases.Item2;
 
-                IAssemblySymbol symbol;
-                ImmutableArray<string> aliases;
-                if (referenceManager.TryGetReferencedAssemblySymbol(reference, out symbol, out aliases))
+                for (int i = 0; i < aliases.Length; i++)
                 {
-                    for (int i = 0; i < aliases.Length; i++)
-                    {
-                        string alias = aliases[i];
+                    string alias = aliases[i];
 
-                        // filter out duplicates and global aliases:
-                        if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
-                        {
-                            result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(symbol, context.Diagnostics)));
-                        }
+                    // filter out duplicates and global aliases:
+                    if (alias != MetadataReferenceProperties.GlobalAlias && aliases.IndexOf(alias, 0, i) < 0)
+                    {
+                        result.Add(new Cci.AssemblyReferenceAlias(alias, Translate(assembly, context.Diagnostics)));
                     }
                 }
             }
@@ -324,45 +315,6 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         #region Synthesized Members
-
-#if DEBUG
-        /// <summary>
-        /// The queue of synthesized members of a type should be deterministic, as the members are
-        /// emitted in the order in which they are added to the queue. Therefore for debug purposes
-        /// we have a custom version of ConcurrentQueue that detects attempted concurrent adds.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        private class ConcurrentQueue<T> : System.Collections.Concurrent.ConcurrentQueue<T>
-        {
-            // A count of the number of concurrent queue operations in progress. Should always be zero or one,
-            // as synthetic members should be added by the compiler to a given type in a well-defined sequential
-            // order.
-            int queueing;
-
-            // A short delay to increase the chance that concurrent Enqueue operation will be diagnosed.
-            static readonly TimeSpan shortDelay = new TimeSpan(2);
-
-            /// <summary>
-            ///     Adds an object to the end of the ConcurrentQueue.
-            /// </summary>
-            /// <param name="item">
-            ///     The object to add to the end of the ConcurrentQueue.
-            ///     The value can be a null reference for reference types.
-            /// </param>
-            public new void Enqueue(T item)
-            {
-                if (Interlocked.Increment(ref queueing) != 1)
-                {
-                    throw new System.InvalidOperationException("Concurrent use of " + nameof(SynthesizedDefinitions));
-                }
-                base.Enqueue(item);
-                // To increase the chance of catching concurrency issues, we add a delay to each queued item
-                // so that another thread has a chance to add at the same time.
-                System.Threading.Tasks.Task.Delay(shortDelay).Wait();
-                Interlocked.Decrement(ref queueing);
-            }
-        }
-#endif
 
         /// <summary>
         /// Captures the set of synthesized definitions that should be added to a type

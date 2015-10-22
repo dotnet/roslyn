@@ -341,5 +341,13 @@ namespace Microsoft.CodeAnalysis
         /// Returns a new tree whose <see cref="FilePath"/> is the specified node and other properties are copied from the current tree.
         /// </summary>
         public abstract SyntaxTree WithFilePath(string path);
+
+        /// <summary>
+        /// Returns a <see cref="String" /> that represents the entire source text of this <see cref="SyntaxTree"/>.
+        /// </summary>
+        public override string ToString()
+        {
+            return this.GetText(CancellationToken.None).ToString();
+        }
     }
 }

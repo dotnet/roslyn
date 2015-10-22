@@ -9,7 +9,7 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class WhenKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhenAfterCatchBlock()
             VerifyRecommendationsContain(<MethodBody>
@@ -18,7 +18,7 @@ Catch x As Exception |
 End Try</MethodBody>, "When")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub WhenAfterCatchBlockWithoutAs()
             VerifyRecommendationsContain(<MethodBody>
@@ -29,14 +29,14 @@ End Try</MethodBody>, "When")
         End Sub
 
         <WorkItem(542803)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoWhenAfterDimStatement()
             VerifyRecommendationsMissing(<MethodBody>Dim ex As Exception |</MethodBody>, "When")
         End Sub
 
         <WorkItem(542803)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoWhenAfterLambdaInExceptionFilter()
             VerifyRecommendationsMissing(
@@ -51,7 +51,7 @@ End Try
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <MethodBody>
@@ -62,7 +62,7 @@ End Try</MethodBody>, "When")
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>

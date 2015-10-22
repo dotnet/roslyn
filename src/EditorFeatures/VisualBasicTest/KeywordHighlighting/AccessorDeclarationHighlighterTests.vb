@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New AccessorDeclarationHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestPropertyAccessorsSample1_1()
             Test(<Text>
 Class C
@@ -25,7 +25,7 @@ End Property
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestPropertyAccessorsSample1_2()
             Test(<Text>
 Class C
@@ -40,7 +40,7 @@ End Property
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestPropertyAccessorsSample1_3()
             Test(<Text>
 Class C
@@ -55,7 +55,7 @@ End Property
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestPropertyAccessorsSample2_1()
             Test(<Text>
 Class C
@@ -70,7 +70,7 @@ End Property
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestPropertyAccessorsSample2_2()
             Test(<Text>
 Class C
@@ -85,7 +85,7 @@ End Property
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestPropertyAccessorsSample2_3()
             Test(<Text>
 Class C
@@ -100,7 +100,7 @@ End Property
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestEventAccessorsSample1_1()
             Test(<Text>
 Class C
@@ -116,7 +116,7 @@ End Event
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestEventAccessorsSample1_2()
             Test(<Text>
 Class C
@@ -132,7 +132,7 @@ End Event
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestEventAccessorsSample1_3()
             Test(<Text>
 Class C
@@ -148,7 +148,7 @@ End Event
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestEventAccessorsSample2_1()
             Test(<Text>
 Class C
@@ -164,7 +164,7 @@ End Event
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestEventAccessorsSample2_2()
             Test(<Text>
 Class C
@@ -180,7 +180,7 @@ End Event
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestEventAccessorsSample3_1()
             Test(<Text>
 Class C
@@ -196,7 +196,7 @@ End Event
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestEventAccessorsSample3_2()
             Test(<Text>
 Class C
@@ -212,7 +212,7 @@ End Event
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestProperty_IteratorExample5_1()
             Test(
 <Text>
@@ -224,7 +224,7 @@ End Property
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestProperty_IteratorExample5_2()
             Test(
 <Text>
@@ -236,7 +236,7 @@ End Property
 </Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestProperty_IteratorExample5_3()
             Test(
 <Text>

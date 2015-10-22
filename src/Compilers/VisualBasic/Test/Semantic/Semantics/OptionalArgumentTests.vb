@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -2081,13 +2082,16 @@ End Module
                     SyntaxFactory.ParseSyntaxTree(source5, path:="C:\x.vb", encoding:=Encoding.UTF8)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver({}, baseDirectory:="C:\A\B")))
+                TestOptions.ReleaseExe.WithSourceReferenceResolver(New SourceFileResolver(
+                    searchPaths:=ImmutableArray(Of String).Empty,
+                    baseDirectory:="C:\A\B",
+                    pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))))
 
             CompileAndVerify(compilation, expectedOutput:="
-1: 'C:\filename'
-2: 'C:\A\B\a\c\d.vb'
+1: '/X/filename'
+2: '/X/A/B/a/c/d.vb'
 3: '*'
-4: 'C:\abc'
+4: '/X/abc'
 5: '     '
 ")
         End Sub

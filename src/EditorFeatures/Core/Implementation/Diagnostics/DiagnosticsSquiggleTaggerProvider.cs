@@ -101,6 +101,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
+            if (diagnostic.IsSuppressed)
+            {
+                // Don't squiggle suppressed diagnostics.
+                return null;
+            }
+
             return GetErrorTypeFromDiagnosticTags(diagnostic) ??
                    GetErrorTypeFromDiagnosticProperty(diagnostic) ??
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);
@@ -159,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         // This ensures that we have an 'invisible' squiggle (which will in turn
                         // display Quick Info on mouse hover) for the hidden diagnostics that we
                         // report for 'Remove Unnecessary Usings' and 'Simplify Type Name'. The
-                        // presence of Quick Info pane for such squiggles allows allows platform
+                        // presence of Quick Info pane for such squiggles allows platform
                         // to display Light Bulb for the corresponding fixes (per their current
                         // design platform can only display light bulb if Quick Info pane is present).
                         return PredefinedErrorTypeNames.Suggestion;

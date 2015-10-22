@@ -4,6 +4,8 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 Imports Microsoft.VisualStudio.Text.Projection
@@ -12,7 +14,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Public Class CSharpSnippetExpansionClientTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_EmptyDocument()
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"System"}
@@ -21,7 +23,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_EmptyDocument_SystemAtTop()
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
@@ -31,7 +33,7 @@ using First.Alphabetically;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_EmptyDocument_SystemNotSortedToTop()
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
@@ -41,7 +43,7 @@ using System.Bar;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=False, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_AddsOnlyNewNamespaces()
             Dim originalCode = <![CDATA[using A.B.C;
 using D.E.F;
@@ -54,7 +56,7 @@ using G.H.I;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_AddsOnlyNewAliasAndNamespacePairs()
             Dim originalCode = <![CDATA[using A = B.C;
 using D = E.F;
@@ -71,7 +73,7 @@ using J = K.L;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_DuplicateNamespaceDetectionDoesNotIgnoreCase()
             Dim originalCode = <![CDATA[using A.b.C;
 ]]>.Value
@@ -83,7 +85,7 @@ using A.B.c;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace1()
             Dim originalCode = <![CDATA[using A = B.C;
 ]]>.Value
@@ -93,7 +95,7 @@ using A.B.c;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_DuplicateAliasNamespacePairDetectionIgnoresWhitespace2()
             Dim originalCode = <![CDATA[using A     =  B.C;
 ]]>.Value
@@ -103,7 +105,7 @@ using A.B.c;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_DuplicateAliasNamespacePairDetectionDoesNotIgnoreCase()
             Dim originalCode = <![CDATA[using A = B.C;
 ]]>.Value
@@ -114,7 +116,7 @@ using A = B.C;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_OnlyFormatNewImports()
             Dim originalCode = <![CDATA[using A     =  B.C;
 using G=   H.I;
@@ -127,7 +129,7 @@ using G=   H.I;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub AddImport_BadNamespaceGetsAdded()
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"$system"}
@@ -136,7 +138,7 @@ using G=   H.I;
             TestSnippetAddImports(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetFormatting_ProjectionBuffer_FullyInSubjectBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
@@ -163,10 +165,10 @@ using G=   H.I;
         } 
 &lt;/div&gt;</SurfaceBuffer>
 
-            Test(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetFormatting_ProjectionBuffer_ExpandedIntoSurfaceBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
@@ -193,10 +195,10 @@ using G=   H.I;
 }
 &lt;/div&gt;</SurfaceBuffer>
 
-            Test(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetFormatting_ProjectionBuffer_FullyInSurfaceBuffer()
             Dim workspaceXmlWithSubjectBufferDocument =
 <Workspace>
@@ -223,10 +225,74 @@ using G=   H.I;
 }
 &lt;/div&gt;</SurfaceBuffer>
 
-            Test(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+            TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
         End Sub
 
-        Public Sub Test(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
+        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <Trait(Traits.Feature, Traits.Features.Snippets)>
+        Public Sub SnippetFormatting_TabSize_3()
+            TestFormattingWithTabSize(3)
+        End Sub
+
+        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <Trait(Traits.Feature, Traits.Features.Snippets)>
+        Public Sub SnippetFormatting_TabSize_4()
+            TestFormattingWithTabSize(4)
+        End Sub
+
+        <WpfFact, WorkItem(4652, "https://github.com/dotnet/roslyn/issues/4652")>
+        <Trait(Traits.Feature, Traits.Features.Snippets)>
+        Public Sub SnippetFormatting_TabSize_5()
+            TestFormattingWithTabSize(5)
+        End Sub
+
+        Public Sub TestFormattingWithTabSize(tabSize As Integer)
+            Dim workspaceXml =
+<Workspace>
+    <Project Language=<%= LanguageNames.CSharp %> CommonReferences="true">
+        <Document>class C {
+	void M()
+	{
+		[|for (int x = 0; x &lt; length; x++)
+{
+    $$
+}|]
+	}
+}</Document>
+    </Project>
+</Workspace>
+
+            Dim expectedResult = <Test>class C {
+	void M()
+	{
+		for (int x = 0; x &lt; length; x++)
+		{
+
+		}
+	}
+}</Test>
+
+            Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXml)
+                Dim document = testWorkspace.Documents.Single()
+
+                Dim optionService = testWorkspace.Services.GetService(Of IOptionService)()
+                Dim optionSet = optionService.GetOptions()
+                optionSet = optionSet.WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True)
+                optionSet = optionSet.WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize)
+                optionSet = optionSet.WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
+                optionService.SetOptions(optionSet)
+
+                Dim snippetExpansionClient = New SnippetExpansionClient(
+                    Guids.CSharpLanguageServiceId,
+                    document.GetTextView(),
+                    document.TextBuffer,
+                    Nothing)
+
+                SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
+            End Using
+        End Sub
+
+        Public Sub TestProjectionFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
             Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspaceXmlWithSubjectBufferDocument)
                 Dim subjectBufferDocument = testWorkspace.Documents.Single()
 
@@ -242,7 +308,7 @@ using G=   H.I;
                     subjectBufferDocument.TextBuffer,
                     Nothing)
 
-                SnippetExpansionClientTestsHelper.Test(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
+                SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, subjectBufferDocument, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using
         End Sub
 

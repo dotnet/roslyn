@@ -93,17 +93,17 @@ class Maine
 extern alias Bar;
 Bar::NS.Foo d = new Bar::NS.Foo();
 ";
-            var comp = CreateCompilationWithMscorlib(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Foo1, Foo2);
             comp.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void ExternAliasInInteractive_Error()
         {
             var src = "extern alias Bar;";
 
-            var comp = CSharpCompilation.CreateSubmission(
+            var comp = CSharpCompilation.CreateScriptCompilation(
                 GetUniqueName(),
                 syntaxTree: SyntaxFactory.ParseSyntaxTree(src, options: TestOptions.Script),
                 references: new MetadataReference[] { MscorlibRef, ExternAliasTests.Foo1, ExternAliasTests.Foo2 });

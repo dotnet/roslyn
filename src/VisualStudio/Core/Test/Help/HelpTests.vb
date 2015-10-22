@@ -16,7 +16,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Help
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub AddHandler1()
             Dim text = <a>
 Class G
@@ -30,7 +30,7 @@ End Class</a>
             Test(text.Value, "vb.AddHandler")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub AddHandler2()
             Dim text = <a>
 Class G
@@ -44,7 +44,7 @@ End Class</a>
             Test(text.Value, "vb.AddHandler")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ArrayInitializer()
             Dim text = <a>
 Class G
@@ -56,7 +56,7 @@ End Class</a>
             Test(text.Value, "vb.Array")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ArrayInitializer2()
             Dim text = <a>
 Class G
@@ -68,7 +68,7 @@ End Class</a>
             Test(text.Value, "vb.Array")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Assignment()
             Dim text = <a>
 Class G
@@ -80,7 +80,7 @@ End Class</a>
             Test(text.Value, "vb.=")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Attribute()
             Dim text = <a><![CDATA[
 Class GAttribute
@@ -95,7 +95,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.Attributes)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ModuleAttribute()
             Dim text = <a><![CDATA[
 Imports System.Reflection
@@ -107,7 +107,7 @@ End Module]]></a>
             Test(text.Value, HelpKeywords.ModuleAttribute)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub AssemblyAttribute()
             Dim text = <a><![CDATA[
 Imports System.Reflection
@@ -119,7 +119,7 @@ End Module]]></a>
             Test(text.Value, HelpKeywords.AssemblyAttribute)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub BinaryOperator()
             Dim text = <a><![CDATA[
 Class G
@@ -131,7 +131,7 @@ ENd Class]]></a>
             Test(text.Value, "vb.+")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub CallStatement()
             Dim text = <a><![CDATA[
 Class G
@@ -143,7 +143,7 @@ ENd Class]]></a>
             Test(text.Value, "vb.Call")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Case1()
             Dim text = <a><![CDATA[
 Class G
@@ -161,7 +161,7 @@ End Class]]></a>
             Test(text.Value, "vb.Select")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Case2()
             Dim text = <a><![CDATA[
 Class G
@@ -179,7 +179,7 @@ End Class]]></a>
             Test(text.Value, "vb.Select")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TryCatch()
             Dim text = <a><![CDATA[
 Class G
@@ -195,7 +195,7 @@ End Class]]></a>
             Test(text.Value, "vb.As")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TryCatch2()
             Dim text = <a><![CDATA[
 Class G
@@ -211,7 +211,7 @@ End Class]]></a>
             Test(text.Value, "vb.When")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TryCatch3()
             Dim text = <a><![CDATA[
 Class G
@@ -229,7 +229,7 @@ End Class]]></a>
             Test(text.Value, "vb.Try")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub CollectionInitializer()
             Dim text = <a><![CDATA[
 Class G
@@ -242,7 +242,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.CollectionInitializer)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub CollectionInitializer2()
             Dim text = <a><![CDATA[
 Class G
@@ -256,7 +256,7 @@ End Class]]></a>
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Constructor()
             Dim text = <a><![CDATA[
 Class G
@@ -268,7 +268,7 @@ End Class]]></a>
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Distinct()
             Dim text = <a><![CDATA[
 Class G
@@ -283,7 +283,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.QueryDistinct)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub DoLoop()
             Dim text = <a><![CDATA[
 Class G
@@ -297,7 +297,7 @@ End Class]]></a>
             Test(text.Value, "vb.Do")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub DoLoop2()
             Dim text = <a><![CDATA[
 Class G
@@ -311,7 +311,7 @@ End Class]]></a>
             Test(text.Value, "vb.Do")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub DoLoop3()
             Dim text = <a><![CDATA[
 Class G
@@ -325,7 +325,7 @@ End Class]]></a>
             Test(text.Value, "vb.Do")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub IfThenElse1()
             Dim text = <a><![CDATA[
 Class G
@@ -341,7 +341,7 @@ End Class]]></a>
             Test(text.Value, "vb.Then")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub IfThenElse2()
             Dim text = <a><![CDATA[
 Class G
@@ -359,7 +359,7 @@ End Class]]></a>
             Test(text.Value, "vb.ElseIf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub IfThenElse3()
             Dim text = <a><![CDATA[
 Class G
@@ -377,7 +377,7 @@ End Class]]></a>
             Test(text.Value, "vb.Else")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub IfThenElse4()
             Dim text = <a><![CDATA[
 Class G
@@ -393,7 +393,7 @@ End Class]]></a>
             Test(text.Value, "vb.If")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub EndFunctionLambda()
             Dim text = <a><![CDATA[
 Class G
@@ -407,7 +407,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.LambdaFunction)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub EndBlockKind()
             Dim text = <a><![CDATA[
 Class G
@@ -416,7 +416,7 @@ En[||]d Class]]></a>
             Test(text.Value, "vb.Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub EndAddHandler()
             Dim text = <a><![CDATA[
 Class G
@@ -436,7 +436,7 @@ Class G
             Test(text.Value, "vb.AddHandler")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub EndSub()
             Dim text = <a><![CDATA[
 Class G
@@ -448,7 +448,7 @@ End Class]]></a>
             Test(text.Value, "vb.End")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub EnumMember()
             Dim text = <a><![CDATA[
 Enum G
@@ -458,7 +458,7 @@ End Enum]]></a>
             Test(text.Value, "vb.Enum")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub EraseStatement()
             Dim text = <a><![CDATA[
 Class G
@@ -472,7 +472,7 @@ End Class]]></a>
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub EraseStatement2()
             Dim text = <a><![CDATA[
 Class G
@@ -486,7 +486,7 @@ End Class]]></a>
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [Error]()
             Dim text = <a><![CDATA[
 Class G
@@ -498,7 +498,7 @@ End Class]]></a>
             Test(text.Value, "vb.Error")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [Event]()
             Dim text = <a><![CDATA[
 Class G
@@ -508,7 +508,7 @@ End Class]]></a>
             Test(text.Value, "vb.Event")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Exit1()
             Dim text = <a><![CDATA[
 Class G
@@ -522,7 +522,7 @@ End Class]]></a>
             Test(text.Value, "vb.Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Exit2()
             Dim text = <a><![CDATA[
 Class G
@@ -537,7 +537,7 @@ End Class]]></a>
             Test(text.Value, "vb.Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Field1()
             Dim text = <a><![CDATA[
 Class G
@@ -547,7 +547,7 @@ End Class]]></a>
             Test(text.Value, "vb.Protected")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Field2()
             Dim text = <a><![CDATA[
 Class G
@@ -557,7 +557,7 @@ End Class]]></a>
             Test(text.Value, "vb.ReadOnly")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Field3()
             Dim text = <a><![CDATA[
 Class G
@@ -567,7 +567,7 @@ End Class]]></a>
             Test(text.Value, "vb.Dim")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ForEach()
             Dim text = <a><![CDATA[
 Class G
@@ -578,7 +578,7 @@ End Class]]></a>
             Test(text.Value, "vb.In")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ForEach2()
             Dim text = <a><![CDATA[
 Class G
@@ -589,7 +589,7 @@ End Class]]></a>
             Test(text.Value, "vb.Each")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ForEach3()
             Dim text = <a><![CDATA[
 Class G
@@ -600,7 +600,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.ForEach)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [For]()
             Dim text = <a><![CDATA[
 Class G
@@ -611,7 +611,7 @@ End Class]]></a>
             Test(text.Value, "vb.Step")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub For2()
             Dim text = <a><![CDATA[
 Class G
@@ -622,7 +622,7 @@ End Class]]></a>
             Test(text.Value, "vb.To")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub For3()
             Dim text = <a><![CDATA[
 Class G
@@ -633,7 +633,7 @@ End Class]]></a>
             Test(text.Value, "vb.For")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [From]()
             Dim text = <a><![CDATA[
 Class G
@@ -643,7 +643,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.QueryFrom)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TypeParameter1()
             Dim text = <a><![CDATA[
 Interface I(Of [|Out|] R)
@@ -653,7 +653,7 @@ End Interface]]></a>
             Test(text.Value, HelpKeywords.VarianceOut)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestGetType()
             Dim text = <a><![CDATA[
 Class G
@@ -665,7 +665,7 @@ End Class]]></a>
             Test(text.Value, "vb.GetType")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [GoTo]()
             Dim text = <a><![CDATA[
 Class G
@@ -678,7 +678,7 @@ End Class]]></a>
             Test(text.Value, "vb.GoTo")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Label()
             Dim text = <a><![CDATA[
 Class G
@@ -691,7 +691,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.Colon)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub IfOperator()
             Dim text = <a><![CDATA[
 Class G
@@ -703,7 +703,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.IfOperator)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Implements1()
             Dim text = <a><![CDATA[
 Interface IFoo 
@@ -717,7 +717,7 @@ End Class]]></a>
             Test(text.Value, "vb.Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Implements2()
             Dim text = <a><![CDATA[
 Interface IFoo 
@@ -731,7 +731,7 @@ End Class]]></a>
             Test(text.Value, "vb.Implements")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub AnonymousType1()
             Dim text = <a><![CDATA[
 Class G
@@ -743,7 +743,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.AnonymousType)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub AnonymousType2()
             Dim text = <a><![CDATA[
 Class G
@@ -755,7 +755,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.AnonymousType)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub AnonymousType3()
             Dim text = <a><![CDATA[
 Class G
@@ -767,7 +767,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.AnonymousKey)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub AnonymousType4()
             Dim text = <a><![CDATA[
 Class G
@@ -779,7 +779,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.AnonymousType)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub JoinOn()
             Dim text = <a><![CDATA[
 Class G
@@ -791,7 +791,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.AnonymousType)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TypeOf1()
             Dim text = <a><![CDATA[
 Class G
@@ -804,7 +804,7 @@ End Class]]></a>
             Test(text.Value, "vb.TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TypeOf2()
             Dim text = <a><![CDATA[
 Class G
@@ -817,7 +817,7 @@ End Class]]></a>
             Test(text.Value, "vb.TypeOf")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Lambda1()
             Dim text = <a><![CDATA[
 Class G
@@ -832,7 +832,7 @@ End Class]]></a>
             Test(text.Value, "vb.Async")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Lambda2()
             Dim text = <a><![CDATA[
 Class G
@@ -847,7 +847,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.LambdaFunction)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub LetClause()
             Dim text = <a><![CDATA[
 Class G
@@ -862,7 +862,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.QueryLet)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PartialMethod()
             Dim text = <a><![CDATA[
 Class G
@@ -873,7 +873,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.PartialMethod)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub MainMethod()
             Dim text = <a><![CDATA[
 Module Foo
@@ -884,7 +884,7 @@ End Module]]></a>
             Test(text.Value, HelpKeywords.Main)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub MeToken()
             Dim text = <a><![CDATA[
 Module Foo
@@ -896,7 +896,7 @@ End Module]]></a>
             Test(text.Value, "vb.Me")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ConstructRatherThanName()
             Dim text = <a><![CDATA[
 Module [|Foo|]
@@ -908,7 +908,7 @@ End Module]]></a>
             Test(text.Value, "vb.Module")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [MyBase]()
             Dim text = <a><![CDATA[
 Class Foo
@@ -920,7 +920,7 @@ End Module]]></a>
             Test(text.Value, "vb.MyBase")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [MyClass]()
             Dim text = <a><![CDATA[
 Class Foo
@@ -932,7 +932,7 @@ End Module]]></a>
             Test(text.Value, "vb.MyBase")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub NewConstraint()
             Dim text = <a><![CDATA[
 Interface IBar
@@ -946,7 +946,7 @@ End Module]]></a>
             Test(text.Value, HelpKeywords.NewConstraint)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub ObjectInitializer()
             Dim text = <a><![CDATA[
 Class Program
@@ -959,7 +959,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.ObjectInitializer)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub NothingToken()
             Dim text = <a><![CDATA[
 Class Program
@@ -972,7 +972,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.ObjectInitializer)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Nullable()
             Dim text = <a><![CDATA[
 Class Program
@@ -984,7 +984,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.Nullable)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub OnError()
             Dim text = <a><![CDATA[
 Class Program
@@ -996,7 +996,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.OnError)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub OptionCompare()
             Dim text = <a><![CDATA[
 Class Program
@@ -1008,7 +1008,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.OptionCompare)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub OptionExplicit()
             Dim text = <a><![CDATA[
 Class Program
@@ -1020,7 +1020,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.OptionExplicit)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub OptionInfer()
             Dim text = <a><![CDATA[
 Class Program
@@ -1032,7 +1032,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.OptionInfer)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub OptionStrict()
             Dim text = <a><![CDATA[
 Class Program
@@ -1044,7 +1044,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.OptionStrict)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [Option]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1056,7 +1056,7 @@ End Class]]></a>
             Test(text.Value, "vb.Option")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PredefinedCast()
             Dim text = <a><![CDATA[
 Class Program
@@ -1068,7 +1068,7 @@ End Class]]></a>
             Test(text.Value, "vb.CInt")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PreprocessorConst()
             Dim text = <a><![CDATA[
 Class Program
@@ -1080,7 +1080,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.PreprocessorConst)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PreprocessorConditional1()
             Dim text = <a><![CDATA[
 Class Program
@@ -1095,7 +1095,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.PreprocessorIf)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PreprocessorConditional2()
             Dim text = <a><![CDATA[
 Class Program
@@ -1110,7 +1110,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.PreprocessorIf)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PreprocessorConditional3()
             Dim text = <a><![CDATA[
 Class Program
@@ -1125,7 +1125,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.PreprocessorIf)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PreprocessorConditional4()
             Dim text = <a><![CDATA[
 Class Program
@@ -1140,7 +1140,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.PreprocessorIf)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PreprocessorRegion1()
             Dim text = <a><![CDATA[
 Class Program
@@ -1153,7 +1153,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.Region)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PreprocessorRegion2()
             Dim text = <a><![CDATA[
 Class Program
@@ -1166,7 +1166,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.Region)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [RaiseEvent]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1179,7 +1179,7 @@ End Class]]></a>
             Test(text.Value, "vb.RaiseEvent")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [ReDim]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1192,7 +1192,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.Redim)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub IsOperator()
             Dim text = <a><![CDATA[
 Class Program
@@ -1205,7 +1205,7 @@ End Class]]></a>
             Test(text.Value, "vb.Is")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [RemoveHandler]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1221,7 +1221,7 @@ End Class]]></a>
             Test(text.Value, "vb.RemoveHandler")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [Resume]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1233,7 +1233,7 @@ End Class]]></a>
             Test(text.Value, "vb.Resume")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [Return]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1245,7 +1245,7 @@ End Class]]></a>
             Test(text.Value, "vb.Return")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [Stop]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1257,7 +1257,7 @@ End Class]]></a>
             Test(text.Value, "vb.Stop")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [SyncLock]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1271,7 +1271,7 @@ End Class]]></a>
             Test(text.Value, "vb.SyncLock")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub [Throw]()
             Dim text = <a><![CDATA[
 Class Program
@@ -1283,7 +1283,7 @@ End Class]]></a>
             Test(text.Value, "vb.Throw")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub Negate()
             Dim text = <a><![CDATA[
 Class Program
@@ -1296,7 +1296,7 @@ End Class]]></a>
             Test(text.Value, HelpKeywords.Negate)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub UsingStatement()
             Dim text = <a><![CDATA[
 Class Program
@@ -1310,7 +1310,7 @@ End Class]]></a>
             Test(text.Value, "vb.Using")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub YieldStatement()
             Dim text = <a><![CDATA[
 Class Program
@@ -1322,7 +1322,7 @@ End Class]]></a>
             Test(text.Value, "vb.Yield")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub LocalDeclaration()
             Dim text = <a><![CDATA[
 Class Program
@@ -1332,7 +1332,7 @@ Class Program
 End Class]]></a>
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub PredefinedType()
             Dim text = <a><![CDATA[
 Class Program
@@ -1344,7 +1344,7 @@ End Class]]></a>
             Test(text.Value, "vb.Integer")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub IdentifierName()
             Dim text = <a><![CDATA[
 Class Program
@@ -1356,7 +1356,7 @@ End Class]]></a>
             Test(text.Value, "System.Console.WriteLine")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub DateLiteral()
             Dim text = <a><![CDATA[
 Class Program
@@ -1368,7 +1368,7 @@ End Class]]></a>
             Test(text.Value, "vb.Date")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestDocComment()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1386,7 +1386,7 @@ End Module]]></a>.Value, HelpKeywords.XmlDocComment)
         End Sub
 
         <WorkItem(864194)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAnonymousType()
             Test(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1396,7 +1396,7 @@ End Class]]></a>.Value, "vb.AnonymousType")
         End Sub
 
         <WorkItem(864189)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAnonymousProperty()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1413,7 +1413,7 @@ End Module]]></a>.Value, "vb.AnonymousType")
         End Sub
 
         <WorkItem(863684)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestByVal()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1427,7 +1427,7 @@ End Module]]></a>.Value, "vb.ByVal")
         End Sub
 
         <WorkItem(864207)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestOf()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1441,7 +1441,7 @@ End Module]]></a>.Value, "vb.Of")
         End Sub
 
         <WorkItem(863680)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestCompoundAssign()
             Test(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1456,7 +1456,7 @@ End Class
         End Sub
 
         <WorkItem(863661)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestGeneric()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1471,7 +1471,7 @@ End Module]]></a>.Value, "System.Collections.Generic.IEnumerable`1")
         End Sub
 
         <WorkItem(863652)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestSub()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1485,7 +1485,7 @@ End Module]]></a>.Value, "vb.Sub")
         End Sub
 
         <WorkItem(863340)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAsNew()
             Test(<a><![CDATA[Imports System.Text
 Public Class Test
@@ -1499,7 +1499,7 @@ End Class
         End Sub
 
         <WorkItem(863305)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAwait()
             Test(<a><![CDATA[Public Class Test
     Async Sub AsyncSub()
@@ -1512,7 +1512,7 @@ End Class
         End Sub
 
         <WorkItem(864243)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestProperty()
             Test(<a><![CDATA[Class Program
     Prope[||]rty prop As Integer
@@ -1520,7 +1520,7 @@ End Class]]></a>.Value, "vb.AutoImplementedProperty")
         End Sub
 
         <WorkItem(864226)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestPredefinedTypeMember()
             Test(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1530,7 +1530,7 @@ End Module]]></a>.Value, "System.Int32.MaxValue")
         End Sub
 
         <WorkItem(864237)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestModuleModifier()
             Test(<a><![CDATA[Publi[||]c Module M
     Public Class C
@@ -1549,7 +1549,7 @@ Public Delegate Sub Dele()
         End Sub
 
         <WorkItem(864237)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestDelegateModifiers()
             Test(<a><![CDATA[Public Module M
     Public Class C
@@ -1568,7 +1568,7 @@ Publi[||]c Delegate Sub Dele()
         End Sub
 
         <WorkItem(863273)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAssignment()
             Test(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1579,7 +1579,7 @@ End Class
         End Sub
 
         <WorkItem(863228)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestRem()
             Test(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1589,7 +1589,7 @@ End Module]]></a>.Value, "vb.Rem")
         End Sub
 
         <WorkItem(863228)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestTodo()
             Test(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1599,7 +1599,7 @@ End Module]]></a>.Value, HelpKeywords.TaskListUserComments)
         End Sub
 
         <WorkItem(863220)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestMethodInvocation()
             Test(<a><![CDATA[Public Class Test
     Sub Subroutine()
@@ -1612,13 +1612,13 @@ End Class
         End Sub
 
         <WorkItem(864202)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestImportsXmlns()
             Test(<a><![CDATA[Imports <xmln[||]s:ns="foo">]]></a>.Value, "vb.ImportsXmlns")
         End Sub
 
         <WorkItem(862420)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestParameter()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1632,7 +1632,7 @@ End Module]]></a>.Value, "System.String()")
         End Sub
 
         <WorkItem(862396)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestNoToken()
             Test(<a><![CDATA[Module Program
     Sub Main(args As String())
@@ -1642,7 +1642,7 @@ End Module]]></a>.Value, "")
         End Sub
 
         <WorkItem(863293)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestMemberAccess()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1656,7 +1656,7 @@ End Module]]></a>.Value, "System.Int32.Parse")
         End Sub
 
         <WorkItem(864661)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestCtype2()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1671,7 +1671,7 @@ End Module]]></a>.Value, "vb.CType")
         End Sub
 
         <WorkItem(864661)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestNothing()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1686,7 +1686,7 @@ End Module]]></a>.Value, "vb.Nothing")
         End Sub
 
         <WorkItem(864658)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestNullable()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1700,7 +1700,7 @@ End Module]]></a>.Value, "vb.Nullable")
         End Sub
 
         <WorkItem(864209)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestRegionTrivia()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -1717,7 +1717,7 @@ End Module]]></a>.Value, "vb.String")
         End Sub
 
         <WorkItem(865034)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestTypeCharacter()
             Test(<a><![CDATA[Public Module M
     Sub M1()
@@ -1729,7 +1729,7 @@ End Module]]></a>.Value, "vb.UInteger")
         End Sub
 
         <WorkItem(865061)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestStructure()
             Test(<a><![CDATA[Structure S[||]1
 End Structure
@@ -1737,7 +1737,7 @@ End Structure
         End Sub
 
         <WorkItem(865047)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestXmlLiteralDocument()
             Test(<a><![CDATA[Public Module M
     Sub M1()
@@ -1755,7 +1755,7 @@ End Module
         End Sub
 
         <WorkItem(865047)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestXmlEmptyElement()
             Test(<a><![CDATA[Public Module M
     Sub M1()
@@ -1773,7 +1773,7 @@ End Module
         End Sub
 
         <WorkItem(865047)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestXmlLiteralComment()
             Test(<a><![CDATA[Public Module M
     Sub M1()
@@ -1791,7 +1791,7 @@ End Module
         End Sub
 
         <WorkItem(865088)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestWhile()
             Test(<a><![CDATA[Class C
     Sub M()
@@ -1805,7 +1805,7 @@ End Class]]></a>.Value, "vb.While")
         End Sub
 
         <WorkItem(865326)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestImplements()
             Test(<a><![CDATA[Interface I1
 Sub M()
@@ -1819,7 +1819,7 @@ End Class
         End Sub
 
         <WorkItem(865306)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAddressOf()
             Test(<a><![CDATA[Delegate Sub mydele()
 Class C
@@ -1834,67 +1834,67 @@ End Class
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestShared()
             Test(<a><![CDATA[[|Shared|]]]></a>.Value, "vb.Shared")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestWidening()
             Test(<a><![CDATA[[|Widening|]]]></a>.Value, "vb.Widening")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestCType()
             Test(<a><![CDATA[[|CType|]]]></a>.Value, "vb.CType")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestNarrowing()
             Test(<a><![CDATA[[|Narrowing|]]]></a>.Value, "vb.Narrowing")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestOperator()
             Test(<a><![CDATA[[|Operator|]]]></a>.Value, "vb.Operator")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAddHandler()
             Test(<a><![CDATA[[|AddHandler|]]]></a>.Value, "vb.AddHandler")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAnsi()
             Test(<a><![CDATA[Declare [|Ansi|]]]></a>.Value, "vb.Ansi")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAuto()
             Test(<a><![CDATA[Declare [|Auto|]]]></a>.Value, "vb.Auto")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestUnicode()
             Test(<a><![CDATA[Declare [|Unicode|]]]></a>.Value, "vb.Unicode")
         End Sub
 
         <WorkItem(898157)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestHandles()
             Test(<a><![CDATA[[|Handles|]]]></a>.Value, "vb.Handles")
         End Sub
 
         <WorkItem(867738)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestImplementsIDisposable()
             Test(<a><![CDATA[Imports System
 Class C
@@ -1906,7 +1906,7 @@ End Class
 ]]></a>.Value, "vb.IDisposable")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestInherits()
             Test(<a><![CDATA[Imports System
 Class C
@@ -1916,7 +1916,7 @@ End Class
 ]]></a>.Value, "System.Exception")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestNot()
             Test(<a><![CDATA[Class C
     Sub M()
@@ -1926,7 +1926,7 @@ End Class
 End Class]]></a>.Value, "vb.Not")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestArrayIndex()
             Test(<a><![CDATA[Class C
     Sub M()
@@ -1938,7 +1938,7 @@ End Class]]></a>.Value, "vb.Integer")
 
 
         <WorkItem(866074)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestGroupJoin()
             Test(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -1962,7 +1962,7 @@ End Module]]></a>.Value, "vb.QueryGroupJoin")
         End Sub
 
         <WorkItem(866074)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestGroupJoinIn()
             Test(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -1986,7 +1986,7 @@ End Module]]></a>.Value, "vb.QueryGroupJoinIn")
         End Sub
 
         <WorkItem(866074)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestLinqEquals()
             Test(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2010,7 +2010,7 @@ End Module]]></a>.Value, "vb.Equals")
         End Sub
 
         <WorkItem(866074)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestSelect()
             Test(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2034,7 +2034,7 @@ End Module]]></a>.Value, "vb.QuerySelect")
         End Sub
 
         <WorkItem(866074)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestCountLinq()
             Test(<a><![CDATA[Module LINQ
     Sub Linq()
@@ -2058,7 +2058,7 @@ End Module]]></a>.Value, "System.Linq.Enumerable.Count")
         End Sub
 
         <WorkItem(867747)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestOperatorOverload()
             Test(<a><![CDATA[Class C
     Public Shared Operator IsTr[||]ue(ByVal a As C) As Boolean
@@ -2068,7 +2068,7 @@ End Class]]></a>.Value, "vb.IsTrue")
         End Sub
 
         <WorkItem(866058)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestAnonymousLocal()
             Test(<a><![CDATA[Imports System
 Imports System.Collections.Generic
@@ -2082,7 +2082,7 @@ End Module]]></a>.Value, "vb.AnonymousType")
         End Sub
 
         <WorkItem(866046)>
-        <Fact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
         Public Sub TestNoEscaping()
             Test(<a><![CDATA[Imports System
 Class C
@@ -2091,6 +2091,59 @@ Class C
         Dim t = x.Get[||]Type
     End Sub
 End Class]]></a>.Value, "System.Object.GetType")
+        End Sub
+
+        <WorkItem(4150, "https://github.com/dotnet/roslyn/issues/4150")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestPropertyFromMemberAccess()
+            Test(<a><![CDATA[Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        args.Le[||]ngth
+    End Sub
+End Module]]></a>.Value, "System.Array.Length")
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestParameterFromReference()
+            Test(<a><![CDATA[Module Program
+    Sub Main(args As String())
+        a[||]rgs
+    End Sub
+End Module]]></a>.Value, "System.String()")
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestLocalFromReference()
+            Test(<a><![CDATA[Module Program
+    Sub Main(args As String())
+        Dim x As Integer
+        x[||]
+    End Sub
+End Module]]></a>.Value, "System.Int32")
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestAliasFromReference()
+            Test(<a><![CDATA[Imports s = System.Linq.Enumerable
+
+Module Program
+    Sub Main(args As String())
+        Dim x As s[||]
+    End Sub
+End Module]]></a>.Value, "System.Linq.Enumerable")
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)>
+        Public Sub TestRangeVariable()
+            Test(<a><![CDATA[Module Program
+    Sub Main(args As String())
+        Dim z = From x In args Select x[||]
+    End Sub
+End Module]]></a>.Value, "vb.String")
         End Sub
     End Class
 End Namespace

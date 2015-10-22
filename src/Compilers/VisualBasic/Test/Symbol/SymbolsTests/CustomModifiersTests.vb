@@ -1318,5 +1318,272 @@ End Class
 Overriden")
         End Sub
 
+        <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
+        Public Sub ModifiersWithConstructedType_01()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006:
+        ret
+    } // end of method CL1`1::.ctor
+
+    .method public hidebysig newslot virtual
+            instance void  Test(!T1 modopt(valuetype [mscorlib]System.Nullable`1<!T1>) t1) cil managed 
+    {
+      // Code size       1 (0x1)
+      .maxstack  1
+      IL_0000:  ldstr      "Test"
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } // end of method CL1`1::Test
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x = new CL2()
+        x.Test(1)
+        x = new CL3()
+        x.Test(1)
+    End Sub
+End Class
+
+class CL3 
+    Inherits CL2
+
+    public overrides Sub Test(c As Integer)
+        System.Console.WriteLine("Overriden")
+    end Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Test
+Overriden")
+        End Sub
+
+        <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
+        Public Sub ModifiersWithConstructedType_02()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006:
+        ret
+    } // end of method CL1`1::.ctor
+
+    .method public hidebysig newslot virtual
+            instance void  Test(!T1 modopt(valuetype [mscorlib]System.Nullable`1) t1) cil managed 
+    {
+      // Code size       1 (0x1)
+      .maxstack  1
+      IL_0000:  ldstr      "Test"
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_000a:  ret
+    } // end of method CL1`1::Test
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x = new CL2()
+        x.Test(1)
+        x = new CL3()
+        x.Test(1)
+    End Sub
+End Class
+
+class CL3 
+    Inherits CL2
+
+    public overrides Sub Test(c As Integer)
+        System.Console.WriteLine("Overriden")
+    end Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Test
+Overriden")
+        End Sub
+
+        <Fact, WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")>
+        Public Sub ModifiersWithConstructedType_03()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit CL1`1<valuetype .ctor ([mscorlib]System.ValueType) T1>
+       extends[mscorlib] System.Object
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000: ldarg.0
+      IL_0001: call instance void[mscorlib] System.Object::.ctor()
+      IL_0006:
+        ret
+    } // end of method CL1`1::.ctor
+
+    .method public hidebysig newslot virtual
+            instance int32 modopt(CL2) modopt(valuetype [mscorlib]System.Nullable`1<!T1>) modopt(valuetype [mscorlib]System.Nullable`1<!T1>) modopt(CL2) [] Test(!T1 t1) cil managed 
+    {
+      // Code size       1 (0x1)
+      .maxstack  1
+      IL_0000:  ldstr      "Test"
+      IL_0005:  call       void [mscorlib]System.Console::WriteLine(string)
+      IL_0006:  ldnull
+      IL_000a:  ret
+    } // end of method CL1`1::Test
+} // end of class CL1`1
+
+.class public auto ansi beforefieldinit CL2
+       extends class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>
+{
+    .method public hidebysig specialname rtspecialname
+            instance void  .ctor() cil managed
+    {
+      // Code size       7 (0x7)
+      .maxstack  1
+      IL_0000:  ldarg.0
+      IL_0001:  call instance void class CL1`1<int32 modopt([mscorlib]System.Runtime.CompilerServices.IsLong)>::.ctor()
+      IL_0006:  ret
+    } // end of method CL2::.ctor
+} // end of class CL2
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Class Module1
+    Shared Sub Main()
+        Dim x = new CL2()
+        x.Test(1)
+        x = new CL3()
+        x.Test(1)
+    End Sub
+End Class
+
+class CL3 
+    Inherits CL2
+
+    public overrides Function Test(c As Integer) As Integer()
+        System.Console.WriteLine("Overriden")
+        return Nothing
+    end Function
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Test
+Overriden")
+        End Sub
+
+        <Fact, WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")>
+        Public Sub ConcatModifiersAndByRef_05()
+            Dim ilSource = <![CDATA[
+.class interface public abstract auto ansi beforefieldinit X.I
+{
+  .method public newslot abstract virtual 
+          instance void  A(uint32& modopt([mscorlib]System.Runtime.CompilerServices.IsImplicitlyDereferenced) x) cil managed
+  {
+  } // end of method I::A
+
+  .method public newslot abstract virtual 
+          instance void  B(uint32& x) cil managed
+  {
+  } // end of method I::B
+
+} // end of class X.I
+]]>.Value
+            Dim vbSource =
+                <compilation>
+                    <file name="c.vb"><![CDATA[
+Imports X
+
+Class Module1
+    Shared Sub Main()
+        Dim x As I = new CI()
+        Dim y As UInteger = 0
+        x.A(y)
+        x.B(y)
+    End Sub
+End Class
+
+class CI 
+    Implements I 
+
+    public Sub A(Byref x As UInteger) Implements I.A
+        System.Console.WriteLine("Implemented A")
+    End Sub
+
+    public Sub B(Byref x As UInteger) Implements I.B
+        System.Console.WriteLine("Implemented B")
+    End Sub
+End Class
+]]>
+                    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="Implemented A
+Implemented B")
+        End Sub
+
     End Class
 End Namespace

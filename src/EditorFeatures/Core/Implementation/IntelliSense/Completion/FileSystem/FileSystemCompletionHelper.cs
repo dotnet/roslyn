@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
                 case PathKind.Empty:
                     result.Add(CreateCurrentDirectoryItem());
 
-                    if (!IsDriveRoot(_fileSystemDiscoveryService.CurrentDirectory))
+                    if (!IsDriveRoot(_fileSystemDiscoveryService.WorkingDirectory))
                     {
                         result.Add(CreateParentDirectoryItem());
                     }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.F
                         var fullPath = FileUtilities.ResolveRelativePath(
                             path,
                             basePath,
-                            _fileSystemDiscoveryService.CurrentDirectory);
+                            _fileSystemDiscoveryService.WorkingDirectory);
 
                         if (fullPath != null)
                         {

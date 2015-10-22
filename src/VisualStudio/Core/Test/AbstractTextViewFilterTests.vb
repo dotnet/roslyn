@@ -10,7 +10,7 @@ Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class AbstractTextViewFilterTests
-        <Fact, WorkItem(617826), Trait(Traits.Feature, Traits.Features.Venus), Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        <WpfFact, WorkItem(617826), Trait(Traits.Feature, Traits.Features.Venus), Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub MapPointsInProjectionCSharp()
             Dim workspaceXml =
                 <Workspace>
@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub GotoBraceNavigatesToOuterPositionOfMatchingBraceCSharp()
             Dim workspaceXml =
                 <Workspace>
@@ -75,7 +75,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBracesCSharp()
             Dim workspaceXml =
                 <Workspace>
@@ -107,7 +107,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub GotoBraceExtFindsTheInnerPositionOfCloseBraceAndOuterPositionOfOpenBraceCSharp()
             Dim workspaceXml =
                 <Workspace>
@@ -137,7 +137,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesCSharp()
             Dim workspaceXml =
                 <Workspace>
@@ -173,7 +173,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub GotoBraceFromLeftAndRightOfOpenAndCloseBracesBasic()
             Dim workspaceXml =
                 <Workspace>
@@ -204,7 +204,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.BraceMatching)>
         Public Sub GotoBraceExtFromLeftAndRightOfOpenAndCloseBracesBasic()
             Dim workspaceXml =
                 <Workspace>

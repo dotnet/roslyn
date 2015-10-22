@@ -9,10 +9,14 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
     Partial Friend Class StackScheduler
 
-        Public Shared Function OptimizeLocalsOut(container As Symbol, src As BoundStatement, <Out> ByRef stackLocals As HashSet(Of LocalSymbol)) As BoundStatement
+        Public Shared Function OptimizeLocalsOut(
+                         container As Symbol,
+                         src As BoundStatement,
+                         debugFriendly As Boolean,
+                         <Out> ByRef stackLocals As HashSet(Of LocalSymbol)) As BoundStatement
 
             Dim locals As Dictionary(Of LocalSymbol, LocalDefUseInfo) = Nothing
-            src = DirectCast(Analyzer.Analyze(container, src, locals), BoundStatement)
+            src = DirectCast(Analyzer.Analyze(container, src, debugFriendly, locals), BoundStatement)
 
             locals = FilterValidStackLocals(locals)
 
@@ -59,8 +63,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Next
             Next
 
-            ' TODO: perf. This can be simplified to not use a query.
+            Dim dummyCnt = defs.Count
 
+            ' TODO: perf. This can be simplified to not use a query.
             ' order locals by the number of usages, then by the declaration in descending order
             For Each localInfo In From i In info
                                   Where i.Value.localDefs.Count > 0
@@ -81,13 +86,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 For Each newDef In localInfo.Value.localDefs
                     Debug.Assert(Not intersects)
 
-                    ' TODO: This piece makes the whole thing O(n^2), revise
-                    For i = 0 To defs.Count - 1
-                        If newDef.ConflictsWith(defs(i)) Then
+                    For i = 0 To dummyCnt - 1
+                        If newDef.ConflictsWithDummy(defs(i)) Then
                             intersects = True
                             Exit For
                         End If
                     Next
+
+                    If Not intersects Then
+                        For i = dummyCnt To defs.Count - 1
+                            If newDef.ConflictsWith(defs(i)) Then
+                                intersects = True
+                                Exit For
+                            End If
+                        Next
+                    End If
 
                     If intersects Then
                         info.Remove(localInfo.Key)

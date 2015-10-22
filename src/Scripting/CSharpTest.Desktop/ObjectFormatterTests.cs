@@ -5,11 +5,11 @@ using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using Microsoft.CodeAnalysis.Scripting.UnitTests;
+using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
 using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {

@@ -934,7 +934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim useOfLocalBeforeDeclaration As Boolean = False
 
-            ' Use of local befor declaration requires some additional fixup.
+            ' Use of local before declaration requires some additional fixup.
             ' Due complications around implicit locals and type inference, we do not
             ' try to obtain a type of a local when it is used before declaration, we use
             ' a special error type symbol. However, semantic model should return the same
@@ -1202,7 +1202,7 @@ _Default:
 
                     Else
                         If referenceType = ErrorTypeSymbol.UnknownResultType Then
-                            ' in an instance member, but binder considered Me/MyBase/MyClass unreferencable
+                            ' in an instance member, but binder considered Me/MyBase/MyClass unreferenceable
                             meParam = New MeParameterSymbol(containingMember, containingType)
                             resultKind = LookupResultKind.NotReferencable
                         Else
@@ -3381,13 +3381,13 @@ _Default:
             Return False
         End Function
 
-        Friend Overrides Function GetDeclarationsInSpan(span As TextSpan, getSymbol As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DeclarationInfo)
-            Return VisualBasicDeclarationComputer.GetDeclarationsInSpan(Me, span, getSymbol, cancellationToken)
-        End Function
+        Friend Overrides Sub ComputeDeclarationsInSpan(span As TextSpan, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken)
+            VisualBasicDeclarationComputer.ComputeDeclarationsInSpan(Me, span, getSymbol, builder, cancellationToken)
+        End Sub
 
-        Friend Overrides Function GetDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing) As ImmutableArray(Of DeclarationInfo)
-            Return VisualBasicDeclarationComputer.GetDeclarationsInNode(Me, node, getSymbol, cancellationToken)
-        End Function
+        Friend Overrides Sub ComputeDeclarationsInNode(node As SyntaxNode, getSymbol As Boolean, builder As List(Of DeclarationInfo), cancellationToken As CancellationToken, Optional levelsToCompute As Integer? = Nothing)
+            VisualBasicDeclarationComputer.ComputeDeclarationsInNode(Me, node, getSymbol, builder, cancellationToken)
+        End Sub
 
         Protected Overrides Function GetTopmostNodeForDiagnosticAnalysis(symbol As ISymbol, declaringSyntax As SyntaxNode) As SyntaxNode
             Select Case symbol.Kind

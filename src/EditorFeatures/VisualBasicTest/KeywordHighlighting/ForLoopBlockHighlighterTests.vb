@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.KeywordHighlightin
             Return New ForLoopBlockHighlighter()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForLoop1()
             Test(<Text>
 Class C
@@ -26,7 +26,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForLoop2()
             Test(<Text>
 Class C
@@ -42,7 +42,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForLoop3()
             Test(<Text>
 Class C
@@ -58,7 +58,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForLoop5()
             Test(<Text>
 Class C
@@ -74,7 +74,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForLoop6()
             Test(<Text>
 Class C
@@ -90,7 +90,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForLoop4()
             Test(<Text>
 Class C
@@ -106,7 +106,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForEachLoop1()
             Test(<Text>
 Class C
@@ -122,7 +122,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForEachLoop2()
             Test(<Text>
 Class C
@@ -138,7 +138,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForEachLoop3()
             Test(<Text>
 Class C
@@ -154,7 +154,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForEachLoop4()
             Test(<Text>
 Class C
@@ -170,7 +170,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForEachLoop5()
             Test(<Text>
 Class C
@@ -186,7 +186,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(541628), WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(541628), WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop1()
             Test(<Text>
 Class C
@@ -198,7 +198,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop2()
             Test(<Text>
 Class C
@@ -210,7 +210,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(541628), WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(541628), WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop3()
             Test(<Text>
 Class C
@@ -222,7 +222,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_ForMatchesNextWithSingleElementIdentifierList()
             Test(<Text>
 Class C
@@ -233,7 +233,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_ForMatchesCorrectNextWithSingleElementIdentifierList()
             Test(<Text>
 Class C
@@ -244,7 +244,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_ForMatchesNextOfCorrectSinglyNestedFor()
             ' Outer for blocks closed by a Next <identifier list> must go through their children for
             ' blocks to find the one that closes it (always the last such nested for block if found
@@ -261,7 +261,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_ForMatchesNextAtCorrectNestingLevel()
             Test(<Text>
 Class C
@@ -278,7 +278,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_ForMatchesNextOfCorrectDoublyNestedFor()
             ' Outer for blocks closed by a Next <identifier list> must go through their children,
             ' grandchildren, etc. for blocks to find the one that closes it (always the last nested
@@ -299,7 +299,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_ForNotMatchesNextOfIncorrectNestedFor()
             ' Outer for blocks without a Next should not match the Next of a nested for block unless
             ' the next block actually closes the outer for.
@@ -315,7 +315,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_NextMatchesCorrectForIgnoringLoopIdentifierNames()
             ' The choice of For loop to highlight based on a Next <identifier list> statement should
             ' be based on structure, not identifier name matches.
@@ -329,7 +329,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_ForMatchesCorrectNextIgnoringLoopIdentifierNames()
             ' The choice of Next <identifier list> to highlight statement should be based on
             ' structure, not identifier name matches.
@@ -343,7 +343,7 @@ End Sub
 End Class</Text>)
         End Sub
 
-        <Fact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
+        <WpfFact, WorkItem(544961), Trait(Traits.Feature, Traits.Features.KeywordHighlighting)>
         Public Sub TestForNestedLoop_NextMatchesOutermostForIfNextClosesMoreForsThanExist()
             Test(<Text>
 Class C

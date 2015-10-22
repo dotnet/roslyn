@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public ManagedCompiler()
         {
-            this.TaskResources = ErrorString.ResourceManager;
+            TaskResources = ErrorString.ResourceManager;
         }
 
         #region Properties
@@ -72,6 +72,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(CodePage), 0); }
         }
 
+        [Output]
+        public ITaskItem[] CommandLineArgs
+        {
+            set { _store[nameof(CommandLineArgs)] = value; }
+            get { return (ITaskItem[])_store[nameof(CommandLineArgs)]; }
+        }
+
         public string DebugType
         {
             set { _store[nameof(DebugType)] = value; }
@@ -88,6 +95,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(DelaySign)] = value; }
             get { return _store.GetOrDefault(nameof(DelaySign), false); }
+        }
+
+        public bool Deterministic
+        {
+            set { _store[nameof(Deterministic)] = value; }
+            get { return _store.GetOrDefault(nameof(Deterministic), false); }
         }
 
         public bool EmitDebugInformation
@@ -187,6 +200,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Prefer32Bit), false); }
         }
 
+        public bool ProvideCommandLineArgs
+        {
+            set { _store[nameof(ProvideCommandLineArgs)] = value; }
+            get { return _store.GetOrDefault(nameof(ProvideCommandLineArgs), false); }
+        }
+
         public ITaskItem[] References
         {
             set { _store[nameof(References)] = value; }
@@ -209,6 +228,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(ResponseFiles)] = value; }
             get { return (ITaskItem[])_store[nameof(ResponseFiles)]; }
+        }
+
+        public bool SkipCompilerExecution
+        {
+            set { _store[nameof(SkipCompilerExecution)] = value; }
+            get { return _store.GetOrDefault(nameof(SkipCompilerExecution), false); }
         }
 
         public ITaskItem[] Sources
@@ -267,9 +292,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string)_store[nameof(Win32Resource)]; }
         }
 
+        public string PathMap
+        {
+            set { _store[nameof(PathMap)] = value; }
+            get { return (string)_store[nameof(PathMap)]; }
+        }
+
         /// <summary>
         /// If this property is true then the task will take every C# or VB
-        /// compilation which is queued by MSBuild and send it to the 
+        /// compilation which is queued by MSBuild and send it to the
         /// VBCSCompiler server instance, starting a new instance if necessary.
         /// If false, we will use the values from ToolPath/Exe.
         /// </summary>
@@ -279,15 +310,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(UseSharedCompilation), false); }
         }
 
-        // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the 
-        // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit 
-        // property is set. 
+        // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the
+        // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit
+        // property is set.
         internal string PlatformWith32BitPreference
         {
             get
             {
-                string platform = this.Platform;
-                if ((String.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && this.Prefer32Bit)
+                string platform = Platform;
+                if ((string.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && Prefer32Bit)
                 {
                     platform = "anycpu32bitpreferred";
                 }
@@ -312,7 +343,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
-            if (!UseSharedCompilation || !String.IsNullOrEmpty(this.ToolPath))
+            if (ProvideCommandLineArgs)
+            {
+                CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
+                    .Select(arg => new TaskItem(arg)).ToArray();
+            }
+
+            if (SkipCompilerExecution)
+            {
+                return 0;
+            }
+
+            if (!UseSharedCompilation || !string.IsNullOrEmpty(ToolPath))
             {
                 return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
             }
@@ -321,6 +363,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 try
                 {
+                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
+                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
                     var responseTask = BuildClient.TryRunServerCompilation(
                         Language,
                         TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
@@ -407,10 +452,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string libDirectory = Environment.GetEnvironmentVariable("LIB");
 
             // Now go through additional environment variables.
-            string[] additionalVariables = this.EnvironmentVariables;
+            string[] additionalVariables = EnvironmentVariables;
             if (additionalVariables != null)
             {
-                foreach (string var in this.EnvironmentVariables)
+                foreach (string var in EnvironmentVariables)
                 {
                     if (var.StartsWith("LIB=", StringComparison.OrdinalIgnoreCase))
                     {
@@ -423,7 +468,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// The return code of the compilation. Strangely, this isn't overridable from ToolTask, so we need 
+        /// The return code of the compilation. Strangely, this isn't overridable from ToolTask, so we need
         /// to create our own.
         /// </summary>
         [Output]
@@ -443,7 +488,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                    LogMessages(completedResponse.Output, this.StandardOutputImportanceToUse);
+                    LogMessages(completedResponse.Output, StandardOutputImportanceToUse);
 
                     if (LogStandardErrorAsError)
                     {
@@ -451,7 +496,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     }
                     else
                     {
-                        LogMessages(completedResponse.ErrorOutput, this.StandardErrorImportanceToUse);
+                        LogMessages(completedResponse.ErrorOutput, StandardErrorImportanceToUse);
                     }
 
                     return completedResponse.ReturnCode;
@@ -496,9 +541,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
-            CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-            CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
-
             var commandLineArguments =
                 CommandLineParser.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
             var responseFileArguments =
@@ -531,7 +573,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected internal virtual void AddCommandLineCommands(CommandLineBuilderExtension commandLine)
         {
-            commandLine.AppendWhenTrue("/noconfig", this._store, "NoConfig");
+            commandLine.AppendWhenTrue("/noconfig", _store, nameof(NoConfig));
         }
 
         /// <summary>
@@ -546,7 +588,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     (OutputAssembly == null) &&
                     (Sources != null) &&
                     (Sources.Length > 0) &&
-                    (this.ResponseFiles == null)    // The response file may already have a /out: switch in it, so don't try to be smart here.
+                    (ResponseFiles == null)    // The response file may already have a /out: switch in it, so don't try to be smart here.
                 )
             {
                 try
@@ -557,11 +599,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 {
                     throw new ArgumentException(e.Message, "Sources");
                 }
-                if (String.Compare(TargetType, "library", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare(TargetType, "library", StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     OutputAssembly.ItemSpec += ".dll";
                 }
-                else if (String.Compare(TargetType, "module", StringComparison.OrdinalIgnoreCase) == 0)
+                else if (string.Compare(TargetType, "module", StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     OutputAssembly.ItemSpec += ".netmodule";
                 }
@@ -571,8 +613,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            commandLine.AppendSwitchIfNotNull("/addmodule:", this.AddModules, ",");
-            commandLine.AppendSwitchWithInteger("/codepage:", this._store, "CodePage");
+            commandLine.AppendSwitchIfNotNull("/addmodule:", AddModules, ",");
+            commandLine.AppendSwitchWithInteger("/codepage:", _store, nameof(CodePage));
 
             ConfigureDebugProperties();
 
@@ -580,35 +622,37 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // because it's more specific.  Order matters on the command-line, and the last one wins.
             // /debug+ is just a shorthand for /debug:full.  And /debug- is just a shorthand for /debug:none.
 
-            commandLine.AppendPlusOrMinusSwitch("/debug", this._store, "EmitDebugInformation");
-            commandLine.AppendSwitchIfNotNull("/debug:", this.DebugType);
+            commandLine.AppendPlusOrMinusSwitch("/debug", _store, nameof(EmitDebugInformation));
+            commandLine.AppendSwitchIfNotNull("/debug:", DebugType);
 
-            commandLine.AppendPlusOrMinusSwitch("/delaysign", this._store, "DelaySign");
+            commandLine.AppendPlusOrMinusSwitch("/delaysign", _store, nameof(DelaySign));
 
-            commandLine.AppendSwitchWithInteger("/filealign:", this._store, "FileAlignment");
-            commandLine.AppendSwitchIfNotNull("/keycontainer:", this.KeyContainer);
-            commandLine.AppendSwitchIfNotNull("/keyfile:", this.KeyFile);
+            commandLine.AppendSwitchWithInteger("/filealign:", _store, nameof(FileAlignment));
+            commandLine.AppendSwitchIfNotNull("/keycontainer:", KeyContainer);
+            commandLine.AppendSwitchIfNotNull("/keyfile:", KeyFile);
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
-            commandLine.AppendSwitchIfNotNull("/linkresource:", this.LinkResources, new string[] { "LogicalName", "Access" });
-            commandLine.AppendWhenTrue("/nologo", this._store, "NoLogo");
-            commandLine.AppendWhenTrue("/nowin32manifest", this._store, "NoWin32Manifest");
-            commandLine.AppendPlusOrMinusSwitch("/optimize", this._store, "Optimize");
-            commandLine.AppendSwitchIfNotNull("/out:", this.OutputAssembly);
-            commandLine.AppendSwitchIfNotNull("/ruleset:", this.CodeAnalysisRuleSet);
-            commandLine.AppendSwitchIfNotNull("/errorlog:", this.ErrorLog);
-            commandLine.AppendSwitchIfNotNull("/subsystemversion:", this.SubsystemVersion);
-            commandLine.AppendWhenTrue("/reportanalyzer", this._store, "ReportAnalyzer");
+            commandLine.AppendSwitchIfNotNull("/linkresource:", LinkResources, new string[] { "LogicalName", "Access" });
+            commandLine.AppendWhenTrue("/nologo", _store, nameof(NoLogo));
+            commandLine.AppendWhenTrue("/nowin32manifest", _store, nameof(NoWin32Manifest));
+            commandLine.AppendPlusOrMinusSwitch("/optimize", _store, nameof(Optimize));
+            commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
+            commandLine.AppendSwitchIfNotNull("/pathmap:", PathMap);
+            commandLine.AppendSwitchIfNotNull("/out:", OutputAssembly);
+            commandLine.AppendSwitchIfNotNull("/ruleset:", CodeAnalysisRuleSet);
+            commandLine.AppendSwitchIfNotNull("/errorlog:", ErrorLog);
+            commandLine.AppendSwitchIfNotNull("/subsystemversion:", SubsystemVersion);
+            commandLine.AppendWhenTrue("/reportanalyzer", _store, nameof(ReportAnalyzer));
             // If the strings "LogicalName" or "Access" ever change, make sure to search/replace everywhere in vsproject.
-            commandLine.AppendSwitchIfNotNull("/resource:", this.Resources, new string[] { "LogicalName", "Access" });
-            commandLine.AppendSwitchIfNotNull("/target:", this.TargetType);
-            commandLine.AppendPlusOrMinusSwitch("/warnaserror", this._store, "TreatWarningsAsErrors");
-            commandLine.AppendWhenTrue("/utf8output", this._store, "Utf8Output");
-            commandLine.AppendSwitchIfNotNull("/win32icon:", this.Win32Icon);
-            commandLine.AppendSwitchIfNotNull("/win32manifest:", this.Win32Manifest);
+            commandLine.AppendSwitchIfNotNull("/resource:", Resources, new string[] { "LogicalName", "Access" });
+            commandLine.AppendSwitchIfNotNull("/target:", TargetType);
+            commandLine.AppendPlusOrMinusSwitch("/warnaserror", _store, nameof(TreatWarningsAsErrors));
+            commandLine.AppendWhenTrue("/utf8output", _store, nameof(Utf8Output));
+            commandLine.AppendSwitchIfNotNull("/win32icon:", Win32Icon);
+            commandLine.AppendSwitchIfNotNull("/win32manifest:", Win32Manifest);
 
-            this.AddFeatures(commandLine);
-            this.AddAnalyzersToCommandLine(commandLine);
-            this.AddAdditionalFilesToCommandLine(commandLine);
+            AddFeatures(commandLine, Features);
+            AddAnalyzersToCommandLine(commandLine, Analyzers);
+            AddAdditionalFilesToCommandLine(commandLine);
 
             // Append the sources.
             commandLine.AppendFileNamesIfNotNull(Sources, " ");
@@ -617,17 +661,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Adds a "/features:" switch to the command line for each provided feature.
         /// </summary>
-        /// <param name="commandLine"></param>
-        private void AddFeatures(CommandLineBuilderExtension commandLine)
+        internal static void AddFeatures(CommandLineBuilderExtension commandLine, string features)
         {
-            var features = Features;
             if (string.IsNullOrEmpty(features))
             {
                 return;
             }
 
             foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(features))
-            { 
+            {
                 commandLine.AppendSwitchIfNotNull("/features:", feature.Trim());
             }
         }
@@ -635,16 +677,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Adds a "/analyzer:" switch to the command line for each provided analyzer.
         /// </summary>
-        private void AddAnalyzersToCommandLine(CommandLineBuilderExtension commandLine)
+        internal static void AddAnalyzersToCommandLine(CommandLineBuilderExtension commandLine, ITaskItem[] analyzers)
         {
             // If there were no analyzers passed in, don't add any /analyzer: switches
             // on the command-line.
-            if ((this.Analyzers == null) || (this.Analyzers.Length == 0))
+            if (analyzers == null)
             {
                 return;
             }
 
-            foreach (ITaskItem analyzer in this.Analyzers)
+            foreach (ITaskItem analyzer in analyzers)
             {
                 commandLine.AppendSwitchIfNotNull("/analyzer:", analyzer.ItemSpec);
             }
@@ -657,12 +699,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             // If there were no additional files passed in, don't add any /additionalfile: switches
             // on the command-line.
-            if ((this.AdditionalFiles == null) || (this.AdditionalFiles.Length == 0))
+            if (AdditionalFiles == null)
             {
                 return;
             }
 
-            foreach (ITaskItem additionalFile in this.AdditionalFiles)
+            foreach (ITaskItem additionalFile in AdditionalFiles)
             {
                 commandLine.AppendSwitchIfNotNull("/additionalfile:", additionalFile.ItemSpec);
             }
@@ -671,7 +713,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Configure the debug switches which will be placed on the compiler command-line.
         /// The matrix of debug type and symbol inputs and the desired results is as follows:
-        /// 
+        ///
         /// Debug Symbols              DebugType   Desired Results
         ///          True               Full        /debug+ /debug:full
         ///          True               PdbOnly     /debug+ /debug:PdbOnly
@@ -686,7 +728,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         ///          Blank              None        /debug-
         /// Debug:   Blank              Blank       /debug+ //Microsoft.common.targets will set this
         /// Release: Blank              Blank       "Nothing for either switch"
-        /// 
+        ///
         /// The logic is as follows:
         /// If debugtype is none  set debugtype to empty and debugSymbols to false
         /// If debugType is blank  use the debugsymbols "as is"
@@ -696,13 +738,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             // If debug type is set we need to take some action depending on the value. If debugtype is not set
             // We don't need to modify the EmitDebugInformation switch as its value will be used as is.
-            if (_store["DebugType"] != null)
+            if (_store[nameof(DebugType)] != null)
             {
                 // If debugtype is none then only show debug- else use the debug type and the debugsymbols as is.
-                if (string.Compare((string)_store["DebugType"], "none", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare((string)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    _store["DebugType"] = null;
-                    _store["EmitDebugInformation"] = false;
+                    _store[nameof(DebugType)] = null;
+                    _store[nameof(EmitDebugInformation)] = false;
                 }
             }
         }
@@ -713,15 +755,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         protected override bool ValidateParameters()
         {
-            return ListHasNoDuplicateItems(this.Resources, "Resources", "LogicalName") && ListHasNoDuplicateItems(this.Sources, "Sources");
+            return ListHasNoDuplicateItems(Resources, nameof(Resources), "LogicalName", Log) && ListHasNoDuplicateItems(Sources, nameof(Sources), Log);
         }
 
         /// <summary>
         /// Returns true if the provided item list contains duplicate items, false otherwise.
         /// </summary>
-        protected bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName)
+        internal static bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, TaskLoggingHelper log)
         {
-            return ListHasNoDuplicateItems(itemList, parameterName, null);
+            return ListHasNoDuplicateItems(itemList, parameterName, null, log);
         }
 
         /// <summary>
@@ -730,7 +772,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <param name="itemList"></param>
         /// <param name="disambiguatingMetadataName">Optional name of metadata that may legitimately disambiguate items. May be null.</param>
         /// <param name="parameterName"></param>
-        private bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, string disambiguatingMetadataName)
+        /// <param name="log"></param>
+        private static bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, string disambiguatingMetadataName, TaskLoggingHelper log)
         {
             if (itemList == null || itemList.Length == 0)
             {
@@ -747,7 +790,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     disambiguatingMetadataValue = item.GetMetadata(disambiguatingMetadataName);
                 }
 
-                if (disambiguatingMetadataName == null || String.IsNullOrEmpty(disambiguatingMetadataValue))
+                if (disambiguatingMetadataName == null || string.IsNullOrEmpty(disambiguatingMetadataValue))
                 {
                     key = item.ItemSpec;
                 }
@@ -758,19 +801,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 if (alreadySeen.ContainsKey(key))
                 {
-                    if (disambiguatingMetadataName == null || String.IsNullOrEmpty(disambiguatingMetadataValue))
+                    if (disambiguatingMetadataName == null || string.IsNullOrEmpty(disambiguatingMetadataValue))
                     {
-                        Log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupported", item.ItemSpec, parameterName);
+                        log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupported", item.ItemSpec, parameterName);
                     }
                     else
                     {
-                        Log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
+                        log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
                     }
                     return false;
                 }
                 else
                 {
-                    alreadySeen[key] = String.Empty;
+                    alreadySeen[key] = string.Empty;
                 }
             }
 
@@ -784,11 +827,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         protected override bool HandleTaskExecutionErrors()
         {
             // For managed compilers, the compiler should emit the appropriate
-            // error messages before returning a non-zero exit code, so we don't 
+            // error messages before returning a non-zero exit code, so we don't
             // normally need to emit any additional messages now.
             //
             // If somehow the compiler DID return a non-zero exit code and didn't log an error, we'd like to log that exit code.
-            // We can only do this for the command line compiler: if the inproc compiler was used, 
+            // We can only do this for the command line compiler: if the inproc compiler was used,
             // we can't tell what if anything it logged as it logs directly to Visual Studio's output window.
             //
             if (!Log.HasLoggedErrors && UsedCommandLineTool)
@@ -854,7 +897,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <owner>RGoel</owner>
         protected bool CheckAllReferencesExistOnDisk()
         {
-            if (null == this.References)
+            if (null == References)
             {
                 // No references
                 return true;
@@ -862,7 +905,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             bool success = true;
 
-            foreach (ITaskItem reference in this.References)
+            foreach (ITaskItem reference in References)
             {
                 if (!File.Exists(reference.ItemSpec))
                 {
@@ -875,16 +918,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         /// <summary>
-        /// The IDE and command line compilers unfortunately differ in how win32 
-        /// manifests are specified.  In particular, the command line compiler offers a 
-        /// "/nowin32manifest" switch, while the IDE compiler does not offer analogous 
-        /// functionality. If this switch is omitted from the command line and no win32 
-        /// manifest is specified, the compiler will include a default win32 manifest 
-        /// named "default.win32manifest" found in the same directory as the compiler 
+        /// The IDE and command line compilers unfortunately differ in how win32
+        /// manifests are specified.  In particular, the command line compiler offers a
+        /// "/nowin32manifest" switch, while the IDE compiler does not offer analogous
+        /// functionality. If this switch is omitted from the command line and no win32
+        /// manifest is specified, the compiler will include a default win32 manifest
+        /// named "default.win32manifest" found in the same directory as the compiler
         /// executable. Again, the IDE compiler does not offer analogous support.
-        /// 
-        /// We'd like to imitate the command line compiler's behavior in the IDE, but 
-        /// it isn't aware of the default file, so we must compute the path to it if 
+        ///
+        /// We'd like to imitate the command line compiler's behavior in the IDE, but
+        /// it isn't aware of the default file, so we must compute the path to it if
         /// noDefaultWin32Manifest is false and no win32Manifest was provided by the
         /// project.
         ///
@@ -900,11 +943,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             if (!noDefaultWin32Manifest)
             {
-                if (String.IsNullOrEmpty(win32Manifest) && String.IsNullOrEmpty(this.Win32Resource))
+                if (string.IsNullOrEmpty(win32Manifest) && string.IsNullOrEmpty(Win32Resource))
                 {
                     // We only want to consider the default.win32manifest if this is an executable
-                    if (!String.Equals(TargetType, "library", StringComparison.OrdinalIgnoreCase)
-                       && !String.Equals(TargetType, "module", StringComparison.OrdinalIgnoreCase))
+                    if (!string.Equals(TargetType, "library", StringComparison.OrdinalIgnoreCase)
+                       && !string.Equals(TargetType, "module", StringComparison.OrdinalIgnoreCase))
                     {
                         // We need to compute the path to the default win32 manifest
                         string pathToDefaultManifest = ToolLocationHelper.GetPathToDotNetFrameworkFile

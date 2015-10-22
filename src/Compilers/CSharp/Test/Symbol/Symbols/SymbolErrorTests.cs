@@ -1838,6 +1838,9 @@ class B : A
     // (8,34): error CS0112: A static member 'B.Q' cannot be marked as override, virtual, or abstract
     //     public static virtual object Q { get; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "Q").WithArguments("B.Q").WithLocation(8, 34),
+    // (8,34): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5.  Please use language version 6 or greater.
+    //     public static virtual object Q { get; }
+    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Q").WithArguments("readonly automatically implemented properties", "6").WithLocation(8, 34),
     // (9,37): error CS0112: A static member 'B.R' cannot be marked as override, virtual, or abstract
     //     internal static abstract object R { get; set; }
     Diagnostic(ErrorCode.ERR_StaticNotVirtual, "R").WithArguments("B.R").WithLocation(9, 37),
@@ -15624,8 +15627,7 @@ namespace N1
                 Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
             };
 
-            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Script)).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilationWithMscorlib(Parse(text, options: TestOptions.Interactive)).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -19137,6 +19139,48 @@ class C
     static void Main() {}
 }";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AbstractInScript()
+        {
+            var source =
+@"internal abstract void M();
+internal abstract object P { get; }
+internal abstract event System.EventHandler E;";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract void M();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract object P { get; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract event System.EventHandler E;
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
+        }
+
+        [WorkItem(529225)]
+        [Fact]
+        public void AbstractInSubmission()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source =
+@"internal abstract void M();
+internal abstract object P { get; }
+internal abstract event System.EventHandler E;";
+            var submission = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script), new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef });
+            submission.VerifyDiagnostics(
+                // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract void M();
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M").WithArguments("M()", "Script").WithLocation(1, 24),
+                // (2,30): error CS0513: 'P.get' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract object P { get; }
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("P.get", "Script").WithLocation(2, 30),
+                // (3,45): error CS0513: 'E' is abstract but it is contained in non-abstract class 'Script'
+                // internal abstract event System.EventHandler E;
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "E").WithArguments("E", "Script").WithLocation(3, 45));
         }
     }
 }

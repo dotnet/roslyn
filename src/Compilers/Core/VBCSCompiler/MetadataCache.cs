@@ -141,13 +141,4 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new CachingMetadataReference(this.FilePath, properties);
         }
     }
-
-    internal sealed class ReferenceProvider : MetadataFileReferenceProvider
-    {
-        public override PortableExecutableReference GetReference(string fullPath, MetadataReferenceProperties properties = default(MetadataReferenceProperties))
-        {
-            Debug.Assert(PathUtilities.IsAbsolute(fullPath));
-            return new CachingMetadataReference(fullPath, properties);
-        }
-    }
 }

@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim array = DirectCast(firstType, ArrayTypeSymbol)
-            Return array.Rank = 1 AndAlso array.ElementType.SpecialType = SpecialType.System_String
+            Return array.IsSZArray AndAlso array.ElementType.SpecialType = SpecialType.System_String
         End Function
 
         Friend Overrides Function Accept(Of TArgument, TResult)(visitor As VisualBasicSymbolVisitor(Of TArgument, TResult), arg As TArgument) As TResult

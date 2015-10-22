@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -9,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class SetExtensionTests
     {
-        [Fact]
+        [WpfFact]
         public void TestAddAll()
         {
             var set = new HashSet<string>() { "a", "b", "c" };

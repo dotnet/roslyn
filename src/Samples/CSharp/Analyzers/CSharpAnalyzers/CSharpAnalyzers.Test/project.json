@@ -1,0 +1,16 @@
+{
+    "dependencies": {
+        "Microsoft.CodeAnalysis.Common": "1.0.0",
+        "Microsoft.CodeAnalysis.CSharp": "1.0.0",
+        "Microsoft.CodeAnalysis.CSharp.Workspaces": "1.0.0",
+        "Microsoft.CodeAnalysis.VisualBasic": "1.0.0",
+        "Microsoft.CodeAnalysis.VisualBasic.Workspaces": "1.0.0",
+        "Microsoft.CodeAnalysis.Workspaces.Common": "1.0.0",
+        "Microsoft.Composition": "1.0.27",
+        "System.Collections.Immutable": "1.1.37",
+        "System.Reflection.Metadata": "1.0.21"
+    },
+    "frameworks": {
+        "net45": {}
+    },
+}

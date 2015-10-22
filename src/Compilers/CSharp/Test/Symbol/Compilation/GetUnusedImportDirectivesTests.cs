@@ -34,7 +34,6 @@ class C
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
         }
 
-
         [WorkItem(865627, "DevDiv")]
         [Fact]
         public void TestUnusedExtensionMarksImportsAsUsed()
@@ -68,7 +67,6 @@ namespace ClassLibrary2
     }
 }";
             var classLib2 = CreateCompilationWithMscorlib(text: class2Source, assemblyName: "ClassLibrary2", references: new[] { SystemRef, SystemCoreRef, classLib1.ToMetadataReference() });
-
 
             string consoleApplicationSource = @"using ClassLibrary2;
 using ClassLibrary1;
@@ -140,7 +138,6 @@ class Program
                 // using System.Threading.Tasks;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Threading.Tasks;")
                 );
-
 
             comp = comp.WithReferences(comp.References.Concat(SystemCoreRef));
             comp.VerifyDiagnostics(
@@ -359,11 +356,11 @@ using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithWarningAsError(false));
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Submission)]
+        [Fact]
         public void UnusedUsingInteractive()
         {
-            var tree = Parse("using System;", options: TestOptions.Interactive);
-            var comp = CSharpCompilation.CreateSubmission("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
+            var tree = Parse("using System;", options: TestOptions.Script);
+            var comp = CSharpCompilation.CreateScriptCompilation("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
 
             comp.VerifyDiagnostics();
         }
@@ -372,7 +369,7 @@ using System;
         public void UnusedUsingScript()
         {
             var tree = Parse("using System;", options: TestOptions.Script);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateCompilationWithMscorlib45(new[] { tree });
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.

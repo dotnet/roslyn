@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         Private Class BlockChecker
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuard
 
             Private ReadOnly _typeParameterChecker As TypeParameterChecker
 
@@ -43,6 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 If expression IsNot Nothing Then
                     _typeParameterChecker.Visit(expression.ExpressionSymbol)
                 End If
+
                 Return MyBase.Visit(node)
             End Function
         End Class

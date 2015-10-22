@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Create a binder for the given method declaration. Method type parameters are in scope, but
-        ' parameters are not. Note that unlike C#, all declarations of of a partial methods must have
+        ' parameters are not. Note that unlike C#, all declarations of partial methods must have
         ' the same type parameter names, so a methodSymbol is enough disambiguation.
         Public Shared Function CreateBinderForMethodDeclaration(methodSymbol As MethodSymbol, containingBinder As Binder) As Binder
             Debug.Assert(containingBinder.SourceModule Is methodSymbol.ContainingModule)
@@ -375,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Create a binder for the given method declaration. Method type parameters are in scope, but
-        ' parameters are not. Note that unlike C#, all declarations of of a partial methods must have
+        ' parameters are not. Note that unlike C#, all declarations of partial methods must have
         ' the same type parameter names, so a methodSymbol is enough disambiguation.
         Public Shared Function CreateBinderForMethodDeclaration(moduleSymbol As SourceModuleSymbol,
                                                                  tree As SyntaxTree,

@@ -484,7 +484,7 @@ End Class
 #End Region
 
 #Region "DllImportAttribute, MethodImplAttribute, PreserveSigAttribute"
-        ''' 6879: Pseudo DllImport looks very different in metadata Metadata: pinvokeimpl(...) +
+        ''' 6879: Pseudo DllImport looks very different in metadata: pinvokeimpl(...) +
         ''' PreserveSig
         <WorkItem(540573, "DevDiv")>
         <Fact>
@@ -4674,7 +4674,7 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
 #End Region
 
         <Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")>
-        Public Sub TestAttributePropagationForAsyncAndIterators()
+        Public Sub TestAttributePropagationForAsyncAndIterators_01()
             Dim source =
             <compilation>
                 <file name="attr.vb"><![CDATA[
@@ -4755,35 +4755,121 @@ End Class
             CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
         End Sub
 
-        Private Shared Function CheckAttributePropagation(moveNext As MethodSymbol) As String
+        Private Shared Function CheckAttributePropagation(symbol As Symbol) As String
             Dim result = ""
 
-            If moveNext.GetAttributes("", "MyAttribute").Any() Then
+            If symbol.GetAttributes("", "MyAttribute").Any() Then
                 result += "MyAttribute is present" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerNonUserCodeAttribute").Any() Then
                 result += "DebuggerNonUserCodeAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerHiddenAttribute").Any() Then
                 result += "DebuggerHiddenAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerStepperBoundaryAttribute").Any() Then
                 result += "DebuggerStepperBoundaryAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Diagnostics", "DebuggerStepThroughAttribute").Any() Then
                 result += "DebuggerStepThroughAttribute is missing" & vbCr
             End If
 
-            If Not moveNext.GetAttributes("System.Runtime.CompilerServices", "CompilerGeneratedAttribute").Any() Then
+            If Not symbol.GetAttributes("System.Runtime.CompilerServices", "CompilerGeneratedAttribute").Any() Then
                 result += "CompilerGeneratedAttribute is missing" & vbCr
             End If
 
             Return result
         End Function
+
+        <Fact, WorkItem(4521, "https://github.com/dotnet/roslyn/issues/4521")>
+        Public Sub TestAttributePropagationForAsyncAndIterators_02()
+            Dim source =
+            <compilation>
+                <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Threading.Tasks
+
+<MyAttribute>
+<System.Diagnostics.DebuggerNonUserCodeAttribute>
+<System.Diagnostics.DebuggerStepThroughAttribute>
+Class Program1
+
+    Shared Sub Main()
+    End Sub
+
+    Public Async Function test1() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    Public Iterator Function Test3() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class Program2
+
+    Shared Sub Main()
+    End Sub
+
+    Public Async Function test2() As Task(Of Integer)
+        Return Await DoNothing()
+    End Function
+
+    Private Async Function DoNothing() As Task(Of Integer)
+        Return 1
+    End Function
+
+    Public Iterator Function Test4() As IEnumerable(Of Integer)
+        Yield 1
+        Yield 2
+    End Function
+End Class
+
+Class MyAttribute
+    Inherits System.Attribute
+End Class
+            ]]>
+                </file>
+            </compilation>
+
+            Dim attributeValidator As Action(Of ModuleSymbol) =
+            Sub(m As ModuleSymbol)
+                Dim program1 = m.GlobalNamespace.GetTypeMember("Program1")
+                Dim program2 = m.GlobalNamespace.GetTypeMember("Program2")
+
+                Assert.Equal("DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program1.GetMember(Of MethodSymbol)("test1").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerNonUserCodeAttribute is missing" & vbCr & "DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr & "DebuggerStepThroughAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program2.GetMember(Of MethodSymbol)("test2").
+                                                           GetAttributes("System.Runtime.CompilerServices", "AsyncStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program1.GetMember(Of MethodSymbol)("Test3").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+
+                Assert.Equal("DebuggerNonUserCodeAttribute is missing" & vbCr & "DebuggerHiddenAttribute is missing" & vbCr & "DebuggerStepperBoundaryAttribute is missing" & vbCr & "DebuggerStepThroughAttribute is missing" & vbCr,
+                             CheckAttributePropagation(DirectCast(program2.GetMember(Of MethodSymbol)("Test4").
+                                                           GetAttributes("System.Runtime.CompilerServices", "IteratorStateMachineAttribute").Single().
+                                                           ConstructorArguments.Single().Value, NamedTypeSymbol)))
+            End Sub
+
+            CompileAndVerify(CreateCompilationWithMscorlib45AndVBRuntime(source), symbolValidator:=attributeValidator)
+        End Sub
 
     End Class
 End Namespace

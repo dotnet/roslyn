@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
-            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectory, additionalReferenceDirectories, analyzerLoader)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string clientDirectory, string baseDirectory, string sdkDirectoryOpt, string additionalReferenceDirectories, IAnalyzerAssemblyLoader analyzerLoader)
+            : base(parser, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, additionalReferenceDirectories, analyzerLoader)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
         }
@@ -33,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger)
         {
             var parseOptions = Arguments.ParseOptions;
+
+            // We compute script parse options once so we don't have to do it repeatedly in
+            // case there are many script files.
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
             bool hadErrors = false;
@@ -113,13 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var metadataProvider = GetMetadataProvider();
             var xmlFileResolver = new LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger);
-            var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, touchedFilesLogger);
+            var sourceFileResolver = new LoggingSourceFileResolver(ImmutableArray<string>.Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger);
 
-            var externalReferenceResolver = GetExternalMetadataResolver(touchedFilesLogger);
-            MetadataFileReferenceResolver referenceDirectiveResolver;
-            var resolvedReferences = ResolveMetadataReferences(externalReferenceResolver, metadataProvider, diagnostics, assemblyIdentityComparer, touchedFilesLogger, out referenceDirectiveResolver);
+            MetadataReferenceResolver referenceDirectiveResolver;
+            var resolvedReferences = ResolveMetadataReferences(diagnostics, touchedFilesLogger, out referenceDirectiveResolver);
             if (ReportErrors(diagnostics, consoleOutput, errorLogger))
             {
                 return null;
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 trees.WhereNotNull(),
                 resolvedReferences,
                 Arguments.CompilationOptions.
-                    WithMetadataReferenceResolver(new AssemblyReferenceResolver(referenceDirectiveResolver, metadataProvider)).
+                    WithMetadataReferenceResolver(referenceDirectiveResolver).
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithStrongNameProvider(strongNameProvider).
                     WithXmlReferenceResolver(xmlFileResolver).
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out string normalizedFilePath)
         {
             var fileReadDiagnostics = new List<DiagnosticInfo>();
-            var content = ReadFileContent(file, fileReadDiagnostics, Arguments.Encoding, Arguments.ChecksumAlgorithm, out normalizedFilePath);
+            var content = ReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
 
             if (content == null)
             {

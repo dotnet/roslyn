@@ -245,9 +245,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolActions">Symbol actions to be executed.</param>
         /// <param name="analyzer">Analyzer whose actions are to be executed.</param>
         /// <param name="symbol">Symbol to be analyzed.</param>
-        /// <param name="overriddenAddDiagnostic">Overridden add diagnostic delegate.</param>
-        /// <param name="overriddenAddLocalDiagnostic">Overridden add local diagnostic delegate.</param>
-        /// <param name="overriddenAddNonLocalDiagnostic">Overridden add non-local diagnostic delegate.</param>
         /// <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
         /// <param name="analysisScope">Scope for analyzer execution.</param>
         /// <param name="analysisStateOpt">An optional object to track analysis state.</param>
@@ -255,9 +252,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             ISymbol symbol,
-            Action<Diagnostic> overriddenAddDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, bool> overriddenAddLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer> overriddenAddNonLocalDiagnostic,
             Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
             AnalysisScope analysisScope,
             AnalysisState analysisStateOpt)
@@ -268,8 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (TryStartAnalyzingSymbol(symbol, analyzer, analysisScope, analysisStateOpt, out analyzerStateOpt))
                 {
-                    ExecuteSymbolActionsCore(symbolActions, analyzer, symbol, overriddenAddDiagnostic,
-                        overriddenAddLocalDiagnostic, overriddenAddNonLocalDiagnostic, getTopMostNodeForAnalysis, analyzerStateOpt);
+                    ExecuteSymbolActionsCore(symbolActions, analyzer, symbol, getTopMostNodeForAnalysis, analyzerStateOpt);
                     analysisStateOpt?.MarkSymbolComplete(symbol, analyzer);
                 }
             }
@@ -283,16 +276,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SymbolAnalyzerAction> symbolActions,
             DiagnosticAnalyzer analyzer,
             ISymbol symbol,
-            Action<Diagnostic> overriddenAddDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer, bool> overriddenAddLocalDiagnostic,
-            Action<Diagnostic, DiagnosticAnalyzer> overriddenAddNonLocalDiagnostic,
             Func<ISymbol, SyntaxReference, Compilation, SyntaxNode> getTopMostNodeForAnalysis,
             AnalyzerStateData analyzerStateOpt)
         {
-            Debug.Assert(overriddenAddLocalDiagnostic == null || overriddenAddDiagnostic != null);
             Debug.Assert(getTopMostNodeForAnalysis != null);
 
-            var addDiagnostic = GetAddDiagnostic(symbol, _compilation, analyzer, overriddenAddDiagnostic ?? _addDiagnostic, overriddenAddLocalDiagnostic ?? _addLocalDiagnosticOpt, overriddenAddNonLocalDiagnostic ?? _addNonLocalDiagnosticOpt, getTopMostNodeForAnalysis);
+            var addDiagnostic = GetAddDiagnostic(symbol, _compilation, analyzer, _addDiagnostic, _addLocalDiagnosticOpt, _addNonLocalDiagnosticOpt, getTopMostNodeForAnalysis);
 
             foreach (var symbolAction in symbolActions)
             {
@@ -788,7 +777,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message };
             var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, e.ToString());
-            return CreateExceptionDiagnostic(AnalyzerExceptionDiagnosticId, title, description, messageFormat, messageArguments);
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
+            return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
         internal static Diagnostic CreateDriverExceptionDiagnostic(Exception e)
@@ -797,25 +787,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var messageFormat = CodeAnalysisResources.AnalyzerDriverThrows;
             var messageArguments = new[] { e.GetType().ToString(), e.Message };
             var description = string.Format(CodeAnalysisResources.AnalyzerDriverThrowsDescription, e.ToString());
-            return CreateExceptionDiagnostic(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat, messageArguments);
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat);
+            return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
-        private static Diagnostic CreateExceptionDiagnostic(string id, string title, string description, string messageFormat, string[] messageArguments)
+        internal static DiagnosticDescriptor GetAnalyzerExceptionDiagnosticDescriptor(string id = null, string title = null, string description = null, string messageFormat = null)
         {
             // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
             // This requires us to create a new DiagnosticDescriptor instance per diagnostic instance.
-            var descriptor = new DiagnosticDescriptor(
+
+            id = id ?? AnalyzerExceptionDiagnosticId;
+            title = title ?? CodeAnalysisResources.CompilerAnalyzerFailure;
+            messageFormat = messageFormat ?? CodeAnalysisResources.CompilerAnalyzerThrows;
+            description = description ?? CodeAnalysisResources.CompilerAnalyzerFailure;
+
+            return new DiagnosticDescriptor(
                 id,
                 title,
                 messageFormat,
                 description: description,
                 category: DiagnosticCategory,
-                defaultSeverity: DiagnosticSeverity.Info,
+                defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 customTags: WellKnownDiagnosticTags.AnalyzerException);
-
-            return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
         internal static bool IsAnalyzerExceptionDiagnostic(Diagnostic diagnostic)

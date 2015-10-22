@@ -53,31 +53,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Makes a second attempt if the results are not viable, in order to produce more detailed failure information (symbols and diagnostics).
         /// </remarks>
-        private void LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
+        private Binder LookupSymbolsWithFallback(LookupResult result, string name, int arity, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null, LookupOptions options = LookupOptions.Default)
         {
             Debug.Assert(options.AreValid());
 
             // don't create diagnosis instances unless lookup fails
-            this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            var binder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            Debug.Assert((binder != null) || result.IsClear);
+
             if (result.Kind != LookupResultKind.Viable && result.Kind != LookupResultKind.Empty)
             {
                 result.Clear();
                 // retry to get diagnosis
-                this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                var otherBinder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                Debug.Assert(binder == otherBinder);
             }
 
             Debug.Assert(result.IsMultiViable || result.IsClear || result.Error != null);
+            return binder;
         }
 
-        private void LookupSymbolsInternal(
+        private Binder LookupSymbolsInternal(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(result.IsClear);
             Debug.Assert(options.AreValid());
 
+            Binder binder = null;
             for (var scope = this; scope != null && !result.IsMultiViable; scope = scope.Next)
             {
-                if (!result.IsClear)
+                if (binder != null)
                 {
                     var tmp = LookupResult.GetInstance();
                     scope.LookupSymbolsInSingleBinder(tmp, name, arity, basesBeingResolved, options, this, diagnose, ref useSiteDiagnostics);
@@ -87,8 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     scope.LookupSymbolsInSingleBinder(result, name, arity, basesBeingResolved, options, this, diagnose, ref useSiteDiagnostics);
+                    if (!result.IsClear)
+                    {
+                        binder = scope;
+                    }
                 }
             }
+            return binder;
         }
 
         internal virtual void LookupSymbolsInSingleBinder(
@@ -244,29 +254,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 submissionSymbols.Clear();
 
+                var isCurrentSubmission = submission == Compilation;
+                var considerUsings = !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing));
+
+                Imports submissionImports;
+                if (!considerUsings)
+                {
+                    submissionImports = Imports.Empty;
+                }
+                else if (!this.Flags.Includes(BinderFlags.InLoadedSyntaxTree))
+                {
+                    submissionImports = submission.GetSubmissionImports();
+                }
+                else if (isCurrentSubmission)
+                {
+                    submissionImports = this.GetImports(basesBeingResolved);
+                }
+                else
+                {
+                    submissionImports = Imports.Empty;
+                }
+
                 // If a viable using alias and a matching member are both defined in the submission an error is reported elsewhere.
                 // Ignore the member in such case.
                 if ((options & LookupOptions.NamespaceAliasesOnly) == 0 && (object)submission.ScriptClass != null)
                 {
                     LookupMembersWithoutInheritance(submissionSymbols, submission.ScriptClass, name, arity, options, originalBinder, submissionClass, diagnose, ref useSiteDiagnostics, basesBeingResolved);
-                }
 
-                // using aliases:
-                Imports imports = submission.GetSubmissionImports();
-                if (submissionSymbols.Symbols.Count > 0 && imports.IsUsingAlias(name, this.IsSemanticModelBinder))
-                {
-                    // using alias is ambiguous with another definition within the same submission iff the other definition is a 0-ary type or a non-type:
-                    Symbol existingDefinition = submissionSymbols.Symbols.First();
-                    if (existingDefinition.Kind == SymbolKind.NamedType && arity == 0 || existingDefinition.Kind != SymbolKind.NamedType)
+                    // NB: It doesn't matter that submissionImports hasn't been expanded since we're not actually using the alias target. 
+                    if (submissionSymbols.IsMultiViable &&
+                        considerUsings &&
+                        submissionImports.IsUsingAlias(name, originalBinder.IsSemanticModelBinder))
                     {
-                        CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictingAliasAndDefinition, name, existingDefinition.GetKindText());
-                        var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
-                        result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
-                        break;
+                        // using alias is ambiguous with another definition within the same submission iff the other definition is a 0-ary type or a non-type:
+                        Symbol existingDefinition = submissionSymbols.Symbols.First();
+                        if (existingDefinition.Kind != SymbolKind.NamedType || arity == 0)
+                        {
+                            CSDiagnosticInfo diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_ConflictingAliasAndDefinition, name, existingDefinition.GetKindText());
+                            var error = new ExtendedErrorTypeSymbol((NamespaceOrTypeSymbol)null, name, arity, diagInfo, unreported: true);
+                            result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
+                            break;
+                        }
                     }
                 }
 
-                imports.LookupSymbolInAliases(originalBinder, submissionSymbols, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+                if (!submissionSymbols.IsMultiViable && considerUsings)
+                {
+                    if (!isCurrentSubmission)
+                    {
+                        submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);
+                    }
+
+                    // NB: We diverge from InContainerBinder here and only look in aliases.
+                    // In submissions, regular usings are bubbled up to the outermost scope.
+                    submissionImports.LookupSymbolInAliases(originalBinder, submissionSymbols, name, arity, basesBeingResolved, options, diagnose, ref useSiteDiagnostics);
+                }
 
                 if (lookingForOverloadsOfKind == null)
                 {
@@ -337,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this.IsSemanticModelBinder);
+            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
 
             foreach (var method in methods)
             {
@@ -611,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             int arity,
             LookupOptions options,
-            bool isCallerSemanticModel)
+            Binder originalBinder)
         {
         }
 
@@ -1493,10 +1535,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO: optimize lookup (there might be many interactions in the chain)
             for (CSharpCompilation submission = Compilation; submission != null; submission = submission.PreviousSubmission)
             {
-                submission.GetSubmissionImports().AddLookupSymbolsInfoInAliases(this, result, options);
                 if ((object)submission.ScriptClass != null)
                 {
                     AddMemberLookupSymbolsInfoWithoutInheritance(result, submission.ScriptClass, options, originalBinder, scriptClass);
+                }
+
+                bool isCurrentSubmission = submission == Compilation;
+
+                // If we are looking only for labels we do not need to search through the imports.
+                if ((options & LookupOptions.LabelsOnly) == 0 && !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing)))
+                {
+                    var submissionImports = submission.GetSubmissionImports();
+                    if (!isCurrentSubmission)
+                    {
+                        submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);
+                    }
+
+                    // NB: We diverge from InContainerBinder here and only look in aliases.
+                    // In submissions, regular usings are bubbled up to the outermost scope.
+                    submissionImports.AddLookupSymbolsInfoInAliases(result, options, originalBinder);
                 }
             }
         }

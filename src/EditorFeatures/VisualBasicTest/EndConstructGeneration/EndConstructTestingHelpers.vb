@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                     afterCaretPoint = New SnapshotPoint(textView.TextSnapshot, afterLine.Start + afterCaret(1))
                 End If
 
-                Assert.Equal(afterCaretPoint, textView.GetCaretPoint(subjectBuffer).Value.Position)
+                Assert.Equal(Of Integer)(afterCaretPoint, textView.GetCaretPoint(subjectBuffer).Value.Position)
             End Using
         End Sub
 
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Assert.Equal(EditorFactory.LinesToFullText(text), textView.TextSnapshot.GetText())
 
                 ' The caret should not have moved
-                Assert.Equal(caretPosition, textView.GetCaretPoint(subjectBuffer).Value.Position)
+                Assert.Equal(Of Integer)(caretPosition, textView.GetCaretPoint(subjectBuffer).Value.Position)
             End Using
         End Sub
 
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 End If
 
                 Dim caretPosition = view.Caret.Position.VirtualBufferPosition
-                Assert.Equal(afterCaretPoint, If(caretPosition.IsInVirtualSpace, caretPosition.Position + caretPosition.VirtualSpaces, caretPosition.Position))
+                Assert.Equal(Of Integer)(afterCaretPoint, If(caretPosition.IsInVirtualSpace, caretPosition.Position + caretPosition.VirtualSpaces, caretPosition.Position))
             End Using
         End Sub
     End Module

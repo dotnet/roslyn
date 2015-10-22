@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 
             while (node != null)
             {
-                // Types in BaseList, Type Constraint or Member Types cannot be of restricter accessibility than the declaring type
+                // Types in BaseList, Type Constraint or Member Types cannot be of more restricted accessibility than the declaring type
                 if ((node is BaseListSyntax || node is TypeParameterConstraintClauseSyntax) &&
                     node.Parent != null &&
                     node.Parent is TypeDeclarationSyntax)
@@ -917,8 +917,15 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return true;
         }
 
-        internal override IMethodSymbol GetDelegatingConstructor(ObjectCreationExpressionSyntax objectCreation, INamedTypeSymbol namedType, SemanticModel model, ISet<IMethodSymbol> candidates, CancellationToken cancellationToken)
+        internal override IMethodSymbol GetDelegatingConstructor(
+            SemanticDocument document,
+            ObjectCreationExpressionSyntax objectCreation,
+            INamedTypeSymbol namedType,
+            ISet<IMethodSymbol> candidates,
+            CancellationToken cancellationToken)
         {
+            var model = document.SemanticModel;
+
             var oldNode = objectCreation
                     .AncestorsAndSelf(ascendOutOfTrivia: false)
                     .Where(node => SpeculationAnalyzer.CanSpeculateOnNode(node))
@@ -934,7 +941,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 newObjectCreation = (ObjectCreationExpressionSyntax)newNode.GetAnnotatedNodes(s_annotation).Single();
                 var symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken);
-                return GenerateConstructorHelpers.GetDelegatingConstructor(symbolInfo, candidates, namedType);
+                var parameterTypes = newObjectCreation.ArgumentList.Arguments.Select(
+                    a => speculativeModel.GetTypeInfo(a.Expression, cancellationToken).ConvertedType).ToList();
+
+                return GenerateConstructorHelpers.GetDelegatingConstructor(
+                    document, symbolInfo, candidates, namedType, parameterTypes);
             }
 
             return null;

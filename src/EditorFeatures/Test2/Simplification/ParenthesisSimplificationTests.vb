@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
 
 #Region "VB Array Literal tests"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemoveInJaggedArrayLiteral()
             Dim input =
 <Workspace>
@@ -34,7 +34,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemoveInCollectionInitializer()
             Dim input =
 <Workspace>
@@ -64,7 +64,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_RemoveInCollectionInitializer1()
             Dim input =
 <Workspace>
@@ -94,7 +94,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_RemoveInCollectionInitializer2()
             Dim input =
 <Workspace>
@@ -124,7 +124,7 @@ End Class
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_RemoveInCollectionInitializer3()
             Dim input =
 <Workspace>
@@ -158,7 +158,7 @@ End Class
 
 #Region "VB Binary Expressions"
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyOnLeftSideOfBinaryExpression()
             Dim input =
 <Workspace>
@@ -191,7 +191,7 @@ End Module
         End Sub
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_SimplifyOnRightSideOfBinaryExpressionIfOperatorsAreCommutative()
             Dim input =
 <Workspace>
@@ -224,7 +224,7 @@ End Module
         End Sub
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative()
             Dim input =
 <Workspace>
@@ -258,7 +258,7 @@ End Module
 
 
         <WorkItem(738826)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub SimplifyParenthesisedGetTypeOperator()
             Dim input =
 <Workspace>
@@ -292,7 +292,7 @@ End Module
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub SimplifyParenthesisedAroundNameOfExpression()
             Dim input =
 <Workspace>
@@ -324,7 +324,7 @@ End Class
 #End Region
 
 #Region "C#"
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_Unnecessary_Parenthesis_in_Array_Index()
             Dim input =
 <Workspace>
@@ -371,7 +371,7 @@ class Foo{
         End Sub
 
         <WorkItem(619292)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_RemoveParensInJaggedArrayLiteral()
             Dim input =
 <Workspace>
@@ -414,7 +414,7 @@ class C
         End Sub
 
         <WorkItem(619294)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_RemoveParensInCollectionInitializer()
             Dim input =
 <Workspace>
@@ -448,7 +448,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_RemoveParensInCollectionInitializer2()
             Dim input =
 <Workspace>
@@ -486,7 +486,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_RemoveParensOnVariableDeclaration()
             Dim input =
 <Workspace>
@@ -519,7 +519,7 @@ class C
         End Sub
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesAroundExpressionInQueryClause()
             Dim input =
 <Workspace>
@@ -563,7 +563,7 @@ class foo
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesInsideExceptionFilter()
             Dim input =
 <Workspace>
@@ -605,7 +605,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesInsideInterpolation1()
             Dim input =
 <Workspace>
@@ -637,7 +637,7 @@ class C
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesInsideInterpolation2()
             Dim input =
 <Workspace>
@@ -670,7 +670,7 @@ class C
         End Sub
 
         <WorkItem(724, "#724")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesInsideInterpolation3()
             Dim input =
 <Workspace>
@@ -703,7 +703,7 @@ class C
         End Sub
 
         <WorkItem(724, "#724")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesInsideInterpolation4()
             Dim input =
 <Workspace>
@@ -738,7 +738,7 @@ class C
         End Sub
 
         <WorkItem(724, "#724")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesInsideInterpolation5()
             Dim input =
 <Workspace>
@@ -773,7 +773,7 @@ class C
         End Sub
 
         <WorkItem(724, "#724")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyParenthesesInsideInterpolation6()
             Dim input =
 <Workspace>
@@ -814,7 +814,7 @@ class C
 #Region "C# Binary Expressions"
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyOnLeftSideOfBinaryExpression()
             Dim input =
 <Workspace>
@@ -851,7 +851,7 @@ class Program
         End Sub
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyOnRightSideOfBinaryExpressionIfOperatorsAreCommutative()
             Dim input =
 <Workspace>
@@ -888,7 +888,7 @@ class Program
         End Sub
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyOnRightSideOfBinaryExpressionForAssignment()
             Dim input =
 <Workspace>
@@ -927,7 +927,7 @@ class Program
         End Sub
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_SimplifyOnRightSideOfBinaryExpressionForNullCoalescing()
             Dim input =
 <Workspace>
@@ -968,7 +968,7 @@ class Program
         End Sub
 
         <WorkItem(633582)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DontSimplifyOnRightSideOfBinaryExpressionIfOperatorsAreNotCommutative()
             Dim input =
 <Workspace>
@@ -1006,7 +1006,7 @@ class Program
 #End Region
 
         <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub CSharp_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression()
             Dim input =
 <Workspace>
@@ -1046,7 +1046,7 @@ class Program
         End Sub
 
         <WorkItem(2211, "https://github.com/dotnet/roslyn/issues/2211")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemoveParensAroundConditionalAccessExpressionIfParentIsMemberAccessExpression()
             Dim input =
 <Workspace>
@@ -1082,7 +1082,7 @@ End Module
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_RemoveParenthesesAroundEmptyXmlElement()
             Dim input =
 <Workspace>
@@ -1114,7 +1114,7 @@ End Class
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_RemoveParenthesesAroundEmptyXmlElementInInvocation()
             Dim input =
 <Workspace>
@@ -1146,7 +1146,7 @@ End Class
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_RemoveParenthesesAroundXmlElement()
             Dim input =
 <Workspace>
@@ -1178,7 +1178,7 @@ End Class
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_RemoveParenthesesAroundXmlElementInInvocation()
             Dim input =
 <Workspace>
@@ -1210,7 +1210,7 @@ End Class
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsLessThan()
             Dim input =
 <Workspace>
@@ -1242,7 +1242,7 @@ End Class
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemoveParenthesesAroundEmptyXmlElementWhenPreviousTokenIsGreaterThan()
             Dim input =
 <Workspace>
@@ -1274,7 +1274,7 @@ End Class
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsLessThan()
             Dim input =
 <Workspace>
@@ -1306,7 +1306,7 @@ End Class
         End Sub
 
         <WorkItem(4490, "https://github.com/dotnet/roslyn/issues/4490")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Sub VisualBasic_DontRemoveParenthesesAroundXmlElementWhenPreviousTokenIsGreaterThan()
             Dim input =
 <Workspace>

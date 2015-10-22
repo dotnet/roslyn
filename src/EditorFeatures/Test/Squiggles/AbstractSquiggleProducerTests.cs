@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 {
     public static class SquiggleUtilities
     {
-        internal static List<ITagSpan<IErrorTag>> GetErrorSpans(
+        internal static async Task<List<ITagSpan<IErrorTag>>> GetErrorSpans(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    wrapper.WaitForTags();
+                    await wrapper.WaitForTags().ConfigureAwait(true);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -45,14 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
     public abstract class AbstractSquiggleProducerTests
     {
-        protected static IEnumerable<ITagSpan<IErrorTag>> GetErrorSpans(
+        protected static async Task<IEnumerable<ITagSpan<IErrorTag>>> GetErrorSpans(
             TestWorkspace workspace,
             Dictionary<string, DiagnosticAnalyzer[]> analyzerMap = null)
         {
-            return SquiggleUtilities.GetErrorSpans(workspace, analyzerMap);
+            return await SquiggleUtilities.GetErrorSpans(workspace, analyzerMap).ConfigureAwait(true);
         }
 
-        internal static IList<ITagSpan<IErrorTag>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
+        internal static async Task<IList<ITagSpan<IErrorTag>>> GetErrorsFromUpdateSource(TestWorkspace workspace, TestHostDocument document, DiagnosticsUpdatedArgs updateArgs)
         {
             var source = new TestDiagnosticUpdateSource();
             using (var wrapper = new DiagnosticTaggerWrapper(workspace, source))
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 {
                     source.RaiseDiagnosticsUpdated(updateArgs);
 
-                    wrapper.WaitForTags();
+                    await wrapper.WaitForTags().ConfigureAwait(true);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
@@ -92,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 
             public bool SupportGetDiagnostics => false;
 
-            public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, CancellationToken cancellationToken)
+            public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken))
             {
-                return diagnostics;
+                return includeSuppressedDiagnostics ? diagnostics : diagnostics.WhereAsArray(d => !d.IsSuppressed);
             }
         }
     }

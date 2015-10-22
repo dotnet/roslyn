@@ -11,7 +11,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 {
     [Export(typeof(IClassifierProvider))]
     [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class CommandClassifierProvider : IClassifierProvider
     {
         [Import]

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,18 +33,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
              bool systemSpecialCase,
              int index = 0)
         {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup))
+            Test(initialMarkup, expected, index, options: new Dictionary<OptionKey, object>
             {
-                var optionServices = workspace.Services.GetService<IOptionService>();
-                optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(Microsoft.CodeAnalysis.Shared.Options.OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemSpecialCase));
-
-                var diagnosticsAndFix = this.GetDiagnosticAndFix(workspace);
-                var actions = diagnosticsAndFix.Item2.Fixes.Select(f => f.Action).ToList();
-                TestActions(workspace, expected, index, actions);
-            }
+                { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+            });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestTypeFromMultipleNamespaces1()
         {
             Test(
@@ -50,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 @"using System.Collections; class Class { IDictionary Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestTypeFromMultipleNamespaces2()
         {
             Test(
@@ -59,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenericWithNoArgs()
         {
             Test(
@@ -67,7 +64,7 @@ index: 1);
 @"using System.Collections.Generic; class Class { List Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenericWithCorrectArgs()
         {
             Test(
@@ -75,14 +72,14 @@ index: 1);
 @"using System.Collections.Generic; class Class { List<int> Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenericWithWrongArgs()
         {
             TestMissing(
 @"class Class { [|List<int,string>|] Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenericInLocalDeclaration()
         {
             Test(
@@ -90,7 +87,7 @@ index: 1);
 @"using System.Collections.Generic; class Class { void Foo() { List<int> a = new List<int>(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenericItemType()
         {
             Test(
@@ -98,7 +95,7 @@ index: 1);
 @"using System; using System.Collections.Generic; class Class { List<Int32> l; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenerateWithExistingUsings()
         {
             Test(
@@ -106,7 +103,7 @@ index: 1);
 @"using System; using System.Collections.Generic; class Class { List<int> Method() { Foo(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenerateInNamespace()
         {
             Test(
@@ -114,7 +111,7 @@ index: 1);
 @"using System.Collections.Generic; namespace N { class Class { List<int> Method() { Foo(); } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenerateInNamespaceWithUsings()
         {
             Test(
@@ -122,7 +119,7 @@ index: 1);
 @"namespace N { using System; using System.Collections.Generic; class Class { List<int> Method() { Foo(); } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestExistingUsing()
         {
             TestActionCount(
@@ -135,7 +132,7 @@ count: 1);
         }
 
         [WorkItem(541730)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForGenericExtensionMethod()
         {
             Test(
@@ -144,7 +141,7 @@ count: 1);
         }
 
         [WorkItem(541730)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForNormalExtensionMethod()
         {
             Test(
@@ -153,7 +150,7 @@ count: 1);
 parseOptions: Options.Regular);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestOnEnum()
         {
             Test(
@@ -161,7 +158,7 @@ parseOptions: Options.Regular);
 @"using A; class Class { void Foo() { var a = Colors.Red; } } namespace A { enum Colors {Red, Green, Blue} }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestOnClassInheritance()
         {
             Test(
@@ -169,7 +166,7 @@ parseOptions: Options.Regular);
 @"using A; class Class : Class2 { } namespace A { class Class2 { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestOnImplementedInterface()
         {
             Test(
@@ -177,7 +174,7 @@ parseOptions: Options.Regular);
 @"using A; class Class : IFoo { } namespace A { interface IFoo { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAllInBaseList()
         {
             Test(
@@ -189,7 +186,7 @@ parseOptions: Options.Regular);
 @"using A; using B; class Class : IFoo, Class2 { } namespace A { class Class2 { } } namespace B { interface IFoo { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAttributeUnexpanded()
         {
             Test(
@@ -197,7 +194,7 @@ parseOptions: Options.Regular);
 @"using System; [Obsolete]class Class { }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAttributeExpanded()
         {
             Test(
@@ -206,7 +203,7 @@ parseOptions: Options.Regular);
         }
 
         [WorkItem(538018)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAfterNew()
         {
             Test(
@@ -214,7 +211,7 @@ parseOptions: Options.Regular);
 @"using System.Collections.Generic; class Class { void Foo() { List<int> l; l = new List<int>(); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestArgumentsInMethodCall()
         {
             Test(
@@ -222,7 +219,7 @@ parseOptions: Options.Regular);
 @"using System; class Class { void Test() { Console.WriteLine(DateTime.Today); } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestCallSiteArgs()
         {
             Test(
@@ -230,7 +227,7 @@ parseOptions: Options.Regular);
 @"using System; class Class { void Test(DateTime dt) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestUsePartialClass()
         {
             Test(
@@ -238,7 +235,7 @@ parseOptions: Options.Regular);
 @"using B; namespace A { public class Class { PClass c; } } namespace B{ public partial class PClass { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestGenericClassInNestedNamespace()
         {
             Test(
@@ -247,7 +244,7 @@ parseOptions: Options.Regular);
         }
 
         [WorkItem(541730)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestExtensionMethods()
         {
             Test(
@@ -256,7 +253,7 @@ parseOptions: Options.Regular);
         }
 
         [WorkItem(541730)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestQueryPatterns()
         {
             Test(
@@ -265,7 +262,7 @@ parseOptions: Options.Regular);
         }
 
         // Tests for Insertion Order
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimplePresortedUsings1()
         {
             Test(
@@ -273,7 +270,7 @@ parseOptions: Options.Regular);
 @"using B; using C; using D; class Class { void Method() { Foo.Bar(); } } namespace D { class Foo { public static void Bar() { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimplePresortedUsings2()
         {
             Test(
@@ -281,7 +278,7 @@ parseOptions: Options.Regular);
 @"using A; using B; using C; class Class { void Method() { Foo.Bar(); } } namespace A { class Foo { public static void Bar() { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleUnsortedUsings1()
         {
             Test(
@@ -289,7 +286,7 @@ parseOptions: Options.Regular);
 @"using C; using B; using A; class Class { void Method() { Foo.Bar(); } } namespace A { class Foo { public static void Bar() { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleUnsortedUsings2()
         {
             Test(
@@ -297,7 +294,7 @@ parseOptions: Options.Regular);
 @"using D; using B; using C; class Class { void Method() { Foo.Bar(); } } namespace C { class Foo { public static void Bar() { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestMultiplePresortedUsings1()
         {
             Test(
@@ -305,7 +302,7 @@ parseOptions: Options.Regular);
 @"using B; using B.X; using B.Y; class Class { void Method() { Foo.Bar(); } } namespace B { class Foo { public static void Bar() { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestMultiplePresortedUsings2()
         {
             Test(
@@ -313,7 +310,7 @@ parseOptions: Options.Regular);
 @"using B.A; using B.X; using B.Y; class Class { void Method() { Foo.Bar(); } } namespace B.A { class Foo { public static void Bar() { } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestMultiplePresortedUsings3()
         {
             Test(
@@ -321,7 +318,7 @@ parseOptions: Options.Regular);
 @"using B.A; using B.X; using B.Y; class Class { void Method() { Foo.Bar(); } } namespace B { namespace A { class Foo { public static void Bar() { } } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestMultipleUnsortedUsings1()
         {
             Test(
@@ -329,7 +326,7 @@ parseOptions: Options.Regular);
 @"using B.Y; using B.X; using B.A; class Class { void Method() { Foo.Bar(); } } namespace B { namespace A { class Foo { public static void Bar() { } } } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestMultipleUnsortedUsings2()
         {
             Test(
@@ -338,7 +335,7 @@ parseOptions: Options.Regular);
         }
 
         // System on top cases
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemSortedUsings1()
         {
             Test(
@@ -347,7 +344,7 @@ parseOptions: Options.Regular);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemSortedUsings2()
         {
             Test(
@@ -356,7 +353,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemSortedUsings3()
         {
             Test(
@@ -365,7 +362,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemUnsortedUsings1()
         {
             Test(
@@ -374,7 +371,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemUnsortedUsings2()
         {
             Test(
@@ -383,7 +380,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemUnsortedUsings3()
         {
             Test(
@@ -392,7 +389,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleBogusSystemUsings1()
         {
             Test(
@@ -401,7 +398,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleBogusSystemUsings2()
         {
             Test(
@@ -410,7 +407,7 @@ systemSpecialCase: true);
 systemSpecialCase: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestUsingsWithComments()
         {
             Test(
@@ -420,7 +417,7 @@ systemSpecialCase: true);
         }
 
         // System Not on top cases
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemUnsortedUsings4()
         {
             Test(
@@ -429,7 +426,7 @@ systemSpecialCase: true);
 systemSpecialCase: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemSortedUsings5()
         {
             Test(
@@ -438,7 +435,7 @@ systemSpecialCase: false);
 systemSpecialCase: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestSimpleSystemSortedUsings4()
         {
             Test(
@@ -449,7 +446,7 @@ systemSpecialCase: false);
 
         [WorkItem(538136)]
         [WorkItem(538763)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForNamespace()
         {
             TestMissing(
@@ -457,7 +454,7 @@ systemSpecialCase: false);
         }
 
         [WorkItem(538220)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForFieldWithFormatting()
         {
             Test(
@@ -469,7 +466,7 @@ compareTokens: false);
         }
 
         [WorkItem(539657)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void BugFix5688()
         {
             Test(
@@ -478,7 +475,7 @@ compareTokens: false);
         }
 
         [WorkItem(539853)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void BugFix5950()
         {
             Test(
@@ -488,7 +485,7 @@ parseOptions: GetScriptOptions());
         }
 
         [WorkItem(540339)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddAfterDefineDirective1()
         {
             Test(
@@ -521,7 +518,7 @@ compareTokens: false);
         }
 
         [WorkItem(540339)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddAfterDefineDirective2()
         {
             Test(
@@ -548,7 +545,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddAfterDefineDirective3()
         {
             Test(
@@ -576,7 +573,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddAfterDefineDirective4()
         {
             Test(
@@ -605,7 +602,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddAfterExistingBanner()
         {
             Test(
@@ -634,7 +631,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddAfterExternAlias1()
         {
             Test(
@@ -665,7 +662,7 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddAfterExternAlias2()
         {
             Test(
@@ -699,26 +696,28 @@ class Program
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestWithReferenceDirective()
         {
-            // TODO: avoid using real file
-            string path = typeof(System.Linq.Expressions.Expression).Assembly.Location;
+            var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
+            {
+                { "exprs", AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference() }
+            });
 
             Test(
-@"#r """ + path + @"""
+@"#r ""exprs""
 [|Expression|]",
-@"#r """ + path + @"""
+@"#r ""exprs""
 using System.Linq.Expressions;
 
 Expression",
 parseOptions: GetScriptOptions(),
-compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default)),
+compilationOptions: TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver),
 compareTokens: false);
         }
 
         [WorkItem(542643)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAssemblyAttribute()
         {
             Test(
@@ -726,7 +725,7 @@ compareTokens: false);
 @"using System . Runtime . CompilerServices ; [ assembly : InternalsVisibleTo ( ""Project"" ) ] ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestDoNotAddIntoHiddenRegion()
         {
             TestMissing(
@@ -743,7 +742,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddToVisibleRegion()
         {
             Test(
@@ -780,7 +779,7 @@ compareTokens: false);
         }
 
         [WorkItem(545248)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestVenusGeneration1()
         {
             TestMissing(
@@ -798,7 +797,7 @@ class C
         }
 
         [WorkItem(545774)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAttribute()
         {
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
@@ -810,7 +809,7 @@ input,
         }
 
         [WorkItem(546833)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestNotOnOverloadResolutionError()
         {
             TestMissing(
@@ -818,7 +817,7 @@ input,
         }
 
         [WorkItem(17020, "DevDiv_Projects/Roslyn")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForGenericArgument()
         {
             Test(
@@ -827,7 +826,7 @@ input,
         }
 
         [WorkItem(775448)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
@@ -854,7 +853,7 @@ class Test
         }
 
         [WorkItem(838253)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestConflictedInaccessibleType()
         {
             Test(
@@ -864,7 +863,7 @@ systemSpecialCase: true);
         }
 
         [WorkItem(858085)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestConflictedAttributeName()
         {
             Test(
@@ -873,7 +872,7 @@ systemSpecialCase: true);
         }
 
         [WorkItem(872908)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestConflictedGenericName()
         {
             Test(
@@ -883,7 +882,7 @@ systemSpecialCase: true);
 
         [WorkItem(860648)]
         [WorkItem(902014)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestIncompleteSimpleLambdaExpression()
         {
             Test(
@@ -912,7 +911,7 @@ class Program
 
         [WorkItem(860648)]
         [WorkItem(902014)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestIncompleteParenthesizedLambdaExpression()
         {
             Test(
@@ -940,7 +939,7 @@ class Test
         }
 
         [WorkItem(913300)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestNoDuplicateReport()
         {
             TestActionCountInAllFixes(
@@ -962,7 +961,7 @@ class Test
         }
 
         [WorkItem(938296)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestNullParentInNode()
         {
             TestMissing(
@@ -978,14 +977,14 @@ class MultiDictionary<K, V> : Dictionary<K, HashSet<V>>
         }
 
         [WorkItem(968303)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestMalformedUsingSection()
         {
             TestMissing("[ class Class { [|List<|] }");
         }
 
         [WorkItem(875899)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingsWithExternAlias()
         {
             const string InitialWorkspace = @"
@@ -1031,11 +1030,11 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingsWithPreExistingExternAlias()
         {
             const string InitialWorkspace = @"
@@ -1093,11 +1092,11 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingsNoExtern()
         {
             const string InitialWorkspace = @"
@@ -1143,11 +1142,11 @@ namespace ExternAliases
     }
 } 
 ";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
+            Test(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingsNoExternFilterGlobalAlias()
         {
             Test(
@@ -1170,7 +1169,7 @@ class Program
         }
 
         [WorkItem(916368)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForCref()
         {
             var initialText =
@@ -1192,7 +1191,7 @@ interface MyNotifyPropertyChanged { }";
         }
 
         [WorkItem(916368)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForCref2()
         {
             var initialText =
@@ -1214,7 +1213,7 @@ interface MyNotifyPropertyChanged { }";
         }
 
         [WorkItem(916368)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForCref3()
         {
             var initialText =
@@ -1263,7 +1262,7 @@ public class MyClass2
         }
 
         [WorkItem(916368)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForCref4()
         {
             var initialText =
@@ -1302,7 +1301,7 @@ public class MyClass
         }
 
         [WorkItem(773614)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddStaticType()
         {
             var initialText =
@@ -1342,7 +1341,7 @@ class Test
         }
 
         [WorkItem(773614)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddStaticType2()
         {
             var initialText =
@@ -1386,7 +1385,7 @@ class Test
         }
 
         [WorkItem(773614)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddStaticType3()
         {
             var initialText =
@@ -1410,7 +1409,7 @@ class Test
         }
 
         [WorkItem(773614)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddStaticType4()
         {
             var initialText =
@@ -1456,7 +1455,7 @@ class Test
         }
 
         [WorkItem(991463)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideUsingDirective1()
         {
             Test(
@@ -1465,7 +1464,7 @@ class Test
         }
 
         [WorkItem(991463)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideUsingDirective2()
         {
             Test(
@@ -1474,7 +1473,7 @@ class Test
         }
 
         [WorkItem(991463)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideUsingDirective3()
         {
             Test(
@@ -1483,7 +1482,7 @@ class Test
         }
 
         [WorkItem(991463)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideUsingDirective4()
         {
             Test(
@@ -1492,7 +1491,7 @@ class Test
         }
 
         [WorkItem(991463)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideUsingDirective5()
         {
             Test(
@@ -1501,7 +1500,7 @@ class Test
         }
 
         [WorkItem(991463)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideUsingDirective6()
         {
             TestMissing(
@@ -1509,7 +1508,7 @@ class Test
         }
 
         [WorkItem(1033612)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideLambda()
         {
             var initialText =
@@ -1532,7 +1531,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(1033612)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideLambda2()
         {
             var initialText =
@@ -1555,7 +1554,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(1033612)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideLambda3()
         {
             var initialText =
@@ -1586,7 +1585,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(1033612)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddInsideLambda4()
         {
             var initialText =
@@ -1617,7 +1616,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(1064748)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddConditionalAccessExpression()
         {
             var initialText =
@@ -1653,11 +1652,11 @@ public class C
         C x = a?.B();
     }
 }";
-            Test(initialText, expectedText, isLine: false);
+            Test(initialText, expectedText);
         }
 
         [WorkItem(1064748)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddConditionalAccessExpression2()
         {
             var initialText =
@@ -1705,11 +1704,11 @@ public class C
     {
     }
 }";
-            Test(initialText, expectedText, isLine: false);
+            Test(initialText, expectedText);
         }
 
         [WorkItem(1089138)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAmbiguousUsingName()
         {
             Test(
@@ -1717,7 +1716,7 @@ public class C
 @"namespace ClassLibrary1 { using System ; using global::SubNamespaceName ; public class SomeTypeUser { SomeType field ; } } namespace SubNamespaceName { using System ; class SomeType { } } namespace ClassLibrary1 . SubNamespaceName { using System ; class SomeOtherFile { } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingInDirective()
         {
             Test(
@@ -1742,7 +1741,7 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingInDirective2()
         {
             Test(
@@ -1767,7 +1766,7 @@ using System.Text;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingInDirective3()
         {
             Test(
@@ -1793,7 +1792,7 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingInDirective4()
         {
             Test(
@@ -1819,30 +1818,22 @@ using System.IO;
 class Program { static void Main ( string [ ] args ) { var a = File . OpenRead ( """" ) ; } } ", compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestInaccessibleExtensionMethod()
         {
-            const string InitialWorkspace = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
-        <Document FilePath=""lib.cs"">
-namespace ProjectLib
+            const string initial = @"
+namespace N1
 {
-    public static class Class1
+    public static class C
     {
-        public static bool ExtMethod1(this string arg1)
+        private static bool ExtMethod1(this string arg1)
         {
-            Console.WriteLine(arg1);
             return true;
         }
     }
 }
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
-        <ProjectReference>lib</ProjectReference>
-        <Document FilePath=""Program.cs"">
-namespace ConsoleApplication1
+
+namespace N2
 {
     class Program
     {
@@ -1851,67 +1842,12 @@ namespace ConsoleApplication1
             var x = ""str1"".[|ExtMethod1()|];
         }
     }
-} 
-</Document>
-    </Project>
-</Workspace>";
-            const string ExpectedDocumentText = @"using ProjectLib;
-
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var x = ""str1"".ExtMethod1();
-        }
-    }
-}  
-";
-            Test(InitialWorkspace, ExpectedDocumentText, isLine: false);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
-        public void TestInaccessibleExtensionMethod2()
-        {
-            const string InitialWorkspace = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
-        <Document FilePath=""lib.cs"">
-namespace ProjectLib
-{
-    static class Class1
-    {
-        public static bool ExtMethod1(this string arg1)
-        {
-            Console.WriteLine(arg1);
-            return true;
-        }
-    }
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Console"" CommonReferences=""true"">
-        <ProjectReference>lib</ProjectReference>
-        <Document FilePath=""Program.cs"">
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var x = ""str1"".[|ExtMethod1()|];
-        }
-    }
-} 
-</Document>
-    </Project>
-</Workspace>";
-            TestMissing(InitialWorkspace);
+}";
+            TestMissing(initial);
         }
 
         [WorkItem(1116011)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForProperty()
         {
             Test(
@@ -1920,7 +1856,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1116011)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingForField()
         {
             Test(
@@ -1929,7 +1865,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1893, "https://github.com/dotnet/roslyn/issues/1893")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestNameSimplification()
         {
             // Generated using directive must be simplified from "using A.B;" to "using B;" below.
@@ -1972,7 +1908,7 @@ namespace A.C
         }
 
         [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingWithOtherExtensionsInScope()
         {
             Test(
@@ -1981,7 +1917,7 @@ namespace A.C
         }
 
         [WorkItem(935, "https://github.com/dotnet/roslyn/issues/935")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingWithOtherExtensionsInScope2()
         {
             Test(
@@ -1990,7 +1926,7 @@ namespace A.C
         }
 
         [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingWithOtherExtensionsInScope3()
         {
             Test(
@@ -1999,12 +1935,141 @@ namespace A.C
         }
 
         [WorkItem(562, "https://github.com/dotnet/roslyn/issues/562")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
         public void TestAddUsingWithOtherExtensionsInScope4()
         {
             Test(
 @"using System . Linq ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? [|. All|] ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ",
 @"using System . Linq ; using X ; class C { static void Main ( string [ ] args ) { var a = new int ? ( ) ; int ? i = a ? . All ( ) ; } } namespace X { static class E { public static int ? All ( this int ? o ) => 0 ; } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified2()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified3()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using System ; using Win32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using System ; using Win32 ; using Win32 . SafeHandles ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified4()
+        {
+            Test(
+@"namespace Microsoft . MyApp { using System ; using Zin32 ; class Program { static void Main ( string [ ] args ) { [|SafeRegistryHandle|] h ; } } } ",
+@"namespace Microsoft . MyApp { using System ; using Win32 . SafeHandles ; using Zin32 ; class Program { static void Main ( string [ ] args ) { SafeRegistryHandle h ; } } } ");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified5()
+        {
+            Test(
+@"namespace Microsoft.MyApp
+{
+#if true
+    using Win32;
+#else
+    using System;
+#endif
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|SafeRegistryHandle|] h;
+        }
+    }
+}",
+@"namespace Microsoft.MyApp
+{
+#if true
+    using Win32;
+    using Win32.SafeHandles;
+#else
+    using System;
+#endif
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            SafeRegistryHandle h;
+        }
+    }
+}");
+        }
+
+        [WorkItem(3080, "https://github.com/dotnet/roslyn/issues/3080")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestNestedNamespaceSimplified6()
+        {
+            Test(
+@"namespace Microsoft.MyApp
+{
+    using System;
+#if false
+    using Win32;
+#endif
+    using Win32;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|SafeRegistryHandle|] h;
+        }
+    }
+}",
+@"namespace Microsoft.MyApp
+{
+    using System;
+#if false
+    using Win32;
+#endif
+    using Win32;
+    using Win32.SafeHandles;
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            SafeRegistryHandle h;
+        }
+    }
+}");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalUppercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var b = new [|B|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using Uppercase ; namespace A { class A { static void Main ( string [ ] args ) { var b = new B ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        public void TestAddUsingOrdinalLowercase()
+        {
+            Test(
+@"namespace A { class A { static void Main ( string [ ] args ) { var a = new [|b|] ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ",
+@"using lowercase ; namespace A { class A { static void Main ( string [ ] args ) { var a = new b ( ) ; } } } namespace lowercase { class b { } } namespace Uppercase { class B { } } ");
         }
 
         public partial class AddUsingTestsWithAddImportDiagnosticProvider : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
@@ -2022,19 +2087,14 @@ namespace A.C
                  bool systemSpecialCase,
                  int index = 0)
             {
-                using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup))
+                Test(initialMarkup, expected, index: index, options: new Dictionary<OptionKey, object>
                 {
-                    var optionServices = workspace.Services.GetService<IOptionService>();
-                    optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(Microsoft.CodeAnalysis.Shared.Options.OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemSpecialCase));
-
-                    var diagnosticsAndFix = this.GetDiagnosticAndFix(workspace);
-                    var actions = diagnosticsAndFix.Item2.Fixes.Select(f => f.Action).ToList();
-                    TestActions(workspace, expected, index, actions);
-                }
+                    { new OptionKey(OrganizerOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
+                });
             }
 
             [WorkItem(752640)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestUnknownIdentifierWithSyntaxError()
             {
                 Test(
@@ -2043,7 +2103,7 @@ namespace A.C
             }
 
             [WorkItem(829970)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestUnknownIdentifierInAttributeSyntaxWithoutTarget()
             {
                 Test(
@@ -2052,7 +2112,7 @@ namespace A.C
             }
 
             [WorkItem(829970)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestUnknownIdentifierGenericName()
             {
                 Test(
@@ -2061,7 +2121,7 @@ namespace A.C
             }
 
             [WorkItem(855748)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestGenericNameWithBrackets()
             {
                 Test(
@@ -2078,7 +2138,7 @@ namespace A.C
             }
 
             [WorkItem(867496)]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestMalformedGenericParameters()
             {
                 Test(
@@ -2090,7 +2150,7 @@ namespace A.C
     @"using System.Collections.Generic; class Class { List<Y x; }");
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestOutsideOfMethodWithMalformedGenericParameters()
             {
                 Test(
@@ -2099,7 +2159,7 @@ namespace A.C
             }
 
             [WorkItem(1744, @"https://github.com/dotnet/roslyn/issues/1744")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestIncompleteCatchBlockInLambda()
             {
                 Test(
@@ -2108,7 +2168,7 @@ namespace A.C
             }
 
             [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestIncompleteLambda1()
             {
                 Test(
@@ -2117,7 +2177,7 @@ namespace A.C
             }
 
             [WorkItem(1239, @"https://github.com/dotnet/roslyn/issues/1239")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+            [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
             public void TestIncompleteLambda2()
             {
                 Test(

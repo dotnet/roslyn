@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             action(cacheService, projectId, owner, instance);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCacheKeepsObjectAlive1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCacheKeepsObjectAlive2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected1()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCacheDoesNotKeepObjectsAliveAfterOwnerIsCollected2()
         {
             Test((cacheService, projectId, owner, instance) =>
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             });
         }
 
-        [Fact]
+        [WpfFact]
         public void TestImplicitCacheKeepsObjectAlive1()
         {
             var cacheService = new ProjectCacheService(null, int.MaxValue);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             GC.KeepAlive(cacheService);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestImplicitCacheMonitoring()
         {
             var cacheService = new ProjectCacheService(null, 10, forceCleanup: true);
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return weak;
         }
 
-        [Fact]
+        [WpfFact]
         public void TestP2PReference()
         {
             var workspace = new AdhocWorkspace();
@@ -176,12 +176,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 workspace.OnProjectRemoved(project2.Id);
             }
 
-            // make sure p2p reference doesnt go to implicit cache
+            // make sure p2p reference doesn't go to implicit cache
             CollectGarbage();
             Assert.False(weak.IsAlive);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestEjectFromImplicitCache()
         {
             List<Compilation> compilations = new List<Compilation>();
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             GC.KeepAlive(cache);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestCacheCompilationTwice()
         {
             var comp1 = CSharpCompilation.Create("1");

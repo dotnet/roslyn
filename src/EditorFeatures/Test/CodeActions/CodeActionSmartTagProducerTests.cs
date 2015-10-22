@@ -16,7 +16,7 @@ namespace Roslyn.Services.Editor.UnitTests.CodeActions
 {
     public class CodeActionSmartTagProducerTests
     {
-        [Fact]
+        [WpfFact]
         public void TestWalker()
         {
             var text =

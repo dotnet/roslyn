@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            return type1.Equals(type2, ignoreCustomModifiers: true, ignoreDynamic: true);
+            return type1.Equals(type2, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true);
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
@@ -876,8 +876,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: nullable forms of those types. For each of the predefined implicit identity and numeric conversions
             // SPEC: that convert from a non-nullable value type S to a non-nullable value type T, the following implicit 
             // SPEC: nullable conversions exist:
-            // SPEC: â€¢ An implicit conversion from S? to T?.
-            // SPEC: â€¢ An implicit conversion from S to T?.
+            // SPEC: * An implicit conversion from S? to T?.
+            // SPEC: * An implicit conversion from S to T?.
             if (!destination.IsNullableType())
             {
                 return false;
@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // * Both SE and TE are reference types.
             // * An implicit reference conversion exists from SE to TE.
             return
-                (s.Rank == d.Rank) &&
+                s.HasSameShapeAs(d) &&
                 HasImplicitReferenceConversion(s.ElementType, d.ElementType, ref useSiteDiagnostics);
         }
 
@@ -1009,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (source.Rank != 1)
+            if (!source.IsSZArray)
             {
                 return false;
             }
@@ -1960,7 +1960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // considered a reference type implicitly in the case of "where TE : class, SE" even
                 // though SE.IsReferenceType may be false. Again, HasExplicitReferenceConversion
                 // already handles these cases.
-                return sourceArray.Rank == destinationArray.Rank &&
+                return sourceArray.HasSameShapeAs(destinationArray) &&
                     HasExplicitReferenceConversion(sourceArray.ElementType, destinationArray.ElementType, ref useSiteDiagnostics);
             }
 
@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The framework now also allows arrays to be converted to IReadOnlyList<T> and IReadOnlyCollection<T>; we 
             // honor that as well.
 
-            if ((object)sourceArray != null && sourceArray.Rank == 1 && destination.IsPossibleArrayGenericInterface())
+            if ((object)sourceArray != null && sourceArray.IsSZArray && destination.IsPossibleArrayGenericInterface())
             {
                 if (HasExplicitReferenceConversion(sourceArray.ElementType, ((NamedTypeSymbol)destination).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics), ref useSiteDiagnostics))
                 {
@@ -1999,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // provided that there is an explicit identity or reference conversion from S to T.
 
             // Similarly, we honor IReadOnlyList<S> and IReadOnlyCollection<S> in the same way.
-            if ((object)destinationArray != null && destinationArray.Rank == 1)
+            if ((object)destinationArray != null && destinationArray.IsSZArray)
             {
                 var specialDefinition = ((TypeSymbol)source.OriginalDefinition).SpecialType;
 
