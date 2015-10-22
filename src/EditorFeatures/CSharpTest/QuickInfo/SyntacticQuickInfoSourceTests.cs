@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Brackets_1()
         {
-            TestInClass("int Property { get; }$$", "int Property {");
+            TestInClass("int Property { get; }$$ ", "int Property {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Brackets_2()
         {
-            TestInClass("void M()\r\n{ }$$", "void M()\r\n{");
+            TestInClass("void M()\r\n{ }$$ ", "void M()\r\n{");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Brackets_3()
         {
-            TestInMethodAndScript("var a = new int[] { }$$", "new int[] {");
+            TestInMethodAndScript("var a = new int[] { }$$ ", "new int[] {");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         public void ScopeBrackets_6()
         {
             TestInMethodAndScript(@"
-            for (;;;)
+            for (;;)
             {
                 /*************/
 
@@ -253,6 +253,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
 ",
             "{");
+        }
+
+        [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void ScopeBrackets_10()
+        {
+            TestInMethodAndScript(@"
+            switch (true)
+            {
+                default:
+                    // comment
+                    {
+                    }$$
+                    break;
+            }
+",
+@"// comment
+{");
         }
 
         private IQuickInfoProvider CreateProvider(TestWorkspace workspace)

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
             // If the parent is a scope block, check and include nearby comments around the open brace
             // LeadingTrivia is preferred
-            if (parent.IsKind(SyntaxKind.Block) && (parent.Parent.IsKind(SyntaxKind.Block) || parent.Parent.IsKind(SyntaxKind.GlobalStatement)))
+            if (IsScopeBlock(parent))
             {
                 MarkInterestedSpanNearbyScopeBlock(parent, openBrace, ref spanStart, ref spanEnd);
             }
@@ -87,6 +88,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
             var span = new SnapshotSpan(textSnapshot, Span.FromBounds(spanStart, spanEnd));
             return this.CreateElisionBufferDeferredContent(span);
+        }
+
+        private static bool IsScopeBlock(SyntaxNode node)
+        {
+            var parent = node.Parent;
+            return node.IsKind(SyntaxKind.Block)
+                && (parent.IsKind(SyntaxKind.Block)
+                    || parent.IsKind(SyntaxKind.SwitchSection)
+                    || parent.IsKind(SyntaxKind.GlobalStatement
+                    ));
         }
 
         private static void MarkInterestedSpanNearbyScopeBlock(SyntaxNode block, SyntaxToken openBrace, ref int spanStart, ref int spanEnd)
