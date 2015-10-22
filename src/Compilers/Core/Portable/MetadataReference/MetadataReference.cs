@@ -319,6 +319,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             string location = CorLightup.Desktop.GetAssemblyLocation(assembly);
+            if (string.IsNullOrEmpty(location))
+            {
+                throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToAssemblyWithoutLocation);
+            }
+
             Stream peStream = FileUtilities.OpenFileStream(location);
 
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
@@ -326,6 +331,11 @@ namespace Microsoft.CodeAnalysis
             var metadata = AssemblyMetadata.CreateFromStream(peStream);
 
             return new MetadataImageReference(metadata, properties, documentation, location, display: null);
+        }
+
+        internal static bool HasMetadata(Assembly assembly)
+        {
+            return !assembly.IsDynamic && !string.IsNullOrEmpty(CorLightup.Desktop.GetAssemblyLocation(assembly));
         }
     }
 }
