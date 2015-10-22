@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using RelativePathResolver = Scripting::Microsoft.CodeAnalysis.RelativePathResolver;
 
-    public abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
+    internal abstract class InteractiveEvaluator : IInteractiveEvaluator, ICurrentWorkingDirectoryDiscoveryService
     {
         // full path or null
         private readonly string _responseFilePath;
