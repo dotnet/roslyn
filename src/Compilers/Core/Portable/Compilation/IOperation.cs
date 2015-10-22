@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         PointerIndirectionReferenceExpression,
         LocalReferenceExpression,
         ParameterReferenceExpression,
-        TemporaryReferenceExpression,
+        SyntheticLocalReferenceExpression,
         FieldReferenceExpression,
         MethodReferenceExpression,
         PropertyReferenceExpression,

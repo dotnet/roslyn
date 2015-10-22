@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
                 Get
-                    Return OperationKind.TemporaryReferenceExpression
+                    Return OperationKind.SyntheticLocalReferenceExpression
                 End Get
             End Property
 
@@ -464,12 +464,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly Property Syntax As SyntaxNode Implements IExpression.Syntax
                 Get
                     Return Me._capturedValue.Syntax
-                End Get
-            End Property
-
-            Public ReadOnly Property ReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-                Get
-                    Return ReferenceKind.SyntheticLocal
                 End Get
             End Property
 

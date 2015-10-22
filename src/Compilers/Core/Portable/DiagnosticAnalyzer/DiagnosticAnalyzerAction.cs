@@ -50,6 +50,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<TLanguageKindEnum> Kinds { get { return _kinds; } }
     }
 
+    internal sealed class OperationBlockStartAnalyzerAction : AnalyzerAction
+    {
+        private readonly Action<OperationBlockStartAnalysisContext> _action;
+
+        public OperationBlockStartAnalyzerAction(Action<OperationBlockStartAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            _action = action;
+        }
+
+        public Action<OperationBlockStartAnalysisContext> Action => _action;
+    }
+
+    internal sealed class OperationBlockAnalyzerAction : AnalyzerAction
+    {
+        private readonly Action<OperationBlockAnalysisContext> _action;
+
+        public OperationBlockAnalyzerAction(Action<OperationBlockAnalysisContext> action, DiagnosticAnalyzer analyzer)
+            : base(analyzer)
+        {
+            _action = action;
+        }
+
+        public Action<OperationBlockAnalysisContext> Action => _action;
+    }
+
     internal sealed class OperationAnalyzerAction : AnalyzerAction
     {
         private readonly Action<OperationAnalysisContext> action;
