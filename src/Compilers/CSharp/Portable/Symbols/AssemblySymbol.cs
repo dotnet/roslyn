@@ -729,7 +729,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 "Never include references for a non-source assembly, because they don't know about aliases.");
 
             var assemblies = ArrayBuilder<AssemblySymbol>.GetInstance();
-            DeclaringCompilation.GetUnaliasedReferencedAssemblies(assemblies);
+
+            // ignore reference aliases if searching for a type from a specific assembly:
+            if (assemblyOpt != null)
+            {
+                assemblies.AddRange(DeclaringCompilation.GetBoundReferenceManager().ReferencedAssemblies);
+            }
+            else
+            {
+                DeclaringCompilation.GetUnaliasedReferencedAssemblies(assemblies);
+            }
 
             // Lookup in references
             foreach (var assembly in assemblies)

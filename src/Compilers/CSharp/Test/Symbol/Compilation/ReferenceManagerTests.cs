@@ -19,13 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly CSharpCompilationOptions s_signedDll = 
             TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
-
-        private static IEnumerable<string> GetAssemblyAliases(Compilation compilation)
-        {
-            return compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases().
-               Select(t => $"{t.Item1.Identity.Name}{(t.Item2.IsEmpty ? "" : ": " + string.Join(",", t.Item2))}");
-        }
-
+        
         [Fact]
         public void WinRtCompilationReferences()
         {
@@ -2202,12 +2196,11 @@ new B()
 
             c.VerifyDiagnostics();
 
-            AssertEx.Equal(new[] 
-            {
+            c.VerifyAssemblyAliases(
                 "mscorlib",
                 "B: X,global",
                 "A"
-            }, GetAssemblyAliases(c));
+            );
         }
 
         [Fact]
@@ -2234,12 +2227,10 @@ new B()
                 // new B()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B"));
 
-            AssertEx.Equal(new[]
-            {
+            c.VerifyAssemblyAliases(
                 "mscorlib",
                 "B: X",
-                "A"
-            }, GetAssemblyAliases(c));
+                "A");
         }
 
         [Fact]
@@ -2272,12 +2263,10 @@ public class P
 
             c.VerifyDiagnostics();
 
-            AssertEx.Equal(new[]
-            {
+            c.VerifyAssemblyAliases(
                 "B: X,Y",
                 "A: global,Y",
-                "mscorlib: global,Y"
-            }, GetAssemblyAliases(c));
+                "mscorlib: global,Y");
         }
 
         [Fact]
@@ -2310,12 +2299,10 @@ public class P
 
             c.VerifyDiagnostics();
 
-            AssertEx.Equal(new[]
-            {
+            c.VerifyAssemblyAliases(
                 "B: X,Y",
                 "A: global,Y",
-                "mscorlib: global,Y"
-            }, GetAssemblyAliases(c));
+                "mscorlib: global,Y");
         }
 
         [Fact]
@@ -2350,12 +2337,10 @@ public class P
 
             c.VerifyDiagnostics();
 
-            AssertEx.Equal(new[]
-            {
+            c.VerifyAssemblyAliases(
                 "B: X,Y",
                 "A: global,Y",
-                "mscorlib: global,Y"
-            }, GetAssemblyAliases(c));
+                "mscorlib: global,Y");
         }
 
         [Fact]
@@ -2391,13 +2376,11 @@ public class P
 
             c.VerifyDiagnostics();
 
-            AssertEx.Equal(new[]
-            {
+            c.VerifyAssemblyAliases(
                 "B: X,Y,Y,Z",
                 "A: Y,Y,Z",
                 "D: Z",
-                "mscorlib: global,Y,Y,Z"
-            }, GetAssemblyAliases(c));
+                "mscorlib: global,Y,Y,Z");
         }
 
         [Fact]
