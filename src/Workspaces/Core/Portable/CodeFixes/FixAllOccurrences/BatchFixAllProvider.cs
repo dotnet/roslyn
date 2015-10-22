@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 // TODO: Parallelize GetChangedSolutionInternalAsync for codeActions
-                var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken).ConfigureAwait(false);
+                var changedSolution = await codeAction.GetChangedSolutionInternalAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 var solutionChanges = new SolutionChanges(changedSolution, oldSolution);
 
