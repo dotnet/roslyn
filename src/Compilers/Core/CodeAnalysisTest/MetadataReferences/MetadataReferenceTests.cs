@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void CreateFromFile()
+        public void CreateFromFile_Assembly()
         {
             var file = Temp.CreateFile().WriteAllBytes(TestResources.NetFX.v4_0_30319.mscorlib);
 
@@ -91,10 +91,34 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsEmpty);
 
+            var props = new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a", "b"), embedInteropTypes: true, hasRecursiveAliases: true);
+            Assert.Equal(props, MetadataReference.CreateFromFile(file.Path, props).Properties);
+
             // check that the metadata is in memory and the file can be deleted:
             File.Delete(file.Path);
             var metadata = (AssemblyMetadata)r.GetMetadata();
             Assert.Equal("CommonLanguageRuntimeLibrary", metadata.GetModules()[0].Name);
+        }
+
+        [Fact]
+        public void CreateFromFile_Module()
+        {
+            var file = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.NetModule01.ModuleCS00);
+
+            var r = MetadataReference.CreateFromFile(file.Path, MetadataReferenceProperties.Module);
+            Assert.Equal(file.Path, r.FilePath);
+            Assert.Equal(file.Path, r.Display);
+            Assert.Equal(MetadataImageKind.Module, r.Properties.Kind);
+            Assert.False(r.Properties.EmbedInteropTypes);
+            Assert.True(r.Properties.Aliases.IsEmpty);
+
+            var props = new MetadataReferenceProperties(MetadataImageKind.Module);
+            Assert.Equal(props, MetadataReference.CreateFromFile(file.Path, props).Properties);
+
+            // check that the metadata is in memory and the file can be deleted:
+            File.Delete(file.Path);
+            var metadata = (ModuleMetadata)r.GetMetadata();
+            Assert.Equal("ModuleCS00.netmodule", metadata.Name);
         }
 
         [Fact]
@@ -108,6 +132,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsEmpty);
             Assert.Same(DocumentationProvider.Default, r.DocumentationProvider);
+
+            var props = new MetadataReferenceProperties(MetadataImageKind.Assembly, ImmutableArray.Create("a", "b"), embedInteropTypes: true, hasRecursiveAliases: true);
+            Assert.Equal(props, MetadataReference.CreateFromAssemblyInternal(assembly, props).Properties);
         }
 
         [Fact]
