@@ -33,18 +33,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             {
             }$$
 ",
-            ExpectedContent("switch (true)\r\n{"));
+            "switch (true)\r\n{");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Brackets_1()
+        {
+            TestInClass("int Property { get; }$$", "int Property {");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void Brackets_2()
+        {
+            TestInClass("void M()\r\n{ }$$", "void M()\r\n{");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void Brackets_3()
+        {
+            TestInMethodAndScript("var a = new int[] { }$$", "new int[] {");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public void Brackets_4()
         {
             TestInMethodAndScript(@"
             if (true)
             {
             }$$
 ",
-            ExpectedContent("if (true)\r\n{"));
+            "if (true)\r\n{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -58,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 }$$
             }
 ",
-            ExpectedContent("{"));
+            "{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -74,10 +92,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 }$$
             }
 ",
-            ExpectedContent(
 @"// some
 // comment
-{"));
+{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -93,9 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
             while (true);
 ",
-            ExpectedContent(
 @"/* comment */
-{"));
+{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -114,10 +130,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 }$$
             }
 ",
-            ExpectedContent(
 @"{
     // some
-    // comment"));
+    // comment");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -132,9 +147,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 }$$
             }
 ",
-            ExpectedContent(
 @"{
-    /* comment */"));
+    /* comment */");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -150,9 +164,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 }$$
             }
 ",
-            ExpectedContent(
 @"// above
-{"));
+{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -171,13 +184,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 }$$
             }
 ",
-            ExpectedContent(
 @"/*************/
 
 // part 1
 
 // part 2
-{"));
+{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -197,13 +209,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             }
             catch { throw; }
 ",
-            ExpectedContent(
 @"/*************/
 
 // part 1
 
 // part 2
-{"));
+{");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -219,13 +230,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 // part 2
             }$$
 ",
-            ExpectedContent(
 @"{
     /*************/
 
     // part 1
 
-    // part 2"));
+    // part 2");
         }
 
         [WorkItem(325, "https://github.com/dotnet/roslyn/issues/325")]
@@ -242,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
                 }
             }
 ",
-            ExpectedContent("{"));
+            "{");
         }
 
         private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
