@@ -2,12 +2,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
-Imports System.Text.RegularExpressions
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -1925,7 +1922,7 @@ ProduceBoundNode:
                         If argument.Syntax.Span.Contains(diagnostic.Location.SourceSpan) Then
                             Dim common As Boolean = True
                             For i As Integer = 1 To diagnosticPerSymbol.Count - 1
-                                If Not diagnosticPerSymbol(i).Value.Contains(diagnostic) Then
+                                If diagnosticPerSymbol(i).Value.IndexOf(diagnostic, CommonDiagnosticComparer.CompareAll) < 0 Then
                                     common = False
                                     Exit For
                                 End If

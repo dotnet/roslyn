@@ -212,6 +212,7 @@
     <Compile Include="Diagnostics\IWorkspaceDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Diagnostics\PredefinedDiagnosticProviderNames.cs" />
     <Compile Include="Diagnostics\ISupportLiveUpdate.cs" />
+    <Compile Include="Diagnostics\SimpleDiagnosticComparer.cs" />
     <Compile Include="Diagnostics\WorkspaceAnalyzerOptions.cs" />
     <Compile Include="EditAndContinue\DebuggingState.cs" />
     <Compile Include="EditAndContinue\DebuggingStateChangedEventArgs.cs" />

@@ -129,21 +129,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 get { throw new NotImplementedException(); }
             }
 
-            public override bool Equals(Diagnostic obj)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool Equals(object obj)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override int GetHashCode()
-            {
-                throw new NotImplementedException();
-            }
-
             public override string GetMessage(IFormatProvider formatProvider = null)
             {
                 return _message;

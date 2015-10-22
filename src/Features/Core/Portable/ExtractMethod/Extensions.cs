@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         /// </summary>
         public static bool HasDiagnostics(this SyntaxNode node)
         {
-            var set = new HashSet<Diagnostic>(node.GetDiagnostics());
+            var set = new HashSet<Diagnostic>(node.GetDiagnostics(), SimpleDiagnosticComparer.Instance);
 
             foreach (var child in node.ChildNodes())
             {

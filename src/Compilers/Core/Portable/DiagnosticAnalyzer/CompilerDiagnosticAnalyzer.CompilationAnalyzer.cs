@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            private class CompilerDiagnostic : Diagnostic
+            private sealed class CompilerDiagnostic : Diagnostic
             {
                 private readonly Diagnostic _original;
                 private readonly ImmutableDictionary<string, string> _properties;
@@ -97,21 +97,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public override string GetMessage(IFormatProvider formatProvider = null)
                 {
                     return _original.GetMessage(formatProvider);
-                }
-
-                public override bool Equals(object obj)
-                {
-                    return _original.Equals(obj);
-                }
-
-                public override int GetHashCode()
-                {
-                    return _original.GetHashCode();
-                }
-
-                public override bool Equals(Diagnostic obj)
-                {
-                    return _original.Equals(obj);
                 }
 
                 internal override Diagnostic WithLocation(Location location)

@@ -1539,7 +1539,7 @@ abstract Microsoft.CodeAnalysis.DataFlowAnalysis.WrittenInside.get -> System.Col
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.WrittenOutside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 abstract Microsoft.CodeAnalysis.Diagnostic.AdditionalLocations.get -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.Location>
 abstract Microsoft.CodeAnalysis.Diagnostic.Descriptor.get -> Microsoft.CodeAnalysis.DiagnosticDescriptor
-abstract Microsoft.CodeAnalysis.Diagnostic.Equals(Microsoft.CodeAnalysis.Diagnostic obj) -> bool
+Microsoft.CodeAnalysis.Diagnostic.Equals(Microsoft.CodeAnalysis.Diagnostic obj) -> bool
 abstract Microsoft.CodeAnalysis.Diagnostic.GetMessage(System.IFormatProvider formatProvider = null) -> string
 abstract Microsoft.CodeAnalysis.Diagnostic.Id.get -> string
 abstract Microsoft.CodeAnalysis.Diagnostic.Location.get -> Microsoft.CodeAnalysis.Location
@@ -1862,8 +1862,8 @@ override Microsoft.CodeAnalysis.XmlFileResolver.OpenRead(string resolvedPath) ->
 override Microsoft.CodeAnalysis.XmlFileResolver.ResolveReference(string path, string baseFilePath) -> string
 override abstract Microsoft.CodeAnalysis.CompilationOptions.Equals(object obj) -> bool
 override abstract Microsoft.CodeAnalysis.CompilationOptions.GetHashCode() -> int
-override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object obj) -> bool
-override abstract Microsoft.CodeAnalysis.Diagnostic.GetHashCode() -> int
+override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object obj) -> bool
+override sealed Microsoft.CodeAnalysis.Diagnostic.GetHashCode() -> int
 override abstract Microsoft.CodeAnalysis.DocumentationProvider.Equals(object obj) -> bool
 override abstract Microsoft.CodeAnalysis.DocumentationProvider.GetHashCode() -> int
 override abstract Microsoft.CodeAnalysis.Location.Equals(object obj) -> bool

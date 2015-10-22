@@ -2056,13 +2056,50 @@ public class Test
     }
 }";
             var tree = Parse(text);
-
+            var diagnostics1 = CreateCompilationWithMscorlib(tree).GetDiagnostics();
+            var diagnostics2 = CreateCompilationWithMscorlib(tree).GetDiagnostics();
             // (8,10): error CS0119: 'Console' is a type, which is not valid in the given context
-            AssertEx.Equal(CreateCompilationWithMscorlib(tree).GetDiagnostics(), CreateCompilationWithMscorlib(tree).GetDiagnostics());
+            Assert.NotEqual(diagnostics1, diagnostics2);
+            Assert.Equal(diagnostics1, diagnostics2, CommonDiagnosticComparer.CompareIdAndLocationOnly);
+            Assert.Equal(diagnostics1, diagnostics2, CommonDiagnosticComparer.CompareAll);
+        }
+
+        [Fact]
+        public void TestDiagnosticEquality()
+        {
+            var locationA = new SimpleLocation();
+            var locationB = new SimpleLocation();
+            var descriptor = new DiagnosticDescriptor("id", "title", "format", "category", DiagnosticSeverity.Error, isEnabledByDefault: true);
+            var diagnosticA1 = new SimpleDiagnostic(locationA, descriptor);
+            var diagnosticA2 = new SimpleDiagnostic(locationA, descriptor);
+            var diagnosticB1 = new SimpleDiagnostic(locationB, descriptor);
+
+            // Diagnostic.Equals:
+            Assert.Equal(diagnosticA1, diagnosticA1);
+            Assert.NotEqual(diagnosticA1, diagnosticA2);
+            Assert.NotEqual(diagnosticA1, diagnosticB1);
+            Assert.NotEqual(diagnosticA1, null);
+
+            // Id and location:
+            Assert.Equal(diagnosticA1, diagnosticA1, CommonDiagnosticComparer.CompareIdAndLocationOnly);
+            Assert.Equal(diagnosticA1, diagnosticA2, CommonDiagnosticComparer.CompareIdAndLocationOnly);
+            Assert.NotEqual(diagnosticA1, diagnosticB1, CommonDiagnosticComparer.CompareIdAndLocationOnly);
+            Assert.NotEqual(diagnosticA1, null, CommonDiagnosticComparer.CompareIdAndLocationOnly);
+            Assert.NotEqual(null, diagnosticB1, CommonDiagnosticComparer.CompareIdAndLocationOnly);
+            Assert.Equal((Diagnostic)null, null, CommonDiagnosticComparer.CompareIdAndLocationOnly);
+
+            // Id, location, and string representation:
+            Assert.Equal(diagnosticA1, diagnosticA1, CommonDiagnosticComparer.CompareAll);
+            Assert.NotEqual(diagnosticA1, diagnosticA2, CommonDiagnosticComparer.CompareAll);
+            Assert.NotEqual(diagnosticA1, diagnosticB1, CommonDiagnosticComparer.CompareAll);
+            Assert.NotEqual(diagnosticA1, null, CommonDiagnosticComparer.CompareAll);
+            Assert.NotEqual(null, diagnosticB1, CommonDiagnosticComparer.CompareAll);
+            Assert.Equal((Diagnostic)null, null, CommonDiagnosticComparer.CompareAll);
         }
 
         #region Mocks
-        internal class CustomErrorInfo : DiagnosticInfo
+
+        private sealed class CustomErrorInfo : DiagnosticInfo
         {
             public readonly object OtherSymbol;
             public readonly Location OtherLocation;
@@ -2082,7 +2119,7 @@ public class Test
             }
         }
 
-        internal class MockMessageProvider : TestMessageProvider
+        private sealed class MockMessageProvider : TestMessageProvider
         {
             public override DiagnosticSeverity GetSeverity(int code)
             {
@@ -2158,6 +2195,93 @@ public class Test
             public override string ConvertSymbolToString(int errorCode, ISymbol symbol)
             {
                 return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol);
+            }
+        }
+
+        private sealed class SimpleLocation : Location
+        {
+            public override LocationKind Kind
+            {
+                get { return LocationKind.SourceFile; }
+            }
+
+            public override bool Equals(object obj)
+            {
+                return ReferenceEquals(this, obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
+            }
+        }
+
+        private sealed class SimpleDiagnostic : Diagnostic
+        {
+            private readonly Location _location;
+            private readonly DiagnosticDescriptor _descriptor;
+            private readonly Guid _uniqueId;
+
+            internal SimpleDiagnostic(Location location, DiagnosticDescriptor descriptor)
+            {
+                _location = location;
+                _descriptor = descriptor;
+                _uniqueId = Guid.NewGuid();
+            }
+
+            public override IReadOnlyList<Location> AdditionalLocations
+            {
+                get { return new Location[0]; }
+            }
+
+            public override DiagnosticDescriptor Descriptor
+            {
+                get { return _descriptor; }
+            }
+
+            public override string Id
+            {
+                get { return _descriptor.Id; }
+            }
+
+            public override bool IsSuppressed
+            {
+                get { return false; }
+            }
+
+            public override Location Location
+            {
+                get { return _location; }
+            }
+
+            public override DiagnosticSeverity Severity
+            {
+                get { return DiagnosticSeverity.Error; }
+            }
+
+            public override int WarningLevel
+            {
+                get { return 0; }
+            }
+
+            public override string GetMessage(IFormatProvider formatProvider = null)
+            {
+                return $"{Location}, {Id}, {_uniqueId}";
+            }
+
+            internal override Diagnostic WithIsSuppressed(bool isSuppressed)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override Diagnostic WithLocation(Location location)
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
+            {
+                throw new NotImplementedException();
             }
         }
 

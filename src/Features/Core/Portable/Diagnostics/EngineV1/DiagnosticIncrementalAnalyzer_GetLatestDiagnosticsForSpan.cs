@@ -327,23 +327,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 #if DEBUG
         internal static bool AreEquivalent(Diagnostic[] diagnosticsA, Diagnostic[] diagnosticsB)
         {
-            var set = new HashSet<Diagnostic>(diagnosticsA, DiagnosticComparer.Instance);
+            var set = new HashSet<Diagnostic>(diagnosticsA, SimpleDiagnosticComparer.Instance);
             return set.SetEquals(diagnosticsB);
-        }
-
-        private sealed class DiagnosticComparer : IEqualityComparer<Diagnostic>
-        {
-            internal static readonly DiagnosticComparer Instance = new DiagnosticComparer();
-
-            public bool Equals(Diagnostic x, Diagnostic y)
-            {
-                return x.Id == y.Id && x.Location == y.Location;
-            }
-
-            public int GetHashCode(Diagnostic obj)
-            {
-                return Hash.Combine(obj.Id.GetHashCode(), obj.Location.GetHashCode());
-            }
         }
 #endif
     }
