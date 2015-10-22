@@ -168,7 +168,7 @@ class Class
 {
     void Method()
     {
-        [|int x = 0, y = 0;|]
+        [|int x = 0, y = 0; string s;|]
     }
 }";
                     using (var workspace = CreateWorkspaceFromFile(source, parseOptions: null, compilationOptions: null))
@@ -186,19 +186,28 @@ class Class
                         TextSpan span;
                         var document = GetDocumentAndSelectSpan(workspace, out span);
                         var diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span)
-                            .WaitAndGetResult(CancellationToken.None)
-                            .Where(d => d.Id == "CS0219");
-                        Assert.Equal(2, diagnostics.Count());
+                            .WaitAndGetResult(CancellationToken.None);
+                        Assert.Equal(2, diagnostics.Where(d => d.Id == "CS0219").Count());
 
-                        var fixes = fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None)
+                        var allFixes = fixService.GetFixesAsync(document, span, includeSuppressionFixes: true, cancellationToken: CancellationToken.None)
                             .WaitAndGetResult(CancellationToken.None)
-                            .SelectMany(fixCollection => fixCollection.Fixes)
-                            .Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
+                            .SelectMany(fixCollection => fixCollection.Fixes);
+
+                        var cs0219Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0219");
 
                         // Ensure that both the fixes have identical equivalence key, and hence get de-duplicated in LB menu.
-                        Assert.Equal(2, fixes.Count());
-                        Assert.NotNull(fixes.First().Action.EquivalenceKey);
-                        Assert.Equal(fixes.First().Action.EquivalenceKey, fixes.Last().Action.EquivalenceKey);
+                        Assert.Equal(2, cs0219Fixes.Count());
+                        var cs0219EquivalenceKey = cs0219Fixes.First().Action.EquivalenceKey;
+                        Assert.NotNull(cs0219EquivalenceKey);
+                        Assert.Equal(cs0219EquivalenceKey, cs0219Fixes.Last().Action.EquivalenceKey);
+
+                        // Ensure that there *is* a fix for the other warning and that it has a *different*
+                        // equivalence key so that it *doesn't* get de-duplicated
+                        Assert.Equal(1, diagnostics.Where(d => d.Id == "CS0168").Count());
+                        var cs0168Fixes = allFixes.Where(fix => fix.PrimaryDiagnostic.Id == "CS0168");
+                        var cs0168EquivalenceKey = cs0168Fixes.Single().Action.EquivalenceKey;
+                        Assert.NotNull(cs0168EquivalenceKey);
+                        Assert.NotEqual(cs0219EquivalenceKey, cs0168EquivalenceKey);
                     }
                 }
 
