@@ -307,6 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim aliasesOfReferencedAssemblies As ImmutableArray(Of ImmutableArray(Of String)) = Nothing
 
                     BuildReferencedAssembliesAndModulesMaps(
+                        bindingResult,
                         references,
                         referenceMap,
                         modules.Length,

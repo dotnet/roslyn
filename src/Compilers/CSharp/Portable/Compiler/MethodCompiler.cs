@@ -579,69 +579,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
             Debug.Assert(compilationState.ModuleBuilderOpt == _moduleBeingBuiltOpt);
 
-            if (!compilationState.HasSynthesizedMethods)
+            var synthesizedMethods = compilationState.SynthesizedMethods;
+            if (synthesizedMethods == null)
             {
                 return;
             }
 
-            foreach (var methodWithBody in compilationState.SynthesizedMethods)
+            var oldImportChain = compilationState.CurrentImportChain;
+            try
             {
-                var method = methodWithBody.Method;
-
-                var lambda = method as SynthesizedLambdaMethod;
-                var variableSlotAllocatorOpt = ((object)lambda != null) ?
-                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
-                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
-
-                // We make sure that an asynchronous mutation to the diagnostic bag does not 
-                // confuse the method body generator by making a fresh bag and then loading
-                // any diagnostics emitted into it back into the main diagnostic bag.
-                var diagnosticsThisMethod = DiagnosticBag.GetInstance();
-
-                AsyncStateMachine stateMachineType;
-
-                // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
-                // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
-                // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
-                const int methodOrdinal = -1;
-                MethodBody emittedBody = null;
-
-                try
+                foreach (var methodWithBody in synthesizedMethods)
                 {
-                    BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
+                    var importChain = methodWithBody.ImportChainOpt;
+                    compilationState.CurrentImportChain = importChain;
 
-                    if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
+                    var method = methodWithBody.Method;
+                    var lambda = method as SynthesizedLambdaMethod;
+                    var variableSlotAllocatorOpt = ((object)lambda != null) ?
+                        _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
+                        _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
+
+                    // We make sure that an asynchronous mutation to the diagnostic bag does not 
+                    // confuse the method body generator by making a fresh bag and then loading
+                    // any diagnostics emitted into it back into the main diagnostic bag.
+                    var diagnosticsThisMethod = DiagnosticBag.GetInstance();
+
+                    AsyncStateMachine stateMachineType;
+
+                    // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
+                    // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
+                    // so there is no need to produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) containing method name.
+                    const int methodOrdinal = -1;
+                    MethodBody emittedBody = null;
+
+                    try
                     {
-                        emittedBody = GenerateMethodBody(
-                            _moduleBeingBuiltOpt,
-                            method,
-                            methodOrdinal,
-                            bodyWithoutAsync,
-                            ImmutableArray<LambdaDebugInfo>.Empty,
-                            ImmutableArray<ClosureDebugInfo>.Empty,
-                            stateMachineType,
-                            variableSlotAllocatorOpt,
-                            diagnosticsThisMethod,
-                            _debugDocumentProvider,
-                            methodWithBody.ImportChainOpt,
-                            emittingPdb: _emittingPdb);
+                        // Why is this here when IteratorRewriter is earlier?
+                        BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
+
+                        if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
+                        {
+                            emittedBody = GenerateMethodBody(
+                                _moduleBeingBuiltOpt,
+                                method,
+                                methodOrdinal,
+                                bodyWithoutAsync,
+                                ImmutableArray<LambdaDebugInfo>.Empty,
+                                ImmutableArray<ClosureDebugInfo>.Empty,
+                                stateMachineType,
+                                variableSlotAllocatorOpt,
+                                diagnosticsThisMethod,
+                                _debugDocumentProvider,
+                                method.GenerateDebugInfo ? importChain : null,
+                                emittingPdb: _emittingPdb);
+                        }
                     }
-                }
-                catch (BoundTreeVisitor.CancelledByStackGuardException ex)
-                {
-                    ex.AddAnError(_diagnostics);
-                }
+                    catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+                    {
+                        ex.AddAnError(_diagnostics);
+                    }
 
-                _diagnostics.AddRange(diagnosticsThisMethod);
-                diagnosticsThisMethod.Free();
+                    _diagnostics.AddRange(diagnosticsThisMethod);
+                    diagnosticsThisMethod.Free();
 
-                // error while generating IL
-                if (emittedBody == null)
-                {
-                    break;
+                    // error while generating IL
+                    if (emittedBody == null)
+                    {
+                        break;
+                    }
+
+                    _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody);
                 }
-
-                _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody);
+            }
+            finally
+            {
+                compilationState.CurrentImportChain = oldImportChain;
             }
         }
 

@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Contains information about the source of diagnostic suppression.
     /// </summary>
-    public class SuppressionInfo
+    public sealed class SuppressionInfo
     {
         /// <summary>
         /// <see cref="Diagnostic.Id"/> of the suppressed diagnostic.

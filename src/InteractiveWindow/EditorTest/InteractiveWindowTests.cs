@@ -1507,6 +1507,12 @@ System.Console.WriteLine();",
         }
 
         [WpfFact]
+        public void SubmitAsyncNone()
+        {
+            SubmitAsync();
+        }
+
+        [WpfFact]
         public void SubmitAsyncSingle()
         {
             SubmitAsync("1");
