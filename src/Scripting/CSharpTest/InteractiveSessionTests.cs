@@ -10,7 +10,9 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1440,6 +1442,189 @@ new List<ArgumentException>()
             obj = new InteractiveFixtures_TopLevelHostObject { X = 1, Y = 2, Z = 3 };
             var r1 = CSharpScript.EvaluateAsync<int>("X", globals: obj);
             Assert.Equal(1, r1.Result);
+        }
+
+        [Fact]
+        public void HostObjectAssemblyReference1()
+        {
+            var scriptCompilation = CSharpScript.Create(
+                "nameof(Microsoft.CodeAnalysis.Scripting)",
+                globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
+
+            scriptCompilation.VerifyDiagnostics(
+                    // (1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
+                    Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "Microsoft.CodeAnalysis").WithArguments("CodeAnalysis", "Microsoft"));
+
+            scriptCompilation.VerifyAssemblyAliases(
+                "mscorlib: global,<host>",
+                "Microsoft.CodeAnalysis.Scripting: <host>",
+                "System.Collections.Immutable: <implicit>,<host>",
+                "Microsoft.CodeAnalysis: <implicit>,<host>",
+                "System.Diagnostics.Tools: <implicit>,<host>",
+                "System.Resources.ResourceManager: <implicit>,<host>",
+                "System.Console: <implicit>,<host>",
+                "System.Diagnostics.StackTrace: <implicit>,<host>",
+                "System.IO.FileSystem: <implicit>,<host>",
+                "System.Linq: <implicit>,<host>",
+                "System.Text.Encoding: <implicit>,<host>",
+                "System.IO.FileSystem.Primitives: <implicit>,<host>",
+                "System.Reflection.Extensions: <implicit>,<host>",
+                "System.Core: <implicit>,<host>",
+                "System: <implicit>,<host>",
+                "System.Xml: <implicit>,<host>",
+                "System.Numerics: <implicit>,<host>",
+                "System.Security: <implicit>,<host>",
+                "System.Data.SqlXml: <implicit>,<host>",
+                "System.Configuration: <implicit>,<host>",
+                "System.Runtime: <implicit>,<host>",
+                "System.Diagnostics.Debug: <implicit>,<host>",
+                "System.Runtime.InteropServices: <implicit>,<host>",
+                "System.Reflection.Metadata: <implicit>,<host>",
+                "System.IO: <implicit>,<host>",
+                "System.Collections: <implicit>,<host>",
+                "System.Threading.Tasks: <implicit>,<host>",
+                "System.Reflection.Primitives: <implicit>,<host>",
+                "System.Reflection: <implicit>,<host>",
+                "System.Globalization: <implicit>,<host>",
+                "System.Runtime.Extensions: <implicit>,<host>",
+                "System.Runtime.Numerics: <implicit>,<host>",
+                "System.Runtime.Serialization.Json: <implicit>,<host>",
+                "System.Collections.Concurrent: <implicit>,<host>",
+                "System.Xml.ReaderWriter: <implicit>,<host>",
+                "System.Xml.XDocument: <implicit>,<host>",
+                "System.Dynamic.Runtime: <implicit>,<host>",
+                "System.Threading: <implicit>,<host>",
+                "System.Text.Encoding.Extensions: <implicit>,<host>",
+                "System.Xml.Linq: <implicit>,<host>",
+                "System.Runtime.Serialization: <implicit>,<host>",
+                "System.ServiceModel.Internals: <implicit>,<host>",
+                "SMDiagnostics: <implicit>,<host>",
+                "System.ComponentModel.Composition: <implicit>,<host>");
+        }
+
+        [Fact]
+        public void HostObjectAssemblyReference2()
+        {
+            var scriptCompilation = CSharpScript.Create(
+                "typeof(Microsoft.CodeAnalysis.Scripting.Script)",
+                options: ScriptOptions.Default.WithReferences(typeof(CSharpScript).GetTypeInfo().Assembly),
+                globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
+
+            scriptCompilation.VerifyDiagnostics();
+
+            scriptCompilation.VerifyAssemblyAliases(
+                "mscorlib: global,<host>",
+                "Microsoft.CodeAnalysis.Scripting: <host>,global",
+                "Microsoft.CodeAnalysis.Scripting.CSharp",
+                "Microsoft.CodeAnalysis.CSharp: <implicit>,global",
+                "Microsoft.CodeAnalysis: <implicit>,<host>,global",
+                "System.Collections.Immutable: <implicit>,<host>,global",
+                "System.Diagnostics.Tools: <implicit>,<host>,global",
+                "System.Resources.ResourceManager: <implicit>,<host>,global",
+                "System.Text.Encoding: <implicit>,<host>,global",
+                "System.AppContext: <implicit>,global",
+                "System.Reflection.Extensions: <implicit>,<host>,global",
+                "System: <implicit>,<host>,global",
+                "System.Configuration: <implicit>,<host>,global",
+                "System.Xml: <implicit>,<host>,global",
+                "System.Data.SqlXml: <implicit>,<host>,global",
+                "System.Security: <implicit>,<host>,global",
+                "System.Core: <implicit>,<host>,global",
+                "System.Numerics: <implicit>,<host>,global",
+                "System.Runtime: <implicit>,<host>,global",
+                "System.Diagnostics.Debug: <implicit>,<host>,global",
+                "System.Collections: <implicit>,<host>,global",
+                "System.Linq: <implicit>,<host>,global",
+                "System.Runtime.Extensions: <implicit>,<host>,global",
+                "System.Globalization: <implicit>,<host>,global",
+                "System.Threading: <implicit>,<host>,global",
+                "System.ComponentModel.Composition: <implicit>,<host>,global",
+                "System.Runtime.InteropServices: <implicit>,<host>,global",
+                "System.Reflection.Metadata: <implicit>,<host>,global",
+                "System.IO: <implicit>,<host>,global",
+                "System.Threading.Tasks: <implicit>,<host>,global",
+                "System.Reflection.Primitives: <implicit>,<host>,global",
+                "System.Reflection: <implicit>,<host>,global",
+                "System.Runtime.Numerics: <implicit>,<host>,global",
+                "System.Runtime.Serialization.Json: <implicit>,<host>,global",
+                "System.Collections.Concurrent: <implicit>,<host>,global",
+                "System.Xml.ReaderWriter: <implicit>,<host>,global",
+                "System.Xml.XDocument: <implicit>,<host>,global",
+                "System.Dynamic.Runtime: <implicit>,<host>,global",
+                "System.Text.Encoding.Extensions: <implicit>,<host>,global",
+                "System.Xml.Linq: <implicit>,<host>,global",
+                "System.Runtime.Serialization: <implicit>,<host>,global",
+                "System.ServiceModel.Internals: <implicit>,<host>,global",
+                "SMDiagnostics: <implicit>,<host>,global",
+                "System.Linq.Expressions: <implicit>,global",
+                "System.Threading.Tasks.Parallel: <implicit>,global",
+                "System.Console: <implicit>,<host>,global",
+                "System.Diagnostics.StackTrace: <implicit>,<host>,global",
+                "System.IO.FileSystem: <implicit>,<host>,global",
+                "System.IO.FileSystem.Primitives: <implicit>,<host>,global");
+        }
+
+        [Fact]
+        public void HostObjectAssemblyReference3()
+        {
+            string source = $@"
+#r ""{typeof(CSharpScript).GetTypeInfo().Assembly.ManifestModule.FullyQualifiedName}""
+typeof(Microsoft.CodeAnalysis.Scripting.Script)
+";
+            var scriptCompilation = CSharpScript.Create(source, globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
+
+            scriptCompilation.VerifyDiagnostics();
+
+            scriptCompilation.VerifyAssemblyAliases(
+                "Microsoft.CodeAnalysis.Scripting.CSharp",
+                "mscorlib: global,<host>",
+                "Microsoft.CodeAnalysis.Scripting: global,<host>",
+                "System.Collections.Immutable: <implicit>,global,<host>",
+                "Microsoft.CodeAnalysis: <implicit>,global,<host>",
+                "System.Diagnostics.Tools: <implicit>,global,<host>",
+                "System.Resources.ResourceManager: <implicit>,global,<host>",
+                "System.Console: <implicit>,global,<host>",
+                "System.Diagnostics.StackTrace: <implicit>,global,<host>",
+                "System.IO.FileSystem: <implicit>,global,<host>",
+                "System.Linq: <implicit>,global,<host>",
+                "System.Text.Encoding: <implicit>,global,<host>",
+                "System.IO.FileSystem.Primitives: <implicit>,global,<host>",
+                "System.Reflection.Extensions: <implicit>,global,<host>",
+                "System.Core: <implicit>,global,<host>",
+                "System: <implicit>,global,<host>",
+                "System.Xml: <implicit>,global,<host>",
+                "System.Numerics: <implicit>,global,<host>",
+                "System.Security: <implicit>,global,<host>",
+                "System.Data.SqlXml: <implicit>,global,<host>",
+                "System.Configuration: <implicit>,global,<host>",
+                "System.Runtime: <implicit>,global,<host>",
+                "System.Diagnostics.Debug: <implicit>,global,<host>",
+                "System.Runtime.InteropServices: <implicit>,global,<host>",
+                "System.Reflection.Metadata: <implicit>,global,<host>",
+                "System.IO: <implicit>,global,<host>",
+                "System.Collections: <implicit>,global,<host>",
+                "System.Threading.Tasks: <implicit>,global,<host>",
+                "System.Reflection.Primitives: <implicit>,global,<host>",
+                "System.Reflection: <implicit>,global,<host>",
+                "System.Globalization: <implicit>,global,<host>",
+                "System.Runtime.Extensions: <implicit>,global,<host>",
+                "System.Runtime.Numerics: <implicit>,global,<host>",
+                "System.Runtime.Serialization.Json: <implicit>,global,<host>",
+                "System.Collections.Concurrent: <implicit>,global,<host>",
+                "System.Xml.ReaderWriter: <implicit>,global,<host>",
+                "System.Xml.XDocument: <implicit>,global,<host>",
+                "System.Dynamic.Runtime: <implicit>,global,<host>",
+                "System.Threading: <implicit>,global,<host>",
+                "System.Text.Encoding.Extensions: <implicit>,global,<host>",
+                "System.Xml.Linq: <implicit>,global,<host>",
+                "System.Runtime.Serialization: <implicit>,global,<host>",
+                "System.ServiceModel.Internals: <implicit>,global,<host>",
+                "SMDiagnostics: <implicit>,global,<host>",
+                "System.ComponentModel.Composition: <implicit>,global,<host>",
+                "Microsoft.CodeAnalysis.CSharp: <implicit>,global",
+                "System.AppContext: <implicit>,global",
+                "System.Linq.Expressions: <implicit>,global",
+                "System.Threading.Tasks.Parallel: <implicit>,global");
         }
 
         #endregion

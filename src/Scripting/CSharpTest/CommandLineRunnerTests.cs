@@ -358,6 +358,25 @@ error CS0246: The type or namespace name 'Foo' could not be found (are you missi
         }
 
         [Fact]
+        public void Script_NoHostNamespaces()
+        {
+            var runner = CreateRunner(input: "nameof(Microsoft.CodeAnalysis)");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> nameof(Microsoft.CodeAnalysis)
+«Red»
+(1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
+«Gray»
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
         public void SourceSearchPaths1()
         {
             var main = Temp.CreateFile(extension: ".csx").WriteAllText(@"

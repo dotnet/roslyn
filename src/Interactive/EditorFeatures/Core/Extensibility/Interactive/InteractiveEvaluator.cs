@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
             var metadataService = _workspace.CurrentSolution.Services.MetadataService;
             var mscorlibRef = metadataService.GetReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly);
-            var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, MetadataReferenceProperties.Assembly);
+            var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, Script.HostAssemblyReferenceProperties);
 
             _references = ImmutableHashSet.Create<MetadataReference>(mscorlibRef, interactiveHostObjectRef);
             _rspImports = ImmutableArray<string>.Empty;
