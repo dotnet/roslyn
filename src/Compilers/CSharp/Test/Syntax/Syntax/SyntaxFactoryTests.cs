@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal("Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.", e.Message);
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal("Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.", e.Message);
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Equal("Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.", e.Message);
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
                     Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
             }
