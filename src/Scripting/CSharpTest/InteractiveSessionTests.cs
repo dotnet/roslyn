@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,7 +21,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
-    using CodeAnalysis.Test.Utilities;
     using static TestCompilationFactory;
 
     public class HostModel
