@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             var cancellationToken = context.CancellationToken;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var items = GetItems(text, position, triggerInfo, cancellationToken);
+            var items = GetItems(text, context.Document, position, triggerInfo, cancellationToken);
 
             context.AddItems(items);
         }
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
             return text.Lines.GetLineFromPosition(position).Start + quotedPathGroup.Index;
         }
 
-        private ImmutableArray<CompletionItem> GetItems(SourceText text, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        private ImmutableArray<CompletionItem> GetItems(SourceText text, Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken)
         {
             var line = text.Lines.GetLineFromPosition(position);
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, position));
@@ -89,7 +89,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 
             var fileSystem = CurrentWorkingDirectoryDiscoveryService.GetService(snapshot);
 
-            var searchPaths = ImmutableArray.Create(fileSystem.WorkingDirectory);
+            // TODO: https://github.com/dotnet/roslyn/issues/5263
+            // Avoid dependency on a specific resolver.
+            // The search paths should be provided by specialized workspaces:
+            // - InteractiveWorkspace for interactive window 
+            // - ScriptWorkspace for loose .csx files (we don't have such workspace today)
+            var searchPaths = (document.Project.CompilationOptions.SourceReferenceResolver as SourceFileResolver)?.SearchPaths ?? ImmutableArray<string>.Empty;
 
             var helper = new FileSystemCompletionHelper(
                 this,

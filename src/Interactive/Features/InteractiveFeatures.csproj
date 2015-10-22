@@ -95,6 +95,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

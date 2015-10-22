@@ -1506,6 +1506,38 @@ System.Console.WriteLine();",
             VerifyClipboardData("int x\r\n;", null, null);
         }
 
+        [WpfFact]
+        public void SubmitAsyncNone()
+        {
+            SubmitAsync();
+        }
+
+        [WpfFact]
+        public void SubmitAsyncSingle()
+        {
+            SubmitAsync("1");
+        }
+
+        [WorkItem(5964)]
+        [WpfFact]
+        public void SubmitAsyncMultiple()
+        {
+            SubmitAsync("1", "2", "1 + 2");
+        }
+
+        private void SubmitAsync(params string[] submissions)
+        {
+            var actualSubmissions = new List<string>();
+            var evaluator = _testHost.Evaluator;
+            EventHandler<string> onExecute = (_, s) => actualSubmissions.Add(s.TrimEnd());
+
+            evaluator.OnExecute += onExecute;
+            TaskRun(() => Window.SubmitAsync(submissions)).PumpingWait();
+            evaluator.OnExecute -= onExecute;
+
+            AssertEx.Equal(submissions, actualSubmissions);
+        }
+
         private string GetTextFromCurrentSnapshot()
         {
             return Window.TextView.TextBuffer.CurrentSnapshot.GetText();

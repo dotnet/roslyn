@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException">Interop types can't be embedded from modules.</exception> 
         public MetadataReference WithEmbedInteropTypes(bool value)
         {
-            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, this.Properties.Aliases, value));
+            return WithProperties(Properties.WithEmbedInteropTypes(value));
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException">Alias is invalid for the metadata kind.</exception> 
         public MetadataReference WithAliases(ImmutableArray<string> aliases)
         {
-            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, aliases, this.Properties.EmbedInteropTypes));
+            return WithProperties(Properties.WithAliases(aliases));
         }
 
         /// <summary>
@@ -236,13 +236,12 @@ namespace Microsoft.CodeAnalysis
 
             if (properties.Kind == MetadataImageKind.Module)
             {
-                return module.GetReference(documentation, path);
+                return new MetadataImageReference(module, properties, documentation, path, display: null);
             }
 
             // any additional modules constituting the assembly will be read lazily:
             var assemblyMetadata = AssemblyMetadata.CreateFromFile(module, path);
-
-            return assemblyMetadata.GetReference(documentation, properties.Aliases, properties.EmbedInteropTypes, path);
+            return new MetadataImageReference(assemblyMetadata, properties, documentation, path, display: null);
         }
 
         /// <summary>
@@ -326,7 +325,7 @@ namespace Microsoft.CodeAnalysis
             // which might also lock the file until the reference is GC'd.
             var metadata = AssemblyMetadata.CreateFromStream(peStream);
 
-            return metadata.GetReference(documentation, properties.Aliases, properties.EmbedInteropTypes, filePath: location);
+            return new MetadataImageReference(metadata, properties, documentation, location, display: null);
         }
     }
 }

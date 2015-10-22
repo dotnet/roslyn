@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a new compilation with the given compilation set as the previous submission.
         /// </summary>
-        public CSharpCompilation WithCompilationScriptInfo(CSharpScriptCompilationInfo info)
+        public CSharpCompilation WithScriptCompilationInfo(CSharpScriptCompilationInfo info)
         {
             if (info == ScriptCompilationInfo)
             {
@@ -2749,9 +2749,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithOptions((CSharpCompilationOptions)options);
         }
 
-        protected override Compilation CommonWithCompilationScriptInfo(ScriptCompilationInfo info)
+        protected override Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info)
         {
-            return this.WithCompilationScriptInfo((CSharpScriptCompilationInfo)info);
+            return this.WithScriptCompilationInfo((CSharpScriptCompilationInfo)info);
         }
 
         protected override bool CommonContainsSyntaxTree(SyntaxTree syntaxTree)

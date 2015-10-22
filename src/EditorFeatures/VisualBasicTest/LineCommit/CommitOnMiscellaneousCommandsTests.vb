@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 
@@ -137,6 +138,37 @@ End Module
 
                 testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
                 Assert.Equal("    Sub Main()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(1).GetText())
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.LineCommit)>
+        Public Sub DoNotCommitWithUnterminatedString()
+            Using testData = New CommitTestData(<Workspace>
+                                                    <Project Language="Visual Basic" CommonReferences="true">
+                                                        <Document>Module Module1
+    Sub Main()
+        $$
+    End Sub
+
+    Sub SomeUnrelatedCode()
+        Console.WriteLine("&lt;a&gt;")
+    End Sub
+End Module</Document>
+                                                    </Project>
+                                                </Workspace>)
+
+                testData.CommandHandler.ExecuteCommand(New PasteCommandArgs(testData.View, testData.Buffer), Sub() testData.EditorOperations.InsertText("Console.WriteLine(""Hello World"))
+                Assert.Equal(testData.Buffer.CurrentSnapshot.GetText(),
+<Document>Module Module1
+    Sub Main()
+        Console.WriteLine("Hello World
+    End Sub
+
+    Sub SomeUnrelatedCode()
+        Console.WriteLine("&lt;a&gt;")
+    End Sub
+End Module</Document>.NormalizedValue)
             End Using
         End Sub
     End Class

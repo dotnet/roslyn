@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _ordinal;
         private readonly string _name;
         private readonly ImmutableArray<CustomModifier> _customModifiers;
+        private readonly ushort _countOfCustomModifiersPrecedingByRef;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbol(
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name = "",
-            ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>))
+            ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>),
+            ushort countOfCustomModifiersPrecedingByRef = 0)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(name != null);
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _name = name;
             _customModifiers = customModifiers.NullToEmpty();
+            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
         }
 
         public override TypeSymbol Type
@@ -128,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return 0; }
+            get { return _countOfCustomModifiersPrecedingByRef; }
         }
 
         public override Symbol ContainingSymbol
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 //same properties as the old one, just change the owner
                 builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers));
+                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers, oldParam.CountOfCustomModifiersPrecedingByRef));
             }
 
             return builder.ToImmutableAndFree();
