@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions WithReferences(IEnumerable<Assembly> references) => 
             WithReferences(SelectChecked(references, nameof(references), MetadataReference.CreateFromAssemblyInternal));
 
@@ -138,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions WithReferences(params Assembly[] references) => 
             WithReferences((IEnumerable<Assembly>)references);
 
@@ -145,6 +147,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions AddReferences(IEnumerable<Assembly> references) =>
             AddReferences(SelectChecked(references, nameof(references), MetadataReference.CreateFromAssemblyInternal));
 
@@ -152,6 +155,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions AddReferences(params Assembly[] references) => 
             AddReferences((IEnumerable<Assembly>)references);
 

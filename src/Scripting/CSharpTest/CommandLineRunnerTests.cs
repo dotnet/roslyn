@@ -14,6 +14,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
 {
+    using static CompilationHelpers;
+
     public class CommandLineRunnerTests : TestBase
     {
         private static readonly string CompilerVersion =
@@ -42,15 +44,6 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
                 new NotImplementedAnalyzerLoader());
 
             return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance);
-        }
-
-        private static Compilation CreateLibrary(string assemblyName, string source)
-        {
-            return CSharpCompilation.Create(
-                assemblyName,
-                new[] { SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { MscorlibRef },
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
         [Fact]
