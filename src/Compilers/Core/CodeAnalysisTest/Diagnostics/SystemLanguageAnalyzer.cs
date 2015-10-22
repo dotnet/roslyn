@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                              if (containingMethod != null)
                              {
                                  bool inConstructor = containingMethod.MethodKind == MethodKind.Constructor;
-                                 ITypeSymbol inStaticConstructor = containingMethod.MethodKind == MethodKind.StaticConstructor ? containingMethod.ContainingType : null;
+                                 ITypeSymbol staticConstructorType = containingMethod.MethodKind == MethodKind.StaticConstructor ? containingMethod.ContainingType : null;
                                  
                                  operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
                                         IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                                        AssignTo(assignment.Target, inConstructor, inStaticConstructor, assignedToFields, mightBecomeReadOnlyFields);
+                                        AssignTo(assignment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                     },
                                     OperationKind.AssignmentExpression,
                                     OperationKind.CompoundAssignmentExpression);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                          {
                                              if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
                                              {
-                                                 AssignTo(argument.Value, inConstructor, inStaticConstructor, assignedToFields, mightBecomeReadOnlyFields);
+                                                 AssignTo(argument.Value, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                              }
                                          }
                                      },
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                  });
         }
 
-        static void AssignTo(IExpression target, bool inConstructor, ITypeSymbol inStaticConstructor, HashSet<IFieldSymbol> assignedToFields, HashSet<IFieldSymbol> mightBecomeReadOnlyFields)
+        static void AssignTo(IExpression target, bool inConstructor, ITypeSymbol staticConstructorType, HashSet<IFieldSymbol> assignedToFields, HashSet<IFieldSymbol> mightBecomeReadOnlyFields)
         {
             if (target.Kind == OperationKind.FieldReferenceExpression)
             {
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 
                 IFieldSymbol targetField = fieldReference.Field;
 
-                if (inStaticConstructor != null && targetField.IsStatic && targetField.ContainingType == inStaticConstructor)
+                if (staticConstructorType != null && targetField.IsStatic && targetField.ContainingType == staticConstructorType)
                 {
                     return;
                 }

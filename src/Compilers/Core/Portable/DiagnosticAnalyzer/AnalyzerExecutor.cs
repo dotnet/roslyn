@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 analyzerStateOpt?.ProcessedActions.Add(operationAction);
             }
         }
-        
+
         public void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
             IEnumerable<CodeBlockAnalyzerAction> codeBlockActions,
@@ -591,7 +591,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 syntaxNodeActions.AddRange(codeBlockScope.SyntaxNodeActions);
                             });
                         }
-
                         else
                         {
                             var operationBlockStartAction = startAction as OperationBlockStartAnalyzerAction;
@@ -666,22 +665,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     Func<Diagnostic, bool> isSupportedDiagnostic = d => IsSupportedDiagnostic(blockAction.Analyzer, d);
                     if (codeBlockAction != null)
                     {
-                        ExecuteAndCatchIfThrows(codeBlockAction.Analyzer,
-                            () =>
-                            {
-                                codeBlockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken));
-                            });
+                        ExecuteAndCatchIfThrows(
+                            codeBlockAction.Analyzer,
+                            () => codeBlockAction.Action(new CodeBlockAnalysisContext(declaredNode, declaredSymbol, semanticModel, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken)));
                     }
                     else
                     {
                         var operationBlockAction = blockAction as OperationBlockAnalyzerAction;
                         if (operationBlockAction != null)
                         {
-                            ExecuteAndCatchIfThrows(operationBlockAction.Analyzer,
-                                () =>
-                                {
-                                    operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken));
-                                });
+                            ExecuteAndCatchIfThrows(
+                                operationBlockAction.Analyzer,
+                                () => operationBlockAction.Action(new OperationBlockAnalysisContext(operationBlocks, declaredSymbol, _analyzerOptions, addDiagnostic, isSupportedDiagnostic, _cancellationToken)));
                         }
                     }
                     
@@ -691,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             blockActions.Free();
         }
-        
+
         internal static ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
             IEnumerable<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> nodeActions)
             where TLanguageKindEnum : struct

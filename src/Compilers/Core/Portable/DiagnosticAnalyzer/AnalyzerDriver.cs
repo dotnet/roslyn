@@ -1090,14 +1090,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return analysisScope.Analyzers.Any(analyzer => this.OperationActionsByAnalyzerAndKind.ContainsKey(analyzer));
         }
 
-        private bool ShouldExecuteCodeBlockActions(AnalysisScope analysisScope, ISymbol symbol)
+        private bool ShouldExecuteBlockActions<T0, T1>(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<T0>> blockStartActions, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<T1>> blockActions, AnalysisScope analysisScope, ISymbol symbol)
         {
             if (AnalyzerExecutor.CanHaveExecutableCodeBlock(symbol))
             {
                 foreach (var analyzer in analysisScope.Analyzers)
                 {
-                    if (this.CodeBlockStartActionsByAnalyzer.ContainsKey(analyzer) ||
-                        this.CodeBlockActionsByAnalyzer.ContainsKey(analyzer))
+                    if (blockStartActions.ContainsKey(analyzer) ||
+                        blockActions.ContainsKey(analyzer))
                     {
                         return true;
                     }
@@ -1107,21 +1107,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return false;
         }
 
+        private bool ShouldExecuteCodeBlockActions(AnalysisScope analysisScope, ISymbol symbol)
+        {
+            return ShouldExecuteBlockActions(this.CodeBlockStartActionsByAnalyzer, this.CodeBlockActionsByAnalyzer, analysisScope, symbol);
+        }
+
         private bool ShouldExecuteOperationBlockActions(AnalysisScope analysisScope, ISymbol symbol)
         {
-            if (AnalyzerExecutor.CanHaveExecutableCodeBlock(symbol))
-            {
-                foreach (var analyzer in analysisScope.Analyzers)
-                {
-                    if (this.OperationBlockStartActionsByAnalyzer.ContainsKey(analyzer) ||
-                        this.OperationBlockActionsByAnalyzer.ContainsKey(analyzer))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return ShouldExecuteBlockActions(this.OperationBlockStartActionsByAnalyzer, this.OperationBlockActionsByAnalyzer, analysisScope, symbol);
         }
 
         protected override void ExecuteDeclaringReferenceActions(
@@ -1311,53 +1304,61 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Compute the executable code blocks of interest.
                 var executableCodeBlocks = ImmutableArray<SyntaxNode>.Empty;
+                IEnumerable<CodeBlockAnalyzerActions> codeBlockActions = null;
                 foreach (var declInNode in declarationAnalysisData.DeclarationsInNode)
                 {
                     if (declInNode.DeclaredNode == declarationAnalysisData.TopmostNodeForAnalysis || declInNode.DeclaredNode == declarationAnalysisData.DeclaringReferenceSyntax)
                     {
                         executableCodeBlocks = declInNode.ExecutableCodeBlocks;
-
-                        // Execute operation actions.
-                        if ((shouldExecuteOperationActions || shouldExecuteOperationBlockActions) && executableCodeBlocks.Any())
+                        if (executableCodeBlocks.Any())
                         {
-                            var operationBlocksToAnalyze = GetOperationBlocksToAnalyze(executableCodeBlocks, semanticModel, cancellationToken);
-                            var operationsToAnalyze = GetOperationsToAnalyze(operationBlocksToAnalyze);
-
-                            if (!operationsToAnalyze.IsEmpty)
+                            if (shouldExecuteCodeBlockActions || shouldExecuteOperationBlockActions)
                             {
-                                if (shouldExecuteOperationActions)
+                                codeBlockActions = GetCodeBlockActions(analysisScope);
+                            }
+
+                            // Execute operation actions.
+                            if (shouldExecuteOperationActions || shouldExecuteOperationBlockActions)
+                            {
+                                var operationBlocksToAnalyze = GetOperationBlocksToAnalyze(executableCodeBlocks, semanticModel, cancellationToken);
+                                var operationsToAnalyze = GetOperationsToAnalyze(operationBlocksToAnalyze);
+
+                                if (!operationsToAnalyze.IsEmpty)
                                 {
-                                    foreach (var analyzer in analysisScope.Analyzers)
+                                    if (shouldExecuteOperationActions)
                                     {
-                                        ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind;
-                                        if (this.OperationActionsByAnalyzerAndKind.TryGetValue(analyzer, out operationActionsByKind))
+                                        foreach (var analyzer in analysisScope.Analyzers)
                                         {
-                                            analyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
-                                                analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt);
+                                            ImmutableDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind;
+                                            if (this.OperationActionsByAnalyzerAndKind.TryGetValue(analyzer, out operationActionsByKind))
+                                            {
+                                                analyzerExecutor.ExecuteOperationActions(operationsToAnalyze, operationActionsByKind,
+                                                    analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan, decl, analysisScope, analysisStateOpt);
+                                            }
+                                        }
+                                    }
+
+                                    if (shouldExecuteOperationBlockActions)
+                                    {
+                                        foreach (var analyzerActions in codeBlockActions)
+                                        {
+                                            analyzerExecutor.ExecuteOperationBlockActions(
+                                                analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
+                                                analyzerActions.OpererationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
+                                                operationBlocksToAnalyze, operationsToAnalyze, semanticModel, decl, analysisScope, analysisStateOpt);
                                         }
                                     }
                                 }
-
-                                if (shouldExecuteOperationBlockActions)
-                                {
-                                    foreach (var analyzerActions in GetCodeBlockActions(analysisScope))
-                                    {
-                                        analyzerExecutor.ExecuteOperationBlockActions(
-                                            analyzerActions.OperationBlockStartActions, analyzerActions.OperationBlockActions,
-                                            analyzerActions.OpererationBlockEndActions, analyzerActions.Analyzer, declarationAnalysisData.TopmostNodeForAnalysis, symbol,
-                                            operationBlocksToAnalyze, operationsToAnalyze, semanticModel, decl, analysisScope, analysisStateOpt);
-                                    }
-                                }
                             }
-                        }
 
-                        break;
+                            break;
+                        }
                     }
                 }
 
                 if (executableCodeBlocks.Any() && shouldExecuteCodeBlockActions)
                 {
-                    foreach (var analyzerActions in GetCodeBlockActions(analysisScope))
+                    foreach (var analyzerActions in codeBlockActions)
                     {
                         analyzerExecutor.ExecuteCodeBlockActions(
                             analyzerActions.CodeBlockStartActions, analyzerActions.CodeBlockActions,
@@ -1393,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public ImmutableArray<OperationBlockAnalyzerAction> OperationBlockActions;
             public ImmutableArray<OperationBlockAnalyzerAction> OpererationBlockEndActions;
         }
-
+        
         private IEnumerable<CodeBlockAnalyzerActions> GetCodeBlockActions(AnalysisScope analysisScope)
         {
             foreach (var analyzer in analysisScope.Analyzers)

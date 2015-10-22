@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Code block that is the subject of the analysis.
         /// </summary>
-        public ImmutableArray<IOperation> CodeBlock => _operationBlocks;
+        public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
         /// <see cref="ISymbol"/> for which the code block provides a definition or value.
