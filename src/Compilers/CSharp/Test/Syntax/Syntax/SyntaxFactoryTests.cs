@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading;
@@ -117,31 +116,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
-        }
 
-        [Fact]
-        public void TestFreeFormTokenFactoryExceptionMessage_SpecialTokenKinds()
-        {
-            // Make sure the exception message displays the correct namespace/class to use
-            List<SyntaxKind> syntaxKinds = new List<SyntaxKind>()
-            {
-                SyntaxKind.IdentifierToken,
-                SyntaxKind.CharacterLiteralToken,
-                SyntaxKind.NumericLiteralToken
-            };
-            foreach (var kind in syntaxKinds)
+            // Ensure that when they throw, the appropriate message is used
+            using (new EnsureEnglishUICulture())
             {
                 try
                 {
-                    SyntaxFactory.Token(default(SyntaxTriviaList), kind, "text", "valueText", default(SyntaxTriviaList));
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList));
                     AssertEx.Fail("Should have thrown");
                     return;
                 }
                 catch (ArgumentException e)
                 {
-                    Assert.Contains("Microsoft.CodeAnalysis.CSharp.SyntaxFactory", e.Message);
+                    Assert.Equal("Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal("Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal("Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
                 }
             }
+
+            // Make sure that the appropriate methods work as suggested in the exception messages, and don't throw
+            SyntaxFactory.Identifier("text");
+            SyntaxFactory.Literal('c'); //character literal
+            SyntaxFactory.Literal(123); //numeric literal
         }
 
         [Fact]
