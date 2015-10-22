@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void Brackets_1()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             if (true)
             {
             }$$
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_0()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             if (true)
             {
                 {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_1()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             while (true)
             {
                 // some
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_2()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             do
             {
                 /* comment */
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_3()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             if (true)
             {
             }
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_4()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             using (var x = new X())
             {
                 {
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_5()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             foreach (var x in xs)
             {
                 // above
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_6()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             for (;;;)
             {
                 /*************/
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_7()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             try
             {
                 /*************/
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         [WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void ScopeBrackets_8()
         {
-            TestInMethod(@"
+            TestInMethodAndScript(@"
             {
                 /*************/
 
@@ -273,6 +275,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
             finally
             {
                 viewHostingControl.TextView_TestOnly.Close();
+            }
+        }
+
+        protected override void TestInMethod(string code, string expectedContent, string expectedDocumentationComment = null)
+        {
+            TestInClass("void M(){" + code + "}", expectedContent, expectedDocumentationComment);
+        }
+
+        protected override void TestInClass(string code, string expectedContent, string expectedDocumentationComment = null)
+        {
+            Test("class C {" + code + "}", expectedContent, expectedDocumentationComment);
+        }
+
+        protected override void TestInScript(string code, string expectedContent, string expectedDocumentationComment = null)
+        {
+            Test(code, expectedContent, expectedContent, Options.Script);
+        }
+
+        protected override void Test(
+            string code,
+            string expectedContent,
+            string expectedDocumentationComment = null,
+            CSharpParseOptions parseOptions = null)
+        {
+            using ( var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile(code, parseOptions))
+            {
+                var testDocument = workspace.Documents.Single();
+                var position = testDocument.CursorPosition.Value;
+                var document = workspace.CurrentSolution.Projects.First().Documents.First();
+
+                if ( string.IsNullOrEmpty(expectedContent) )
+                {
+                    AssertNoContent(workspace, document, position);
+                }
+                else
+                {
+                    AssertContentIs(workspace, document, position, expectedContent, expectedDocumentationComment);
+                }
             }
         }
     }

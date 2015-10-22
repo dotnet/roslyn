@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
 
             // If the parent is a scope block, check and include nearby comments around the open brace
             // LeadingTrivia is preferred
-            if (parent.IsKind(SyntaxKind.Block) && parent.Parent.IsKind(SyntaxKind.Block))
+            if (parent.IsKind(SyntaxKind.Block) && (parent.Parent.IsKind(SyntaxKind.Block) || parent.Parent.IsKind(SyntaxKind.GlobalStatement)))
             {
                 MarkInterestedSpanNearbyScopeBlock(parent, openBrace, ref spanStart, ref spanEnd);
             }
