@@ -58,9 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                 End If
 
                 If TypeOf item2.CompletionProvider Is EnumCompletionProvider Then
-                    Dim patternMatcher = GetPatternMatcher(filterText)
-                    Dim match1 = patternMatcher.GetFirstMatch(item1.FilterText)
-                    Dim match2 = patternMatcher.GetFirstMatch(item2.FilterText)
+                    Dim match1 = GetMatch(item1, filterText)
+                    Dim match2 = GetMatch(item2, filterText)
 
                     If match1.HasValue AndAlso match2.HasValue Then
                         If match1.Value.Kind = PatternMatchKind.Prefix AndAlso match2.Value.Kind = PatternMatchKind.Substring Then
