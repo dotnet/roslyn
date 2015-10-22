@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Options to configure analyzer execution within <see cref="CompilationWithAnalyzers"/>.
     /// </summary>
-    public class CompilationWithAnalyzersOptions
+    public sealed class CompilationWithAnalyzersOptions
     {
         private readonly AnalyzerOptions _options;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Options passed to <see cref="DiagnosticAnalyzer"/>s.
         /// </summary>
-        public AnalyzerOptions AnalyzerOptions => _options;
+        public AnalyzerOptions Options => _options;
 
         /// <summary>
         /// An optional delegate to be invoked when an analyzer throws an exception.
