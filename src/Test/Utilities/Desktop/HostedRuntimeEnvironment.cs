@@ -799,7 +799,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // for ARM testing at present.
             StringBuilder errors = new StringBuilder();
             List<string> allOutput = new List<string>();
-#if !(ARM)
+
+// Disable all PEVerification due to https://github.com/dotnet/roslyn/issues/6190
+#if false
 
             foreach (var name in modulesToVerify)
             {

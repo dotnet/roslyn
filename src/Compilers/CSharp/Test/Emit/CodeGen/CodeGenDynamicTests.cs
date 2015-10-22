@@ -303,7 +303,7 @@ class C
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
-        [Fact, WorkItem(530436, "DevDiv")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190"), WorkItem(530436, "DevDiv")]
         public void InvalidFunc_Constraints()
         {
             var systemCoreRef = CreateCompilationWithMscorlib(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
