@@ -2,7 +2,6 @@
 
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers

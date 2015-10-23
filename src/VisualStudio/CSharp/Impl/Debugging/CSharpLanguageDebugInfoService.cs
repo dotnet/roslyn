@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Debugging;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Debugging;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Debugging
 {

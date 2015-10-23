@@ -10,7 +10,6 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit

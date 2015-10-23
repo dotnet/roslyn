@@ -12,7 +12,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
-using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {

@@ -2,7 +2,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
 {

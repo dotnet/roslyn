@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Reflection;
-using System.Reflection.Metadata;
 using Roslyn.Test.Utilities;
 using Xunit;
 

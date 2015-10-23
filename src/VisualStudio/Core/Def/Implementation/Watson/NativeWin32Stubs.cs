@@ -12,15 +12,8 @@
 
 #if !SILVERLIGHT
 using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using Microsoft.Win32.SafeHandles;
 using DWORD = System.UInt32;
-using WORD = System.UInt16;
-using LPTSTR = System.String;
-using LPBYTE = System.IntPtr;
 using HANDLE = System.IntPtr;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson

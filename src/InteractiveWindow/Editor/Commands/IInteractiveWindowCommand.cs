@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Language.StandardClassification;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 

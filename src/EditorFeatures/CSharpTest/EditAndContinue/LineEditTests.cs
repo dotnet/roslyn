@@ -2,11 +2,9 @@
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {

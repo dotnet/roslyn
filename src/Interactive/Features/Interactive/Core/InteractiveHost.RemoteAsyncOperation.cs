@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Runtime.Remoting;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Interactive
 {

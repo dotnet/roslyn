@@ -13,8 +13,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
-using HANDLE = System.IntPtr;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
 {

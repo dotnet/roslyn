@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow

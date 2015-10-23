@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery

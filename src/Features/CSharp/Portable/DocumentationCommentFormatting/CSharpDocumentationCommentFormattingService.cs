@@ -2,7 +2,6 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.DocumentationCommentFormatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.DocumentationCommentFormatting

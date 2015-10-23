@@ -2,7 +2,6 @@
 
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
 using System.Globalization;

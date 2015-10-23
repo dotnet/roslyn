@@ -7,8 +7,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
 
 using static Microsoft.CodeAnalysis.AnalyzerAssemblyLoadUtils;

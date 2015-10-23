@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using System;
 using System.Threading.Tasks;
-using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.Test
 {

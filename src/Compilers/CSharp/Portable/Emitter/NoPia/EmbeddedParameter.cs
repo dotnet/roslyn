@@ -3,10 +3,8 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 {

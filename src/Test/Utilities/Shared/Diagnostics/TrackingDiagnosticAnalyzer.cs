@@ -3,13 +3,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities

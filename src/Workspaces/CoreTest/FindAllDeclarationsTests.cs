@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Xunit.Extensions;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

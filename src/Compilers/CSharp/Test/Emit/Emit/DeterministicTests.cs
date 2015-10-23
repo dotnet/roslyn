@@ -2,10 +2,8 @@
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;

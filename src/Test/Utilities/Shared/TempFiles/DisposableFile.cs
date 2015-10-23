@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using Roslyn.Utilities;
 using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities

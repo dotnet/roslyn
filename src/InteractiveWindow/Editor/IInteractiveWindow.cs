@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.InteractiveWindow

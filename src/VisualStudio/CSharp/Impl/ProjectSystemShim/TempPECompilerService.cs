@@ -5,12 +5,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim

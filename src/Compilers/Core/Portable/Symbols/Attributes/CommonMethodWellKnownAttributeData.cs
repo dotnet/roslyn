@@ -2,9 +2,6 @@
 
 using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis
 {

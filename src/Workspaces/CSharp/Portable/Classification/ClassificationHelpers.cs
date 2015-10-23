@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 

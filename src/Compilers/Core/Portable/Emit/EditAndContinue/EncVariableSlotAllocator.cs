@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {

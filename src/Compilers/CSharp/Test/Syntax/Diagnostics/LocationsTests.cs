@@ -2,9 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;

@@ -2,9 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Outlining
 {

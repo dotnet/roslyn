@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {

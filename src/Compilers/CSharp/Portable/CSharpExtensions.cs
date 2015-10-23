@@ -7,8 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis
 {

@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests

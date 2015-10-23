@@ -2,7 +2,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;

@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;

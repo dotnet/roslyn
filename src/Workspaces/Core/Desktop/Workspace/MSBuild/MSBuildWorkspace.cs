@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 #if !MSBUILD12
-using Microsoft.Build.Construction;
 #endif
 
 using Microsoft.CodeAnalysis;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {

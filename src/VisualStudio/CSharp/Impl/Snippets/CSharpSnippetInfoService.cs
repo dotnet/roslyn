@@ -4,13 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {

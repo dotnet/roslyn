@@ -2,7 +2,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {

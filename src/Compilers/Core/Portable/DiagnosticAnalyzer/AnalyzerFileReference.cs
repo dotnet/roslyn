@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using System.Security;
 using System.Threading;
 using Roslyn.Utilities;
 

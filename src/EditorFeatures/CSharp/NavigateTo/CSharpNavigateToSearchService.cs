@@ -2,7 +2,6 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.NavigateTo

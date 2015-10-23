@@ -3,7 +3,6 @@
 using System;
 using System.Linq;
 using System.Threading;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;

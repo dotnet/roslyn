@@ -8,8 +8,6 @@ using System.Reflection;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.Cci
 {

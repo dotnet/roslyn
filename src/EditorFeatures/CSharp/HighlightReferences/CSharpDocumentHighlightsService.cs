@@ -2,7 +2,6 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.HighlightReferences

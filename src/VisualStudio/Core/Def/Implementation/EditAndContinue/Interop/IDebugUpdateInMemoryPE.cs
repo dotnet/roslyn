@@ -3,7 +3,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using Microsoft.CodeAnalysis.EditAndContinue;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue.Interop
 {

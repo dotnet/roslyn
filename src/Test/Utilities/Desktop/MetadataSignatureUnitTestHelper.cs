@@ -2,8 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities

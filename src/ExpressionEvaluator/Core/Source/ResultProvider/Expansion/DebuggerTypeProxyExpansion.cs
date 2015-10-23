@@ -2,7 +2,6 @@
 
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.Debugger.Metadata;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 

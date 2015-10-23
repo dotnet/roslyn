@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {

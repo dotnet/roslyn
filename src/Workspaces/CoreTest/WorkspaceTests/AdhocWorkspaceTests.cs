@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using System;

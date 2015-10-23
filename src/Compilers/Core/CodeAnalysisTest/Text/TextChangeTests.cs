@@ -4,7 +4,6 @@ using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
 

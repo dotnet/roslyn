@@ -5,7 +5,6 @@ using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Runtime.InteropServices;

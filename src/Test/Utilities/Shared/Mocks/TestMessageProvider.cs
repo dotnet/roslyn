@@ -3,7 +3,6 @@
 using System;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Test.Utilities
 {

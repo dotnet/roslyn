@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Composition;
 using System.IO;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host

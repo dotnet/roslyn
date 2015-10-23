@@ -5,7 +5,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {

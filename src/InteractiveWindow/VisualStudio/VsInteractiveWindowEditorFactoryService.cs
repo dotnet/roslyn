@@ -12,8 +12,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.InteractiveWindow.Shell;
 
 namespace Microsoft.VisualStudio.InteractiveWindow.Shell
 {

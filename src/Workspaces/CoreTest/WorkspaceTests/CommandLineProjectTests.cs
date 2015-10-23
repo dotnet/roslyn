@@ -2,7 +2,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Test.Utilities;
 using Xunit;

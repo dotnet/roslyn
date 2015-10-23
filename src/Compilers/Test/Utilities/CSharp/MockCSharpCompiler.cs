@@ -4,11 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
