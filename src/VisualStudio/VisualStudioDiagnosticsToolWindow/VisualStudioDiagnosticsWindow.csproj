@@ -25,8 +25,6 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetVsixContainerName>Roslyn.VisualStudio.DiagnosticsWindow.vsix</TargetVsixContainerName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">

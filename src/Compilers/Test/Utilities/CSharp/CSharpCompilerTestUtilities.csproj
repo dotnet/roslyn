@@ -9,14 +9,13 @@
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Test.Utilities</RootNamespace>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <ProjectGuid>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">

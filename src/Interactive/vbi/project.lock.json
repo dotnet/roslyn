@@ -295,6 +295,299 @@
         }
       }
     },
+    ".NETFramework,Version=v4.6/win7": {
+      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "Microsoft.VisualBasic/10.0.0": {
+        "frameworkAssemblies": [
+          "Microsoft.VisualBasic"
+        ],
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.AppContext/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.AppContext.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.AppContext.dll": {}
+        }
+      },
+      "System.Collections/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Collections.Immutable/1.1.37": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.Globalization": "[4.0.0, )",
+          "System.Linq": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Collections.Immutable.dll": {}
+        }
+      },
+      "System.Console/4.0.0-beta-23123": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.Console.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.Console.dll": {}
+        }
+      },
+      "System.Diagnostics.Debug/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Diagnostics.StackTrace/4.0.0": {
+        "dependencies": {
+          "System.Reflection": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.Diagnostics.StackTrace.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.Diagnostics.StackTrace.dll": {}
+        }
+      },
+      "System.Diagnostics.Tools/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Globalization/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.IO/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.IO.FileSystem/4.0.0": {
+        "dependencies": {
+          "System.IO": "[4.0.0, )",
+          "System.IO.FileSystem.Primitives": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Handles": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Threading.Tasks": "[4.0.0, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.IO.FileSystem.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.IO.FileSystem.dll": {}
+        }
+      },
+      "System.IO.FileSystem.Primitives/4.0.0": {
+        "dependencies": {
+          "System.Runtime": "[4.0.20, )"
+        },
+        "frameworkAssemblies": [
+          "mscorlib"
+        ],
+        "compile": {
+          "ref/net46/System.IO.FileSystem.Primitives.dll": {}
+        },
+        "runtime": {
+          "lib/net46/System.IO.FileSystem.Primitives.dll": {}
+        }
+      },
+      "System.Linq/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Linq.Expressions/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Reflection/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Reflection.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Reflection.Metadata/1.1.0-beta-23413": {
+        "dependencies": {
+          "System.Collections": "[4.0.0, )",
+          "System.Collections.Immutable": "[1.1.37, )",
+          "System.Diagnostics.Debug": "[4.0.0, )",
+          "System.IO": "[4.0.0, )",
+          "System.Reflection": "[4.0.0, )",
+          "System.Reflection.Extensions": "[4.0.0, )",
+          "System.Reflection.Primitives": "[4.0.0, )",
+          "System.Resources.ResourceManager": "[4.0.0, )",
+          "System.Runtime": "[4.0.0, )",
+          "System.Runtime.Extensions": "[4.0.0, )",
+          "System.Runtime.InteropServices": "[4.0.0, )",
+          "System.Text.Encoding": "[4.0.0, )",
+          "System.Text.Encoding.Extensions": "[4.0.0, )",
+          "System.Threading": "[4.0.0, )"
+        },
+        "compile": {
+          "lib/dotnet/System.Reflection.Metadata.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Reflection.Metadata.dll": {}
+        }
+      },
+      "System.Reflection.Primitives/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Runtime/4.0.20": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Runtime.Handles/4.0.0": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Runtime.InteropServices/4.0.20": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Text.Encoding/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Text.Encoding.Extensions/4.0.0": {
+        "compile": {
+          "ref/net45/_._": {}
+        },
+        "runtime": {
+          "lib/net45/_._": {}
+        }
+      },
+      "System.Threading/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      },
+      "System.Threading.Tasks/4.0.10": {
+        "compile": {
+          "ref/net46/_._": {}
+        },
+        "runtime": {
+          "lib/net46/_._": {}
+        }
+      }
+    },
     ".NETFramework,Version=v4.6/win7-anycpu": {
       "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {

@@ -16,9 +16,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
     <!-- Disable the architecture mismatch warning -->
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-    <!-- Needed for the _CompileTemporaryAssembly target which runs due to having .xaml files that reference types from this project -->
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
