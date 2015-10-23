@@ -1,7 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -24,51 +25,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return string.Concat(System.Environment.NewLine, formattedCode);
         }
 
-        protected void TestInClass(string code, string expectedContent, string expectedDocumentationComment = null)
+        protected void TestInMethodAndScript(string code, string expectedContent, string expectedDocumentationComment = null)
         {
-            var codeInClass = "class C {" + code + "}";
-            Test(codeInClass, expectedContent, expectedDocumentationComment);
+            TestInMethod(code, expectedContent, expectedDocumentationComment);
+            TestInScript(code, expectedContent, expectedDocumentationComment);
         }
 
-        protected void TestInMethod(string code, string expectedContent, string expectedDocumentationComment = null)
-        {
-            var codeInClass = @"class C
-{
-    void M()
-    {
-        " + code + @"
-    }
-}";
-            Test(codeInClass, expectedContent, expectedDocumentationComment);
-        }
+        protected abstract void TestInClass(string code, string expectedContent, string expectedDocumentationComment = null);
 
-        protected void Test(string code, string expectedContent, string expectedDocumentationComment = null)
-        {
-            code = @"using System;
-using System.Collections.Generic;
-using System.Linq;
-" + code;
-            TestWithoutUsings(code, expectedContent, expectedDocumentationComment);
-        }
+        protected abstract void TestInMethod(string code, string expectedContent, string expectedDocumentationComment = null);
 
-        protected void TestWithoutUsings(string initialMarkup, string expectedContent, string expectedDocumentationComment = null)
-        {
-            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(initialMarkup))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
-                var document = workspace.CurrentSolution.Projects.First().Documents.First();
+        protected abstract void TestInScript(string code, string expectedContent, string expectedDocumentationComment = null);
 
-                if (string.IsNullOrEmpty(expectedContent))
-                {
-                    AssertNoContent(workspace, document, position);
-                }
-                else
-                {
-                    AssertContentIs(workspace, document, position, expectedContent, expectedDocumentationComment);
-                }
-            }
-        }
+        protected abstract void Test(
+            string code,
+            string expectedContent,
+            string expectedDocumentationComment = null,
+            CSharpParseOptions parseOptions = null);
 
         protected abstract void AssertNoContent(
             TestWorkspace workspace,
