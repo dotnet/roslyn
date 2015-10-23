@@ -201,8 +201,14 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                     if (GlobalsType != null)
                     {
-                        var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly, HostAssemblyReferenceProperties);
-                        references.Add(globalsTypeAssembly);
+                        var globalsAssembly = GlobalsType.GetTypeInfo().Assembly;
+
+                        // If the assembly doesn't have metadata (it's an in-memory or dynamic assembly),
+                        // the host has to add reference to the metadata where globals type is located explicitly.
+                        if (MetadataReference.HasMetadata(globalsAssembly))
+                        {
+                            references.Add(MetadataReference.CreateFromAssemblyInternal(globalsAssembly, HostAssemblyReferenceProperties));
+                        }
                     }
 
                     if (languageRuntimeReferenceOpt != null)
