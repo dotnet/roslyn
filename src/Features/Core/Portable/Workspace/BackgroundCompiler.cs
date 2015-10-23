@@ -34,13 +34,8 @@ namespace Microsoft.CodeAnalysis.Host
             _notificationQueue = taskSchedulerFactory.CreateTaskQueue();
             _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-
-            var editorWorkspace = workspace as Workspace;
-            if (editorWorkspace != null)
-            {
-                editorWorkspace.DocumentOpened += OnDocumentOpened;
-                editorWorkspace.DocumentClosed += OnDocumentClosed;
-            }
+            _workspace.DocumentOpened += OnDocumentOpened;
+            _workspace.DocumentClosed += OnDocumentClosed;
         }
 
         public void Dispose()
@@ -49,13 +44,8 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 this.CancelBuild(releasePreviousCompilations: true);
 
-                var editorWorkspace = _workspace as Workspace;
-                if (editorWorkspace != null)
-                {
-                    editorWorkspace.DocumentClosed -= OnDocumentClosed;
-                    editorWorkspace.DocumentOpened -= OnDocumentOpened;
-                }
-
+                _workspace.DocumentClosed -= OnDocumentClosed;
+                _workspace.DocumentOpened -= OnDocumentOpened;
                 _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
 
                 _workspace = null;
