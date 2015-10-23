@@ -2372,6 +2372,7 @@ class C1
             }
         }
 
+        [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_MetadataReferenceHasDocComments()
         {
