@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,9 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
-    internal class BackgroundCompiler
+    internal class BackgroundCompiler : IDisposable
     {
-        private readonly Workspace _workspace;
+        private Workspace _workspace;
         private readonly IWorkspaceTaskScheduler _compilationScheduler;
         private readonly IWorkspaceTaskScheduler _notificationQueue;
 
@@ -39,6 +40,25 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 editorWorkspace.DocumentOpened += OnDocumentOpened;
                 editorWorkspace.DocumentClosed += OnDocumentClosed;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_workspace != null)
+            {
+                this.CancelBuild(releasePreviousCompilations: true);
+
+                var editorWorkspace = _workspace as Workspace;
+                if (editorWorkspace != null)
+                {
+                    editorWorkspace.DocumentClosed -= OnDocumentClosed;
+                    editorWorkspace.DocumentOpened -= OnDocumentOpened;
+                }
+
+                _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
+
+                _workspace = null;
             }
         }
 
