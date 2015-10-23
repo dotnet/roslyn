@@ -65,6 +65,7 @@
     <Compile Include="ScriptingTestHelpers.cs" />
     <Compile Include="ScriptOptionsTests.cs" />
     <Compile Include="ScriptTaskExtensions.cs" />
+    <Compile Include="TestCompilationFactory.cs" />
     <Compile Include="TestConsoleIO.cs" />
   </ItemGroup>
   <ItemGroup>
