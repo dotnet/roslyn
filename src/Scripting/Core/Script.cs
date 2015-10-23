@@ -171,6 +171,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal abstract ImmutableArray<Diagnostic> CommonBuild(CancellationToken cancellationToken);
         internal abstract Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken);
 
+        // Apply recursive alias <host> to the host assembly reference, so that we hide its namespaces and global types behind it.
+        internal static readonly MetadataReferenceProperties HostAssemblyReferenceProperties = 
+            MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<host>")).WithRecursiveAliases(true);
+
         /// <summary>
         /// Gets the references that need to be assigned to the compilation.
         /// This can be different than the list of references defined by the <see cref="ScriptOptions"/> instance.
@@ -197,8 +201,14 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                     if (GlobalsType != null)
                     {
-                        var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
-                        references.Add(globalsTypeAssembly);
+                        var globalsAssembly = GlobalsType.GetTypeInfo().Assembly;
+
+                        // If the assembly doesn't have metadata (it's an in-memory or dynamic assembly),
+                        // the host has to add reference to the metadata where globals type is located explicitly.
+                        if (MetadataReference.HasMetadata(globalsAssembly))
+                        {
+                            references.Add(MetadataReference.CreateFromAssemblyInternal(globalsAssembly, HostAssemblyReferenceProperties));
+                        }
                     }
 
                     if (languageRuntimeReferenceOpt != null)
