@@ -28,6 +28,8 @@ To debug suites use the *xunit.console.x86.exe* runner command which is included
 
 > xunit.console.x86.exe [UnitTestDll] -noshadow 
 
+Alternatively, some members of the team have been working on a WPF runner that allows selection of individual tests, etc.  Grab the source from [xunit.runner.wpf](https://github.com/pilchie/xunit.runner.wpf), build it and give it a try.
+
 ## Contributing
 Please see [[Contributing Code]] for details on contributing changes back to the code.
 
