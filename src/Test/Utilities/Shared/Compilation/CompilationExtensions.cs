@@ -133,5 +133,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     updatedMethods.ToImmutableArray());
             }
         }
+
+        internal static void VerifyAssemblyAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)
+        {
+            var actual = compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases().
+               Select(t => $"{t.Item1.Identity.Name}{(t.Item2.IsEmpty ? "" : ": " + string.Join(",", t.Item2))}");
+
+            AssertEx.Equal(expectedAssembliesAndAliases, actual, itemInspector: s => '"' + s + '"');
+        }
     }
 }

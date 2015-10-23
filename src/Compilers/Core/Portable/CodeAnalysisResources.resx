@@ -404,6 +404,9 @@
   <data name="CantCreateReferenceToDynamicAssembly" xml:space="preserve">
     <value>Can't create a metadata reference to a dynamic assembly.</value>
   </data>
+  <data name="CantCreateReferenceToAssemblyWithoutLocation" xml:space="preserve">
+    <value>Can't create a metadata reference to an assembly without location.</value>
+  </data>
   <data name="ArgumentCannotBeEmpty" xml:space="preserve">
     <value>Argument cannot be empty.</value>
   </data>
