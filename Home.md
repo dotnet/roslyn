@@ -4,6 +4,7 @@
 * [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
 * [Roadmap](Roadmap)
 * [Building, Testing, and Debugging](Building-Testing-and-Debugging)
+* [Contributing](Contributing-Code)
 * [FAQ](FAQ)
 
 # Language Design
