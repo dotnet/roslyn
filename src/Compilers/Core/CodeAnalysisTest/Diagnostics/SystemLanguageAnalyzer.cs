@@ -10,7 +10,109 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 {
     // These analyzers are not yet intended for any actual use. They exist solely to test IOperation support.
 
-    /// <summary>Analyzer used to test for loop IOperations.</summary>
+    /// <summary>Analyzer used to identify local variables that could be declared Const.</summary>
+    public class LocalCoundBeConstAnalyzer : DiagnosticAnalyzer
+    {
+        private const string SystemCategory = "System";
+
+        public static readonly DiagnosticDescriptor LocalCouldBeConstDescriptor = new DiagnosticDescriptor(
+            "LocalCouldBeReadOnly",
+            "Local Could Be Const",
+            "Local variable is never modified and so could be const.",
+            SystemCategory,
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+        /// <summary>Gets the set of supported diagnostic descriptors from this analyzer.</summary>
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get { return ImmutableArray.Create(LocalCouldBeConstDescriptor); }
+        }
+
+        public sealed override void Initialize(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(
+                 (compilationContext) =>
+                 {
+                     compilationContext.RegisterOperationBlockStartAction(
+                         (operationBlockContext) =>
+                         {
+                             IMethodSymbol containingMethod = operationBlockContext.OwningSymbol as IMethodSymbol;
+
+                             if (containingMethod != null)
+                             {
+                                 HashSet<ILocalSymbol> mightBecomeConstLocals = new HashSet<ILocalSymbol>();
+                                 HashSet<ILocalSymbol> assignedToLocals = new HashSet<ILocalSymbol>();
+
+                                 operationBlockContext.RegisterOperationAction(
+                                    (operationContext) =>
+                                    {
+                                        IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
+                                        AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
+                                    },
+                                    OperationKind.AssignmentExpression,
+                                    OperationKind.CompoundAssignmentExpression);
+
+                                 operationBlockContext.RegisterOperationAction(
+                                     (operationContext) =>
+                                     {
+                                         IInvocationExpression invocation = (IInvocationExpression)operationContext.Operation;
+                                         foreach (IArgument argument in invocation.ArgumentsInParameterOrder)
+                                         {
+                                             if (argument.Parameter.RefKind == RefKind.Out || argument.Parameter.RefKind == RefKind.Ref)
+                                             {
+                                                 AssignTo(argument.Value, assignedToLocals, mightBecomeConstLocals);
+                                             }
+                                         }
+                                     },
+                                     OperationKind.InvocationExpression);
+
+                                 operationBlockContext.RegisterOperationAction(
+                                     (operationContext) =>
+                                     {
+                                         IVariableDeclarationStatement declaration = (IVariableDeclarationStatement)operationContext.Operation;
+                                         foreach (IVariable variable in declaration.Variables)
+                                         {
+                                             ILocalSymbol local = variable.Variable;
+                                             if (!local.IsConst)
+                                             {
+                                                 mightBecomeConstLocals.Add(local);
+                                             }
+                                         }
+                                     },
+                                     OperationKind.VariableDeclarationStatement);
+
+                                 operationBlockContext.RegisterOperationBlockEndAction(
+                                     (operationBlockEndContext) =>
+                                     {
+                                         foreach (ILocalSymbol couldBeConstLocal in mightBecomeConstLocals)
+                                         {
+                                             Report(operationBlockEndContext, couldBeConstLocal, LocalCouldBeConstDescriptor);
+                                         }
+                                     });
+                             }
+                         });
+                 });
+        }
+
+        static void AssignTo(IExpression target, HashSet<ILocalSymbol> assignedToLocals, HashSet<ILocalSymbol> mightBecomeConstLocals)
+        {
+            if (target.Kind == OperationKind.LocalReferenceExpression)
+            {
+                ILocalSymbol targetLocal = ((ILocalReferenceExpression)target).Local;
+
+                assignedToLocals.Add(targetLocal);
+                mightBecomeConstLocals.Remove(targetLocal);
+            }
+        }
+
+        void Report(OperationBlockAnalysisContext context, ILocalSymbol local, DiagnosticDescriptor descriptor)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(descriptor, local.Locations.FirstOrDefault()));
+        }
+    }
+
+    /// <summary>Analyzer used to identify fields that could be declared ReadOnly.</summary>
     public class FieldCouldBeReadOnlyAnalyzer : DiagnosticAnalyzer
     {
         private const string SystemCategory = "System";
