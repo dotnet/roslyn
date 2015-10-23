@@ -1,5 +1,6 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
@@ -1620,6 +1621,56 @@ class C
                     view.Close()
                 End Try
             End Using
+        End Function
+
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround1() As Task
+            Dim originalCulture = CultureInfo.CurrentCulture
+            Dim trCulture = New CultureInfo("tr-TR")
+            System.Threading.Thread.CurrentThread.CurrentCulture = trCulture
+
+            Try
+                Using state = TestState.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class C
+        {
+            void foo(int x)
+            {
+                string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("is")
+                    Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                    state.AssertSelectedCompletionItem("IsNullOrEmpty")
+                End Using
+            Finally
+                System.Threading.Thread.CurrentThread.CurrentCulture = originalCulture
+            End Try
+
+        End Function
+
+        <WorkItem(588, "https://github.com/dotnet/roslyn/issues/588")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestMatchWithTurkishIWorkaround2() As Task
+            Dim originalCulture = CultureInfo.CurrentCulture
+            Dim trCulture = New CultureInfo("tr-TR")
+            System.Threading.Thread.CurrentThread.CurrentCulture = trCulture
+
+            Try
+                Using state = TestState.CreateCSharpTestState(
+                               <Document><![CDATA[
+        class C
+        {
+            void foo(int x)
+            {
+                string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
+                    state.SendTypeChars("ı")
+                    Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                    state.AssertSelectedCompletionItem()
+                End Using
+            Finally
+                System.Threading.Thread.CurrentThread.CurrentCulture = originalCulture
+            End Try
+
         End Function
     End Class
 End Namespace
