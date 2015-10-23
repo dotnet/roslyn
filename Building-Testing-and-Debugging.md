@@ -18,8 +18,17 @@ Please see the [known contributor issues](https://github.com/dotnet/roslyn/label
 4. Due to [Issue #5876](https://github.com/dotnet/roslyn/issues/5876), you should build on the command line before opening in Visual Studio.  Run: `msbuild /v:m /m Roslyn.sln`
 5. Open _Roslyn.sln_
 
-## 
+## Solutions
 
+There are three solutions in the Roslyn tree:
+
+__Compilers.sln__: Contains just C# and VB compilers, and the compiler APIs.
+
+__Roslyn.sln__: Contains entirety of Roslyn including the C# and VB compilers and the compiler APIs, workspace APIs, features layer, language service, and other Visual Studio integration pieces. This is the solution most contributors should open.
+
+__CrossPlatform.sln__: Represents all the projects that we build across Linux, Windows and Mac. This solution is changing regularly as we bring more and more code to Linux and Mac.
+
+###Compilers.sln
 ## Running Tests
 Tests cannot be run via Test Explorer due to some Visual Studio limitations.
 
