@@ -6694,6 +6694,28 @@ public class C { }
         }
 
         [Fact]
+        [WorkItem(3707, "https://github.com/dotnet/roslyn/issues/3707")]
+        public void AnalyzerExceptionDiagnosticCanBeConfigured()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"class C {}");
+            var srcDirectory = Path.GetDirectoryName(srcFile.Path);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, _baseDirectory, new[] { "/t:library", $"/warnaserror:{AnalyzerExecutor.AnalyzerExceptionDiagnosticId}", srcFile.Path },
+               analyzer: new AnalyzerThatThrowsInGetMessage());
+
+            var exitCode = csc.Run(outWriter);
+            Assert.NotEqual(0, exitCode);
+            var output = outWriter.ToString();
+
+            // Verify that the analyzer exception diagnostic for the exception throw in AnalyzerThatThrowsInGetMessage is also reported.
+            Assert.Contains(AnalyzerExecutor.AnalyzerExceptionDiagnosticId, output, StringComparison.Ordinal);
+            Assert.Contains(nameof(NotImplementedException), output, StringComparison.Ordinal);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
         [WorkItem(4589, "https://github.com/dotnet/roslyn/issues/4589")]
         public void AnalyzerReportsMisformattedDiagnostic()
         {

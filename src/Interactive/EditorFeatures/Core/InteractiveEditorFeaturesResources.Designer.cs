@@ -77,5 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor {
                 return ResourceManager.GetString("ResetCommandParametersDescription", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resetting execution engine..
+        /// </summary>
+        internal static string ResettingExecutionEngine {
+            get {
+                return ResourceManager.GetString("ResettingExecutionEngine", resourceCulture);
+            }
+        }
     }
 }

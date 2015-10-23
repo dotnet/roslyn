@@ -7058,5 +7058,43 @@ class C
     string  Name    {    get    ;   set     ;    }
 }", changedOptionSet: changedOptionSet);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
+        public void KeepAccessorWithAttributeOnSingleLine()
+        {
+            AssertFormat(@"
+class Program
+{
+    public Int32 PaymentMethodID
+    {
+        [System.Diagnostics.DebuggerStepThrough]
+        get { return 10; }
+    }
+}", @"
+class Program
+{
+    public Int32 PaymentMethodID
+    {
+        [System.Diagnostics.DebuggerStepThrough]
+        get { return 10; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
+        public void OneSpaceBetweenAccessorsAndAttributes()
+        {
+            AssertFormat(@"
+class Program
+{
+    public int SomeProperty { [SomeAttribute] get; [SomeAttribute] private set; }
+}", @"
+class Program
+{
+    public int SomeProperty {    [SomeAttribute] get;    [SomeAttribute] private set; }
+}");
+        }
     }
 }

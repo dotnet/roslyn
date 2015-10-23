@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly CSharpCompilationOptions s_signedDll = 
             TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2);
-
+        
         [Fact]
         public void WinRtCompilationReferences()
         {
@@ -2173,6 +2173,214 @@ public class Source
             a1 = c2.GetAssemblyOrModuleSymbol(refVectors41);
             Assert.Equal("System.Numerics.Vectors, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a0).Identity.GetDisplayName());
             Assert.Equal("System.Numerics.Vectors, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", ((IAssemblySymbol)a1).Identity.GetDisplayName());
+        }
+
+        [Fact]
+        public void ReferenceDirective_RecursiveReferenceWithNoAliases()
+        {
+            // c - b (alias X) 
+            //   - a (via #r) -> b
+            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+
+            var source = @"
+#r ""a""
+new B()
+";
+
+            var c = CreateSubmission(source, new[] { bRef.WithAliases(ImmutableArray.Create("X")), aRef }, TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
+                {
+                    { "a", (PortableExecutableReference)aRef.WithProperties(MetadataReferenceProperties.Assembly.WithRecursiveAliases(true)) }
+                })));
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyAliases(
+                "mscorlib",
+                "B: X,global",
+                "A"
+            );
+        }
+
+        [Fact]
+        public void ReferenceDirective_NonRecursiveReferenceWithNoAliases()
+        {
+            // c - b (alias X) 
+            //   - a (via #r) -> b
+            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+
+            var source = @"
+#r ""a""
+new B()
+";
+
+            var c = CreateSubmission(source, new[] { bRef.WithAliases(ImmutableArray.Create("X")), aRef }, TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
+                {
+                    { "a", (PortableExecutableReference)aRef.WithProperties(MetadataReferenceProperties.Assembly) }
+                })));
+
+            c.VerifyDiagnostics(
+                // (3,5): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
+                // new B()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B"));
+
+            c.VerifyAssemblyAliases(
+                "mscorlib",
+                "B: X",
+                "A");
+        }
+
+        [Fact]
+        public void ReferenceDirective_RecursiveReferenceWithAlias1()
+        {
+            // c - b (alias X) 
+            //   - a 
+            //   - a (recursive alias Y) -> b
+            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+
+            var source = @"
+extern alias X;
+extern alias Y;
+
+public class P
+{
+   A a = new Y::A();
+   X::B b = new Y::B();
+}
+";
+
+            var c = CreateCompilation(source, new[]
+            {
+                bRef.WithAliases(ImmutableArray.Create("X")),
+                aRef,
+                aRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Y")).WithRecursiveAliases(true)),
+                MscorlibRef,
+            }, TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyAliases(
+                "B: X,Y",
+                "A: global,Y",
+                "mscorlib: global,Y");
+        }
+
+        [Fact]
+        public void ReferenceDirective_RecursiveReferenceWithAlias2()
+        {
+            // c - b (alias X) 
+            //   - a (recursive alias Y) -> b
+            //   - a 
+            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+
+            var source = @"
+extern alias X;
+extern alias Y;
+
+public class P
+{
+   A a = new Y::A();
+   X::B b = new Y::B();
+}
+";
+
+            var c = CreateCompilation(source, new[]
+            {
+                bRef.WithAliases(ImmutableArray.Create("X")),
+                aRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Y")).WithRecursiveAliases(true)),
+                aRef,
+                MscorlibRef,
+            }, TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyAliases(
+                "B: X,Y",
+                "A: global,Y",
+                "mscorlib: global,Y");
+        }
+
+        [Fact]
+        public void ReferenceDirective_RecursiveReferenceWithAlias3()
+        {
+            // c - b (alias X) 
+            //   - a (recursive alias Y) -> b
+            //   - a 
+            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+
+            var source = @"
+extern alias X;
+extern alias Y;
+
+public class P
+{
+   A a = new Y::A();
+   X::B b = new Y::B();
+}
+";
+
+            var c = CreateCompilation(source, new[]
+            {
+                bRef.WithAliases(ImmutableArray.Create("X")),
+                aRef,
+                aRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Y")).WithRecursiveAliases(true)),
+                aRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Y")).WithRecursiveAliases(true)),
+                aRef,
+                MscorlibRef,
+            }, TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyAliases(
+                "B: X,Y",
+                "A: global,Y",
+                "mscorlib: global,Y");
+        }
+
+        [Fact]
+        public void ReferenceDirective_RecursiveReferenceWithAlias4()
+        {
+            // c - b (alias X) 
+            //   - a (recursive alias Y) -> b
+            //   - d (recursive alias Z) -> a 
+            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var dRef = CreateCompilationWithMscorlib45("public class D : A { }", new[] { aRef, bRef }, assemblyName: "D").EmitToImageReference();
+
+            var source = @"
+extern alias X;
+extern alias Y;
+extern alias Z;
+
+public class P
+{
+   Z::A a = new Y::A();
+   X::B b = new Y::B();
+   Z::B d = new X::B();
+}
+";
+
+            var c = CreateCompilation(source, new[]
+            {
+                bRef.WithAliases(ImmutableArray.Create("X")),
+                aRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Y", "Y")).WithRecursiveAliases(true)),
+                dRef.WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Z")).WithRecursiveAliases(true)),
+                MscorlibRef,
+            }, TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyAliases(
+                "B: X,Y,Y,Z",
+                "A: Y,Y,Z",
+                "D: Z",
+                "mscorlib: global,Y,Y,Z");
         }
 
         [Fact]

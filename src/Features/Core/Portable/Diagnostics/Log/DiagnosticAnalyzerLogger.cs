@@ -5,9 +5,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Log
 {
@@ -91,14 +91,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }
         }
 
-        public static void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, ActionCounts analyzerActions, Project projectOpt, DiagnosticLogAggregator logAggregator)
+        public static void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, Project projectOpt, DiagnosticLogAggregator logAggregator)
         {
-            if (analyzerActions == null || analyzer == null || logAggregator == null)
+            if (analyzerTelemetryInfo == null || analyzer == null || logAggregator == null)
             {
                 return;
             }
 
-            logAggregator.UpdateAnalyzerTypeCount(analyzer, analyzerActions, projectOpt);
+            logAggregator.UpdateAnalyzerTypeCount(analyzer, analyzerTelemetryInfo, projectOpt);
         }
 
         public static void LogAnalyzerTypeCountSummary(int correlationId, DiagnosticLogAggregator logAggregator)
