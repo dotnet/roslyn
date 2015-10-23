@@ -15,7 +15,8 @@ Please see the [known contributor issues](https://github.com/dotnet/roslyn/label
 1. Open Developer Command Prompt for VS2015
 2. Clone https://github.com/dotnet/roslyn
 3. Run: `nuget.exe restore Roslyn.sln`
-4. Open Roslyn.sln 
+4. Due to [Issue #5876](https://github.com/dotnet/roslyn/issues/5876), you should build on the command line before opening in Visual Studio.  Run: `msbuild /v:m /m Roslyn.sln`
+5. Open Roslyn.sln 
 
 ## Running Unit Tests
 To run the unit tests:
