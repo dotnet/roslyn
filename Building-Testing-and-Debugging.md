@@ -28,7 +28,6 @@ __Roslyn.sln__: Contains entirety of Roslyn including the C# and VB compilers an
 
 __CrossPlatform.sln__: Represents all the projects that we build across Linux, Windows and Mac. This solution is changing regularly as we bring more and more code to Linux and Mac.
 
-###Compilers.sln
 ## Running Tests
 Tests cannot be run via Test Explorer due to some Visual Studio limitations.
 
