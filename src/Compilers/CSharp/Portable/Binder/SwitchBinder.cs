@@ -146,24 +146,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var labelSyntax in labelsSyntax)
             {
                 ConstantValue boundLabelConstantOpt = null;
-                if (labelSyntax.Kind() == SyntaxKind.CaseSwitchLabel)
+                switch (labelSyntax.Kind())
                 {
-                    // Bind the switch expression and the switch case label expression, but do not report any diagnostics here.
-                    // Diagnostics will be reported during binding.                        
-                    var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
-                    Debug.Assert(caseLabel.Value != null);
-                    DiagnosticBag tempDiagnosticBag = DiagnosticBag.GetInstance();
+                    case SyntaxKind.CaseSwitchLabel:
+                        // Bind the switch expression and the switch case label expression, but do not report any diagnostics here.
+                        // Diagnostics will be reported during binding.
+                        var caseLabel = (CaseSwitchLabelSyntax)labelSyntax;
+                        Debug.Assert(caseLabel.Value != null);
+                        DiagnosticBag tempDiagnosticBag = DiagnosticBag.GetInstance();
 
-                    var boundLabelExpression = BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
+                        var boundLabelExpression = BindValue(caseLabel.Value, tempDiagnosticBag, BindValueKind.RValue);
 
-                    if ((object)switchGoverningType == null)
-                    {
-                        switchGoverningType = this.BindSwitchExpression(_switchSyntax.Expression, tempDiagnosticBag).Type;
-                    }
+                        if ((object)switchGoverningType == null)
+                        {
+                            switchGoverningType = this.BindSwitchExpression(_switchSyntax.Expression, tempDiagnosticBag).Type;
+                        }
 
-                    boundLabelExpression = ConvertCaseExpression(switchGoverningType, labelSyntax, boundLabelExpression, ref boundLabelConstantOpt, tempDiagnosticBag);
+                        boundLabelExpression = ConvertCaseExpression(switchGoverningType, labelSyntax, boundLabelExpression, ref boundLabelConstantOpt, tempDiagnosticBag);
 
-                    tempDiagnosticBag.Free();
+                        tempDiagnosticBag.Free();
+                        break;
+
+                    case SyntaxKind.DefaultSwitchLabel:
+                        break;
+                    case SyntaxKind.CaseMatchLabel:
+                        throw new NotImplementedException();
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(labelSyntax.Kind());
                 }
 
                 if (labels == null)
@@ -282,7 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (IsPatternSwitch(node))
             {
-                return BindPatternSwitch(node, originalBinder, diagnostics);
+                return (Compilation.Feature("patterns") != null)
+                    ? (BoundStatement)BindPatternSwitch(node, originalBinder, diagnostics)
+                    : new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty, true);
             }
 
             // Bind switch expression and set the switch governing type

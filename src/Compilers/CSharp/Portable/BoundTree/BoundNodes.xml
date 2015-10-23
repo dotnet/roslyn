@@ -677,6 +677,27 @@
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
 
+  <Node Name="BoundMatchStatement" Base="BoundStatement">
+    <Field Name="BoundExpression" Type="BoundExpression"/>
+
+    <!-- Locals declared immediately within the switch block. -->
+    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="MatchSections" Type="ImmutableArray&lt;BoundMatchSection&gt;"/>
+    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+    <Field Name="DefaultLabel" Type="GeneratedLabelSymbol" Null="allow"/>
+  </Node>
+
+  <Node Name="BoundMatchSection" Base="BoundStatementList">
+    <Field Name="BoundMatchLabels" Type="ImmutableArray&lt;BoundMatchLabel&gt;"/>
+  </Node>
+
+  <Node Name="BoundMatchLabel" Base="BoundNode">
+    <Field Name="Label" Type="LabelSymbol"/>
+    <Field Name="Pattern" Type="BoundPattern"/>
+    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+  </Node>
+
   <Node Name="BoundIfStatement" Base="BoundStatement">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>

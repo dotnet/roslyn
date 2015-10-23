@@ -2284,7 +2284,7 @@
     <Field Name="Condition" Type="ExpressionSyntax"  Optional="true">
       <PropertyComment>
         <summary>
-          Gets an ExpressionSyntax that represents the condition after the with keyword.
+          Gets an ExpressionSyntax that represents the condition after the when keyword.
         </summary>
       </PropertyComment>
     </Field>

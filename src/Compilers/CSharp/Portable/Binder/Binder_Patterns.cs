@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundIsPatternExpression(node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
         }
 
-        private BoundPattern BindPattern(PatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
+        protected BoundPattern BindPattern(PatternSyntax node, BoundExpression operand, TypeSymbol operandType, bool hasErrors, DiagnosticBag diagnostics)
         {
             switch (node.Kind())
             {

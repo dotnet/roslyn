@@ -836,7 +836,7 @@ class C
     {
         switch (o)
         {
-            case F(null):
+            case ((o.GetType().Name.Length)):
                 M();
                 break;
             case 0:
@@ -853,9 +853,6 @@ class C
 ";
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (8,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
-                //             case F(null):
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case F(null):").WithArguments("pattern matching", "patterns").WithLocation(8, 13),
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
