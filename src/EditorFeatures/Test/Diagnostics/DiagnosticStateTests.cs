@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         [Fact]
         public void DiagnosticEquivalence()
         {
+#if DEBUG
             var source =
 @"class C
 {
@@ -144,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             diagnostics2 = new[] { diagnostics2[1] };
             Assert.NotEqual(diagnostics1, diagnostics2);
             Assert.False(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
+#endif
         }
 
         private static void AssertDiagnostics(ImmutableArray<DiagnosticData> items1, ImmutableArray<DiagnosticData> items2)
