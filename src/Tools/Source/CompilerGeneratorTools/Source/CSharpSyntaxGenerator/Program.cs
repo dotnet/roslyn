@@ -60,9 +60,8 @@ namespace CSharpSyntaxGenerator
                 }
             }
 
-            var reader = new XmlTextReader(inputFile) { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null };
             var serializer = new XmlSerializer(typeof(Tree));
-            Tree tree = (Tree)serializer.Deserialize(reader);
+            Tree tree = (Tree)serializer.Deserialize(File.OpenRead(inputFile));
 
             if (writeSignatures)
             {
@@ -84,7 +83,8 @@ namespace CSharpSyntaxGenerator
         private static void WriteUsage()
         {
             Console.WriteLine("Invalid usage");
-            Console.WriteLine(typeof(Program).Assembly.ManifestModule.Name + " input-file output-file [/write-test]");
+            // It looks like there's no portable way to get the program name.
+            Console.WriteLine("    args: input-file output-file [/write-test]");
         }
 
         private static void WriteToFile(Tree tree, Action<TextWriter, Tree> writeAction, string outputFile)
