@@ -1,6 +1,6 @@
 # .NET Compiler Platform ("Roslyn") Overview
 
-[Download in PDF](file:roslyn-overview.pdf])
+[Download in PDF](https://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822125)
 
 Contents
 
@@ -244,4 +244,3 @@ The following diagram is a representation of how the Workspace relates to the ho
 ## Summary
 
 The .NET Compiler Platform (“Roslyn”) exposes a set of Compiler APIs and Workspaces APIs that provides rich information about your source code and that has full fidelity with the C# and Visual Basic languages.  The transition to compilers as a platform dramatically lowers the barrier to entry for creating code focused tools and applications. It creates many opportunities for innovation in areas such as meta-programming, code generation and transformation, interactive use of the C# and VB languages, and embedding of C# and VB in domain specific languages.  
-
