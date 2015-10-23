@@ -41,6 +41,11 @@
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
+      <Name>InteractiveWindow</Name>
+      <Aliases>InteractiveWindow</Aliases>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -108,7 +113,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveWindow" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
@@ -654,9 +658,6 @@
     <Compile Include="Implementation\Workspaces\ProjectCacheService.SimpleMRUCache.cs" />
     <Compile Include="Implementation\Workspaces\TextUndoHistoryWorkspaceServiceFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\WorkspaceTaskSchedulerFactoryFactory.cs" />
-    <Compile Include="Interactive\BufferBlock.cs" />
-    <Compile Include="Interactive\ClipboardFormats.cs" />
-    <Compile Include="Interactive\ReplSpanKind.cs" />
     <Compile Include="IRefactorNotifyService.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.Tagger.cs" />
     <Compile Include="Tagging\AbstractAsynchronousTaggerProvider.TagSource.cs" />

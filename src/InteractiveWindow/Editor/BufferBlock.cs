@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     /// <summary>
     /// REPL session buffer: input, output, or prompt.

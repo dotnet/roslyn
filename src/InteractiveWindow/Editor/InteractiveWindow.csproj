@@ -25,6 +25,7 @@
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VsInteractiveWindow" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -68,6 +69,7 @@
     <Content Include="Resources\ReplToolBarImages.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BufferBlock.cs" />
     <Compile Include="Commands\CancelExecutionCommand.cs" />
     <Compile Include="Commands\ClearScreenCommand.cs" />
     <Compile Include="Commands\CommandClassifier.cs" />
@@ -119,6 +121,7 @@
     <Compile Include="Output\SortedSpans.cs" />
     <Compile Include="Output\ZoomableInlineAdornment.cs" />
     <Compile Include="PredefinedInteractiveTextViewRoles.cs" />
+    <Compile Include="InteractiveWindow.ReplSpanKind.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenter.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenterProvider.cs" />
     <Compile Include="SmartUpDownOption.cs" />
@@ -140,12 +143,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj">
-      <Project>{3cdeeab7-2256-418a-beb2-620b5cb16302}</Project>
-      <Name>EditorFeatures</Name>
-    </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

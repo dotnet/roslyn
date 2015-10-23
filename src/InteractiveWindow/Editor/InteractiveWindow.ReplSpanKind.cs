@@ -2,7 +2,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Editor.Interactive
+namespace Microsoft.VisualStudio.InteractiveWindow
 {
     [DataContract]
     internal enum ReplSpanKind
