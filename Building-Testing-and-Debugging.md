@@ -24,7 +24,7 @@ To run the unit tests:
 
 This command will build and run all of the code / tests which are supported on the current public build of Visual Studio 2015.  
 
-To debug suites use the *xunit.console.x86.exe* runner command which is included in the [xunit.runners](https://www.nuget.org/packages/xunit.runners) NuGet package.  Make sure to use a 2.0 version of the runner.  
+To debug suites use the *xunit.console.x86.exe* runner command which is included in the [xunit.runner.console](https://www.nuget.org/packages/xunit.runner.console) NuGet package.  Make sure to use version 2.1 of the runner.
 
 > xunit.console.x86.exe [UnitTestDll] -noshadow 
 
