@@ -1,17 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -64,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             int result = VSConstants.S_OK;
             _languageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
-                "Intellisense",
+                EditorFeaturesResources.Intellisense,
                 allowCancel: true,
                 action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.CancellationToken));
 
@@ -124,5 +129,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         #endregion
+
+        protected override void SyncClassView(SnapshotPoint caretPosition)
+        {
+            var document = caretPosition.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return;
+            }
+
+            IVsNavInfo navInfo = null;
+            _languageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
+                EditorFeaturesResources.Intellisense,
+                allowCancel: true,
+                action: context =>
+            {
+                navInfo = SyncClassViewWorker(document, caretPosition.Position, context.CancellationToken);
+            });
+
+            if (navInfo != null)
+            {
+                var navTool = (IVsNavigationTool)_languageService.SystemServiceProvider.GetService(typeof(SVsClassView));
+                navTool.NavigateToNavInfo(navInfo);
+            }
+        }
+
+        private IVsNavInfo SyncClassViewWorker(Document document, int position, CancellationToken cancellationToken)
+        {
+            var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var node = syntaxFactsService.GetContainingMemberDeclaration(syntaxRoot, position);
+            if (node != null)
+            {
+                var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                if (symbol != null)
+                {
+                    return _languageService.Package.LibraryManager.GetSymbolNavInfo(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
+                }
+            }
+
+            return _languageService.Package.LibraryManager.GetProjectNavInfo(document.Project);
+        }
     }
 }

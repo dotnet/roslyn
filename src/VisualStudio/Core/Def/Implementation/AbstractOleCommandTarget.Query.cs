@@ -104,6 +104,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case VSConstants.VSStd97CmdID.FindReferences:
                     return QueryFindReferencesStatus(prgCmds);
 
+                case VSConstants.VSStd97CmdID.SyncClassView:
+                    return QuerySyncClassView(prgCmds);
+
                 default:
                     return NextCommandTarget.QueryStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
             }
@@ -320,6 +323,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private int QueryFindReferencesStatus(OLECMD[] prgCmds)
+        {
+            prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
+            return VSConstants.S_OK;
+        }
+
+        private int QuerySyncClassView(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;

@@ -30,17 +30,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 return null;
             }
 
-            if (symbolListItem is MemberListItem)
+            if (symbolListItem is MemberListItem || symbolListItem is TypeListItem || symbolListItem is NamespaceListItem)
             {
-                return GetMemberNavInfo(symbol, project, compilation, useExpandedHierarchy);
-            }
-            else if (symbolListItem is TypeListItem)
-            {
-                return GetTypeNavInfo((INamedTypeSymbol)symbol, project, compilation, useExpandedHierarchy);
-            }
-            else if (symbolListItem is NamespaceListItem)
-            {
-                return GetNamespaceNavInfo((INamespaceSymbol)symbol, project, compilation, useExpandedHierarchy);
+                return GetSymbolNavInfo(symbol, project, compilation, useExpandedHierarchy);
             }
 
             return GetProjectNavInfo(project);
@@ -94,6 +86,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 this.LibraryGuid,
                 this.SymbolToolLanguage,
                 libraryName: assemblySymbol.Identity.GetDisplayName());
+        }
+
+        internal IVsNavInfo GetSymbolNavInfo(ISymbol symbol, Project project, Compilation compilation, bool useExpandedHierarchy)
+        {
+            if (symbol is ITypeSymbol)
+            {
+                return GetTypeNavInfo((ITypeSymbol)symbol, project, compilation, useExpandedHierarchy);
+            }
+            else if (symbol is INamespaceSymbol)
+            {
+                return GetNamespaceNavInfo((INamespaceSymbol)symbol, project, compilation, useExpandedHierarchy);
+            }
+
+            return GetMemberNavInfo(symbol, project, compilation, useExpandedHierarchy);
         }
 
         internal IVsNavInfo GetMemberNavInfo(ISymbol memberSymbol, Project project, Compilation compilation, bool useExpandedHierarchy)
