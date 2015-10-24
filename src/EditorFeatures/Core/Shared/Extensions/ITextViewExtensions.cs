@@ -318,5 +318,47 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             surfaceBufferSpan = default(VirtualSnapshotSpan);
             return false;
         }
+
+        /// <summary>
+        /// Returns the span of the lines in subjectBuffer that is currently visible in the provided
+        /// view.  "extraLines" can be provided to get a span that encompasses some number of lines
+        /// before and after the actual visible lines.
+        /// </summary>
+        public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
+        {
+            // If we're being called while the textview is actually in the middle of a layout, then 
+            // we can't proceed.  Much of the text view state is unsafe to access (and will throw).
+            if (textView.InLayout)
+            {
+                return null;
+            }
+
+            // Determine the range of text that is visible in the view.  Then map this down to the
+            // bufffer passed in.  From that, determine the start/end line for the buffer that is in
+            // view.
+            var visibleSpan = textView.TextViewLines.FormattedSpan;
+            var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
+            if (visibleSpansInBuffer.Count == 0)
+            {
+                return null;
+            }
+
+            var visibleStart = visibleSpansInBuffer.First().Start;
+            var visibleEnd = visibleSpansInBuffer.Last().End;
+
+            var snapshot = subjectBuffer.CurrentSnapshot;
+            var startLine = visibleStart.GetContainingLine().LineNumber;
+            var endLine = visibleEnd.GetContainingLine().LineNumber;
+
+            startLine = Math.Max(startLine - extraLines, 0);
+            endLine = Math.Min(endLine + extraLines, snapshot.LineCount - 1);
+
+            var start = snapshot.GetLineFromLineNumber(startLine).Start;
+            var end = snapshot.GetLineFromLineNumber(endLine).EndIncludingLineBreak;
+
+            var span = new SnapshotSpan(snapshot, Span.FromBounds(start, end));
+
+            return span;
+        }
     }
 }

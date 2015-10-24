@@ -18,7 +18,7 @@ namespace Roslyn.Test.Utilities
             // complete mark the frame as complete so the dispatcher loop
             // pops out (stops).
             var operation = dispatcher.BeginInvoke(
-                DispatcherPriority.Background, callback, frame);
+                DispatcherPriority.SystemIdle, callback, frame);
 
             // Start the loop.  It will process all items in the queue, then 
             // will process the above callback.  That callback will tell the

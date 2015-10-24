@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis
                     var pair = enumerator.Current;
 
                     // Simple name of the last encountered child namespace.
-                    string lastChildNamespaceName = string.Empty;
+                    string lastChildNamespaceName = null;
 
                     // A list accumulating information about types within the last encountered child namespace.
                     // The list is similar to the sequence passed to this function.

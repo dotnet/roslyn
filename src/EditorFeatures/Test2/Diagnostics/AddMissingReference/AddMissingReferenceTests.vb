@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, fixer)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddProjectReferenceBetweenCSharpProjects()
             TestAddProjectReference(<Workspace>
                                         <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddProjectReferenceBetweenVisualBasicProjects()
             TestAddProjectReference(<Workspace>
                                         <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddProjectReferenceBetweenMixedLanguages1()
             TestAddProjectReference(<Workspace>
                                         <Project Language="C#" AssemblyName="ProjectA" CommonReferences="true">
@@ -83,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddProjectReferenceBetweenMixedLanguages2()
             TestAddProjectReference(<Workspace>
                                         <Project Language="Visual Basic" AssemblyName="ProjectA" CommonReferences="true">
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                                     "ProjectC", "ProjectA")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddMetadataReferenceToVisualBasicProjectErrorCode30005()
             TestAddUnresolvedMetadataReference(
                 <Workspace>
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddMetadataReferenceToVisualBasicProjectErrorCode30007()
             TestAddUnresolvedMetadataReference(
                 <Workspace>
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddMetadataReferenceToVisualBasicProjectErrorCode30652()
             TestAddUnresolvedMetadataReference(
                 <Workspace>
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AddMissingReferenc
                 "VBProject", s_windowsBaseAssembly.FullName)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddMissingReference)>
         Public Sub AddMetadataReferenceToCSharpProject()
             TestAddUnresolvedMetadataReference(
                 <Workspace>

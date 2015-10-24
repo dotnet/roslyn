@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
 {
     /// <summary>
     /// Identifiers coming from IL can be just about any valid string and since C# doesn't have a way to escape all possible
-    /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparsable code.
+    /// IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     /// </summary>
     public class InvalidIdentifierTests : AbstractOutlinerTests
     {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Outlining.MetadataAsSou
         }
 
         [WorkItem(1174405)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void PrependedDollarSign()
         {
             var source = @"
@@ -42,7 +42,7 @@ class C
         }
 
         [WorkItem(1174405)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void SymbolsAndPunctuation()
         {
             var source = @"
@@ -54,7 +54,7 @@ class C
         }
 
         [WorkItem(1174405)]
-        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
         public void IdentifierThatLooksLikeCode()
         {
             var source = @"

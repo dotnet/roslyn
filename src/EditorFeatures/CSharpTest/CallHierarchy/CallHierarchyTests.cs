@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CallHierarchy
 {
     public class CallHierarchyTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void InvokeOnMethod()
         {
             var text = @"
@@ -27,7 +27,7 @@ namespace N
             testState.VerifyRoot(root, "N.C.Foo()");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void InvokeOnProperty()
         {
             var text = @"
@@ -43,7 +43,7 @@ namespace N
             testState.VerifyRoot(root, "N.C.Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void InvokeOnEvent()
         {
             var text = @"
@@ -60,7 +60,7 @@ namespace N
             testState.VerifyRoot(root, "N.C.Foo");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void Method_FindCalls()
         {
             var text = @"
@@ -94,7 +94,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { "N.G.Main()", "N.G.Main2()" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void Method_InterfaceImplementation()
         {
             var text = @"
@@ -134,7 +134,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsToInterfaceImplementation, "N.I.Foo()"), new[] { "N.G.Main()" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void Method_CallToOverride()
         {
             var text = @"
@@ -169,7 +169,7 @@ namespace N
             testState.VerifyResult(root, EditorFeaturesResources.CallsToOverrides, new[] { "N.D.Baz()" });
         }
 
-        [Fact, WorkItem(829705), Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, WorkItem(829705), Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void Method_CallToBase()
         {
             var text = @"
@@ -204,7 +204,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsToBaseMember, "N.C.Foo()"), new[] { "N.D.Bar()" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void FieldInitializers()
         {
             var text = @"
@@ -223,7 +223,7 @@ namespace N
             testState.VerifyResultName(root, string.Format(EditorFeaturesResources.CallsTo, "Foo"), new[] { EditorFeaturesResources.Initializers });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void FieldReferences()
         {
             var text = @"
@@ -242,7 +242,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.ReferencesToField, "foo"), new[] { "N.C.Foo()" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void PropertyGet()
         {
             var text = @"
@@ -270,7 +270,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "get_val"), new[] { "N.C.foo()" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void Generic()
         {
             var text = @"
@@ -296,7 +296,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "generic"), new[] { "N.C.foo()" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void ExtensionMethods()
         {
             var text = @"
@@ -325,7 +325,7 @@ namespace ConsoleApplication10
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "BarString"), new[] { "ConsoleApplication10.Program.Main(string[])" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void GenericExtensionMethods()
         {
             var text = @"
@@ -348,7 +348,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.CallsTo, "Single"), new[] { "N.Program.Main(string[])" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void InterfaceImplementors()
         {
             var text = @"
@@ -388,7 +388,7 @@ namespace N
             testState.VerifyResult(root, string.Format(EditorFeaturesResources.ImplementsArg, "Foo"), new[] { "N.C.Foo()" });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void NoFindOverridesOnSealedMethod()
         {
             var text = @"
@@ -406,7 +406,7 @@ namespace N
             Assert.DoesNotContain("Overrides", root.SupportedSearchCategories.Select(s => s.DisplayName));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void FindOverrides()
         {
             var text = @"
@@ -433,7 +433,7 @@ namespace N
         }
 
         [WorkItem(844613)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)]
         public void AbstractMethodInclusionToOverrides()
         {
             var text = @"

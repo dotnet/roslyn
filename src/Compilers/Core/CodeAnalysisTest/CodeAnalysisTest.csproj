@@ -31,6 +31,7 @@
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
     <Compile Include="Diagnostics\EmptyArrayOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\OperationTestAnalyzer.cs" />
+    <Compile Include="Diagnostics\SystemLanguageAnalyzer.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="Text\LargeEncodedTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
@@ -168,6 +170,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources/default.win32manifest" />
     <None Include="Resources/nativeWithStringIDsAndTypesAndIntTypes.res" />

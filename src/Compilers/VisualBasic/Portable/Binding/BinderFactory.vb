@@ -31,8 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property InScript As Boolean
             Get
-                Dim treeOptionsKind = _tree.Options.Kind
-                Return treeOptionsKind = SourceCodeKind.Interactive OrElse treeOptionsKind = SourceCodeKind.Script
+                Return _tree.Options.Kind = SourceCodeKind.Script
             End Get
         End Property
 

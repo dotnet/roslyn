@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly Solution _baseSolution;
 
-        // signalled when the session is terminated:
+        // signaled when the session is terminated:
         private readonly CancellationTokenSource _cancellation;
 
         // document id -> [active statements ordered by position]

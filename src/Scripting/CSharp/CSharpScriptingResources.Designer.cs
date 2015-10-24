@@ -8,9 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp {
+namespace Microsoft.CodeAnalysis.CSharp.Scripting {
     using System;
     using System.Reflection;
+    
     
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScriptingResources", typeof(CSharpScriptingResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScriptingResources", typeof(CSharpScriptingResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,15 +62,15 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Usage: csi [options] [script-file.csx] [-- script-arguments]
+        ///   Looks up a localized string similar to Usage: csi [option] ... [script-file.csx] [script-argument] ...
         ///
-        ///If script-file is specified executes the script, otherwise launches an interactive REPL (Read Eval Print Loop).
+        ///Executes script-file.csx if specified, otherwise launches an interactive REPL (Read Eval Print Loop).
         ///
         ///Options:
-        ///  /help                          Display this usage message (Short form: /?)
-        ///  /reference:&lt;alias&gt;=&lt;file&gt;      Reference metadata from the specified assembly file using the given alias (Short form: /r)
-        ///  /reference:&lt;file list&gt;         Reference metadata from the specified assembly files (Short form: /r)
-        ///  /referencePath [rest of string was truncated]&quot;;.
+        ///  /help                          Display this usage message (alternative form: /?)
+        ///  /i                             Drop to REPL after executing the specified script.
+        ///  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
+        ///  /r:&lt;file list&gt;                 Reference m [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string InteractiveHelp {
             get {

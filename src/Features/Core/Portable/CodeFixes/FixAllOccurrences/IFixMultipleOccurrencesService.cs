@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal interface IFixMultipleOccurrencesService : IWorkspaceService
     {
         /// <summary>
-        /// Computes the fix muliple occurrences code fix for the given diagnostics with source locations, brings up the preview changes dialog for the fix and
+        /// Computes the fix multiple occurrences code fix for the given diagnostics with source locations, brings up the preview changes dialog for the fix and
         /// apply the code action operations corresponding to the fix.
         /// </summary>
         void ComputeAndApplyFix(
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get the fix muliple occurrences code fix for the given diagnostics with source locations.
+        /// Get the fix multiple occurrences code fix for the given diagnostics with source locations.
         /// NOTE: This method does not apply the fix to the workspace.
         /// </summary>
         Solution GetFix(
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Computes the fix muliple occurrences code fix for the given diagnostics without any source location, brings up the preview changes dialog for the fix and
+        /// Computes the fix multiple occurrences code fix for the given diagnostics without any source location, brings up the preview changes dialog for the fix and
         /// apply the code action operations corresponding to the fix.
         /// </summary>
         void ComputeAndApplyFix(
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             CancellationToken cancellationToken);
 
         /// <summary>
-        /// Get the fix muliple occurrences code fix for the given diagnostics with source locations.
+        /// Get the fix multiple occurrences code fix for the given diagnostics with source locations.
         /// NOTE: This method does not apply the fix to the workspace.
         /// </summary>
         Solution GetFix(

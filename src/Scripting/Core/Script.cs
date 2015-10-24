@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        public Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonEvaluateAsync(globals, cancellationToken);
 
         internal abstract Task<object> CommonEvaluateAsync(object globals, CancellationToken cancellationToken);
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public Task<ScriptState> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal Task<ScriptState> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonContinueAsync(previousState, cancellationToken);
 
         internal abstract Task<ScriptState> CommonContinueAsync(ScriptState previousState, CancellationToken cancellationToken);
@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Forces the script through the build step.
         /// If not called directly, the build step will occur on the first call to Run.
         /// </summary>
-        public void Build(CancellationToken cancellationToken = default(CancellationToken)) =>
+        public ImmutableArray<Diagnostic> Build(CancellationToken cancellationToken = default(CancellationToken)) =>
             CommonBuild(cancellationToken);
 
-        internal abstract void CommonBuild(CancellationToken cancellationToken);
+        internal abstract ImmutableArray<Diagnostic> CommonBuild(CancellationToken cancellationToken);
         internal abstract Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken);
 
         /// <summary>
@@ -199,12 +199,6 @@ namespace Microsoft.CodeAnalysis.Scripting
                     {
                         var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
                         references.Add(globalsTypeAssembly);
-
-                        // TODO: remove
-                        var systemRuntimeFacade = MetadataReference.CreateFromAssemblyInternal(
-                            Assembly.Load(new AssemblyName("System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")));
-
-                        references.Add(systemRuntimeFacade);
                     }
 
                     if (languageRuntimeReferenceOpt != null)
@@ -239,8 +233,27 @@ namespace Microsoft.CodeAnalysis.Scripting
             finally
             {
                 references.Free();
-
             }
+        }
+
+        // TODO: remove
+        internal bool HasReturnValue()
+        {
+            bool hasValue;
+            var resultType = GetCompilation().GetSubmissionResultType(out hasValue);
+            if (hasValue)
+            {
+                if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
@@ -275,12 +288,21 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
         internal override Script WithCodeInternal(string code) => WithCode(code);
         internal override Script WithGlobalsTypeInternal(Type globalsType) => WithGlobalsType(globalsType);
-
-        /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
-        internal override void CommonBuild(CancellationToken cancellationToken)
+        
+        internal override ImmutableArray<Diagnostic> CommonBuild(CancellationToken cancellationToken)
         {
-            GetPrecedingExecutors(cancellationToken);
-            GetExecutor(cancellationToken);
+            // TODO: avoid throwing exception, report all diagnostics https://github.com/dotnet/roslyn/issues/5949
+            try
+            {
+                GetPrecedingExecutors(cancellationToken);
+                GetExecutor(cancellationToken);
+
+                return ImmutableArray.CreateRange(GetCompilation().GetDiagnostics(cancellationToken).Where(d => d.Severity == DiagnosticSeverity.Warning));
+            }
+            catch (CompilationErrorException e)
+            {
+                return ImmutableArray.CreateRange(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
+            }
         }
 
         internal override Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken)
@@ -363,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        public new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
+        internal new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
             RunAsync(globals, cancellationToken).GetEvaluationResultAsync();
 
         /// <summary>
@@ -379,7 +401,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException">The type of <paramref name="globals"/> doesn't match <see cref="Script.GlobalsType"/>.</exception>
         public new Task<ScriptState<T>> RunAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             ValidateGlobals(globals, GlobalsType);
@@ -420,9 +442,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="previousState"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
-        public new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
+        internal new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             if (previousState == null)

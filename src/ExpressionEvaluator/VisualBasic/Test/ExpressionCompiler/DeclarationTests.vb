@@ -39,7 +39,7 @@ End Class"
                 "z = $3",
                 DkmEvaluationFlags.None,
                 ImmutableArray.Create(ObjectIdAlias(3, GetType(Integer))),
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 resultProperties,
                 errorMessage,
                 missingAssemblyIdentities,
@@ -162,7 +162,7 @@ End Class"
                 NoAliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,5): error BC30451: 'F' is not declared. It may be inaccessible due to its protection level.")
+            Assert.Equal(errorMessage, "error BC30451: 'F' is not declared. It may be inaccessible due to its protection level.")
         End Sub
 
         <WorkItem(1098750)>
@@ -607,7 +607,7 @@ End Module"
                 NoAliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
+            Assert.Equal(errorMessage, "error BC30037: Character is not valid.")
 
             ' $exception
             testData = New CompilationTestData()
@@ -617,7 +617,7 @@ End Module"
                 NoAliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
+            Assert.Equal(errorMessage, "error BC30037: Character is not valid.")
 
             ' $ReturnValue
             testData = New CompilationTestData()
@@ -627,7 +627,7 @@ End Module"
                 NoAliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
+            Assert.Equal(errorMessage, "error BC30037: Character is not valid.")
 
             ' $x
             testData = New CompilationTestData()
@@ -637,7 +637,7 @@ End Module"
                 NoAliases,
                 errorMessage,
                 testData)
-            Assert.Equal(errorMessage, "(1,1): error BC30037: Character is not valid.")
+            Assert.Equal(errorMessage, "error BC30037: Character is not valid.")
         End Sub
 
         <WorkItem(1101243)>

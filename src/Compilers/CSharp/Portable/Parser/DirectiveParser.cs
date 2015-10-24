@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isAfterFirstTokenInFile,
             bool isAfterNonWhitespaceOnLine)
         {
-            CSharpSyntaxNode result;
+            var hashPosition = lexer.TextWindow.Position;
             var hash = this.EatToken(SyntaxKind.HashToken, false);
             if (isAfterNonWhitespaceOnLine)
             {
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // #reference, #load and #! are new, but they do not require nesting behavior, so we'll
             // ignore their diagnostics (as in (1) above).
 
+            CSharpSyntaxNode result;
             SyntaxKind contextualKind = this.CurrentToken.ContextualKind;
             switch (contextualKind)
             {
@@ -94,22 +96,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 default:
-                    var id = this.EatToken(SyntaxKind.IdentifierToken, false);
-                    var end = this.ParseEndOfDirective(ignoreErrors: true);
-                    if (!isAfterNonWhitespaceOnLine)
+                    if (lexer.Options.Kind == SourceCodeKind.Script && contextualKind == SyntaxKind.ExclamationToken && hashPosition == 0 && !hash.HasTrailingTrivia)
                     {
-                        if (!id.IsMissing)
+                        result = this.ParseShebangDirective(hash, this.EatToken(SyntaxKind.ExclamationToken), isActive);
+                    }
+                    else
+                    {
+                        var id = this.EatToken(SyntaxKind.IdentifierToken, false);
+                        var end = this.ParseEndOfDirective(ignoreErrors: true);
+                        if (!isAfterNonWhitespaceOnLine)
                         {
-                            id = this.AddError(id, ErrorCode.ERR_PPDirectiveExpected);
+                            if (!id.IsMissing)
+                            {
+                                id = this.AddError(id, ErrorCode.ERR_PPDirectiveExpected);
+                            }
+                            else
+                            {
+                                hash = this.AddError(hash, ErrorCode.ERR_PPDirectiveExpected);
+                            }
                         }
-                        else
-                        {
-                            hash = this.AddError(hash, ErrorCode.ERR_PPDirectiveExpected);
-                        }
+
+                        result = SyntaxFactory.BadDirectiveTrivia(hash, id, end, isActive);
                     }
 
-                    result = SyntaxFactory.BadDirectiveTrivia(hash, id, end, isActive);
-                    break;
+                    break; 
             }
 
             return result;
@@ -503,6 +513,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var eod = this.ParseEndOfDirective(ignoreErrors: true, afterPragma: true);
                 return SyntaxFactory.PragmaWarningDirectiveTrivia(hash, pragma, warning, style, default(SeparatedSyntaxList<ExpressionSyntax>), eod, isActive);
             }
+        }
+
+        private DirectiveTriviaSyntax ParseShebangDirective(SyntaxToken hash, SyntaxToken exclamation, bool isActive)
+        {
+            // Shebang directives must appear at the first position in the file
+            // (before all other directives), so they should always be active.
+            Debug.Assert(isActive);
+            return SyntaxFactory.ShebangDirectiveTrivia(hash, exclamation, this.ParseEndOfDirectiveWithOptionalPreprocessingMessage(), isActive);
         }
 
         private SyntaxToken ParseEndOfDirectiveWithOptionalPreprocessingMessage()

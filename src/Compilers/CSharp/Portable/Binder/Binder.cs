@@ -278,6 +278,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        {
+            return _next.GetImports(basesBeingResolved);
+        }
+
         /// <summary>
         /// The type containing the binding context
         /// </summary>

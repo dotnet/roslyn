@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Text
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class ExitKeywordRecommenderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInSubBody()
             VerifyRecommendationsContain(<ClassDeclaration>
 Sub Foo()
@@ -12,7 +12,7 @@ Sub Foo()
 End Sub</ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInFunction()
             VerifyRecommendationsContain(<ClassDeclaration>
 Sub Foo()
@@ -20,7 +20,7 @@ Sub Foo()
 End Sub</ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInPropertyGet()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -32,7 +32,7 @@ End Property
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInPropertySet()
             ' We can always exit a Sub/Function, so it should be there
             VerifyRecommendationsContain(<ClassDeclaration>
@@ -44,7 +44,7 @@ End Property
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitNotInAddHandler()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -61,7 +61,7 @@ End Event
                                                </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInLambdaInAddHandler()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -80,7 +80,7 @@ End Event
                                                </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitNotInRemoveHandler()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -98,7 +98,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInLambdaInRemoveHandler()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -118,7 +118,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitNotInRaiseEvent()
             VerifyRecommendationsMissing(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -136,7 +136,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInLambdaInRaiseEvent()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -156,7 +156,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInLoopInAddHandler1()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -178,7 +178,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInLoopInAddHandler2()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -197,7 +197,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInLoopInAddHandler3()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -216,7 +216,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInForLoopInAddHandler()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -235,7 +235,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInForEachLoopInAddHandler()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -254,7 +254,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInTryInAddHandler()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -274,7 +274,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInCatchInAddHandler()
             VerifyRecommendationsContain(<ClassDeclaration>
 Custom Event Click As EventHandler
@@ -294,7 +294,7 @@ End Event
 </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitNotInOperator()
             VerifyRecommendationsMissing(<File>
 Class Foo
@@ -305,7 +305,7 @@ End Class
 </File>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInWhileLoopInAddHandler()
             VerifyRecommendationsContain(<MethodBody>
 While True
@@ -314,7 +314,7 @@ End While
                                                </MethodBody>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInLoopInClassDeclarationLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -326,7 +326,7 @@ End Sub
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInClassDeclarationLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub()
@@ -335,14 +335,14 @@ End Sub
                                          </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitInClassDeclarationSingleLineLambda()
             VerifyRecommendationsContain(<ClassDeclaration>
 Private _member = Sub() |
                                                </ClassDeclaration>, "Exit")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub ExitNotInFinallyBlock()
             Dim code =
 <MethodBody>

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName1()
             TestInExpression("<foo></foo>",
                              VBXmlDelimiter("<"),
@@ -33,14 +33,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName2()
             TestInExpression("<foo",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName3()
             TestInExpression("<foo>",
                              VBXmlDelimiter("<"),
@@ -48,21 +48,21 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName4()
             TestInExpression("<foo.",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo."))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName5()
             TestInExpression("<foo.b",
                              VBXmlDelimiter("<"),
                              VBXmlName("foo.b"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName6()
             TestInExpression("<foo.b>",
                              VBXmlDelimiter("<"),
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName7()
             TestInExpression("<foo:",
                              VBXmlDelimiter("<"),
@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlName(":"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName8()
             TestInExpression("<foo:b",
                              VBXmlDelimiter("<"),
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlName("b"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlStartElementName9()
             TestInExpression("<foo:b>",
                              VBXmlDelimiter("<"),
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmptyElementName1()
             TestInExpression("<foo/>",
                              VBXmlDelimiter("<"),
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmptyElementName2()
             TestInExpression("<foo. />",
                              VBXmlDelimiter("<"),
@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmptyElementName3()
             TestInExpression("<foo.bar />",
                              VBXmlDelimiter("<"),
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmptyElementName4()
             TestInExpression("<foo: />",
                              VBXmlDelimiter("<"),
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmptyElementName5()
             TestInExpression("<foo:bar />",
                              VBXmlDelimiter("<"),
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeName1()
             TestInExpression("<foo b",
                              VBXmlDelimiter("<"),
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeName("b"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeName2()
             TestInExpression("<foo ba",
                              VBXmlDelimiter("<"),
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeName("ba"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeName3()
             TestInExpression("<foo bar=",
                              VBXmlDelimiter("<"),
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("="))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValue1()
             TestInExpression("<foo bar=""",
                              VBXmlDelimiter("<"),
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValue2()
             TestInExpression("<foo bar=""b",
                              VBXmlDelimiter("<"),
@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeValue("b" & vbCrLf))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValue3()
             TestInExpression("<foo bar=""ba",
                              VBXmlDelimiter("<"),
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeValue("ba" & vbCrLf))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValue4()
             TestInExpression("<foo bar=""ba""",
                              VBXmlDelimiter("<"),
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValue5()
             TestInExpression("<foo bar=""""",
                              VBXmlDelimiter("<"),
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValue6()
             TestInExpression("<foo bar=""b""",
                              VBXmlDelimiter("<"),
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValue7()
             TestInExpression("<foo bar=""ba""",
                              VBXmlDelimiter("<"),
@@ -244,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValueMultiple1()
             TestInExpression("<foo bar=""ba"" baz="""" ",
                              VBXmlDelimiter("<"),
@@ -260,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeValueMultiple2()
             TestInExpression("<foo bar=""ba"" baz=""a"" ",
                              VBXmlDelimiter("<"),
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementContent1()
             TestInExpression("<f>&l</f>",
                              VBXmlDelimiter("<"),
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementContent2()
             TestInExpression("<f>foo</f>",
                              VBXmlDelimiter("<"),
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementContent3()
             TestInExpression("<f>&#x03C0;</f>",
                              VBXmlDelimiter("<"),
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementContent4()
             TestInExpression("<f>foo &#x03C0;</f>",
                              VBXmlDelimiter("<"),
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementContent5()
             TestInExpression("<f>foo &lt;</f>",
                              VBXmlDelimiter("<"),
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementContent6()
             TestInExpression("<f>foo &lt; bar</f>",
                              VBXmlDelimiter("<"),
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementContent7()
             TestInExpression("<f>foo &lt;",
                              VBXmlDelimiter("<"),
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlEntityReference("&lt;"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlCData1()
             TestInExpression("<f><![CDATA[bar]]></f>",
                              VBXmlDelimiter("<"),
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
 
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlCData4()
             TestInExpression("<f><![CDATA[bar]]>",
                              VBXmlDelimiter("<"),
@@ -390,7 +390,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("]]>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlCData5()
             TestInExpression("<f><![CDATA[<>/]]>",
                              VBXmlDelimiter("<"),
@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("]]>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlCData6()
             Dim expr = StringFromLines(
                 "<f><![CDATA[foo",
@@ -419,14 +419,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAtElementName1()
             TestInExpression("<<%= ",
                              VBXmlDelimiter("<"),
                              VBXmlEmbeddedExpression("<%="))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAtElementName2()
             TestInExpression("<<%= %>",
                              VBXmlDelimiter("<"),
@@ -434,7 +434,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlEmbeddedExpression("%>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAtElementName3()
             TestInExpression("<<%= bar %>",
                              VBXmlDelimiter("<"),
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlEmbeddedExpression("%>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAtElementName4()
             TestInExpression("<<%= bar.Baz() %>",
                              VBXmlDelimiter("<"),
@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlEmbeddedExpression("%>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAtElementName5()
             TestInExpression("<<%= bar.Baz() %> />",
                              VBXmlDelimiter("<"),
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAtElementName6()
             TestInExpression("<<%= bar %> />",
                              VBXmlDelimiter("<"),
@@ -480,7 +480,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsAttribute1()
             TestInExpression("<foo <%= bar %>>",
                              VBXmlDelimiter("<"),
@@ -491,7 +491,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsAttribute2()
             TestInExpression("<foo <%= bar %>",
                              VBXmlDelimiter("<"),
@@ -501,7 +501,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlEmbeddedExpression("%>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsAttribute3()
             TestInExpression("<foo <%= bar %>></foo>",
                              VBXmlDelimiter("<"),
@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsAttribute4()
             TestInExpression("<foo <%= bar %> />",
                              VBXmlDelimiter("<"),
@@ -526,7 +526,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsAttributeValue1()
             Dim exprText = "<foo bar=<%=baz >"
             TestInExpression(exprText,
@@ -539,7 +539,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              Operators.GreaterThan)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsAttributeValue2()
             Dim exprText = "<foo bar=<%=baz %> >"
             TestInExpression(exprText,
@@ -553,7 +553,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsAttributeValue3()
             Dim exprText = "<foo bar=<%=baz.Foo %> >"
             TestInExpression(exprText,
@@ -569,7 +569,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsElementContent1()
             Dim exprText = "<f><%= bar %></f>"
             TestInExpression(exprText,
@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsElementContent2()
             Dim exprText = "<f><%= bar.Foo %></f>"
             TestInExpression(exprText,
@@ -601,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsElementContent3()
             Dim exprText = "<f><%= bar.Foo %> jaz</f>"
             TestInExpression(exprText,
@@ -619,7 +619,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbeddedExpressionAsElementContentNested()
             Dim text = StringFromLines(
                 "Dim doc = _",
@@ -656,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiteralsInLambdas()
             Dim text = StringFromLines(
                 "Dim x = Function() _",
@@ -694,7 +694,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocumentPrologue()
             Dim exprText = "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>"
             TestInExpression(exprText,
@@ -718,7 +718,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("?>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiterals1()
             Dim text = StringFromLines(
                 "Dim a = <Customer id1=""1"" id2=""2"" id3=<%= n2 %> id4="""">",
@@ -807,7 +807,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiterals2()
             Dim text = StringFromLines(
                 "Dim b = <?xml version=""1.0""?>",
@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiterals3()
             Dim text = StringFromLines(
                 "Dim c = <p:x xmlns:p=""abc",
@@ -966,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiterals4()
             Dim text = StringFromLines(
                 "Dim d = _",
@@ -990,7 +990,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiterals5()
             Dim text = StringFromLines(
                 "Dim i = 100",
@@ -1025,7 +1025,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiterals6()
             Dim text = StringFromLines(
                 "Dim xmlwithkeywords = <MODULE>",
@@ -1093,7 +1093,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlLiterals7()
             Dim text = StringFromLines(
                 "Dim spacetest = <a b=""1"" c=""2"">",
@@ -1120,7 +1120,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptionKeywordsInClassContext()
             Dim text = StringFromLines(
                 "Class OptionNoContext",
@@ -1153,7 +1153,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptionInferAndExplicit()
             Dim text = StringFromLines(
                 "Option Infer On",
@@ -1167,7 +1167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Off"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptionCompareTextBinary()
             Dim text = StringFromLines(
                 "Option Compare Text ' comment",
@@ -1182,28 +1182,28 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Binary"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptionInfer1()
             Test("Option Infer",
                  Keyword("Option"),
                  Keyword("Infer"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptionExplicit1()
             Test("Option Explicit",
                  Keyword("Option"),
                  Keyword("Explicit"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub OptionStrict1()
             Test("Option Strict",
                  Keyword("Option"),
                  Keyword("Strict"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub LinqContextualKeywords()
             Dim text = StringFromLines(
                 "Dim from = 0",
@@ -1279,7 +1279,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Number("0"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub FromLinqExpression1()
             TestInExpression("From it in foo",
                  Keyword("From"),
@@ -1288,7 +1288,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub FromLinqExpression2()
             TestInExpression("From it in foofooo.Foo",
                  Keyword("From"),
@@ -1299,14 +1299,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("Foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub FromLinqExpression3()
             TestInExpression("From it ",
                  Keyword("From"),
                  Identifier("it"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub FromNotInContext1()
             Dim code = StringFromLines(
                 "Class From",
@@ -1318,7 +1318,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub FromNotInContext2()
             Dim val = "Dim from = 42"
             TestInMethod(val,
@@ -1328,7 +1328,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Number("42"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub WhereLinqExpression1()
             Dim exprTest = "From it in foo Where it <> 4"
             TestInExpression(exprTest,
@@ -1342,7 +1342,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Number("4"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub LinqQuery1()
             Dim text = StringFromLines(
                 "            Dim src = New List(Of Boolean)",
@@ -1450,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         End Sub
 
         <WorkItem(542387)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestFromInQuery()
             Dim text = StringFromLines(
                 "Dim From = New List(Of Integer)",
@@ -1476,7 +1476,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Identifier("s"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub KeyKeyword1()
             Dim text = StringFromLines(
                 "Dim Value = ""Test""",
@@ -1593,7 +1593,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseCurly)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub KeyKeyword2()
             Dim text = StringFromLines(
                 "Dim k = 10",
@@ -1774,7 +1774,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseCurly)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub ClassDeclaration1()
             Dim val = "Class C1"
             Test(val,
@@ -1782,7 +1782,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Class]("C1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub ClassDeclaration2()
             Dim val = StringFromLines(
                 "Class C1",
@@ -1794,7 +1794,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub ClassDeclaration3()
             Dim val = "Class C1 : End Class"
             Test(val,
@@ -1805,7 +1805,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub StructDeclaration1()
             Dim val = "Structure S1"
             Test(val,
@@ -1813,7 +1813,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Struct("S1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub StructDeclaration2()
             Dim val = "Structure S1 : End Structure"
             Test(val,
@@ -1824,7 +1824,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Structure"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub StructDeclaration3()
             Dim val = StringFromLines(
                 "Structure S1",
@@ -1836,7 +1836,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Structure"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub InterfaceDeclaration1()
             Dim val = "Interface I1"
             Test(val,
@@ -1844,7 +1844,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Interface]("I1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub InterfaceDeclaration2()
             Dim val = "Interface I1 : End Interface"
             Test(val,
@@ -1855,7 +1855,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Interface"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub InterfaceDeclaration3()
             Dim val = StringFromLines(
                 "Interface I1",
@@ -1867,7 +1867,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Interface"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub EnumDeclaration1()
             Dim val = "Enum E1"
             Test(val,
@@ -1875,7 +1875,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  [Enum]("E1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub EnumDeclaration2()
             Dim val = "Enum E1 : End Enum"
             Test(val,
@@ -1886,7 +1886,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Enum"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub EnumDeclaration3()
             Dim val = StringFromLines(
                 "Enum E1",
@@ -1898,7 +1898,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Enum"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DelegateSubDeclaration1()
             Dim val = StringFromLines("Public Delegate Sub Foo()")
             Test(val,
@@ -1910,7 +1910,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DelegateFunctionDeclaration1()
             Dim val = StringFromLines("Public Delegate Function Foo() As Integer")
             Test(val,
@@ -1924,39 +1924,39 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Integer"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub FloatLiteral()
             TestInExpression("1.0",
                 Number("1.0"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IntLiteral()
             TestInExpression("1",
                 Number("1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DecimalLiteral()
             TestInExpression("123D",
                 Number("123D"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub StringLiterals1()
             Dim exprText = """foo"""
             TestInExpression(exprText,
                              [String]("""foo"""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub CharacterLiteral()
             Dim exprText = """f""c"
             TestInExpression(exprText,
                              [String]("""f""c"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Regression_DoUntil1()
             Dim val = "Do Until True"
             TestInMethod(val,
@@ -1965,14 +1965,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Keyword("True"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Comment1()
             Dim code = "'foo"
             Test(code,
                  Comment("'foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Comment2()
             Dim val = StringFromLines(
                 "Class C1",
@@ -1983,7 +1983,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Comment("'hello"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_SingleLine()
             Dim val = StringFromLines(
                 "'''<summary>something</summary>",
@@ -2004,7 +2004,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_ExteriorTrivia()
             Dim val = StringFromLines(
                 "''' <summary>",
@@ -2031,7 +2031,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_ExteriorTriviaInsideEndTag()
             Dim val = StringFromLines(
                 "''' <summary></",
@@ -2055,7 +2055,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_AttributesWithExteriorTrivia()
             Dim val = StringFromLines(
                 "''' <summary att1=""value1""",
@@ -2096,7 +2096,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_EmptyElementAttributesWithExteriorTrivia()
             Dim val = StringFromLines(
                 "''' <summary att1=""value1""",
@@ -2129,7 +2129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_XmlCommentWithExteriorTrivia()
             Dim val = StringFromLines(
                 "'''<summary>",
@@ -2159,7 +2159,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_CDataWithExteriorTrivia()
             Dim val = StringFromLines(
                 "'''<summary>",
@@ -2189,7 +2189,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_PreprocessingInstruction1()
             Test("''' <?",
                 XmlDoc.Delimiter("'''"),
@@ -2197,7 +2197,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction("<?"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_PreprocessingInstruction2()
             Test("''' <??>",
                 XmlDoc.Delimiter("'''"),
@@ -2206,7 +2206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction("?>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_PreprocessingInstruction3()
             Test("''' <?xml",
                 XmlDoc.Delimiter("'''"),
@@ -2215,7 +2215,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction("xml"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_PreprocessingInstruction4()
             Test("''' <?xml version=""1.0""?>",
                 XmlDoc.Delimiter("'''"),
@@ -2227,7 +2227,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction("?>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_PreprocessingInstruction5()
             Test("''' <?foo?>",
                 XmlDoc.Delimiter("'''"),
@@ -2237,7 +2237,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction("?>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDocComment_PreprocessingInstruction6()
             Test("''' <?foo bar?>",
                 XmlDoc.Delimiter("'''"),
@@ -2249,7 +2249,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 XmlDoc.ProcessingInstruction("?>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IsTrue()
             TestInClass("    Public Shared Operator IsTrue(c As C) As Boolean",
                         Keyword("Public"),
@@ -2265,7 +2265,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                         Keyword("Boolean"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IsFalse()
             TestInClass("    Public Shared Operator IsFalse(c As C) As Boolean",
                         Keyword("Public"),
@@ -2281,7 +2281,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                         Keyword("Boolean"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Delegate1()
             Test("Delegate Sub Foo()",
                  Keyword("Delegate"),
@@ -2291,7 +2291,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Imports1()
             Dim code = StringFromLines(
             "Imports Foo",
@@ -2306,7 +2306,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         ''' <summary>
         ''' Clear Syntax Error
         ''' </summary>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Imports2()
             Dim code = StringFromLines(
             "Imports",
@@ -2317,7 +2317,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("Bar"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Imports3()
             Dim code = StringFromLines(
             "Imports Foo=Baz",
@@ -2333,7 +2333,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("Quux"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Imports4()
             Dim code = "Imports System.Text"
             Test(code,
@@ -2343,7 +2343,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("Text"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElement1()
             TestInExpression("<foo></foo>",
                              VBXmlDelimiter("<"),
@@ -2357,7 +2357,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         '''<summary>
         ''' Broken XmlElement should classify
         ''' </summary>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElement3()
             TestInExpression("<foo>",
                              VBXmlDelimiter("<"),
@@ -2368,7 +2368,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
         '''<summary>
         ''' Broken end only element should still classify
         ''' </summary>
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElement4()
             TestInExpression("</foo>",
                              VBXmlDelimiter("</"),
@@ -2376,7 +2376,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElement5()
             TestInExpression("<foo.bar></foo.bar>",
                              VBXmlDelimiter("<"),
@@ -2387,7 +2387,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElement6()
             TestInExpression("<foo:bar>hello</foo:bar>",
                              VBXmlDelimiter("<"),
@@ -2403,7 +2403,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElement7()
             TestInExpression("<foo.bar />",
                              VBXmlDelimiter("<"),
@@ -2411,7 +2411,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbedded1()
             TestInExpression("<foo><%= bar %></foo>",
                              VBXmlDelimiter("<"),
@@ -2425,7 +2425,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbedded3()
             TestInExpression("<<%= bar %>/>",
                              VBXmlDelimiter("<"),
@@ -2435,7 +2435,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbedded4()
             TestInExpression("<foo <%= bar %>=""42""/>",
                              VBXmlDelimiter("<"),
@@ -2450,7 +2450,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlEmbedded5()
             TestInExpression("<foo a1=<%= bar %>/>",
                              VBXmlDelimiter("<"),
@@ -2463,14 +2463,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("/>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlComment1()
             TestInExpression("<!---->",
                              VBXmlDelimiter("<!--"),
                              VBXmlDelimiter("-->"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlComment2()
             TestInExpression("<!--foo-->",
                              VBXmlDelimiter("<!--"),
@@ -2478,7 +2478,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter("-->"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlComment3()
             Dim tree = ParseExpression("<a><!--foo--></a>")
             TestInExpression("<a><!--foo--></a>",
@@ -2493,7 +2493,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlPreprocessingInstruction2()
             TestInExpression("<a><?pi value=2?></a>",
                              VBXmlDelimiter("<"),
@@ -2508,7 +2508,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlDescendantsMemberAccess1()
             TestInExpression("x...<foo>",
                              Identifier("x"),
@@ -2520,7 +2520,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlElementMemberAccess1()
             TestInExpression("x.<foo>",
                              Identifier("x"),
@@ -2530,7 +2530,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeMemberAccess1()
             TestInExpression("x.@foo",
                              Identifier("x"),
@@ -2539,7 +2539,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeName("foo"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub XmlAttributeMemberAccess2()
             TestInExpression("x.@foo:bar",
                              Identifier("x"),
@@ -2550,7 +2550,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                              VBXmlAttributeName("bar"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorConst1()
             TestInNamespace("#Const Foo = 1",
                             PPKeyword("#"),
@@ -2560,7 +2560,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             Number("1"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorConst2()
             TestInNamespace("#Const DebugCode = True",
                             PPKeyword("#"),
@@ -2570,7 +2570,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             Keyword("True"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorIfThen1()
             TestInNamespace("#If Foo Then",
                             PPKeyword("#"),
@@ -2579,7 +2579,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             PPKeyword("Then"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorElseIf1()
             TestInNamespace("#ElseIf Foo Then",
                             PPKeyword("#"),
@@ -2588,14 +2588,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             PPKeyword("Then"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorElse1()
             TestInNamespace("#Else",
                             PPKeyword("#"),
                             PPKeyword("Else"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorEndIf1()
             TestInNamespace("#End If",
                             PPKeyword("#"),
@@ -2603,7 +2603,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             PPKeyword("If"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorExternalSource1()
             TestInNamespace("#ExternalSource(""c:\wwwroot\inetpub\test.aspx"", 30)",
                             PPKeyword("#"),
@@ -2615,7 +2615,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorExternalChecksum1()
             Dim val = StringFromLines("#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _",
                                       """{12345678-1234-1234-1234-123456789abc}"", _",
@@ -2634,7 +2634,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub PreprocessorExternalChecksum2()
             Dim val = StringFromLines("#ExternalChecksum(""c:\wwwroot\inetpub\test.aspx"", _",
                                       """{12345678-1234-1234-1234-123456789abc}"", _",
@@ -2686,7 +2686,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                             Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug2641_1()
             Dim text = StringFromLines(
                 "Class PreprocessorNoContext",
@@ -2760,7 +2760,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("Region"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug2641_2()
             Dim text = StringFromLines(
                 "#ExternalSource(""Test.vb"", 123)",
@@ -2818,7 +2818,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("ExternalSource"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug2640()
             Dim text = StringFromLines(
                 "# _",
@@ -2852,7 +2852,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("Region"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug2638()
             Dim text = StringFromLines(
                 "Module M",
@@ -2877,7 +2877,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug2562()
             Dim text = StringFromLines(
                 "Module Program",
@@ -2911,7 +2911,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug3004()
             Dim text = StringFromLines(
                 "''' <summary>",
@@ -2939,7 +2939,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug3006()
             Dim text = StringFromLines(
                 "#If True Then ' comment",
@@ -2955,7 +2955,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("If"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Bug3008()
             Dim text = StringFromLines(
                 "#If #12/2/2010# = #12/2/2010# Then",
@@ -2972,22 +2972,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 PPKeyword("If"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestBug927678()
             Dim val = StringFromLines(
                 "'This is not usually a ",
-                "'collapsable comment block",
+                "'collapsible comment block",
                 "x = 2")
 
             TestInMethod(val,
                          Comment("'This is not usually a "),
-                         Comment("'collapsable comment block"),
+                         Comment("'collapsible comment block"),
                          Identifier("x"),
                          Operators.Equals,
                          Number("2"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Attribute()
             Dim code = "<Assembly: Foo()>"
             Test(code,
@@ -3000,7 +3000,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Punctuation.CloseAngle)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestAngleBracketsOnGenericConstraints_Bug932262()
             Test(StringFromLines("Class C(Of T As A(Of T))",
                                  "End Class"),
@@ -3020,7 +3020,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IntegerAsContextualKeyword()
             Dim text = StringFromLines(
                 "    Sub CallMeInteger(ByVal [Integer] As Integer)",
@@ -3061,7 +3061,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Integer"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IndexStrings()
             Dim text = StringFromLines(
                 "Default ReadOnly Property IndexMe(ByVal arg As String) As Integer",
@@ -3119,7 +3119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Property"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub MyIsIdentifierOnSyntaxLevel()
             Dim text = StringFromLines(
                 "Dim My",
@@ -3242,7 +3242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Sub"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub IsTrueIsFalse()
             Dim text = StringFromLines(
                 "Class IsTrueIsFalseTests",
@@ -3290,7 +3290,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Class"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub DeclareAnsiAutoUnicode()
             Dim text = StringFromLines(
                 "    Dim Ansi",
@@ -3365,7 +3365,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Until()
             Dim text = StringFromLines(
                 "    Dim Until",
@@ -3410,7 +3410,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Sub"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub Preserve()
             Dim text = StringFromLines(
                 "    Dim Preserve",
@@ -3452,7 +3452,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Sub"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub SkippedTextAsTokens()
             Dim text = StringFromLines(
                 "Module Program",
@@ -3476,7 +3476,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(538647)>
         Public Sub Regression4315_VariableNamesClassifiedAsType()
             Dim text = StringFromLines(
@@ -3500,7 +3500,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539203)>
         Public Sub ColonTrivia()
             TestInMethod("    : Console.WriteLine()",
@@ -3512,7 +3512,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539642)>
         Public Sub FromInCollectionInitializer1()
             TestInMethod("Dim y = New Foo() From",
@@ -3526,7 +3526,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Keyword("From"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539642)>
         Public Sub FromInCollectionInitializer2()
             TestInMethod("Dim y As New Foo() From",
@@ -3540,7 +3540,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                          Keyword("From"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestPartiallyTypedXmlNamespaceImport1()
             Test("Imports <x",
@@ -3549,7 +3549,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlName("x"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestPartiallyTypedXmlNamespaceImport2()
             Test("Imports <xml",
@@ -3558,7 +3558,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlName("xml"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestPartiallyTypedXmlNamespaceImport3()
             Test("Imports <xmlns",
@@ -3567,7 +3567,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlAttributeName("xmlns"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestPartiallyTypedXmlNamespaceImport4()
             Test("Imports <xmlns:",
@@ -3577,7 +3577,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlAttributeName(":"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestPartiallyTypedXmlNamespaceImport5()
             Test("Imports <xmlns:ns",
@@ -3588,7 +3588,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlAttributeName("ns"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestPartiallyTypedXmlNamespaceImport6()
             Test("Imports <xmlns:ns=",
@@ -3600,7 +3600,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlDelimiter("="))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestPartiallyTypedXmlNamespaceImport7()
             Test("Imports <xmlns:ns=""http://foo""",
@@ -3615,7 +3615,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlAttributeQuotes(""""))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(539779)>
         Public Sub TestFullyTypedXmlNamespaceImport()
             Test("Imports <xmlns:ns=""http://foo"">",
@@ -3631,7 +3631,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  VBXmlDelimiter(">"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestGetXmlNamespaceExpression()
             TestInExpression("GetXmlNamespace(Name)",
                 Keyword("GetXmlNamespace"),
@@ -3640,7 +3640,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestGetXmlNamespaceExpressionWithNoName()
             TestInExpression("GetXmlNamespace()",
                 Keyword("GetXmlNamespace"),
@@ -3648,7 +3648,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 Punctuation.CloseParen)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestClassifyXmlDocumentFollowingMisc()
             TestInExpression("<?xml ?><x></x><!--h-->",
                 VBXmlDelimiter("<?"),
@@ -3665,7 +3665,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("-->"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestXmlDeclaration()
             TestInExpression("<?xml version=""1.0""?>",
                 VBXmlDelimiter("<?"),
@@ -3678,7 +3678,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                 VBXmlDelimiter("?>"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestEnableWarningDirective()
             Dim text = StringFromLines(
                 "Module Program",
@@ -3705,7 +3705,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestDisableWarningDirective()
             Dim text = StringFromLines(
                 "Module Program",
@@ -3727,7 +3727,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestBadWarningDirectives()
             Dim text = StringFromLines(
                 "Module Program",
@@ -3766,7 +3766,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Identifier("blah"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestInterpolatedString1()
             Dim text = StringFromLines(
                 "Module Program",
@@ -3799,7 +3799,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Sub TestInterpolatedString2()
             Dim text = StringFromLines(
                 "Module Program",
@@ -3830,7 +3830,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                  Keyword("Module"))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Classification)>
         <WorkItem(2126, "https://github.com/dotnet/roslyn/issues/2126")>
         Public Sub CommentBeforeXmlAccessExpression()
             TestInMethod("C",

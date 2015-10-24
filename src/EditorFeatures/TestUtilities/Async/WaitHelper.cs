@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -11,6 +13,28 @@ namespace Roslyn.Test.Utilities
 {
     public static class WaitHelper
     {
+        /// <summary>
+        /// This is a hueristic for checking to see if we are in a deadlock state because
+        /// we are waiting on a Task that may be in the StaTaskScheduler queue from the 
+        /// main thread.
+        /// </summary>
+        /// <param name="tasks"></param>
+        private static void CheckForStaDeadlockInPumpingWait(IEnumerable<Task> tasks)
+        {
+            var sta = StaTaskScheduler.DefaultSta;
+            Debug.Assert(sta.Threads.Length == 1);
+
+            if (Thread.CurrentThread != sta.Threads[0])
+            {
+                return;
+            }
+
+            if (tasks.Any(x => x.Status == TaskStatus.WaitingForActivation) && sta.IsAnyQueued())
+            {
+                throw new InvalidOperationException("PumingWait is likely in a deadlock");
+            }
+        }
+
         public static void WaitForDispatchedOperationsToComplete(DispatcherPriority priority)
         {
             Action action = delegate { };
@@ -39,6 +63,7 @@ namespace Roslyn.Test.Utilities
                 if (!done)
                 {
                     WaitForDispatchedOperationsToComplete(DispatcherPriority.ApplicationIdle);
+                    CheckForStaDeadlockInPumpingWait(tasks);
                 }
             }
 

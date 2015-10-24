@@ -200,8 +200,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
             var title = GetFixTitle(isAddSuppression);
             var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
+            var noDiagnosticsToFix = false;
+            var cancelled = false;
+            var newSolution = _workspace.CurrentSolution;
+            HashSet<string> languages = null;
 
-            Action<CancellationToken> computeDiagnosticsToFix = cancellationToken =>
+            Action<CancellationToken> computeDiagnosticsAndFix = cancellationToken =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 documentDiagnosticsToFixMap = GetDocumentDiagnosticsToFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: filterStaleDiagnostics, cancellationToken: cancellationToken)
@@ -212,90 +216,91 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     ImmutableDictionary<Project, ImmutableArray<Diagnostic>>.Empty :
                     GetProjectDiagnosticsToFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: filterStaleDiagnostics, cancellationToken: cancellationToken)
                         .WaitAndGetResult(cancellationToken);
+
+                if (documentDiagnosticsToFixMap == null ||
+                    projectDiagnosticsToFixMap == null ||
+                    (documentDiagnosticsToFixMap.IsEmpty && projectDiagnosticsToFixMap.IsEmpty))
+                {
+                    // Nothing to fix.
+                    noDiagnosticsToFix = true;
+                    return;
+                }
+
+                // Equivalence key determines what fix will be applied.
+                // Make sure we don't include any specific diagnostic ID, as we want all of the given diagnostics (which can have varied ID) to be fixed.
+                var equivalenceKey = isAddSuppression ?
+                    (isSuppressionInSource ? FeaturesResources.SuppressWithPragma : FeaturesResources.SuppressWithGlobalSuppressMessage) :
+                    FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix;
+
+                // We have different suppression fixers for every language.
+                // So we need to group diagnostics by the containing project language and apply fixes separately.
+                languages = new HashSet<string>(projectDiagnosticsToFixMap.Keys.Select(p => p.Language).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Language)));
+
+                foreach (var language in languages)
+                {
+                    // Use the Fix multiple occurrences service to compute a bulk suppression fix for the specified document and project diagnostics,
+                    // show a preview changes dialog and then apply the fix to the workspace.
+
+                    var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
+                    if (!documentDiagnosticsPerLanguage.IsEmpty)
+                    {
+                        var suppressionFixer = GetSuppressionFixer(documentDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
+                        if (suppressionFixer != null)
+                        {
+                            var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
+                            newSolution = _fixMultipleOccurencesService.GetFix(
+                                documentDiagnosticsPerLanguage,
+                                _workspace,
+                                suppressionFixer,
+                                suppressionFixAllProvider,
+                                equivalenceKey,
+                                title,
+                                waitDialogMessage,
+                                cancellationToken: CancellationToken.None);
+                            if (newSolution == null)
+                            {
+                                // User cancelled or fixer threw an exception, so we just bail out.
+                                cancelled = true;
+                                return;
+                            }
+                        }
+                    }
+
+                    var projectDiagnosticsPerLanguage = GetProjectDiagnosticsMappedToNewSolution(projectDiagnosticsToFixMap, newSolution, language);
+                    if (!projectDiagnosticsPerLanguage.IsEmpty)
+                    {
+                        var suppressionFixer = GetSuppressionFixer(projectDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
+                        if (suppressionFixer != null)
+                        {
+                            var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
+                            newSolution = _fixMultipleOccurencesService.GetFix(
+                                 projectDiagnosticsPerLanguage,
+                                 _workspace,
+                                 suppressionFixer,
+                                 suppressionFixAllProvider,
+                                 equivalenceKey,
+                                 title,
+                                 waitDialogMessage,
+                                 CancellationToken.None);
+                            if (newSolution == null)
+                            {
+                                // User cancelled or fixer threw an exception, so we just bail out.
+                                cancelled = true;
+                                return;
+                            }
+                        }
+                    }
+                }
             };
 
-            var result = InvokeWithWaitDialog(computeDiagnosticsToFix, title, waitDialogMessage);
+            var result = InvokeWithWaitDialog(computeDiagnosticsAndFix, title, waitDialogMessage);
 
             // Bail out if the user cancelled.
-            if (result == WaitIndicatorResult.Canceled)
+            if (cancelled || result == WaitIndicatorResult.Canceled)
             {
                 return false;
             }
-
-            if (documentDiagnosticsToFixMap == null ||
-                projectDiagnosticsToFixMap == null ||
-                (documentDiagnosticsToFixMap.IsEmpty && projectDiagnosticsToFixMap.IsEmpty))
-            {
-                // Nothing to fix.
-                return true;
-            }
-
-            // Equivalence key determines what fix will be applied.
-            // Make sure we don't include any specific diagnostic ID, as we want all of the given diagnostics (which can have varied ID) to be fixed.
-            var equivalenceKey = isAddSuppression ?
-                (isSuppressionInSource ? FeaturesResources.SuppressWithPragma : FeaturesResources.SuppressWithGlobalSuppressMessage) :
-                FeaturesResources.RemoveSuppressionEquivalenceKeyPrefix;
-
-            // We have different suppression fixers for every language.
-            // So we need to group diagnostics by the containing project language and apply fixes separately.
-            var languages = new HashSet<string>(projectDiagnosticsToFixMap.Keys.Select(p => p.Language).Concat(documentDiagnosticsToFixMap.Select(kvp => kvp.Key.Project.Language)));
-            var newSolution = _workspace.CurrentSolution;
-
-            foreach (var language in languages)
-            {
-                // Use the Fix multiple occurrences service to compute a bulk suppression fix for the specified document and project diagnostics,
-                // show a preview changes dialog and then apply the fix to the workspace.
-
-                var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
-                if (!documentDiagnosticsPerLanguage.IsEmpty)
-                {
-                    var suppressionFixer = GetSuppressionFixer(documentDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
-                    {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
-                        newSolution = _fixMultipleOccurencesService.GetFix(
-                            documentDiagnosticsPerLanguage,
-                            _workspace,
-                            suppressionFixer,
-                            suppressionFixAllProvider,
-                            equivalenceKey,
-                            title,
-                            waitDialogMessage,
-                            cancellationToken: CancellationToken.None);
-                        if (newSolution == null)
-                        {
-                            // User cancelled or fixer threw an exception, so we just bail out.
-                            return false;
-                        }
-                    }
-                }
-
-                var projectDiagnosticsPerLanguage = GetProjectDiagnosticsMappedToNewSolution(projectDiagnosticsToFixMap, newSolution, language);
-                if (!projectDiagnosticsPerLanguage.IsEmpty)
-                {
-                    var suppressionFixer = GetSuppressionFixer(projectDiagnosticsPerLanguage.SelectMany(kvp => kvp.Value), language, _codeFixService);
-                    if (suppressionFixer != null)
-                    {
-                        var suppressionFixAllProvider = suppressionFixer.GetFixAllProvider();
-                        newSolution = _fixMultipleOccurencesService.GetFix(
-                             projectDiagnosticsPerLanguage,
-                             _workspace,
-                             suppressionFixer,
-                             suppressionFixAllProvider,
-                             equivalenceKey,
-                             title,
-                             waitDialogMessage,
-                             CancellationToken.None);
-                        if (newSolution == null)
-                        {
-                            // User cancelled or fixer threw an exception, so we just bail out.
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            if (newSolution == _workspace.CurrentSolution)
+            else if (noDiagnosticsToFix || newSolution == _workspace.CurrentSolution)
             {
                 // No changes.
                 return true;
@@ -308,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     newSolution,
                     fixAllPreviewChangesTitle: title,
                     fixAllTopLevelHeader: title,
-                    languageOpt: languages.Count == 1 ? languages.Single() : null,
+                    languageOpt: languages?.Count == 1 ? languages.Single() : null,
                     workspace: _workspace);
                 if (newSolution == null)
                 {
@@ -424,14 +429,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
         private static CodeFixProvider GetSuppressionFixer(IEnumerable<Diagnostic> diagnostics, string language, ICodeFixService codeFixService)
         {
-            var allDiagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
-            foreach (var documentDiagnostics in diagnostics)
-            {
-                allDiagnosticsBuilder.AddRange(diagnostics);
-            }
-
             // Fetch the suppression fixer to apply the fix.
-            return codeFixService.GetSuppressionFixer(language, allDiagnosticsBuilder.ToImmutable());
+            return codeFixService.GetSuppressionFixer(language, diagnostics.Select(d => d.Id));
         }
 
         private async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, CancellationToken cancellationToken)
@@ -508,7 +507,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     if (documentDiagnosticsToFix.Any())
                     {
-                        var diagnostics = await DiagnosticData.ToDiagnosticsAsync(project, documentDiagnosticsToFix, cancellationToken).ConfigureAwait(false);
+                        var diagnostics = await documentDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                         finalBuilder.Add(document, diagnostics.ToImmutableArray());
                     }
                 }
@@ -570,7 +569,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                 if (projectDiagnosticsToFix.Any())
                 {
-                    var projectDiagnostics = await DiagnosticData.ToDiagnosticsAsync(project, projectDiagnosticsToFix, cancellationToken).ConfigureAwait(false);
+                    var projectDiagnostics = await projectDiagnosticsToFix.ToDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
                     finalBuilder.Add(project, projectDiagnostics.ToImmutableArray());
                 }
             }

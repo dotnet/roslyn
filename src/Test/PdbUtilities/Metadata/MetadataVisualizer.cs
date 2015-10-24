@@ -8,9 +8,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using Roslyn.Reflection.Metadata.Decoding;
 
 namespace Roslyn.Test.MetadataUtilities
 {
@@ -536,24 +536,22 @@ namespace Roslyn.Test.MetadataUtilities
             return sb.ToString();
         }
 
-        private string FormatImports(BlobHandle handle)
+        private string FormatImports(ImportScope scope)
         {
-            if (handle.IsNil)
+            if (scope.ImportsBlob.IsNil)
             {
                 return "nil";
             }
 
             var sb = new StringBuilder();
 
-            var importsReader = _reader.GetImportsReader(handle);
-            while (importsReader.MoveNext())
+            foreach (var import in scope.GetImports())
             {
                 if (sb.Length > 0)
                 {
                     sb.Append(", ");
                 }
 
-                var import = importsReader.Current;
                 switch (import.Kind)
                 {
                     case ImportDefinitionKind.ImportNamespace:
@@ -615,7 +613,10 @@ namespace Roslyn.Test.MetadataUtilities
 
         private string SequencePoint(SequencePoint sequencePoint)
         {
-            string range = sequencePoint.IsHidden ? "<hidden>" : $"({sequencePoint.StartLine}, {sequencePoint.StartColumn}) - ({sequencePoint.EndLine}, {sequencePoint.EndColumn})";
+            string range = sequencePoint.IsHidden ? 
+                "<hidden>" : 
+                $"({sequencePoint.StartLine}, {sequencePoint.StartColumn}) - ({sequencePoint.EndLine}, {sequencePoint.EndColumn}) {Token(() => sequencePoint.Document)}";
+
             return $"IL_{sequencePoint.Offset:X4}: " + range;
         }
 
@@ -627,6 +628,8 @@ namespace Roslyn.Test.MetadataUtilities
 
             if (_reader.DebugMetadataHeader != null)
             {
+                _writer.WriteLine("Id: " + BitConverter.ToString(_reader.DebugMetadataHeader.Id.ToArray()));
+
                 if (!_reader.DebugMetadataHeader.EntryPoint.IsNil)
                 {
                     _writer.WriteLine("EntryPoint: {0}", Token(() => _reader.DebugMetadataHeader.EntryPoint));
@@ -1462,31 +1465,31 @@ namespace Roslyn.Test.MetadataUtilities
 
         private void WriteMethodBody()
         {
-            if (_reader.MethodBodies.Count == 0)
+            if (_reader.MethodDebugInformation.Count == 0)
             {
                 return;
             }
 
-            _writer.WriteLine(MakeTableName(TableIndex.MethodBody));
+            _writer.WriteLine(MakeTableName(TableIndex.MethodDebugInformation));
             _writer.WriteLine(new string('=', 50));
 
-            foreach (var handle in _reader.MethodBodies)
+            foreach (var handle in _reader.MethodDebugInformation)
             {
                 if (handle.IsNil)
                 {
                     continue;
                 }
 
-                var entry = _reader.GetMethodBody(handle);
+                var entry = _reader.GetMethodDebugInformation(handle);
                 
-                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: #{_reader.GetHeapOffset(entry.SequencePoints)}");
+                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: {Token(() => entry.Document)} #{_reader.GetHeapOffset(entry.SequencePointsBlob):x}");
 
-                if (entry.SequencePoints.IsNil)
+                if (entry.SequencePointsBlob.IsNil)
                 {
                     continue;
                 }
 
-                _blobKinds[entry.SequencePoints] = BlobKind.SequencePoints;
+                _blobKinds[entry.SequencePointsBlob] = BlobKind.SequencePoints;
 
                 _writer.WriteLine("{");
 
@@ -1512,11 +1515,10 @@ namespace Roslyn.Test.MetadataUtilities
 
                 try
                 {
-                    var spReader = _reader.GetSequencePointsReader(entry.SequencePoints);
-                    while (spReader.MoveNext())
+                    foreach (var sequencePoint in entry.GetSequencePoints())
                     {
                         _writer.Write("  ");
-                        _writer.WriteLine(SequencePoint(spReader.Current));
+                        _writer.WriteLine(sequencePoint);
                     }
                 }
                 catch (BadImageFormatException)
@@ -1710,11 +1712,11 @@ namespace Roslyn.Test.MetadataUtilities
             {
                 var entry = _reader.GetImportScope(handle);
 
-                _blobKinds[entry.Imports] = BlobKind.Imports;
+                _blobKinds[entry.ImportsBlob] = BlobKind.Imports;
 
                 AddRow(
                     Token(() => entry.Parent),
-                    FormatImports(entry.Imports)
+                    FormatImports(entry)
                );
             }
 

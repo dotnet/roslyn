@@ -1754,9 +1754,6 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<string, ImmutableArray<DocumentId>> newLinkedFilesMap = null,
             bool forkTracker = true)
         {
-            // make sure we are getting only known translate actions
-            CompilationTranslationAction.CheckKnownActions(translate);
-
             var projectId = newProjectState.Id;
 
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
@@ -2018,6 +2015,13 @@ namespace Microsoft.CodeAnalysis
                 : SpecializedTasks.Default<Compilation>();
         }
 
+        internal Task<bool> HasCompleteReferencesAsync(Project project, CancellationToken cancellationToken)
+        {
+            return project.SupportsCompilation
+                ? this.GetCompilationTracker(project.Id).HasCompleteReferencesAsync(this, cancellationToken)
+                : SpecializedTasks.False;
+        }
+
         private static readonly ConditionalWeakTable<MetadataReference, ProjectId> s_metadataReferenceToProjectMap =
             new ConditionalWeakTable<MetadataReference, ProjectId>();
 
@@ -2120,7 +2124,7 @@ namespace Microsoft.CodeAnalysis
                 return result.Value;
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {
@@ -2140,7 +2144,7 @@ namespace Microsoft.CodeAnalysis
                 return ConvertTreesToDocuments(id, trees);
             }
 
-            // it looks like declaration compilation doesnt exist yet. we have to build full compilation
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
             if (compilation == null)
             {

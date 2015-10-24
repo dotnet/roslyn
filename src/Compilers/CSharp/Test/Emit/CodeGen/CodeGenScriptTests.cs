@@ -539,7 +539,7 @@ public abstract class C
         }
 
         [Fact]
-        public void InteractiveEntryPoint()
+        public void SubmissionEntryPoint()
         {
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
@@ -547,9 +547,9 @@ public abstract class C
     await System.Threading.Tasks.Task.Delay(100);
     System.Console.Write(""complete"");
 }";
-            var s0 = CSharpCompilation.CreateSubmission(
+            var s0 = CSharpCompilation.CreateScriptCompilation(
                 "s0.dll",
-                SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Interactive),
+                SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script),
                 references);
             var verifier = CompileAndVerify(s0, verify: false);
             var methodData = verifier.TestData.GetMethodData("<Initialize>");

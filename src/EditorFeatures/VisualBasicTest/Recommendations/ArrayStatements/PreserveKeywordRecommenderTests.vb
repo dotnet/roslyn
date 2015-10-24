@@ -9,38 +9,38 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.ArrayStatements
     Public Class PreserveKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub PreserveNotInMethodBody()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Preserve")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub PreserveAfterReDimStatement()
             VerifyRecommendationsContain(<MethodBody>ReDim | </MethodBody>, "Preserve")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub PreserveNotAfterReDimPreserve()
             VerifyRecommendationsMissing(<ClassDeclaration>ReDim Preserve |</ClassDeclaration>, "Preserve")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub PreserveNotAfterWeirdBrokenReDim()
             VerifyRecommendationsMissing(<MethodBody>ReDim x, ReDim |</MethodBody>, "Preserve")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub PreserveInSingleLineLambda()
             VerifyRecommendationsContain(<MethodBody>Dim x = Sub() ReDim |</MethodBody>, "Preserve")
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotAfterEol()
             VerifyRecommendationsMissing(
 <MethodBody>ReDim 
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Ar
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AfterExplicitLineContinuation()
             VerifyRecommendationsContain(
 <MethodBody>ReDim _

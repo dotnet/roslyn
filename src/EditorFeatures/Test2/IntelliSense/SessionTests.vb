@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Class Model
         End Class
 
-        <Fact>
+        <WpfFact>
         Public Sub SessionStopsWhenPresenterIsDismissed()
             Dim presenter = New Mock(Of IIntelliSensePresenterSession)
             Dim controller = New Mock(Of IController(Of Model))
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             controller.Verify(Sub(c) c.StopModelComputation())
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub PresenterIsDismissedWhenSessionIsStopped()
             Dim presenter = New Mock(Of IIntelliSensePresenterSession)
             Dim controller = New Mock(Of IController(Of Model))

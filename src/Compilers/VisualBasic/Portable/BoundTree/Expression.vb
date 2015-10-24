@@ -180,12 +180,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.Parameter
-            End Get
-        End Property
-
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.InstanceReferenceExpression
         End Function
@@ -206,12 +200,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.Parameter
-            End Get
-        End Property
-
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.BaseClassInstanceReferenceExpression
         End Function
@@ -229,12 +217,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IParameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
             Get
                 Return DirectCast(Me.ExpressionSymbol, IParameterSymbol)
-            End Get
-        End Property
-
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.Parameter
             End Get
         End Property
 
@@ -485,12 +467,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IIndices As ImmutableArray(Of IExpression) Implements IArrayElementReferenceExpression.Indices
             Get
                 Return Me.Indices.As(Of IExpression)()
-            End Get
-        End Property
-
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.ArrayElement
             End Get
         End Property
 
@@ -1115,12 +1091,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.Property
-            End Get
-        End Property
-
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.PropertyReferenceExpression
         End Function
@@ -1138,12 +1108,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IInstance As IExpression Implements IMemberReferenceExpression.Instance
             Get
                 Return Me.ReceiverOpt
-            End Get
-        End Property
-
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.Field
             End Get
         End Property
 
@@ -1175,12 +1139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.Parameter
-            End Get
-        End Property
-
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.ParameterReferenceExpression
         End Function
@@ -1192,12 +1150,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property ILocal As ILocalSymbol Implements ILocalReferenceExpression.Local
             Get
                 Return Me.LocalSymbol
-            End Get
-        End Property
-
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.Local
             End Get
         End Property
 
@@ -1218,12 +1170,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IMemberName As String Implements ILateBoundMemberReferenceExpression.MemberName
             Get
                 Return Me.NameOpt
-            End Get
-        End Property
-
-        Private ReadOnly Property IReferenceKind As ReferenceKind Implements IReferenceExpression.ReferenceKind
-            Get
-                Return ReferenceKind.LateBoundMember
             End Get
         End Property
 

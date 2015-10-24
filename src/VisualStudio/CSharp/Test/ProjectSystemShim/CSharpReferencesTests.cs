@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
     public class CSharpReferenceTests
     {
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddingReferenceToProjectMetadataPromotesToProjectReference()
         {
@@ -42,7 +42,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddCyclicProjectMetadataReferences()
         {
@@ -67,7 +67,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddCyclicProjectReferences()
         {
@@ -87,7 +87,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             }
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddCyclicProjectReferencesDeep()
         {

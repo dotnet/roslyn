@@ -6,7 +6,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
 
 #Region "Methods"
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeBeforeMethodName()
             Dim markup = <Text><![CDATA[
 Class C
@@ -25,7 +25,7 @@ End Class]]></Text>.NormalizedValue()
 
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeInParameterList()
             Dim markup = <Text><![CDATA[
 Class C
@@ -42,7 +42,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeAfterParameterList()
             Dim markup = <Text><![CDATA[
 Class C
@@ -59,7 +59,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeBeforeMethodDeclaration()
             Dim markup = <Text><![CDATA[
 Class C
@@ -76,7 +76,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnMetadataReference_InIdentifier_ShouldFail()
             Dim markup = <Text><![CDATA[
 Class C
@@ -88,7 +88,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.TheMemberIsDefinedInMetadata)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnMetadataReference_AtBeginningOfInvocation_ShouldFail()
             Dim markup = <Text><![CDATA[
 Class C
@@ -100,7 +100,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.TheMemberIsDefinedInMetadata)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnMetadataReference_InArgumentsOfInvocation_ShouldFail()
             Dim markup = <Text><![CDATA[
 Class C
@@ -112,7 +112,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.TheMemberIsDefinedInMetadata)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnMetadataReference_AfterInvocation_ShouldFail()
             Dim markup = <Text><![CDATA[
 Class C
@@ -124,7 +124,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, expectedSuccess:=False, expectedErrorText:=FeaturesResources.TheMemberIsDefinedInMetadata)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeInMethodBody()
             Dim markup = <Text><![CDATA[
 Class C
@@ -143,7 +143,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnReference_BeginningOfIdentifier()
             Dim markup = <Text><![CDATA[
 Class C
@@ -168,7 +168,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnReference_ArgumentList()
             Dim markup = <Text><![CDATA[
 Class C
@@ -193,7 +193,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnReference_NestedCalls1()
             Dim markup = <Text><![CDATA[
 Class C
@@ -226,7 +226,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnReference_NestedCalls2()
             Dim markup = <Text><![CDATA[
 Class C
@@ -259,7 +259,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnReference_NestedCalls3()
             Dim markup = <Text><![CDATA[
 Class C
@@ -292,7 +292,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeOnReference_OnlyCandidateSymbols()
             Dim markup = <Text><![CDATA[
 Class C
@@ -319,7 +319,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderMethodParameters_InvokeInConstructor()
             Dim markup = <Text><![CDATA[
 Class C
@@ -342,7 +342,7 @@ End Class]]></Text>.NormalizedValue()
 #End Region
 
 #Region "Properties"
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_InvokeAtBeginningOfDeclaration()
             Dim markup = <Text><![CDATA[
 Class C
@@ -369,7 +369,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_InParameters()
             Dim markup = <Text><![CDATA[
 Class C
@@ -396,7 +396,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_InvokeAtEndOfDeclaration()
             Dim markup = <Text><![CDATA[
 Class C
@@ -423,7 +423,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_InvokeInAccessor()
             Dim markup = <Text><![CDATA[
 Class C
@@ -450,7 +450,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_InvokeOnReference_BeforeTarget()
             Dim markup = <Text><![CDATA[
 Class C
@@ -487,7 +487,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_InvokeOnReference_InArgumentList()
             Dim markup = <Text><![CDATA[
 Class C
@@ -526,7 +526,7 @@ End Class]]></Text>.NormalizedValue()
 #End Region
 
 #Region "Delegates"
-        <Fact(Skip:="860578"), Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact(Skip:="860578"), Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderDelegateParameters_ObjectCreation1()
             Dim markup = <Text><![CDATA[
 Class C
@@ -551,7 +551,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCommand(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Sub
 
-        <Fact(Skip:="860578"), Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact(Skip:="860578"), Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderDelegateParameters_ObjectCreation2()
             Dim markup = <Text><![CDATA[
 Class C(Of T)
@@ -582,7 +582,7 @@ End Class]]></Text>.NormalizedValue()
 #End Region
 
 #Region "Code Refactoring"
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_CodeRefactoring_InMethodDeclaration()
             Dim markup = <Text><![CDATA[
 Class C
@@ -599,7 +599,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCodeAction(markup, expectedCodeAction:=True, updatedSignature:=permutation, expectedCode:=updatedCode)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_CodeRefactoring_NotInMethodBody()
             Dim markup = <Text><![CDATA[
 Class C
@@ -611,7 +611,7 @@ End Class]]></Text>.NormalizedValue()
             TestChangeSignatureViaCodeAction(markup, expectedCodeAction:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Sub ReorderIndexerParameters_CodeRefactoring_InCallSite()
             Dim markup = <Text><![CDATA[
 Class C

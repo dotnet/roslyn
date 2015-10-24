@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
     public class DocumentationCommentTests : AbstractDocumentationCommentTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Class()
         {
             var code =
@@ -32,7 +32,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -50,7 +50,7 @@ class C
             VerifyTypingCharacter(code, expected, autoGenerateXmlDocComments: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Method()
         {
             var code =
@@ -75,7 +75,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Method_WithVerbatimParams()
         {
             var code =
@@ -100,7 +100,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_AutoProperty()
         {
             var code =
@@ -122,7 +122,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Property()
         {
             var code =
@@ -152,7 +152,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Indexer()
         {
             var code =
@@ -184,7 +184,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_VoidMethod1()
         {
             var code =
@@ -208,7 +208,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_VoidMethod_WithVerbatimParams()
         {
             var code =
@@ -233,7 +233,7 @@ class C
         }
 
         [WorkItem(538699)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_VoidMethod2()
         {
             var code =
@@ -253,7 +253,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotWhenDocCommentExists1()
         {
             var code = @"
@@ -273,7 +273,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotWhenDocCommentExists2()
         {
             var code = @"
@@ -295,7 +295,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotWhenDocCommentExists3()
         {
             var code = @"
@@ -317,7 +317,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotWhenDocCommentExists4()
         {
             var code =
@@ -337,7 +337,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotWhenDocCommentExists5()
         {
             var code =
@@ -359,7 +359,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotInsideMethodBody1()
         {
             var code =
@@ -383,7 +383,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotInsideMethodBody2()
         {
             var code =
@@ -409,7 +409,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotAfterClassName()
         {
             var code =
@@ -425,7 +425,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotAfterOpenBrace()
         {
             var code =
@@ -441,7 +441,7 @@ class C
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotAfterCtorName()
         {
             var code =
@@ -459,7 +459,7 @@ C() ///$$
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_NotInsideCtor()
         {
             var code =
@@ -483,7 +483,7 @@ C()
             VerifyTypingCharacter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1()
         {
             var code =
@@ -504,7 +504,7 @@ class C
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class1_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -523,7 +523,7 @@ class C
             VerifyPressingEnter(code, expected, autoGenerateXmlDocComments: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class2()
         {
             var code =
@@ -542,7 +542,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Class3()
         {
             var code =
@@ -561,7 +561,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_NotAfterWhitespace()
         {
             var code =
@@ -578,7 +578,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Method1()
         {
             var code =
@@ -603,7 +603,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertComment_Method2()
         {
             var code =
@@ -627,7 +627,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotInMethodBody1()
         {
             var code =
@@ -653,7 +653,7 @@ $$
         }
 
         [WorkItem(537513)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotInterleavedInClassName1()
         {
             var code =
@@ -671,7 +671,7 @@ $$ C
         }
 
         [WorkItem(537513)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotInterleavedInClassName2()
         {
             var code =
@@ -689,7 +689,7 @@ $$C
         }
 
         [WorkItem(537513)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotInterleavedInClassName3()
         {
             var code =
@@ -708,7 +708,7 @@ $$C
 
         [WorkItem(537514)]
         [WorkItem(537532)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotAfterClassName1()
         {
             var code =
@@ -726,7 +726,7 @@ $$
         }
 
         [WorkItem(537552)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotAfterClassName2()
         {
             var code =
@@ -744,7 +744,7 @@ $$
         }
 
         [WorkItem(537535)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotAfterCtorName()
         {
             var code =
@@ -764,7 +764,7 @@ $$
         }
 
         [WorkItem(537511)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotInsideCtor()
         {
             var code =
@@ -790,7 +790,7 @@ $$
         }
 
         [WorkItem(537550)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_NotBeforeDocComment()
         {
             var code =
@@ -823,7 +823,7 @@ $$/// <summary>
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes1()
         {
             var code =
@@ -844,7 +844,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes2()
         {
             var code =
@@ -867,7 +867,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes3()
         {
             var code =
@@ -890,7 +890,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes4()
         {
             var code =
@@ -909,7 +909,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes5()
         {
             var code =
@@ -932,7 +932,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes6()
         {
             var code =
@@ -951,7 +951,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes7()
         {
             var code =
@@ -971,7 +971,7 @@ class C
         }
 
         [WorkItem(538702)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes8()
         {
             var code =
@@ -988,7 +988,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes9()
         {
             var code =
@@ -1011,7 +1011,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes10()
         {
             var code =
@@ -1029,7 +1029,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes11()
         {
             var code =
@@ -1061,7 +1061,7 @@ class C
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InsertSlashes12_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -1083,7 +1083,7 @@ class C
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_DontInsertSlashes1()
         {
             var code =
@@ -1105,7 +1105,7 @@ class C
         }
 
         [WorkItem(538701)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_DontInsertSlashes2()
         {
             var code =
@@ -1123,7 +1123,7 @@ class C{}";
         }
 
         [WorkItem(542426)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_PreserveParams()
         {
             var code =
@@ -1146,7 +1146,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(2091, "https://github.com/dotnet/roslyn/issues/2091")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_InTextBeforeSpace()
         {
             const string code =
@@ -1176,7 +1176,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Indentation1()
         {
             const string code =
@@ -1206,7 +1206,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Indentation2()
         {
             const string code =
@@ -1236,7 +1236,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Indentation3()
         {
             const string code =
@@ -1266,7 +1266,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Indentation4()
         {
             const string code =
@@ -1296,7 +1296,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(2108, "https://github.com/dotnet/roslyn/issues/2108")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Indentation5_UseTabs()
         {
             const string code =
@@ -1326,7 +1326,7 @@ static void Main(string[] args)
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Selection1()
         {
             var code =
@@ -1349,7 +1349,7 @@ class C
         }
 
         [WorkItem(5486, "https://github.com/dotnet/roslyn/issues/5486")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void PressingEnter_Selection2()
         {
             var code =
@@ -1371,7 +1371,7 @@ class C
             VerifyPressingEnter(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class()
         {
             var code =
@@ -1391,7 +1391,7 @@ class C
         }
 
         [WorkItem(4817, "https://github.com/dotnet/roslyn/issues/4817")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
@@ -1411,7 +1411,7 @@ class C
         }
 
         [WorkItem(538714)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_BeforeClass1()
         {
             var code =
@@ -1428,7 +1428,7 @@ class C { }";
         }
 
         [WorkItem(538714)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_BeforeClass2()
         {
             var code =
@@ -1447,7 +1447,7 @@ class C { }";
         }
 
         [WorkItem(538714)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_BeforeClass3()
         {
             var code =
@@ -1470,7 +1470,7 @@ class C { }";
         }
 
         [WorkItem(527604)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class_NotIfMultilineDocCommentExists()
         {
             var code =
@@ -1485,7 +1485,7 @@ class C { $$ }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Method()
         {
             var code =
@@ -1509,7 +1509,7 @@ class C { $$ }";
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Class_NotIfCommentExists()
         {
             var code =
@@ -1527,7 +1527,7 @@ class C
             VerifyInsertCommentCommand(code, expected);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_Method_NotIfCommentExists()
         {
             var code =
@@ -1548,7 +1548,7 @@ class C
         }
 
         [WorkItem(538482)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_FirstClassOnLine()
         {
             var code = @"$$class C { } class D { }";
@@ -1563,7 +1563,7 @@ class C { } class D { }";
         }
 
         [WorkItem(538482)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_NotOnSecondClassOnLine()
         {
             var code = @"class C { } $$class D { }";
@@ -1574,7 +1574,7 @@ class C { } class D { }";
         }
 
         [WorkItem(538482)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_FirstMethodOnLine()
         {
             var code =
@@ -1596,7 +1596,7 @@ class C { } class D { }";
         }
 
         [WorkItem(538482)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void Command_NotOnSecondMethodOnLine()
         {
             var code =
@@ -1615,7 +1615,7 @@ class C { } class D { }";
         }
 
         [WorkItem(917904)]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestUseTab()
         {
             var code =
@@ -1646,7 +1646,7 @@ public class Class1
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineAbove1()
         {
             const string code =
@@ -1676,7 +1676,7 @@ public class Class1
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineAbove2()
         {
             const string code =
@@ -1706,7 +1706,7 @@ public class Class1
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineAbove3()
         {
             const string code =
@@ -1738,7 +1738,7 @@ $$
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineAbove4_Tabs()
         {
             const string code =
@@ -1768,7 +1768,7 @@ $$
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineBelow1()
         {
             const string code =
@@ -1798,7 +1798,7 @@ $$
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineBelow2()
         {
             const string code =
@@ -1828,7 +1828,7 @@ $$
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineBelow3()
         {
             const string code =
@@ -1848,7 +1848,7 @@ $$
         }
 
         [WorkItem(2090, "https://github.com/dotnet/roslyn/issues/2090")]
-        [Fact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TestOpenLineBelow4_Tabs()
         {
             const string code =

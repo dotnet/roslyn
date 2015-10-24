@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _sources.Primary.GetItems();
                 }
 
-                // flatten items from multiple soures and group them by deduplication identity
+                // flatten items from multiple sources and group them by deduplication identity
                 // merge duplicated items into de-duplicated item list
                 var items = _sources.GetSources()
                                     .SelectMany(s => s.GetItems())

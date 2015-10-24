@@ -14,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Language.Intellisense.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
@@ -51,7 +52,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private int _currentOutputProjectionSpan;
             private int _outputTrackingCaretPosition = -1;
 
-            private readonly IRtfBuilderService _rtfBuilderService;
+            private readonly IRtfBuilderService2 _rtfBuilderService;
 
             // Read-only regions protecting initial span of the corresponding buffers:
             private readonly IReadOnlyRegion[] _standardInputProtection = new IReadOnlyRegion[2];
@@ -79,6 +80,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private readonly IContentType _inertType;
 
             private readonly OutputBuffer _buffer;
+
+            private readonly IWaitIndicator _waitIndicator;
 
             public readonly ITextBuffer OutputBuffer;
             public readonly ITextBuffer StandardInputBuffer;
@@ -134,13 +137,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 IRtfBuilderService rtfBuilderService,
                 IIntellisenseSessionStackMapService intellisenseSessionStackMap,
                 ISmartIndentationService smartIndenterService,
-                IInteractiveEvaluator evaluator)
+                IInteractiveEvaluator evaluator,
+                IWaitIndicator waitIndicator)
             {
                 _window = window;
                 _factory = factory;
-                _rtfBuilderService = rtfBuilderService;
+                _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
                 _smartIndenterService = smartIndenterService;
+                _waitIndicator = waitIndicator;
                 Evaluator = evaluator;
 
                 var replContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName);
@@ -714,8 +719,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public void PrepareForInput()
             {
                 _buffer.Flush();
-
                 AddLanguageBuffer();
+                State = State.WaitingForInput;
 
                 // we are prepared for processing any postponed submissions there might have been:
                 ProcessPendingSubmissions();
@@ -732,8 +737,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // move to the end (it might have been in virtual space):
                     TextView.Caret.MoveTo(GetLastLine(TextView.TextBuffer.CurrentSnapshot).End);
                     TextView.Caret.EnsureVisible();
-
-                    State = State.WaitingForInput;
 
                     var ready = _window.ReadyForInput;
                     if (ready != null)
@@ -2512,14 +2515,43 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 var text = GetText(spans);
                 var blocks = GetTextBlocks(spans);
-                var rtf = _rtfBuilderService.GenerateRtf(spans, TextView);
+                string rtf = null;
+                try
+                {
+                    rtf = GenerateRtf(spans);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignore cancellation when doing a copy. The user may not even want RTF text so preventing the normal text from being copied would be overkill.
+                }
                 var data = new DataObject();
                 data.SetData(DataFormats.StringFormat, text);
                 data.SetData(DataFormats.Text, text);
                 data.SetData(DataFormats.UnicodeText, text);
-                data.SetData(DataFormats.Rtf, rtf);
+                if (rtf != null)
+                {
+                    data.SetData(DataFormats.Rtf, rtf);
+                }
                 data.SetData(ClipboardFormat, blocks);
                 return data;
+            }
+
+            private string GenerateRtf(NormalizedSnapshotSpanCollection spans)
+            {
+                // This behavior is consistent with VS editor. 
+                // Don't generate RTF for large spans (since it is expensive and probably not wanted).
+                int length = spans.Sum((span) => span.Length);
+                if (length < 1000000)
+                {                                           
+                    using (var dialog = _waitIndicator.StartWait(InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage, allowCancel: true))
+                    {                           
+                        return _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken);
+                    }
+                }
+                else
+                {
+                    return null;
+                }
             }
 
             /// <summary>
