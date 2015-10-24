@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
@@ -28,18 +28,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractFileWriter.cs" />
-    <Compile Include="AbstractNode.cs" />
-    <Compile Include="Comment.cs" />
-    <Compile Include="Field.cs" />
-    <Compile Include="Kind.cs" />
-    <Compile Include="Node.cs" />
-    <Compile Include="PredefinedNode.cs" />
+    <Compile Include="Model\AbstractNode.cs" />
+    <Compile Include="Model\Comment.cs" />
+    <Compile Include="Model\Field.cs" />
+    <Compile Include="Model\Kind.cs" />
+    <Compile Include="Model\Node.cs" />
+    <Compile Include="Model\PredefinedNode.cs" />
+    <Compile Include="Model\Tree.cs" />
+    <Compile Include="Model\TreeType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="SignatureWriter.cs" />
     <Compile Include="SourceWriter.cs" />
     <Compile Include="TestWriter.cs" />
-    <Compile Include="Tree.cs" />
-    <Compile Include="TreeType.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
