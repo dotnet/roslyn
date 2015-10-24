@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// we create an instance of this async tagger provider for each diagnostic source
         /// we hear about for a particular buffer.  Each async tagger is then responsible
         /// for asynchronous producing tags for that diagnostic source.  This allows each 
-        /// individual async tagger to collect diagnostics, diff them against hte last set
+        /// individual async tagger to collect diagnostics, diff them against the last set
         /// produced by that diagnostic source, and then notify any interested parties about
         /// what changed.
         /// </summary>

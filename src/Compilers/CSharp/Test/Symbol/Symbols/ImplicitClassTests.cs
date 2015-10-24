@@ -32,6 +32,14 @@ namespace N
             Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
             Assert.False(implicitClass.IsSubmissionClass);
             Assert.False(implicitClass.IsScriptClass);
+
+            var c2 = CreateCompilationWithMscorlib45("", new[] { c.ToMetadataReference() });
+
+            n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
+            implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
+            Assert.IsType<CSharp.Symbols.Retargeting.RetargetingNamedTypeSymbol>(implicitClass);
+            Assert.Equal(0, implicitClass.Interfaces.Length);
+            Assert.Equal(c2.ObjectType, implicitClass.BaseType);
         }
 
         [Fact]

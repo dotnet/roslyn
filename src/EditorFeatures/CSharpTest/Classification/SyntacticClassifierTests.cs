@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             {
                 var snapshot = workspace.Documents.First().TextBuffer.CurrentSnapshot;
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
-                var tree = document.GetSyntaxTreeAsync().PumpingWaitResult();
+                var tree = document.GetSyntaxTreeAsync().Result;
 
                 var service = document.GetLanguageService<IClassificationService>();
                 var result = new List<ClassifiedSpan>();
@@ -3570,7 +3570,7 @@ catch (System.Exception) when (true)
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void OutVar()
         {
             var code = @"
@@ -3584,7 +3584,7 @@ F(out var);";
                 Punctuation.Semicolon);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void ReferenceDirective()
         {
             var code = @"
@@ -3595,7 +3595,7 @@ F(out var);";
                 String("\"file.dll\""));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void LoadDirective()
         {
             var code = @"
@@ -3606,7 +3606,7 @@ F(out var);";
                 String("\"file.csx\""));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void IncompleteAwaitInNonAsyncContext()
         {
             var code = @"
@@ -3627,7 +3627,7 @@ void M()
                 Punctuation.CloseCurly);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void CompleteAwaitInNonAsyncContext()
         {
             var code = @"

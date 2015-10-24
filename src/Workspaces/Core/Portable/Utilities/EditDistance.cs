@@ -150,7 +150,7 @@ namespace Roslyn.Utilities
 
                         if (char.ToLower(oldString[column - 1]) == char.ToLower(newString[row - 1]))
                         {
-                            // Both chars are the same, so increate the length
+                            // Both chars are the same, so increment the length
                             currentLength = rowBefore1[column - 1] + 1;
                         }
                         else
@@ -181,8 +181,8 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Returns true if 'value1' and 'value2' are likely a mispelling of each other.
-        /// Returns false otherwlse.  If it is a likely mispelling a matchCost is provided
+        /// Returns true if 'value1' and 'value2' are likely a misspelling of each other.
+        /// Returns false otherwise.  If it is a likely misspelling a matchCost is provided
         /// to help rank the match.  Lower costs mean it was a better match.
         /// </summary>
         public static bool IsCloseMatch(string originalText, string candidateText, out double matchCost)
@@ -196,8 +196,8 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Returns true if 'value1' and 'value2' are likely a mispelling of each other.
-        /// Returns false otherwlse.  If it is a likely mispelling a matchCost is provided
+        /// Returns true if 'value1' and 'value2' are likely a misspelling of each other.
+        /// Returns false otherwise.  If it is a likely misspelling a matchCost is provided
         /// to help rank the match.  Lower costs mean it was a better match.
         /// </summary>
         public static bool IsCloseMatch(string originalText, string candidateText, int costThreshold, out double matchCost)

@@ -67,6 +67,7 @@
     <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineHelpers.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />
     <Compile Include="Hosting\CommandLine\ConsoleIO.cs" />
@@ -106,12 +107,12 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
-     <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
+    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
@@ -119,8 +120,8 @@
     <!-- /TODO -->
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />

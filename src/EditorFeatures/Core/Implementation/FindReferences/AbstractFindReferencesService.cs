@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                     select NavigableItemFactory.GetItemFromSymbolLocation(searchSolution, r.Definition, loc.Location);
 
             // realize the list here so that the consumer await'ing the result doesn't lazily cause
-            // them to be created on an inapropriate thread.
+            // them to be created on an inappropriate thread.
             return q.ToList();
         }
 

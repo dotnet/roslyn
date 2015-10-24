@@ -10,7 +10,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,8 +22,10 @@ using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
+    using static TestCompilationFactory;
+
     public class InteractiveSessionTests : TestBase
     {
         [Fact]
@@ -337,6 +340,33 @@ x
                 "System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
                 "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
             }, c0.GetBoundReferenceManager().GetReferencedAssemblies().Select(a => a.Value.Identity.GetDisplayName()));
+        }
+
+        // https://github.com/dotnet/roslyn/issues/2246
+        [Fact]
+        public void HostObjectInInMemoryAssembly()
+        {
+            var lib = CreateCompilationWithMscorlib("public class C { public int X = 1, Y = 2; }", "HostLib");
+            var libImage = lib.EmitToArray();
+            var libRef = MetadataImageReference.CreateFromImage(libImage);
+
+            var libAssembly = Assembly.Load(libImage.ToArray());
+            var globalsType = libAssembly.GetType("C");
+            var globals = Activator.CreateInstance(globalsType);
+
+            using (var loader = new InteractiveAssemblyLoader())
+            {
+                loader.RegisterDependency(libAssembly);
+
+                var script = CSharpScript.Create<int>(
+                    "X+Y", 
+                    ScriptOptions.Default.WithReferences(libRef), 
+                    globalsType: globalsType,
+                    assemblyLoader: loader);
+
+                int result = script.RunAsync(globals).Result.ReturnValue;
+                Assert.Equal(3, result);
+            }
         }
     }
 }

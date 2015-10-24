@@ -7,9 +7,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -1014,12 +1014,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Gets the count of registered actions for the analyzer.
+        /// Gets telemetry info for the given analyzer, such as count of registered actions, the total execution time (if <see cref="CompilationWithAnalyzersOptions.LogAnalyzerExecutionTime"/> is true), etc.
         /// </summary>
-        internal async Task<ActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        public async Task<AnalyzerTelemetryInfo> GetAnalyzerTelemetryInfoAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
             VerifyAnalyzerArgument(analyzer);
 
+            var actionCounts = await GetAnalyzerActionCountsAsync(analyzer, cancellationToken).ConfigureAwait(false);
+            var executionTime = GetAnalyzerExecutionTime(analyzer);
+            return new AnalyzerTelemetryInfo(actionCounts, executionTime);
+        }
+
+        /// <summary>
+        /// Gets the count of registered actions for the analyzer.
+        /// </summary>
+        private async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+        {
             AnalyzerDriver driver = null;
             try
             {
@@ -1036,13 +1046,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets the execution time for the given analyzer.
         /// </summary>
-        internal TimeSpan GetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer)
+        private TimeSpan GetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer)
         {
-            VerifyAnalyzerArgument(analyzer);
-
             if (!_analysisOptions.LogAnalyzerExecutionTime)
             {
-                throw new InvalidOperationException();
+                return default(TimeSpan);
             }
 
             return _analysisResult.GetAnalyzerExecutionTime(analyzer);

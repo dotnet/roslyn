@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
                 // Slightly special case: <blah><blah$$</blah>
                 // If we already have a matching end tag and we're parented by 
-                // an xml element with the same start tag and a missing/nonmatching end tag, 
+                // an xml element with the same start tag and a missing/non-matching end tag, 
                 // do completion anyway. Generally, if this is the case, we have to walk
                 // up the parent elements until we find an unmatched start tag.
 

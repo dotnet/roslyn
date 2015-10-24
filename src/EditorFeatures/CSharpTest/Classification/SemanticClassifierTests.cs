@@ -17,7 +17,9 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                var syntaxTree = document.GetSyntaxTreeAsync().PumpingWaitResult();
+                var syntaxTree = document.GetSyntaxTreeAsync().Result;
 
                 var service = document.GetLanguageService<IClassificationService>();
                 var classifiers = service.GetDefaultSyntaxClassifiers();
@@ -1406,9 +1408,10 @@ class C
                 var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
                 var contentType = contentTypeService.GetDefaultContentType();
                 var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
+                var textView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateTextView(extraBuffer);
 
                 var waiter = new Waiter();
-                var provider = new SemanticClassificationTaggerProvider(
+                var provider = new SemanticClassificationViewTaggerProvider(
                     workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
@@ -1416,7 +1419,7 @@ class C
                         new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
                         () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
 
-                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(extraBuffer))
+                using (var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(textView, extraBuffer))
                 {
                     using (var edit = extraBuffer.CreateEdit())
                     {
@@ -1425,6 +1428,39 @@ class C
                     }
 
                     await waiter.CreateWaitTask().ConfigureAwait(true);
+                }
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestGetTagsOnBufferTagger()
+        {
+            // don't crash
+            using (var workspace = CSharpWorkspaceFactory.CreateWorkspaceFromFile("class C { C c; }"))
+            {
+                var document = workspace.Documents.First();
+
+                var waiter = new Waiter();
+                var provider = new SemanticClassificationBufferTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
+                    workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
+                    workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                    SpecializedCollections.SingletonEnumerable(
+                        new Lazy<IAsynchronousOperationListener, FeatureMetadata>(
+                        () => waiter, new FeatureMetadata(new Dictionary<string, object>() { { "FeatureName", FeatureAttribute.Classification } }))));
+
+                var tagger = provider.CreateTagger<IClassificationTag>(document.TextBuffer);
+                using (var disposable = (IDisposable)tagger)
+                {
+                    await waiter.CreateWaitTask().ConfigureAwait(true);
+
+                    var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
+                    var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
+
+                    Assert.Empty(tags);
+                    Assert.NotEmpty(allTags);
+
+                    Assert.Equal(allTags.Count(), 1);
                 }
             }
         }

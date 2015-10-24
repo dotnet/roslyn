@@ -93,7 +93,7 @@ class c { $$
             End Using
         End Function
 
-        ' NOTE(cyrusn): This should just be a unit test for SymbolCompletionProvider.  However, i'm
+        ' NOTE(cyrusn): This should just be a unit test for SymbolCompletionProvider.  However, I'm
         ' just porting the integration tests to here for now.
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMultipleTypes() As Task
@@ -108,7 +108,7 @@ class C { $$ } struct S { } enum E { } interface I { } delegate void D();
             End Using
         End Function
 
-        ' NOTE(cyrusn): This should just be a unit test for KeywordCompletionProvider.  However, i'm
+        ' NOTE(cyrusn): This should just be a unit test for KeywordCompletionProvider.  However, I'm
         ' just porting the integration tests to here for now.
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestInEmptyFile() As Task

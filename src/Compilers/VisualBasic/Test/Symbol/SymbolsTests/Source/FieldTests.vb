@@ -431,7 +431,7 @@ End Class]]>,
         ''' Fields named "value__" should be marked rtspecialname.
         ''' </summary>
         <WorkItem(546185, "DevDiv")>
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190")>
         Public Sub RTSpecialName()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>

@@ -103,5 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             return new WorkspaceRegistrationChangedEventSource(subjectBuffer, delay);
         }
+
+        public static ITaggerEventSource OnViewSpanChanged(ITextView textView, TaggerDelay textChangeDelay, TaggerDelay scrollChangeDelay)
+        {
+            return new ViewSpanChangedEventSource(textView, textChangeDelay, scrollChangeDelay);
+        }
     }
 }

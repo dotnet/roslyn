@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // have even shown ui yet.
             var handledCommand = sessionOpt.InitialUnfilteredModel != null;
 
-            // In the presense of an escape, we always stop what we're doing.
+            // In the presence of an escape, we always stop what we're doing.
             this.StopModelComputation();
 
             return handledCommand;

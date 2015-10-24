@@ -58,7 +58,7 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.24.zip"
+    local package_name="nuget.26.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -154,8 +154,7 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc /p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln
@@ -205,9 +204,9 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.3
+        MONO_TOOLSET_NAME=mono.mac.4
     elif [ "$OS_NAME" = "Linux" ]; then
-        MONO_TOOLSET_NAME=mono.linux.3
+        MONO_TOOLSET_NAME=mono.linux.4
     else
         echo "Error: Unsupported OS $OS_NAME"
         exit 1

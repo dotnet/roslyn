@@ -719,8 +719,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public void PrepareForInput()
             {
                 _buffer.Flush();
-
                 AddLanguageBuffer();
+                State = State.WaitingForInput;
 
                 // we are prepared for processing any postponed submissions there might have been:
                 ProcessPendingSubmissions();
@@ -737,8 +737,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // move to the end (it might have been in virtual space):
                     TextView.Caret.MoveTo(GetLastLine(TextView.TextBuffer.CurrentSnapshot).End);
                     TextView.Caret.EnsureVisible();
-
-                    State = State.WaitingForInput;
 
                     var ready = _window.ReadyForInput;
                     if (ready != null)

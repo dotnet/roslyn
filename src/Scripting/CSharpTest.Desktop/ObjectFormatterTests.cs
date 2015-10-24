@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting.UnitTests;
 using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
-namespace Microsoft.CodeAnalysis.Scripting.Hosting.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
 {
     public class ObjectFormatterTests : ObjectFormatterTestBase
     {

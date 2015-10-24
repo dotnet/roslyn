@@ -1,102 +1,42 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
+﻿using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
-    [Export(typeof(ITaggerProvider))]
-    [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
-    internal partial class SemanticClassificationTaggerProvider : AsynchronousTaggerProvider<IClassificationTag>
+    internal static class SemanticClassificationUtilities
     {
-        private readonly ISemanticChangeNotificationService _semanticChangeNotificationService;
-        private readonly ClassificationTypeMap _typeMap;
-
-        // We want to track text changes so that we can try to only reclassify a method body if
-        // all edits were contained within one.
-        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected override IEnumerable<Option<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
-
-        private IEditorClassificationService _classificationService;
-
-        [ImportingConstructor]
-        public SemanticClassificationTaggerProvider(
-            IForegroundNotificationService notificationService,
-            ISemanticChangeNotificationService semanticChangeNotificationService,
-            ClassificationTypeMap typeMap,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Classification), notificationService)
+        public static async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
+            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
         {
-            _semanticChangeNotificationService = semanticChangeNotificationService;
-            _typeMap = typeMap;
-        }
-
-        protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
-        {
-            // Note: we don't listen for OnTextChanged.  Text changes to this this buffer will get
-            // reported by OnSemanticChanged.
-            return TaggerEventSources.Compose(
-                TaggerEventSources.OnSemanticChanged(subjectBuffer, TaggerDelay.Short, _semanticChangeNotificationService),
-                TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer, TaggerDelay.Short));
-        }
-
-        protected override async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context)
-        {
-            Debug.Assert(context.SpansToTag.IsSingle());
-            Debug.Assert(context.CaretPosition == null);
-
-            var spanToTag = context.SpansToTag.Single();
             var document = spanToTag.Document;
-
             if (document == null)
             {
                 return;
             }
 
-            _classificationService = _classificationService ?? document.Project.LanguageServices.GetService<IEditorClassificationService>();
-
-            var cancellationToken = context.CancellationToken;
-            await ProduceTagsAsync(context, spanToTag).ConfigureAwait(false);
-        }
-
-        private async Task ProduceTagsAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag)
-        {
-            if (await TryClassifyContainingMemberSpan(context, spanToTag).ConfigureAwait(false))
+            if (await TryClassifyContainingMemberSpan(context, spanToTag, classificationService, typeMap).ConfigureAwait(false))
             {
                 return;
             }
 
             // We weren't able to use our specialized codepaths for semantic classifying. 
             // Fall back to classifying the full span that was asked for.
-            await ClassifySpansAsync(context, spanToTag).ConfigureAwait(false);
+            await ClassifySpansAsync(context, spanToTag, classificationService, typeMap).ConfigureAwait(false);
         }
 
-        private async Task<bool> TryClassifyContainingMemberSpan(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag)
+        private static async Task<bool> TryClassifyContainingMemberSpan(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
+            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             var range = context.TextChangeRange;
             if (range == null)
@@ -139,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             var subTextSpan = service.GetMemberBodySpanForSpeculativeBinding(member);
             if (subTextSpan.IsEmpty)
             {
-                // Wasn't a member we could reclassify indepdently.
+                // Wasn't a member we could reclassify independently.
                 return false;
             }
 
@@ -149,11 +89,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 new SnapshotSpan(spanToTag.SnapshotSpan.Snapshot, subSpan));
 
             // re-classify only the member we're inside.
-            await ClassifySpansAsync(context, subSpanToTag).ConfigureAwait(false);
+            await ClassifySpansAsync(context, subSpanToTag, classificationService, typeMap).ConfigureAwait(false);
             return true;
         }
 
-        private async Task ClassifySpansAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag)
+        private static async Task ClassifySpansAsync(TaggerContext<IClassificationTag> context, DocumentSnapshotSpan spanToTag,
+            IEditorClassificationService classificationService, ClassificationTypeMap typeMap)
         {
             try
             {
@@ -166,10 +107,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
 
-                    await _classificationService.AddSemanticClassificationsAsync(
+                    await classificationService.AddSemanticClassificationsAsync(
                         document, snapshotSpan.Span.ToTextSpan(), classifiedSpans, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                    ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
+                    ClassificationUtilities.Convert(typeMap, snapshotSpan.Snapshot, classifiedSpans, context.AddTag);
                     ClassificationUtilities.ReturnClassifiedSpanList(classifiedSpans);
 
                     var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);

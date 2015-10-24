@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var accessorDeclNode = node as AccessorDeclarationSyntax;
             if (accessorDeclNode != null)
             {
-                AddSuppressWrappingIfOnSingleLineOperation(list, accessorDeclNode.GetFirstToken(includeZeroWidth: true), accessorDeclNode.GetLastToken(includeZeroWidth: true));
+                AddSuppressWrappingIfOnSingleLineOperation(list, accessorDeclNode.Keyword, accessorDeclNode.GetLastToken(includeZeroWidth: true));
                 return;
             }
 

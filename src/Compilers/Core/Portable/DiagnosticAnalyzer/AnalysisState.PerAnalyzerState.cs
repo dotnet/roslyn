@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            public void OnCompilationEventGenerated(CompilationEvent compilationEvent, ActionCounts actionCounts)
+            public void OnCompilationEventGenerated(CompilationEvent compilationEvent, AnalyzerActionCounts actionCounts)
             {
                 lock (_gate)
                 {

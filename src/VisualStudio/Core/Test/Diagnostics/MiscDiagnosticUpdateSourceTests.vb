@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor
@@ -19,7 +20,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class MiscDiagnosticUpdateSourceTests
         <WpfFact>
-        Public Async Function TestMiscSquiggles() As Tasks.Task
+        Public Async Function TestMiscSquiggles() As Task
             Dim code = <code>
 class 123 { }
                        </code>
@@ -47,7 +48,7 @@ class 123 { }
                 Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
                 Using disposable = TryCast(tagger, IDisposable)
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                    analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
 
                     Await listener.CreateWaitTask().ConfigureAwait(True)
 
@@ -61,7 +62,7 @@ class 123 { }
         End Function
 
         <WpfFact>
-        Public Sub TestMiscCSharpErrorSource()
+        Public Async Function TestMiscCSharpErrorSource() As Task
             Dim code = <code>
 class 123 { }
                        </code>
@@ -78,14 +79,14 @@ class 123 { }
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
-        Public Sub TestMiscVBErrorSource()
+        Public Async Function TestMiscVBErrorSource() As Task
             Dim code = <code>
 Class 123
 End Class
@@ -103,10 +104,10 @@ End Class
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

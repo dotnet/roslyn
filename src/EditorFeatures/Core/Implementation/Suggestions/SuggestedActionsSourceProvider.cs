@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private void OnWorkspaceChanged(object sender, EventArgs e)
             {
                 // REVIEW: this event should give both old and new workspace as argument so that
-                // one doesnt need to hold onto workspace in field.
+                // one doesn't need to hold onto workspace in field.
 
                 // remove existing event registration
                 if (_workspace != null)

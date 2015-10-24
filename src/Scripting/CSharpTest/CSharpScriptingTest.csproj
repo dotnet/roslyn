@@ -10,8 +10,8 @@
     <ProjectGuid>{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.CodeAnalysis.Scripting.CSharpTest</RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -67,7 +67,7 @@
     <Compile Include="ScriptTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

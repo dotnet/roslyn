@@ -145,7 +145,7 @@ End Class
                 TestExtractMethod(code, expected)
             End Sub
 
-            ' C# disallows this. since vbc supports "Don’t Copy Back ByRef" VB extract method allows this
+            ' C# disallows this. since vbc supports "Don't Copy Back ByRef" VB extract method allows this
             ' Note that we have to expand Extract Method's selection here to avoid breaking semantics since
             ' this ByRef will not perform copy back to i after Extract Method occurs.
             ' http://blogs.msdn.com/b/jaredpar/archive/2010/01/21/the-many-cases-of-byref.aspx

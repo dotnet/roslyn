@@ -116,6 +116,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList)));
+
+            // Ensure that when they throw, the appropriate message is used
+            using (new EnsureEnglishUICulture())
+            {
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.{Environment.NewLine}Parameter name: kind", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+
+                try
+                {
+                    SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList));
+                    AssertEx.Fail("Should have thrown");
+                    return;
+                }
+                catch (ArgumentException e)
+                {
+                    Assert.Equal($"Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.{Environment.NewLine}Parameter name: kind", e.Message);
+                    Assert.Contains(typeof(SyntaxFactory).ToString(), e.Message); // Make sure the class/namespace aren't updated without also updating the exception message
+                }
+            }
+
+            // Make sure that the appropriate methods work as suggested in the exception messages, and don't throw
+            SyntaxFactory.Identifier("text");
+            SyntaxFactory.Literal('c'); //character literal
+            SyntaxFactory.Literal(123); //numeric literal
         }
 
         [Fact]

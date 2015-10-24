@@ -8,8 +8,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Action counts per-analyzer.
         /// </summary>
-        private ImmutableDictionary<DiagnosticAnalyzer, ActionCounts> _lazyAnalyzerActionCountsMap;
+        private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerActionCounts> _lazyAnalyzerActionCountsMap;
 
 
         /// <summary>
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_lazyAnalyzerActionCountsMap == null)
             {
-                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ActionCounts>();
+                var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerActionCounts>();
                 foreach (var analyzer in _analyzerStateMap.Keys)
                 {
                     var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, cancellationToken).ConfigureAwait(false);
@@ -254,13 +254,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        internal async Task<ActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, AnalyzerDriver driver, CancellationToken cancellationToken)
+        internal async Task<AnalyzerActionCounts> GetAnalyzerActionCountsAsync(DiagnosticAnalyzer analyzer, AnalyzerDriver driver, CancellationToken cancellationToken)
         {
             await EnsureAnalyzerActionCountsInitializedAsync(driver, cancellationToken).ConfigureAwait(false);
             return _lazyAnalyzerActionCountsMap[analyzer];
         }
 
-        private static bool HasActionsForEvent(CompilationEvent compilationEvent, ActionCounts actionCounts)
+        private static bool HasActionsForEvent(CompilationEvent compilationEvent, AnalyzerActionCounts actionCounts)
         {
             if (compilationEvent is CompilationStartedEvent)
             {

@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     builder.Add(descriptor);
                 }
 
+                builder.Add(AnalyzerExecutor.GetAnalyzerExceptionDiagnosticDescriptor());
                 return builder.ToImmutable();
             }
         }

@@ -171,6 +171,10 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal abstract ImmutableArray<Diagnostic> CommonBuild(CancellationToken cancellationToken);
         internal abstract Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken);
 
+        // Apply recursive alias <host> to the host assembly reference, so that we hide its namespaces and global types behind it.
+        internal static readonly MetadataReferenceProperties HostAssemblyReferenceProperties = 
+            MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<host>")).WithRecursiveAliases(true);
+
         /// <summary>
         /// Gets the references that need to be assigned to the compilation.
         /// This can be different than the list of references defined by the <see cref="ScriptOptions"/> instance.
@@ -197,8 +201,14 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                     if (GlobalsType != null)
                     {
-                        var globalsTypeAssembly = MetadataReference.CreateFromAssemblyInternal(GlobalsType.GetTypeInfo().Assembly);
-                        references.Add(globalsTypeAssembly);
+                        var globalsAssembly = GlobalsType.GetTypeInfo().Assembly;
+
+                        // If the assembly doesn't have metadata (it's an in-memory or dynamic assembly),
+                        // the host has to add reference to the metadata where globals type is located explicitly.
+                        if (MetadataReference.HasMetadata(globalsAssembly))
+                        {
+                            references.Add(MetadataReference.CreateFromAssemblyInternal(globalsAssembly, HostAssemblyReferenceProperties));
+                        }
                     }
 
                     if (languageRuntimeReferenceOpt != null)
@@ -401,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException">The type of <paramref name="globals"/> doesn't match <see cref="Script.GlobalsType"/>.</exception>
         public new Task<ScriptState<T>> RunAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             ValidateGlobals(globals, GlobalsType);
@@ -444,7 +454,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException"><paramref name="previousState"/> is not a previous execution state of this script.</exception>
         internal new Task<ScriptState<T>> ContinueAsync(ScriptState previousState, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // The following validation and executor contruction may throw;
+            // The following validation and executor construction may throw;
             // do so synchronously so that the exception is not wrapped in the task.
 
             if (previousState == null)

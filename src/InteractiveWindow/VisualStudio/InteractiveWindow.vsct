@@ -129,6 +129,9 @@
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidHistoryPrevious" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
         <Icon guid="ImageCatalogGuid" id="MoveUp" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/5295)
+        <Icon guid="ImageCatalogGuid" id="LastHistoryCommand" /> 
+        -->
         <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -142,6 +145,9 @@
       <Button guid="guidInteractiveWindowCmdSet" id="cmdidHistoryNext" priority="0x0300" type="Button">
         <Parent guid="guidInteractiveWindowCmdSet" id="ConsoleMenuGroup"/>
         <Icon guid="ImageCatalogGuid" id="MoveDown" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/5295)
+        <Icon guid="ImageCatalogGuid" id="ListMembers" />
+        -->
         <CommandFlag>IconIsMoniker</CommandFlag>
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>

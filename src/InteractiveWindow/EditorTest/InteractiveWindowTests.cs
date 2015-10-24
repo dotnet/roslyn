@@ -956,7 +956,7 @@ System.Console.WriteLine();",
             Assert.Equal("> 1\r\n1\r\n> int x\r\n> ;", GetTextFromCurrentSnapshot());
 
             // Backspace() with caret in 2nd active prompt, move caret to 
-            // closest editable buffer then delete prvious characer (breakline)        
+            // closest editable buffer then delete previous character (breakline)        
             caret.MoveToNextCaretPosition();
             Window.Operations.End(false);
             caret.MoveToNextCaretPosition();
@@ -1504,6 +1504,38 @@ System.Console.WriteLine();",
             AssertCaretVirtualPosition(2, 2);
             Assert.True(selection.IsEmpty);
             VerifyClipboardData("int x\r\n;", null, null);
+        }
+
+        [WpfFact]
+        public void SubmitAsyncNone()
+        {
+            SubmitAsync();
+        }
+
+        [WpfFact]
+        public void SubmitAsyncSingle()
+        {
+            SubmitAsync("1");
+        }
+
+        [WorkItem(5964)]
+        [WpfFact]
+        public void SubmitAsyncMultiple()
+        {
+            SubmitAsync("1", "2", "1 + 2");
+        }
+
+        private void SubmitAsync(params string[] submissions)
+        {
+            var actualSubmissions = new List<string>();
+            var evaluator = _testHost.Evaluator;
+            EventHandler<string> onExecute = (_, s) => actualSubmissions.Add(s.TrimEnd());
+
+            evaluator.OnExecute += onExecute;
+            TaskRun(() => Window.SubmitAsync(submissions)).PumpingWait();
+            evaluator.OnExecute -= onExecute;
+
+            AssertEx.Equal(submissions, actualSubmissions);
         }
 
         private string GetTextFromCurrentSnapshot()

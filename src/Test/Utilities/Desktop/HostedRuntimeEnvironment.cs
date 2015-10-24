@@ -450,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // The key is the manifest module MVID, which is unique for each distinct assembly. 
         private static readonly ConcurrentDictionary<Guid, Assembly> s_domainAssemblyCache;
         private static readonly ConcurrentDictionary<Guid, Assembly> s_domainReflectionOnlyAssemblyCache;
+        private static int s_dumpCount;
 
         // Modules managed by this manager. All such modules must have unique simple name.
         private readonly Dictionary<string, ModuleData> _modules;
@@ -723,12 +724,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             StringBuilder sb = new StringBuilder();
             foreach (var module in modules)
             {
+                // Limit the number of dumps to 10.  After 10 we're likely in a bad state and are 
+                // dumping lots of unnecessary data.
+                if (s_dumpCount > 10)
+                {
+                    break; 
+                }
+
                 if (module.InMemoryModule)
                 {
+                    Interlocked.Increment(ref s_dumpCount);
+
                     if (dumpDirectory == null)
                     {
-                        dumpDirectory = Path.Combine(Path.GetTempPath(), "RoslynTestFailureDump", Guid.NewGuid().ToString());
-                        Directory.CreateDirectory(dumpDirectory);
+                        var assemblyLocation = typeof(HostedRuntimeEnvironment).Assembly.Location;
+                        dumpDirectory = Path.Combine(
+                            Path.GetDirectoryName(assemblyLocation),
+                            "Dumps");
+                        try
+                        {
+                             Directory.CreateDirectory(dumpDirectory);
+                        }
+                        catch
+                        {
+                            // Okay if directory already exists
+                        }
                     }
 
                     string fileName;
@@ -779,7 +799,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // for ARM testing at present.
             StringBuilder errors = new StringBuilder();
             List<string> allOutput = new List<string>();
-#if !(ARM)
+
+// Disable all PEVerification due to https://github.com/dotnet/roslyn/issues/6190
+#if false
 
             foreach (var name in modulesToVerify)
             {

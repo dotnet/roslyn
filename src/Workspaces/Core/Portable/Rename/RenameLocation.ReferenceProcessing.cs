@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Rename
             }
 
             /// <summary>
-            /// Given a ISymbol, returns the renamable locations for a given symbol.
+            /// Given a ISymbol, returns the renameable locations for a given symbol.
             /// </summary>
             public static async Task<IEnumerable<RenameLocation>> GetRenamableDefinitionLocationsAsync(ISymbol referencedSymbol, ISymbol originalSymbol, Solution solution, CancellationToken cancellationToken)
             {
