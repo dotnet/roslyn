@@ -202,7 +202,7 @@ namespace Microsoft.Cci
             DirectoryEntry importAddressTable = default(DirectoryEntry);
             int entryPointAddress = 0;
 
-            if (EmitPdb)
+            if (EmitPdb || _deterministic)
             {
                 debugDirectory = new DirectoryEntry(textSectionRva + ComputeOffsetToDebugTable(metadataSizes), ImageDebugDirectoryBaseSize);
             }
@@ -477,11 +477,14 @@ namespace Microsoft.Cci
         /// The size of our debug directory: one entry for debug information, and an optional second one indicating
         /// that the timestamp is deterministic (i.e. not really a timestamp)
         /// </summary>
-        private int ImageDebugDirectoryBaseSize => (_deterministic ? 2 : 1) * ImageDebugDirectoryEntrySize;
+        private int ImageDebugDirectoryBaseSize =>
+            (_deterministic ? ImageDebugDirectoryEntrySize : 0) +
+            (EmitPdb ? ImageDebugDirectoryEntrySize : 0);
 
         private int ComputeSizeOfDebugDirectoryData()
         {
-            return
+            // The debug directory data is only needed if this.EmitPdb.
+            return (!EmitPdb) ? 0 :
                 4 +              // 4B signature "RSDS"
                 16 +             // GUID
                 sizeof(uint) +   // Age
@@ -490,7 +493,7 @@ namespace Microsoft.Cci
 
         private int ComputeSizeOfDebugDirectory()
         {
-            return EmitPdb ? ImageDebugDirectoryBaseSize + ComputeSizeOfDebugDirectoryData() : 0;
+            return ImageDebugDirectoryBaseSize + ComputeSizeOfDebugDirectoryData();
         }
 
         private int ComputeSizeOfPeHeaders(int sectionCount)
@@ -1220,7 +1223,7 @@ namespace Microsoft.Cci
             // strong name signature:
             WriteSpaceForHash(peStream, metadataSizes.StrongNameSignatureSize);
 
-            if (EmitPdb)
+            if (EmitPdb || _deterministic)
             {
                 WriteDebugTable(peStream, textSection, nativePdbContentId, portablePdbContentId, metadataSizes);
             }
@@ -1384,41 +1387,41 @@ namespace Microsoft.Cci
             writer.WriteUInt32(pointerToRawData);
         }
 
-        private static byte[] zeroStamp = new byte[4]; // four bytes of zero
+        private readonly static byte[] zeroStamp = new byte[4]; // four bytes of zero
 
         /// <summary>
         /// Write the entire "Debug Directory (Image Only)" along with data that it points to.
         /// </summary>
-        /// <param name="peStream"></param>
-        /// <param name="textSection"></param>
-        /// <param name="nativePdbContentId"></param>
-        /// <param name="portablePdbContentId"></param>
-        /// <param name="metadataSizes"></param>
         private void WriteDebugTable(Stream peStream, SectionHeader textSection, ContentId nativePdbContentId, ContentId portablePdbContentId, MetadataSizes metadataSizes)
         {
             int tableSize = ImageDebugDirectoryBaseSize;
-            Debug.Assert(nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault);
+            Debug.Assert(tableSize != 0);
+            Debug.Assert(nativePdbContentId.IsDefault || portablePdbContentId.IsDefault);
+            Debug.Assert(!EmitPdb || (nativePdbContentId.IsDefault ^ portablePdbContentId.IsDefault));
 
             var writer = PooledBlobBuilder.GetInstance();
 
-            const int ImageDebugTypeCodeView = 2;
-            uint dataOffset = (uint)(ComputeOffsetToDebugTable(metadataSizes) + tableSize);
             int dataSize = ComputeSizeOfDebugDirectoryData();
-            WriteDebugTableEntry(writer, 
-                stamp: nativePdbContentId.Stamp ?? portablePdbContentId.Stamp,
-                version: portablePdbContentId.IsDefault ? (uint)0 : ('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00),
-                debugType: ImageDebugTypeCodeView,
-                sizeOfData: (uint)dataSize,
-                addressOfRawData: (uint)textSection.RelativeVirtualAddress + dataOffset, // RVA of the data
-                pointerToRawData: (uint)textSection.PointerToRawData + dataOffset); // position of the data in the PE stream
+            if (this.EmitPdb)
+            {
+                const int IMAGE_DEBUG_TYPE_CODEVIEW = 2; // from PE spec
+                uint dataOffset = (uint)(ComputeOffsetToDebugTable(metadataSizes) + tableSize);
+                WriteDebugTableEntry(writer,
+                    stamp: nativePdbContentId.Stamp ?? portablePdbContentId.Stamp,
+                    version: portablePdbContentId.IsDefault ? (uint)0 : ('P' << 24 | 'M' << 16 | 0x01 << 8 | 0x00),
+                    debugType: IMAGE_DEBUG_TYPE_CODEVIEW,
+                    sizeOfData: (uint)dataSize,
+                    addressOfRawData: (uint)textSection.RelativeVirtualAddress + dataOffset, // RVA of the data
+                    pointerToRawData: (uint)textSection.PointerToRawData + dataOffset); // position of the data in the PE stream
+            }
 
             if (this._deterministic)
             {
-                const int ImageDebugTypeDeterministicTimestamp = 16;
+                const int IMAGE_DEBUG_TYPE_NO_TIMESTAMP = 16; // from PE spec
                 WriteDebugTableEntry(writer,
                     stamp: zeroStamp,
                     version: 0,
-                    debugType: ImageDebugTypeDeterministicTimestamp,
+                    debugType: IMAGE_DEBUG_TYPE_NO_TIMESTAMP,
                     sizeOfData: 0,
                     addressOfRawData: 0,
                     pointerToRawData: 0);
@@ -1431,24 +1434,27 @@ namespace Microsoft.Cci
             // The following is additional data beyond the debug directory at the offset `dataOffset`
             // pointed to by the ImageDebugTypeCodeView entry.
 
-            writer.WriteByte((byte)'R');
-            writer.WriteByte((byte)'S');
-            writer.WriteByte((byte)'D');
-            writer.WriteByte((byte)'S');
+            if (EmitPdb)
+            {
+                writer.WriteByte((byte)'R');
+                writer.WriteByte((byte)'S');
+                writer.WriteByte((byte)'D');
+                writer.WriteByte((byte)'S');
 
-            // PDB id:
-            writer.WriteBytes(nativePdbContentId.Guid ?? portablePdbContentId.Guid);
+                // PDB id:
+                writer.WriteBytes(nativePdbContentId.Guid ?? portablePdbContentId.Guid);
 
-            // age
-            writer.WriteUInt32(PdbWriter.Age);
+                // age
+                writer.WriteUInt32(PdbWriter.Age);
 
-            // UTF-8 encoded zero-terminated path to PDB
-            int pathStart = writer.Position;
-            writer.WriteUTF8(_pdbPathOpt, allowUnpairedSurrogates: true);
-            writer.WriteByte(0);
+                // UTF-8 encoded zero-terminated path to PDB
+                int pathStart = writer.Position;
+                writer.WriteUTF8(_pdbPathOpt, allowUnpairedSurrogates: true);
+                writer.WriteByte(0);
 
-            // padding:
-            writer.WriteBytes(0, Math.Max(0, _minPdbPath - (writer.Position - pathStart)));
+                // padding:
+                writer.WriteBytes(0, Math.Max(0, _minPdbPath - (writer.Position - pathStart)));
+            }
 
             // We should now have written all and precisely the data we said we'd write for the table and its data.
             Debug.Assert(writer.Count == tableSize + dataSize);
