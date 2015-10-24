@@ -128,6 +128,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
 
         /// <summary>
+        /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
+        /// An operation block start action can register other actions and/or collect state information to be used in diagnostic analysis,
+        /// but cannot itself report any <see cref="Diagnostic"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
+        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+
+        /// <summary> 
+        /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
+        /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
+        /// </summary> 
+        /// <param name="action">Action to be executed for an operation block.</param> 
+        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+
+        /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
         /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
         /// state information to be used by other operation actions or code block end actions.
@@ -261,6 +276,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
         public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+
+        /// <summary> 
+        /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
+        /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
+        /// </summary> 
+        /// <param name="action">Action to be executed for an operation block.</param> 
+        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.

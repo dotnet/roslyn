@@ -244,6 +244,8 @@ Class C
     Public F5 As Integer
     Public F6 As Integer = 6
     Public F7 As Integer
+    Public F9 As S
+    Public F10 As New C1
 
     Public Sub New()
         F1 = 1
@@ -263,11 +265,25 @@ Class C
         F4 = 4
         F7 = 7
         M1(F1, F5)
+        F9.A = 10
+        F9.B = 20
+        F10.A = F9.A
+        F10.B = F9.B
     End Sub
 
     Public Sub M1(ByRef X As Integer, Y As Integer)
         x = 10
     End Sub
+
+    Structure S
+        Public A As Integer
+        Public B As Integer
+    End Structure
+
+    Class C1
+        Public A As Integer
+        Public B As Integer
+    End Class
 End Class
 ]]>
                              </file>
@@ -277,7 +293,8 @@ End Class
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New FieldCouldBeReadOnlyAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(6, 12),
-                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(7, 12))
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(7, 12),
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F10").WithLocation(10, 12))
         End Sub
 
         <Fact>
@@ -293,6 +310,8 @@ Class C
     Public Shared F5 As Integer
     Public Shared F6 As Integer = 6
     Public Shared F7 As Integer
+    Public Shared F9 As S
+    Public Shared F10 As New C1
 
     Shared Sub New()
         F1 = 1
@@ -312,11 +331,25 @@ Class C
         F4 = 4
         F7 = 7
         M1(F1, F5)
+        F9.A = 10
+        F9.B = 20
+        F10.A = F9.A
+        F10.B = F9.B
     End Sub
 
     Public Shared Sub M1(ByRef X As Integer, Y As Integer)
         x = 10
     End Sub
+
+    Structure S
+        Public A As Integer
+        Public B As Integer
+    End Structure
+
+    Class C1
+        Public A As Integer
+        Public B As Integer
+    End Class
 End Class
 ]]>
                              </file>
@@ -326,7 +359,62 @@ End Class
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New FieldCouldBeReadOnlyAnalyzer}, Nothing, Nothing, False,
                                            Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(6, 19),
-                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(7, 19))
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(7, 19),
+                                           Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F10").WithLocation(10, 19))
+        End Sub
+
+        <Fact>
+        Public Sub LocalCouldBeConstVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M0(p as Integer)
+        Dim x As Integer = p
+        Dim y As Integer = x
+        Dim z As Integer = 1
+        Dim a As Integer = 2
+        Dim b As Integer = 3
+        Dim c As Integer = 4
+        Dim d As Integer = 5
+        Dim e As Integer = 6
+        b = 3
+        c -= 12
+        d += e + b
+        M1(y, z, a)
+        Dim n As S
+        n.A = 10
+        n.B = 20
+        Dim o As New C1
+        o.A = 10
+        o.B = 20
+    End Sub
+
+    Public Sub M1(ByRef x As Integer, y As Integer, ByRef z as Integer)
+        x = 10
+    End Sub
+End Class
+
+Structure S
+    Public A As Integer
+    Public B As Integer
+End Structure
+
+Class C1
+    Public A As Integer
+    Public B As Integer
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New LocalCouldBeConstAnalyzer}, Nothing, Nothing, False,
+                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "x").WithLocation(3, 13),
+                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "z").WithLocation(5, 13),
+                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "e").WithLocation(10, 13),
+                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "o").WithLocation(18, 13))
         End Sub
     End Class
 End Namespace

@@ -132,7 +132,7 @@ class C
                 Diagnostic(BigForTestAnalyzer.BigForDescriptor.Id, "for (x = 0; x < 2000000; x = x + 1) {}").WithLocation(17, 9)
                 );
         }
-   
+
         [Fact]
         public void SparseSwitchCSharp()
         {
@@ -169,7 +169,7 @@ class C
                 Diagnostic(SparseSwitchTestAnalyzer.SparseSwitchDescriptor.Id, "y").WithLocation(16, 17)
                 );
         }
-   
+
         [Fact]
         public void InvocationCSharp()
         {
@@ -224,6 +224,9 @@ class C
     int F5;
     int F6 = 6;
     int F7;
+    int F8 = 8;
+    S F9;
+    C1 F10 = new C1();
 
     public C()
     {
@@ -246,11 +249,28 @@ class C
         F4 = 4;
         F7 = 7;
         M1(out F1, F5);
+        F8++;
+        F9.A = 10;
+        F9.B = 20;
+        F10.A = F9.A;
+        F10.B = F9.B;
     }
 
     public void M1(out int x, int y)
     {
         x = 10;
+    }
+
+    struct S
+    {
+        public int A;
+        public int B;
+    }
+
+    class C1
+    {
+        public int A;
+        public int B;
     }
 }
 ";
@@ -258,7 +278,8 @@ class C
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 9),
-                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 9)
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 9),
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F10").WithLocation(13, 8)
                 );
         }
 
@@ -275,6 +296,9 @@ class C
     static int F5;
     static int F6 = 6;
     static int F7;
+    static int F8 = 8;
+    static S F9;
+    static C1 F10 = new C1();
 
     static C()
     {
@@ -298,11 +322,28 @@ class C
         F7 = 7;
         M1(out F1, F5);
         F7 = 7;
+        F8--;
+        F9.A = 10;
+        F9.B = 20;
+        F10.A = F9.A;
+        F10.B = F9.B;
     }
 
     public static void M1(out int x, int y)
     {
         x = 10;
+    }
+
+    struct S
+    {
+        public int A;
+        public int B;
+    }
+
+    class C1
+    {
+        public int A;
+        public int B;
     }
 }
 ";
@@ -310,7 +351,64 @@ class C
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new FieldCouldBeReadOnlyAnalyzer() }, null, null, false,
                 Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F5").WithLocation(8, 16),
-                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 16)
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F6").WithLocation(9, 16),
+                Diagnostic(FieldCouldBeReadOnlyAnalyzer.FieldCouldBeReadOnlyDescriptor.Id, "F10").WithLocation(13, 15)
+                );
+        }
+
+        [Fact]
+        public void LocalCouldBeConstCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M0(int p)
+    {
+        int x = p;
+        int y = x;
+        int z = 1;
+        int a = 2;
+        int b = 3;
+        int c = 4;
+        int d = 5;
+        int e = 6;
+        b = 3;
+        c++;
+        d += e + b;
+        M1(out y, z, ref a);
+        S n;
+        n.A = 10;
+        n.B = 20;
+        C1 o = new C1();
+        o.A = 10;
+        o.B = 20;
+    }
+
+    public void M1(out int x, int y, ref int z)
+    {
+        x = 10;
+    }
+
+    struct S
+    {
+        public int A;
+        public int B;
+    }
+
+    class C1
+    {
+        public int A;
+        public int B;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LocalCouldBeConstAnalyzer() }, null, null, false,
+                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "x").WithLocation(6, 13),
+                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "z").WithLocation(8, 13),
+                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "e").WithLocation(13, 13),
+                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "o").WithLocation(21, 12)
                 );
         }
     }
