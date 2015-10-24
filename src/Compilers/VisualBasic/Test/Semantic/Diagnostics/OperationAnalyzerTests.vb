@@ -372,16 +372,17 @@ Class C
     Public Sub M0(p as Integer)
         Dim x As Integer = p
         Dim y As Integer = x
-        Dim z As Integer = 1
+        Const z As Integer = 1
         Dim a As Integer = 2
         Dim b As Integer = 3
         Dim c As Integer = 4
         Dim d As Integer = 5
         Dim e As Integer = 6
+        Dim s As String = "ZZZ"
         b = 3
         c -= 12
         d += e + b
-        M1(y, z, a)
+        M1(y, z, a, s)
         Dim n As S
         n.A = 10
         n.B = 20
@@ -390,7 +391,7 @@ Class C
         o.B = 20
     End Sub
 
-    Public Sub M1(ByRef x As Integer, y As Integer, ByRef z as Integer)
+    Public Sub M1(ByRef x As Integer, y As Integer, ByRef z as Integer, s as String)
         x = 10
     End Sub
 End Class
@@ -411,10 +412,8 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
             comp.VerifyDiagnostics()
             comp.VerifyAnalyzerDiagnostics({New LocalCouldBeConstAnalyzer}, Nothing, Nothing, False,
-                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "x").WithLocation(3, 13),
-                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "z").WithLocation(5, 13),
                                             Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "e").WithLocation(10, 13),
-                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "o").WithLocation(18, 13))
+                                            Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "s").WithLocation(11, 13))
         End Sub
     End Class
 End Namespace

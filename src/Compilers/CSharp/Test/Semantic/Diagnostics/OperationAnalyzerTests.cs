@@ -366,16 +366,17 @@ class C
     {
         int x = p;
         int y = x;
-        int z = 1;
+        const int z = 1;
         int a = 2;
         int b = 3;
         int c = 4;
         int d = 5;
         int e = 6;
+        string s = ""ZZZ"";
         b = 3;
         c++;
         d += e + b;
-        M1(out y, z, ref a);
+        M1(out y, z, ref a, s);
         S n;
         n.A = 10;
         n.B = 20;
@@ -384,7 +385,7 @@ class C
         o.B = 20;
     }
 
-    public void M1(out int x, int y, ref int z)
+    public void M1(out int x, int y, ref int z, string s)
     {
         x = 10;
     }
@@ -405,10 +406,8 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new LocalCouldBeConstAnalyzer() }, null, null, false,
-                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "x").WithLocation(6, 13),
-                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "z").WithLocation(8, 13),
                 Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "e").WithLocation(13, 13),
-                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "o").WithLocation(21, 12)
+                Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "s").WithLocation(14, 16)
                 );
         }
     }

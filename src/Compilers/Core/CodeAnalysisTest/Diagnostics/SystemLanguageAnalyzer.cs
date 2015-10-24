@@ -197,7 +197,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                     ILocalSymbol local = variable.Variable;
                                     if (!local.IsConst)
                                     {
-                                        mightBecomeConstLocals.Add(local);
+                                        var localType = local.Type;
+                                        if ((!localType.IsReferenceType || localType.SpecialType == SpecialType.System_String) && localType.SpecialType != SpecialType.None)
+                                        {
+                                            if (variable.InitialValue != null && variable.InitialValue.ConstantValue != null)
+                                            {
+                                                mightBecomeConstLocals.Add(local);
+                                            }
+                                        }
                                     }
                                 }
                             },
