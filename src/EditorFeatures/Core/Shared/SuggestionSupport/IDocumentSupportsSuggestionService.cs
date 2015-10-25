@@ -9,5 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport
         bool SupportsCodeFixes(Document document);
         bool SupportsRefactorings(Document document);
         bool SupportsRename(Document document);
+        bool SupportsGoToNextPreviousMethod(Document document);
     }
 }

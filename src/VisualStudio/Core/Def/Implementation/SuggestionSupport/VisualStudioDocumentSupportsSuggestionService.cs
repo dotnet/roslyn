@@ -28,6 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             return containedDocument == null || containedDocument.SupportsRename;
         }
 
+        public bool SupportsGoToNextPreviousMethod(Document document)
+        {
+            return GetContainedDocument(document) == null;
+        }
+
         private static ContainedDocument GetContainedDocument(Document document)
         {
             var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;

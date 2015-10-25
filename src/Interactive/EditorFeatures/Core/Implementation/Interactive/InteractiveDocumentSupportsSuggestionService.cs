@@ -45,5 +45,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         {
             return false;
         }
+
+        public bool SupportsGoToNextPreviousMethod(Document document)
+        {
+            return true;
+        }
     }
 }

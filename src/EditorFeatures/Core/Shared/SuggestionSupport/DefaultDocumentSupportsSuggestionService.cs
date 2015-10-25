@@ -22,5 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport
         {
             return true;
         }
+
+        public bool SupportsGoToNextPreviousMethod(Document document)
+        {
+            return true;
+        }
     }
 }
