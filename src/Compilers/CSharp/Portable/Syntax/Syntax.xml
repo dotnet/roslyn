@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
 <Tree Root="SyntaxNode">
@@ -591,11 +591,10 @@
       </PropertyComment>
     </Field>
     <Field Name="ColonToken" Type="SyntaxToken">
-      <Kind Name="ColonToken">
-        <PropertyComment>
-          <summary>SyntaxToken representing the colon.</summary>
-        </PropertyComment>
-      </Kind>
+      <Kind Name="ColonToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the colon.</summary>
+      </PropertyComment>
     </Field>
     <Field Name="WhenFalse" Type="ExpressionSyntax">
       <PropertyComment>
