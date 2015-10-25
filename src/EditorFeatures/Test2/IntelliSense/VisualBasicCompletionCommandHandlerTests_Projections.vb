@@ -36,7 +36,7 @@ End Namespace
                 Await state.AssertCompletionSession().ConfigureAwait(True)
                 state.SendTypeChars("Curr")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
+                Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain").ConfigureAwait(True)
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -75,7 +75,7 @@ End Class
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(displayText:="Console")
+                Await state.AssertSelectedCompletionItem(displayText:="Console").ConfigureAwait(True)
             End Using
         End Function
 
@@ -112,7 +112,7 @@ End Class
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Str", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(displayText:="String", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="String", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
     End Class

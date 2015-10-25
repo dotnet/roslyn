@@ -169,11 +169,11 @@ End Module</Document>
                 For xx = 0 To 10
                     state.SendTypeChars("z")
                     Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                    state.AssertSelectedCompletionItem("z")
+                    Await state.AssertSelectedCompletionItem("z").ConfigureAwait(True)
                     state.SendTab()
                     state.SendTypeChars(".")
                     Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                    state.AssertCompletionSession()
+                    Await state.AssertCompletionSession().ConfigureAwait(True)
                     state.SendReturn()
                 Next
             End Using
@@ -197,7 +197,7 @@ End Module</Document>
             Using state = TestState.CreateVisualBasicTestState(text, False)
                 state.SendTypeChars("new String(")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Sub
 
@@ -219,7 +219,7 @@ End Module</Document>
             Using state = TestState.CreateVisualBasicTestState(text, False)
                 state.SendTypeChars("Main(")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Sub
 
@@ -245,7 +245,7 @@ End Module</Document>
             Using state = TestState.CreateVisualBasicTestState(text, False)
                 state.SendTypeChars("Self(Of Integer)(")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSignatureHelpSession()
+                Await state.AssertSignatureHelpSession().ConfigureAwait(True)
             End Using
         End Sub
 
@@ -271,7 +271,7 @@ End Module</Document>
             Using state = TestState.CreateVisualBasicTestState(text, False)
                 state.SendTypeChars("new List(Of String) From { a")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Sub
 
@@ -303,7 +303,7 @@ End Class
             Using state = TestState.CreateVisualBasicTestState(text, False)
                 state.SendTypeChars("new AClass")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem("AClass")
+                Await state.AssertSelectedCompletionItem("AClass").ConfigureAwait(True)
             End Using
         End Sub
 
@@ -329,7 +329,7 @@ End Module</Document>
             Using state = TestState.CreateVisualBasicTestState(text, False)
                 state.SendTypeChars("Self(Of ")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertCompletionSession()
+                Await state.AssertCompletionSession().ConfigureAwait(True)
             End Using
         End Sub
 
@@ -365,11 +365,11 @@ End Module</Document>
             End If
             state.SendTypeChars(item)
             Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-            state.AssertSelectedCompletionItem(item)
+            Await state.AssertSelectedCompletionItem(item).ConfigureAwait(True)
             state.SendTab()
             state.SendTypeChars(".")
             Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-            state.AssertCompletionSession()
+            Await state.AssertCompletionSession().ConfigureAwait(True)
             For i As Integer = 0 To item.Length
                 state.SendBackspace()
             Next

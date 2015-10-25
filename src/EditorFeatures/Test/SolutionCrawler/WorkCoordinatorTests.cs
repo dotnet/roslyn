@@ -826,9 +826,9 @@ End Class";
             {
                 foreach (var document in project.Documents)
                 {
-                    document.GetTextAsync().PumpingWait();
-                    document.GetSyntaxRootAsync().PumpingWait();
-                    document.GetSemanticModelAsync().PumpingWait();
+                    document.GetTextAsync().Wait();
+                    document.GetSyntaxRootAsync().Wait();
+                    document.GetSemanticModelAsync().Wait();
                 }
             }
         }
