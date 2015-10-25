@@ -118,5 +118,10 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
                 waiter.Value.TrackActiveTokens = enable;
             }
         }
+
+        public void PumpingWait(Task task)
+        {
+            task.PumpingWait();
+        }
     }
 }
