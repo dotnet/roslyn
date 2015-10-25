@@ -313,11 +313,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 service.Register(workspace);
 
                 // don't rely on background parser to have tree. explicitly do it here.
-                TouchEverything(workspace.CurrentSolution);
+                await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
                 service.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable<DocumentId>(info.Id));
 
-                TouchEverything(workspace.CurrentSolution);
+                await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
                 await WaitAsync(service, workspace).ConfigureAwait(true);
 
@@ -809,9 +809,9 @@ End Class";
             service.Register(workspace);
 
             // don't rely on background parser to have tree. explicitly do it here.
-            TouchEverything(workspace.CurrentSolution);
+            await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
             operation(workspace);
-            TouchEverything(workspace.CurrentSolution);
+            await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
             await WaitAsync(service, workspace).ConfigureAwait(true);
 
@@ -820,15 +820,15 @@ End Class";
             return worker;
         }
 
-        private void TouchEverything(Solution solution)
+        private async Task TouchEverything(Solution solution)
         {
             foreach (var project in solution.Projects)
             {
                 foreach (var document in project.Documents)
                 {
-                    document.GetTextAsync().PumpingWait();
-                    document.GetSyntaxRootAsync().PumpingWait();
-                    document.GetSemanticModelAsync().PumpingWait();
+                    await document.GetTextAsync().ConfigureAwait(true);
+                    await document.GetSyntaxRootAsync().ConfigureAwait(true);
+                    await document.GetSemanticModelAsync().ConfigureAwait(true);
                 }
             }
         }
