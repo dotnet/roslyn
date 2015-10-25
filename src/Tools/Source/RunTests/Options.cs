@@ -78,7 +78,7 @@ namespace RunTests
 
         private static void PrintUsage()
         {
-            Console.WriteLine("runtests [xunit-console-runner] [-test64] [-xml] [-trait:listOfTraisToInclude] [-notrait:listOfTraitsToExclude] [assembly1] [assembly2] [...]");
+            Console.WriteLine("runtests [xunit-console-runner] [-test64] [-xml] [-trait:listOfTraitsToInclude] [-notrait:listOfTraitsToExclude] [assembly1] [assembly2] [...]");
         }
 
     }
