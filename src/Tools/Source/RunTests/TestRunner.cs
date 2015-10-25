@@ -30,13 +30,11 @@ namespace RunTests
             }
         }
 
-        private readonly string _xunitConsolePath;
-        private readonly bool _useHtml;
+        private readonly Options _options;
 
-        internal TestRunner(string xunitConsolePath, bool useHtml)
+        internal TestRunner(Options options)
         {
-            _xunitConsolePath = xunitConsolePath;
-            _useHtml = useHtml;
+            this._options = options;
         }
 
         internal async Task<bool> RunAllAsync(IEnumerable<string> assemblyList, CancellationToken cancellationToken)
@@ -67,7 +65,7 @@ namespace RunTests
 
                             completed.Add(testResult);
                         }
-                        catch (Exception ex) 
+                        catch (Exception ex)
                         {
                             Console.WriteLine($"Error: {ex.Message}");
                             allPassed = false;
@@ -118,9 +116,9 @@ namespace RunTests
         private async Task<TestResult> RunTest(string assemblyPath, CancellationToken cancellationToken)
         {
             try
-            { 
+            {
                 var assemblyName = Path.GetFileName(assemblyPath);
-                var extension = _useHtml ? "html" : "xml";
+                var extension = _options.UseHtml ? "html" : "xml";
                 var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{extension}");
                 var resultsPath = Path.GetDirectoryName(resultsFile);
 
@@ -133,13 +131,31 @@ namespace RunTests
 
                 var builder = new StringBuilder();
                 builder.AppendFormat(@"""{0}""", assemblyPath);
-                builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsFile);
+                builder.AppendFormat(@" -{0} ""{1}""", _options.UseHtml ? "html" : "xml", resultsFile);
                 builder.Append(" -noshadow");
+
+                if (!string.IsNullOrWhiteSpace(_options.Trait))
+                {
+                    var traits = _options.Trait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -trait {0}", trait);
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(_options.NoTrait))
+                {
+                    var traits = _options.NoTrait.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var trait in traits)
+                    {
+                        builder.AppendFormat(" -notrait {0}", trait);
+                    }
+                }
 
                 var errorOutput = new StringBuilder();
                 var start = DateTime.UtcNow;
 
-                var xunitPath = _xunitConsolePath;
+                var xunitPath = _options.XunitPath;
                 var processOutput = await ProcessRunner.RunProcessAsync(
                     xunitPath,
                     builder.ToString(),
@@ -174,8 +190,8 @@ namespace RunTests
                         // Delete the output file.
                         File.Delete(resultsFile);
                     }
-
-                    errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
+                   
+                    errorOutput.AppendLine($"Command: {_options.XunitPath} {builder}");
 
                     if (processOutput.ErrorLines.Any())
                     {
@@ -191,7 +207,7 @@ namespace RunTests
 
                     // If the results are html, use Process.Start to open in the browser.
 
-                    if (_useHtml && !noResultsData)
+                    if (_options.UseHtml && !noResultsData)
                     {
                         Process.Start(resultsFile);
                     }
@@ -201,7 +217,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyPath} with {_xunitConsolePath}. {ex}");
+                throw new Exception($"Unable to run {assemblyPath} with {_options.XunitPath}. {ex}");
             }
         }
 
