@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
@@ -36,11 +37,43 @@ $$
             var code = @"$$
 class C
 {
-    void M() { }
+    [||]void M() { }
 }";
 
-            // TODO: Should this navigate to M?
-            Assert.Null(GetTargetPosition(code, next: true));
+            AssertNavigated(code, next: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        public void AfterClassWithMember()
+        {
+            var code = @"
+class C
+{
+    [||]void M() { }
+}
+
+$$";
+
+            AssertNavigated(code, next: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        public void BetweenClasses()
+        {
+            var code = @"
+class C1
+{
+    void M() { }
+}
+
+$$
+
+class C2
+{
+    [||]void M() { }
+} ";
+
+            AssertNavigated(code, next: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
@@ -143,7 +176,7 @@ class C
 class C
 {
     $$void M1() { }
-    [||]static C operator+(C left, C right) { throw System.NotImplementedException(); }
+    [||]static C operator+(C left, C right) { throw new System.NotImplementedException(); }
 }";
             AssertNavigated(code, next: true);
         }
@@ -212,6 +245,26 @@ class C
     $$int P
     {
         get { return 42; }
+        set { }
+    }
+
+    [||]void M2() { }
+}";
+
+            AssertNavigated(code, next: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        public void FromInsideAccessor()
+        {
+            var code = @"
+class C
+{
+    void M1() { }
+
+    int P
+    {
+        get { return $$42; }
         set { }
     }
 
@@ -378,23 +431,67 @@ class C
             AssertNavigated(code, next: false);
         }
 
-        private static void AssertNavigated(string code, bool next)
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        public void StopsAtExpressionBodiedMember()
         {
-            using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromLines(
-                LanguageNames.CSharp,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                CSharpParseOptions.Default,
-                code))
-            {
-                var hostDocument = workspace.DocumentWithCursor;
-                var targetPosition = GoToNextAndPreviousMethodCommandHandler.GetTargetPosition(
-                    workspace.CurrentSolution.GetDocument(hostDocument.Id),
-                    hostDocument.CursorPosition.Value,
-                    next,
-                    CancellationToken.None);
+            var code = @"
+class C
+{
+    int M1() => $$42;
 
-                Assert.NotNull(targetPosition);
-                Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
+    [||]int M2() => 42;
+}";
+
+            AssertNavigated(code, next: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        public void NextInScript()
+        {
+            var code = @"
+$$void M1() { }
+
+[||]void M2() { }";
+
+            AssertNavigated(code, next: true, sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        public void PrevInScript()
+        {
+            var code = @"
+[||]void M1() { }
+
+$$void M2() { }";
+
+            AssertNavigated(code, next: false, sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        private static void AssertNavigated(string code, bool next, SourceCodeKind? sourceCodeKind = null)
+        {
+            var kinds = sourceCodeKind != null
+                ? SpecializedCollections.SingletonEnumerable(sourceCodeKind.Value)
+                : new[] { SourceCodeKind.Regular, SourceCodeKind.Script };
+            foreach (var kind in kinds)
+            {
+                using (var workspace = TestWorkspaceFactory.CreateWorkspaceFromLines(
+                    LanguageNames.CSharp,
+                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+                    CSharpParseOptions.Default.WithKind(kind),
+                    code))
+                {
+                    var hostDocument = workspace.DocumentWithCursor;
+                    var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                    Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics());
+                    var targetPosition = GoToNextAndPreviousMethodCommandHandler.GetTargetPosition(
+                        document,
+                        hostDocument.CursorPosition.Value,
+                        next,
+                        CancellationToken.None);
+
+                    Assert.NotNull(targetPosition);
+                    Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
+                }
             }
         }
 
@@ -407,9 +504,10 @@ class C
                 code))
             {
                 var hostDocument = workspace.DocumentWithCursor;
-
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics());
                 return GoToNextAndPreviousMethodCommandHandler.GetTargetPosition(
-                    workspace.CurrentSolution.GetDocument(hostDocument.Id),
+                    document,
                     hostDocument.CursorPosition.Value,
                     next,
                     CancellationToken.None);

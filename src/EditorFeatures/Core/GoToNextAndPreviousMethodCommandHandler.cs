@@ -7,11 +7,13 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Outlining;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -20,11 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor
     class GoToNextAndPreviousMethodCommandHandler : ICommandHandler<GoToNextMethodCommandArgs>, ICommandHandler<GoToPreviousMethodCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
+        private readonly IOutliningManagerService _outliningManagerService;
 
         [ImportingConstructor]
-        public GoToNextAndPreviousMethodCommandHandler(IWaitIndicator waitIndicator)
+        public GoToNextAndPreviousMethodCommandHandler(IWaitIndicator waitIndicator, IOutliningManagerService outliningManagerService)
         {
             _waitIndicator = waitIndicator;
+            _outliningManagerService = outliningManagerService;
         }
 
         public CommandState GetCommandState(GoToNextMethodCommandArgs args, Func<CommandState> nextHandler)
@@ -42,7 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor
         private static CommandState GetCommandState(ITextBuffer subjectBuffer, Func<CommandState> nextHandler)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null || !document.SupportsSyntaxTree)
+            var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsRefactorings(document))
             {
                 return nextHandler();
             }
@@ -78,12 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 return;
             }
 
-            var targetLocation = new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value);
-            var viewLocation = textView.BufferGraph.MapUpToBuffer(targetLocation, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextBuffer);
-            if (viewLocation.HasValue)
-            {
-                textView.Caret.MoveTo(viewLocation.Value);
-            }
+            textView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
         }
 
         /// <summary>
@@ -98,18 +98,43 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var currentMember = GetMember(syntaxFactsService, caretPosition, root);
-            if (currentMember == null)
+            var members = syntaxFactsService.GetMethodLevelMembers(root);
+
+            if (members.Count == 0)
             {
                 return null;
             }
 
-            var members = syntaxFactsService.GetMethodLevelMembers(root);
-            var index = members.IndexOf(currentMember);
-            if (index < 0)
+            var currentMember = GetMember(syntaxFactsService, caretPosition, root);
+            int indexOfCurrentMember;
+            if (currentMember == null)
             {
-                Debug.Fail("Couldn't find current member in members?");
-                return null;
+                // We're not contained in any member currently.  Find the first member to start after our
+                // position and use that.
+                for (indexOfCurrentMember = 0; indexOfCurrentMember < members.Count; indexOfCurrentMember++)
+                {
+                    if (members[indexOfCurrentMember].FullSpan.Start > caretPosition)
+                    {
+                        break;
+                    }
+                }
+
+                if (indexOfCurrentMember == members.Count)
+                {
+                    // After the last member, count ourselves as part of
+                    indexOfCurrentMember--;
+                }
+
+                currentMember = members[indexOfCurrentMember];
+            }
+            else
+            {
+                indexOfCurrentMember = members.IndexOf(currentMember);
+                if (indexOfCurrentMember < 0)
+                {
+                    Debug.Fail("Couldn't find current member in members?");
+                    return null;
+                }
             }
 
             if (next)
@@ -117,10 +142,10 @@ namespace Microsoft.CodeAnalysis.Editor
                 // If we're in leading trivia, we just want to go to the start of this member.
                 if (caretPosition >= currentMember.Span.Start)
                 {
-                    index++;
-                    if (index == members.Count)
+                    indexOfCurrentMember++;
+                    if (indexOfCurrentMember == members.Count)
                     {
-                        index = 0;
+                        indexOfCurrentMember = 0;
                     }
                 }
             }
@@ -129,16 +154,16 @@ namespace Microsoft.CodeAnalysis.Editor
                 // If we're in trailing trivia, we just want to go to the start of this member.
                 if (caretPosition <= currentMember.Span.End)
                 {
-                    index--;
-                    if (index < 0)
+                    indexOfCurrentMember--;
+                    if (indexOfCurrentMember < 0)
                     {
-                        index = members.Count - 1;
+                        indexOfCurrentMember = members.Count - 1;
                     }
                 }
             }
 
             // TODO: Better position within the node (e.g. attributes?)
-            return members[index].Span.Start;
+            return members[indexOfCurrentMember].Span.Start;
         }
 
         private static SyntaxNode GetMember(ISyntaxFactsService syntaxFactService, int position, SyntaxNode root)
