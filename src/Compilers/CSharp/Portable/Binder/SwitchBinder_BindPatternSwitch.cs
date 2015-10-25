@@ -113,10 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
-            //// We transate all switch statements as a series of if-then-else for the prototype.
-            //// In the full implementation we should have unified handling of "traditional" and
-            //// pattern-based switch statements.
-            //return Compilation.Feature("patterns") != null;
         }
     }
 }

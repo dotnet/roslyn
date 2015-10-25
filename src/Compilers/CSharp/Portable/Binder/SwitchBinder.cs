@@ -285,19 +285,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         # region "Switch statement binding methods"
 
+        /// <summary>
+        /// Set to true if it is a pattern-matching switch statement, or false if a traditional switch statement.
+        /// </summary>
+        bool? _isPatternSwitch = null;
+
         internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             Debug.Assert(_switchSyntax.Equals(node));
 
             if (IsPatternSwitch(node))
             {
+                _isPatternSwitch = true;
                 return (Compilation.Feature("patterns") != null)
                     ? (BoundStatement)BindPatternSwitch(node, originalBinder, diagnostics)
                     : new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty, true);
             }
 
-            // Bind switch expression and set the switch governing type
-            var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, diagnostics);
+            // Bind switch expression and set the switch governing type. If it isn't valid as a traditional
+            // switch statement's controlling expression, try to bind it as a pattern-matching switch statement
+            var localDiagnostics = DiagnosticBag.GetInstance();
+            var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, localDiagnostics);
+            if (localDiagnostics.HasAnyResolvedErrors() && Compilation.Feature("patterns") != null)
+            {
+                _isPatternSwitch = true;
+                return BindPatternSwitch(node, originalBinder, diagnostics);
+            }
+            _isPatternSwitch = false;
+            diagnostics.AddRangeAndFree(localDiagnostics);
 
             // Switch expression might be a constant expression.
             // For this scenario we can determine the target label of the switch statement
@@ -573,6 +588,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundStatement BindGotoCaseOrDefault(GotoStatementSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node.Kind() == SyntaxKind.GotoCaseStatement || node.Kind() == SyntaxKind.GotoDefaultStatement);
+            if (this._isPatternSwitch == true)
+            {
+                // we do not yet support "goto case" in pattern-matching switch statements.
+                diagnostics.Add(ErrorCode.ERR_InvalidGotoCase, node.Location);
+                return new BoundBadStatement(
+                    syntax: node,
+                    childBoundNodes: ImmutableArray<BoundNode>.Empty,
+                    hasErrors: true);
+            }
 
             BoundExpression gotoCaseExpressionOpt = null;
 
@@ -629,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var labelName = SyntaxFacts.GetText(node.CaseOrDefaultKeyword.Kind());
                         if (node.Kind() == SyntaxKind.GotoCaseStatement)
                         {
-                            labelName += " " + node.Expression.ToString();
+                            labelName += " " + gotoCaseExpressionConstant.Value?.ToString();
                         }
                         labelName += ":";
 
