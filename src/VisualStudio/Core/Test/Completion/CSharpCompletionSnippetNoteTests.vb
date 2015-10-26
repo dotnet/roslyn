@@ -26,9 +26,9 @@ class C
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "interface").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
+                Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface"))
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface")).ConfigureAwait(True)
             End Using
         End Function
 
@@ -38,8 +38,8 @@ class C
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "intErfaCE").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources.Keyword, "interface")}
-{String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface")}")
+                Await state.AssertSelectedCompletionItem(description:=$"{String.Format(FeaturesResources.Keyword, "interface")}
+{String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interface")}").ConfigureAwait(True)
             End Using
         End Function
 
@@ -49,9 +49,9 @@ class C
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "interfac").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
+                Await state.AssertSelectedCompletionItem(description:="title" & vbCrLf &
                     "description" & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interfac"))
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "interfac")).ConfigureAwait(True)
             End Using
         End Sub
 
@@ -61,7 +61,7 @@ class C
             Using state = Await CreateCSharpSnippetExpansionNoteTestState(_markup, "interfaces").ConfigureAwait(True)
                 state.SendTypeChars("interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "interface"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "interface")).ConfigureAwait(True)
             End Using
         End Sub
 
@@ -72,7 +72,7 @@ class C
 
                 state.SendTypeChars("DisplayTex")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText")).ConfigureAwait(True)
             End Using
         End Sub
 
@@ -99,7 +99,7 @@ class C
 
                 state.SendTypeChars("for")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "for"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "for")).ConfigureAwait(True)
             End Using
         End Function
 

@@ -20,7 +20,7 @@ namespace Microsoft.Cci
             Stamp = stamp;
         }
 
-        public bool IsDefault => Guid == null;
+        public bool IsDefault => Guid == null && Stamp == null;
 
         internal static ContentId FromHash(ImmutableArray<byte> hashCode)
         {

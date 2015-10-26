@@ -5,5 +5,8 @@
   },
   "frameworks": {
     "net45": {}
+  },
+  "runtimes": {
+    "win7": { }
   }
 }

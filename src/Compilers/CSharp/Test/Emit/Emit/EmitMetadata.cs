@@ -2160,7 +2160,7 @@ public class Methods
             var corHeader = peHeaders.CorHeader;
 
             Assert.Equal(PEMagic.PE32, peHeader.Magic);
-            Assert.Equal(0x00002362, peHeader.AddressOfEntryPoint);
+            Assert.Equal(0x0000237E, peHeader.AddressOfEntryPoint);
             Assert.Equal(0x00002000, peHeader.BaseOfCode);
             Assert.Equal(0x00004000, peHeader.BaseOfData);
             Assert.Equal(0x00002000, peHeader.SizeOfHeaders);
@@ -2199,15 +2199,15 @@ public class Methods
             Assert.Equal(0, peHeader.CopyrightTableDirectory.Size);
             Assert.Equal(0x2008, peHeader.CorHeaderTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0x48, peHeader.CorHeaderTableDirectory.Size);
-            Assert.Equal(0, peHeader.DebugTableDirectory.RelativeVirtualAddress);
-            Assert.Equal(0, peHeader.DebugTableDirectory.Size);
+            Assert.Equal(0x2310, peHeader.DebugTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x1C, peHeader.DebugTableDirectory.Size);
             Assert.Equal(0, peHeader.ExceptionTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0, peHeader.ExceptionTableDirectory.Size);
             Assert.Equal(0, peHeader.ExportTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0, peHeader.ExportTableDirectory.Size);
             Assert.Equal(0x2000, peHeader.ImportAddressTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0x8, peHeader.ImportAddressTableDirectory.Size);
-            Assert.Equal(0x2310, peHeader.ImportTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x232C, peHeader.ImportTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0x4f, peHeader.ImportTableDirectory.Size);
             Assert.Equal(0, peHeader.LoadConfigTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0, peHeader.LoadConfigTableDirectory.Size);
@@ -2225,30 +2225,30 @@ public class Methods
             peStream.Read(importAddressTableDirectoryBytes, 0, importAddressTableDirectoryBytes.Length);
             AssertEx.Equal(new byte[] 
             {
-                0x44, 0x23, 0x00, 0x00,
+                0x60, 0x23, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00
             }, importAddressTableDirectoryBytes);
 
             int importTableDirectoryOffset;
             Assert.True(peHeaders.TryGetDirectoryOffset(peHeader.ImportTableDirectory, out importTableDirectoryOffset));
-            Assert.Equal(0x2310, importTableDirectoryOffset);
+            Assert.Equal(0x232C, importTableDirectoryOffset);
 
             var importTableDirectoryBytes = new byte[peHeader.ImportTableDirectory.Size];
             peStream.Position = importTableDirectoryOffset;
             peStream.Read(importTableDirectoryBytes, 0, importTableDirectoryBytes.Length);
             AssertEx.Equal(new byte[]
             {
-                0x38, 0x23, 0x00, 0x00, // RVA
+                0x54, 0x23, 0x00, 0x00, // RVA
                 0x00, 0x00, 0x00, 0x00, // 0
                 0x00, 0x00, 0x00, 0x00, // 0
-                0x52, 0x23, 0x00, 0x00, // name RVA
+                0x6E, 0x23, 0x00, 0x00, // name RVA
                 0x00, 0x20, 0x00, 0x00, // ImportAddressTableDirectory RVA
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00,
-                0x44, 0x23, 0x00, 0x00, // hint RVA
+                0x60, 0x23, 0x00, 0x00, // hint RVA
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00,             // hint
@@ -2271,7 +2271,7 @@ public class Methods
             Assert.Equal(0, coffHeader.NumberOfSymbols);
             Assert.Equal(0, coffHeader.PointerToSymbolTable);
             Assert.Equal(0xe0, coffHeader.SizeOfOptionalHeader);
-            Assert.Equal(-1017800620, coffHeader.TimeDateStamp);
+            Assert.Equal(-609170495, coffHeader.TimeDateStamp);
 
             Assert.Equal(0, corHeader.EntryPointTokenOrRelativeVirtualAddress);
             Assert.Equal(CorFlags.ILOnly, corHeader.Flags);
@@ -2305,7 +2305,7 @@ public class Methods
             Assert.Equal(SectionCharacteristics.ContainsCode | SectionCharacteristics.MemExecute | SectionCharacteristics.MemRead, sections[0].SectionCharacteristics);
             Assert.Equal(0x2000, sections[0].SizeOfRawData);
             Assert.Equal(0x2000, sections[0].VirtualAddress);
-            Assert.Equal(872, sections[0].VirtualSize);
+            Assert.Equal(900, sections[0].VirtualSize);
 
             Assert.Equal(".reloc", sections[1].Name);
             Assert.Equal(0, sections[1].NumberOfLineNumbers);
@@ -2321,7 +2321,7 @@ public class Methods
             var relocBlock = peReader.GetSectionData(sections[1].VirtualAddress);
             var relocBytes = new byte[sections[1].VirtualSize];
             Marshal.Copy((IntPtr)relocBlock.Pointer, relocBytes, 0, relocBytes.Length);
-            Assert.Equal(new byte[] { 0, 0x20, 0, 0, 0x0c, 0, 0, 0, 0x64, 0x33, 0, 0 }, relocBytes);
+            AssertEx.Equal(new byte[] { 0, 0x20, 0, 0, 0x0c, 0, 0, 0, 0x80, 0x33, 0, 0 }, relocBytes);
         }
 
         [Fact]
@@ -2386,8 +2386,8 @@ public class Methods
             Assert.Equal(0, peHeader.CopyrightTableDirectory.Size);
             Assert.Equal(0x2000, peHeader.CorHeaderTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0x48, peHeader.CorHeaderTableDirectory.Size);
-            Assert.Equal(0, peHeader.DebugTableDirectory.RelativeVirtualAddress);
-            Assert.Equal(0, peHeader.DebugTableDirectory.Size);
+            Assert.Equal(0x2324, peHeader.DebugTableDirectory.RelativeVirtualAddress);
+            Assert.Equal(0x1C, peHeader.DebugTableDirectory.Size);
             Assert.Equal(0, peHeader.ExceptionTableDirectory.RelativeVirtualAddress);
             Assert.Equal(0, peHeader.ExceptionTableDirectory.Size);
             Assert.Equal(0, peHeader.ExportTableDirectory.RelativeVirtualAddress);
@@ -2409,7 +2409,7 @@ public class Methods
             Assert.Equal(0, coffHeader.NumberOfSymbols);
             Assert.Equal(0, coffHeader.PointerToSymbolTable);
             Assert.Equal(240, coffHeader.SizeOfOptionalHeader);
-            Assert.Equal(-1439607823, coffHeader.TimeDateStamp);
+            Assert.Equal(-862605524, coffHeader.TimeDateStamp);
 
             Assert.Equal(0x06000001, corHeader.EntryPointTokenOrRelativeVirtualAddress);
             Assert.Equal(CorFlags.ILOnly, corHeader.Flags);
@@ -2443,7 +2443,7 @@ public class Methods
             Assert.Equal(SectionCharacteristics.ContainsCode | SectionCharacteristics.MemExecute | SectionCharacteristics.MemRead, sections[0].SectionCharacteristics);
             Assert.Equal(0x400, sections[0].SizeOfRawData);
             Assert.Equal(0x2000, sections[0].VirtualAddress);
-            Assert.Equal(804, sections[0].VirtualSize);
+            Assert.Equal(832, sections[0].VirtualSize);
         }
     }
 }

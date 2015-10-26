@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.Xml
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.ExtensionManager
+Imports Moq
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
@@ -28,12 +29,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Assert.Equal(_contentType, contentTypeName)
 
             For Each location In _locations
-                Yield New MockInstalledExtension(_contentType, location)
+                Dim installedExceptionMock As New Mock(Of IInstalledExtension)(MockBehavior.Strict)
+
+                installedExceptionMock.SetupGet(Function(m) m.InstallPath).Returns("\InstallPath")
+                installedExceptionMock.SetupGet(Function(m) m.Content).Returns(
+                    SpecializedCollections.SingletonEnumerable(Of IExtensionContent)(New MockContent(_contentType, location)))
+
+                Dim headerMock As New Mock(Of IExtensionHeader)(MockBehavior.Strict)
+                headerMock.SetupGet(Function(h) h.LocalizedName).Returns("Vsix")
+
+                installedExceptionMock.SetupGet(Function(m) m.Header).Returns(headerMock.Object)
+
+                Yield installedExceptionMock.Object
             Next
         End Function
 
-        Private Class MockInstalledExtension
-            Implements IInstalledExtension
+        Friend Class MockContent
+            Implements IExtensionContent
 
             Private ReadOnly _contentType As String
             Private ReadOnly _location As String
@@ -43,309 +55,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 _location = location
             End Sub
 
-            Public ReadOnly Property Content As IEnumerable(Of IExtensionContent) Implements IExtension.Content
+            Public ReadOnly Property ContentTypeName As String Implements IExtensionContent.ContentTypeName
                 Get
-                    Return SpecializedCollections.SingletonEnumerable(Of IExtensionContent)(New MockContent(_contentType, _location))
+                    Return _contentType
                 End Get
             End Property
 
-            Public ReadOnly Property Header As IExtensionHeader Implements IExtension.Header
+            Public ReadOnly Property RelativePath As String Implements IExtensionContent.RelativePath
                 Get
-                    Return New MockHeader("Vsix")
+                    Return _location
                 End Get
             End Property
 
-            Public ReadOnly Property InstallPath As String Implements IInstalledExtension.InstallPath
-                Get
-                    Return "\InstallPath"
-                End Get
-            End Property
-
-            Friend Class MockContent
-                Implements IExtensionContent
-
-                Private ReadOnly _contentType As String
-                Private ReadOnly _location As String
-
-                Public Sub New(contentType As String, location As String)
-                    _contentType = contentType
-                    _location = location
-                End Sub
-
-                Public ReadOnly Property ContentTypeName As String Implements IExtensionContent.ContentTypeName
-                    Get
-                        Return _contentType
-                    End Get
-                End Property
-
-                Public ReadOnly Property RelativePath As String Implements IExtensionContent.RelativePath
-                    Get
-                        Return _location
-                    End Get
-                End Property
-
-#Region "Not used"
-                Public ReadOnly Property AdditionalElements As IList(Of XmlElement) Implements IExtensionContent.AdditionalElements
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Attributes As IDictionary(Of String, String) Implements IExtensionContent.Attributes
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-#End Region
-            End Class
-
-            Private Class MockHeader
-                Implements IExtensionHeader
-
-                Private ReadOnly _name As String
-
-                Public Sub New(name As String)
-                    _name = name
-                End Sub
-
-                Public ReadOnly Property LocalizedName As String Implements IExtensionHeader.LocalizedName
-                    Get
-                        Return _name
-                    End Get
-                End Property
-
-#Region "Not Used"
-                Public ReadOnly Property AdditionalElements As IList(Of XmlElement) Implements IExtensionHeader.AdditionalElements
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property AllUsers As Boolean Implements IExtensionHeader.AllUsers
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Author As String Implements IExtensionHeader.Author
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Description As String Implements IExtensionHeader.Description
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property GettingStartedGuide As Uri Implements IExtensionHeader.GettingStartedGuide
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property GlobalScope As Boolean Implements IExtensionHeader.GlobalScope
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Icon As String Implements IExtensionHeader.Icon
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Identifier As String Implements IExtensionHeader.Identifier
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property InstalledByMsi As Boolean Implements IExtensionHeader.InstalledByMsi
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property License As String Implements IExtensionHeader.License
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property LicenseClickThrough As Boolean Implements IExtensionHeader.LicenseClickThrough
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property LicenseFormat As String Implements IExtensionHeader.LicenseFormat
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Locale As CultureInfo Implements IExtensionHeader.Locale
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property LocalizedAdditionalElements As IList(Of XmlElement) Implements IExtensionHeader.LocalizedAdditionalElements
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property LocalizedDescription As String Implements IExtensionHeader.LocalizedDescription
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property MoreInfoUrl As Uri Implements IExtensionHeader.MoreInfoUrl
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Name As String Implements IExtensionHeader.Name
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property PreviewImage As String Implements IExtensionHeader.PreviewImage
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property ReleaseNotes As Uri Implements IExtensionHeader.ReleaseNotes
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property ReleaseNotesContent As Byte() Implements IExtensionHeader.ReleaseNotesContent
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property ReleaseNotesFormat As String Implements IExtensionHeader.ReleaseNotesFormat
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property ShortcutPath As String Implements IExtensionHeader.ShortcutPath
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property SupportedFrameworkVersionRange As VersionRange Implements IExtensionHeader.SupportedFrameworkVersionRange
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property SystemComponent As Boolean Implements IExtensionHeader.SystemComponent
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Tags As IEnumerable(Of String) Implements IExtensionHeader.Tags
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-
-                Public ReadOnly Property Version As Version Implements IExtensionHeader.Version
-                    Get
-                        Throw New NotImplementedException()
-                    End Get
-                End Property
-#End Region
-            End Class
-#Region "Not Used"
-            Public ReadOnly Property AdditionalElements As IList(Of XmlElement) Implements IExtension.AdditionalElements
+#Region "Unused methods of IExtensionContent"
+            Public ReadOnly Property AdditionalElements As IList(Of XmlElement) Implements IExtensionContent.AdditionalElements
                 Get
                     Throw New NotImplementedException()
                 End Get
             End Property
 
-
-            Public ReadOnly Property InstalledOn As DateTimeOffset? Implements IInstalledExtension.InstalledOn
+            Public ReadOnly Property Attributes As IDictionary(Of String, String) Implements IExtensionContent.Attributes
                 Get
                     Throw New NotImplementedException()
                 End Get
             End Property
-
-            Public ReadOnly Property InstalledPerMachine As Boolean Implements IInstalledExtension.InstalledPerMachine
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property IsPackComponent As Boolean Implements IInstalledExtension.IsPackComponent
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property LocalizedAdditionalElements As IList(Of XmlElement) Implements IExtension.LocalizedAdditionalElements
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property References As IEnumerable(Of IExtensionReference) Implements IExtension.References
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property SchemaVersion As Version Implements IExtension.SchemaVersion
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property SizeInBytes As ULong Implements IInstalledExtension.SizeInBytes
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property State As EnabledState Implements IInstalledExtension.State
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property Targets As IEnumerable(Of IExtensionRequirement) Implements IExtension.Targets
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public ReadOnly Property Type As String Implements IExtension.Type
-                Get
-                    Throw New NotImplementedException()
-                End Get
-            End Property
-
-            Public Function IsProductSupported(productId As String, version As Version) As Boolean Implements IExtension.IsProductSupported
-                Throw New NotImplementedException()
-            End Function
 #End Region
         End Class
-#Region "Not Used"
+
+#Region "Unused methods of IVsExtensionManager"
         Public ReadOnly Property DidLoadUserExtensions As Boolean Implements IVsExtensionManager.DidLoadUserExtensions
             Get
                 Throw New NotImplementedException()
