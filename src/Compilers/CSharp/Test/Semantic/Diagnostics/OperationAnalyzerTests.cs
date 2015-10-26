@@ -34,13 +34,13 @@ class C
 }";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
-            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new EmptyArrayOperationAnalyzer() }, null, null, false,
-                Diagnostic(EmptyArrayOperationAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0]").WithLocation(6, 22),
-                Diagnostic(EmptyArrayOperationAnalyzer.UseArrayEmptyDescriptor.Id, "{ }").WithLocation(7, 23),
-                Diagnostic(EmptyArrayOperationAnalyzer.UseArrayEmptyDescriptor.Id, "new C[] { }").WithLocation(8, 20),
-                Diagnostic(EmptyArrayOperationAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0][]").WithLocation(12, 24),
-                Diagnostic(EmptyArrayOperationAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0][][][]").WithLocation(13, 28),
-                Diagnostic(EmptyArrayOperationAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0][,]").WithLocation(15, 26)
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new EmptyArrayAnalyzer() }, null, null, false,
+                Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0]").WithLocation(6, 22),
+                Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "{ }").WithLocation(7, 23),
+                Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "new C[] { }").WithLocation(8, 20),
+                Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0][]").WithLocation(12, 24),
+                Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0][][][]").WithLocation(13, 28),
+                Diagnostic(EmptyArrayAnalyzer.UseArrayEmptyDescriptor.Id, "new int[0][,]").WithLocation(15, 26)
                 );
         }
 
