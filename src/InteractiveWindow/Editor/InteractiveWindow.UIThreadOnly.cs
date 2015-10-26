@@ -39,6 +39,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly IInteractiveWindowEditorFactoryService _factory;
 
+            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
+
             private readonly History _history = new History();
             private string _historySearch;
 
@@ -133,6 +135,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 ITextBufferFactoryService bufferFactory,
                 IProjectionBufferFactoryService projectionBufferFactory,
                 IEditorOperationsFactoryService editorOperationsFactory,
+                ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 ITextEditorFactoryService editorFactory,
                 IRtfBuilderService rtfBuilderService,
                 IIntellisenseSessionStackMapService intellisenseSessionStackMap,
@@ -142,6 +145,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _factory = factory;
+                _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
                 _smartIndenterService = smartIndenterService;
@@ -582,57 +586,69 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             public bool Paste()
             {
-                if (!TextView.Selection.IsEmpty)
+                using (var transaction = _textUndoHistoryRegistry.GetHistory(TextView.TextBuffer).CreateTransaction(InteractiveWindowResources.Paste))
                 {
-                    if (CutOrDeleteSelection(isCut: false))
+                    // Get text from clipboard
+                    string code;
+                    string format = Evaluator.FormatClipboard();
+                    if (format != null)
                     {
-                        MoveCaretToClosestEditableBuffer();
+                        code = format;
+                    }
+                    else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
+                    {
+                        var sb = new StringBuilder();
+                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
+                        // Paste each block separately.
+                        foreach (var block in blocks)
+                        {
+                            switch (block.Kind)
+                            {
+                                case ReplSpanKind.Input:
+                                case ReplSpanKind.Output:
+                                case ReplSpanKind.StandardInput:
+                                    sb.Append(block.Content);
+                                    break;
+                            }
+                        }
+                        code = sb.ToString();
+                    }
+                    else if (_window.InteractiveWindowClipboard.ContainsText())
+                    {
+                        code = _window.InteractiveWindowClipboard.GetText();
                     }
                     else
                     {
                         return false;
                     }
-                }
-                else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
-                {
-                    MoveCaretToClosestEditableBuffer();
-                }
-                else if (MapToEditableBuffer(TextView.Caret.Position.BufferPosition) == null)
-                {
-                    return false;
-                } 
 
-                string format = Evaluator.FormatClipboard();
-                if (format != null)
-                {
-                    InsertCode(format);
-                }
-                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
-                {
-                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
-                    // Paste each block separately.
-                    foreach (var block in blocks)
+                    // Delete selected text if there's any and adjust caret position
+                    if (!TextView.Selection.IsEmpty)
                     {
-                        switch (block.Kind)
+                        if (CutOrDeleteSelection(isCut: false))
                         {
-                            case ReplSpanKind.Input:
-                            case ReplSpanKind.Output:
-                            case ReplSpanKind.StandardInput:
-                                InsertCode(block.Content);
-                                break;
+                            MoveCaretToClosestEditableBuffer();
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
-                }
-                else if (_window.InteractiveWindowClipboard.ContainsText())
-                {
-                    InsertCode(_window.InteractiveWindowClipboard.GetText());
-                }
-                else
-                {
-                    return false;
-                }
+                    else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
+                    else if (MapToEditableBuffer(TextView.Caret.Position.BufferPosition) == null)
+                    {
+                        return false;
+                    }
 
-                return true;
+                    // do the paste and complete the transection
+                    InsertCode(code);
+                    transaction.Complete();
+
+                    return true;
+                }
             }
 
             private void MoveCaretToClosestEditableBuffer()
