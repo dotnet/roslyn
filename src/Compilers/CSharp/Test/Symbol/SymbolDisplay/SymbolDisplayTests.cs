@@ -4435,5 +4435,36 @@ enum E2 // Identical to E1, but has [Flags]
             Assert.Equal("E1", e1.Name);
             Assert.Equal("E1", e1.ToDisplayString(format));
         }
+
+        [WorkItem(6262)]
+        [Fact]
+        public void FormattedSymbolEquality()
+        {
+            var source =
+@"class A { }
+class B { }
+class C<T> { }";
+            var compilation = CreateCompilationWithMscorlib(source);
+            var sA = compilation.GetMember<NamedTypeSymbol>("A");
+            var sB = compilation.GetMember<NamedTypeSymbol>("B");
+            var sC = compilation.GetMember<NamedTypeSymbol>("C");
+            var f1 = new SymbolDisplayFormat();
+            var f2 = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeParameters);
+
+            Assert.False(new FormattedSymbol(sA, f1).Equals((object)sA));
+            Assert.False(new FormattedSymbol(sA, f1).Equals(null));
+
+            Assert.True(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sA, f1)));
+            Assert.False(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sA, f2)));
+            Assert.False(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sB, f1)));
+            Assert.False(new FormattedSymbol(sA, f1).Equals(new  FormattedSymbol(sB, f2)));
+
+            Assert.False(new FormattedSymbol(sC, f1).Equals(new  FormattedSymbol(sC.Construct(sA), f1)));
+            Assert.True(new FormattedSymbol(sC.Construct(sA), f1).Equals(new  FormattedSymbol(sC.Construct(sA), f1)));
+
+            Assert.False(new FormattedSymbol(sA, new SymbolDisplayFormat()).Equals(new  FormattedSymbol(sA, new SymbolDisplayFormat())));
+
+            Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new  FormattedSymbol(sA, f1).GetHashCode()));
+        }
     }
 }
