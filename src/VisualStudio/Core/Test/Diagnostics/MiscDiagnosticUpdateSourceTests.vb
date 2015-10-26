@@ -62,7 +62,7 @@ class 123 { }
         End Function
 
         <WpfFact>
-        Public Async Function TestMiscCSharpErrorSource() As Task
+        Public Async Function TestMiscCSharpErrorSource() As Tasks.Task
             Dim code = <code>
 class 123 { }
                        </code>

@@ -11,9 +11,8 @@
     <RootNamespace>Roslyn.Hosting.Diagnostics</RootNamespace>
     <AssemblyName>Roslyn.Hosting.Diagnostics</AssemblyName>
     <Nonshipping>true</Nonshipping>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
