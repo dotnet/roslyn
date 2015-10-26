@@ -371,6 +371,7 @@
     <Compile Include="FlowAnalysis\FlowAnalysisPass.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass.AbstractLocalState.cs" />
     <Compile Include="FlowAnalysis\PreciseAbstractFlowPass.cs" />
+    <Compile Include="FlowAnalysis\PreciseAbstractFlowPass_Switch.cs" />
     <Compile Include="FlowAnalysis\ReadWriteWalker.cs" />
     <Compile Include="FlowAnalysis\RegionAnalysisContext.cs" />
     <Compile Include="FlowAnalysis\RegionReachableWalker.cs" />

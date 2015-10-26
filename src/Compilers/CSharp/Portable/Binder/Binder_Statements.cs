@@ -2545,7 +2545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected BoundExpression BindBooleanExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
+        internal BoundExpression BindBooleanExpression(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             // SPEC: 
             // A boolean-expression is an expression that yields a result of type bool; 

@@ -689,6 +689,7 @@
   </Node>
 
   <Node Name="BoundMatchSection" Base="BoundStatementList">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="BoundMatchLabels" Type="ImmutableArray&lt;BoundMatchLabel&gt;"/>
   </Node>
 

@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _isPatternSwitch = true;
                 return (Compilation.Feature("patterns") != null)
-                    ? (BoundStatement)BindPatternSwitch(node, originalBinder, diagnostics)
+                    ? (BoundStatement)BindPatternSwitch(node, diagnostics)
                     : new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty, true);
             }
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (localDiagnostics.HasAnyResolvedErrors() && Compilation.Feature("patterns") != null)
             {
                 _isPatternSwitch = true;
-                return BindPatternSwitch(node, originalBinder, diagnostics);
+                return BindPatternSwitch(node, diagnostics);
             }
             _isPatternSwitch = false;
             diagnostics.AddRangeAndFree(localDiagnostics);
@@ -470,6 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
+            var sectionBinder = GetBinder(node);
+
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
             foreach (var labelSyntax in node.Labels)
@@ -482,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             foreach (var statement in node.Statements)
             {
-                boundStatementsBuilder.Add(originalBinder.BindStatement(statement, diagnostics));
+                boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
 
             return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());

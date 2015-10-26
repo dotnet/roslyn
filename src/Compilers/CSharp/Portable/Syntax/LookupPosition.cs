@@ -234,6 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <remarks>
+        /// Used to determine whether it would be appropriate to use the binder for the switch section (if any).
+        /// Not used to determine whether the position is syntactically within the statement.
+        /// </remarks>
+        internal static bool IsInSwitchSectionScope(int position, SwitchSectionSyntax section)
+        {
+            Debug.Assert(section != null);
+            return section.Span.Contains(position);
+        }
+
+        /// <remarks>
         /// Used to determine whether it would be appropriate to use the binder for the statement (if any).
         /// Not used to determine whether the position is syntactically within the statement.
         /// </remarks>

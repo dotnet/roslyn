@@ -324,9 +324,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitSwitchSection(SwitchSectionSyntax node)
         {
+            var patternBinder = new PatternVariableBinder(node, _enclosing);
+            AddToMap(node, patternBinder);
             foreach (StatementSyntax statement in node.Statements)
             {
-                Visit(statement, _enclosing);
+                Visit(statement, patternBinder);
             }
         }
 

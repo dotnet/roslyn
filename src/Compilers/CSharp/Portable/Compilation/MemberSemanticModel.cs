@@ -208,6 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeOfArgument = typeOfExpression.Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
                 }
+                else if (current.Kind() == SyntaxKind.SwitchSection)
+                {
+                    if (LookupPosition.IsInSwitchSectionScope(position, (SwitchSectionSyntax)current))
+                    {
+                        binder = RootBinder.GetBinder(current);
+                    }
+                }
                 else
                 {
                     // If this ever breaks, make sure that all callers of
@@ -1363,6 +1370,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (current.IsAnonymousFunction())
                 {
                     if (LookupPosition.IsInAnonymousFunctionOrQuery(position, current))
+                    {
+                        Binder binder = lambdaBinder.GetBinder(current);
+                        if (binder != null)
+                        {
+                            return binder;
+                        }
+                    }
+                }
+                else if (current.Kind() == SyntaxKind.SwitchSection)
+                {
+                    if (LookupPosition.IsInSwitchSectionScope(position, (SwitchSectionSyntax)current))
                     {
                         Binder binder = lambdaBinder.GetBinder(current);
                         if (binder != null)

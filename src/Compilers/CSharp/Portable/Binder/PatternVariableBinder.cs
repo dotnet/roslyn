@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ExpressionSyntax expression;
         private readonly ImmutableArray<ExpressionSyntax> expressions;
+        private readonly ImmutableArray<PatternSyntax> patterns;
         public readonly SyntaxNode Syntax;
 
         internal PatternVariableBinder(SyntaxNode syntax, ImmutableArray<ExpressionSyntax> expressions, Binder next) : base(next)
@@ -45,6 +46,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.expressions = expressions.ToImmutableAndFree();
         }
 
+        internal PatternVariableBinder(SwitchSectionSyntax syntax, Binder next) : base(next)
+        {
+            this.Syntax = syntax;
+            var expressions = ArrayBuilder<ExpressionSyntax>.GetInstance();
+            var patterns = ArrayBuilder<PatternSyntax>.GetInstance();
+            foreach (var label in syntax.Labels)
+            {
+                var match = label as CaseMatchLabelSyntax;
+                if (match != null)
+                {
+                    patterns.Add(match.Pattern);
+                    if (match.Condition != null)
+                    {
+                        expressions.Add(match.Condition);
+                    }
+                }
+            }
+
+            this.expressions = expressions.ToImmutableAndFree();
+            this.patterns = patterns.ToImmutableAndFree();
+        }
+
         internal PatternVariableBinder(ForStatementSyntax syntax, Binder next) : base(next)
         {
             this.Syntax = syntax;
@@ -68,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var patterns = PatternVariableFinder.FindPatternVariables(expression, expressions);
+            var patterns = PatternVariableFinder.FindPatternVariables(expression, expressions, this.patterns);
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var pattern in patterns)
             {
@@ -88,7 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         class PatternVariableFinder : CSharpSyntaxWalker
         {
             ArrayBuilder<DeclarationPatternSyntax> declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
-            internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(ExpressionSyntax expression, ImmutableArray<ExpressionSyntax> expressions)
+            internal static ArrayBuilder<DeclarationPatternSyntax> FindPatternVariables(
+                ExpressionSyntax expression,
+                ImmutableArray<ExpressionSyntax> expressions,
+                ImmutableArray<PatternSyntax> patterns)
             {
                 var finder = s_poolInstance.Allocate();
                 finder.declarationPatterns = ArrayBuilder<DeclarationPatternSyntax>.GetInstance();
@@ -97,11 +123,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     finder.Visit(subExpression);
                 }
+
                 var result = finder.declarationPatterns;
+                if (patterns != null)
+                {
+                    foreach (var pattern in patterns)
+                    {
+                        var declarationPattern = pattern as DeclarationPatternSyntax;
+                        if (declarationPattern != null) result.Add(declarationPattern);
+                    }
+                }
+
                 finder.declarationPatterns = null;
                 s_poolInstance.Free(finder);
                 return result;
             }
+
             public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
             {
                 declarationPatterns.Add(node);

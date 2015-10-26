@@ -495,7 +495,7 @@ False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact(Skip = "pattern-based switch is not yet implemented")]
+        [Fact(Skip = "Lowering not implemented")]
         public void GeneralizedSwitchStatement()
         {
             var source =
@@ -524,8 +524,8 @@ public class X
                 case null:
                     Console.WriteLine($""null"");
                     break;
-                case object o:
-                    Console.WriteLine($""object {typeof(o).Name} {s}"");
+                case object z:
+                    Console.WriteLine($""object {z.GetType().Name} {z}"");
                     break;
             }
         }
