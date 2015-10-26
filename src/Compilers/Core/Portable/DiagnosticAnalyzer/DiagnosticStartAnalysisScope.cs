@@ -74,7 +74,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
-            this._scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+        }
+
+        public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockStartAction(this._analyzer, action);
+        }
+
+        public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockAction(this._analyzer, action);
         }
     }
 
@@ -133,9 +145,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
+        public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
+            _scope.RegisterOperationBlockAction(this._analyzer, action);
+        }
+
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            this._scope.RegisterOperationAction(this._analyzer, action, operationKinds);
+            _scope.RegisterOperationAction(this._analyzer, action, operationKinds);
         }
     }
 

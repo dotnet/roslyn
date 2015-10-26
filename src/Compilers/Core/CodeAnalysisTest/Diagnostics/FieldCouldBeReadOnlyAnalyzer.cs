@@ -8,9 +8,7 @@ using Microsoft.CodeAnalysis.Semantics;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 {
-    // These analyzers are not yet intended for any actual use. They exist solely to test IOperation support.
-
-    /// <summary>Analyzer used to test for loop IOperations.</summary>
+    /// <summary>Analyzer used to identify fields that could be declared ReadOnly.</summary>
     public class FieldCouldBeReadOnlyAnalyzer : DiagnosticAnalyzer
     {
         private const string SystemCategory = "System";
@@ -54,7 +52,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                         AssignTo(assignment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                     },
                                     OperationKind.AssignmentExpression,
-                                    OperationKind.CompoundAssignmentExpression);
+                                    OperationKind.CompoundAssignmentExpression,
+                                    OperationKind.IncrementExpression);
 
                                  operationBlockContext.RegisterOperationAction(
                                      (operationContext) =>
@@ -120,6 +119,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
               
                 assignedToFields.Add(targetField);
                 mightBecomeReadOnlyFields.Remove(targetField);
+
+                if (fieldReference.Instance != null && fieldReference.Instance.ResultType.IsValueType)
+                {
+                    AssignTo(fieldReference.Instance, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
+                }
             }
         }
 
