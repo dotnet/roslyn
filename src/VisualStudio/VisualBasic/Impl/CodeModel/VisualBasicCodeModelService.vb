@@ -1342,6 +1342,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Public Overrides Function IsValidExternalSymbol(symbol As ISymbol) As Boolean
+            Dim methodSymbol = TryCast(symbol, IMethodSymbol)
+            If methodSymbol IsNot Nothing Then
+                If methodSymbol.MethodKind = MethodKind.PropertyGet OrElse
+                   methodSymbol.MethodKind = MethodKind.PropertySet OrElse
+                   methodSymbol.MethodKind = MethodKind.EventAdd OrElse
+                   methodSymbol.MethodKind = MethodKind.EventRemove OrElse
+                   methodSymbol.MethodKind = MethodKind.EventRaise Then
+
+                    Return False
+                End If
+            End If
+
             Dim fieldSymbol = TryCast(symbol, IFieldSymbol)
             If fieldSymbol IsNot Nothing Then
                 Dim propertySymbol = TryCast(fieldSymbol.AssociatedSymbol, IPropertySymbol)

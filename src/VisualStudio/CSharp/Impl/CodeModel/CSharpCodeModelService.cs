@@ -976,6 +976,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override bool IsValidExternalSymbol(ISymbol symbol)
         {
+            var methodSymbol = symbol as IMethodSymbol;
+            if (methodSymbol != null)
+            {
+                if (methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                    methodSymbol.MethodKind == MethodKind.PropertySet ||
+                    methodSymbol.MethodKind == MethodKind.EventAdd ||
+                    methodSymbol.MethodKind == MethodKind.EventRemove ||
+                    methodSymbol.MethodKind == MethodKind.EventRaise)
+                {
+                    return false;
+                }
+            }
+
             return symbol.DeclaredAccessibility == Accessibility.Public
                 || symbol.DeclaredAccessibility == Accessibility.Protected
                 || symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal;

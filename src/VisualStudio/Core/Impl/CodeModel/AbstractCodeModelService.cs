@@ -260,7 +260,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     }
 
                 case SymbolKind.Property:
-                    return (EnvDTE.CodeElement)ExternalCodeProperty.Create(state, projectId, (IPropertySymbol)symbol);
+                    var propertySymbol = (IPropertySymbol)symbol;
+                    return propertySymbol.IsWithEvents
+                        ? (EnvDTE.CodeElement)ExternalCodeVariable.Create(state, projectId, propertySymbol)
+                        : (EnvDTE.CodeElement)ExternalCodeProperty.Create(state, projectId, (IPropertySymbol)symbol);
                 default:
                     throw Exceptions.ThrowEFail();
             }

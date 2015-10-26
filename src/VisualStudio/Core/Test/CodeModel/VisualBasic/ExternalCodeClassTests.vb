@@ -77,7 +77,7 @@ End Class
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Sub ClassMembersForWithEventsField()
+        Public Sub ClassMembersForWithEventsField_Private()
             Dim code =
 <Code>
 Class C
@@ -102,10 +102,52 @@ End Class
                     Dim member1 = members.Item(1)
                     Assert.Equal("New", member1.Name)
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementFunction, member1.Kind)
+                    Assert.Equal(EnvDTE.vsCMAccess.vsCMAccessPublic, CType(member1, EnvDTE.CodeFunction).Access)
 
                     Dim member2 = members.Item(2)
                     Assert.Equal("_x", member2.Name)
                     Assert.Equal(EnvDTE.vsCMElement.vsCMElementVariable, member2.Kind)
+                    Assert.Equal(EnvDTE.vsCMAccess.vsCMAccessPrivate, CType(member2, EnvDTE.CodeVariable).Access)
+                End Sub)
+        End Sub
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub ClassMembersForWithEventsField_Protected()
+            Dim code =
+<Code>
+Class C
+    Event E(x As Integer)
+End Class
+
+Class D$$
+    Inherits C
+
+    Protected WithEvents x As C
+
+    Private Sub D_E(x As Integer) Handles Me.E
+    End Sub
+End Class
+</Code>
+
+            TestElement(code,
+                Sub(codeElement)
+                    Dim members = codeElement.Members
+                    Assert.Equal(3, members.Count)
+
+                    Dim member1 = members.Item(1)
+                    Assert.Equal("New", member1.Name)
+                    Assert.Equal(EnvDTE.vsCMElement.vsCMElementFunction, member1.Kind)
+                    Assert.Equal(EnvDTE.vsCMAccess.vsCMAccessPublic, CType(member1, EnvDTE.CodeFunction).Access)
+
+                    Dim member2 = members.Item(2)
+                    Assert.Equal("_x", member2.Name)
+                    Assert.Equal(EnvDTE.vsCMElement.vsCMElementVariable, member2.Kind)
+                    Assert.Equal(EnvDTE.vsCMAccess.vsCMAccessPrivate, CType(member2, EnvDTE.CodeVariable).Access)
+
+                    Dim member3 = members.Item(3)
+                    Assert.Equal("x", member3.Name)
+                    Assert.Equal(EnvDTE.vsCMElement.vsCMElementVariable, member3.Kind)
+                    Assert.Equal(EnvDTE.vsCMAccess.vsCMAccessProtected Or EnvDTE.vsCMAccess.vsCMAccessWithEvents, CType(member3, EnvDTE.CodeVariable).Access)
                 End Sub)
         End Sub
 
