@@ -312,5 +312,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         NonFatalWatson,
         GlobalOperationRegistration,
         CommandHandler_FindAllReference,
+
+        Infobar_EnableCodefix,
+        Infobar_EnableCodefixAndIgnoreFutureErrors,
     }
 }

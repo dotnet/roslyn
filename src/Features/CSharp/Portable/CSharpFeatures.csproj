@@ -58,6 +58,7 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="AssemblyInfo.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />

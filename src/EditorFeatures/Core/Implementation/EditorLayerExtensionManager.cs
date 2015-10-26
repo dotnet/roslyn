@@ -14,6 +14,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using static Microsoft.CodeAnalysis.Internal.Log.Logger;
+using static Microsoft.CodeAnalysis.Internal.Log.FunctionId;
+using static Microsoft.CodeAnalysis.RoslynAssemblyAttributeHelper;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -67,8 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
                         _errorReportingService?.ShowErrorInfoForCodeFix(
                             provider.GetType().Name,
-                            () => EnableProvider(provider),
-                            () => { EnableProvider(provider); IgnoreProvider(provider); });
+                            () => { EnableProvider(provider); LogEnableProvider(provider); },
+                            () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); });
                     }
                 }
                 else
@@ -83,6 +86,32 @@ namespace Microsoft.CodeAnalysis.Editor
 
                 _errorLoggerService?.LogException(provider, exception);
             }
+
+            private void LogEnableAndIgnoreProvider(object provider)
+            {
+                if (IsRoslynCodefix(provider))
+                {
+                    Log(Infobar_EnableCodefixAndIgnoreFutureErrors, provider.GetType().Name);
+                }
+                else
+                {
+                    Log(Infobar_EnableCodefixAndIgnoreFutureErrors);
+                }
+            }
+
+            private void LogEnableProvider(object provider)
+            {
+                if (IsRoslynCodefix(provider))
+                {
+                    Log(Infobar_EnableCodefix, provider.GetType().Name);
+                }
+                else
+                {
+                    Log(Infobar_EnableCodefix);
+                }
+            }
+
+            private bool IsRoslynCodefix(object source) => HasRoslynAssemblyAttribute(source);
         }
     }
 }
