@@ -380,14 +380,14 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<ResolvedReference> ToResolvedAssemblyReferences(
             ImmutableArray<MetadataReference> references,           
-            Dictionary<MetadataReference, MergedAliases> propertyMapOpt,
+            Dictionary<MetadataReference, MergedAliases> aliasMapOpt,
             int explicitAssemblyCount)
         {
             var result = ArrayBuilder<ResolvedReference>.GetInstance(references.Length);
             for (int i = 0; i < references.Length; i++)
             {
                 // -1 for assembly being built
-                result.Add(GetResolvedReferenceAndFreePropertyMapEntry(references[i], explicitAssemblyCount - 1 + i, MetadataImageKind.Assembly, propertyMapOpt));
+                result.Add(GetResolvedReferenceAndFreeAliasMapEntry(references[i], explicitAssemblyCount - 1 + i, MetadataImageKind.Assembly, aliasMapOpt));
             }
 
             return result.ToImmutableAndFree();

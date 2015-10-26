@@ -55,26 +55,18 @@ namespace Microsoft.CodeAnalysis
             private readonly ImmutableArray<string> _aliasesOpt;
             private readonly ImmutableArray<string> _recursiveAliasesOpt;
 
-            // uninitialized aliases
-            public ResolvedReference(int index, MetadataImageKind kind)
+            public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt)
             {
                 Debug.Assert(index >= 0);
-                _index = index + 1;
-                _kind = kind;
-            }
-
-            // initialized aliases
-            public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt)
-                : this(index, kind)
-            {
+                
                 // We have to have non-default aliases (empty are ok). We can have both recursive and non-recursive aliases if two references were merged.
                 Debug.Assert(!aliasesOpt.IsDefault || !recursiveAliasesOpt.IsDefault);
 
+                _index = index + 1;
+                _kind = kind;
                 _aliasesOpt = aliasesOpt;
                 _recursiveAliasesOpt = recursiveAliasesOpt;
             }
-
-            private bool IsUninitialized => _aliasesOpt.IsDefault && _recursiveAliasesOpt.IsDefault;
 
             /// <summary>
             /// Aliases that should be applied to the referenced assembly. 
@@ -85,7 +77,6 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    Debug.Assert(!IsUninitialized);
                     return _aliasesOpt;
                 }
             }
@@ -99,7 +90,6 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    Debug.Assert(!IsUninitialized);
                     return _recursiveAliasesOpt;
                 }
             }
@@ -159,6 +149,34 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        private struct AssemblyReference
+        {
+            public readonly int Index;
+            public readonly MetadataReference Reference;
+            public readonly AssemblyMetadata MetadataOpt;
+
+            public AssemblyReference(int index, MetadataReference reference, AssemblyMetadata metadataOpt)
+            {
+                Index = index;
+                Reference = reference;
+                MetadataOpt = metadataOpt;
+            }
+        }
+
+        private struct ModuleReference
+        {
+            public readonly int Index;
+            public readonly MetadataReference Reference;
+            public readonly ModuleMetadata Metadata;
+
+            public ModuleReference(int index, MetadataReference reference, ModuleMetadata metadata)
+            {
+                Index = index;
+                Reference = reference;
+                Metadata = metadata;
+            }
+        }
+
         /// <summary>
         /// Resolves given metadata references to assemblies and modules.
         /// </summary>
@@ -188,9 +206,7 @@ namespace Microsoft.CodeAnalysis
             // References originating from #r directives precede references supplied as arguments of the compilation.
             int referenceCount = references.Length;
             int referenceDirectiveCount = (referenceDirectiveLocations != null ? referenceDirectiveLocations.Length : 0);
-
-            var referenceMap = new ResolvedReference[referenceCount];
-
+            
             // Maps references that were added to the reference set (i.e. not filtered out as duplicates) to a set of names that 
             // can be used to alias these references. Duplicate assemblies contribute their aliases into this set.
             Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
@@ -203,8 +219,8 @@ namespace Microsoft.CodeAnalysis
             Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName = null;
 
             ArrayBuilder<MetadataReference> uniqueDirectiveReferences = (referenceDirectiveLocations != null) ? ArrayBuilder<MetadataReference>.GetInstance() : null;
-            ArrayBuilder<AssemblyData> assembliesBuilder = null;
-            ArrayBuilder<PEModule> modulesBuilder = null;
+            var reversedAssemblyReferences = ArrayBuilder<AssemblyReference>.GetInstance();
+            ArrayBuilder<ModuleReference> lazyReversedModuleReferences = null;
 
             // When duplicate references with conflicting EmbedInteropTypes flag are encountered,
             // VB uses the flag from the last one, C# reports an error. We need to enumerate in reverse order
@@ -264,12 +280,7 @@ namespace Microsoft.CodeAnalysis
                                 continue;
                             }
 
-                            // Note, if SourceAssemblySymbol hasn't been created for 
-                            // compilationAssembly.Compilation yet, we want this to happen 
-                            // right now. Conveniently, this constructor will trigger creation of the 
-                            // SourceAssemblySymbol.
-                            var asmData = CreateAssemblyDataForCompilation(compilationReference);
-                            AddAssembly(asmData, referenceIndex, referenceMap, ref assembliesBuilder);
+                            reversedAssemblyReferences.Add(new AssemblyReference(referenceIndex, boundReference, metadataOpt: null));
                             break;
 
                         default:
@@ -293,8 +304,6 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MetadataImageKind.Assembly:
                             var assemblyMetadata = (AssemblyMetadata)metadata;
-                            WeakList<IAssemblySymbol> cachedSymbols = assemblyMetadata.CachedSymbols;
-
                             if (assemblyMetadata.IsValidAssembly())
                             {
                                 PEAssembly assembly = assemblyMetadata.GetAssembly();
@@ -311,23 +320,13 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
-                                var asmData = CreateAssemblyDataForFile(
-                                    assembly,
-                                    cachedSymbols,
-                                    peReference.DocumentationProvider,
-                                    SimpleAssemblyName,
-                                    compilation.Options.MetadataImportOptions,
-                                    peReference.Properties.EmbedInteropTypes);
-
-                                AddAssembly(asmData, referenceIndex, referenceMap, ref assembliesBuilder);
+                                reversedAssemblyReferences.Add(new AssemblyReference(referenceIndex, boundReference, assemblyMetadata));
                             }
                             else
                             {
                                 diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotAssembly, location, peReference.Display));
                             }
 
-                            // asmData keeps strong ref after this point
-                            GC.KeepAlive(assemblyMetadata);
                             break;
 
                         case MetadataImageKind.Module:
@@ -341,12 +340,18 @@ namespace Microsoft.CodeAnalysis
                                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage, location, peReference.Display));
                                 }
 
-                                AddModule(moduleMetadata.Module, referenceIndex, referenceMap, ref modulesBuilder);
+                                if (lazyReversedModuleReferences == null)
+                                {
+                                    lazyReversedModuleReferences = ArrayBuilder<ModuleReference>.GetInstance();
+                                }
+
+                                lazyReversedModuleReferences.Add(new ModuleReference(referenceIndex, peReference, moduleMetadata));
                             }
                             else
                             {
                                 diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotModule, location, peReference.Display));
                             }
+
                             break;
 
                         default:
@@ -365,55 +370,88 @@ namespace Microsoft.CodeAnalysis
                 boundReferenceDirectives = ImmutableArray<MetadataReference>.Empty;
             }
 
-            // We enumerated references in reverse order in the above code
-            // and thus assemblies and modules in the builders are reversed.
-            // Fix up all the indices and reverse the builder content now to get 
-            // the ordering matching the references.
-            // 
-            // Also fills in aliases.
+            var referenceMap = new ResolvedReference[referenceCount];
+            assemblies = BuildAssemblyDataAndReferenceMap(compilation, reversedAssemblyReferences, referenceMap, lazyAliasMap);
+            modules = BuildModulesAndReferenceMap(lazyReversedModuleReferences, referenceMap);
 
-            for (int i = 0; i < referenceMap.Length; i++)
-            {
-                if (!referenceMap[i].IsSkipped)
-                {
-                    int count = referenceMap[i].Kind == MetadataImageKind.Assembly
-                        ? ((object)assembliesBuilder == null ? 0 : assembliesBuilder.Count)
-                        : ((object)modulesBuilder == null ? 0 : modulesBuilder.Count);
-
-                    int reversedIndex = count - 1 - referenceMap[i].Index;
-                    referenceMap[i] = GetResolvedReferenceAndFreePropertyMapEntry(references[i], reversedIndex, referenceMap[i].Kind, lazyAliasMap);
-                }
-            }
-
-            if (assembliesBuilder == null)
-            {
-                assemblies = ImmutableArray<AssemblyData>.Empty;
-            }
-            else
-            {
-                assembliesBuilder.ReverseContents();
-                assemblies = assembliesBuilder.ToImmutableAndFree();
-            }
-            
-            if (modulesBuilder == null)
-            {
-                modules = ImmutableArray<PEModule>.Empty;
-            }
-            else
-            {
-                modulesBuilder.ReverseContents();
-                modules = modulesBuilder.ToImmutableAndFree();
-            }
+            reversedAssemblyReferences.Free();
+            lazyReversedModuleReferences?.Free();
 
             return ImmutableArray.CreateRange(referenceMap);
         }
 
-        private static ResolvedReference GetResolvedReferenceAndFreePropertyMapEntry(MetadataReference reference, int index, MetadataImageKind kind, Dictionary<MetadataReference, MergedAliases> propertyMapOpt)
+        private ImmutableArray<AssemblyData> BuildAssemblyDataAndReferenceMap(
+            TCompilation compilation, 
+            ArrayBuilder<AssemblyReference> reversedAssemblyReferences, 
+            ResolvedReference[] referenceMap, 
+            Dictionary<MetadataReference, MergedAliases> aliasMapOpt)
+        {
+            var assembliesBuilder = ArrayBuilder<AssemblyData>.GetInstance(reversedAssemblyReferences.Count);
+
+            for (int i = reversedAssemblyReferences.Count - 1; i >= 0; i--)
+            {
+                var assemblyReference = reversedAssemblyReferences[i];
+
+                AssemblyData data;
+                AssemblyMetadata metadata = assemblyReference.MetadataOpt;
+
+                if (metadata != null)
+                {
+                    var peReference = (PortableExecutableReference)assemblyReference.Reference;
+
+                    data = CreateAssemblyDataForFile(
+                        metadata.GetAssembly(),
+                        metadata.CachedSymbols,
+                        peReference.DocumentationProvider,
+                        SimpleAssemblyName,
+                        compilation.Options.MetadataImportOptions,
+                        peReference.Properties.EmbedInteropTypes);
+                }
+                else
+                {
+                    // Note, if SourceAssemblySymbol hasn't been created for 
+                    // compilationAssembly.Compilation yet, we want this to happen 
+                    // right now. Conveniently, this constructor will trigger creation of the 
+                    // SourceAssemblySymbol.
+                    data = CreateAssemblyDataForCompilation((CompilationReference)assemblyReference.Reference);
+                }
+
+                referenceMap[assemblyReference.Index] = GetResolvedReferenceAndFreeAliasMapEntry(assemblyReference.Reference, assembliesBuilder.Count, MetadataImageKind.Assembly, aliasMapOpt);
+                assembliesBuilder.Add(data);
+            }
+
+            return assembliesBuilder.ToImmutableAndFree();
+        }
+
+        private ImmutableArray<PEModule> BuildModulesAndReferenceMap(ArrayBuilder<ModuleReference> reversedModuleReferencesOpt, ResolvedReference[] referenceMap)
+        {
+            if (reversedModuleReferencesOpt == null)
+            {
+                return ImmutableArray<PEModule>.Empty;
+            }
+
+            var modulesBuilder = ArrayBuilder<PEModule>.GetInstance(reversedModuleReferencesOpt.Count);
+
+            for (int i = reversedModuleReferencesOpt.Count - 1; i >= 0; i--)
+            {
+                var moduleReference = reversedModuleReferencesOpt[i];
+
+                Debug.Assert(moduleReference.Reference.Properties.Aliases.IsEmpty);
+                Debug.Assert(!moduleReference.Reference.Properties.HasRecursiveAliases);
+
+                referenceMap[moduleReference.Index] = new ResolvedReference(modulesBuilder.Count, MetadataImageKind.Module, aliasesOpt: ImmutableArray<string>.Empty, recursiveAliasesOpt: default(ImmutableArray<string>));
+                modulesBuilder.Add(moduleReference.Metadata.Module);
+            }
+
+            return modulesBuilder.ToImmutableAndFree();
+        }
+
+        private static ResolvedReference GetResolvedReferenceAndFreeAliasMapEntry(MetadataReference reference, int index, MetadataImageKind kind, Dictionary<MetadataReference, MergedAliases> aliasMapOpt)
         {
             ImmutableArray<string> aliasesOpt, recursiveAliasesOpt;
 
             MergedAliases mergedProperties;
-            if (propertyMapOpt != null && propertyMapOpt.TryGetValue(reference, out mergedProperties))
+            if (aliasMapOpt != null && aliasMapOpt.TryGetValue(reference, out mergedProperties))
             {
                 aliasesOpt = mergedProperties.AliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
                 recursiveAliasesOpt = mergedProperties.RecursiveAliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
@@ -578,35 +616,6 @@ namespace Microsoft.CodeAnalysis
             mergedAliases.Merge(newReference);
         }
 
-        /// <remarks>
-        /// Caller is responsible for freeing any allocated ArrayBuilders.
-        /// </remarks>
-        private static void AddAssembly(AssemblyData data, int referenceIndex, ResolvedReference[] referenceMap, ref ArrayBuilder<AssemblyData> assemblies)
-        {
-            if (assemblies == null)
-            {
-                assemblies = ArrayBuilder<AssemblyData>.GetInstance();
-            }
-
-            // aliases will be filled in later:
-            referenceMap[referenceIndex] = new ResolvedReference(assemblies.Count, MetadataImageKind.Assembly);
-            assemblies.Add(data);
-        }
-
-        /// <remarks>
-        /// Caller is responsible for freeing any allocated ArrayBuilders.
-        /// </remarks>
-        private static void AddModule(PEModule module, int referenceIndex, ResolvedReference[] referenceMap, ref ArrayBuilder<PEModule> modules)
-        {
-            if (modules == null)
-            {
-                modules = ArrayBuilder<PEModule>.GetInstance();
-            }
-
-            referenceMap[referenceIndex] = new ResolvedReference(modules.Count, MetadataImageKind.Module);
-            modules.Add(module);
-        }
-
         /// <summary>
         /// Returns null if an assembly of an equivalent identity has not been added previously, otherwise returns the reference that added it.
         /// Two identities are considered equivalent if
@@ -634,6 +643,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             ReferencedAssemblyIdentity equivalent = default(ReferencedAssemblyIdentity);
+
             if (identity.IsStrongName)
             {
                 foreach (var other in sameSimpleNameIdentities)
@@ -671,7 +681,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             // equivalent found - ignore and/or report an error:
-
             if (identity.IsStrongName)
             {
                 Debug.Assert(equivalent.Identity.IsStrongName);
