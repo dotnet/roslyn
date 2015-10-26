@@ -6108,6 +6108,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The pathmap option was incorrectly formatted.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidPathMap() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidPathMap", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Invalid signature public key specified in AssemblySignatureKeyAttribute..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidSignaturePublicKey() As String
