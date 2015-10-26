@@ -241,14 +241,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             int position;
             Assert.True(peReader.PEHeaders.TryGetDirectoryOffset(debugDirectory, out position));
-            Assert.Equal(0x1c, debugDirectory.Size);
+            int entries = debugDirectory.Size / 0x1c;
+            Assert.Equal(0, debugDirectory.Size % 0x1c);
+            Assert.True(entries == 1 || entries == 2);
+            bool hasDebug = entries == 2;
 
             byte[] buffer = new byte[debugDirectory.Size];
-            peStream.Read(buffer, 0, buffer.Length);
+            peStream.Read(buffer, 0, buffer.Length); // TODO: this is not guaranteed to read buffer.Length of data
 
             peStream.Position = position;
             var reader = new BinaryReader(peStream);
 
+            // first the IMAGE_DEBUG_TYPE_CODEVIEW entry
             int characteristics = reader.ReadInt32();
             Assert.Equal(0, characteristics);
 
@@ -258,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal((portablePdbStreamOpt != null) ? 0x504d0100u : 0, version);
 
             int type = reader.ReadInt32();
-            Assert.Equal(2, type);
+            Assert.Equal(2, type); // IMAGE_DEBUG_TYPE_CODEVIEW
 
             int sizeOfData = reader.ReadInt32();
             int rvaOfRawData = reader.ReadInt32();
@@ -269,6 +273,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int pointerToRawData = reader.ReadInt32();
             Assert.Equal(pointerToRawData, sectionHeader.PointerToRawData + rvaOfRawData - sectionHeader.VirtualAddress);
 
+            // optionally a IMAGE_DEBUG_TYPE_NO_TIMESTAMP entry indicating that timestamps are deterministic
+            if (hasDebug)
+            {
+                int characteristics2 = reader.ReadInt32();
+                Assert.Equal(0, characteristics2);
+
+                byte[] stamp2 = reader.ReadBytes(sizeof(int));
+
+                int version2 = reader.ReadInt32();
+                Assert.Equal(0, version2);
+
+                int type2 = reader.ReadInt32();
+                Assert.Equal(16, type2); // IMAGE_DEBUG_TYPE_NO_TIMESTAMP
+
+                int sizeOfData2 = reader.ReadInt32();
+                int rvaOfRawData2 = reader.ReadInt32();
+                int pointerToRawData2 = reader.ReadInt32();
+                Assert.Equal(0, sizeOfData2 | rvaOfRawData2 | pointerToRawData2);
+            }
+
+            // Now verify the data pointed to by the IMAGE_DEBUG_TYPE_CODEVIEW entry
             peStream.Position = pointerToRawData;
 
             Assert.Equal((byte)'R', reader.ReadByte());
