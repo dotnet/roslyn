@@ -23,9 +23,8 @@ namespace RunTests
 
         internal static Options Parse(string[] args)
         {
-            if (args.Length < 2)
-            {
-                PrintUsage();
+            if (args == null || args.Any(a => a == null) || args.Length < 2)
+            {                
                 return null;
             }
 
@@ -47,12 +46,12 @@ namespace RunTests
                     opt.UseHtml = false;
                     index++;
                 }
-                else if (current.StartsWith("-trait:", StringComparison.OrdinalIgnoreCase))
+                else if (current.Length > 7 && current.StartsWith("-trait:", StringComparison.OrdinalIgnoreCase))
                 {
                     opt.Trait = current.Substring(7);
                     index++;
                 }
-                else if (current.StartsWith("-notrait:", StringComparison.OrdinalIgnoreCase))
+                else if (current.Length > 9 && current.StartsWith("-notrait:", StringComparison.OrdinalIgnoreCase))
                 {
                     opt.NoTrait = current.Substring(9);
                     index++;
@@ -63,22 +62,48 @@ namespace RunTests
                 }
             }
 
-            opt.XunitPath = opt.Test64
-                ? Path.Combine(opt.XunitPath, "xunit.console.exe")
-                : Path.Combine(opt.XunitPath, "xunit.console.x86.exe");
+            try
+            {
+                opt.XunitPath = opt.Test64
+                    ? Path.Combine(opt.XunitPath, "xunit.console.exe")
+                    : Path.Combine(opt.XunitPath, "xunit.console.x86.exe");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"{opt.XunitPath} is not a valid path: {ex.Message}");
+                return null;
+            }
 
+            if (!File.Exists(opt.XunitPath))
+            {
+                Console.WriteLine($"The file '{opt.XunitPath}' does not exist.");
+                return null;
+            }            
 
             opt.Assemblies = args.Skip(index).ToArray();
 
-            if (opt.Assemblies.Length != 0) return opt;
+            if (!opt.Assemblies.Any())
+            {
+                Console.WriteLine("No test assemblies specified.");
+                return null;
+            }
 
-            PrintUsage();
-            return null;
-        }        
+            foreach (var assemblyPath in opt.Assemblies)
+            {
+                if (File.Exists(assemblyPath)) continue;
 
-        private static void PrintUsage()
+                Console.WriteLine($"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
+                return null;                
+            }
+
+            return opt;
+        }
+
+        public static void PrintUsage()
         {
-            Console.WriteLine("runtests [xunit-console-runner] [-test64] [-xml] [-trait:listOfTraitsToInclude] [-notrait:listOfTraitsToExclude] [assembly1] [assembly2] [...]");
+            Console.WriteLine("runtests [xunit-console-runner] [-test64] [-xml] [-trait:name1=value1;...] [-notrait:name1=value1;...] [assembly1] [assembly2] [...]");
+            Console.WriteLine("Example:");
+            Console.WriteLine(@"runtests c:\path-to-xunit\xunit.console.exe -trait:Feature=Classification Assembly1.dll Assembly2.dll");
         }
 
     }

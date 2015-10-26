@@ -19,6 +19,7 @@ namespace RunTests
             var options = Options.Parse(args);
             if (options == null)
             {
+                Options.PrintUsage();
                 return 1;
             }
 
