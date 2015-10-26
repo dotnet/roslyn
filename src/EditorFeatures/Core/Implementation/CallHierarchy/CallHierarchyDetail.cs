@@ -102,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             if (document != null)
             {
                 var navigator = _workspace.Services.GetService<IDocumentNavigationService>();
-                navigator.TryNavigateToSpan(_workspace, document.Id, _span, usePreviewTab: true);
+                var options = _workspace.Options.WithChangedOption(NavigationOptions.UsePreviewTab, true);
+                navigator.TryNavigateToSpan(_workspace, document.Id, _span, options);
             }
         }
     }

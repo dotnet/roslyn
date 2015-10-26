@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -49,13 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, bool usePreviewTab = false)
+        public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
             {
                 return false;
             }
 
+            options = options ?? project.Solution.Workspace.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -70,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, usePreviewTab);
+                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                 }
             }
 
@@ -115,7 +117,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;
                 var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
-                return navigationService.TryNavigateToSpan(editorWorkspace, openedDocument.Id, result.IdentifierLocation.SourceSpan, usePreviewTab: true);
+
+                return navigationService.TryNavigateToSpan(
+                    workspace: editorWorkspace,
+                    documentId: openedDocument.Id,
+                    textSpan: result.IdentifierLocation.SourceSpan,
+                    options: options.WithChangedOption(NavigationOptions.UsePreviewTab, true));
             }
 
             return true;

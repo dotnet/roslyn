@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Navigation
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockDocumentNavigationService
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public _triedNavigationToSpan As Boolean = False
 
         Public _documentId As DocumentId = Nothing
-        Public _usePreviewTab As Boolean = False
+        Public _options As OptionSet = Nothing
         Public _line As Integer = -1
         Public _offset As Integer = -1
         Public _span As TextSpan = Nothing
@@ -36,30 +36,30 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Return _canNavigateToSpan
         End Function
 
-        Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, Optional usePreviewTab As Boolean = False) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
+        Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, Optional options As OptionSet = Nothing) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
             _triedNavigationToLineAndOffset = True
             _documentId = documentId
-            _usePreviewTab = usePreviewTab
+            _options = options
             _line = lineNumber
             _offset = offset
 
             Return _canNavigateToLineAndOffset
         End Function
 
-        Public Function TryNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, Optional virtualSpace As Integer = 0, Optional usePreviewTab As Boolean = False) As Boolean Implements IDocumentNavigationService.TryNavigateToPosition
+        Public Function TryNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, Optional virtualSpace As Integer = 0, Optional options As OptionSet = Nothing) As Boolean Implements IDocumentNavigationService.TryNavigateToPosition
             _triedNavigationToPosition = True
             _documentId = documentId
-            _usePreviewTab = usePreviewTab
+            _options = options
             _position = position
             _positionVirtualSpace = virtualSpace
 
             Return _canNavigateToPosition
         End Function
 
-        Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, Optional usePreviewTab As Boolean = False) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
+        Public Function TryNavigateToSpan(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, Optional options As OptionSet = Nothing) As Boolean Implements IDocumentNavigationService.TryNavigateToSpan
             _triedNavigationToSpan = True
             _documentId = documentId
-            _usePreviewTab = usePreviewTab
+            _options = options
             _span = textSpan
 
             Return _canNavigateToSpan

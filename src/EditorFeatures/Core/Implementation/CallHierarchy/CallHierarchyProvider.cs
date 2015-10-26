@@ -132,7 +132,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
         {
             var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var resolution = id.Resolve(compilation, cancellationToken: cancellationToken);
-            project.Solution.Workspace.Services.GetService<ISymbolNavigationService>().TryNavigateToSymbol(resolution.Symbol, project, usePreviewTab: true, cancellationToken: cancellationToken);
+            var workspace = project.Solution.Workspace;
+            var options = workspace.Options.WithChangedOption(NavigationOptions.UsePreviewTab, true);
+            var symbolNavigationService = workspace.Services.GetService<ISymbolNavigationService>();
+
+            symbolNavigationService.TryNavigateToSymbol(resolution.Symbol, project, options, cancellationToken);
         }
     }
 }
