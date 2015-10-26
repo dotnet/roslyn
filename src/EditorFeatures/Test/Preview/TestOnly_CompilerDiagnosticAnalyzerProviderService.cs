@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.UnitTests;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -30,6 +31,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                     yield return analyzer.GetType().Assembly.Location;
                 }
             }
+        }
+
+        public IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader()
+        {
+            return FromFileLoader.Instance;
         }
 
         public IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages()
