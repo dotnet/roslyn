@@ -138,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution> GetChangedSolutionInternalAsync(CancellationToken cancellationToken)
+        internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default(CancellationToken))
         {
             var solution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-            if (solution == null)
+            if (solution == null || !postProcessChanges)
             {
-                return null;
+                return solution;
             }
 
             return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);

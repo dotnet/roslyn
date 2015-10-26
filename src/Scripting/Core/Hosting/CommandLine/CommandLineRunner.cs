@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
-                    return MetadataReference.CreateFromFile(path);
+                    return MetadataReference.CreateFromFile(path, properties);
                 });
         }
 

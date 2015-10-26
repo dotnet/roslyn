@@ -9,7 +9,7 @@ with the path to the output directory as the parameter.
 
 ### Dogfooding the compiler
 
-If you then wish to dogfood the CoreCLR copmilers while developing Roslyn then set 
+If you then wish to dogfood the CoreCLR compilers while developing Roslyn then set 
 the BootstrapBuildPath environment variable (or at the MSBuild command line) to 
 point to the core-clr directory.
 

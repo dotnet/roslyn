@@ -41,7 +41,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 testState.SendBackspace()
                 Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                testState.WaitForAsynchronousOperations()
                 Assert.Equal(testState.CurrentCompletionPresenterSession.SelectedItem.DisplayText, "Shortcut")
 
                 testState.SendTabToCompletion()
@@ -63,7 +62,6 @@ End Class</File>.Value
             Using testState
                 testState.SendTabToCompletion()
                 Await testState.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                testState.WaitForAsynchronousOperations()
                 Assert.Null(testState.CurrentCompletionPresenterSession)
             End Using
         End Function

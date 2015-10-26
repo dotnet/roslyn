@@ -904,7 +904,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(90)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90)>
         Public Sub EmitWithNoResourcesAllPlatforms()
             Dim comp = CreateCompilationWithMscorlib(
                 <compilation>

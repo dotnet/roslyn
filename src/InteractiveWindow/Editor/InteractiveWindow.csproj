@@ -11,10 +11,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.InteractiveWindow</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.InteractiveWindow</AssemblyName>
-    <!-- TODO -->
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -142,6 +139,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
