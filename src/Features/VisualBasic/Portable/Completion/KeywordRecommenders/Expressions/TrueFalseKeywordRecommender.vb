@@ -24,7 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
         End Function
 
         Private Function ShouldPreselect(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As Boolean
-            Dim documentId = context.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(context.SyntaxTree.FilePath).First()
+            Dim documentId = context?.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(context.SyntaxTree.FilePath).FirstOrDefault()
+            If documentId Is Nothing Then
+                Return False
+            End If
+
             Dim document = context.Workspace.CurrentSolution.GetDocument(documentId)
             Dim typeInferenceService = document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
             Dim types = typeInferenceService.InferTypes(context.SemanticModel, context.Position, cancellationToken)

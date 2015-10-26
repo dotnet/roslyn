@@ -2198,5 +2198,70 @@ End Module]]></Document>)
                 Await state.AssertSelectedCompletionItem("Table").ConfigureAwait(True)
             End Using
         End Function
+
+        <WorkItem(4892, "https://github.com/dotnet/roslyn/issues/4892")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BooleanPreselection1() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x as boolean = $$
+    End Sub
+End Module]]></Document>)
+                state.SendTypeChars("f")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.AssertSelectedCompletionItem("False")
+                state.SendBackspace()
+                state.SendTypeChars("t")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.AssertSelectedCompletionItem("True")
+            End Using
+        End Function
+
+        <WorkItem(4892, "https://github.com/dotnet/roslyn/issues/4892")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BooleanPreselection2() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Module Program
+    Sub Main(args As String())
+        foo($$
+    End Sub
+
+    Sub foo (x as boolean)
+    End Sub
+End Module]]></Document>)
+                state.SendTypeChars("fa")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.AssertSelectedCompletionItem("False")
+                state.SendBackspace()
+                state.SendBackspace()
+                state.SendTypeChars("t")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.AssertSelectedCompletionItem("True")
+            End Using
+        End Function
+
+        <WorkItem(4892, "https://github.com/dotnet/roslyn/issues/4892")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function BooleanPreselection3() As Task
+            Using state = TestState.CreateVisualBasicTestState(
+                <Document><![CDATA[
+Imports System
+Module Program
+    Sub Main(args As String())
+        $$
+    End Sub
+End Module]]></Document>)
+                state.SendTypeChars("f")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.AssertSelectedCompletionItem("FieldAccessExpression")
+                state.SendBackspace()
+                state.SendTypeChars("t")
+                Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
+                state.AssertSelectedCompletionItem("TAB")
+            End Using
+        End Function
     End Class
 End Namespace
