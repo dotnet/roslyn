@@ -311,5 +311,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         NonFatalWatson,
         GlobalOperationRegistration,
+        CommandHandler_FindAllReference,
     }
 }
