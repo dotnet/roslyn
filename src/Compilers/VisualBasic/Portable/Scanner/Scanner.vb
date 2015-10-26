@@ -919,19 +919,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Private Function PeekStartComment(i As Integer) As Integer
-            Dim ch As Char, c2 As Char, c3 As Char
+            Dim ch As Char
             If Peep(i, ch) Then
 
                 If IsSingleQuote(ch) Then
                     Return 1
                 ElseIf MatchOneOrAnotherOrFullwidth(ch, "R"c, "r"c) AndAlso
-                    Peep(i + 2, c2) AndAlso MatchOneOrAnotherOrFullwidth(Peek(i + 1), "E"c, "e"c) AndAlso
-                    MatchOneOrAnotherOrFullwidth(c2, "M"c, "m"c) Then
+                    Peep(i + 2, ch) AndAlso MatchOneOrAnotherOrFullwidth(Peek(i + 1), "E"c, "e"c) AndAlso
+                    MatchOneOrAnotherOrFullwidth(ch, "M"c, "m"c) Then
 
-                    If Not Peep(i + 3, c3) OrElse IsNewLine(c3) Then
+                    If Not Peep(i + 3, ch) OrElse IsNewLine(ch) Then
                         ' have only 'REM'
                         Return 3
-                    ElseIf Not IsIdentifierPartCharacter(c3) Then
+                    ElseIf Not IsIdentifierPartCharacter(ch) Then
                         ' have 'REM '
                         Return 4
                     End If
@@ -1264,13 +1264,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Check for XML tokens
             If Not charIsFullWidth AndAlso Peep(length, c) Then
-                Dim c2 As Char
                 Select Case c
                     Case "!"c
-                        If Peep(length + 2, c2) Then
+                        If Peep(length + 2, c) Then
                             Select Case (Peek(length + 1))
                                 Case "-"c
-                                    If CanGet(length + 3) AndAlso c2 = "-"c Then
+                                    If CanGet(length + 3) AndAlso c = "-"c Then
                                         Return XmlMakeBeginCommentToken(precedingTrivia, scanTrailingTrivia)
                                     End If
                                 Case "["c
@@ -1354,9 +1353,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(IsIdentifierStartCharacter(Peek))
             Debug.Assert(PeekStartComment(0) = 0) ' comment should be handled by caller
 
-            Dim ch = Peek() : Dim ch1 As Char
-            If Peep(1, ch1) Then
-                If IsConnectorPunctuation(ch) AndAlso Not IsIdentifierPartCharacter(ch1) Then
+            Dim cx As Char, ch = Peek()
+            If Peep(1, cx) Then
+                If IsConnectorPunctuation(ch) AndAlso Not IsIdentifierPartCharacter(cx) Then
                     Return MakeBadToken(precedingTrivia, 1, ERRID.ERR_ExpectedIdentifier)
                 End If
             End If
@@ -1366,6 +1365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             ' // The C++ compiler refuses to inline IsIdentifierCharacter, so the
             ' // < 128 test is inline here. (This loop gets a *lot* of traffic.)
             ' TODO: make sure we get good perf here
+ 
             While Peep(len, ch)
 
                 Dim code = Convert.ToUInt16(ch)
@@ -1386,10 +1386,10 @@ FullWidthRepeat:
                 Select Case ch
                     Case "!"c
                         ' // If the ! is followed by an identifier it is a dictionary lookup operator, not a type character.
-                        Dim NextChar As Char
-                        If Peep(len + 1, NextChar) Then
-                            If IsIdentifierStartCharacter(NextChar) OrElse
-                                MatchOneOrAnotherOrFullwidth(NextChar, "["c, "]"c) Then
+                        '    Dim ch As Char
+                        If Peep(len + 1, ch) Then
+                            If IsIdentifierStartCharacter(ch) OrElse
+                                MatchOneOrAnotherOrFullwidth(ch, "["c, "]"c) Then
                                 Exit Select
                             End If
                         End If
@@ -1488,10 +1488,9 @@ FullWidthRepeat:
             End If
 
             ' check ident until ]
-            Dim [Next] As Char
-            While Peep(Here, [Next])
+            While Peep(Here, ch)
 
-                If [Next] = "]"c OrElse [Next] = FULLWIDTH_RIGHT_SQUARE_BRACKET Then
+                If ch = "]"c OrElse ch = FULLWIDTH_RIGHT_SQUARE_BRACKET Then
                     Dim IdStringLength As Integer = Here - IdStart
 
                     If IdStringLength > 0 AndAlso Not InvalidIdentifier Then
@@ -1513,9 +1512,9 @@ FullWidthRepeat:
                         ' // The sequence "[]" does not define a valid identifier.
                         Return MakeBadToken(precedingTrivia, Here + 1, ERRID.ERR_ExpectedIdentifier)
                     End If
-                ElseIf IsNewLine([Next]) Then
+                ElseIf IsNewLine(ch) Then
                     Exit While
-                ElseIf Not IsIdentifierPartCharacter([Next]) Then
+                ElseIf Not IsIdentifierPartCharacter(ch) Then
                     InvalidIdentifier = True
                     Exit While
                 End If
@@ -1615,8 +1614,7 @@ FullWidthRepeat:
 
                 ' // Read an exponent symbol followed by an optional sign and a sequence of
                 ' // one or more digits.
-                Dim cx As Char
-                If Peep(Here, cx) AndAlso BeginsExponent(cx) Then
+                If Peep(Here, ch) AndAlso BeginsExponent(ch) Then
                     Here += 1
 
                     If Peep(Here, ch) Then
@@ -1625,7 +1623,7 @@ FullWidthRepeat:
                         End If
                     End If
 
-                    If Peep(Here, cx) AndAlso IsDecimalDigit(cx) Then
+                    If Peep(Here, ch) AndAlso IsDecimalDigit(ch) Then
                         Here += 1
                         While Peep(Here, ch) AndAlso IsDecimalDigit(ch)
                             Here += 1
@@ -1733,17 +1731,17 @@ FullWidthRepeat2:
                         End If
 
                     Case "U"c, "u"c
-                        If literalKind <> NumericLiteralKind.Float AndAlso CanGet(Here + 1) Then
-                            Dim NextChar As Char = Peek(Here + 1)
+                        If literalKind <> NumericLiteralKind.Float AndAlso Peep(Here + 1, ch) Then
+                            ' Dim ch As Char = Peek(Here + 1)
 
                             'unsigned suffixes - US, UL, UI
-                            If MatchOneOrAnotherOrFullwidth(NextChar, "S"c, "s"c) Then
+                            If MatchOneOrAnotherOrFullwidth(ch, "S"c, "s"c) Then
                                 TypeCharacter = TypeCharacter.UShortLiteral
                                 Here += 2
-                            ElseIf MatchOneOrAnotherOrFullwidth(NextChar, "I"c, "i"c) Then
+                            ElseIf MatchOneOrAnotherOrFullwidth(ch, "I"c, "i"c) Then
                                 TypeCharacter = TypeCharacter.UIntegerLiteral
                                 Here += 2
-                            ElseIf MatchOneOrAnotherOrFullwidth(NextChar, "L"c, "l"c) Then
+                            ElseIf MatchOneOrAnotherOrFullwidth(ch, "L"c, "l"c) Then
                                 TypeCharacter = TypeCharacter.ULongLiteral
                                 Here += 2
                             End If
@@ -1955,7 +1953,7 @@ FullWidthRepeat2:
             Dim YearIsTwoDigits As Boolean = False
             Dim DaysToMonth As Integer() = Nothing
             Dim yearIsFirst As Boolean = False
-            Dim ch As Char, sep1 As Char
+            Dim ch, cx As Char, sep1 As Char
             ' // Unfortunately, we can't fall back on OLE Automation's date parsing because
             ' // they don't have the same range as the URT's DateTime class
 
@@ -1993,12 +1991,11 @@ FullWidthRepeat2:
                         GoTo baddate
                     End If
 
-                    Dim c1 As Char
                     ' Do we have a day value?
-                    If Peep(Here, c1) AndAlso IsDateSeparatorCharacter(c1) Then
+                    If Peep(Here, cx) AndAlso IsDateSeparatorCharacter(cx) Then
                         ' // Check to see they used a consistent separator
 
-                        If c1 <> sep1 Then
+                        If cx <> sep1 Then
                             GoTo baddate
                         End If
 
@@ -2020,11 +2017,10 @@ FullWidthRepeat2:
                     End If
 
                     ' // Do we have a year value?
-                    Dim c1 As Char
-                    If Peep(Here, c1) AndAlso IsDateSeparatorCharacter(c1) Then
+                    If Peep(Here, cx) AndAlso IsDateSeparatorCharacter(cx) Then
                         ' // Check to see they used a consistent separator
 
-                        If c1 <> sep1 Then
+                        If cx <> sep1 Then
                             GoTo baddate
                         End If
 
@@ -2063,8 +2059,7 @@ FullWidthRepeat2:
 
             If HaveTimeValue Then
                 ' // Do we see a :?
-                Dim c1 As Char
-                If Peep(Here, c1) AndAlso IsColon(c1) Then
+                If Peep(Here, cx) AndAlso IsColon(cx) Then
                     Here += 1
 
                     ' // Now let's get the minute value
@@ -2077,7 +2072,7 @@ FullWidthRepeat2:
 
                     ' // Do we have a second value?
 
-                    If Peep(Here, c1) AndAlso IsColon(c1) Then
+                    If Peep(Here, cx) AndAlso IsColon(cx) Then
                         ' // Yes.
                         HaveSecondValue = True
                         Here += 1
@@ -2092,24 +2087,24 @@ FullWidthRepeat2:
 
                 ' // Check AM/PM
 
-                If Peep(Here, c1) Then
-                    If c1 = "A"c OrElse c1 = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
-                       c1 = "a"c OrElse c1 = FULLWIDTH_LATIN_SMALL_LETTER_A Then
+                If Peep(Here, cx) Then
+                    If cx = "A"c OrElse cx = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
+                       cx = "a"c OrElse cx = FULLWIDTH_LATIN_SMALL_LETTER_A Then
 
                         HaveAM = True
                         Here += 1
 
-                    ElseIf c1 = "P"c OrElse c1 = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
-                           c1 = "p"c OrElse c1 = FULLWIDTH_LATIN_SMALL_LETTER_P Then
+                    ElseIf cx = "P"c OrElse cx = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
+                           cx = "p"c OrElse cx = FULLWIDTH_LATIN_SMALL_LETTER_P Then
 
                         HavePM = True
                         Here += 1
 
                     End If
 
-                    If Peep(Here, c1) AndAlso (HaveAM OrElse HavePM) Then
-                        If c1 = "M"c OrElse c1 = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
-                           c1 = "m"c OrElse c1 = FULLWIDTH_LATIN_SMALL_LETTER_M Then
+                    If Peep(Here, cx) AndAlso (HaveAM OrElse HavePM) Then
+                        If cx = "M"c OrElse cx = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
+                           cx = "m"c OrElse cx = FULLWIDTH_LATIN_SMALL_LETTER_M Then
 
                             Here = GetWhitespaceLength(Here + 1)
 
@@ -2246,7 +2241,7 @@ baddate:
                 ' // No closing #
                 Return Nothing
             Else
-                Debug.Assert(IsHash(Peek(Here)))
+                Debug.Assert(IsHash(ch))
                 Here += 1  ' consume trailing #
                 Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
             End If
@@ -2262,22 +2257,22 @@ baddate:
 
             ' // Check for a Char literal, which can be of the form:
             ' // """"c or "<anycharacter-except-">"c
-            Dim c1, c2, c3, c4 As Char
-            If Peep(3, c3) AndAlso IsDoubleQuote(Peek(2)) Then
-                c1 = Peek(1)
-                If IsDoubleQuote(c1) Then
-                    If IsDoubleQuote(c3) AndAlso Peep(4, c4) AndAlso IsLetterC(c4) Then
+            Dim cx As Char
+            If Peep(3, cx) AndAlso IsDoubleQuote(Peek(2)) Then
+                ch = Peek(1)
+                If IsDoubleQuote(ch) Then
+                    If IsDoubleQuote(cx) AndAlso Peep(4, ch) AndAlso IsLetterC(ch) Then
 
                         ' // Double-quote Char literal: """"c
                         Return MakeCharacterLiteralToken(precedingTrivia, """"c, 5)
                     End If
 
-                ElseIf IsLetterC(c3) Then
+                ElseIf IsLetterC(cx) Then
                     ' // Char literal.  "x"c
-                    Return MakeCharacterLiteralToken(precedingTrivia, c1, 4)
+                    Return MakeCharacterLiteralToken(precedingTrivia, ch, 4)
                 End If
             End If
-            If Peep(2, c2) AndAlso IsDoubleQuote(Peek(1)) AndAlso IsLetterC(c2) Then
+            If Peep(2, ch) AndAlso IsDoubleQuote(Peek(1)) AndAlso IsLetterC(ch) Then
 
                 ' // Error. ""c is not a legal char constant
                 Return MakeBadToken(precedingTrivia, 3, ERRID.ERR_IllegalCharConstant)
