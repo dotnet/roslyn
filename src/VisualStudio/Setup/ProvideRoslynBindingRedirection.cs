@@ -53,11 +53,18 @@ namespace Roslyn.VisualStudio.Setup
         public override void Register(RegistrationContext context)
         {
             _redirectionAttribute.Register(context);
+
+            // Opt into overriding the devenv.exe.config binding redirect
+            using (var key = context.CreateKey(@"RuntimeConfiguration\dependentAssembly\bindingRedirection\" + _redirectionAttribute.Guid.ToString("B").ToUpperInvariant()))
+            {
+                key.SetValue("isPkgDefOverrideEnabled", true);
+            }
         }
 
         public override void Unregister(RegistrationContext context)
         {
             _redirectionAttribute.Unregister(context);
         }
+
     }
 }
