@@ -1516,7 +1516,7 @@ new List<ArgumentException>()
             scriptCompilation.VerifyAssemblyAliases(
                 "mscorlib: global,<host>",
                 "Microsoft.CodeAnalysis.Scripting: <host>,global",
-                "Microsoft.CodeAnalysis.Scripting.CSharp",
+                "Microsoft.CodeAnalysis.CSharp.Scripting",
                 "Microsoft.CodeAnalysis.CSharp: <implicit>,global",
                 "Microsoft.CodeAnalysis: <implicit>,<host>,global",
                 "System.Collections.Immutable: <implicit>,<host>,global",
@@ -1577,7 +1577,7 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
             scriptCompilation.VerifyDiagnostics();
 
             scriptCompilation.VerifyAssemblyAliases(
-                "Microsoft.CodeAnalysis.Scripting.CSharp",
+                "Microsoft.CodeAnalysis.CSharp.Scripting",
                 "mscorlib: global,<host>",
                 "Microsoft.CodeAnalysis.Scripting: global,<host>",
                 "System.Collections.Immutable: <implicit>,global,<host>",
