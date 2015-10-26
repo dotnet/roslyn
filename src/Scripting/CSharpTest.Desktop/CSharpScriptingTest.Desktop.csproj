@@ -10,8 +10,8 @@
     <ProjectGuid>{286B01F3-811A-40A7-8C1F-10C9BB0597F7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.CodeAnalysis.Scripting.CSharpTest</RootNamespace>
-    <AssemblyName>Microsoft.CodeAnalysis.Scripting.CSharp.Desktop.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
