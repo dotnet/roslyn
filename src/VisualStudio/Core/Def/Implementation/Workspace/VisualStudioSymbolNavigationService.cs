@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -16,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -82,6 +82,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             if (metadataLocation == null || !_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
                 return false;
+            }
+
+            // Should we prefer navigating to the Object Browser over metadata-as-source?
+            if (options.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
+            {
+                var libraryService = project.LanguageServices.GetService<ILibraryService>();
+                if (libraryService == null)
+                {
+                    return false;
+                }
+
+                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var navInfo = libraryService.NavInfo.CreateForSymbol(symbol, project, compilation);
+                if (navInfo == null)
+                {
+                    navInfo = libraryService.NavInfo.CreateForProject(project);
+                }
+
+                if (navInfo == null)
+                {
+                    return false;
+                }
+
+                var navigationTool = GetService<SVsObjBrowser, IVsNavigationTool>();
+                return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
             }
 
             // Generate new source or retrieve existing source for the symbol in question
@@ -297,9 +322,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return false;
         }
 
-        private I GetService<S, I>()
+        private TInterface GetService<TService, TInterface>()
         {
-            var service = (I)_serviceProvider.GetService(typeof(S));
+            var service = (TInterface)_serviceProvider.GetService(typeof(TService));
             Debug.Assert(service != null);
             return service;
         }

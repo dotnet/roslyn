@@ -47,12 +47,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             return new NavInfo(this, libraryName: reference.Display);
         }
 
+        public IVsNavInfo CreateForSymbol(ISymbol symbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
+        {
+            var assemblySymbol = symbol as IAssemblySymbol;
+            if (assemblySymbol != null)
+            {
+                return CreateForAssembly(assemblySymbol);
+            }
+
+            var aliasSymbol = symbol as IAliasSymbol;
+            if (aliasSymbol != null)
+            {
+                symbol = aliasSymbol.Target;
+            }
+
+            var namespaceSymbol = symbol as INamespaceSymbol;
+            if (namespaceSymbol != null)
+            {
+                return CreateForNamespace(namespaceSymbol, project, compilation, useExpandedHierarchy);
+            }
+
+            var typeSymbol = symbol as ITypeSymbol;
+            if (typeSymbol != null)
+            {
+                return CreateForType(typeSymbol, project, compilation, useExpandedHierarchy);
+            }
+
+            if (symbol.Kind == SymbolKind.Event ||
+                symbol.Kind == SymbolKind.Field ||
+                symbol.Kind == SymbolKind.Method ||
+                symbol.Kind == SymbolKind.Property)
+            {
+                return CreateForMember(symbol, project, compilation, useExpandedHierarchy);
+            }
+
+            return null;
+        }
+
         public IVsNavInfo CreateForAssembly(IAssemblySymbol assemblySymbol)
         {
             return new NavInfo(this, libraryName: assemblySymbol.Identity.GetDisplayName());
         }
 
-        public IVsNavInfo CreateForNamespace(INamespaceSymbol namespaceSymbol, Project project, Compilation compilation, bool useExpandedHierarchy)
+        public IVsNavInfo CreateForNamespace(INamespaceSymbol namespaceSymbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
             return Create(
                 namespaceSymbol.ContainingAssembly,
@@ -62,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 namespaceName: GetNamespaceName(namespaceSymbol));
         }
 
-        public IVsNavInfo CreateForType(ITypeSymbol typeSymbol, Project project, Compilation compilation, bool useExpandedHierarchy)
+        public IVsNavInfo CreateForType(ITypeSymbol typeSymbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
             while (typeSymbol != null)
             {
@@ -103,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 className: GetClassName(typeSymbol));
         }
 
-        public IVsNavInfo CreateForMember(ISymbol memberSymbol, Project project, Compilation compilation, bool useExpandedHierarchy)
+        public IVsNavInfo CreateForMember(ISymbol memberSymbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
             return Create(
                 memberSymbol.ContainingAssembly,
@@ -115,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 memberName: GetMemberName(memberSymbol));
         }
 
-        private IVsNavInfo Create(IAssemblySymbol containingAssembly, Project project, Compilation compilation, bool useExpandedHierarchy,
+        private IVsNavInfo Create(IAssemblySymbol containingAssembly, Project project, Compilation compilation, bool useExpandedHierarchy = false,
             string namespaceName = null, string className = null, string memberName = null)
         {
             // useExpandedHierarchy is true when references are nested inside the project by the

@@ -115,6 +115,8 @@
     <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="RoslynPackage.cs" />
