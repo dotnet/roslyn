@@ -557,14 +557,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
         internal event Action<State> StateChanged;
 
-        internal void Undo(int count)
+        internal void Undo_TestOnly(int count)
         {
-            UIThread(uiOnly => uiOnly.UndoHistory.Undo(count));
+            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Undo(count));
         }
 
-        internal void Redo(int count)
+        internal void Redo_TestOnly(int count)
         {
-            UIThread(uiOnly => uiOnly.UndoHistory.Redo(count));
+            UIThread(uiOnly => uiOnly.UndoHistory_TestOnly.Redo(count));
         }
 
         #endregion

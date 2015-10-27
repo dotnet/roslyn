@@ -1507,7 +1507,7 @@ System.Console.WriteLine();",
             await SubmitAsync("1", "2", "1 + 2").ConfigureAwait(true);
         }
 
-        [WorkItem(6054)]
+        [WorkItem(6054, "https://github.com/dotnet/roslyn/issues/6054")]
         [WpfFact]
         public void UndoMultiLinePaste()
         {
@@ -1521,11 +1521,11 @@ System.Console.WriteLine();",
             Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
 
             // undo paste
-            ((InteractiveWindow)Window).Undo(1);
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
 
             // redo paste
-            ((InteractiveWindow)Window).Redo(1);
+            ((InteractiveWindow)Window).Redo_TestOnly(1);
             Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
 
 
@@ -1539,11 +1539,11 @@ System.Console.WriteLine();",
             Assert.Equal("> 4\r\n> 5\r\n> 6", GetTextFromCurrentSnapshot());
 
             // undo replace
-            ((InteractiveWindow)Window).Undo(1);
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
             Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
 
             // undo paste
-            ((InteractiveWindow)Window).Undo(1);
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
             Assert.Equal("> ", GetTextFromCurrentSnapshot());
         }
 

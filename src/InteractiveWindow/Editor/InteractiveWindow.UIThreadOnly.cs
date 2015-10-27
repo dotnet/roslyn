@@ -40,12 +40,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private readonly IInteractiveWindowEditorFactoryService _factory;
 
             private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
-            private ITextBufferUndoManager UndoManager { set; get; }
-            public ITextUndoHistory UndoHistory
+            private ITextBufferUndoManager _undoManager;
+            // this is exposed only for test purpose
+            public ITextUndoHistory UndoHistory_TestOnly
             {
                 get
                 {
-                    return UndoManager.TextBufferUndoHistory;
+                    return _undoManager.TextBufferUndoHistory;
                 }
             }
 
@@ -595,42 +596,39 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             public bool Paste()
             {
                 // Get text from clipboard
-                string code;
-                string format = Evaluator.FormatClipboard();
-                if (format != null)
+                string code = Evaluator.FormatClipboard();
+                if (code == null)
                 {
-                    code = format;
-                }
-                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
-                {
-                    var sb = new StringBuilder();
-                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
-
-                    foreach (var block in blocks)
+                    if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
                     {
-                        switch (block.Kind)
+                        var sb = new StringBuilder();
+                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
+
+                        foreach (var block in blocks)
                         {
-                            case ReplSpanKind.Input:
-                            case ReplSpanKind.Output:
-                            case ReplSpanKind.StandardInput:
-                                sb.Append(block.Content);
-                                break;
+                            switch (block.Kind)
+                            {
+                                case ReplSpanKind.Input:
+                                case ReplSpanKind.Output:
+                                case ReplSpanKind.StandardInput:
+                                    sb.Append(block.Content);
+                                    break;
+                            }
                         }
+                        code = sb.ToString();
                     }
-                    code = sb.ToString();
-                }
-                else if (_window.InteractiveWindowClipboard.ContainsText())
-                {
-                    code = _window.InteractiveWindowClipboard.GetText();
-                }
-                else
-                {
-                    return false;
+                    else if (_window.InteractiveWindowClipboard.ContainsText())
+                    {
+                        code = _window.InteractiveWindowClipboard.GetText();
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
-                using (var transaction = UndoHistory.CreateTransaction(InteractiveWindowResources.Paste))
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Paste))
                 {
-
                     // Delete selected text if there's any and adjust caret position
                     if (!TextView.Selection.IsEmpty)
                     {
@@ -651,7 +649,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     {
                         return false;
                     }
-
                     // do the paste and complete the transaction
                     InsertCode(code);
                     transaction.Complete();
@@ -1403,11 +1400,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private void AddLanguageBuffer()
             {
                 ITextBuffer buffer = _factory.CreateAndActivateBuffer(_window);
-                if (CurrentLanguageBuffer != null)
-                {
-                    _textBufferUndoManagerProvider.RemoveTextBufferUndoManager(CurrentLanguageBuffer);
-                }
-                UndoManager = _textBufferUndoManagerProvider.GetTextBufferUndoManager(buffer);
+
+                _undoManager = _textBufferUndoManagerProvider.GetTextBufferUndoManager(buffer);
 
                 buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), Evaluator);
                 buffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
