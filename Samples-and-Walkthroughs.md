@@ -20,7 +20,5 @@ Before working through the walkthroughs below, you should first familiarize your
 * Getting Started - Semantic Analysis ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Semantic-Analysis) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Semantic-Analysis))
 * Getting Started - Syntax Transformation ([VB](https://github.com/dotnet/roslyn/wiki/Getting-Started-VB-Syntax-Transformation) | [C#](https://github.com/dotnet/roslyn/wiki/Getting-Started-C%23-Syntax-Transformation))
 
-## Diagnostics and Code Fixes
-* [How To Write a Diagnostic and Code Fix (CSharp).pdf](../blob/master/docs/samples/csharp-diag.pdf) or [Word docx](../blob/master/docs/samples/csharp-diag.docx)
-* [How To Write a Diagnostic and Code Fix (VB).pdf](../blob/master/docs/samples/vb-diag.pdf) or [Word docx](../blob/master/docs/samples/vb-diag.docx)
-
+## Analyzers and Code Fixes
+* How To Write an Analyzer and Code Fix ([VB](https://github.com/dotnet/roslyn/wiki/How-To-Write-a-Visual-Basic-Analyzer-and-Code-Fix) | [C#](https://github.com/dotnet/roslyn/wiki/How-To-Write-a-C%23-Analyzer-and-Code-Fix))
