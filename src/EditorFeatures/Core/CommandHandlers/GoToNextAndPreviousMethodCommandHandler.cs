@@ -128,7 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
                 if (indexOfCurrentMember == members.Count)
                 {
-                    // After the last member, count ourselves as part of
+                    // After the last member, count ourselves as part of that last member, so that we wrap
+                    // to the first, or back to the beginning of last.
                     indexOfCurrentMember--;
                 }
 
