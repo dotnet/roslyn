@@ -1,6 +1,6 @@
 ﻿Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Public Class VisualBasicGoToNextAndPreviousMemberTests
