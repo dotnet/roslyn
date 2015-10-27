@@ -1633,7 +1633,7 @@ class C
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("is")
                     Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                    state.AssertSelectedCompletionItem("IsInterned")
+                    Await state.AssertSelectedCompletionItem("IsInterned").ConfigureAwait(True)
                 End Using
             End Using
 
@@ -1652,7 +1652,7 @@ class C
                 string.$$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.ToList())
                     state.SendTypeChars("ı")
                     Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                    state.AssertSelectedCompletionItem()
+                    Await state.AssertSelectedCompletionItem().ConfigureAwait(True)
                 End Using
             End Using
 
