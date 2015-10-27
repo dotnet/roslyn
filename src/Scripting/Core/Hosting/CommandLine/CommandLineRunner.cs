@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#pragma warning disable 436 // The type 'RelativePathResolver' comflicts with imported type
+#pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
 using System.Collections.Generic;
@@ -140,13 +140,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return null;
             }
 
-            // TODO: https://github.com/dotnet/roslyn/issues/5854
-            var importedNamespaces = arguments.CompilationOptions.GetImports();
-
             return new ScriptOptions(
                 filePath: scriptPathOpt ?? "", 
                 references: ImmutableArray.CreateRange(resolvedReferences),
-                namespaces: importedNamespaces,
+                namespaces: CommandLineHelpers.GetImports(arguments),
                 metadataResolver: metadataResolver,
                 sourceResolver: sourceResolver);
         }
@@ -160,13 +157,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
-                    return MetadataReference.CreateFromFile(path);
+                    return MetadataReference.CreateFromFile(path, properties);
                 });
         }
 
         internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
-            return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, loggerOpt);
+            return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty, loggerOpt);
         }
 
         private int RunScript(ScriptOptions options, string code, ErrorLogger errorLogger, CancellationToken cancellationToken)
@@ -174,13 +171,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var globals = new CommandLineScriptGlobals(_console.Out, _objectFormatter);
             globals.Args.AddRange(_compiler.Arguments.ScriptArguments);
 
-            var script = Script.CreateInitialScript<object>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
+            var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
-                script.RunAsync(globals, cancellationToken).Wait();
-
-                // TODO: use the return value of the script https://github.com/dotnet/roslyn/issues/5773
-                return CommonCompiler.Succeeded;
+                return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
             }
             catch (CompilationErrorException e)
             {

@@ -618,7 +618,7 @@ class C { }
 
         End Sub
 
-        <ConditionalWpfFact(GetType(x86), Skip:="https://github.com/dotnet/roslyn/issues/5800"), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub AddAttributeArgument3()
             Dim code =
 <Code>
@@ -639,6 +639,26 @@ class CAttribute : Attribute { }
             TestAddAttributeArgument(code, expectedCode, New AttributeArgumentData With {.Name = "AllowMultiple", .Value = "false", .Position = 1})
 
         End Sub
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub AddAttributeArgumentStress()
+            Dim code =
+<Code>
+[$$A]
+class C
+{
+}
+</Code>
+
+            TestElement(code,
+                Sub(codeAttribute)
+                    For i = 1 To 100
+                        Dim value = i.ToString()
+                        Dim codeAttributeArgument = codeAttribute.AddArgument(value, Position:=1)
+                    Next
+                End Sub)
+        End Sub
+
 #End Region
 
 #Region "Delete tests"

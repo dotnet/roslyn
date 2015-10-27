@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
-    public sealed class CSharpInteractiveEvaluator : InteractiveEvaluator
+    internal sealed class CSharpInteractiveEvaluator : InteractiveEvaluator
     {
         private static readonly CSharpParseOptions s_parseOptions =
             new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Script);
@@ -50,13 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
             get { return s_parseOptions; }
         }
 
-        protected override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver)
+        protected override CompilationOptions GetSubmissionCompilationOptions(string name, MetadataReferenceResolver metadataReferenceResolver, SourceReferenceResolver sourceReferenceResolver, ImmutableArray<string> imports)
         {
             return new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
                 scriptClassName: name,
                 allowUnsafe: true,
                 xmlReferenceResolver: null, // no support for permission set and doc includes in interactive
+                usings: imports,
                 sourceReferenceResolver: sourceReferenceResolver,
                 metadataReferenceResolver: metadataReferenceResolver,
                 assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default);

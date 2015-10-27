@@ -456,7 +456,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         ''' </summary>
         ''' <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
         ''' <param name="includeSelf">If true, the container Is returned as well.</param>
-        ''' <param name="recursive">If true, members are recursed to return descendent members as well
+        ''' <param name="recursive">If true, members are recursed to return descendant members as well
         ''' as immediate children. For example, a namespace would return the namespaces And types within.
         ''' However, if <paramref name="recursive"/> Is true, members with the namespaces And types would
         ''' also be returned.</param>
@@ -899,7 +899,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case SyntaxKind.OmittedArgument
                     Return String.Empty
                 Case SyntaxKind.Parameter
-                    Return DirectCast(node, ParameterSyntax).Identifier.Identifier.ToString()
+                    Return GetParameterName(node)
                 Case SyntaxKind.OptionStatement
                     Return GetNormalizedName(node)
                 Case SyntaxKind.SimpleImportsClause
@@ -2873,7 +2873,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             If typeSymbol Is Nothing Then
                 ' If no type is specified (e.g. CodeElement.Type = Nothing), we just convert to a Sub
-                ' it it isn't one already.
+                ' if it isn't one already.
                 If delegateStatement.IsKind(SyntaxKind.DelegateFunctionStatement) Then
                     delegateStatement = SyntaxFactory.DelegateSubStatement(
                         attributeLists:=delegateStatement.AttributeLists,
@@ -3037,7 +3037,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             If typeSymbol Is Nothing Then
                 ' If no type is specified (e.g. CodeElement.Type = Nothing), we just convert to a Sub
-                ' it it isn't one already.
+                ' if it isn't one already.
                 If declareStatement.IsKind(SyntaxKind.DeclareFunctionStatement) Then
                     declareStatement = SyntaxFactory.DeclareSubStatement(
                         attributeLists:=declareStatement.AttributeLists,
@@ -3093,7 +3093,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             If typeSymbol Is Nothing Then
                 ' If no type is specified (e.g. CodeElement.Type = Nothing), we just convert to a Sub
-                ' it it isn't one already.
+                ' if it isn't one already.
                 If methodStatement.IsKind(SyntaxKind.FunctionStatement) Then
                     methodStatement = SyntaxFactory.SubStatement(
                         attributeLists:=methodStatement.AttributeLists,

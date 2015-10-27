@@ -23,7 +23,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         private readonly MetadataReader _reader;
 
-        // { last part of document name -> one or many document handles that have the part in commmon }
+        // { last part of document name -> one or many document handles that have the part in common }
         private readonly IReadOnlyDictionary<string, KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>>> _map;
 
         public DocumentMap(MetadataReader reader)

@@ -3080,7 +3080,7 @@ class Program
         }
 
         // After @ both X and XAttribute are legal. We think this is an edge case in the language and
-        // are not fixing the bug 11931. This test captures that XAttribute doesnt show up indeed.
+        // are not fixing the bug 11931. This test captures that XAttribute doesn't show up indeed.
         [WorkItem(11931, "DevDiv_Projects/Roslyn")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void VerbatimAttributes()

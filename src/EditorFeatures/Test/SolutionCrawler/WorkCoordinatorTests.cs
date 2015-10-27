@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public void RegisterService()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var registrationService = new SolutionCrawlerRegistrationService(
                     SpecializedCollections.EmptyEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>>(),
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact, WorkItem(747226)]
         public async Task SolutionAdded_Simple()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solutionId = SolutionId.CreateNewId();
                 var projectId = ProjectId.CreateNewId();
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task SolutionAdded_Complex()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
 
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Solution_Remove()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Solution_Clear()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Solution_Reload()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Solution_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Project_Add()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Project_Remove()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Project_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Project_AssemblyName_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Project_AnalyzerOptions_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solutionInfo = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solutionInfo);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Project_Reload()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Document_Add()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Document_Remove()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Document_Reload()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Document_Reanalyze()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -313,11 +313,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 service.Register(workspace);
 
                 // don't rely on background parser to have tree. explicitly do it here.
-                TouchEverything(workspace.CurrentSolution);
+                await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
                 service.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable<DocumentId>(info.Id));
 
-                TouchEverything(workspace.CurrentSolution);
+                await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
                 await WaitAsync(service, workspace).ConfigureAwait(true);
 
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public async Task Document_Change()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WpfFact]
         public async Task Document_AdditionalFileChange()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public async Task Document_Cancellation()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public async Task Document_Cancellation_MultipleTimes()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         [WorkItem(670335)]
         public async Task Document_InvocationReasons()
         {
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 var solution = GetInitialSolutionInfo(workspace);
                 workspace.OnSolutionAdded(solution);
@@ -700,7 +700,7 @@ End Class";
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider).ConfigureAwait(true);
@@ -727,7 +727,7 @@ End Class";
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
-            using (var workspace = new WorkCoordinatorWorkspace(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), SolutionCrawler))
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
                 await WaitWaiterAsync(workspace.ExportProvider).ConfigureAwait(true);
 
@@ -809,9 +809,9 @@ End Class";
             service.Register(workspace);
 
             // don't rely on background parser to have tree. explicitly do it here.
-            TouchEverything(workspace.CurrentSolution);
+            await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
             operation(workspace);
-            TouchEverything(workspace.CurrentSolution);
+            await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
             await WaitAsync(service, workspace).ConfigureAwait(true);
 
@@ -820,15 +820,15 @@ End Class";
             return worker;
         }
 
-        private void TouchEverything(Solution solution)
+        private async Task TouchEverything(Solution solution)
         {
             foreach (var project in solution.Projects)
             {
                 foreach (var document in project.Documents)
                 {
-                    document.GetTextAsync().PumpingWait();
-                    document.GetSyntaxRootAsync().PumpingWait();
-                    document.GetSemanticModelAsync().PumpingWait();
+                    await document.GetTextAsync().ConfigureAwait(true);
+                    await document.GetSyntaxRootAsync().ConfigureAwait(true);
+                    await document.GetSemanticModelAsync().ConfigureAwait(true);
                 }
             }
         }
@@ -941,8 +941,8 @@ End Class";
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
             private readonly IAsynchronousOperationWaiter _solutionCrawlerWaiter;
 
-            public WorkCoordinatorWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
-                : base(exportProvider, workspaceKind, disablePartialSolutions)
+            public WorkCoordinatorWorkspace(string workspaceKind = null, bool disablePartialSolutions = true)
+                : base(TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic(), workspaceKind, disablePartialSolutions)
             {
                 _workspaceWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.Workspace).Value as IAsynchronousOperationWaiter;
                 _solutionCrawlerWaiter = GetListeners(ExportProvider).First(l => l.Metadata.FeatureName == FeatureAttribute.SolutionCrawler).Value as IAsynchronousOperationWaiter;
@@ -955,9 +955,8 @@ End Class";
             {
                 base.Dispose(finalize);
 
-                // Bug https://github.com/dotnet/roslyn/issues/5915
-                // Assert.False(_workspaceWaiter.HasPendingWork);
-                // Assert.False(_solutionCrawlerWaiter.HasPendingWork);
+                Assert.False(_workspaceWaiter.HasPendingWork);
+                Assert.False(_solutionCrawlerWaiter.HasPendingWork);
             }
         }
 

@@ -10,4 +10,7 @@
   "frameworks": {
     "net46": { }
   },
+  "runtimes": {
+    "win7-x86": { }
+  }
 }

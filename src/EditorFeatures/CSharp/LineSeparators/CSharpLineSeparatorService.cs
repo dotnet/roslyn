@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LineSeparator
     {
         /// <summary>
         /// Given a tree returns line separator spans.
-        /// The operation may take fairly long time on a big tree so it is cancelable.
+        /// The operation may take fairly long time on a big tree so it is cancellable.
         /// </summary>
         public async Task<IEnumerable<TextSpan>> GetLineSeparatorsAsync(
             Document document,

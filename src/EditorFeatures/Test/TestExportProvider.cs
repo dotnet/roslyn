@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             {
                 if (t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic == null)
                 {
-                    t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic = new Lazy<ComposableCatalog>(() => MinimalTestExportProvider.CreateAssemblyCatalog(GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetVisualStudioAssemblies())));
+                    t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic = new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
                 }
 
                 return t_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
@@ -125,9 +124,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .ToArray();
         }
 
+        /// <summary>
+        /// Create fresh ExportProvider that doesnt share anything with others. 
+        /// test can use this export provider to create all new MEF components not shared with others.
+        /// </summary>
         public static ExportProvider CreateExportProviderWithCSharpAndVisualBasic()
         {
-            return MinimalTestExportProvider.CreateExportProvider(EntireAssemblyCatalogWithCSharpAndVisualBasic);
+            return MinimalTestExportProvider.CreateExportProvider(CreateAssemblyCatalogWithCSharpAndVisualBasic());
+        }
+
+        /// <summary>
+        /// Create fresh ComposableCatalog that doesnt share anything with others.
+        /// everything under this catalog should have been created from scratch that doesnt share anything with others.
+        /// </summary>
+        public static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
+        {
+            return MinimalTestExportProvider.CreateAssemblyCatalog(
+                GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetVisualStudioAssemblies()),
+                MinimalTestExportProvider.CreateResolver());
         }
     }
 }

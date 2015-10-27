@@ -104,6 +104,7 @@
     <Compile Include="BuildProtocolTest.cs" />
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
+    <Compile Include="EndToEndDeterminismTest.cs" />
     <Compile Include="MockEngine.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
   </ItemGroup>

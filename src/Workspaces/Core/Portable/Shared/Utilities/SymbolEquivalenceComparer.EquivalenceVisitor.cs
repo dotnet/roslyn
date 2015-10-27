@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return false;
                 }
 
-                // Above check makes sure that the containing assemblies are considered the same by the the assembly comparer being used.
+                // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
                 // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
                 // to equivalentTypesWithDifferingAssemblies map.
                 if (equivalentTypesWithDifferingAssemblies != null &&

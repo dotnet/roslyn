@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     /// this is a workaround to get different workspace per host without text buffer
     /// 
     /// currently, any feature that doesn't work on top of a buffer imports specific type of workspace explicitly. there is
-    /// no broker inbetween - unlike features that work on top of text buffers. so these components end up tightly coupled with specific
+    /// no broker in-between - unlike features that work on top of text buffers. so these components end up tightly coupled with specific
     /// kind of host, and can't be re-used in other host even if code itself could be.
     /// 
     /// this is a workaround interface for that limitation. 

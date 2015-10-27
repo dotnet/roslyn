@@ -52,23 +52,55 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly MetadataImageKind _kind;
             private readonly int _index;
-            private readonly ImmutableArray<string> _aliases;
+            private readonly ImmutableArray<string> _aliasesOpt;
+            private readonly ImmutableArray<string> _recursiveAliasesOpt;
 
-            public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliases)
+            // uninitialized aliases
+            public ResolvedReference(int index, MetadataImageKind kind)
             {
                 Debug.Assert(index >= 0);
-
                 _index = index + 1;
                 _kind = kind;
-                _aliases = aliases;
             }
 
-            public ImmutableArray<string> Aliases
+            // initialized aliases
+            public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt)
+                : this(index, kind)
+            {
+                // We have to have non-default aliases (empty are ok). We can have both recursive and non-recursive aliases if two references were merged.
+                Debug.Assert(!aliasesOpt.IsDefault || !recursiveAliasesOpt.IsDefault);
+
+                _aliasesOpt = aliasesOpt;
+                _recursiveAliasesOpt = recursiveAliasesOpt;
+            }
+
+            private bool IsUninitialized => _aliasesOpt.IsDefault && _recursiveAliasesOpt.IsDefault;
+
+            /// <summary>
+            /// Aliases that should be applied to the referenced assembly. 
+            /// Empty array means {"global"} (all namespaces and types in the global namespace of the assembly are accessible without qualification).
+            /// Null if not applicable (the reference only has recursive aliases).
+            /// </summary>
+            public ImmutableArray<string> AliasesOpt
             {
                 get
                 {
-                    Debug.Assert(!_aliases.IsDefault);
-                    return _aliases;
+                    Debug.Assert(!IsUninitialized);
+                    return _aliasesOpt;
+                }
+            }
+
+            /// <summary>
+            /// Aliases that should be applied recursively to all dependent assemblies. 
+            /// Empty array means {"global"} (all namespaces and types in the global namespace of the assembly are accessible without qualification).
+            /// Null if not applicable (the reference only has simple aliases).
+            /// </summary>
+            public ImmutableArray<string> RecursiveAliasesOpt
+            {
+                get
+                {
+                    Debug.Assert(!IsUninitialized);
+                    return _recursiveAliasesOpt;
                 }
             }
 
@@ -106,7 +138,12 @@ namespace Microsoft.CodeAnalysis
 
             private string GetDebuggerDisplay()
             {
-                return IsSkipped ? "<skipped>" : $"{(_kind == MetadataImageKind.Assembly ? "A" : "M")}[{Index}]: aliases='{string.Join("','", _aliases)}'";
+                return IsSkipped ? "<skipped>" : $"{(_kind == MetadataImageKind.Assembly ? "A" : "M")}[{Index}]:{DisplayAliases(_aliasesOpt, "aliases")}{DisplayAliases(_recursiveAliasesOpt, "recursive-aliases")}";
+            }
+
+            private static string DisplayAliases(ImmutableArray<string> aliasesOpt, string name)
+            {
+                return aliasesOpt.IsDefault ? "" : $" {name} = '{string.Join("','", aliasesOpt)}'";
             }
         }
 
@@ -156,7 +193,7 @@ namespace Microsoft.CodeAnalysis
 
             // Maps references that were added to the reference set (i.e. not filtered out as duplicates) to a set of names that 
             // can be used to alias these references. Duplicate assemblies contribute their aliases into this set.
-            Dictionary<MetadataReference, ArrayBuilder<string>> aliasMap = null;
+            Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
 
             // Used to filter out duplicate references that reference the same file (resolve to the same full normalized path).
             var boundReferences = new Dictionary<MetadataReference, MetadataReference>(MetadataReferenceEqualityComparer.Instance);
@@ -187,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                     // merge properties of compilation-based references if the underlying compilations are the same
                     if ((object)boundReference != existingReference)
                     {
-                        MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
+                        MergeReferenceProperties(existingReference, boundReference, diagnostics, ref lazyAliasMap);
                     }
 
                     continue;
@@ -223,7 +260,7 @@ namespace Microsoft.CodeAnalysis
 
                             if (existingReference != null)
                             {
-                                MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
+                                MergeReferenceProperties(existingReference, boundReference, diagnostics, ref lazyAliasMap);
                                 continue;
                             }
 
@@ -270,7 +307,7 @@ namespace Microsoft.CodeAnalysis
 
                                 if (existingReference != null)
                                 {
-                                    MergeReferenceProperties(existingReference, boundReference, diagnostics, ref aliasMap);
+                                    MergeReferenceProperties(existingReference, boundReference, diagnostics, ref lazyAliasMap);
                                     continue;
                                 }
 
@@ -344,7 +381,7 @@ namespace Microsoft.CodeAnalysis
                         : ((object)modulesBuilder == null ? 0 : modulesBuilder.Count);
 
                     int reversedIndex = count - 1 - referenceMap[i].Index;
-                    referenceMap[i] = new ResolvedReference(reversedIndex, referenceMap[i].Kind, GetAndFreeAliases(references[i], aliasMap));
+                    referenceMap[i] = GetResolvedReferenceAndFreePropertyMapEntry(references[i], reversedIndex, referenceMap[i].Kind, lazyAliasMap);
                 }
             }
 
@@ -371,15 +408,28 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray.CreateRange(referenceMap);
         }
 
-        private static ImmutableArray<string> GetAndFreeAliases(MetadataReference reference, Dictionary<MetadataReference, ArrayBuilder<string>> aliasMapOpt)
+        private static ResolvedReference GetResolvedReferenceAndFreePropertyMapEntry(MetadataReference reference, int index, MetadataImageKind kind, Dictionary<MetadataReference, MergedAliases> propertyMapOpt)
         {
-            ArrayBuilder<string> aliases;
-            if (aliasMapOpt != null && aliasMapOpt.TryGetValue(reference, out aliases))
+            ImmutableArray<string> aliasesOpt, recursiveAliasesOpt;
+
+            MergedAliases mergedProperties;
+            if (propertyMapOpt != null && propertyMapOpt.TryGetValue(reference, out mergedProperties))
             {
-                return aliases.ToImmutableAndFree();
+                aliasesOpt = mergedProperties.AliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
+                recursiveAliasesOpt = mergedProperties.RecursiveAliasesOpt?.ToImmutableAndFree() ?? default(ImmutableArray<string>);
+            }
+            else if (reference.Properties.HasRecursiveAliases)
+            {
+                aliasesOpt = default(ImmutableArray<string>);
+                recursiveAliasesOpt = reference.Properties.Aliases;
+            }
+            else
+            {
+                aliasesOpt = reference.Properties.Aliases;
+                recursiveAliasesOpt = default(ImmutableArray<string>);
             }
 
-            return reference.Properties.Aliases;
+            return new ResolvedReference(index, kind, aliasesOpt, recursiveAliasesOpt);
         }
 
         /// <summary>
@@ -505,43 +555,27 @@ namespace Microsoft.CodeAnalysis
         /// Merges aliases of the first observed reference (<paramref name="primaryReference"/>) with aliases specified for an equivalent reference (<paramref name="newReference"/>).
         /// Empty alias list is considered to be the same as a list containing "global", since in both cases C# allows unqualified access to the symbols.
         /// </summary>
-        private void MergeReferenceProperties(MetadataReference primaryReference, MetadataReference newReference, DiagnosticBag diagnostics, ref Dictionary<MetadataReference, ArrayBuilder<string>> aliasMap)
+        private void MergeReferenceProperties(MetadataReference primaryReference, MetadataReference newReference, DiagnosticBag diagnostics, ref Dictionary<MetadataReference, MergedAliases> lazyAliasMap)
         {
             if (!CheckPropertiesConsistency(newReference, primaryReference, diagnostics))
             {
                 return;
             }
 
-            if (aliasMap == null)
+            if (lazyAliasMap == null)
             {
-                aliasMap = new Dictionary<MetadataReference, ArrayBuilder<string>>();
+                lazyAliasMap = new Dictionary<MetadataReference, MergedAliases>();
             }
 
-            ArrayBuilder<string> aliases;
-            if (!aliasMap.TryGetValue(primaryReference, out aliases))
+            MergedAliases mergedAliases;
+            if (!lazyAliasMap.TryGetValue(primaryReference, out mergedAliases))
             {
-                aliases = ArrayBuilder<string>.GetInstance();
-                aliasMap.Add(primaryReference, aliases);
-
-                if (primaryReference.Properties.Aliases.IsEmpty)
-                {
-                    aliases.Add(MetadataReferenceProperties.GlobalAlias);
-                }
-                else
-                {
-                    aliases.AddRange(primaryReference.Properties.Aliases);
-                }
+                mergedAliases = new MergedAliases();
+                lazyAliasMap.Add(primaryReference, mergedAliases);
+                mergedAliases.Merge(primaryReference);
             }
 
-            // we could avoid duplicates but there is no need to do so:
-            if (newReference.Properties.Aliases.IsEmpty)
-            {
-                aliases.Add(MetadataReferenceProperties.GlobalAlias);
-            }
-            else
-            {
-                aliases.AddRange(newReference.Properties.Aliases);
-            }
+            mergedAliases.Merge(newReference);
         }
 
         /// <remarks>
@@ -555,7 +589,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // aliases will be filled in later:
-            referenceMap[referenceIndex] = new ResolvedReference(assemblies.Count, MetadataImageKind.Assembly, default(ImmutableArray<string>));
+            referenceMap[referenceIndex] = new ResolvedReference(assemblies.Count, MetadataImageKind.Assembly);
             assemblies.Add(data);
         }
 
@@ -569,7 +603,7 @@ namespace Microsoft.CodeAnalysis
                 modules = ArrayBuilder<PEModule>.GetInstance();
             }
 
-            referenceMap[referenceIndex] = new ResolvedReference(modules.Count, MetadataImageKind.Module, default(ImmutableArray<string>));
+            referenceMap[referenceIndex] = new ResolvedReference(modules.Count, MetadataImageKind.Module);
             modules.Add(module);
         }
 
@@ -756,7 +790,7 @@ namespace Microsoft.CodeAnalysis
             // checked earlier:
             Debug.Assert(compilation.Options.MetadataReferenceResolver != null);
 
-            var references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly);
+            var references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly.WithRecursiveAliases(true));
             if (references.IsDefaultOrEmpty)
             {
                 return null;

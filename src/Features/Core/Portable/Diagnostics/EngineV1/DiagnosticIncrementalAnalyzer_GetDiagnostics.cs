@@ -414,8 +414,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 if (document != null)
                 {
                     Contract.Requires(stateType != StateType.Project);
-                    var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    return new DiagnosticAnalyzerDriver(document, root.FullSpan, root, this.Owner, cancellationToken);
+                    var root = document.SupportsSyntaxTree ? await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
+                    return new DiagnosticAnalyzerDriver(document, root?.FullSpan, root, this.Owner, cancellationToken);
                 }
 
                 var project = documentOrProject as Project;

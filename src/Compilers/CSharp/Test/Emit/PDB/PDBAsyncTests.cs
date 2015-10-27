@@ -301,6 +301,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
     </method>
     <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"">
       <customDebugInfo>
+        <forward declaringType=""TestCase"" methodName="".cctor"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""86"" />
           <slot kind=""20"" offset=""86"" />

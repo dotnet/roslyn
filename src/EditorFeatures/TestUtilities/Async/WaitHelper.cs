@@ -35,28 +35,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public static async Task<bool> WhenAll(this IEnumerable<Task> tasks, TimeSpan timeout)
-        {
-            var delay = Task.Delay(timeout);
-            var list = tasks.Where(x => !x.IsCompleted).ToList();
-
-            list.Add(delay);
-            do
-            {
-                await Task.WhenAny(list).ConfigureAwait(true);
-                list.RemoveAll(x => x.IsCompleted);
-                if (list.Count == 0)
-                {
-                    return true;
-                }
-
-                if (delay.IsCompleted)
-                {
-                    return false;
-                }
-            } while (true);
-        }
-
         public static void WaitForDispatchedOperationsToComplete(DispatcherPriority priority)
         {
             Action action = delegate { };

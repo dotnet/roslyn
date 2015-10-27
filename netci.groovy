@@ -53,6 +53,22 @@ static void addWrappers(def myJob) {
   }
 }
 
+static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
+  myJob.with {
+    publishers {
+      archiveArtifacts {
+        allowEmpty(false)
+        defaultExcludes(false)
+        exclude(excludeString)
+        fingerprint(false)
+        latestOnly(false)
+        onlyIfSuccessful(false)
+        pattern(patternString)
+      }
+    }
+  }
+}
+
 static void addEmailPublisher(def myJob) {
   myJob.with {
     publishers {
@@ -116,7 +132,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
       pullRequest {
         admin('Microsoft')
         useGitHubHooks(true)
-        triggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
+        regexTriggerPhrase("(?i).*test\\W+(${contextName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*")
         onlyTriggerPhrase(triggerOnly)
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
@@ -151,7 +167,10 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
                 myJob.with {
                   label('windows-roslyn')
                   steps {
-                    batchFile(".\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}")
+                    batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+mkdir %TEMP%
+set TMP=%TEMP%
+.\\cibuild.cmd ${(configuration == 'dbg') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
                   }
                 }
                 addConcurrentBuild(myJob, 'roslyn/win/unit')
@@ -180,6 +199,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             addWrappers(myJob)
 
             addUnitPublisher(myJob)
+            addArtifactArchiving(myJob, "**/Binaries/**", "**/Binaries/Obj/**")
 
             if (branchName == 'prtest') {
               switch (buildTarget) {

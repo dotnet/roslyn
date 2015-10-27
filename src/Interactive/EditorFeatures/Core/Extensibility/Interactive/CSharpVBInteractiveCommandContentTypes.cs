@@ -6,11 +6,11 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.VisualStudio.Editor.Interactive
 {
     /// <summary>
-    /// Repesents the content type for specialized interactive commands for C# and VB
+    /// Represents the content type for specialized interactive commands for C# and VB
     /// interactive window which override the implementation of these commands in underlying
     /// interactive window.
     /// </summary>
-    public static class CSharpVBInteractiveCommandsContentTypes
+    internal static class CSharpVBInteractiveCommandsContentTypes
     {
         public const string CSharpVBInteractiveCommandContentTypeName = "Specialized CSharp and VB Interactive Command";
 

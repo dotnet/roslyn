@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         /// <summary>
-        /// Returns true if is a given token is a child token of of a certain type of parent node.
+        /// Returns true if is a given token is a child token of a certain type of parent node.
         /// </summary>
         /// <typeparam name="TParent">The type of the parent node.</typeparam>
         /// <param name="node">The node that we are testing.</param>

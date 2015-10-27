@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             // Step 1
-            //  Make all children of w and and all children x "out of order"
+            //  Make all children of w and all children x "out of order"
             //  NOTE: We don't need to mark nodes "in order".
 
             // Step 2

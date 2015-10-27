@@ -29,12 +29,21 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True of the input was converted; false if there was an overflow</returns>
         public static bool TryParseDouble(string s, out double d)
         {
-            var str = DecimalFloatingPointString.FromSource(s);
-            var dbl = DoubleFloatingPointType.Instance;
-            ulong result;
-            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
-            d = BitConverter.Int64BitsToDouble((long)result);
-            return status != Status.Overflow;
+            try
+            {
+                var str = DecimalFloatingPointString.FromSource(s);
+                var dbl = DoubleFloatingPointType.Instance;
+                ulong result;
+                var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+                d = BitConverter.Int64BitsToDouble((long)result);
+                return status != Status.Overflow;
+            }
+            catch (System.FormatException)
+            {
+                // this can occur when the exponent is empty (e.g. "0.0e") or too large to fit in an integer
+                d = 0.0;
+                return false;
+            }
         }
 
         /// <summary>
@@ -47,12 +56,20 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True of the input was converted; false if there was an overflow</returns>
         public static bool TryParseFloat(string s, out float f)
         {
-            var str = DecimalFloatingPointString.FromSource(s);
-            var dbl = FloatFloatingPointType.Instance;
-            ulong result;
-            var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
-            f = Int32BitsToFloat((uint)result);
-            return status != Status.Overflow;
+            try
+            {
+                var str = DecimalFloatingPointString.FromSource(s);
+                var dbl = FloatFloatingPointType.Instance;
+                ulong result;
+                var status = RealParser.ConvertDecimalToFloatingPointBits(str, dbl, out result);
+                f = Int32BitsToFloat((uint)result);
+                return status != Status.Overflow;
+            }
+            catch (System.FormatException)
+            {
+                f = 0.0f;
+                return false;
+            }
         }
 
         private readonly static BigInteger BigZero = BigInteger.Zero;
