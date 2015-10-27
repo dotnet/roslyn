@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             ITextBufferFactoryService bufferFactory,
             IProjectionBufferFactoryService projectionBufferFactory,
             IEditorOperationsFactoryService editorOperationsFactory,
-            ITextUndoHistoryRegistry textUndoHistoryRegistry,
+            ITextBufferUndoManagerProvider textBufferUndoManagerProvider,
             ITextEditorFactoryService editorFactory,
             IRtfBuilderService rtfBuilderService,
             IIntellisenseSessionStackMapService intellisenseSessionStackMap,
@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 bufferFactory,
                 projectionBufferFactory,
                 editorOperationsFactory,
-                textUndoHistoryRegistry,
+                textBufferUndoManagerProvider,
                 editorFactory,
                 rtfBuilderService,
                 intellisenseSessionStackMap,
@@ -556,6 +556,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         #region Testing
 
         internal event Action<State> StateChanged;
+
+        internal void Undo(int count)
+        {
+            UIThread(uiOnly => uiOnly.UndoHistory.Undo(count));
+        }
+
+        internal void Redo(int count)
+        {
+            UIThread(uiOnly => uiOnly.UndoHistory.Redo(count));
+        }
 
         #endregion
     }

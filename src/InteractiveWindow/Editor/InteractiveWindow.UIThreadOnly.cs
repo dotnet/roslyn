@@ -39,7 +39,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly IInteractiveWindowEditorFactoryService _factory;
 
-            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
+            private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
+            private ITextBufferUndoManager UndoManager { set; get; }
+            public ITextUndoHistory UndoHistory
+            {
+                get
+                {
+                    return UndoManager.TextBufferUndoHistory;
+                }
+            }
 
             private readonly History _history = new History();
             private string _historySearch;
@@ -135,7 +143,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 ITextBufferFactoryService bufferFactory,
                 IProjectionBufferFactoryService projectionBufferFactory,
                 IEditorOperationsFactoryService editorOperationsFactory,
-                ITextUndoHistoryRegistry textUndoHistoryRegistry,
+                ITextBufferUndoManagerProvider textBufferUndoManagerProvider,
                 ITextEditorFactoryService editorFactory,
                 IRtfBuilderService rtfBuilderService,
                 IIntellisenseSessionStackMapService intellisenseSessionStackMap,
@@ -145,7 +153,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _factory = factory;
-                _textUndoHistoryRegistry = textUndoHistoryRegistry;
+                _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
                 _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
                 _smartIndenterService = smartIndenterService;
@@ -198,9 +206,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 OutputClassifierProvider.AttachToBuffer(OutputBuffer, errorSpans);
             }
 
-            private bool ReadingStandardInput => 
-                State == State.ExecutingInputAndReadingStandardInput || 
-                State == State.WaitingForInputAndReadingStandardInput || 
+            private bool ReadingStandardInput =>
+                State == State.ExecutingInputAndReadingStandardInput ||
+                State == State.WaitingForInputAndReadingStandardInput ||
                 State == State.ResettingAndReadingStandardInput;
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations.ResetAsync"/>.</summary>
@@ -586,41 +594,42 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             public bool Paste()
             {
-                using (var transaction = _textUndoHistoryRegistry.GetHistory(TextView.TextBuffer).CreateTransaction(InteractiveWindowResources.Paste))
+                // Get text from clipboard
+                string code;
+                string format = Evaluator.FormatClipboard();
+                if (format != null)
                 {
-                    // Get text from clipboard
-                    string code;
-                    string format = Evaluator.FormatClipboard();
-                    if (format != null)
+                    code = format;
+                }
+                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
+                {
+                    var sb = new StringBuilder();
+                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
+
+                    foreach (var block in blocks)
                     {
-                        code = format;
-                    }
-                    else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
-                    {
-                        var sb = new StringBuilder();
-                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
-                        // Paste each block separately.
-                        foreach (var block in blocks)
+                        switch (block.Kind)
                         {
-                            switch (block.Kind)
-                            {
-                                case ReplSpanKind.Input:
-                                case ReplSpanKind.Output:
-                                case ReplSpanKind.StandardInput:
-                                    sb.Append(block.Content);
-                                    break;
-                            }
+                            case ReplSpanKind.Input:
+                            case ReplSpanKind.Output:
+                            case ReplSpanKind.StandardInput:
+                                sb.Append(block.Content);
+                                break;
                         }
-                        code = sb.ToString();
                     }
-                    else if (_window.InteractiveWindowClipboard.ContainsText())
-                    {
-                        code = _window.InteractiveWindowClipboard.GetText();
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    code = sb.ToString();
+                }
+                else if (_window.InteractiveWindowClipboard.ContainsText())
+                {
+                    code = _window.InteractiveWindowClipboard.GetText();
+                }
+                else
+                {
+                    return false;
+                }
+
+                using (var transaction = UndoHistory.CreateTransaction(InteractiveWindowResources.Paste))
+                {
 
                     // Delete selected text if there's any and adjust caret position
                     if (!TextView.Selection.IsEmpty)
@@ -643,7 +652,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         return false;
                     }
 
-                    // do the paste and complete the transection
+                    // do the paste and complete the transaction
                     InsertCode(code);
                     transaction.Complete();
 
@@ -848,14 +857,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         // If reset button is clicked during a long running submission -> it could be Resetting because 
                         // oldService is disposed first as part of resetting, which leads to await call above returning, and new service is 
                         // created after that as part of completing the resetting process. 
-                        Debug.Assert(State == State.ExecutingInput || 
-                            State == State.WaitingForInput || 
+                        Debug.Assert(State == State.ExecutingInput ||
+                            State == State.WaitingForInput ||
                             State == State.Resetting, $"Unexpected state {State}");
 
                         if (State == State.ExecutingInput)
                         {
                             FinishExecute(executionResult.IsSuccessful);
-                        }                              
+                        }
                     }
                 }
                 catch (Exception e) when (_window.ReportAndPropagateException(e))
@@ -1206,7 +1215,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 return index;
             }
-            
+
             private bool IsInActivePrompt(SnapshotPoint point)
             {
                 var editableBuffer = ReadingStandardInput ? StandardInputBuffer : CurrentLanguageBuffer;
@@ -1214,7 +1223,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     return false;
                 }
-                                                                           
+
                 var sourceSpans = GetSourceSpans(point.Snapshot);
                 var index = GetSourceSpanIndex(sourceSpans, point);
                 if (index == sourceSpans.Count)
@@ -1224,7 +1233,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (!IsPrompt(sourceSpans[index]))
                 {
-                    return false;   
+                    return false;
                 }
 
                 Debug.Assert(index + 1 < sourceSpans.Count);
@@ -1394,6 +1403,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private void AddLanguageBuffer()
             {
                 ITextBuffer buffer = _factory.CreateAndActivateBuffer(_window);
+                if (CurrentLanguageBuffer != null)
+                {
+                    _textBufferUndoManagerProvider.RemoveTextBufferUndoManager(CurrentLanguageBuffer);
+                }
+                UndoManager = _textBufferUndoManagerProvider.GetTextBufferUndoManager(buffer);
 
                 buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), Evaluator);
                 buffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
@@ -2183,8 +2197,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             private bool OverlapsWithEditableBuffer(NormalizedSnapshotSpanCollection spans)
-            {                                                              
-                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer; 
+            {
+                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
 
                 foreach (var span in spans)
                 {
@@ -2269,7 +2283,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     if (selectionLeftColumn > maxPromptLength || maxPromptLength == minPromptLength)
                     {
                         selectionTopLine = editableLine;
-                        selectionLeftColumn = Math.Max(selectionLeftColumn, maxPromptLength); 
+                        selectionLeftColumn = Math.Max(selectionLeftColumn, maxPromptLength);
                     }
                 }
                 else
@@ -2391,17 +2405,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     if (MapToEditableBuffer(position) != null ||
                         IsInActivePrompt(position))
                     {
-                        CutOrDeleteCurrentLine(isCut); 
-                        Home(extendSelection: false);                
+                        CutOrDeleteCurrentLine(isCut);
+                        Home(extendSelection: false);
                     }
                 }
                 else
                 {
-                    var selection = TextView.Selection;       
+                    var selection = TextView.Selection;
                     var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(selection.Start.Position.GetContainingLine().Start,
-                                                                                                selection.End.Position.GetContainingLine().EndIncludingLineBreak), 
-                                                                               SpanTrackingMode.EdgeInclusive, 
-                                                                               _projectionBuffer.CurrentSnapshot);                                                                                                                             
+                                                                                                selection.End.Position.GetContainingLine().EndIncludingLineBreak),
+                                                                               SpanTrackingMode.EdgeInclusive,
+                                                                               _projectionBuffer.CurrentSnapshot);
                     if (OverlapsWithEditableBuffer(projectionSpans))
                     {
                         CutOrDelete(projectionSpans, isCut);
@@ -2435,11 +2449,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // Even though `OverlapsWithEditableBuffer` and `CutOrDelete` is sufficient to 
                     // delete editable selection,  we still need to handle box selection 
                     // differently to move caret to appropiate location after deletion.
-                    bool isEditable = selection.Mode == TextSelectionMode.Stream 
-                                                            ? OverlapsWithEditableBuffer(selection.SelectedSpans) 
+                    bool isEditable = selection.Mode == TextSelectionMode.Stream
+                                                            ? OverlapsWithEditableBuffer(selection.SelectedSpans)
                                                             : ReduceBoxSelectionToEditableBox();
                     if (isEditable)
-                    {                               
+                    {
                         CutOrDelete(selection.SelectedSpans, isCut);
                         // if the selection spans over prompts the prompts remain selected, so clear manually:
                         selection.Clear();
@@ -2447,7 +2461,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                 }
                 return false;
-            } 
+            }
 
             private void CutOrDelete(IEnumerable<SnapshotSpan> projectionSpans, bool isCut)
             {
@@ -2473,11 +2487,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                                 deletedText.Append(span.GetText());
                             }
-
                             edit.Delete(span);
                         }
                     }
-
                     edit.Apply();
                 }
 
@@ -2558,9 +2570,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // Don't generate RTF for large spans (since it is expensive and probably not wanted).
                 int length = spans.Sum((span) => span.Length);
                 if (length < 1000000)
-                {                                           
+                {
                     using (var dialog = _waitIndicator.StartWait(InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage, allowCancel: true))
-                    {                           
+                    {
                         return _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken);
                     }
                 }
