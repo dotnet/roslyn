@@ -745,4 +745,7 @@ Do you want to proceed?</value>
   <data name="InlineRenameInstructions" xml:space="preserve">
     <value>Modify any highlighted location to begin renaming.</value>
   </data>
+  <data name="Navigating" xml:space="preserve">
+    <value>Navigating...</value>
+  </data>
 </root>

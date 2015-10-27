@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             }
 
             int? targetPosition = null;
-            var waitResult = _waitIndicator.Wait("", allowCancel: true, action: waitContext =>
+            var waitResult = _waitIndicator.Wait(EditorFeaturesResources.Navigating, allowCancel: true, action: waitContext =>
             {
                 targetPosition = GetTargetPosition(document, caretPoint.Value.Position, next, waitContext.CancellationToken);
             });
