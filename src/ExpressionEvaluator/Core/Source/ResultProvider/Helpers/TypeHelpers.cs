@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static bool IsObject(this Type type)
         {
-            bool result = type.IsClass && (type.BaseType == null) && !type.IsPointer;
+            bool result = type.IsClass && (type.BaseType == null) && !type.IsPointer && !type.IsByRef;
             Debug.Assert(result == type.IsMscorlibType("System", "Object"));
             return result;
         }
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static Type GetBaseTypeOrNull(this Type underlyingType, DkmClrAppDomain appDomain, out DkmClrType type)
         {
-            Debug.Assert((underlyingType.BaseType != null) || underlyingType.IsPointer || underlyingType.IsArray, "BaseType should only return null if the underlyingType is a pointer or array.");
+            Debug.Assert((underlyingType.BaseType != null) || underlyingType.IsPointer || underlyingType.IsByRef || underlyingType.IsArray, "BaseType should only return null if the underlyingType is a pointer, ByRef, or array.");
 
             underlyingType = underlyingType.BaseType;
             type = (underlyingType != null) ? DkmClrType.Create(appDomain, underlyingType) : null;

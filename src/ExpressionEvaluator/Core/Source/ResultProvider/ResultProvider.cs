@@ -127,6 +127,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             switch (dataItem.Kind)
             {
+                case ExpansionKind.ExplicitEvaluationResult:
+                    completionRoutine(dataItem.ExternalEvaluationResult);
+                    break;
                 case ExpansionKind.Error:
                     completionRoutine(DkmFailedEvaluationResult.Create(
                         inspectionContext,
@@ -369,7 +372,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 declaredTypeName;
         }
 
-        internal EvalResultDataItem CreateDataItem(
+        // Note: Overridden by the MC++ EE.  Do not change the signature of this method.
+        internal virtual EvalResultDataItem CreateDataItem(
             DkmInspectionContext inspectionContext,
             string name,
             TypeAndCustomInfo typeDeclaringMemberAndInfo,
@@ -584,6 +588,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         category: DkmEvaluationResultCategory.Other,
                         flags: value.EvalFlags,
                         evalFlags: inspectionContext.EvaluationFlags);
+
+                    // Update declaredType and declaredTypeInfo to use the values from the data item.  Normally, they're the same,
+                    // but, under MC++, they can be differant, since the MC++ EE overrides CreateDataItem().
+                    declaredType = DkmClrType.Create(declaredType.AppDomain, dataItem.DeclaredTypeAndInfo.Type);
+                    declaredTypeInfo = dataItem.DeclaredTypeAndInfo.Info;
+
                     GetResultAndContinue(dataItem, workList, declaredType, declaredTypeInfo, inspectionContext, parent: null, completionRoutine: completionRoutine);
                 }
             }
@@ -666,6 +676,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             string displayType,
             EvalResultDataItem parent)
         {
+            // If the data item was created with an external DkmEvaluationResult, use that.
+            // This overrides all other logic.  This case is possible only under an EE such
+            // as managed C++ that chooses to override CreateDataItem().
+            if (dataItem.ExternalEvaluationResult != null)
+                return dataItem.ExternalEvaluationResult;
+
             var name = dataItem.Name;
             Debug.Assert(name != null);
             var typeDeclaringMemberAndInfo = dataItem.TypeDeclaringMemberAndInfo;
@@ -799,6 +815,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoExpansion) != 0)
             {
+                return null;
+            }
+
+
+            if (declaredType.IsByRef)
+            {
+                // This shouldn't be possible, but if we do get here, bail now to prevent
+                // the code in MemberExpansion.CreateExpansion() from crashing.
+                Debug.Assert(false, "GetTypeExpansion: ByRef type passed in");
                 return null;
             }
 
