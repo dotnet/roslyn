@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             allModules = allModules.ToArray();
 
             string conflict = DetectNameCollision(allModules);
-            if (conflict != null && !MonoHelpers.IsRunningOnMono())
+            if ((conflict != null || CLRHelpers.assemblyResolveCannotBeTrusted) && 
+                !MonoHelpers.IsRunningOnMono())
             {
                 Type appDomainProxyType = typeof(RuntimeAssemblyManager);
                 Assembly thisAssembly = appDomainProxyType.Assembly;
@@ -728,7 +729,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // dumping lots of unnecessary data.
                 if (s_dumpCount > 10)
                 {
-                    break; 
+                    break;
                 }
 
                 if (module.InMemoryModule)
@@ -743,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             "Dumps");
                         try
                         {
-                             Directory.CreateDirectory(dumpDirectory);
+                            Directory.CreateDirectory(dumpDirectory);
                         }
                         catch
                         {
@@ -800,9 +801,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             StringBuilder errors = new StringBuilder();
             List<string> allOutput = new List<string>();
 
-// Disable all PEVerification due to https://github.com/dotnet/roslyn/issues/6190
-#if false
-
             foreach (var name in modulesToVerify)
             {
                 var module = _modules[name];
@@ -834,7 +832,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 DumpAssemblyData(_modules.Values, out dumpDir);
                 throw new PeVerifyException(errors.ToString(), dumpDir);
             }
-#endif
             return allOutput.ToArray();
         }
     }
