@@ -8,9 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp {
+namespace Microsoft.CodeAnalysis.CSharp.Scripting {
     using System;
     using System.Reflection;
+    
     
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Scripting.CSharp {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.Scripting.CSharp.CSharpScriptingResources", typeof(CSharpScriptingResources).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.CSharp.Scripting.CSharpScriptingResources", typeof(CSharpScriptingResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

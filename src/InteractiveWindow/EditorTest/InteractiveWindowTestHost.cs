@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             Evaluator = new TestInteractiveEngine(contentTypeRegistryService);
             Window = ExportProvider.GetExport<IInteractiveWindowFactoryService>().Value.CreateWindow(Evaluator);
             ((InteractiveWindow)Window).StateChanged += stateChangedHandler;
-            Window.InitializeAsync().PumpingWait();
+            Window.InitializeAsync().Wait();
         }
 
         public static Type[] GetVisualStudioTypes()

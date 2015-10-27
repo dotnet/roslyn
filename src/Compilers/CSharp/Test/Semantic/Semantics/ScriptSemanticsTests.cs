@@ -750,32 +750,6 @@ static int Baz = w;
         }
 
         [Fact]
-        public void ERR_ReturnNotAllowedInScript_Void()
-        {
-            var c = CreateSubmission("return;");
-            c.VerifyDiagnostics(
-                // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                // return;
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
-                // (1,1): warning CS0162: Unreachable code detected
-                // return;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
-        }
-
-        [Fact]
-        public void ERR_ReturnNotAllowedInScript_Expr()
-        {
-            var c = CreateSubmission("return 17;");
-            c.VerifyDiagnostics(
-                // (1,1): error CS7020: You cannot use 'return' in top-level script code
-                // return 17;
-                Diagnostic(ErrorCode.ERR_ReturnNotAllowedInScript, "return").WithLocation(1, 1),
-                // (1,1): warning CS0162: Unreachable code detected
-                // return 17;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(1, 1));
-        }
-
-        [Fact]
         public void ERR_FieldCantBeRefAny()
         {
             var c = CreateSubmission(@"

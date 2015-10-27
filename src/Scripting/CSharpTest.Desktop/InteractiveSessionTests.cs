@@ -10,7 +10,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Scripting.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -21,7 +22,7 @@ using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharpTest
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
     using static TestCompilationFactory;
 

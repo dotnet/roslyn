@@ -27,7 +27,7 @@ public override void Execute() {
 
                 state.SendTypeChars(".Curr")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
+                Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain").ConfigureAwait(True)
                 state.SendTab()
                 Assert.Contains("__o = AppDomain.CurrentDomain", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -68,7 +68,7 @@ class C
 
                 state.SendTypeCharsToSpecificViewAndBuffer("Cons", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(displayText:="Console")
+                Await state.AssertSelectedCompletionItem(displayText:="Console").ConfigureAwait(True)
             End Using
         End Function
 
@@ -104,7 +104,7 @@ class C
 
                 state.SendTypeCharsToSpecificViewAndBuffer(" ", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True).ConfigureAwait(True)
             End Using
         End Function
 
@@ -141,7 +141,7 @@ class C
 
                 state.SendTypeCharsToSpecificViewAndBuffer("#reg", view, buffer)
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="region", shouldFormatOnCommit:=True).ConfigureAwait(True)
 
             End Using
         End Function
