@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler("Go to next and previous method command handler", ContentTypeNames.RoslynContentType)]
+    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToNextAndPreviousMethod, ContentTypeNames.RoslynContentType)]
     internal class GoToNextAndPreviousMethodCommandHandler : ICommandHandler<GoToNextMethodCommandArgs>, ICommandHandler<GoToPreviousMethodCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
