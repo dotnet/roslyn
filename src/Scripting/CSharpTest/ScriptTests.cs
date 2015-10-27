@@ -1,15 +1,18 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
 #pragma warning disable RS0003 // Do not directly await a Task
 
-namespace Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
     public class ScriptTests : TestBase
     {
@@ -163,7 +166,7 @@ d.Do()"
         public void TestRunCreatedScriptWithoutGlobals()
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
-           
+
             //  The script requires access to global variables but none were given
             AssertEx.ThrowsArgumentException("globals", () => script.RunAsync());
         }
@@ -173,7 +176,7 @@ d.Do()"
         {
             var script = CSharpScript.Create("X + Y", globalsType: typeof(Globals));
 
-            //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.Scripting.CSharp.Test.ScriptTests+Globals'
+            //  The globals of type 'System.Object' is not assignable to 'Microsoft.CodeAnalysis.CSharp.Scripting.Test.ScriptTests+Globals'
             AssertEx.ThrowsArgumentException("globals", () => script.RunAsync(new object()));
         }
 
@@ -238,7 +241,7 @@ d.Do()"
         {
             var globals = new Globals { X = 10, Y = 20 };
 
-            var script = 
+            var script =
                 CSharpScript.Create(
                     "var a = '1';",
                     globalsType: globals.GetType()).
@@ -312,6 +315,355 @@ const int z = 3;
             // it should not see any declarations made by the second script.
             var state3 = await state1.ContinueWithAsync("M(5)");
             Assert.Equal(10, state3.ReturnValue);
+        }
+
+        [Fact]
+        public async Task ReturnIntAsObject()
+        {
+            var expected = 42;
+            var script = CSharpScript.Create<object>($"return {expected};");
+            var result = await script.EvaluateAsync();
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public async Task NoReturn()
+        {
+            var script = CSharpScript.Create<object>("System.Console.WriteLine();");
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task ReturnAwait()
+        {
+            var script = CSharpScript.Create<int>("return await System.Threading.Tasks.Task.FromResult(42);");
+            var result = await script.EvaluateAsync();
+            Assert.Equal(42, result);
+        }
+
+        [Fact]
+        public async Task ReturnInNestedScopeNoTrailingExpression()
+        {
+            var script = CSharpScript.Create(@"
+bool condition = false;
+if (condition)
+{
+    return 1;
+}");
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task ReturnInNestedScopeWithTrailingVoidExpression()
+        {
+            var script = CSharpScript.Create(@"
+bool condition = false;
+if (condition)
+{
+    return 1;
+}
+System.Console.WriteLine();");
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            script = CSharpScript.Create(@"
+bool condition = true;
+if (condition)
+{
+    return 1;
+}
+System.Console.WriteLine();");
+            result = await script.EvaluateAsync();
+            Assert.Equal(1, result);
+        }
+
+        [Fact]
+        public async Task ReturnInNestedScopeWithTrailingVoidExpressionAsInt()
+        {
+            var script = CSharpScript.Create<int>(@"
+bool condition = false;
+if (condition)
+{
+    return 1;
+}
+System.Console.WriteLine();");
+            var result = await script.EvaluateAsync();
+            Assert.Equal(0, result);
+
+            script = CSharpScript.Create<int>(@"
+bool condition = false;
+if (condition)
+{
+    return 1;
+}
+System.Console.WriteLine()");
+            result = await script.EvaluateAsync();
+            Assert.Equal(0, result);
+        }
+
+        [Fact]
+        public async Task ReturnIntWithTrailingDoubleExpression()
+        {
+            var script = CSharpScript.Create(@"
+bool condition = false;
+if (condition)
+{
+    return 1;
+}
+1.1");
+            var result = await script.EvaluateAsync();
+            Assert.Equal(1.1, result);
+
+            script = CSharpScript.Create(@"
+bool condition = true;
+if (condition)
+{
+    return 1;
+}
+1.1");
+            result = await script.EvaluateAsync();
+            Assert.Equal(1, result);
+        }
+
+        [Fact]
+        public async Task ReturnGenericAsInterface()
+        {
+            var script = CSharpScript.Create<IEnumerable<int>>(@"
+if (false)
+{
+    return new System.Collections.Generic.List<int> { 1, 2, 3 };
+}");
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            script = CSharpScript.Create<IEnumerable<int>>(@"
+if (true)
+{
+    return new System.Collections.Generic.List<int> { 1, 2, 3 };
+}");
+            result = await script.EvaluateAsync();
+            Assert.Equal(new List<int> { 1, 2, 3 }, result);
+        }
+
+        [Fact]
+        public async Task ReturnNullable()
+        {
+            var script = CSharpScript.Create<int?>(@"
+if (false)
+{
+    return 42;
+}");
+            var result = await script.EvaluateAsync();
+            Assert.False(result.HasValue);
+
+            script = CSharpScript.Create<int?>(@"
+if (true)
+{
+    return 42;
+}");
+            result = await script.EvaluateAsync();
+            Assert.Equal(42, result);
+        }
+
+        [Fact]
+        public async Task ReturnInLoadedFile()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "return 42;"));
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);       
+
+            var script = CSharpScript.Create("#load \"a.csx\"", options);
+            var result = await script.EvaluateAsync();
+            Assert.Equal(42, result);
+
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+-1", options);
+            result = await script.EvaluateAsync();
+            Assert.Equal(42, result);
+        }
+
+        [Fact]
+        public async Task ReturnInLoadedFileTrailingExpression()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", @"
+if (false)
+{
+    return 42;
+}
+1"));
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+
+            var script = CSharpScript.Create("#load \"a.csx\"", options);
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+2", options);
+            result = await script.EvaluateAsync();
+            Assert.Equal(2, result);
+        }
+
+        [Fact]
+        public async Task ReturnInLoadedFileTrailingVoidExpression()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", @"
+if (false)
+{
+    return 1;
+}
+System.Console.WriteLine(42)"));
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+
+            var script = CSharpScript.Create("#load \"a.csx\"", options);
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+2", options);
+            result = await script.EvaluateAsync();
+            Assert.Equal(2, result);
+        }
+
+        [Fact]
+        public async Task MultipleLoadedFilesWithTrailingExpression()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "1"),
+                KeyValuePair.Create("b.csx", @"
+#load ""a.csx""
+2"));
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var script = CSharpScript.Create("#load \"b.csx\"", options);
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "1"),
+                KeyValuePair.Create("b.csx", "2"));
+            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+#load ""b.csx""", options);
+            result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "1"),
+                KeyValuePair.Create("b.csx", "2"));
+            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+#load ""b.csx""
+3", options);
+            result = await script.EvaluateAsync();
+            Assert.Equal(3, result);
+        }
+
+        [Fact]
+        public async Task MultipleLoadedFilesWithReturnAndTrailingExpression()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "return 1;"),
+                KeyValuePair.Create("b.csx", @"
+#load ""a.csx""
+2"));
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var script = CSharpScript.Create("#load \"b.csx\"", options);
+            var result = await script.EvaluateAsync();
+            Assert.Equal(1, result);
+
+            resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "return 1;"),
+                KeyValuePair.Create("b.csx", "2"));
+            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+#load ""b.csx""", options);
+            result = await script.EvaluateAsync();
+            Assert.Equal(1, result);
+
+            resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", "return 1;"),
+                KeyValuePair.Create("b.csx", "2"));
+            options = ScriptOptions.Default.WithSourceResolver(resolver);
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+#load ""b.csx""
+return 3;", options);
+            result = await script.EvaluateAsync();
+            Assert.Equal(1, result);
+        }
+
+        [Fact]
+        public async Task LoadedFileWithReturnAndGoto()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", @"
+goto EOF;
+NEXT:
+return 1;
+EOF:;
+2"));
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+
+            var script = CSharpScript.Create(@"
+#load ""a.csx""
+goto NEXT;
+return 3;
+NEXT:;", options);
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            script = CSharpScript.Create(@"
+#load ""a.csx""
+L1: goto EOF;
+L2: return 3;
+EOF:
+EOF2: ;
+4", options);
+            result = await script.EvaluateAsync();
+            Assert.Equal(4, result);
+        }
+
+        [Fact]
+        public async Task VoidReturn()
+        {
+            var script = CSharpScript.Create("return;");
+            var result = await script.EvaluateAsync();
+            Assert.Null(result);
+
+            script = CSharpScript.Create(@"
+var b = true;
+if (b)
+{
+    return;
+}
+b");
+            result = await script.EvaluateAsync();
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task LoadedFileWithVoidReturn()
+        {
+            var resolver = TestSourceReferenceResolver.Create(
+                KeyValuePair.Create("a.csx", @"
+var i = 42;
+return;
+i = -1;"));
+            var options = ScriptOptions.Default.WithSourceResolver(resolver);
+            var script = CSharpScript.Create<int>(@"
+#load ""a.csx""
+i", options);
+            var result = await script.EvaluateAsync();
+            Assert.Equal(0, result);
         }
     }
 }
