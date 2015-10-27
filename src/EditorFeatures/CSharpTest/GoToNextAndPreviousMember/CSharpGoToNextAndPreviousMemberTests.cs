@@ -84,6 +84,26 @@ class C2
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
+        public void BetweenClassesPrevious()
+        {
+            var code = @"
+class C1
+{
+    [||]void M() { }
+}
+
+$$
+
+class C2
+{
+    void M() { }
+} ";
+
+            AssertNavigated(code, next: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromFirstMemberToSecond()
         {
             var code = @"

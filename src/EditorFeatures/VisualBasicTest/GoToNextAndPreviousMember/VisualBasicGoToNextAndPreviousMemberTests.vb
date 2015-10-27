@@ -67,6 +67,25 @@ End Class"
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+    Public Sub BetweenClassesPrevious()
+        Dim code = "
+Class C1
+    [||]Sub M()
+    End Sub
+End Class
+
+$$
+
+Class C2
+    Sub M()
+    End Sub
+End Class"
+
+        AssertNavigated(code, next:=False)
+    End Sub
+
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromFirstMemberToSecond()
         Dim code = "
 Class C
