@@ -34,9 +34,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                         </Project>
                     </Workspace>)
 
-                ' Force initialization.
-                workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
-
                 Dim textView = workspace.Documents.Single().GetTextView()
 
                 Dim handler = CreateCommandHandler(workspace)
@@ -67,9 +64,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                             <Document/>
                         </Project>
                     </Workspace>)
-
-                ' Force initialization.
-                workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)

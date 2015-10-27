@@ -13,11 +13,14 @@ using Microsoft.CodeAnalysis.Editor.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
+    // This command handler must be invoked after the handlers specified in `Order` attribute
+    // (those handlers also implement `ICommandHandler<PasteCommandArgs>`),
+    // because it will intercept the paste command and skip the rest of handlers in chain.  
     [ExportCommandHandler(PredefinedCommandHandlerNames.InteractivePaste, ContentTypeNames.RoslynContentType)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Commit)]
-    [Order(Before = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal sealed class InteractivePasteCommandHandler : ICommandHandler<PasteCommandArgs>
     {
         // Duplicated string, originally defined at `Microsoft.VisualStudio.InteractiveWindow.PredefinedInteractiveContentTypes`
@@ -29,21 +32,21 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
 
         // This is for unit test purpose only, do not explicitly set this field otherwise.
-        internal IRoslynClipboard RoslynClipBoard;
+        internal IRoslynClipboard RoslynClipboard;
 
         [ImportingConstructor]
         public InteractivePasteCommandHandler(IEditorOperationsFactoryService editorOperationsFactoryService, ITextUndoHistoryRegistry textUndoHistoryRegistry)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _textUndoHistoryRegistry = textUndoHistoryRegistry;
-            RoslynClipBoard = new SystemClipboardWrapper();
+            RoslynClipboard = new SystemClipboardWrapper();
         }
 
         public void ExecuteCommand(PasteCommandArgs args, Action nextHandler)
         {
             // InteractiveWindow handles pasting by itself, which including checks for buffer types, etc.
             if (!args.TextView.TextBuffer.ContentType.IsOfType(InteractiveContentTypeName) &&
-                RoslynClipBoard.ContainsData(InteractiveClipboardFormat))
+                RoslynClipboard.ContainsData(InteractiveClipboardFormat))
             {
                 PasteInteractiveFormat(args.TextView);
             }
@@ -62,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private void PasteInteractiveFormat(ITextView textView)
         {
             var editorOperation = _editorOperationsFactoryService.GetEditorOperations(textView);
-            var blocks = InteractiveWindow::Microsoft.VisualStudio.InteractiveWindow.BufferBlock.Deserialize((string)RoslynClipBoard.GetData(InteractiveClipboardFormat));
-            using (var transaction = _textUndoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.InteractivePaste))
+            var blocks = InteractiveWindow::Microsoft.VisualStudio.InteractiveWindow.BufferBlock.Deserialize((string)RoslynClipboard.GetData(InteractiveClipboardFormat));
+            using (var transaction = _textUndoHistoryRegistry.GetHistory(textView.TextBuffer).CreateTransaction(EditorFeaturesResources.Paste))
             {
                 foreach (var block in blocks)
                 {

@@ -1196,15 +1196,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Paste From Interactive Window.
-        /// </summary>
-        internal static string InteractivePaste {
-            get {
-                return ResourceManager.GetString("InteractivePaste", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Interface Parts.
         /// </summary>
         internal static string InterfaceParts {
@@ -1363,6 +1354,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Overrides {
             get {
                 return ResourceManager.GetString("Overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste.
+        /// </summary>
+        internal static string Paste {
+            get {
+                return ResourceManager.GetString("Paste", resourceCulture);
             }
         }
         
