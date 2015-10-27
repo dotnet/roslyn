@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal sealed class VirtualMemoryNotificationListener : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
     {
         private WorkspaceCacheService _workspaceCacheService;
+        private bool _alreadyLogged;
 
         [ImportingConstructor]
         private VirtualMemoryNotificationListener(
@@ -52,8 +53,12 @@ namespace Microsoft.VisualStudio.LanguageServices
                 case VSConstants.VSM_VIRTUALMEMORYLOW:
                 case VSConstants.VSM_VIRTUALMEMORYCRITICAL:
                     {
-                        // record that we had hit critical memory barrier
-                        Logger.Log(FunctionId.VirtualMemory_MemoryLow, KeyValueLogMessage.Create(m => m["Memory"] = msg));
+                        if (!_alreadyLogged)
+                        {
+                            // record that we had hit critical memory barrier
+                            Logger.Log(FunctionId.VirtualMemory_MemoryLow, KeyValueLogMessage.Create(m => m["Memory"] = msg));
+                            _alreadyLogged = true;
+                        }
 
                         _workspaceCacheService.FlushCaches();
                         break;
