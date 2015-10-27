@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             return false;
         }
 
-        public bool SupportsGoToNextPreviousMethod(Document document)
+        public bool SupportsNavigationToAnyPosition(Document document)
         {
             return true;
         }

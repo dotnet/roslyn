@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsGoToNextPreviousMethod(document))
+            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsNavigationToAnyPosition(document))
             {
                 return nextHandler();
             }
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsGoToNextPreviousMethod(document))
+            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsNavigationToAnyPosition(document))
             {
                 nextHandler();
                 return;

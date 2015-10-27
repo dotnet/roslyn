@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
             return containedDocument == null || containedDocument.SupportsRename;
         }
 
-        public bool SupportsGoToNextPreviousMethod(Document document)
+        public bool SupportsNavigationToAnyPosition(Document document)
         {
             return GetContainedDocument(document) == null;
         }

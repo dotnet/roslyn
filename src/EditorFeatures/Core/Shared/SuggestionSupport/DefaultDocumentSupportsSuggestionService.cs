@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport
             return true;
         }
 
-        public bool SupportsGoToNextPreviousMethod(Document document)
+        public bool SupportsNavigationToAnyPosition(Document document)
         {
             return true;
         }
