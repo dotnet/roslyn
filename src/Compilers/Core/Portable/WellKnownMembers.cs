@@ -2536,6 +2536,15 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,
+
+                // System_Text_Utf8_Utf8String__ctor2
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.System_Text_Utf8_Utf8String,                                                                      // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeFieldHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -2835,6 +2844,7 @@ namespace Microsoft.CodeAnalysis
                 "SustainedLowLatency",                      // System_Runtime_GCLatencyMode__SustainedLowLatency
                 "Format",                                   // System_String__Format_IFormatProvider
                 ".ctor",                                    // System_Text_Utf8_Utf8String__ctor
+                ".ctor",                                    // System_Text_Utf8_Utf8String__ctor2
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

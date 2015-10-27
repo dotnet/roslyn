@@ -1689,29 +1689,94 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (constructor.IsDefaultValueTypeConstructor())
             {
                 EmitInitObj(expression.Type, used, expression.Syntax);
+                return;
+            }
+
+            if (constructor == _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Utf8_Utf8String__ctor) &&
+                TryEmitOptimizedUtf8Literal(expression, isInPlace: false, used: used))
+            {
+                return;
+            }
+
+            if (!used &&
+                expression.Constructor.OriginalDefinition == _module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
+            {
+                // creating nullable has no side-effects, so we will just evaluate the arg
+                EmitExpression(expression.Arguments[0], used: false);
             }
             else
             {
-                if (!used &&
-                    expression.Constructor.OriginalDefinition == _module.Compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor))
+                EmitArguments(expression.Arguments, constructor.Parameters);
+
+                var stackAdjustment = GetObjCreationStackBehavior(expression);
+                _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
+
+                // for variadic ctors emit expanded ctor token
+                EmitSymbolToken(constructor, expression.Syntax,
+                                constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
+
+                EmitPopIfUnused(used);
+            }
+        }
+
+        private bool TryEmitOptimizedUtf8Literal(BoundObjectCreationExpression expression, bool isInPlace, bool used)
+        {
+            Debug.Assert(!isInPlace || used, "inline construction is always used");
+
+            var optimizedCtor = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Utf8_Utf8String__ctor2) as MethodSymbol;
+
+            if ((object)optimizedCtor != null && _module.SupportsPrivateImplClass)
+            {
+                var arg = expression.Arguments[0] as BoundArrayCreation;
+                if (arg != null)
                 {
-                    // creating nullable has no side-effects, so we will just evaluate the arg
-                    EmitExpression(expression.Arguments[0], used: false);
-                }
-                else
-                {
-                    EmitArguments(expression.Arguments, constructor.Parameters);
+                    var initializer = arg.InitializerOpt as BoundArrayInitialization;
+                    if (initializer != null)
+                    {
+                        var cnt = 0;
+                        foreach (var init in initializer.Initializers)
+                        {
+                            if (init.ConstantValue != null)
+                            {
+                                cnt++;
+                            }
+                            else
+                            {
+                                cnt = -1;
+                                break;
+                            }
+                        }
 
-                    var stackAdjustment = GetObjCreationStackBehavior(expression);
-                    _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
+                        if (cnt > 0)
+                        {
+                            if (!used)
+                            {
+                                // unused literal. no need to do anything.
+                                return true;
+                            }
 
-                    // for variadic ctors emit expanded ctor token
-                    EmitSymbolToken(constructor, expression.Syntax,
-                                    constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
+                            ImmutableArray<byte> data = this.GetRawData(initializer.Initializers);
+                            _builder.EmitDataAsFieldToken(data, expression.Syntax, this._diagnostics);
+                            _builder.EmitIntConstant(cnt);
 
-                    EmitPopIfUnused(used);
+                            if (isInPlace)
+                            {
+                                // consumed target address, field token and size while not producing a value.
+                                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: -3);
+                            }
+                            else
+                            {
+                                // consumed field token and size while producing a single value.
+                                _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
+                            }
+                            EmitSymbolToken(optimizedCtor, expression.Syntax, null);
+
+                            return true;
+                        }
+                    }
                 }
             }
+            return false;
         }
 
         private void EmitAssignmentExpression(BoundAssignmentOperator assignmentOperator, bool used)
@@ -1881,13 +1946,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
-            EmitArguments(objCreation.Arguments, constructor.Parameters);
-            // -2 to adjust for consumed target address and not produced value.
-            var stackAdjustment = GetObjCreationStackBehavior(objCreation) - 2;
-            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment);
-            // for variadic ctors emit expanded ctor token
-            EmitSymbolToken(constructor, objCreation.Syntax,
-                            constructor.IsVararg ? (BoundArgListOperator)objCreation.Arguments[objCreation.Arguments.Length - 1] : null);
+
+            if (constructor != _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Utf8_Utf8String__ctor) ||
+                !TryEmitOptimizedUtf8Literal(objCreation, isInPlace: true, used: true))
+            {
+                EmitArguments(objCreation.Arguments, constructor.Parameters);
+                // -2 to adjust for consumed target address and not produced value.
+                var stackAdjustment = GetObjCreationStackBehavior(objCreation) - 2;
+                _builder.EmitOpCode(ILOpCode.Call, stackAdjustment);
+                // for variadic ctors emit expanded ctor token
+                EmitSymbolToken(constructor, objCreation.Syntax,
+                                constructor.IsVararg ? (BoundArgListOperator)objCreation.Arguments[objCreation.Arguments.Length - 1] : null);
+            }
 
             if (used)
             {

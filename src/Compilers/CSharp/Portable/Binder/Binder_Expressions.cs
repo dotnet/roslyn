@@ -4264,23 +4264,50 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // make initializer for utf8bytes 
             var text = node.Utf8StringToken.ValueText;
-            var utf8TextBytes = System.Text.UTF8Encoding.UTF8.GetBytes(text);
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(utf8TextBytes.Length);
-            foreach(var b in utf8TextBytes)
+
+            BoundExpression array;
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, byteType, ImmutableArray<CustomModifier>.Empty, rank: 1);
+
+            MethodSymbol arrayEmpty;
+            if (text.IsEmpty() && 
+                (object)(arrayEmpty = Compilation.GetWellKnownTypeMember(WellKnownMember.System_Array__Empty) as MethodSymbol) != null)
             {
-                builder.Add(new BoundLiteral(node, ConstantValue.Create(b), byteType));
+                // array = Array.Empty<T>()
+                arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create<TypeSymbol>(byteType));
+                array = new BoundCall(
+                    node,
+                    null,
+                    arrayEmpty,
+                    ImmutableArray<BoundExpression>.Empty,
+                    default(ImmutableArray<string>),
+                    default(ImmutableArray<RefKind>),
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default(ImmutableArray<int>),
+                    resultKind: LookupResultKind.Viable,
+                    type: arrayEmpty.ReturnType);
+            }
+            else
+            {
+
+                var utf8TextBytes = System.Text.UTF8Encoding.UTF8.GetBytes(text);
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(utf8TextBytes.Length);
+                foreach (var b in utf8TextBytes)
+                {
+                    builder.Add(new BoundLiteral(node, ConstantValue.Create(b), byteType));
+                }
+
+                var init = new BoundArrayInitialization(node, builder.ToImmutableAndFree());
+
+                // one dimensional array of length utf8TextBytes.Length
+                var bounds = ImmutableArray.Create<BoundExpression>(
+                    new BoundLiteral(node, ConstantValue.Create(utf8TextBytes.Length), int32Type));
+
+                array = new BoundArrayCreation(node, bounds, init, arrayType);
             }
 
-            var init = new BoundArrayInitialization(node, builder.ToImmutableAndFree());
-
-            // one dimensional array of length utf8TextBytes.Length
-            var bounds = ImmutableArray.Create<BoundExpression>(
-                new BoundLiteral(node, ConstantValue.Create(utf8TextBytes.Length), int32Type));
-
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, byteType, ImmutableArray<CustomModifier>.Empty, rank: 1);
-            var arr = new BoundArrayCreation(node, bounds, init, arrayType);
-
-            return new BoundObjectCreationExpression(node, ctor, arr);
+            return new BoundObjectCreationExpression(node, ctor, array);
         }
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, DiagnosticBag diagnostics)

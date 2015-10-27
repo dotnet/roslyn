@@ -50,18 +50,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            // get helpers
-            var initializeArray = module.GetInitArrayHelper();
-
-            // map a field to the block (that makes it addressable via a token)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
-
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array
+
+            EmitDataAsFieldToken(data, syntaxNode, diagnostics);
+
+            EmitOpCode(ILOpCode.Call, -2);
+            // get helpers
+            var initializeArray = module.GetInitArrayHelper();
+            EmitToken(initializeArray, syntaxNode, diagnostics);
+        }
+
+        internal void EmitDataAsFieldToken(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // map a field to the block (that makes it addressable via a token)
+            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
             EmitOpCode(ILOpCode.Ldtoken);
             EmitToken(field, syntaxNode, diagnostics);      //block
-            EmitOpCode(ILOpCode.Call, -2);
-            EmitToken(initializeArray, syntaxNode, diagnostics);
         }
 
         /// <summary>
