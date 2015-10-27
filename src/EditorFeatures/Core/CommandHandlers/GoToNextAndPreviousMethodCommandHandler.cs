@@ -46,34 +46,31 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private static CommandState GetCommandState(ITextBuffer subjectBuffer, ITextView textView, Func<CommandState> nextHandler)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var caretPoint = textView.GetCaretPoint(subjectBuffer);
+            return IsAvailable(document, caretPoint) ? CommandState.Available : nextHandler();
+        }
+
+        private static bool IsAvailable(Document document, SnapshotPoint? caretPoint)
+        {
             var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
             if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsNavigationToAnyPosition(document))
             {
-                return nextHandler();
+                return false;
             }
 
-            var caretPoint = textView.GetCaretPoint(subjectBuffer);
             if (!caretPoint.HasValue)
             {
-                return nextHandler();
+                return false;
             }
 
-            return CommandState.Available;
+            return true;
         }
-
 
         private void ExecuteCommand(Action nextHandler, ITextBuffer subjectBuffer, ITextView textView, bool next)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsNavigationToAnyPosition(document))
-            {
-                nextHandler();
-                return;
-            }
-
             var caretPoint = textView.GetCaretPoint(subjectBuffer);
-            if (!caretPoint.HasValue)
+            if (!IsAvailable(document, caretPoint))
             {
                 nextHandler();
                 return;
