@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -11,24 +10,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 {
     internal class NavInfoFactory
     {
-        private static readonly SymbolDisplayFormat s_typeDisplayFormat = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance);
+        internal AbstractLibraryService LibraryService { get; }
 
-        private static readonly SymbolDisplayFormat s_memberDisplayFormat = new SymbolDisplayFormat(
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeVariance,
-            memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface | SymbolDisplayMemberOptions.IncludeParameters,
-            parameterOptions: SymbolDisplayParameterOptions.IncludeType,
-            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-        public Guid LibraryGuid { get; }
-        public __SymbolToolLanguage PreferredLanguage { get; }
-
-        public NavInfoFactory(Guid libraryGuid, __SymbolToolLanguage preferredLanguage)
+        public NavInfoFactory(AbstractLibraryService libraryService)
         {
-            LibraryGuid = libraryGuid;
-            PreferredLanguage = preferredLanguage;
+            LibraryService = libraryService;
         }
 
         public IVsNavInfo CreateForProject(Project project)
@@ -262,17 +248,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
                 : string.Empty;
         }
 
-        private static string GetClassName(ITypeSymbol typeSymbol)
+        private string GetClassName(ITypeSymbol typeSymbol)
         {
             return typeSymbol != null
-                ? typeSymbol.ToDisplayString(s_typeDisplayFormat)
+                ? typeSymbol.ToDisplayString(LibraryService.TypeDisplayFormat)
                 : string.Empty;
         }
 
-        private static string GetMemberName(ISymbol memberSymbol)
+        private string GetMemberName(ISymbol memberSymbol)
         {
             return memberSymbol != null
-                ? memberSymbol.ToDisplayString(s_memberDisplayFormat)
+                ? memberSymbol.ToDisplayString(LibraryService.MemberDisplayFormat)
                 : string.Empty;
         }
     }

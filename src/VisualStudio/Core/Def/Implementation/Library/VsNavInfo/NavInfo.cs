@@ -72,8 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
             }
 
             builder.Add(_libraryName, _LIB_LISTTYPE.LLT_PACKAGE);
-            builder.Add(_namespaceName, _LIB_LISTTYPE.LLT_NAMESPACES, expandDottedNames: true);
-            builder.Add(_className, _LIB_LISTTYPE.LLT_CLASSES, expandDottedNames: true);
+            builder.Add(_namespaceName, _LIB_LISTTYPE.LLT_NAMESPACES, expandDottedNames);
+            builder.Add(_className, _LIB_LISTTYPE.LLT_CLASSES, expandDottedNames);
             builder.Add(_memberName, _LIB_LISTTYPE.LLT_MEMBERS);
 
             return builder.ToImmutable();
@@ -128,13 +128,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public int GetLibGuid(out Guid pGuid)
         {
-            pGuid = _factory.LibraryGuid;
+            pGuid = _factory.LibraryService.LibraryId;
             return VSConstants.S_OK;
         }
 
         public void GetPreferredLanguage(out uint pLanguage)
         {
-            pLanguage = (uint)_factory.PreferredLanguage;
+            pLanguage = (uint)_factory.LibraryService.PreferredLanguage;
         }
 
         public int GetSymbolType(out uint pdwType)
