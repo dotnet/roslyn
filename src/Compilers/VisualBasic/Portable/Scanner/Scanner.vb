@@ -127,13 +127,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 s_wslTablePool.Free(_wslTable)
                 s_wsTablePool.Free(_wsTable)
 
-                For Each p As Page In Me._pages
+                For Each p As Page In _pages
                     If p IsNot Nothing Then
                         p.Free()
                     End If
                 Next
 
-                Array.Clear(Me._pages, 0, Me._pages.Length)
+                Array.Clear(_pages, 0, _pages.Length)
             End If
         End Sub
         Friend ReadOnly Property Options As VisualBasicParseOptions
@@ -165,8 +165,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If token IsNot Nothing Then
                     AdvanceChar(quickToken.Length)
                     If quickToken.TerminatorLength <> 0 Then
-                        Me._endOfTerminatorTrivia = Me._lineBufferOffset
-                        Me._lineBufferOffset -= quickToken.TerminatorLength
+                        _endOfTerminatorTrivia = _lineBufferOffset
+                        _lineBufferOffset -= quickToken.TerminatorLength
                     End If
 
                     Return token
@@ -705,7 +705,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub ScanSingleLineTrivia(tList As SyntaxListBuilder)
-            If Me.IsScanningXmlDoc Then
+            If IsScanningXmlDoc Then
                 ScanSingleLineTriviaInXmlDoc(tList)
             Else
                 ScanWhitespaceAndLineContinuations(tList)
@@ -2316,7 +2316,7 @@ baddate:
                     Return result
 
                 ElseIf IsNewLine(ch) Then
-                    If Me._isScanningDirective Then
+                    If _isScanningDirective Then
                         Exit While
                     End If
 
