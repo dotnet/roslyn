@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.Formatter = formatter;
         }
 
-        public virtual void GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
+        void IDkmClrResultProvider.GetResult(DkmClrValue value, DkmWorkList workList, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, string resultName, string resultFullName, DkmCompletionRoutine<DkmEvaluationAsyncResult> completionRoutine)
         {
             // TODO: Use full name
             var wl = new WorkList(workList, e => completionRoutine(DkmEvaluationAsyncResult.CreateErrorResult(e)));
@@ -351,27 +351,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        /// <returns>
-        /// The qualified name (i.e. including containing types and namespaces) of a named, pointer,
-        /// or array type followed by the qualified name of the actual runtime type, if provided.
-        /// </returns>
-        private static string GetTypeName(DkmInspectionContext inspectionContext, DkmClrValue value, DkmClrType declaredType, DkmClrCustomTypeInfo declaredTypeInfo, ExpansionKind kind)
-        {
-            var declaredLmrType = declaredType.GetLmrType();
-            var runtimeType = value.Type;
-            var runtimeLmrType = runtimeType.GetLmrType();
-            var declaredTypeName = inspectionContext.GetTypeName(declaredType, declaredTypeInfo, Formatter.NoFormatSpecifiers);
-            var runtimeTypeName = inspectionContext.GetTypeName(runtimeType, CustomTypeInfo: null, FormatSpecifiers: Formatter.NoFormatSpecifiers);
-            var includeRuntimeTypeName =
-                !string.Equals(declaredTypeName, runtimeTypeName, StringComparison.OrdinalIgnoreCase) && // Names will reflect "dynamic", types will not.
-                !declaredLmrType.IsPointer &&
-                (kind != ExpansionKind.PointerDereference) &&
-                (!declaredLmrType.IsNullable() || value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown));
-            return includeRuntimeTypeName ?
-                string.Format("{0} {{{1}}}", declaredTypeName, runtimeTypeName) :
-                declaredTypeName;
-        }
-
         // Note: Overridden by the MC++ EE.  Do not change the signature of this method.
         internal virtual EvalResultDataItem CreateDataItem(
             DkmInspectionContext inspectionContext,
@@ -589,10 +568,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         flags: value.EvalFlags,
                         evalFlags: inspectionContext.EvaluationFlags);
 
-                    // Update declaredType and declaredTypeInfo to use the values from the data item.  Normally, they're the same,
-                    // but, under MC++, they can be differant, since the MC++ EE overrides CreateDataItem().
-                    declaredType = DkmClrType.Create(declaredType.AppDomain, dataItem.DeclaredTypeAndInfo.Type);
-                    declaredTypeInfo = dataItem.DeclaredTypeAndInfo.Info;
+                    if (dataItem.Kind != ExpansionKind.ExplicitEvaluationResult)
+                    {
+                        // Update declaredType and declaredTypeInfo to use the values from the data item.  Normally, they're the same,
+                        // but, under MC++, they can be differant, since the MC++ EE overrides CreateDataItem().
+                        declaredType = DkmClrType.Create(declaredType.AppDomain, dataItem.DeclaredTypeAndInfo.Type);
+                        declaredTypeInfo = dataItem.DeclaredTypeAndInfo.Info;
+                    }
 
                     GetResultAndContinue(dataItem, workList, declaredType, declaredTypeInfo, inspectionContext, parent: null, completionRoutine: completionRoutine);
                 }
@@ -608,6 +590,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             EvalResultDataItem parent,
             CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
+            if(dataItem.Kind == ExpansionKind.ExplicitEvaluationResult)
+            {
+                completionRoutine(dataItem.ExternalEvaluationResult);
+                return;
+            }
+
             var value = dataItem.Value; // Value may have been replaced (specifically, for Nullable<T>).
             DebuggerDisplayInfo displayInfo;
             if (value.TryGetDebuggerDisplayInfo(out displayInfo))
@@ -803,8 +791,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        // Note: Do not remove the 'virtual' modifier or change the signature on this function.  It is overridden by the MC++ EE.
-        internal virtual Expansion GetTypeExpansion(
+        internal Expansion GetTypeExpansion(
             DkmInspectionContext inspectionContext,
             TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
