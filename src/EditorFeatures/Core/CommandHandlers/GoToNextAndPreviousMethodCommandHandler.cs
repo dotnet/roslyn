@@ -32,22 +32,28 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         }
 
         public CommandState GetCommandState(GoToNextMethodCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(args.SubjectBuffer, nextHandler);
+            => GetCommandState(args.SubjectBuffer, args.TextView, nextHandler);
 
         public void ExecuteCommand(GoToNextMethodCommandArgs args, Action nextHandler)
             => ExecuteCommand(nextHandler, args.SubjectBuffer, args.TextView, next: true);
 
         public CommandState GetCommandState(GoToPreviousMethodCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(args.SubjectBuffer, nextHandler);
+            => GetCommandState(args.SubjectBuffer, args.TextView, nextHandler);
 
         public void ExecuteCommand(GoToPreviousMethodCommandArgs args, Action nextHandler)
             => ExecuteCommand(nextHandler, args.SubjectBuffer, args.TextView, next: false);
 
-        private static CommandState GetCommandState(ITextBuffer subjectBuffer, Func<CommandState> nextHandler)
+        private static CommandState GetCommandState(ITextBuffer subjectBuffer, ITextView textView, Func<CommandState> nextHandler)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsRefactorings(document))
+            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsGoToNextPreviousMethod(document))
+            {
+                return nextHandler();
+            }
+
+            var caretPoint = textView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue)
             {
                 return nextHandler();
             }
@@ -59,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         private void ExecuteCommand(Action nextHandler, ITextBuffer subjectBuffer, ITextView textView, bool next)
         {
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null || !document.SupportsSyntaxTree)
+            var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsGoToNextPreviousMethod(document))
             {
                 nextHandler();
                 return;
