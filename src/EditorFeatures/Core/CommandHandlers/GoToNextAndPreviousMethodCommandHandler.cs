@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         private static bool IsAvailable(Document document, SnapshotPoint? caretPoint)
         {
-            var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (document == null || !document.SupportsSyntaxTree || !documentSupportsSuggestionService.SupportsNavigationToAnyPosition(document))
+            if (document?.SupportsSyntaxTree != true)
             {
                 return false;
             }
@@ -63,7 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return false;
             }
 
-            return true;
+            var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+            return documentSupportsSuggestionService?.SupportsNavigationToAnyPosition(document) == true;
         }
 
         private void ExecuteCommand(Action nextHandler, ITextBuffer subjectBuffer, ITextView textView, bool next)
