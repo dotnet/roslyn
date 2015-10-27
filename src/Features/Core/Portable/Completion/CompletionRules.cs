@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly object _gate = new object();
         private readonly AbstractCompletionService _completionService;
         private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private readonly Dictionary<string, PatternMatcher> _enUSCulturePatternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
         public CompletionRules(AbstractCompletionService completionService)
         {
@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        protected PatternMatcher GetEnUSPatternMatcher(string value)
+        protected PatternMatcher GetFallbackPatternMatcher(string value)
         {
             lock (_gate)
             {
                 PatternMatcher patternMatcher;
-                if (!_enUSCulturePatternMatcherMap.TryGetValue(value, out patternMatcher))
+                if (!_fallbackPatternMatcherMap.TryGetValue(value, out patternMatcher))
                 {
                     patternMatcher = new PatternMatcher(value, EnUSCultureInfo, verbatimIdentifierPrefixIsWordCharacter: true);
-                    _enUSCulturePatternMatcherMap.Add(value, patternMatcher);
+                    _fallbackPatternMatcherMap.Add(value, patternMatcher);
                 }
 
                 return patternMatcher;
@@ -96,11 +96,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 return match;
             }
 
-            // Fallback for Turkish:
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetEnUSPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
+                patternMatcher = this.GetFallbackPatternMatcher(_completionService.GetCultureSpecificQuirks(filterText));
                 match = patternMatcher.GetFirstMatch(_completionService.GetCultureSpecificQuirks(item.FilterText));
                 if (match != null)
                 {
