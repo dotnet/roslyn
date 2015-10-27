@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
     public class CSharpGoToNextAndPreviousMemberTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void EmptyFile()
         {
             var code = @"$$";
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void ClassWithNoMembers()
         {
             var code = @"class C
@@ -32,6 +34,7 @@ $$
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void BeforeClassWithMember()
         {
             var code = @"$$
@@ -44,6 +47,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void AfterClassWithMember()
         {
             var code = @"
@@ -58,6 +62,7 @@ $$";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void BetweenClasses()
         {
             var code = @"
@@ -77,6 +82,7 @@ class C2
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromFirstMemberToSecond()
         {
             var code = @"
@@ -90,6 +96,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromSecondToFirst()
         {
             var code = @"
@@ -103,6 +110,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextWraps()
         {
             var code = @"
@@ -116,6 +124,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PreviousWraps()
         {
             var code = @"
@@ -129,6 +138,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void DescendsIntoNestedType()
         {
             var code = @"
@@ -146,6 +156,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtConstructor()
         {
             var code = @"
@@ -158,6 +169,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtDestructor()
         {
             var code = @"
@@ -170,6 +182,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtOperator()
         {
             var code = @"
@@ -181,6 +194,7 @@ class C
             AssertNavigated(code, next: true);
         }
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtField()
         {
             var code = @"
@@ -193,6 +207,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtFieldlikeEvent()
         {
             var code = @"
@@ -205,6 +220,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtAutoProperty()
         {
             var code = @"
@@ -217,6 +233,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtPropertyWithAccessors()
         {
             var code = @"
@@ -235,6 +252,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void SkipsPropertyAccessors()
         {
             var code = @"
@@ -255,6 +273,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromInsideAccessor()
         {
             var code = @"
@@ -275,6 +294,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtIndexerWithAccessors()
         {
             var code = @"
@@ -293,6 +313,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void SkipsIndexerAccessors()
         {
             var code = @"
@@ -313,6 +334,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtEventWithAddRemove()
         {
             var code = @"
@@ -331,6 +353,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void SkipsEventAddRemove()
         {
             var code = @"
@@ -351,6 +374,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromInsideMethod()
         {
             var code = @"
@@ -368,6 +392,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextFromBetweenMethods()
         {
             var code = @"
@@ -384,6 +409,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PreviousFromBetweenMethods()
         {
             var code = @"
@@ -400,6 +426,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextFromBetweenMethodsInTrailingTrivia()
         {
             var code = @"
@@ -416,6 +443,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PreviousFromBetweenMethodsInTrailingTrivia()
         {
             var code = @"
@@ -432,6 +460,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtExpressionBodiedMember()
         {
             var code = @"
@@ -446,6 +475,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextInScript()
         {
             var code = @"
@@ -457,6 +487,7 @@ $$void M1() { }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PrevInScript()
         {
             var code = @"

@@ -6,11 +6,13 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Public Class VisualBasicGoToNextAndPreviousMemberTests
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub EmptyFile()
         Assert.Null(GetTargetPosition("$$", next:=True))
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub ClassWithNoMembers()
         Dim code = "Class C
 $$
@@ -19,6 +21,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub BeforeClassWithMember()
         Dim code = "$$
 Class C
@@ -30,6 +33,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub AfterClassWithMember()
         Dim code = "
 Class C
@@ -43,6 +47,7 @@ $$"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub BetweenClasses()
         Dim code = "
 Class C1
@@ -61,6 +66,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromFirstMemberToSecond()
         Dim code = "
 Class C
@@ -74,6 +80,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromSecondToFirst()
         Dim code = "
 Class C
@@ -87,6 +94,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextWraps()
         Dim code = "
 Class C
@@ -100,6 +108,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PreviousWraps()
         Dim code = "
 Class C
@@ -113,6 +122,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub DescendsIntoNestedType()
         Dim code = "
 Class C
@@ -129,6 +139,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtConstructor()
         Dim code = "
 Class C
@@ -142,6 +153,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtOperator()
         Dim code = "
 Class C
@@ -160,6 +172,7 @@ End Class"
 
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtField()
         Dim code = "
 Class C
@@ -172,6 +185,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtFieldlikeEvent()
         Dim code = "
 Class C
@@ -184,6 +198,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtAutoProperty()
         Dim code = "
 Class C
@@ -195,6 +210,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtPropertyWithAccessors()
         Dim code = "
 Class C
@@ -214,6 +230,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub SkipsPropertyAccessors()
         Dim code = "
 Class C
@@ -236,6 +253,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromInsidePropertyAccessor()
         Dim code = "
 Class C
@@ -258,6 +276,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtEventWithAddRemove()
         Dim code = "
 Class C
@@ -281,6 +300,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub SkipsEventAddRemove()
         Dim code = "
 Class C
@@ -307,6 +327,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromInsideMethod()
         Dim code = "
 Class C
@@ -322,6 +343,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextFromBetweenMethods()
         Dim code = "
 Class C
@@ -338,6 +360,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PreviousFromBetweenMethods()
         Dim code = "
 Class C
@@ -354,6 +377,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextFromBetweenMethodsInTrailingTrivia()
         Dim code = "
 Class C
@@ -368,6 +392,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PreviousFromBetweenMethodsInTrailingTrivia()
         Dim code = "
 Class C
@@ -382,6 +407,7 @@ End Class"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextInScript()
         Dim code = "
 $$Sub M1()
@@ -394,6 +420,7 @@ End Sub"
     End Sub
 
     <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PrevInScript()
         Dim code = "
 [||]Sub M1()
