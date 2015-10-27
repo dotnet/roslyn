@@ -2211,11 +2211,11 @@ Module Program
 End Module]]></Document>)
                 state.SendTypeChars("f")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem("False")
+                Await state.AssertSelectedCompletionItem("False").ConfigureAwait(True)
                 state.SendBackspace()
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem("True")
+                Await state.AssertSelectedCompletionItem("True").ConfigureAwait(True)
             End Using
         End Function
 
@@ -2232,14 +2232,13 @@ Module Program
     Sub foo (x as boolean)
     End Sub
 End Module]]></Document>)
-                state.SendTypeChars("fa")
+                state.SendTypeChars("f")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem("False")
-                state.SendBackspace()
+                Await state.AssertSelectedCompletionItem("False").ConfigureAwait(True)
                 state.SendBackspace()
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem("True")
+                Await state.AssertSelectedCompletionItem("True").ConfigureAwait(True)
             End Using
         End Function
 
@@ -2248,19 +2247,24 @@ End Module]]></Document>)
         Public Async Function BooleanPreselection3() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[
-Imports System
+
 Module Program
+    Class F
+    End Class
+    Class T
+    End Class
+
     Sub Main(args As String())
         $$
     End Sub
 End Module]]></Document>)
                 state.SendTypeChars("f")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem("FieldAccessExpression")
+                Await state.AssertSelectedCompletionItem("F").ConfigureAwait(True)
                 state.SendBackspace()
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem("TAB")
+                Await state.AssertSelectedCompletionItem("T").ConfigureAwait(True)
             End Using
         End Function
     End Class
