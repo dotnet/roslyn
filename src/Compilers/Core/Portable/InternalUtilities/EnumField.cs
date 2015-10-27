@@ -73,7 +73,7 @@ namespace Roslyn.Utilities
                 var diff = unchecked((long)field2.Value - (long)field1.Value);
                 return diff == 0
                     ? string.CompareOrdinal(field1.Name, field2.Name)
-                    : (int)diff;
+                    : unchecked((int)diff);
             }
         }
     }
