@@ -495,7 +495,7 @@ False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact/*(Skip = "Lowering not implemented")*/]
+        [Fact]
         public void GeneralizedSwitchStatement()
         {
             Uri u = new Uri("http://www.microsoft.com");
@@ -550,6 +550,43 @@ struct X X
 class Exception System.Exception: boo
 ";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void PatternVariableDefiniteAssignment()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        object o = new X();
+        if (o is X x1) Console.WriteLine(x1); // OK
+        if (!(o is X x2)) Console.WriteLine(x2); // error
+        if (o is X x3 || true) Console.WriteLine(x3); // error
+        switch (o)
+        {
+            case X x4:
+            default:
+                Console.WriteLine(x4); // error
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics(
+                // (8,45): error CS0165: Use of unassigned local variable 'x2'
+                //         if (!(o is X x2)) Console.WriteLine(x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(8, 45),
+                // (9,50): error CS0165: Use of unassigned local variable 'x3'
+                //         if (o is X x3 || true) Console.WriteLine(x3);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(9, 50),
+                // (14,35): error CS0165: Use of unassigned local variable 'x4'
+                //                 Console.WriteLine(x4); // error
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x4").WithArguments("x4").WithLocation(14, 35)
+                );
         }
     }
 }

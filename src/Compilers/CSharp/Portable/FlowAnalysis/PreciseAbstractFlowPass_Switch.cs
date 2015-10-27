@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return breakState;
         }
 
-        private void VisitMatchSection(BoundMatchSection node, bool v)
+        protected virtual void VisitMatchSection(BoundMatchSection node, bool isLastSection)
         {
             // visit switch section labels
             foreach (var label in node.MatchLabels)

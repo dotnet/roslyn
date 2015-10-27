@@ -1351,6 +1351,74 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        public override BoundNode VisitMatchStatement(BoundMatchStatement node)
+        {
+            DeclareVariables(node.InnerLocals);
+            var result = base.VisitMatchStatement(node);
+            ReportUnusedVariables(node.InnerLocals);
+            ReportUnusedVariables(node.InnerLocalFunctions);
+            return result;
+        }
+
+        protected override void VisitMatchSection(BoundMatchSection node, bool isLastSection)
+        {
+            DeclareVariables(node.Locals);
+            var startState = this.State.Clone();
+            var endState = UnreachableState();
+            foreach (var label in node.MatchLabels)
+            {
+                this.SetState(startState.Clone());
+                AssignPatternVariables(label.Pattern);
+                if (label.Guard != null)
+                {
+                    VisitCondition(label.Guard);
+                    IntersectWith(ref endState, ref StateWhenTrue);
+                }
+                else
+                {
+                    IntersectWith(ref endState, ref this.State);
+                }
+            }
+
+            SetState(endState);
+            VisitStatementList(node);
+        }
+
+        private void AssignPatternVariables(BoundPattern pattern)
+        {
+            switch (pattern.Kind)
+            {
+                case BoundKind.DeclarationPattern:
+                    {
+                        Assign(pattern, null);
+                        break;
+                    }
+                case BoundKind.PropertyPattern:
+                    {
+                        var pat = (BoundPropertyPattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            AssignPatternVariables(prop);
+                        }
+                        break;
+                    }
+                case BoundKind.RecursivePattern:
+                    {
+                        var pat = (BoundRecursivePattern)pattern;
+                        foreach (var prop in pat.Patterns)
+                        {
+                            AssignPatternVariables(prop);
+                        }
+                        break;
+                    }
+
+                case BoundKind.WildcardPattern:
+                case BoundKind.ConstantPattern:
+                default:
+                    break;
+            }
+        }
+
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             DeclareVariables(node.OuterLocals);
