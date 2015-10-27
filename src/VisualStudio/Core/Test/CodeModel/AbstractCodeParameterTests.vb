@@ -65,21 +65,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Sub TestParameterKind(code As XElement, kind As vsCMParameterKind)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of CodeParameter2)()
-                Assert.NotNull(codeElement)
-
-                Assert.Equal(kind, codeElement.ParameterKind)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.Equal(kind, codeElement.ParameterKind)
+                End Sub)
         End Sub
 
         Protected Sub TestDefaultValue(code As XElement, expectedValue As String)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of CodeParameter2)()
-                Assert.NotNull(codeElement)
-
-                Assert.Equal(expectedValue, codeElement.DefaultValue)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.Equal(expectedValue, codeElement.DefaultValue)
+                End Sub)
         End Sub
 
         Protected Sub TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind)
@@ -87,18 +83,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestSetParameterKind(code As XElement, expectedCode As XElement, kind As EnvDTE80.vsCMParameterKind, action As SetterAction(Of EnvDTE80.vsCMParameterKind))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of CodeParameter2)()
-                Assert.NotNull(codeElement)
-
-                Dim parameterKindSetter = GetParameterKindSetter(codeElement)
-
-                action(kind, parameterKindSetter)
-
-                Dim text = state.GetDocumentAtCursor().GetTextAsync().Result.ToString()
-
-                Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
-            End Using
+            TestElementUpdate(code, expectedCode,
+                Sub(codeElement)
+                    Dim parameterKindSetter = GetParameterKindSetter(codeElement)
+                    action(kind, parameterKindSetter)
+                End Sub)
         End Sub
 
         Protected Sub TestSetDefaultValue(code As XElement, expected As XElement, defaultValue As String)
@@ -106,18 +95,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestSetDefaultValue(code As XElement, expectedCode As XElement, defaultValue As String, action As SetterAction(Of String))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of CodeParameter2)()
-                Assert.NotNull(codeElement)
-
-                Dim defaultValueSetter = GetDefaultValueSetter(codeElement)
-
-                action(defaultValue, defaultValueSetter)
-
-                Dim text = state.GetDocumentAtCursor().GetTextAsync().Result.ToString()
-
-                Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
-            End Using
+            TestElementUpdate(code, expectedCode,
+                Sub(codeElement)
+                    Dim defaultValueSetter = GetDefaultValueSetter(codeElement)
+                    action(defaultValue, defaultValueSetter)
+                End Sub)
         End Sub
     End Class
 End Namespace

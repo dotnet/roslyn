@@ -37,12 +37,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Sub TestNamespace(code As XElement, expectedNamespace As String)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeImport)()
-                Assert.NotNull(codeElement)
-
-                Assert.Equal(expectedNamespace, codeElement.Namespace)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.Equal(expectedNamespace, codeElement.Namespace)
+                End Sub)
         End Sub
 
     End Class

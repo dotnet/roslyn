@@ -11,20 +11,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
     [ComDefaultInterface(typeof(EnvDTE.CodeVariable))]
     public sealed class ExternalCodeVariable : AbstractExternalCodeMember, EnvDTE.CodeVariable, EnvDTE80.CodeVariable2
     {
-        internal static EnvDTE.CodeVariable Create(CodeModelState state, ProjectId projectId, IFieldSymbol symbol)
+        internal static EnvDTE.CodeVariable Create(CodeModelState state, ProjectId projectId, ISymbol symbol)
         {
             var element = new ExternalCodeVariable(state, projectId, symbol);
             return (EnvDTE.CodeVariable)ComAggregate.CreateAggregatedObject(element);
         }
 
-        private ExternalCodeVariable(CodeModelState state, ProjectId projectId, IFieldSymbol symbol)
+        private ExternalCodeVariable(CodeModelState state, ProjectId projectId, ISymbol symbol)
             : base(state, projectId, symbol)
         {
         }
 
-        private IFieldSymbol FieldSymbol
+        private ITypeSymbol GetSymbolType()
         {
-            get { return (IFieldSymbol)LookupSymbol(); }
+            var symbol = LookupSymbol();
+            if (symbol != null)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Field:
+                        return ((IFieldSymbol)symbol).Type;
+                    case SymbolKind.Property:
+                        // Note: VB WithEvents fields are represented as properties
+                        return ((IPropertySymbol)symbol).Type;
+                }
+            }
+
+            return null;
         }
 
         public override EnvDTE.vsCMElement Kind
@@ -49,10 +62,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                // TODO: Verify VB implementation
-                var symbol = FieldSymbol;
-                return symbol.IsConst
-                    || symbol.IsReadOnly;
+                var fieldSymbol = LookupSymbol() as IFieldSymbol;
+                if (fieldSymbol == null)
+                {
+                    return false;
+                }
+
+                return fieldSymbol.IsConst
+                    || fieldSymbol.IsReadOnly;
             }
 
             set
@@ -65,7 +82,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                return CodeTypeRef.Create(this.State, this, this.ProjectId, FieldSymbol.Type);
+                var type = GetSymbolType();
+                if (type == null)
+                {
+                    throw Exceptions.ThrowEFail();
+                }
+
+                return CodeTypeRef.Create(this.State, this, this.ProjectId, type);
             }
 
             set
@@ -78,13 +101,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         {
             get
             {
-                // TODO: Verify VB Implementation
-                var symbol = FieldSymbol;
-                if (symbol.IsConst)
+                var fieldSymbol = LookupSymbol() as IFieldSymbol;
+                if (fieldSymbol == null)
+                {
+                    return EnvDTE80.vsCMConstKind.vsCMConstKindNone;
+                }
+
+                if (fieldSymbol.IsConst)
                 {
                     return EnvDTE80.vsCMConstKind.vsCMConstKindConst;
                 }
-                else if (symbol.IsReadOnly)
+                else if (fieldSymbol.IsReadOnly)
                 {
                     return EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly;
                 }
@@ -105,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             get
             {
                 // TODO: C# checks whether the field Type is generic. What does VB do?
-                var namedType = FieldSymbol.Type as INamedTypeSymbol;
+                var namedType = GetSymbolType() as INamedTypeSymbol;
                 return namedType != null
                     ? namedType.IsGenericType
                     : false;
