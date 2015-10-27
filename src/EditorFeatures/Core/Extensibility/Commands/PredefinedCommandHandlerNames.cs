@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Command handler name for Go to Next Method and Go to Previous Method.
         /// </summary>
-        public const string GoToNextAndPreviousMethod = "Go to next and previous method command handler";
+        public const string GoToNextAndPreviousMethod = "Go To Next And Previous Method Command Handler";
 
         /// <summary>
         /// Command handler name for Indent.
