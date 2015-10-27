@@ -11,6 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using Collections;
     using MetadataOrDiagnostic = System.Object;
 
     /// <summary>
@@ -55,17 +56,39 @@ namespace Microsoft.CodeAnalysis
             private readonly ImmutableArray<string> _aliasesOpt;
             private readonly ImmutableArray<string> _recursiveAliasesOpt;
 
-            public ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt)
+            public readonly bool IsSuperseded;
+
+            public static ResolvedReference Module(int index)
             {
                 Debug.Assert(index >= 0);
-                
+                return new ResolvedReference(index + 1, MetadataImageKind.Module, ImmutableArray<string>.Empty, default(ImmutableArray<string>), false);
+            }
+
+            public static ResolvedReference Assembly(int index, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt, bool isSuperseded)
+            {
+                Debug.Assert(index >= 0);
+
                 // We have to have non-default aliases (empty are ok). We can have both recursive and non-recursive aliases if two references were merged.
                 Debug.Assert(!aliasesOpt.IsDefault || !recursiveAliasesOpt.IsDefault);
 
-                _index = index + 1;
+                return new ResolvedReference(index + 1, MetadataImageKind.Assembly, aliasesOpt, recursiveAliasesOpt, isSuperseded);
+            }
+
+            private ResolvedReference(int index, MetadataImageKind kind, ImmutableArray<string> aliasesOpt, ImmutableArray<string> recursiveAliasesOpt, bool isSuperseded)
+            {
+                Debug.Assert(index >= 1);
+
+                _index = index;
                 _kind = kind;
                 _aliasesOpt = aliasesOpt;
                 _recursiveAliasesOpt = recursiveAliasesOpt;
+                IsSuperseded = isSuperseded;
+            }
+
+            public ResolvedReference WithIsSuperseded(bool value)
+            {
+                Debug.Assert(!IsSkipped);
+                return new ResolvedReference(_index, _kind, _aliasesOpt, _recursiveAliasesOpt, value);
             }
 
             /// <summary>
@@ -128,7 +151,12 @@ namespace Microsoft.CodeAnalysis
 
             private string GetDebuggerDisplay()
             {
-                return IsSkipped ? "<skipped>" : $"{(_kind == MetadataImageKind.Assembly ? "A" : "M")}[{Index}]:{DisplayAliases(_aliasesOpt, "aliases")}{DisplayAliases(_recursiveAliasesOpt, "recursive-aliases")}";
+                return IsSkipped ? "<skipped>" : $"{(_kind == MetadataImageKind.Assembly ? "A" : "M")}[{Index}]:{(IsSuperseded ? " superseded" : DisplayAliases())}";
+            }
+
+            private string DisplayAliases()
+            {
+                return DisplayAliases(_aliasesOpt, "aliases") + DisplayAliases(_recursiveAliasesOpt, "recursive-aliases");
             }
 
             private static string DisplayAliases(ImmutableArray<string> aliasesOpt, string name)
@@ -141,11 +169,13 @@ namespace Microsoft.CodeAnalysis
         {
             public readonly AssemblyIdentity Identity;
             public readonly MetadataReference MetadataReference;
+            public readonly int Index;
 
-            public ReferencedAssemblyIdentity(AssemblyIdentity identity, MetadataReference metadataReference)
+            public ReferencedAssemblyIdentity(AssemblyIdentity identity, MetadataReference metadataReference, int index)
             {
                 Identity = identity;
                 MetadataReference = metadataReference;
+                Index = index;
             }
         }
 
@@ -154,13 +184,22 @@ namespace Microsoft.CodeAnalysis
             public readonly int Index;
             public readonly MetadataReference Reference;
             public readonly AssemblyMetadata MetadataOpt;
+            public readonly bool IsSuperseded;
 
-            public AssemblyReference(int index, MetadataReference reference, AssemblyMetadata metadataOpt)
+            public AssemblyReference(int index, MetadataReference reference, AssemblyMetadata metadataOpt, bool isSuperseded)
             {
+                Debug.Assert(index >= 0);
+                Debug.Assert(reference != null);
+                Debug.Assert(metadataOpt != null || reference is CompilationReference);
+
                 Index = index;
                 Reference = reference;
                 MetadataOpt = metadataOpt;
+                IsSuperseded = isSuperseded;
             }
+
+            internal AssemblyReference WithIsSuperseded(bool value) => 
+                new AssemblyReference(Index, Reference, MetadataOpt, value);
         }
 
         private struct ModuleReference
@@ -171,6 +210,10 @@ namespace Microsoft.CodeAnalysis
 
             public ModuleReference(int index, MetadataReference reference, ModuleMetadata metadata)
             {
+                Debug.Assert(index >= 0);
+                Debug.Assert(reference != null);
+                Debug.Assert(metadata != null);
+
                 Index = index;
                 Reference = reference;
                 Metadata = metadata;
@@ -215,12 +258,14 @@ namespace Microsoft.CodeAnalysis
             var boundReferences = new Dictionary<MetadataReference, MetadataReference>(MetadataReferenceEqualityComparer.Instance);
 
             // Used to filter out assemblies that have the same strong or weak identity.
-            // Maps simple name to a list of full names.
-            Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName = null;
+            // Maps simple name to a list of identities. The highest version of each name is the first.
+            var assemblyReferencesBySimpleName = PooledDictionary<string, List<ReferencedAssemblyIdentity>>.GetInstance();
 
             ArrayBuilder<MetadataReference> uniqueDirectiveReferences = (referenceDirectiveLocations != null) ? ArrayBuilder<MetadataReference>.GetInstance() : null;
             var reversedAssemblyReferences = ArrayBuilder<AssemblyReference>.GetInstance();
             ArrayBuilder<ModuleReference> lazyReversedModuleReferences = null;
+
+            bool preferHighestVersion = compilation.IsSubmission;
 
             // When duplicate references with conflicting EmbedInteropTypes flag are encountered,
             // VB uses the flag from the last one, C# reports an error. We need to enumerate in reverse order
@@ -268,11 +313,11 @@ namespace Microsoft.CodeAnalysis
                     {
                         case MetadataImageKind.Assembly:
                             existingReference = TryAddAssembly(
-                                compilationReference.Compilation.Assembly.Identity,
-                                boundReference,
+                                new ReferencedAssemblyIdentity(compilationReference.Compilation.Assembly.Identity, boundReference, reversedAssemblyReferences.Count),
                                 diagnostics,
                                 location,
-                                ref assemblyReferencesBySimpleName);
+                                preferHighestVersion,
+                                assemblyReferencesBySimpleName);
 
                             if (existingReference != null)
                             {
@@ -280,7 +325,7 @@ namespace Microsoft.CodeAnalysis
                                 continue;
                             }
 
-                            reversedAssemblyReferences.Add(new AssemblyReference(referenceIndex, boundReference, metadataOpt: null));
+                            reversedAssemblyReferences.Add(new AssemblyReference(referenceIndex, boundReference, metadataOpt: null, isSuperseded: false));
                             break;
 
                         default:
@@ -308,11 +353,11 @@ namespace Microsoft.CodeAnalysis
                             {
                                 PEAssembly assembly = assemblyMetadata.GetAssembly();
                                 existingReference = TryAddAssembly(
-                                    assembly.Identity,
-                                    peReference,
+                                    new ReferencedAssemblyIdentity(assembly.Identity, peReference, reversedAssemblyReferences.Count),
                                     diagnostics,
                                     location,
-                                    ref assemblyReferencesBySimpleName);
+                                    preferHighestVersion,
+                                    assemblyReferencesBySimpleName);
 
                                 if (existingReference != null)
                                 {
@@ -320,7 +365,7 @@ namespace Microsoft.CodeAnalysis
                                     continue;
                                 }
 
-                                reversedAssemblyReferences.Add(new AssemblyReference(referenceIndex, boundReference, assemblyMetadata));
+                                reversedAssemblyReferences.Add(new AssemblyReference(referenceIndex, boundReference, assemblyMetadata, isSuperseded: false));
                             }
                             else
                             {
@@ -370,20 +415,35 @@ namespace Microsoft.CodeAnalysis
                 boundReferenceDirectives = ImmutableArray<MetadataReference>.Empty;
             }
 
+            // discard assembly references with lower versions:
+            if (preferHighestVersion)
+            {
+                foreach (var assemblyVersions in assemblyReferencesBySimpleName)
+                {
+                    // the first one is the highest, by construction:
+                    for (int i = 1; i < assemblyVersions.Value.Count; i++)
+                    {
+                        int index = assemblyVersions.Value[i].Index;
+                        reversedAssemblyReferences[index] = reversedAssemblyReferences[index].WithIsSuperseded(true);
+                    }
+                }
+            }
+
             var referenceMap = new ResolvedReference[referenceCount];
             assemblies = BuildAssemblyDataAndReferenceMap(compilation, reversedAssemblyReferences, referenceMap, lazyAliasMap);
             modules = BuildModulesAndReferenceMap(lazyReversedModuleReferences, referenceMap);
 
             reversedAssemblyReferences.Free();
             lazyReversedModuleReferences?.Free();
+            assemblyReferencesBySimpleName.Free();
 
             return ImmutableArray.CreateRange(referenceMap);
         }
 
         private ImmutableArray<AssemblyData> BuildAssemblyDataAndReferenceMap(
             TCompilation compilation, 
-            ArrayBuilder<AssemblyReference> reversedAssemblyReferences, 
-            ResolvedReference[] referenceMap, 
+            ArrayBuilder<AssemblyReference> reversedAssemblyReferences,
+            ResolvedReference[] referenceMap,
             Dictionary<MetadataReference, MergedAliases> aliasMapOpt)
         {
             var assembliesBuilder = ArrayBuilder<AssemblyData>.GetInstance(reversedAssemblyReferences.Count);
@@ -392,8 +452,8 @@ namespace Microsoft.CodeAnalysis
             {
                 var assemblyReference = reversedAssemblyReferences[i];
 
-                AssemblyData data;
                 AssemblyMetadata metadata = assemblyReference.MetadataOpt;
+                AssemblyData data;
 
                 if (metadata != null)
                 {
@@ -416,7 +476,8 @@ namespace Microsoft.CodeAnalysis
                     data = CreateAssemblyDataForCompilation((CompilationReference)assemblyReference.Reference);
                 }
 
-                referenceMap[assemblyReference.Index] = GetResolvedReferenceAndFreeAliasMapEntry(assemblyReference.Reference, assembliesBuilder.Count, MetadataImageKind.Assembly, aliasMapOpt);
+                data.MetadataReferenceIndex = assemblyReference.Index;
+                referenceMap[assemblyReference.Index] = GetResolvedReferenceAndFreeAliasMapEntry(assemblyReference.Reference, assembliesBuilder.Count, MetadataImageKind.Assembly, assemblyReference.IsSuperseded, aliasMapOpt);
                 assembliesBuilder.Add(data);
             }
 
@@ -439,14 +500,14 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(moduleReference.Reference.Properties.Aliases.IsEmpty);
                 Debug.Assert(!moduleReference.Reference.Properties.HasRecursiveAliases);
 
-                referenceMap[moduleReference.Index] = new ResolvedReference(modulesBuilder.Count, MetadataImageKind.Module, aliasesOpt: ImmutableArray<string>.Empty, recursiveAliasesOpt: default(ImmutableArray<string>));
+                referenceMap[moduleReference.Index] = ResolvedReference.Module(modulesBuilder.Count);
                 modulesBuilder.Add(moduleReference.Metadata.Module);
             }
 
             return modulesBuilder.ToImmutableAndFree();
         }
 
-        private static ResolvedReference GetResolvedReferenceAndFreeAliasMapEntry(MetadataReference reference, int index, MetadataImageKind kind, Dictionary<MetadataReference, MergedAliases> aliasMapOpt)
+        private static ResolvedReference GetResolvedReferenceAndFreeAliasMapEntry(MetadataReference reference, int index, MetadataImageKind kind, bool isSuperseded, Dictionary<MetadataReference, MergedAliases> aliasMapOpt)
         {
             ImmutableArray<string> aliasesOpt, recursiveAliasesOpt;
 
@@ -467,7 +528,7 @@ namespace Microsoft.CodeAnalysis
                 recursiveAliasesOpt = default(ImmutableArray<string>);
             }
 
-            return new ResolvedReference(index, kind, aliasesOpt, recursiveAliasesOpt);
+            return ResolvedReference.Assembly(index, aliasesOpt, recursiveAliasesOpt, isSuperseded);
         }
 
         /// <summary>
@@ -623,27 +684,46 @@ namespace Microsoft.CodeAnalysis
         /// - both assembly names are weak (no keys) and have the same simple name.
         /// </summary>
         private MetadataReference TryAddAssembly(
-            AssemblyIdentity identity,
-            MetadataReference boundReference,
+            ReferencedAssemblyIdentity referencedAssembly,
             DiagnosticBag diagnostics, 
             Location location,
-            ref Dictionary<string, List<ReferencedAssemblyIdentity>> referencesBySimpleName)
+            bool preferHighestVersion,
+            Dictionary<string, List<ReferencedAssemblyIdentity>> referencesBySimpleName)
         {
-            if (referencesBySimpleName == null)
+            List<ReferencedAssemblyIdentity> sameSimpleNameIdentities;
+            AssemblyIdentity identity = referencedAssembly.Identity;
+
+            if (!referencesBySimpleName.TryGetValue(identity.Name, out sameSimpleNameIdentities))
             {
-                referencesBySimpleName = new Dictionary<string, List<ReferencedAssemblyIdentity>>(StringComparer.OrdinalIgnoreCase);
+                referencesBySimpleName.Add(identity.Name, new List<ReferencedAssemblyIdentity> { referencedAssembly });
+                return null;
             }
 
-            List<ReferencedAssemblyIdentity> sameSimpleNameIdentities;
-            string simpleName = identity.Name;
-            if (!referencesBySimpleName.TryGetValue(simpleName, out sameSimpleNameIdentities))
+            if (preferHighestVersion)
             {
-                referencesBySimpleName.Add(simpleName, new List<ReferencedAssemblyIdentity> { new ReferencedAssemblyIdentity(identity, boundReference) });
+                foreach (var other in sameSimpleNameIdentities)
+                {
+                    if (identity.Version == other.Identity.Version)
+                    {
+                        return other.MetadataReference;
+                    }
+                }
+
+                // Keep all versions of the assembly and the first identity in the list the one with the highest version:
+                if (sameSimpleNameIdentities[0].Identity.Version > identity.Version)
+                {
+                    sameSimpleNameIdentities.Add(referencedAssembly);
+                }
+                else
+                {
+                    sameSimpleNameIdentities.Add(sameSimpleNameIdentities[0]);
+                    sameSimpleNameIdentities[0] = referencedAssembly;
+                }
+
                 return null;
             }
 
             ReferencedAssemblyIdentity equivalent = default(ReferencedAssemblyIdentity);
-
             if (identity.IsStrongName)
             {
                 foreach (var other in sameSimpleNameIdentities)
@@ -676,7 +756,7 @@ namespace Microsoft.CodeAnalysis
 
             if (equivalent.Identity == null)
             {
-                sameSimpleNameIdentities.Add(new ReferencedAssemblyIdentity(identity, boundReference));
+                sameSimpleNameIdentities.Add(referencedAssembly);
                 return null;
             }
 
@@ -693,7 +773,7 @@ namespace Microsoft.CodeAnalysis
                     // BREAKING CHANGE in VB: we report an error for both languages
 
                     // Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.
-                    MessageProvider.ReportDuplicateMetadataReferenceStrong(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                    MessageProvider.ReportDuplicateMetadataReferenceStrong(diagnostics, location, referencedAssembly.MetadataReference, identity, equivalent.MetadataReference, equivalent.Identity);
                 }
                 // If the versions match exactly we ignore duplicates w/o reporting errors while 
                 // Dev12 C# reports:
@@ -714,7 +794,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (identity != equivalent.Identity)
                 {
-                    MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnostics, location, boundReference, identity, equivalent.MetadataReference, equivalent.Identity);
+                    MessageProvider.ReportDuplicateMetadataReferenceWeak(diagnostics, location, referencedAssembly.MetadataReference, identity, equivalent.MetadataReference, equivalent.Identity);
                 }
             }
 

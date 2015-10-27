@@ -229,6 +229,108 @@ System.Diagnostics.Process.GetCurrentProcess()
         }
 
         [Fact]
+        public void References_Versioning_FxUnification1()
+        {
+            var result = CSharpScript.EvaluateAsync($@"
+#r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+#r ""System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+
+System.Diagnostics.Process.GetCurrentProcess()
+").Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_FxUnification2()
+        {
+            var result = CSharpScript.Create($@"
+#r ""System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+").ContinueWith($@"
+#r ""System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""
+").ContinueWith(@"
+System.Diagnostics.Process.GetCurrentProcess()
+").EvaluateAsync().Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_StrongNames1()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C1);
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C2);
+
+            var result = CSharpScript.EvaluateAsync($@"
+#r ""{c1.Path}""
+#r ""{c2.Path}""
+
+new C()
+").Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_StrongNames2()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C1);
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C2);
+
+            var result = CSharpScript.Create($@"
+#r ""{c1.Path}""
+").ContinueWith($@"
+#r ""{c2.Path}""
+").ContinueWith(@"
+new C()
+").EvaluateAsync().Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_WeakNames1()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+
+            var result = CSharpScript.EvaluateAsync($@"
+#r ""{c1.Path}""
+#r ""{c2.Path}""
+
+new C()
+").Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public void References_Versioning_WeakNames2()
+        {
+            var c1 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+            var c2 = Temp.CreateFile(extension: ".dll").WriteAllBytes(CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").EmitToArray());
+
+            var result = CSharpScript.Create($@"
+#r ""{c1.Path}""
+").ContinueWith($@"
+#r ""{c2.Path}""
+").ContinueWith(@"
+new C()
+").EvaluateAsync().Result;
+
+            Assert.NotNull(result);
+        }
+
+        [Fact]
+        public static void F()
+        {
+            var s = CSharpScript.EvaluateAsync(@"
+#r ""C:\Users\tomat\.nuget\packages\xunit.runner.console\2.1.0\tools\xunit.console.x86.exe""
+new Xunit.ConsoleClient.Program()
+");
+        }
+
+        [Fact]
         public void AssemblyResolution()
         {
             var s0 = CSharpScript.RunAsync("var x = new { a = 3 }; x");

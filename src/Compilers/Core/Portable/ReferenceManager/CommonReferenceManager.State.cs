@@ -380,6 +380,13 @@ namespace Microsoft.CodeAnalysis
             Interlocked.Exchange(ref _isBound, 1);
         }
 
+        /// <summary>
+        /// Global namespaces of assembly references that have been superseded by an assembly reference with a higher version are 
+        /// hidden behind <see cref="SupersededAlias"/> to avoid ambiguity when they are accessed from source.
+        /// All existing aliases of a superseded assembly are discarded.
+        /// </summary>
+        private static readonly ImmutableArray<string> SupersededAlias = ImmutableArray.Create("<superseded>");
+
         protected static void BuildReferencedAssembliesAndModulesMaps(
             BoundInputAssembly[] bindingResult,
             ImmutableArray<MetadataReference> references,
@@ -414,7 +421,7 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
 
                     referencedAssembliesMap.Add(references[i], assemblyIndex);
-                    aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].AliasesOpt);
+                    aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].IsSuperseded ? SupersededAlias : referenceMap[i].AliasesOpt);
 
                     hasRecursiveAliases |= !referenceMap[i].RecursiveAliasesOpt.IsDefault;
                 }
@@ -465,8 +472,11 @@ namespace Microsoft.CodeAnalysis
                         int assemblyIndex = assemblyIndicesToProcess.Pop();
                         visitedAssemblies[assemblyIndex] = true;
 
-                        // merge aliases:
-                        aliasesOfReferencedAssembliesBuilder[assemblyIndex] = MergedAliases.Merge(aliasesOfReferencedAssembliesBuilder[assemblyIndex], recursiveAliases);
+                        // merge aliases, unless the target reference has been superseded by a reference with a higher version:
+                        if (aliasesOfReferencedAssembliesBuilder[assemblyIndex] != SupersededAlias)
+                        {
+                            aliasesOfReferencedAssembliesBuilder[assemblyIndex] = MergedAliases.Merge(aliasesOfReferencedAssembliesBuilder[assemblyIndex], recursiveAliases);
+                        }
 
                         // push dependencies onto the stack:
                         // +1 for the assembly being built:

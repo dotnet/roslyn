@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal abstract class AssemblyData
         {
+            public int MetadataReferenceIndex { get; set; }
+
             /// <summary>
             /// Identity of the assembly.
             /// </summary>
