@@ -1747,49 +1747,32 @@ End Namespace
         End Sub
 
         <Fact>
-        Public Sub SubmissionResultType()
-            Dim submission = VisualBasicCompilation.CreateScriptCompilation("sub")
-            Dim hasValue As Boolean
-            Assert.Equal(SpecialType.System_Void, submission.GetSubmissionResultType(hasValue).SpecialType)
-            Assert.False(hasValue)
+        Public Sub HasSubmissionResult()
+            Assert.False(VisualBasicCompilation.CreateScriptCompilation("sub").HasSubmissionResult())
 
-            TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
+            Assert.True(CreateSubmission("?1", parseOptions:=TestOptions.Script).HasSubmissionResult())
 
-            TestSubmissionResult(CreateSubmission("1", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+            Assert.False(CreateSubmission("1", parseOptions:=TestOptions.Script).HasSubmissionResult())
             ' TODO (https://github.com/dotnet/roslyn/issues/4763): '?' should be optional
             ' TestSubmissionResult(CreateSubmission("1", parseOptions:=TestOptions.Interactive), expectedType:=SpecialType.System_Int32, expectedHasValue:=True)
 
             ' TODO (https://github.com/dotnet/roslyn/issues/4766): ReturnType should not be ignored
             ' TestSubmissionResult(CreateSubmission("?1", parseOptions:=TestOptions.Interactive, returnType:=GetType(Double)), expectedType:=SpecialType.System_Double, expectedHasValue:=True)
 
-            TestSubmissionResult(CreateSubmission("
+            Assert.False(CreateSubmission("
 Sub Foo() 
 End Sub
-"), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
+").HasSubmissionResult())
 
-            TestSubmissionResult(CreateSubmission("Imports System", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestSubmissionResult(CreateSubmission("Dim i As Integer", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestSubmissionResult(CreateSubmission("System.Console.WriteLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=False)
-            TestSubmissionResult(CreateSubmission("?System.Console.WriteLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Void, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("System.Console.ReadLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_String, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?System.Console.ReadLine()", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_String, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?Nothing", parseOptions:=TestOptions.Script), expectedType:=SpecialType.System_Object, expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?AddressOf System.Console.WriteLine", parseOptions:=TestOptions.Script), expectedType:=DirectCast(Nothing, SpecialType?), expectedHasValue:=True)
-            TestSubmissionResult(CreateSubmission("?Function(x) x", parseOptions:=TestOptions.Script), expectedType:=AddressOf IsDelegateType, expectedHasValue:=True)
-        End Sub
-
-        Private Shared Sub TestSubmissionResult(s As VisualBasicCompilation, expectedType As SpecialType?, expectedHasValue As Boolean)
-            Dim hasValue As Boolean
-            Dim type = s.GetSubmissionResultType(hasValue)
-            Assert.Equal(expectedType, If(type IsNot Nothing, type.SpecialType, DirectCast(Nothing, SpecialType?)))
-            Assert.Equal(expectedHasValue, hasValue)
-        End Sub
-
-        Private Shared Sub TestSubmissionResult(s As VisualBasicCompilation, expectedType As Func(Of TypeSymbol, Boolean), expectedHasValue As Boolean)
-            Dim hasValue As Boolean
-            Dim type = s.GetSubmissionResultType(hasValue)
-            Assert.True(expectedType(DirectCast(type, TypeSymbol)), "unexpected type")
-            Assert.Equal(expectedHasValue, hasValue)
+            Assert.False(CreateSubmission("Imports System", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.False(CreateSubmission("Dim i As Integer", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.False(CreateSubmission("System.Console.WriteLine()", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.True(CreateSubmission("?System.Console.WriteLine()", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.True(CreateSubmission("System.Console.ReadLine()", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.True(CreateSubmission("?System.Console.ReadLine()", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.True(CreateSubmission("?Nothing", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.True(CreateSubmission("?AddressOf System.Console.WriteLine", parseOptions:=TestOptions.Script).HasSubmissionResult())
+            Assert.True(CreateSubmission("?Function(x) x", parseOptions:=TestOptions.Script).HasSubmissionResult())
         End Sub
 
         ''' <summary>

@@ -11,5 +11,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This includes the analyzers included through VSIX installations.
         /// </summary>
         IEnumerable<HostDiagnosticAnalyzerPackage> GetHostDiagnosticAnalyzerPackages();
+
+        /// <summary>
+        /// Gets the loader for VSIX based analyzer assemblies.
+        /// </summary>
+        /// <returns></returns>
+        IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader();
     }
 }
