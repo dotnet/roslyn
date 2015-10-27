@@ -16,10 +16,10 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [ExportCommandHandler("Go to next and previous method command handler", ContentTypeNames.RoslynContentType)]
-    class GoToNextAndPreviousMethodCommandHandler : ICommandHandler<GoToNextMethodCommandArgs>, ICommandHandler<GoToPreviousMethodCommandArgs>
+    internal class GoToNextAndPreviousMethodCommandHandler : ICommandHandler<GoToNextMethodCommandArgs>, ICommandHandler<GoToPreviousMethodCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly IOutliningManagerService _outliningManagerService;
