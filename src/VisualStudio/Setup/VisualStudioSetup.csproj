@@ -25,6 +25,10 @@
     <DefineConstants>$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\MSBuildTask.csproj">
+      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
+      <Name>MSBuildTask</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
