@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ConstantPattern:
                     {
                         var constantPattern = (BoundConstantPattern)pattern;
-                        return CompareWithConstant(input, constantPattern.BoundConstant);
+                        return CompareWithConstant(input, constantPattern.Value);
                     }
 
                 case BoundKind.RecursivePattern:

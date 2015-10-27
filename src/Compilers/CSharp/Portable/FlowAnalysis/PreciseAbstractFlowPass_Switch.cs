@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  Otherwise, the Break state = current state.
 
             // visit switch expression
-            VisitRvalue(node.BoundExpression);
+            VisitRvalue(node.Expression);
             LocalState breakState = this.State;
 
             // For a switch statement, we simulate a possible jump to the switch labels to ensure that
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasDefaultLabel = false;
                 foreach (var section in node.SwitchSections)
                 {
-                    foreach (var boundSwitchLabel in section.BoundSwitchLabels)
+                    foreach (var boundSwitchLabel in section.SwitchLabels)
                     {
                         var label = boundSwitchLabel.Label;
                         hasDefaultLabel = hasDefaultLabel || label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
             // visit switch section labels
-            foreach (var boundSwitchLabel in node.BoundSwitchLabels)
+            foreach (var boundSwitchLabel in node.SwitchLabels)
             {
                 VisitRvalue(boundSwitchLabel.ExpressionOpt);
                 VisitSwitchSectionLabel(boundSwitchLabel.Label, node);
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  Otherwise, the Break state = current state.
 
             // visit switch expression
-            VisitRvalue(node.BoundExpression);
+            VisitRvalue(node.Expression);
             LocalState breakState = this.State;
 
             // TODO: handle the switch expression being a constant.
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitMatchSection(BoundMatchSection node, bool v)
         {
             // visit switch section labels
-            foreach (var label in node.BoundMatchLabels)
+            foreach (var label in node.MatchLabels)
             {
                 // VisitPattern(label.Pattern); // TODO: implement this
                 VisitRvalue(label.Guard);

@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundSwitchStatement: ISwitchStatement
     {
-        IExpression ISwitchStatement.Value => this.BoundExpression;
+        IExpression ISwitchStatement.Value => this.Expression;
 
         ImmutableArray<ICase> ISwitchStatement.Cases => this.SwitchSections.As<ICase>();
 
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class BoundSwitchSection : ICase
     {
-        ImmutableArray<ICaseClause> ICase.Clauses => this.BoundSwitchLabels.As<ICaseClause>();
+        ImmutableArray<ICaseClause> ICase.Clauses => this.SwitchLabels.As<ICaseClause>();
 
         ImmutableArray<IStatement> ICase.Body => this.Statements.As<IStatement>();
     }

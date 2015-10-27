@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.SwitchSection:
                         {
                             var sec = (BoundSwitchSection)node;
-                            foreach (var label in sec.BoundSwitchLabels)
+                            foreach (var label in sec.SwitchLabels)
                             {
                                 backwardBranchChanged |= ResolveBranches(label.Label, sec);
                             }

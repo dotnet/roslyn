@@ -322,9 +322,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                Debug.Assert(node.BoundSwitchLabels.Any());
+                Debug.Assert(node.SwitchLabels.Any());
 
-                var boundLabel = node.BoundSwitchLabels.Last();
+                var boundLabel = node.SwitchLabels.Last();
                 Diagnostics.Add(lastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(boundLabel.Syntax), boundLabel.Label.Name);
                 this.State.Reported = true;

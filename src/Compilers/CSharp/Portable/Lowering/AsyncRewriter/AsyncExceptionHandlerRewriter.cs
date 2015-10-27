@@ -226,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var completeTry = _F.Block(
                 locals.ToImmutableAndFree(),
-                ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements.ToImmutableAndFree());
 
             return completeTry;
@@ -403,7 +402,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _F.Block(
                     ImmutableArray.Create<LocalSymbol>(obj),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     objInit,
                     _F.If(
                         _F.ObjectNotEqual(
@@ -432,7 +430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // better rethrow 
                 rethrow = _F.Block(
                     ImmutableArray.Create(ex),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     assignment,
                     _F.If(_F.ObjectEqual(_F.Local(ex), _F.Null(ex.Type)), rethrow),
                     // ExceptionDispatchInfo.Capture(pendingExceptionLocal).Throw();
@@ -487,7 +484,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         currentAwaitCatchFrame.pendingCaughtException,
                         currentAwaitCatchFrame.pendingCatch).
                         AddRange(currentAwaitCatchFrame.GetHoistedLocals()),
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     _F.HiddenSequencePoint(),
                     _F.Assignment(
                         _F.Local(currentAwaitCatchFrame.pendingCatch),
@@ -620,7 +616,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var handler = _F.Block(
                     handlerLocals,
-                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     handlerStatements.ToImmutableAndFree()
                 );
 

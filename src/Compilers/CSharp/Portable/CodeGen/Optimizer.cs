@@ -1366,7 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             // switch needs a byval local or a parameter as a key.
             // if this is already a fitting local, let's keep it that way
-            BoundExpression boundExpression = node.BoundExpression;
+            BoundExpression boundExpression = node.Expression;
             if (boundExpression.Kind == BoundKind.Local)
             {
                 var localSym = ((BoundLocal)boundExpression).LocalSymbol;

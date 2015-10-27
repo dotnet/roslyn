@@ -1023,13 +1023,13 @@ oneMoreTime:
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
         {
             // Switch expression must have a valid switch governing type
-            Debug.Assert((object)switchStatement.BoundExpression.Type != null);
-            Debug.Assert(switchStatement.BoundExpression.Type.IsValidSwitchGoverningType());
+            Debug.Assert((object)switchStatement.Expression.Type != null);
+            Debug.Assert(switchStatement.Expression.Type.IsValidSwitchGoverningType());
 
             // We must have rewritten nullable switch expression into non-nullable constructs.
-            Debug.Assert(!switchStatement.BoundExpression.Type.IsNullableType());
+            Debug.Assert(!switchStatement.Expression.Type.IsNullableType());
 
-            BoundExpression expression = switchStatement.BoundExpression;
+            BoundExpression expression = switchStatement.Expression;
             ImmutableArray<BoundSwitchSection> switchSections = switchStatement.SwitchSections;
             GeneratedLabelSymbol breakLabel = switchStatement.BreakLabel;
             LabelSymbol constantTargetOpt = switchStatement.ConstantTargetOpt;
@@ -1071,7 +1071,7 @@ oneMoreTime:
             var labelsBuilder = ArrayBuilder<KeyValuePair<ConstantValue, object>>.GetInstance();
             foreach (var section in sections)
             {
-                foreach (BoundSwitchLabel boundLabel in section.BoundSwitchLabels)
+                foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = (SourceLabelSymbol)boundLabel.Label;
                     if (label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel)
@@ -1347,7 +1347,7 @@ oneMoreTime:
 
         private void EmitSwitchSection(BoundSwitchSection switchSection)
         {
-            foreach (var boundSwitchLabel in switchSection.BoundSwitchLabels)
+            foreach (var boundSwitchLabel in switchSection.SwitchLabels)
             {
                 _builder.MarkLabel(boundSwitchLabel.Label);
             }
@@ -1565,7 +1565,7 @@ oneMoreTime:
                 var breakLabelClone = GetLabelClone(node.BreakLabel);
 
                 // expressions do not contain labels or branches
-                BoundExpression boundExpression = node.BoundExpression;
+                BoundExpression boundExpression = node.Expression;
                 ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
                 return node.Update(boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, breakLabelClone, node.StringEquality);
             }

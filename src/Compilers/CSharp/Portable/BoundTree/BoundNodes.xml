@@ -648,7 +648,7 @@
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
-    <Field Name="BoundExpression" Type="BoundExpression"/>
+    <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="ConstantTargetOpt" Type="LabelSymbol" Null= "allow"/>
     
     <!-- Locals declared immediately within the switch block. -->
@@ -661,7 +661,7 @@
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
-    <Field Name="BoundSwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
+    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
   </Node>
 
   <Node Name="BoundSwitchLabel" Base="BoundNode">
@@ -678,23 +678,21 @@
   </Node>
 
   <Node Name="BoundMatchStatement" Base="BoundStatement">
-    <Field Name="BoundExpression" Type="BoundExpression"/>
+    <Field Name="Expression" Type="BoundExpression"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
     <Field Name="MatchSections" Type="ImmutableArray&lt;BoundMatchSection&gt;"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
-    <Field Name="DefaultLabel" Type="GeneratedLabelSymbol" Null="allow"/>
   </Node>
 
   <Node Name="BoundMatchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="BoundMatchLabels" Type="ImmutableArray&lt;BoundMatchLabel&gt;"/>
+    <Field Name="MatchLabels" Type="ImmutableArray&lt;BoundMatchLabel&gt;"/>
   </Node>
 
   <Node Name="BoundMatchLabel" Base="BoundNode">
-    <Field Name="Label" Type="LabelSymbol"/>
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>
   </Node>
@@ -1383,7 +1381,7 @@
   </Node>
 
   <Node Name="BoundConstantPattern" Base="BoundPattern">
-    <Field Name="BoundConstant" Type="BoundExpression"/>
+    <Field Name="Value" Type="BoundExpression"/>
   </Node>
 
   <Node Name="BoundWildcardPattern" Base="BoundPattern">

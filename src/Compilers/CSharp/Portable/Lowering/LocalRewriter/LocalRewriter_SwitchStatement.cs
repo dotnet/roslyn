@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = node.Syntax;
 
-            var rewrittenExpression = (BoundExpression)Visit(node.BoundExpression);
+            var rewrittenExpression = (BoundExpression)Visit(node.Expression);
             var rewrittenSections = VisitSwitchSections(node.SwitchSections);
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return oldNode.Update(
-                boundExpression: rewrittenExpression,
+                expression: rewrittenExpression,
                 constantTargetOpt: constantTargetOpt,
                 innerLocals: locals,
                 innerLocalFunctions: localFunctions,
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var section in sections)
             {
-                foreach (BoundSwitchLabel boundLabel in section.BoundSwitchLabels)
+                foreach (BoundSwitchLabel boundLabel in section.SwitchLabels)
                 {
                     var label = (SourceLabelSymbol)boundLabel.Label;
                     var labelConstant = label.SwitchCaseLabelConstant;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSwitchSection(BoundSwitchSection node)
         {
-            return node.Update(VisitList(node.BoundSwitchLabels), VisitList(node.Statements));
+            return node.Update(VisitList(node.SwitchLabels), VisitList(node.Statements));
         }
 
         private static int CountLabels(ImmutableArray<BoundSwitchSection> rewrittenSections)
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int count = 0;
             foreach (var section in rewrittenSections)
             {
-                foreach (var boundLabel in section.BoundSwitchLabels)
+                foreach (var boundLabel in section.SwitchLabels)
                 {
                     if (boundLabel.Label.IdentifierNodeOrToken.Kind() == SyntaxKind.CaseSwitchLabel)
                     {

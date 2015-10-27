@@ -495,20 +495,24 @@ False for 1.2";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
-        [Fact(Skip = "Lowering not implemented")]
+        [Fact/*(Skip = "Lowering not implemented")*/]
         public void GeneralizedSwitchStatement()
         {
+            Uri u = new Uri("http://www.microsoft.com");
             var source =
 @"using System;
-public class X
+public struct X
 {
     public static void Main()
     {
-        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X() };
-        foreach (var o in oa)
+        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X(), new Exception(""boo"") };
+            foreach (var o in oa)
         {
             switch (o)
             {
+                default:
+                    Console.WriteLine($""class {o.GetType().Name} {o}"");
+                    break;
                 case 1:
                     Console.WriteLine(""one"");
                     break;
@@ -524,8 +528,8 @@ public class X
                 case null:
                     Console.WriteLine($""null"");
                     break;
-                case object z:
-                    Console.WriteLine($""object {z.GetType().Name} {z}"");
+                case ValueType z:
+                    Console.WriteLine($""struct {z.GetType().Name} {z}"");
                     break;
             }
         }
@@ -535,9 +539,16 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var expectedOutput =
-@"False for 1
-True for 10
-False for 1.2";
+@"one
+int 10
+long 20
+double 1.2
+class String foo
+struct Boolean True
+null
+struct X X
+class Exception System.Exception: boo
+";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
