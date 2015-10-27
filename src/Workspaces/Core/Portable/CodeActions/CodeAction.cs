@@ -293,19 +293,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
         }
 
-        /// <summary>
-        /// Creates a top level code action with multiple code action choices a user can invoke.
-        /// </summary>
-        public static CodeAction Create(string title, IEnumerable<CodeAction> nestedActions)
-        {
-            if (title == null)
-            {
-                throw new ArgumentNullException(nameof(title));
-            }
-
-            return new SimpleCodeAction(title, nestedActions.AsImmutableOrEmpty());
-        }
-
         internal class SimpleCodeAction : CodeAction
         {
             private readonly string _title;
