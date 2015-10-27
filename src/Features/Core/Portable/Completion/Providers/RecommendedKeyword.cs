@@ -14,9 +14,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public Func<CancellationToken, ImmutableArray<SymbolDisplayPart>> DescriptionFactory { get; }
         public bool IsIntrinsic { get; }
         public bool ShouldFormatOnCommit { get; }
+        public bool ShouldPreselect { get; }
 
-        public RecommendedKeyword(string keyword, string toolTip = "", Glyph glyph = Glyph.Keyword, bool isIntrinsic = false, bool shouldFormatOnCommit = false)
-            : this(keyword, glyph, _ => CreateDisplayParts(keyword, toolTip), isIntrinsic, shouldFormatOnCommit)
+        public RecommendedKeyword(string keyword, string toolTip = "", Glyph glyph = Glyph.Keyword, bool isIntrinsic = false, bool shouldFormatOnCommit = false, bool shouldPreselect = false)
+            : this(keyword, glyph, _ => CreateDisplayParts(keyword, toolTip), isIntrinsic, shouldFormatOnCommit, shouldPreselect)
         {
         }
 
@@ -39,13 +40,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
              Glyph glyph,
               Func<CancellationToken, ImmutableArray<SymbolDisplayPart>> descriptionFactory,
               bool isIntrinsic = false,
-              bool shouldFormatOnCommit = false)
+              bool shouldFormatOnCommit = false,
+              bool shouldPreselect = false)
         {
             this.Keyword = keyword;
             this.Glyph = glyph;
             this.DescriptionFactory = descriptionFactory;
             this.IsIntrinsic = isIntrinsic;
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
+            this.ShouldPreselect = shouldPreselect;
         }
     }
 }
