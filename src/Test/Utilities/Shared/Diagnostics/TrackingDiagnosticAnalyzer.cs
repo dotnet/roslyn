@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         #region Analysis
 
         private static readonly Regex s_omittedSyntaxKindRegex =
-            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString.*");
+            new Regex(@"None|Trivia|Token|Keyword|List|Xml|Cref|Compilation|Namespace|Class|Struct|Enum|Interface|Delegate|Field|Property|Indexer|Event|Operator|Constructor|Access|Incomplete|Attribute|Filter|InterpolatedString|Utf8String.*");
 
         private bool FilterByAbstractName(Entry entry, string abstractMemberName)
         {

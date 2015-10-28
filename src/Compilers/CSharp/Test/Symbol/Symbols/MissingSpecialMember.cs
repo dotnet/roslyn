@@ -557,7 +557,9 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
-                        // Not yet in the platform.
+                    // Not yet in the platform.
+                    case WellKnownType.System_Text_Utf8_Utf8String:
+                        // Experimental
                         continue;
                 }
 
@@ -597,6 +599,10 @@ namespace System
                         continue;
                     case WellKnownMember.System_Array__Empty:
                         // Not available yet, but will be in upcoming release.
+                    case WellKnownMember.System_Text_Utf8_Utf8String__ctor:
+                    case WellKnownMember.System_Text_Utf8_Utf8String__ctor2:
+                        // Experimental.
+
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
