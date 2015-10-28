@@ -139,5 +139,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// handled by the <see cref="IntelliSense"/> command handler.
         /// </summary>
         public const string SignatureHelp = "Signature Help Command Handler";
+
+        /// <summary>
+        /// Command handler name for Paste Content in Interactive Format. 
+        /// </summary>
+        public const string InteractivePaste = "Interactive Paste Command Handler";
     }
 }

@@ -745,6 +745,9 @@ Do you want to proceed?</value>
   <data name="InlineRenameInstructions" xml:space="preserve">
     <value>Modify any highlighted location to begin renaming.</value>
   </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating...</value>
   </data>
