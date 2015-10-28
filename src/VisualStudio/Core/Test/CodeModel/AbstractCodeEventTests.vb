@@ -73,12 +73,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Sub TestIsPropertyStyleEvent(code As XElement, expected As Boolean)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeEvent)()
-                Assert.NotNull(codeElement)
-
-                Assert.Equal(expected, codeElement.IsPropertyStyleEvent)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.Equal(expected, codeElement.IsPropertyStyleEvent)
+                End Sub)
         End Sub
 
     End Class
