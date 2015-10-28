@@ -16,11 +16,11 @@
         <projectUrl>$projectUrl$</projectUrl>
         <tags>$tags$</tags>
         <dependencies>
-            <group>
+            <group targetFramework="dnxcore50">
                 <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
                 <dependency id="System.AppContext" version="4.0.1-beta-23401" />
                 <dependency id="System.Collections" version="4.0.11-beta-23401" />
-                <dependency id="System.Collections.Immutable" version="1.1.36" />
+                <dependency id="System.Collections.Immutable" version="1.1.37" />
                 <dependency id="System.Console" version="4.0.0-beta-23401" />
                 <dependency id="System.Diagnostics.Debug" version="4.0.11-beta-23401" />
                 <dependency id="System.Diagnostics.FileVersionInfo" version="4.0.0-beta-23401" />
