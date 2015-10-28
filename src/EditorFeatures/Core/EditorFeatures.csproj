@@ -141,12 +141,14 @@
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
     <Compile Include="CommandHandlers\CompletionCommandHandler.cs" />
+    <Compile Include="CommandHandlers\GoToAdjacentMemberCommandHandler.cs" />
     <Compile Include="CommandHandlers\IntelliSenseCommandHandler.cs" />
     <Compile Include="CommandHandlers\InteractivePasteCommandHandler.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.QuickInfoSource.cs" />
     <Compile Include="CommandHandlers\SignatureHelpCommandHandler.cs" />
     <Compile Include="Commands\GoToImplementationCommandArgs.cs" />
+    <Compile Include="Commands\GoToAdjacentMemberCommandArgs.cs" />
     <Compile Include="Commands\MoveSelectedLinesDownCommandArgs.cs" />
     <Compile Include="Commands\MoveSelectedLinesUpCommandArgs.cs" />
     <Compile Include="Commands\AutomaticLineEnderCommandArgs.cs" />
@@ -678,7 +680,7 @@
     <Compile Include="Options\ExtensionManagerOptions.cs" />
     <Compile Include="Options\NavigationBarOptions.cs" />
     <Compile Include="Options\SignatureHelpOptions.cs" />
-    <Compile Include="Shared\SuggestionSupport\DefaultDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Shared\DefaultDocumentSupportsSuggestionService.cs" />
     <Compile Include="Shared\Extensions\DependencyObjectExtensions.cs" />
     <Compile Include="Shared\Extensions\GlyphExtensions.cs" />
     <Compile Include="Shared\Extensions\IBraceMatchingServiceExtensions.cs" />
@@ -718,7 +720,7 @@
     <Compile Include="Shared\Preview\PreviewSolutionCrawlerRegistrationService.cs" />
     <Compile Include="Shared\Preview\PredefinedPreviewTaggerKeys.cs" />
     <Compile Include="Shared\Preview\PreviewWorkspace.cs" />
-    <Compile Include="Shared\SuggestionSupport\IDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Shared\IDocumentSupportsSuggestionService.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractWorkspaceTrackingTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.WorkspaceRegistrationChangedEventSource.cs" />

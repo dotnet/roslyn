@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string GoToImplementation = "Go To Implementation Command Handler";
 
         /// <summary>
+        /// Command handler name for Go to Adjacent Member.
+        /// </summary>
+        public const string GoToAdjacentMember = "Go To Adjacent Member Command Handler";
+
+        /// <summary>
         /// Command handler name for Indent.
         /// </summary>
         public const string Indent = "Indent Command Handler";

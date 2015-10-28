@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -9,8 +9,8 @@ using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
-    [ExportWorkspaceService(typeof(IDocumentSupportsSuggestionService), WorkspaceKind.Interactive), Shared]
-    internal sealed class InteractiveDocumentSupportsCodeFixService : IDocumentSupportsSuggestionService
+    [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), WorkspaceKind.Interactive), Shared]
+    internal sealed class InteractiveDocumentSupportsFeatureService : IDocumentSupportsFeatureService
     {
         public bool SupportsCodeFixes(Document document)
         {
@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         public bool SupportsRename(Document document)
         {
             return false;
+        }
+
+        public bool SupportsNavigationToAnyPosition(Document document)
+        {
+            return true;
         }
     }
 }
