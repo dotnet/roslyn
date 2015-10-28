@@ -410,5 +410,48 @@ class C
                 Diagnostic(LocalCouldBeConstAnalyzer.LocalCouldBeConstDescriptor.Id, "s").WithLocation(14, 16)
                 );
         }
+
+        [Fact]
+        public void LocalCouldHaveMoreSpecificTypeCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M0(int p)
+    {
+        object a = new Middle();
+        object b = new Value(10);
+    }
+
+    class Base
+    {
+    }
+
+    class Middle
+    {
+    }
+
+    class Derived
+    {
+    }
+
+    struct Value
+    {
+        public Value(int a)
+        {
+            X = a;
+        }
+
+        public int X;
+    }
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CouldHaveMoreSpecificTypeAnalyzer() }, null, null, false,
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "a").WithLocation(13, 13),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "b").WithLocation(14, 16)
+                );
+        }
     }
 }
