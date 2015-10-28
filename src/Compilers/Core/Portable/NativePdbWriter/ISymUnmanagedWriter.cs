@@ -154,12 +154,23 @@ namespace Microsoft.Cci
         void InitializeDeterministic([MarshalAs(UnmanagedType.IUnknown)] object emitter, [MarshalAs(UnmanagedType.IUnknown)] object stream);
     }
 
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("22DAEAF2-70F6-4EF1-B0C3-984F0BF27BFD"), SuppressUnmanagedCodeSecurity]
+    interface ISymUnmanagedWriter7 : ISymUnmanagedWriter6
+    {
+        //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4, ISymUnmanagedWriter5, ISymUnmanagedWriter6
+        void _VtblGap1_34();
+
+        // ISymUnmanagedWriter7
+        unsafe void UpdateSignatureByHashingContent([In]byte* buffer, int size);
+    }
+
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("B473C610-C958-4C3D-99A0-F2BA0A38807C"), SuppressUnmanagedCodeSecurity]
     interface ISymUnmanagedWriter100 : ISymUnmanagedWriter6
     {
         //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4, ISymUnmanagedWriter5, ISymUnmanagedWriter6
         void _VtblGap1_34();
 
+        // ISymUnmanagedWriter100
         void SetSignature(uint sig, Guid sig70);
     }
 
