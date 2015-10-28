@@ -7,11 +7,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -358,8 +358,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 baseName = fieldName;
             }
 
-            // Make uppercase the first letter
-            return char.ToUpper(baseName[0]).ToString() + baseName.Substring(1);
+            // Make the first character upper case using the "en-US" culture.  See discussion at
+            // https://github.com/dotnet/roslyn/issues/5524.
+            var firstCharacter = CompletionRules.EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
+            return firstCharacter.ToString() + baseName.Substring(1);
         }
 
         protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibility(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly AbstractCompletionService _completionService;
         private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
         private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        internal static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
         public CompletionRules(AbstractCompletionService completionService)
         {
