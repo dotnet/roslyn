@@ -40,6 +40,11 @@
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
+      <Name>InteractiveWindow</Name>
+      <Aliases>InteractiveWindow</Aliases>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -85,6 +90,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -136,6 +142,7 @@
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
     <Compile Include="CommandHandlers\CompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\IntelliSenseCommandHandler.cs" />
+    <Compile Include="CommandHandlers\InteractivePasteCommandHandler.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.QuickInfoSource.cs" />
     <Compile Include="CommandHandlers\SignatureHelpCommandHandler.cs" />

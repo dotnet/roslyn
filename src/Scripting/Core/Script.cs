@@ -249,21 +249,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         // TODO: remove
         internal bool HasReturnValue()
         {
-            bool hasValue;
-            var resultType = GetCompilation().GetSubmissionResultType(out hasValue);
-            if (hasValue)
-            {
-                if (resultType != null && resultType.SpecialType == SpecialType.System_Void)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return GetCompilation().HasSubmissionResult();
         }
     }
 

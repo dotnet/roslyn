@@ -837,6 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatementList analyzedInitializers = null;
 
                 ImportChain importChain;
+                var hasTrailingExpression = false;
 
                 if (methodSymbol.IsScriptConstructor)
                 {
@@ -847,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (methodSymbol.IsScriptInitializer)
                 {
                     // rewrite top-level statements and script variable declarations to a list of statements and assignments, respectively:
-                    var initializerStatements = InitializerRewriter.RewriteScriptInitializer(processedInitializers.BoundInitializers, (SynthesizedInteractiveInitializerMethod)methodSymbol);
+                    var initializerStatements = InitializerRewriter.RewriteScriptInitializer(processedInitializers.BoundInitializers, (SynthesizedInteractiveInitializerMethod)methodSymbol, out hasTrailingExpression);
 
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = new BoundBlock(initializerStatements.Syntax, ImmutableArray<LocalSymbol>.Empty, initializerStatements.Statements) { WasCompilerGenerated = true };
@@ -921,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBlock flowAnalyzedBody = null;
                 if (body != null)
                 {
-                    flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod);
+                    flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod, hasTrailingExpression);
                 }
 
                 bool hasErrors = _hasDeclarationErrors || diagsForCurrentMethod.HasAnyErrors() || processedInitializers.HasErrors;
