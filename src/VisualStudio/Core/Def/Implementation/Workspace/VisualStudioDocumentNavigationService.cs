@@ -178,6 +178,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private static Document OpenDocument(Workspace workspace, DocumentId documentId, OptionSet options)
         {
+            options = options ?? workspace.Options;
+
             // Always open the document again, even if the document is already open in the 
             // workspace. If a document is already open in a preview tab and it is opened again 
             // in a permanent tab, this allows the document to transition to the new state.
