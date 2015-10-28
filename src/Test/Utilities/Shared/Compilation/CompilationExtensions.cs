@@ -134,6 +134,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        internal static void VerifyAssemblyVersionsAndAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)
+        {
+            var actual = compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases().
+               Select(t => $"{t.Item1.Identity.Name}, Version={t.Item1.Identity.Version}{(t.Item2.IsEmpty ? "" : ": " + string.Join(",", t.Item2))}");
+
+            AssertEx.Equal(expectedAssembliesAndAliases, actual, itemInspector: s => '"' + s + '"');
+        }
+
         internal static void VerifyAssemblyAliases(this Compilation compilation, params string[] expectedAssembliesAndAliases)
         {
             var actual = compilation.GetBoundReferenceManager().GetReferencedAssemblyAliases().
