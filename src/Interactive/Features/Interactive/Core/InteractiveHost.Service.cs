@@ -700,37 +700,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return fullPath;
             }
 
-            private void LoadReference(PortableExecutableReference resolvedReference, bool suppressWarnings)
-            {
-                AssemblyLoadResult result;
-                try
-                {
-                    result = _assemblyLoader.LoadFromPath(resolvedReference.FilePath);
-                }
-                catch (FileNotFoundException e)
-                {
-                    Console.Error.WriteLine(e.Message);
-                    return;
-                }
-                catch (ArgumentException e)
-                {
-                    Console.Error.WriteLine((e.InnerException ?? e).Message);
-                    return;
-                }
-                catch (TargetInvocationException e)
-                {
-                    // The user might have hooked AssemblyResolve event, which might have thrown an exception.
-                    // Display stack trace in this case.
-                    Console.Error.WriteLine(e.InnerException.ToString());
-                    return;
-                }
-
-                if (!result.IsSuccessful && !suppressWarnings)
-                {
-                    Console.Out.WriteLine(string.Format(CultureInfo.CurrentCulture, FeaturesResources.RequestedAssemblyAlreadyLoaded, result.OriginalPath));
-                }
-            }
-
             private Script<object> TryCompile(Script previousScript, string code, string path, ScriptOptions options)
             {
                 Script script;
@@ -752,14 +721,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     DisplayInteractiveErrors(diagnostics, Console.Error);
                     return null;
                 }
-
-                // TODO: Do we want to do this? 
-                // Pros: immediate feedback for assemblies that can't be loaded.
-                // Cons: maybe we won't need them  
-                //foreach (PortableExecutableReference reference in script.GetCompilation().DirectiveReferences)
-                //{
-                //    LoadReference(reference, suppressWarnings: false);
-                //}
 
                 return (Script<object>)script;
             }
