@@ -21,35 +21,23 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToNextAndPreviousMethod, ContentTypeNames.RoslynContentType)]
-    internal class GoToNextAndPreviousMethodCommandHandler : ICommandHandler<GoToNextMethodCommandArgs>, ICommandHandler<GoToPreviousMethodCommandArgs>
+    [ExportCommandHandler(PredefinedCommandHandlerNames.GoToAdjacentMember, ContentTypeNames.RoslynContentType)]
+    internal class GoToAdjacentMemberCommandHandler : ICommandHandler<GoToAdjacentMemberCommandArgs>
     {
         private readonly IWaitIndicator _waitIndicator;
         private readonly IOutliningManagerService _outliningManagerService;
 
         [ImportingConstructor]
-        public GoToNextAndPreviousMethodCommandHandler(IWaitIndicator waitIndicator, IOutliningManagerService outliningManagerService)
+        public GoToAdjacentMemberCommandHandler(IWaitIndicator waitIndicator, IOutliningManagerService outliningManagerService)
         {
             _waitIndicator = waitIndicator;
             _outliningManagerService = outliningManagerService;
         }
 
-        public CommandState GetCommandState(GoToNextMethodCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(args.SubjectBuffer, args.TextView, nextHandler);
-
-        public void ExecuteCommand(GoToNextMethodCommandArgs args, Action nextHandler)
-            => ExecuteCommand(nextHandler, args.SubjectBuffer, args.TextView, next: true);
-
-        public CommandState GetCommandState(GoToPreviousMethodCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(args.SubjectBuffer, args.TextView, nextHandler);
-
-        public void ExecuteCommand(GoToPreviousMethodCommandArgs args, Action nextHandler)
-            => ExecuteCommand(nextHandler, args.SubjectBuffer, args.TextView, next: false);
-
-        private static CommandState GetCommandState(ITextBuffer subjectBuffer, ITextView textView, Func<CommandState> nextHandler)
+        public CommandState GetCommandState(GoToAdjacentMemberCommandArgs args, Func<CommandState> nextHandler)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var caretPoint = textView.GetCaretPoint(subjectBuffer);
+            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             return IsAvailable(document, caretPoint) ? CommandState.Available : nextHandler();
         }
 
@@ -69,10 +57,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return documentSupportsFeatureService?.SupportsNavigationToAnyPosition(document) == true;
         }
 
-        private void ExecuteCommand(Action nextHandler, ITextBuffer subjectBuffer, ITextView textView, bool next)
+        public void ExecuteCommand(GoToAdjacentMemberCommandArgs args, Action nextHandler)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var caretPoint = textView.GetCaretPoint(subjectBuffer);
+            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!IsAvailable(document, caretPoint))
             {
                 nextHandler();
@@ -82,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             int? targetPosition = null;
             var waitResult = _waitIndicator.Wait(EditorFeaturesResources.Navigating, allowCancel: true, action: waitContext =>
             {
-                targetPosition = GetTargetPosition(document, caretPoint.Value.Position, next, waitContext.CancellationToken);
+                targetPosition = GetTargetPosition(document, caretPoint.Value.Position, args.Direction == NavigateDirection.Down, waitContext.CancellationToken);
             });
 
             if (waitResult == WaitIndicatorResult.Canceled || targetPosition == null)
@@ -90,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return;
             }
 
-            textView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
+            args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
         }
 
         /// <summary>

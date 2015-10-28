@@ -7,11 +7,14 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.Commands
 {
     [ExcludeFromCodeCoverage]
-    internal class GoToPreviousMethodCommandArgs : CommandArgs
+    internal class GoToAdjacentMemberCommandArgs : CommandArgs
     {
-        public GoToPreviousMethodCommandArgs(ITextView textView, ITextBuffer subjectBuffer)
+        public GoToAdjacentMemberCommandArgs(ITextView textView, ITextBuffer subjectBuffer, NavigateDirection direction)
             : base(textView, subjectBuffer)
         {
+            Direction = direction;
         }
+
+        public NavigateDirection Direction { get; }
     }
 }

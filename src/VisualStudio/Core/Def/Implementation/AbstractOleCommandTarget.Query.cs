@@ -514,14 +514,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private int QueryGoToNextMethodStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
         {
             return GetCommandState(
-                (v, b) => new GoToNextMethodCommandArgs(v, b),
+                (v, b) => new GoToAdjacentMemberCommandArgs(v, b, NavigateDirection.Down),
                 ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 
         private int QueryGoToPreviousMethodStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
         {
             return GetCommandState(
-                (v, b) => new GoToPreviousMethodCommandArgs(v, b),
+                (v, b) => new GoToAdjacentMemberCommandArgs(v, b, NavigateDirection.Up),
                 ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
 

@@ -562,14 +562,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private void ExecuteGoToNextMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
-                args: new GoToNextMethodCommandArgs(ConvertTextView(), subjectBuffer),
+                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Down),
                 lastHandler: executeNextCommandTarget);
         }
 
         private void ExecuteGoToPreviousMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute(contentType,
-                args: new GoToPreviousMethodCommandArgs(ConvertTextView(), subjectBuffer),
+                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Up),
                 lastHandler: executeNextCommandTarget);
         }
 

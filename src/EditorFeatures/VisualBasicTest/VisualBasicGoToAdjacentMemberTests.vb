@@ -5,15 +5,15 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
-Public Class VisualBasicGoToNextAndPreviousMemberTests
+Public Class VisualBasicGoToAdjacentMemberTests
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub EmptyFile()
         Assert.Null(GetTargetPosition("$$", next:=True))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub ClassWithNoMembers()
         Dim code = "Class C
@@ -22,7 +22,7 @@ End Class"
         Assert.Null(GetTargetPosition(code, next:=True))
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub BeforeClassWithMember()
         Dim code = "$$
@@ -34,7 +34,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub AfterClassWithMember()
         Dim code = "
@@ -48,7 +48,7 @@ $$"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub BetweenClasses()
         Dim code = "
@@ -67,7 +67,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub BetweenClassesPrevious()
         Dim code = "
@@ -86,7 +86,7 @@ End Class"
         AssertNavigated(code, next:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromFirstMemberToSecond()
         Dim code = "
@@ -100,7 +100,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromSecondToFirst()
         Dim code = "
@@ -114,7 +114,7 @@ End Class"
         AssertNavigated(code, next:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextWraps()
         Dim code = "
@@ -128,7 +128,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PreviousWraps()
         Dim code = "
@@ -142,7 +142,7 @@ End Class"
         AssertNavigated(code, next:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub DescendsIntoNestedType()
         Dim code = "
@@ -159,7 +159,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtConstructor()
         Dim code = "
@@ -173,26 +173,26 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtOperator()
         Dim code = "
 Class C
     $$Sub M1()
     End Sub
-    [||]Shared Operator +(left As VisualBasicGoToNextAndPreviousMemberTests, right As VisualBasicGoToNextAndPreviousMemberTests) As VisualBasicGoToNextAndPreviousMemberTests
+    [||]Shared Operator +(left As C, right As C) As C
         Throw New System.NotImplementedException()
     End Operator
 End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    Shared Operator +(left As VisualBasicGoToNextAndPreviousMemberTests, right As VisualBasicGoToNextAndPreviousMemberTests) As VisualBasicGoToNextAndPreviousMemberTests
+    Shared Operator +(left As VisualBasicGoToAdjacentMemberTests, right As VisualBasicGoToAdjacentMemberTests) As VisualBasicGoToAdjacentMemberTests
         Throw New System.NotImplementedException()
     End Operator
 
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtField()
         Dim code = "
@@ -205,7 +205,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtFieldlikeEvent()
         Dim code = "
@@ -218,7 +218,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtAutoProperty()
         Dim code = "
@@ -230,7 +230,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtPropertyWithAccessors()
         Dim code = "
@@ -250,7 +250,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub SkipsPropertyAccessors()
         Dim code = "
@@ -273,7 +273,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromInsidePropertyAccessor()
         Dim code = "
@@ -296,7 +296,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub StopsAtEventWithAddRemove()
         Dim code = "
@@ -320,7 +320,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub SkipsEventAddRemove()
         Dim code = "
@@ -347,7 +347,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub FromInsideMethod()
         Dim code = "
@@ -363,7 +363,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextFromBetweenMethods()
         Dim code = "
@@ -380,7 +380,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PreviousFromBetweenMethods()
         Dim code = "
@@ -397,7 +397,7 @@ End Class"
         AssertNavigated(code, next:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextFromBetweenMethodsInTrailingTrivia()
         Dim code = "
@@ -412,7 +412,7 @@ End Class"
         AssertNavigated(code, next:=True)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PreviousFromBetweenMethodsInTrailingTrivia()
         Dim code = "
@@ -427,7 +427,7 @@ End Class"
         AssertNavigated(code, next:=False)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub NextInScript()
         Dim code = "
@@ -440,7 +440,7 @@ End Sub"
         AssertNavigated(code, next:=True, kind:=SourceCodeKind.Script)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)>
+    <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
     <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
     Public Sub PrevInScript()
         Dim code = "
@@ -467,7 +467,7 @@ End Sub"
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics())
-                Dim targetPosition = GoToNextAndPreviousMethodCommandHandler.GetTargetPosition(
+                Dim targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
                         document,
                         hostDocument.CursorPosition.Value,
                         [next],
@@ -488,7 +488,7 @@ End Sub"
             Dim hostDocument = workspace.DocumentWithCursor
             Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics())
-            Return GoToNextAndPreviousMethodCommandHandler.GetTargetPosition(
+            Return GoToAdjacentMemberCommandHandler.GetTargetPosition(
                     document,
                     hostDocument.CursorPosition.Value,
                     [next],

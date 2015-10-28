@@ -15,9 +15,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
 {
-    public class CSharpGoToNextAndPreviousMemberTests
+    public class CSharpGoToAdjacentMemberTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void EmptyFile()
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests
             Assert.Null(GetTargetPosition(code, next: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void ClassWithNoMembers()
         {
@@ -36,7 +36,7 @@ $$
             Assert.Null(GetTargetPosition(code, next: true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void BeforeClassWithMember()
         {
@@ -49,7 +49,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void AfterClassWithMember()
         {
@@ -64,7 +64,7 @@ $$";
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void BetweenClasses()
         {
@@ -84,7 +84,7 @@ class C2
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void BetweenClassesPrevious()
         {
@@ -104,7 +104,7 @@ class C2
             AssertNavigated(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromFirstMemberToSecond()
         {
@@ -118,7 +118,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromSecondToFirst()
         {
@@ -132,7 +132,7 @@ class C
             AssertNavigated(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextWraps()
         {
@@ -146,7 +146,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PreviousWraps()
         {
@@ -160,7 +160,7 @@ class C
             AssertNavigated(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void DescendsIntoNestedType()
         {
@@ -178,7 +178,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtConstructor()
         {
@@ -191,7 +191,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtDestructor()
         {
@@ -204,7 +204,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtOperator()
         {
@@ -216,7 +216,7 @@ class C
 }";
             AssertNavigated(code, next: true);
         }
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtField()
         {
@@ -229,7 +229,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtFieldlikeEvent()
         {
@@ -242,7 +242,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtAutoProperty()
         {
@@ -255,7 +255,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtPropertyWithAccessors()
         {
@@ -274,7 +274,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void SkipsPropertyAccessors()
         {
@@ -295,7 +295,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromInsideAccessor()
         {
@@ -316,7 +316,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtIndexerWithAccessors()
         {
@@ -335,7 +335,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void SkipsIndexerAccessors()
         {
@@ -356,7 +356,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtEventWithAddRemove()
         {
@@ -375,7 +375,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void SkipsEventAddRemove()
         {
@@ -396,7 +396,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void FromInsideMethod()
         {
@@ -414,7 +414,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextFromBetweenMethods()
         {
@@ -431,7 +431,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PreviousFromBetweenMethods()
         {
@@ -448,7 +448,7 @@ class C
             AssertNavigated(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextFromBetweenMethodsInTrailingTrivia()
         {
@@ -465,7 +465,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PreviousFromBetweenMethodsInTrailingTrivia()
         {
@@ -482,7 +482,7 @@ class C
             AssertNavigated(code, next: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void StopsAtExpressionBodiedMember()
         {
@@ -497,7 +497,7 @@ class C
             AssertNavigated(code, next: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void NextInScript()
         {
@@ -509,7 +509,7 @@ $$void M1() { }
             AssertNavigated(code, next: true, sourceCodeKind: SourceCodeKind.Script);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToNextAndPreviousMember)]
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public void PrevInScript()
         {
@@ -537,7 +537,7 @@ $$void M2() { }";
                     var hostDocument = workspace.DocumentWithCursor;
                     var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                     Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics());
-                    var targetPosition = GoToNextAndPreviousMethodCommandHandler.GetTargetPosition(
+                    var targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
                         document,
                         hostDocument.CursorPosition.Value,
                         next,
@@ -560,7 +560,7 @@ $$void M2() { }";
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 Assert.Empty(document.GetSyntaxTreeAsync().Result.GetDiagnostics());
-                return GoToNextAndPreviousMethodCommandHandler.GetTargetPosition(
+                return GoToAdjacentMemberCommandHandler.GetTargetPosition(
                     document,
                     hostDocument.CursorPosition.Value,
                     next,
