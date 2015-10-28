@@ -5,13 +5,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 {
-    /// <summary>Base type for an analyzer that looks for empty array allocations and recommends their replacement.</summary>
-    public class EmptyArrayOperationAnalyzer : DiagnosticAnalyzer
+    /// <summary>Analyzer that looks for empty array allocations and recommends their replacement.</summary>
+    public class EmptyArrayAnalyzer : DiagnosticAnalyzer
     {
-        /// <summary>Diagnostic category "Performance".</summary>
-        private const string PerformanceCategory = "Performance";
+        private const string SystemCategory = "System";
 
         /// <summary>The name of the array type.</summary>
         internal const string ArrayTypeName = "System.Array"; // using instead of GetSpecialType to make more testable
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             "EmptyArrayRule",
             localizableTitle,
             localizableMessage,
-            PerformanceCategory,
+            SystemCategory,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
