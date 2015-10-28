@@ -70,7 +70,7 @@ Console.WriteLine(await CSharpScript.EvaluateAsync<int>("X+Y", globals: globals)
 ### <a name="multi"></a> Create & build a C# script and execute it multiple times
 ```csharp
 var script = CSharpScript.Create<int>("X*Y", globalsType: typeof(Globals));
-script.Build();
+script.Compile();
 for (int i = 0; i < 10; i++)
 {
     Console.WriteLine(await script.EvaluateAsync(new Globals { X = i, Y = i }));
@@ -117,6 +117,7 @@ Console.WriteLine(state.ReturnValue);
 ### <a name="createscript"></a> Create and analyze a C# script
 ```csharp
 using Microsoft.CodeAnalysis;
+
 var script = CSharpScript.Create<int>(Console.ReadLine());
 Compilation compilation = script.GetCompilation();
 //do stuff
@@ -126,6 +127,7 @@ Compilation gives access to the full set of Roslyn APIs.
 ### <a name="assembly"></a> Customize assembly loading
 ```csharp
 using Microsoft.CodeAnalysis.Scripting.Hosting;
+
 using (var loader = new InteractiveAssemblyLoader())
 {
     var script = CSharpScript.Create<int>("1", assemblyLoader: loader);
