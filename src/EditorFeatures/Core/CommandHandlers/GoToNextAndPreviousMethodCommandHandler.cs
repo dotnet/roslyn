@@ -9,8 +9,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return false;
             }
 
-            var documentSupportsSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            return documentSupportsSuggestionService?.SupportsNavigationToAnyPosition(document) == true;
+            var documentSupportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
+            return documentSupportsFeatureService?.SupportsNavigationToAnyPosition(document) == true;
         }
 
         private void ExecuteCommand(Action nextHandler, ITextBuffer subjectBuffer, ITextView textView, bool next)

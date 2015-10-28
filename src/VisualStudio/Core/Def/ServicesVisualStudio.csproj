@@ -596,7 +596,7 @@
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.cs" />
     <Compile Include="Implementation\ProjectSystem\WorkspaceBackgroundWork.cs" />
     <Compile Include="Implementation\ProvideAutomationPropertiesAttribute.cs" />
-    <Compile Include="Implementation\SuggestionSupport\VisualStudioDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Implementation\VisualStudioDocumentSupportsSuggestionService.cs" />
     <Compile Include="Implementation\RQName\Nodes\ResolvedRQNode.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQArrayOrPointerType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQArrayType.cs" />

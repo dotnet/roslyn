@@ -2,15 +2,15 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionService
 {
-    [ExportWorkspaceService(typeof(IDocumentSupportsSuggestionService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioDocumentSupportsCodeFixService : IDocumentSupportsSuggestionService
+    [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Host), Shared]
+    internal sealed class VisualStudioDocumentSupportsFeatureService : IDocumentSupportsFeatureService
     {
         public bool SupportsCodeFixes(Document document)
         {

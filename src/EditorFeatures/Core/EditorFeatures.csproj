@@ -674,7 +674,7 @@
     <Compile Include="Options\ExtensionManagerOptions.cs" />
     <Compile Include="Options\NavigationBarOptions.cs" />
     <Compile Include="Options\SignatureHelpOptions.cs" />
-    <Compile Include="Shared\SuggestionSupport\DefaultDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Shared\DefaultDocumentSupportsSuggestionService.cs" />
     <Compile Include="Shared\Extensions\DependencyObjectExtensions.cs" />
     <Compile Include="Shared\Extensions\GlyphExtensions.cs" />
     <Compile Include="Shared\Extensions\IBraceMatchingServiceExtensions.cs" />
@@ -714,7 +714,7 @@
     <Compile Include="Shared\Preview\PreviewSolutionCrawlerRegistrationService.cs" />
     <Compile Include="Shared\Preview\PredefinedPreviewTaggerKeys.cs" />
     <Compile Include="Shared\Preview\PreviewWorkspace.cs" />
-    <Compile Include="Shared\SuggestionSupport\IDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Shared\IDocumentSupportsSuggestionService.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractWorkspaceTrackingTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.WorkspaceRegistrationChangedEventSource.cs" />

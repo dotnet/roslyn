@@ -2,9 +2,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport
+namespace Microsoft.CodeAnalysis.Editor.Shared
 {
-    internal interface IDocumentSupportsSuggestionService : IWorkspaceService
+    internal interface IDocumentSupportsFeatureService : IWorkspaceService
     {
         bool SupportsCodeFixes(Document document);
         bool SupportsRefactorings(Document document);

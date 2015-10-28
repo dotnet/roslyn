@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -156,10 +156,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
-                    var supportSuggestion = workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+                    var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
-                    var fixes = GetCodeFixes(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
-                    var refactorings = GetRefactorings(supportSuggestion, requestedActionCategories, workspace, document, range, cancellationToken);
+                    var fixes = GetCodeFixes(supportsFeatureService, requestedActionCategories, workspace, document, range, cancellationToken);
+                    var refactorings = GetRefactorings(supportsFeatureService, requestedActionCategories, workspace, document, range, cancellationToken);
 
                     var result = fixes == null ? refactorings : refactorings == null
                                                ? fixes : fixes.Concat(refactorings);
@@ -225,14 +225,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private IEnumerable<SuggestedActionSet> GetCodeFixes(
-                IDocumentSupportsSuggestionService supportSuggestion,
+                IDocumentSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
                 Document document,
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
-                if (_owner._codeFixService != null && supportSuggestion.SupportsCodeFixes(document) &&
+                if (_owner._codeFixService != null && supportsFeatureService.SupportsCodeFixes(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
                     // We only include suppressions if lightbulb is asking for everything.
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private IEnumerable<SuggestedActionSet> GetRefactorings(
-                IDocumentSupportsSuggestionService supportSuggestion,
+                IDocumentSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 Workspace workspace,
                 Document document,
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
-                    supportSuggestion.SupportsRefactorings(document) &&
+                    supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
                     // Get the selection while on the UI thread.
@@ -460,26 +460,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var document = documentAndSnapshot.Value.Item1;
                     var workspace = document.Project.Solution.Workspace;
-                    var supportSuggestion = workspace.Services.GetService<IDocumentSupportsSuggestionService>();
+                    var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
 
                     return
                         await HasFixesAsync(
-                            supportSuggestion, requestedActionCategories, provider, document, range,
+                            supportsFeatureService, requestedActionCategories, provider, document, range,
                             cancellationToken).ConfigureAwait(false) ||
                         await HasRefactoringsAsync(
-                            supportSuggestion, requestedActionCategories, provider, document, buffer, view, range,
+                            supportsFeatureService, requestedActionCategories, provider, document, buffer, view, range,
                             cancellationToken).ConfigureAwait(false);
                 }
             }
 
             private async Task<bool> HasFixesAsync(
-                IDocumentSupportsSuggestionService supportSuggestion,
+                IDocumentSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 SuggestedActionsSourceProvider provider,
                 Document document, SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
-                if (provider._codeFixService != null && supportSuggestion.SupportsCodeFixes(document) &&
+                if (provider._codeFixService != null && supportsFeatureService.SupportsCodeFixes(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
                     // We only consider suppressions if lightbulb is asking for everything.
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }
 
             private async Task<bool> HasRefactoringsAsync(
-                IDocumentSupportsSuggestionService supportSuggestion,
+                IDocumentSupportsFeatureService supportsFeatureService,
                 ISuggestedActionCategorySet requestedActionCategories,
                 SuggestedActionsSourceProvider provider,
                 Document document,
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
-                    supportSuggestion.SupportsRefactorings(document) &&
+                    supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
                     TextSpan? selection = null;
