@@ -3,10 +3,10 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport
+namespace Microsoft.CodeAnalysis.Editor.Shared
 {
-    [ExportWorkspaceService(typeof(IDocumentSupportsSuggestionService), ServiceLayer.Editor), Shared]
-    internal sealed class DefaultDocumentSupportsSuggestionService : IDocumentSupportsSuggestionService
+    [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), ServiceLayer.Editor), Shared]
+    internal sealed class DefaultDocumentSupportsFeatureService : IDocumentSupportsFeatureService
     {
         public bool SupportsCodeFixes(Document document)
         {
@@ -19,6 +19,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport
         }
 
         public bool SupportsRename(Document document)
+        {
+            return true;
+        }
+
+        public bool SupportsNavigationToAnyPosition(Document document)
         {
             return true;
         }

@@ -1232,6 +1232,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Navigating....
+        /// </summary>
+        internal static string Navigating {
+            get {
+                return ResourceManager.GetString("Navigating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Navigating to definition....
         /// </summary>
         internal static string NavigatingToDefinition {
