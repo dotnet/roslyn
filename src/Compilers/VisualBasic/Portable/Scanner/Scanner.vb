@@ -984,7 +984,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanTokenCommon(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char, fullWidth As Boolean) As SyntaxToken
             Dim lengthWithMaybeEquals As Integer = 1
-            Dim cx As Char
             Select Case ch
                 Case CARRIAGE_RETURN, LINE_FEED
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
@@ -1093,7 +1092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return MakeExclamationToken(precedingTrivia, fullWidth)
 
                 Case "."c
-                    If Peep(1, cx) AndAlso IsDecimalDigit(cx) Then
+                    If Peep(1, ch) AndAlso IsDecimalDigit(ch) Then
                         Return ScanNumericLiteral(precedingTrivia)
                     Else
                         Return MakeDotToken(precedingTrivia, fullWidth)
@@ -1141,13 +1140,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ScanIdentifierOrKeyword(precedingTrivia)
 
                 Case "_"c
-                    If Peep(1, cx) AndAlso IsIdentifierPartCharacter(cx) Then
+                    If Peep(1, ch) AndAlso IsIdentifierPartCharacter(ch) Then
                         Return ScanIdentifierOrKeyword(precedingTrivia)
                     End If
 
                     Dim err As ERRID = ERRID.ERR_ExpectedIdentifier
                     Dim len = GetWhitespaceLength(1)
-                    If Not Peep(len, cx) OrElse IsNewLine(cx) OrElse PeekStartComment(len) > 0 Then
+                    If Not Peep(len, ch) OrElse IsNewLine(ch) OrElse PeekStartComment(len) > 0 Then
                         err = ERRID.ERR_LineContWithCommentOrNoPrecSpace
                     End If
 
@@ -1166,6 +1165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "$"c, FULLWIDTH_DOLLAR_SIGN
+                    Dim cx As Char
                     If Not fullWidth AndAlso Peep(1, cx) AndAlso IsDoubleQuote(cx) Then
                         Return MakePunctuationToken(precedingTrivia, 2, SyntaxKind.DollarSignDoubleQuoteToken)
                     End If
@@ -1732,8 +1732,6 @@ FullWidthRepeat2:
 
                     Case "U"c, "u"c
                         If literalKind <> NumericLiteralKind.Float AndAlso Peep(Here + 1, ch) Then
-                            ' Dim ch As Char = Peek(Here + 1)
-
                             'unsigned suffixes - US, UL, UI
                             If MatchOneOrAnotherOrFullwidth(ch, "S"c, "s"c) Then
                                 TypeCharacter = TypeCharacter.UShortLiteral
@@ -1953,7 +1951,7 @@ FullWidthRepeat2:
             Dim YearIsTwoDigits As Boolean = False
             Dim DaysToMonth As Integer() = Nothing
             Dim yearIsFirst As Boolean = False
-            Dim ch, cx As Char, sep1 As Char
+            Dim ch, cx, FirstDateSeparator As Char
             ' // Unfortunately, we can't fall back on OLE Automation's date parsing because
             ' // they don't have the same range as the URT's DateTime class
 
@@ -1971,8 +1969,7 @@ FullWidthRepeat2:
             ' // If we see a /, then it's a date
 
             If Peep(Here, ch) AndAlso IsDateSeparatorCharacter(ch) Then
-                Dim FirstDateSeparator As Integer = Here
-                sep1 = ch
+                FirstDateSeparator = ch
 
                 ' // We've got a date
                 HaveDateValue = True
@@ -1995,7 +1992,7 @@ FullWidthRepeat2:
                     If Peep(Here, cx) AndAlso IsDateSeparatorCharacter(cx) Then
                         ' // Check to see they used a consistent separator
 
-                        If cx <> sep1 Then
+                        If cx <> FirstDateSeparator Then
                             GoTo baddate
                         End If
 
@@ -2020,7 +2017,7 @@ FullWidthRepeat2:
                     If Peep(Here, cx) AndAlso IsDateSeparatorCharacter(cx) Then
                         ' // Check to see they used a consistent separator
 
-                        If cx <> sep1 Then
+                        If cx <> FirstDateSeparator Then
                             GoTo baddate
                         End If
 
