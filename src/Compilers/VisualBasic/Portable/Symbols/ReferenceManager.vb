@@ -417,6 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 Finally
                     resolutionDiagnostics.Free()
+                    assemblyReferencesBySimpleName.Free()
                 End Try
             End Function
 

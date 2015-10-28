@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis
             public readonly MetadataReference Reference;
 
             /// <summary>
-            /// non-negative: Index into the array of ReferencedAssemblies (not including the assembly being built).
-            /// negative: ReferencedAssemblies.Count + RelativeAssemblyIndex is an index into the array of assemblies (not including the assembly being built).
+            /// non-negative: Index into the array of all (explicitly and implicitly) referenced assemblies.
+            /// negative: ExplicitlyReferencedAssemblies.Count + RelativeAssemblyIndex is an index into the array of assemblies.
             /// </summary>
             public readonly int RelativeAssemblyIndex;
 
