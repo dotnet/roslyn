@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly string _name;
         private readonly PENamedTypeSymbol _containingType;
         private readonly EventDefinitionHandle _handle;
-        private readonly TypeSymbol _eventType;
+        private readonly TypeSymbolWithAnnotations _eventType;
         private readonly PEMethodSymbol _addMethod;
         private readonly PEMethodSymbol _removeMethod;
         private readonly PEFieldSymbol _associatedFieldOpt;
@@ -82,21 +82,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (eventType.IsNil)
                 {
-                    _eventType = new UnsupportedMetadataTypeSymbol(mrEx);
+                    _eventType = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(mrEx));
                 }
             }
 
             if ((object)_eventType == null)
             {
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-                _eventType = metadataDecoder.GetTypeOfToken(eventType);
+                _eventType = TypeSymbolWithAnnotations.Create(metadataDecoder.GetTypeOfToken(eventType));
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
             bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
             bool callMethodsDirectly = isWindowsRuntimeEvent
                 ? !DoModifiersMatch(_addMethod, _removeMethod)
-                : !DoSignaturesMatch(moduleSymbol, _eventType, _addMethod, _removeMethod);
+                : !DoSignaturesMatch(moduleSymbol, _eventType.TypeSymbol, _addMethod, _removeMethod);
 
             if (callMethodsDirectly)
             {
@@ -143,20 +143,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Unfortunately, this will cause us to realize the type of the field, which would
                 // otherwise have been lazy.
-                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type;
+                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type.TypeSymbol;
 
                 if (isWindowsRuntimeEvent)
                 {
                     NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
                     if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
-                        _eventType == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArguments[0])
+                        _eventType.TypeSymbol == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArguments[0].TypeSymbol)
                     {
                         return candidateAssociatedField;
                     }
                 }
                 else
                 {
-                    if (candidateAssociatedFieldType == _eventType)
+                    if (candidateAssociatedFieldType == _eventType.TypeSymbol)
                     {
                         return candidateAssociatedField;
                     }
@@ -181,10 +181,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // does not check whether the containing type is a WinRT type -
                 // it was a design goal to accept any events of this form.
                 return
-                    _addMethod.ReturnType == token &&
+                    _addMethod.ReturnType.TypeSymbol == token &&
                     _addMethod.ParameterCount == 1 &&
                     _removeMethod.ParameterCount == 1 &&
-                    _removeMethod.Parameters[0].Type == token;
+                    _removeMethod.Parameters[0].Type.TypeSymbol == token;
             }
         }
 
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _eventType; }
         }

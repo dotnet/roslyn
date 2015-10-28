@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
         protected SymbolCompletionState state;
-        protected readonly TypeSymbol parameterType;
+        protected readonly TypeSymbolWithAnnotations parameterType;
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceParameterSymbol Create(
             Binder context,
             Symbol owner,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             ParameterSyntax syntax,
             RefKind refKind,
             SyntaxToken identifier,
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SourceParameterSymbol(
             Symbol owner,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
             string name,
@@ -114,14 +114,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SourceParameterSymbol WithCustomModifiersAndParamsCore(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ushort countOfCustomModifiersPrecedingByRef, bool newIsParams)
         {
-            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, _refKind, this.ContainingAssembly);
+            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type.TypeSymbol, _refKind, this.ContainingAssembly);
 
-            if (newCustomModifiers.IsDefaultOrEmpty)
+            TypeSymbolWithAnnotations newTypeWithModifiers = this.Type.Update(newType, newCustomModifiers);
+
+            if (countOfCustomModifiersPrecedingByRef == 0)
             {
                 return new SourceComplexParameterSymbol(
                     this.ContainingSymbol,
                     this.Ordinal,
-                    newType,
+                    newTypeWithModifiers,
                     _refKind,
                     _name,
                     _locations,
@@ -131,12 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.IsExtensionMethodThis);
             }
 
-            return new SourceComplexParameterSymbolWithCustomModifiers(
+            return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
                 this.ContainingSymbol,
                 this.Ordinal,
-                newType,
+                newTypeWithModifiers,
                 _refKind,
-                newCustomModifiers,
                 countOfCustomModifiersPrecedingByRef,
                 _name,
                 _locations,
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override TypeSymbol Type
+        public sealed override TypeSymbolWithAnnotations Type
         {
             get
             {

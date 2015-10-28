@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.TypeSymbol.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
@@ -1137,13 +1137,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKind = parameter.RefKind;
 
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && parameter.Type.IsSZArray())
+                parameter.IsParams && parameter.Type.TypeSymbol.IsSZArray())
             {
-                return ((ArrayTypeSymbol)parameter.Type).ElementType;
+                return ((ArrayTypeSymbol)parameter.Type.TypeSymbol).ElementType.TypeSymbol;
             }
             else
             {
-                return parameter.Type;
+                return parameter.Type.TypeSymbol;
             }
         }
 
@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // between the two types.
                 Debug.Assert(arr1.HasSameShapeAs(arr2));
 
-                return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteDiagnostics);
+                return MoreSpecificType(arr1.ElementType.TypeSymbol, arr2.ElementType.TypeSymbol, ref useSiteDiagnostics);
             }
 
             // SPEC EXTENSION: We apply the same rule to pointer types. 
@@ -1652,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var p1 = (PointerTypeSymbol)t1;
                 var p2 = (PointerTypeSymbol)t2;
-                return MoreSpecificType(p1.PointedAtType, p2.PointedAtType, ref useSiteDiagnostics);
+                return MoreSpecificType(p1.PointedAtType.TypeSymbol, p2.PointedAtType.TypeSymbol, ref useSiteDiagnostics);
             }
 
             if (t1.IsDynamic() || t2.IsDynamic())
@@ -1828,7 +1828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind == BoundKind.UnboundLambda &&
                 (object)(d = t.GetDelegateType()) != null &&
                 (object)(invoke = d.DelegateInvokeMethod) != null &&
-                (y = invoke.ReturnType).SpecialType != SpecialType.System_Void)
+                (y = invoke.ReturnType.TypeSymbol).SpecialType != SpecialType.System_Void)
             {
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Dig through Task<...> for an async lambda.
                     if (y.OriginalDefinition == Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
                     {
-                        y = ((NamedTypeSymbol)y).TypeArgumentsNoUseSiteDiagnostics[0];
+                        y = ((NamedTypeSymbol)y).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
                     }
                     else
                     {
@@ -1996,8 +1996,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // - T1 is Task<S1>, T2 is Task<S2>, and S1 is a better conversion target than S2
                         return BetterConversionTarget(null,
-                                                      ((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0],
-                                                      ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0],
+                                                      ((NamedTypeSymbol)type1).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol,
+                                                      ((NamedTypeSymbol)type2).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol,
                                                       ref useSiteDiagnostics,
                                                       out ignore);
                     }
@@ -2028,8 +2028,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)invoke1 != null && (object)invoke2 != null)
                     {
-                        TypeSymbol r1 = invoke1.ReturnType;
-                        TypeSymbol r2 = invoke2.ReturnType;
+                        TypeSymbol r1 = invoke1.ReturnType.TypeSymbol;
+                        TypeSymbol r2 = invoke2.ReturnType.TypeSymbol;
 
                         if (r1.SpecialType != SpecialType.System_Void)
                         {
@@ -2108,8 +2108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        TypeSymbol r1 = invoke1.ReturnType;
-                        TypeSymbol r2 = invoke2.ReturnType;
+                        TypeSymbol r1 = invoke1.ReturnType.TypeSymbol;
+                        TypeSymbol r2 = invoke2.ReturnType.TypeSymbol;
 
 #if DEBUG
                         if (fromTypeAnalysis)
@@ -2195,7 +2195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!Conversions.HasIdentityConversion(param1.Type, param2.Type))
+                if (!Conversions.HasIdentityConversion(param1.Type.TypeSymbol, param2.Type.TypeSymbol))
                 {
                     return false;
                 }
@@ -2306,7 +2306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var parameter = parameters[parm];
-                types.Add(parameter.Type);
+                types.Add(parameter.Type.TypeSymbol);
 
                 RefKind argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 RefKind paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
@@ -2371,7 +2371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
             var parameters = member.GetParameters();
-            var elementType = ((ArrayTypeSymbol)parameters[parameters.Length - 1].Type).ElementType;
+            var elementType = ((ArrayTypeSymbol)parameters[parameters.Length - 1].Type.TypeSymbol).ElementType.TypeSymbol;
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
 
@@ -2379,7 +2379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 var parameter = parameters[parm];
-                types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type);
+                types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type.TypeSymbol);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);
@@ -2609,7 +2609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // using the generic parameters of "method", so we can now substitute these type parameters 
                     // in the constructed effective parameters.
 
-                    var map = new TypeMap(method.TypeParameters, typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), allowAlpha: true);
+                    var map = new TypeMap(method.TypeParameters, typeArguments.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations), allowAlpha: true);
 
                     effectiveParameters = new EffectiveParameters(
                         map.SubstituteTypesWithoutModifiers(constructedEffectiveParameters.ParameterTypes),

@@ -212,7 +212,7 @@ class A : L
             var r = b.GetTypeMembers("R", 0).Single();
             var q = r.GetTypeMembers("Q", 0).Single();
             var v = a.GetMembers("v").Single() as FieldSymbol;
-            var s = v.Type;
+            var s = v.Type.TypeSymbol;
             Assert.Equal("B.R.Q.S", s.ToTestDisplayString());
             var sbase = s.BaseType;
             Assert.Equal("B.R.Q", sbase.ToTestDisplayString());
@@ -365,7 +365,7 @@ class A<T> {}
             var bt = b.TypeParameters.First();
 
             Assert.Equal(a.OriginalDefinition, at2.OriginalDefinition);
-            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments.First());
+            Assert.Equal(b.TypeParameters.First(), at2.TypeArguments.First().TypeSymbol);
         }
 
         [Fact]
@@ -450,7 +450,7 @@ class Program
             var model = compilation.GetSemanticModel(tree1);
 
             var info = model.GetSymbolInfo(type);
-            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType);
+            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType.TypeSymbol);
         }
 
         [Fact]
@@ -540,7 +540,7 @@ class B {}
 
             var xDecl = mainDecl.Members[0] as FieldDeclarationSyntax;
             var xSym = mainType.GetMembers("x").Single() as FieldSymbol;
-            Assert.Equal<ISymbol>(abType, xSym.Type);
+            Assert.Equal<ISymbol>(abType, xSym.Type.TypeSymbol);
             var info = model.GetSymbolInfo((xDecl.Declaration.Type as QualifiedNameSyntax).Right);
             Assert.Equal(abType, info.Symbol);
         }
@@ -1461,7 +1461,7 @@ class Q
             var classQ = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Q");
             var fieldQ = classQ.GetMember<FieldSymbol>("q");
 
-            Assert.Equal(classQ, fieldQ.Type);
+            Assert.Equal(classQ, fieldQ.Type.TypeSymbol);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -3010,7 +3010,7 @@ class Program
             Assert.Equal(SymbolKind.NamedType, newSymbol.Kind);
             Assert.Equal("System.Collections.Generic.List<T>", newSymbol.ToTestDisplayString());
 
-            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments.Single().IsErrorType());
+            Assert.False(((NamedTypeSymbol)newSymbol).TypeArguments.Single().TypeSymbol.IsErrorType());
             Assert.True(newSymbol.Equals(oldSymbol));
         }
 

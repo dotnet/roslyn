@@ -246,8 +246,8 @@ class B : Box<System." + systemTypeName + @"> {}
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var b = global.GetTypeMembers("B", 0).Single();
-            var key = a.BaseType.TypeArguments[0] as NamedTypeSymbol;
-            var nam = b.BaseType.TypeArguments[0] as NamedTypeSymbol;
+            var key = a.BaseType.TypeArguments[0].TypeSymbol as NamedTypeSymbol;
+            var nam = b.BaseType.TypeArguments[0].TypeSymbol as NamedTypeSymbol;
             Assert.Equal(SymbolKind.NamedType, key.Kind);
             Assert.Equal(SymbolKind.NamedType, nam.Kind);
             Assert.Equal(nam, key);

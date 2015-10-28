@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
             for (int i = 0; i < count; i++)
             {
-                if (!myFields[i].Type.Equals(otherFields[i].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
+                if (!myFields[i].Type.TypeSymbol.Equals(otherFields[i].Type.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic))
                 {
                     return false;
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Creates a new anonymous type descriptor based on 'this' one, 
         /// but having field types passed as an argument.
         /// </summary>
-        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeSymbol> newFieldTypes)
+        internal AnonymousTypeDescriptor WithNewFieldsTypes(ImmutableArray<TypeSymbolWithAnnotations> newFieldTypes)
         {
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(newFieldTypes.Length == this.Fields.Length);

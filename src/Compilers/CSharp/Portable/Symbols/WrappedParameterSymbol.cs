@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return underlyingParameter.Type; }
         }
@@ -122,11 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override string Name
         {
             get { return underlyingParameter.Name; }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return underlyingParameter.CustomModifiers; }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation

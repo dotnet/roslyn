@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class WithTypeArgumentsBinder : WithTypeParametersBinder
     {
-        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
         private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
 
-        internal WithTypeArgumentsBinder(ImmutableArray<TypeSymbol> typeArguments, Binder next)
+        internal WithTypeArgumentsBinder(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, Binder next)
             : base(next)
         {
             Debug.Assert(!typeArguments.IsDefaultOrEmpty);
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 if (_lazyTypeParameterMap == null)
                 {
                     var result = new MultiDictionary<string, TypeParameterSymbol>();
-                    foreach (TypeParameterSymbol tps in _typeArguments)
+                    foreach (var tps in _typeArguments)
                     {
-                        result.Add(tps.Name, tps);
+                        result.Add(tps.Name, (TypeParameterSymbol)tps.TypeSymbol);
                     }
                     Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
                 }
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var parameter in _typeArguments)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter, options, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter.TypeSymbol, options, null))
                     {
-                        result.AddSymbol(parameter, parameter.Name, 0);
+                        result.AddSymbol(parameter.TypeSymbol, parameter.Name, 0);
                     }
                 }
             }

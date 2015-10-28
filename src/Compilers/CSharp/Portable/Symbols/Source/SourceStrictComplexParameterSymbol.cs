@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             Symbol owner,
             int ordinal,
-            TypeSymbol parameterType,
+            TypeSymbolWithAnnotations parameterType,
             RefKind refKind,
             bool hasByRefBeforeCustomModifiers,
             string name,

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly PropertySymbol _originalDefinition;
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations _lazyType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
 
         internal SubstitutedPropertySymbol(SubstitutedNamedTypeSymbol containingType, PropertySymbol originalDefinition)
@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalDefinition = originalDefinition;
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
                 if ((object)_lazyType == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.Type).Type, null);
+                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.Type), null);
                 }
 
                 return _lazyType;
@@ -148,11 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsIndexer
         {
             get { return _originalDefinition.IsIndexer; }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return _containingType.TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type, _originalDefinition.TypeCustomModifiers); }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

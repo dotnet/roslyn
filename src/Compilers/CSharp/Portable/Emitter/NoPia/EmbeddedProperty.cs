@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingProperty.TypeCustomModifiers.Length != 0;
+                return UnderlyingProperty.Type.CustomModifiers.Length != 0;
             }
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingProperty.TypeCustomModifiers.As<Cci.ICustomModifier>();
+                return UnderlyingProperty.Type.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -65,13 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingProperty.Type is ByRefReturnErrorTypeSymbol;
+                return UnderlyingProperty.Type.TypeSymbol is ByRefReturnErrorTypeSymbol;
             }
         }
 
         protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            return moduleBuilder.Translate(UnderlyingProperty.Type, syntaxNodeOpt, diagnostics);
+            return moduleBuilder.Translate(UnderlyingProperty.Type.TypeSymbol, syntaxNodeOpt, diagnostics);
         }
 
         protected override EmbeddedType ContainingType

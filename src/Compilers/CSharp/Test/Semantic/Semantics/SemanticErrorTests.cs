@@ -3083,7 +3083,7 @@ class Error
             var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
             Assert.Equal("void Error.Foo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
-            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
+            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single().TypeSymbol;
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 

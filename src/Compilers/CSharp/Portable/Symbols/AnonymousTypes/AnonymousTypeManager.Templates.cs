@@ -245,13 +245,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // otherwise construct type using the field types
-            var typeArguments = typeDescr.Fields.SelectAsArray(f => f.Type);
+            var typeArguments = typeDescr.Fields.SelectAsArray(f => f.Type.TypeSymbol);
             return template.Construct(typeArguments);
         }
 
         private AnonymousTypeTemplateSymbol CreatePlaceholderTemplate(Microsoft.CodeAnalysis.Emit.AnonymousTypeKey key)
         {
-            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, (TypeSymbol)null));
+            var fields = key.Fields.SelectAsArray(f => new AnonymousTypeField(f.Name, Location.None, (TypeSymbolWithAnnotations)null));
             var typeDescr = new AnonymousTypeDescriptor(fields, Location.None);
             return new AnonymousTypeTemplateSymbol(this, typeDescr);
         }

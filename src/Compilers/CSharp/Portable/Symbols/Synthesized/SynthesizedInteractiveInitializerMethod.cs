@@ -129,19 +129,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _returnType.SpecialType == SpecialType.System_Void; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
-            get { return _returnType; }
+            get { return TypeSymbolWithAnnotations.Create(_returnType); }
         }
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
-
-        public override ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

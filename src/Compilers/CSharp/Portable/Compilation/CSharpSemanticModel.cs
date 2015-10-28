@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType))
             {
                 var unusedDiagnostics = DiagnosticBag.GetInstance();
-                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics));
+                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics).TypeSymbol);
                 unusedDiagnostics.Free();
                 return null;
             }
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
-            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt);
+            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
             var boundNode = binder.BindAttribute(attribute, attributeType, diagnostics);
             diagnostics.Free();
 
@@ -1801,7 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var extended = type as ExtendedErrorTypeSymbol;
                         if ((object)extended != null && extended.VariableUsedBeforeDeclaration)
                         {
-                            type = ((BoundLocal)boundExpr).LocalSymbol.Type;
+                            type = ((BoundLocal)boundExpr).LocalSymbol.Type.TypeSymbol;
                         }
                     }
                 }
@@ -2327,7 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt;
-            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt);
+            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
             diagnostics.Free();
             speculativeModel = AttributeSemanticModel.CreateSpeculative((SyntaxTreeSemanticModel)this, attribute, attributeType, aliasOpt, binder, position);
             return true;

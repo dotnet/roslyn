@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override abstract ImmutableArray<EventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public override abstract TypeSymbol Type { get; }
+        public override abstract TypeSymbolWithAnnotations Type { get; }
 
         public sealed override Symbol ContainingSymbol
         {
@@ -465,9 +465,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev10 reports different errors for field-like events (ERR_BadVisFieldType) and custom events (ERR_BadVisPropertyType).
                 // Both seem odd, so add a new one.
 
-                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type);
+                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type.TypeSymbol);
             }
-            else if (!this.Type.IsDelegateType() && !this.Type.IsErrorType())
+            else if (!this.Type.TypeSymbol.IsDelegateType() && !this.Type.TypeSymbol.IsErrorType())
             {
                 // Suppressed for error types.
                 diagnostics.Add(ErrorCode.ERR_EventNotDelegate, location, this);
@@ -491,18 +491,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
 
-        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbol type)
+        protected static void CopyEventCustomModifiers(EventSymbol eventWithCustomModifiers, ref TypeSymbolWithAnnotations type)
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
 
-            TypeSymbol overriddenEventType = eventWithCustomModifiers.Type;
+            TypeSymbol overriddenEventType = eventWithCustomModifiers.Type.TypeSymbol;
 
             // We do an extra check before copying the type to handle the case where the overriding
             // event (incorrectly) has a different type than the overridden event.  In such cases,
             // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-            if (type.Equals(overriddenEventType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+            if (type.TypeSymbol.Equals(overriddenEventType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
             {
-                type = overriddenEventType;
+                type = type.Update(overriddenEventType, ImmutableArray<CustomModifier>.Empty);
             }
         }
 
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (isAdder ? "add_" : "remove_") + eventName;
         }
 
-        protected TypeSymbol BindEventType(Binder binder, TypeSyntax typeSyntax, DiagnosticBag diagnostics)
+        protected TypeSymbolWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, DiagnosticBag diagnostics)
         {
             // NOTE: no point in reporting unsafe errors in the return type - anything unsafe will either
             // fail to be a delegate or will be (invalidly) passed as a type argument.

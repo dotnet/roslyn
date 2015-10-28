@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var reducedFrom = reducedMethod.ReducedFrom;
             CheckReducedExtensionMethod(reducedMethod, reducedFrom);
-            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type, reducedMethod.ReceiverType);
+            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type.TypeSymbol, reducedMethod.ReceiverType);
 
             var constructedFrom = reducedMethod.ConstructedFrom;
             CheckConstructedMethod(reducedMethod, constructedFrom);

@@ -199,7 +199,7 @@ namespace N1 {
             var s1 = n1.GetTypeMembers("S1").Single() as NamedTypeSymbol;
             var f = s1.GetMembers("f").Single() as FieldSymbol;
 
-            CheckDeclaringSyntaxNodes(comp, f.Type, 1);  // constructed type C1<int>.
+            CheckDeclaringSyntaxNodes(comp, f.Type.TypeSymbol, 1);  // constructed type C1<int>.
 
             // Nested types.
             foreach (Symbol s in c1.GetTypeMembers())
@@ -234,7 +234,7 @@ namespace N1 {
             // Check types of each field in C1; should not have declaring syntax node.
             foreach (FieldSymbol f in c1.GetMembers().OfType<FieldSymbol>())
             {
-                CheckDeclaringSyntaxNodes(comp, f.Type, 0);
+                CheckDeclaringSyntaxNodes(comp, f.Type.TypeSymbol, 0);
             }
         }
 
@@ -259,7 +259,7 @@ class C1 {
 
             var declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             var localA1 = (LocalSymbol)model.GetDeclaredSymbol(declaratorA1);
-            var localA1Type = localA1.Type;
+            var localA1Type = localA1.Type.TypeSymbol;
             Assert.True(localA1Type.IsAnonymousType);
 
             // Anonymous types don't support GetDeclaredSymbol.
@@ -323,7 +323,7 @@ class C1 {
 
         private void CheckAnonymousType(SemanticModel model, LocalSymbol local, AnonymousObjectCreationExpressionSyntax anonObjectCreation)
         {
-            var localType = local.Type;
+            var localType = local.Type.TypeSymbol;
             Assert.True(localType.IsAnonymousType);
 
             // IsImplicitlyDeclared: Return false. The new { } clause 
@@ -455,7 +455,7 @@ namespace N1 {
 
             foreach (FieldSymbol f in c2.GetMembers().OfType<FieldSymbol>())
             {
-                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type).TypeParameters)
+                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type.TypeSymbol).TypeParameters)
                 {
                     CheckDeclaringSyntaxNodes(comp, tp, 1);
                 }
@@ -471,7 +471,7 @@ namespace N1 {
 
             foreach (FieldSymbol f in c3.GetMembers().OfType<FieldSymbol>())
             {
-                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type).TypeParameters)
+                foreach (TypeParameterSymbol tp in ((NamedTypeSymbol)f.Type.TypeSymbol).TypeParameters)
                 {
                     CheckDeclaringSyntaxNodes(comp, tp, 0);
                 }
@@ -547,7 +547,7 @@ namespace N1 {
             }
 
             var fieldT = c1.GetMembers("t").Single() as FieldSymbol;
-            var constructedC1 = fieldT.Type;
+            var constructedC1 = fieldT.Type.TypeSymbol;
 
             foreach (Symbol memb in constructedC1.GetMembers())
             {

@@ -1538,7 +1538,7 @@ namespace n3
 
             var structS = ns3.GetMember<NamedTypeSymbol>("S");
             var structSField = structS.GetMember<FieldSymbol>("a");
-            Assert.Equal("A", structSField.Type.Name);
+            Assert.Equal("A", structSField.Type.TypeSymbol.Name);
             Assert.Equal(TypeKind.Error, structSField.Type.TypeKind);
         }
 
@@ -15647,7 +15647,7 @@ class A {
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
 
-            var errorFieldType = (ErrorTypeSymbol)fieldType;
+            var errorFieldType = (ErrorTypeSymbol)fieldType.TypeSymbol;
             Assert.Equal(CandidateReason.None, errorFieldType.CandidateReason);
             Assert.Equal(0, errorFieldType.CandidateSymbols.Length);
         }
@@ -15669,7 +15669,7 @@ class A : C {
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
             var classB = (NamedTypeSymbol)classC.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            var fieldType = fieldSym.Type.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -15706,7 +15706,7 @@ class A : C {
             var classBinN1 = (NamedTypeSymbol)ns1.GetTypeMembers("B").Single();
             var classBinN2 = (NamedTypeSymbol)ns2.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            var fieldType = fieldSym.Type.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);

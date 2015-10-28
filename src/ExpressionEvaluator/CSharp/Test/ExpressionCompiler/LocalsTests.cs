@@ -573,7 +573,7 @@ class C
             Assert.Equal(locals.Count, 2);
 
             var method = (MethodSymbol)testData.GetMethodData("<>x.<>m0").Method;
-            Assert.Equal(method.Parameters[0].Type, method.ReturnType);
+            Assert.Equal(method.Parameters[0].Type.TypeSymbol, method.ReturnType.TypeSymbol);
 
             VerifyLocal(testData, "<>x", locals[0], "<>m0", "x", expectedILOpt:
 @"{
@@ -584,7 +584,7 @@ class C
 }");
 
             method = (MethodSymbol)testData.GetMethodData("<>x.<>m1").Method;
-            Assert.Equal(method.Parameters[0].Type, method.ReturnType);
+            Assert.Equal(method.Parameters[0].Type.TypeSymbol, method.ReturnType.TypeSymbol);
 
             VerifyLocal(testData, "<>x", locals[1], "<>m1", "y", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
@@ -1111,11 +1111,11 @@ class C
                 expectedGeneric: true);
             var method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m0<W>").Method;
             var containingType = method.ContainingType;
-            var returnType = (NamedTypeSymbol)method.ReturnType;
-            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0]);
-            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[1]);
+            var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0].TypeSymbol);
+            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[1].TypeSymbol);
             returnType = returnType.ContainingType;
-            Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0]);
+            Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0].TypeSymbol);
 
             VerifyLocal(testData, "<>x<T, U, V>", locals[1], "<>m1<W>", "o", expectedILOpt:
 @"{
@@ -1130,10 +1130,10 @@ class C
                 expectedGeneric: true);
             method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m1<W>").Method;
             // method.ReturnType: A<U>.B<V, object>[]
-            returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType).ElementType;
-            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[0]);
+            returnType = (NamedTypeSymbol)((ArrayTypeSymbol)method.ReturnType.TypeSymbol).ElementType.TypeSymbol;
+            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[0].TypeSymbol);
             returnType = returnType.ContainingType;
-            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0]);
+            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[0].TypeSymbol);
 
             VerifyLocal(testData, "<>x<T, U, V>", locals[2], "<>m2<W>", "t", expectedILOpt:
 @"{
@@ -1148,7 +1148,7 @@ class C
                 expectedGeneric: true);
             method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m2<W>").Method;
             containingType = method.ContainingType;
-            Assert.Equal(containingType.TypeParameters[0], method.ReturnType);
+            Assert.Equal(containingType.TypeParameters[0], method.ReturnType.TypeSymbol);
 
             VerifyLocal(testData, "<>x<T, U, V>", locals[3], "<>m3<W>", "u", expectedILOpt:
 @"{
@@ -1163,7 +1163,7 @@ class C
                 expectedGeneric: true);
             method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m3<W>").Method;
             containingType = method.ContainingType;
-            Assert.Equal(containingType.TypeParameters[1], method.ReturnType);
+            Assert.Equal(containingType.TypeParameters[1], method.ReturnType.TypeSymbol);
 
             VerifyLocal(testData, "<>x<T, U, V>", locals[4], "<>m4<W>", "w", expectedILOpt:
 @"{
@@ -1177,7 +1177,7 @@ class C
 }",
                 expectedGeneric: true);
             method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m4<W>").Method;
-            Assert.Equal(method.TypeParameters[0], method.ReturnType);
+            Assert.Equal(method.TypeParameters[0], method.ReturnType.TypeSymbol);
 
             VerifyLocal(testData, "<>x<T, U, V>", locals[5], "<>m5<W>", "<>TypeVariables", expectedFlags: DkmClrCompilationResultFlags.ReadOnlyResult, expectedILOpt:
 @"{
@@ -1191,11 +1191,11 @@ class C
 }",
                 expectedGeneric: true);
             method = (MethodSymbol)testData.GetMethodData("<>x<T, U, V>.<>m5<W>").Method;
-            returnType = (NamedTypeSymbol)method.ReturnType;
-            Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0]);
-            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[1]);
-            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[2]);
-            Assert.Equal(method.TypeParameters[0], returnType.TypeArguments[3]);
+            returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+            Assert.Equal(containingType.TypeParameters[0], returnType.TypeArguments[0].TypeSymbol);
+            Assert.Equal(containingType.TypeParameters[1], returnType.TypeArguments[1].TypeSymbol);
+            Assert.Equal(containingType.TypeParameters[2], returnType.TypeArguments[2].TypeSymbol);
+            Assert.Equal(method.TypeParameters[0], returnType.TypeArguments[3].TypeSymbol);
 
             // Verify <>c__TypeVariables type was emitted (#976772).
             using (var metadata = ModuleMetadata.CreateFromImage(ImmutableArray.CreateRange(assembly)))
@@ -1249,7 +1249,7 @@ class C
 
             var method = (MethodSymbol)testData.GetMethodData("<>x<T, U>.<>m1").Method;
             var containingType = method.ContainingType;
-            Assert.Equal(containingType.TypeParameters[1], method.ReturnType);
+            Assert.Equal(containingType.TypeParameters[1], method.ReturnType.TypeSymbol);
 
             locals.Free();
         }

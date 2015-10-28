@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeSymbol returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private)
             {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType);
+                diagnostics.Add(code, Locations[0], this, returnType.TypeSymbol);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type);
+                    diagnostics.Add(code, Locations[0], this, parameter.Type.TypeSymbol);
                 }
             }
 
@@ -596,19 +596,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
+        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return ImmutableArray<CustomModifier>.Empty;
-            }
-        }
-
-        public sealed override ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get
-            {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
             }
         }
 
@@ -953,10 +945,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedReturnTypeAttributes(ref attributes);
 
-            if (this.ReturnType.ContainsDynamic())
+            TypeSymbolWithAnnotations returnType = this.ReturnType;
+            if (returnType.TypeSymbol.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(returnType.TypeSymbol, returnType.CustomModifiers.Length));
             }
         }
 

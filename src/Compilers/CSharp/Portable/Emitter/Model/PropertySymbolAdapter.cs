@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.TypeCustomModifiers.As<Cci.ICustomModifier>();
+                return this.Type.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -168,14 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.Type is ByRefReturnErrorTypeSymbol;
+                return this.Type.TypeSymbol is ByRefReturnErrorTypeSymbol;
             }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return ((PEModuleBuilder)context.Module).Translate(this.Type,
+            return ((PEModuleBuilder)context.Module).Translate(this.Type.TypeSymbol,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                       diagnostics: context.Diagnostics);
         }

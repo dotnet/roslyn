@@ -730,11 +730,11 @@ class ADerived2: A
             FieldSymbol privField = classA.GetMembers("priv").Single() as FieldSymbol;
             FieldSymbol pubField = classA.GetMembers("pub").Single() as FieldSymbol;
             FieldSymbol protField = classA.GetMembers("prot").Single() as FieldSymbol;
-            TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type;
-            TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type;
-            TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type;
-            TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type;
-            TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type;
+            TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type.TypeSymbol;
             var semanticModel = c.GetSemanticModel(c.SyntaxTrees[0]);
 
             Assert.True(Symbol.IsSymbolAccessible(classA, classB));

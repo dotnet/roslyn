@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol fieldSymbol,
             ConstantValue constantValueOpt,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, LookupResultKind.Viable, fieldSymbol.Type, hasErrors)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, LookupResultKind.Viable, fieldSymbol.Type.TypeSymbol, hasErrors)
         {
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var call = new BoundCall(node, receiverOpt, method, arguments, namedArguments,
                 refKinds, isDelegateCall: isDelegateCall, expanded: false, invokedAsExtensionMethod: invokedAsExtensionMethod, argsToParamsOpt: default(ImmutableArray<int>),
-                resultKind: resultKind, type: method.ReturnType, hasErrors: true);
+                resultKind: resultKind, type: method.ReturnType.TypeSymbol, hasErrors: true);
             call.OriginalMethodsOpt = originalMethods;
             return call;
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     invokedAsExtensionMethod: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     resultKind: LookupResultKind.Viable,
-                    type: method.ReturnType,
+                    type: method.ReturnType.TypeSymbol,
                     hasErrors: false
                 )
             { WasCompilerGenerated = true };
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
-                type: indexer.Type,
+                type: indexer.Type.TypeSymbol,
                 hasErrors: true)
             {
                 OriginalIndexersOpt = originalIndexers
@@ -402,12 +402,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundParameter
     {
         public BoundParameter(CSharpSyntaxNode syntax, ParameterSymbol parameterSymbol, bool hasErrors = false)
-            : this(syntax, parameterSymbol, parameterSymbol.Type, hasErrors)
+            : this(syntax, parameterSymbol, parameterSymbol.Type.TypeSymbol, hasErrors)
         {
         }
 
         public BoundParameter(CSharpSyntaxNode syntax, ParameterSymbol parameterSymbol)
-            : this(syntax, parameterSymbol, parameterSymbol.Type)
+            : this(syntax, parameterSymbol, parameterSymbol.Type.TypeSymbol)
         {
         }
     }

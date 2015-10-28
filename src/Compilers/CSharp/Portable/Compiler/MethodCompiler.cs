@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         awaiters.Add(null);
                     }
 
-                    awaiters[index] = moduleBuilder.EncTranslateLocalVariableType(field.Type, diagnostics);
+                    awaiters[index] = moduleBuilder.EncTranslateLocalVariableType(field.Type.TypeSymbol, diagnostics);
                 }
                 else if (!field.SlotDebugInfo.Id.IsNone)
                 {
@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hoistedVariables.Add(new EncHoistedLocalInfo(true));
                     }
 
-                    hoistedVariables[index] = new EncHoistedLocalInfo(field.SlotDebugInfo, moduleBuilder.EncTranslateLocalVariableType(field.Type, diagnostics));
+                    hoistedVariables[index] = new EncHoistedLocalInfo(field.SlotDebugInfo, moduleBuilder.EncTranslateLocalVariableType(field.Type.TypeSymbol, diagnostics));
                 }
             }
 

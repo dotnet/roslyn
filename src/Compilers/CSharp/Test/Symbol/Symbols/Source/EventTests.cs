@@ -96,7 +96,7 @@ class C
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.False(associatedField.IsStatic);
-            Assert.Equal(@event.Type, associatedField.Type);
+            Assert.Equal(@event.Type.TypeSymbol, associatedField.Type.TypeSymbol);
         }
 
         [Fact]
@@ -134,7 +134,7 @@ class C
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.True(associatedField.IsStatic);
-            Assert.Equal(@event.Type, associatedField.Type);
+            Assert.Equal(@event.Type.TypeSymbol, associatedField.Type.TypeSymbol);
         }
 
         [Fact]
@@ -1725,19 +1725,19 @@ class Derived2 : Base
 
             var @base = global.GetMember<NamedTypeSymbol>("Base");
             var baseEvent = @base.GetMember<EventSymbol>("E");
-            var baseEventType = baseEvent.Type;
+            var baseEventType = baseEvent.Type.TypeSymbol;
             Assert.Equal("System.Action<System.Int32 modopt(System.Int64) []>", baseEventType.ToTestDisplayString()); // Note modopt
 
             var derived1 = global.GetMember<NamedTypeSymbol>("Derived1");
             var event1 = derived1.GetMember<EventSymbol>("E");
-            Assert.Equal(baseEventType, event1.Type);
-            Assert.Equal(baseEventType, event1.AssociatedField.Type);
+            Assert.Equal(baseEventType, event1.Type.TypeSymbol);
+            Assert.Equal(baseEventType, event1.AssociatedField.Type.TypeSymbol);
             Assert.Equal(baseEventType, event1.AddMethod.ParameterTypes.Single());
             Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypes.Single());
 
             var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
             var event2 = derived2.GetMember<EventSymbol>("E");
-            Assert.Equal(baseEventType, event2.Type);
+            Assert.Equal(baseEventType, event2.Type.TypeSymbol);
             Assert.Null(event2.AssociatedField);
             Assert.Equal(baseEventType, event2.AddMethod.ParameterTypes.Single());
             Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypes.Single());

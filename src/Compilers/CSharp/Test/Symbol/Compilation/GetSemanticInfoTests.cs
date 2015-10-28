@@ -1006,7 +1006,7 @@ class C
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
             MethodSymbol methodSymbol = (MethodSymbol)bindInfo.Symbol;
-            TypeSymbol returnType = methodSymbol.ReturnType;
+            TypeSymbol returnType = methodSymbol.ReturnType.TypeSymbol;
             var symbols = model.LookupSymbols(0, returnType);
             Assert.Equal(0, symbols.Length);
         }
@@ -1149,7 +1149,7 @@ class C
             Assert.Equal(systemActionType, bindInfo.Type);
 
             var parameterSymbol = (ParameterSymbol)bindInfo.Symbol;
-            Assert.Equal(systemActionType, parameterSymbol.Type);
+            Assert.Equal(systemActionType, parameterSymbol.Type.TypeSymbol);
             Assert.Equal("value", parameterSymbol.Name);
             Assert.Equal(MethodKind.EventAdd, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
@@ -1178,7 +1178,7 @@ class C
             Assert.Equal(systemActionType, bindInfo.Type);
 
             var parameterSymbol = (ParameterSymbol)bindInfo.Symbol;
-            Assert.Equal(systemActionType, parameterSymbol.Type);
+            Assert.Equal(systemActionType, parameterSymbol.Type.TypeSymbol);
             Assert.Equal("value", parameterSymbol.Name);
             Assert.Equal(MethodKind.EventRemove, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
@@ -2710,7 +2710,7 @@ class C
             var symbol = symbolInfo.Symbol;
             Assert.Equal(SymbolKind.Local, symbol.Kind);
             Assert.Equal("c", symbol.Name);
-            Assert.Equal(type, ((LocalSymbol)symbol).Type);
+            Assert.Equal(type, ((LocalSymbol)symbol).Type.TypeSymbol);
 
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Equal(type, typeInfo.Type);
@@ -2781,7 +2781,7 @@ class C
             Assert.Equal(operatorSymbol, symbolInfo.Symbol);
 
             var method = (MethodSymbol)symbolInfo.Symbol;
-            var returnType = method.ReturnType;
+            var returnType = method.ReturnType.TypeSymbol;
 
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Equal(returnType, typeInfo.Type);
@@ -3225,7 +3225,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Cast<MethodSymbol>();
-            var operatorSymbol = operators.Where(method => method.Parameters[0].Type == method.Parameters[1].Type).Single();
+            var operatorSymbol = operators.Where(method => method.Parameters[0].Type.TypeSymbol == method.Parameters[1].Type.TypeSymbol).Single();
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.NotNull(expr);
@@ -4040,7 +4040,7 @@ static class Program
             Assert.NotNull(reducedFrom1);
             Assert.Equal("System.Boolean Program.Any<System.Reflection.FieldInfo>(this System.Collections.Generic.ICollection<System.Reflection.FieldInfo> s, System.Func<System.Reflection.FieldInfo, System.Boolean> predicate)", reducedFrom1.ToTestDisplayString());
             Assert.Equal("Program", reducedFrom1.ReceiverType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom1.Parameters[0].Type.OriginalDefinition).SpecialType);
+            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom1.Parameters[0].Type.TypeSymbol.OriginalDefinition).SpecialType);
 
             var speculativeSyntax = SyntaxFactory.ParseExpression("fields.Any((field => field.IsStatic))"); //cast removed
             Assert.Equal(SyntaxKind.InvocationExpression, speculativeSyntax.Kind());
@@ -4051,7 +4051,7 @@ static class Program
             Assert.Equal("Any", method2.Name);
             var reducedFrom2 = method2.CallsiteReducedFromMethod;
             Assert.NotNull(reducedFrom2);
-            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom2.Parameters[0].Type.OriginalDefinition).SpecialType);
+            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom2.Parameters[0].Type.TypeSymbol.OriginalDefinition).SpecialType);
 
             Assert.Equal(reducedFrom1, reducedFrom2);
             Assert.Equal(method1, method2);

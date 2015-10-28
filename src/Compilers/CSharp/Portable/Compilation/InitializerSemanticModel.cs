@@ -187,13 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return binder.BindEnumConstantInitializer(enumField, equalsValue.Value, diagnostics);
                         }
 
-                        var fieldType = ((FieldSymbol)this.MemberSymbol).GetFieldType(binder.FieldsBeingBound);
+                        var fieldType = ((FieldSymbol)this.MemberSymbol).GetFieldType(binder.FieldsBeingBound).TypeSymbol;
                         return binder.BindVariableOrAutoPropInitializer(equalsValue, fieldType, diagnostics);
                     }
 
                 case SymbolKind.Property:
                     {
-                        var propertyType = ((PropertySymbol)this.MemberSymbol).Type;
+                        var propertyType = ((PropertySymbol)this.MemberSymbol).Type.TypeSymbol;
                         return binder.BindVariableOrAutoPropInitializer(equalsValue, propertyType, diagnostics);
                     }
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = (ParameterSymbol)this.MemberSymbol;
                         return binder.BindParameterDefaultValue(
                             equalsValue,
-                            parameter.Type,
+                            parameter.Type.TypeSymbol,
                             diagnostics,
                             out unusedValueBeforeConversion);
                     }

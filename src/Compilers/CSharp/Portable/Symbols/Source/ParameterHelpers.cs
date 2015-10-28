@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault,
             DiagnosticBag diagnostics)
         {
-            TypeSymbol parameterType = parameter.Type;
+            TypeSymbol parameterType = parameter.Type.TypeSymbol;
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax.Default != null;
             SyntaxToken thisKeyword = parameterSyntax.Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (parameter.Type.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
             {
                 // error CS0721: '{0}': static types cannot be used as parameters
-                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type);
+                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type.TypeSymbol);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (parameter.RefKind != RefKind.None && parameter.Type.IsRestrictedType())
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
-                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
+                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type.TypeSymbol);
             }
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // stick it in the parameter because we want to be able to analyze it for
             // IntelliSense purposes.
 
-            TypeSymbol parameterType = parameter.Type;
+            TypeSymbol parameterType = parameter.Type.TypeSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
             diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);

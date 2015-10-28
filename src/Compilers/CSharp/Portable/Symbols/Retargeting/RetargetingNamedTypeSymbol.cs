@@ -104,35 +104,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get
             {
                 // This is always the instance type, so the type arguments are the same as the type parameters.
                 if (Arity > 0)
                 {
-                    return StaticCast<TypeSymbol>.From(this.TypeParameters);
+                    return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
                 }
                 else
                 {
-                    return ImmutableArray<TypeSymbol>.Empty;
+                    return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
                 }
-            }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
             }
         }
 

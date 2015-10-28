@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode syntax,
             Binder binder,
             ImmutableArray<RefKind> refKinds,
-            ImmutableArray<TypeSymbol> types,
+            ImmutableArray<TypeSymbolWithAnnotations> types,
             ImmutableArray<string> names,
             bool isAsync,
             bool hasErrors = false)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
-        public TypeSymbol ParameterType(int index) { return Data.ParameterType(index); }
+        public TypeSymbolWithAnnotations ParameterType(int index) { return Data.ParameterType(index); }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
     }
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract int ParameterCount { get; }
         public abstract bool IsAsync { get; }
         public abstract Location ParameterLocation(int index);
-        public abstract TypeSymbol ParameterType(int index);
+        public abstract TypeSymbolWithAnnotations ParameterType(int index);
         //public abstract SyntaxToken ParameterIdentifier(int index);
         public abstract RefKind RefKind(int index);
         protected abstract BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics);
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static TypeSymbol DelegateReturnType(NamedTypeSymbol delegateType)
         {
             NamedTypeSymbol d = delegateType.GetDelegateType();
-            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? null : d.DelegateInvokeMethod.ReturnType;
+            return ((object)d == null || (object)d.DelegateInvokeMethod == null) ? null : d.DelegateInvokeMethod.ReturnType.TypeSymbol;
         }
 
         private bool DelegateNeedsReturn(NamedTypeSymbol delegateType)
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsAsync && this.binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == d.DelegateInvokeMethod.ReturnType)
+            if (IsAsync && this.binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == d.DelegateInvokeMethod.ReturnType.TypeSymbol)
             {
                 return false;
             }
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
             {
                 var lambdaSym = returnInferenceLambda.Symbol;
-                var lambdaRetType = lambdaSym.ReturnType;
+                var lambdaRetType = lambdaSym.ReturnType.TypeSymbol;
                 if (lambdaRetType == returnType)
                 {
                     lambdaSymbol = lambdaSym;
@@ -720,7 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal class PlainUnboundLambdaState : UnboundLambdaState
     {
         private readonly ImmutableArray<string> _parameterNames;
-        private readonly ImmutableArray<TypeSymbol> _parameterTypes;
+        private readonly ImmutableArray<TypeSymbolWithAnnotations> _parameterTypes;
         private readonly ImmutableArray<RefKind> _parameterRefKinds;
         private readonly bool _isAsync;
 
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             UnboundLambda unboundLambda,
             Binder binder,
             ImmutableArray<string> parameterNames,
-            ImmutableArray<TypeSymbol> parameterTypes,
+            ImmutableArray<TypeSymbolWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             bool isAsync)
             : base(binder, unboundLambda)
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _parameterRefKinds.IsDefault ? Microsoft.CodeAnalysis.RefKind.None : _parameterRefKinds[index];
         }
 
-        public override TypeSymbol ParameterType(int index)
+        public override TypeSymbolWithAnnotations ParameterType(int index)
         {
             Debug.Assert(this.HasExplicitlyTypedParameterList);
             Debug.Assert(0 <= index && index < _parameterTypes.Length);

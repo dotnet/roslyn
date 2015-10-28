@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
                     TypeSyntax t = baseTypeSyntax.Type;
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics);
+                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).TypeSymbol;
 
                     if (bt == @base)
                     {
@@ -223,10 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
         }
 
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParameterConstraintTypes(int ordinal)
         {
             var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
@@ -339,13 +339,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var constraintType in constraintTypes2)
             {
                 // Binder should have dropped any duplicates.
-                Debug.Assert(!setTypes2.Contains(constraintType));
-                setTypes2.Add(constraintType);
+                Debug.Assert(!setTypes2.Contains(constraintType.TypeSymbol));
+                setTypes2.Add(constraintType.TypeSymbol);
             }
 
             foreach (var constraintType in constraintTypes1)
             {
-                if (!setTypes2.Contains(constraintType))
+                if (!setTypes2.Contains(constraintType.TypeSymbol))
                 {
                     return false;
                 }
@@ -354,27 +354,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
-            }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
+                return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
             }
         }
 

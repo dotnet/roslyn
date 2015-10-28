@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LambdaCapturedVariable : SynthesizedFieldSymbolBase
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly bool _isThis;
 
-        private LambdaCapturedVariable(SynthesizedContainer frame, TypeSymbol type, string fieldName, bool isThisParameter)
+        private LambdaCapturedVariable(SynthesizedContainer frame, TypeSymbolWithAnnotations type, string fieldName, bool isThisParameter)
             : base(frame,
                    fieldName,
                    isPublic: true,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             string fieldName = GetCapturedVariableFieldName(captured, ref uniqueId);
             TypeSymbol type = GetCapturedVariableFieldType(frame, captured);
-            return new LambdaCapturedVariable(frame, type, fieldName, IsThis(captured));
+            return new LambdaCapturedVariable(frame, TypeSymbolWithAnnotations.Create(type), fieldName, IsThis(captured));
         }
 
         private static bool IsThis(Symbol captured)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 // if we're capturing a generic frame pointer, construct it with the new frame's type parameters
-                var lambdaFrame = local.Type.OriginalDefinition as LambdaFrame;
+                var lambdaFrame = local.Type.TypeSymbol.OriginalDefinition as LambdaFrame;
                 if ((object)lambdaFrame != null)
                 {
                     // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)
@@ -86,14 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         typeArguments = ImmutableArray.Create(typeArguments, 0, lambdaFrame.Arity);
                     }
-                    return lambdaFrame.ConstructIfGeneric(typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
+
+                    return lambdaFrame.ConstructIfGeneric(typeArguments);
                 }
             }
 
-            return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type).Type;
+            return frame.TypeMap.SubstituteType(((object)local != null ? local.Type : ((ParameterSymbol)variable).Type).TypeSymbol).TypeSymbol;
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             return _type;
         }

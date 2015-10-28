@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                type = method.ReturnType;
+                type = method.ReturnType.TypeSymbol;
                 if (!this.IsAccessible(method, ref useSiteDiagnostics, this.GetAccessThroughType(receiverOpt)))
                 {
                     // CONSIDER: depending on the accessibility (e.g. if it's private), dev10 might just report the whole event bogus.
@@ -1974,7 +1974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                pointedAtType = operandType.PointedAtType;
+                pointedAtType = operandType.PointedAtType.TypeSymbol;
 
                 if (pointedAtType.SpecialType == SpecialType.System_Void)
                 {
@@ -2032,9 +2032,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            TypeSymbol pointerType = new PointerTypeSymbol(isManagedType && allowManagedAddressOf
+            TypeSymbol pointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(isManagedType && allowManagedAddressOf
                 ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
-                : operandType ?? CreateErrorType());
+                : operandType ?? CreateErrorType()));
             return new BoundAddressOfOperator(node, operand, isFixedStatementAddressOfExpression, pointerType, hasErrors);
         }
 
@@ -2538,7 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             AliasSymbol alias;
-            TypeSymbol targetType = BindType(node.Right, diagnostics, out alias);
+            TypeSymbol targetType = BindType(node.Right, diagnostics, out alias).TypeSymbol;
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
             var resultType = (TypeSymbol)GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
@@ -2902,7 +2902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var operand = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             AliasSymbol alias;
-            var targetType = BindType(node.Right, diagnostics, out alias);
+            var targetType = BindType(node.Right, diagnostics, out alias).TypeSymbol;
             var typeExpression = new BoundTypeExpression(node.Right, alias, targetType);
             var targetTypeKind = targetType.TypeKind;
             var resultType = targetType;

@@ -113,22 +113,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = this.BaseMethodParameters;
             foreach (var p in parameters)
             {
-                builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
+                builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type.TypeSymbol).TypeSymbol, ordinal++, p.RefKind, p.Name));
             }
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
                 foreach (var extra in extraSynthed)
                 {
-                    builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
+                    builder.Add(new SynthesizedParameterSymbol(this, this.TypeMap.SubstituteType(extra).TypeSymbol, ordinal++, RefKind.Ref));
                 }
             }
             return builder.ToImmutableAndFree();
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeSymbolWithAnnotations ReturnType
         {
-            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType).Type; }
+            get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnType); }
         }
 
         public sealed override bool IsVararg
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_iteratorElementType == null)
                 {
-                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType).Type;
+                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType)?.TypeSymbol;
                 }
                 return _iteratorElementType;
             }

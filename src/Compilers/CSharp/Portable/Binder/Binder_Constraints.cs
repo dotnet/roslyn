@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeParameterConstraintClause BindTypeParameterConstraints(string name, SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
-            var constraintTypes = ArrayBuilder<TypeSymbol>.GetInstance();
+            var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
 
             foreach (var syntax in constraintsSyntax)
             {
@@ -113,15 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // since, in general, it may be difficult to support all invalid types.
                             // In the future, we may want to include some invalid types
                             // though so the public binding API has the most information.
-                            if (!IsValidConstraintType(typeSyntax, type, diagnostics))
+                            if (!IsValidConstraintType(typeSyntax, type.TypeSymbol, diagnostics))
                             {
                                 continue;
                             }
 
-                            if (constraintTypes.Contains(type))
+                            if (constraintTypes.Contains(c => type.TypeSymbol == c.TypeSymbol))
                             {
                                 // "Duplicate constraint '{0}' for type parameter '{1}'"
-                                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type, name);
+                                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.TypeSymbol, name);
                                 continue;
                             }
 
@@ -134,14 +134,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (constraintTypes.Count > 0)
                                 {
                                     // "The class type constraint '{0}' must come before any other constraints"
-                                    Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type);
+                                    Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type.TypeSymbol);
                                     continue;
                                 }
 
                                 if ((constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != 0)
                                 {
                                     // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
-                                    Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
+                                    Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type.TypeSymbol);
                                     continue;
                                 }
                             }

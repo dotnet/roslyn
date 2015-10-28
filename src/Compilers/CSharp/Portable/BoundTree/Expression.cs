@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Symbols.ParameterSymbol parameter = parameters[parameterIndex];
                     if (parameter.HasExplicitDefaultValue)
                     {
-                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, null)));
+                        arguments.Add(new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type.TypeSymbol, null)));
                     }
                     else
                     {

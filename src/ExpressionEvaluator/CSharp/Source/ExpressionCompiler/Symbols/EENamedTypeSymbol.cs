@@ -125,25 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _typeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
+            get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
         }
 
         public override NamedTypeSymbol ConstructedFrom

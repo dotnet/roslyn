@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             argument = CreateConversion(argument, conversion, typedReferenceType, diagnostics);
 
-            TypeSymbol type = BindType(node.Type, diagnostics);
+            TypeSymbol type = BindType(node.Type, diagnostics).TypeSymbol;
 
             return new BoundRefValueOperator(node, argument, type, hasErrors);
         }
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeofBinder typeofBinder = new TypeofBinder(typeSyntax, this); //has special handling for unbound types
             AliasSymbol alias;
-            TypeSymbol type = typeofBinder.BindType(typeSyntax, diagnostics, out alias);
+            TypeSymbol type = typeofBinder.BindType(typeSyntax, diagnostics, out alias).TypeSymbol;
 
             bool hasError = false;
 
@@ -762,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ExpressionSyntax typeSyntax = node.Type;
             AliasSymbol alias;
-            TypeSymbol type = this.BindType(typeSyntax, diagnostics, out alias);
+            TypeSymbol type = this.BindType(typeSyntax, diagnostics, out alias).TypeSymbol;
 
             bool typeHasErrors = type.IsErrorType();
 
@@ -786,7 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDefaultExpression(DefaultExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            TypeSymbol type = this.BindType(node.Type, diagnostics);
+            TypeSymbol type = this.BindType(node.Type, diagnostics).TypeSymbol;
             return new BoundDefaultOperator(node, type);
         }
 
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var typeArguments = hasTypeArguments ?
                 BindTypeArguments(typeArgumentList, diagnostics) :
-                default(ImmutableArray<TypeSymbol>);
+                default(ImmutableArray<TypeSymbolWithAnnotations>);
 
             var lookupResult = LookupResult.GetInstance();
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expression = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                         node,
                         typeArgumentList,
-                        typeArguments,
+                        typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
                         receiver,
                         node.Identifier.ValueText,
                         members,
@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            type = localSymbol.Type;
+                            type = localSymbol.Type.TypeSymbol;
                         }
 
                         return new BoundLocal(node, localSymbol, constantValueOpt, type, hasErrors: isError);
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression BindNamespaceOrType(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var symbol = this.BindNamespaceOrTypeOrAliasSymbol(node, diagnostics, null, false);
-            return CreateBoundNamespaceOrTypeExpression(node, symbol);
+            return CreateBoundNamespaceOrTypeExpression(node, symbol.Symbol);
         }
 
         public BoundExpression BindNamespaceAlias(IdentifierNameSyntax node, DiagnosticBag diagnostics)
@@ -1513,7 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindCast(CastExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            TypeSymbol targetType = this.BindType(node.Type, diagnostics);
+            TypeSymbol targetType = this.BindType(node.Type, diagnostics).TypeSymbol;
 
             if (targetType.IsNullableType() &&
                 !operand.HasAnyErrors &&
@@ -1937,8 +1937,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             int paramNum = result.ParameterFromArgument(arg);
             var type =
                 (paramNum == parameters.Length - 1 && result.Kind == MemberResolutionKind.ApplicableInExpandedForm) ?
-                ((ArrayTypeSymbol)parameters[paramNum].Type).ElementType :
-                parameters[paramNum].Type;
+                ((ArrayTypeSymbol)parameters[paramNum].Type.TypeSymbol).ElementType.TypeSymbol :
+                parameters[paramNum].Type.TypeSymbol;
             return type;
         }
 
@@ -2011,7 +2011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // SPEC ends
 
-            var type = (ArrayTypeSymbol)BindType(node.Type, diagnostics);
+            var type = (ArrayTypeSymbol)BindType(node.Type, diagnostics).TypeSymbol;
 
             // CONSIDER: 
             //
@@ -2079,7 +2079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
-            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, ImmutableArray<CustomModifier>.Empty, rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, TypeSymbolWithAnnotations.Create(bestType), rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
@@ -2185,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We are processing the nth dimension of a rank-n array. We expect that these will
                 // only be values, not array initializers.
-                TypeSymbol elemType = type.ElementType;
+                TypeSymbol elemType = type.ElementType.TypeSymbol;
                 foreach (var expressionSyntax in node.Expressions)
                 {
                     Debug.Assert(boundInitExprIndex >= 0 && boundInitExprIndex < boundInitExpr.Length);
@@ -2431,13 +2431,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayTypeSyntax arrayTypeSyntax = (ArrayTypeSyntax)typeSyntax;
             TypeSyntax elementTypeSyntax = arrayTypeSyntax.ElementType;
 
-            TypeSymbol elementType = BindType(elementTypeSyntax, diagnostics);
+            TypeSymbolWithAnnotations elementType = BindType(elementTypeSyntax, diagnostics);
             PointerTypeSymbol pointerType = new PointerTypeSymbol(elementType);
 
-            bool typeHasErrors = elementType.IsErrorType();
+            bool typeHasErrors = elementType.TypeSymbol.IsErrorType();
             if (!typeHasErrors && elementType.IsManagedType)
             {
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType);
+                Error(diagnostics, ErrorCode.ERR_ManagedAddr, elementTypeSyntax, elementType.TypeSymbol);
                 typeHasErrors = true;
             }
 
@@ -2577,7 +2577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
             try
             {
-                TypeSymbol constructorReturnType = constructor.ReturnType;
+                TypeSymbol constructorReturnType = constructor.ReturnType.TypeSymbol;
                 Debug.Assert(constructorReturnType.SpecialType == SpecialType.System_Void); //true of all constructors
 
                 // Get the bound arguments and the argument names.
@@ -2745,7 +2745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundExpression BindObjectCreationExpression(ObjectCreationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var type = BindType(node.Type, diagnostics);
+            var type = BindType(node.Type, diagnostics).TypeSymbol;
 
             BoundExpression boundInitializerOpt = node.Initializer == null ?
                 null :
@@ -3139,7 +3139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rightName: memberName.Identifier.ValueText,
                     rightArity: 0,
                     typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
-                    typeArguments: default(ImmutableArray<TypeSymbol>),
+                    typeArguments: default(ImmutableArray<TypeSymbolWithAnnotations>),
                     invoked: false,
                     diagnostics: diagnostics);
 
@@ -3203,7 +3203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!hasErrors)
                             {
                                 // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, namedAssignment.Left, fieldSymbol, fieldSymbol.Type);
+                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, namedAssignment.Left, fieldSymbol, fieldSymbol.Type.TypeSymbol);
                                 hasErrors = true;
                             }
 
@@ -3290,7 +3290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!suppressErrors)
                 {
                     // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                    Error(diagnostics, ErrorCode.ERR_ValueTypePropertyInObjectInitializer, memberNameSyntax, propertySymbol, propertySymbol.Type);
+                    Error(diagnostics, ErrorCode.ERR_ValueTypePropertyInObjectInitializer, memberNameSyntax, propertySymbol, propertySymbol.Type.TypeSymbol);
                     hasErrors = true;
                 }
 
@@ -4409,7 +4409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(SeparatedSyntaxList<TypeSyntax>);
             bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
             ImmutableArray<TypeSymbol> typeArguments = rightHasTypeArguments ?
-                BindTypeArguments(typeArgumentsSyntax, diagnostics) :
+                BindTypeArguments(typeArgumentsSyntax, diagnostics).SelectAsArray(TypeMap.AsTypeSymbol) :
                 default(ImmutableArray<TypeSymbol>);
 
             bool hasErrors = false;
@@ -4500,7 +4500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName ? ((GenericNameSyntax)right).TypeArgumentList.Arguments : default(SeparatedSyntaxList<TypeSyntax>);
                 bool rightHasTypeArguments = typeArgumentsSyntax.Count > 0;
-                var typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeSymbol>);
+                var typeArguments = rightHasTypeArguments ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default(ImmutableArray<TypeSymbolWithAnnotations>);
 
                 // A member-access consists of a primary-expression, a predefined-type, or a 
                 // qualified-alias-member, followed by a "." token, followed by an identifier, 
@@ -4700,7 +4700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string rightName,
             int rightArity,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             bool invoked,
             DiagnosticBag diagnostics)
         {
@@ -4750,7 +4750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return new BoundMethodGroup(
                         node,
-                        typeArguments,
+                        typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
                         boundLeft,
                         rightName,
                         ImmutableArray<MethodSymbol>.Empty,
@@ -4915,13 +4915,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (symbolOpt.Kind)
                 {
                     case SymbolKind.Field:
-                        resultType = ((FieldSymbol)symbolOpt).GetFieldType(this.FieldsBeingBound);
+                        resultType = ((FieldSymbol)symbolOpt).GetFieldType(this.FieldsBeingBound).TypeSymbol;
                         break;
                     case SymbolKind.Property:
-                        resultType = ((PropertySymbol)symbolOpt).Type;
+                        resultType = ((PropertySymbol)symbolOpt).Type.TypeSymbol;
                         break;
                     case SymbolKind.Event:
-                        resultType = ((EventSymbol)symbolOpt).Type;
+                        resultType = ((EventSymbol)symbolOpt).Type.TypeSymbol;
                         break;
                 }
             }
@@ -4967,7 +4967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int arity,
             BoundExpression left,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
-            ImmutableArray<TypeSymbol> typeArguments,
+            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
             LookupResult lookupResult,
             BoundMethodGroupFlags methodGroupFlags,
             DiagnosticBag diagnostics)
@@ -4997,7 +4997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = ConstructBoundMemberGroupAndReportOmittedTypeArguments(
                     node,
                     typeArgumentsSyntax,
-                    typeArguments,
+                    typeArguments.IsDefault ? default(ImmutableArray<TypeSymbol>) : typeArguments.SelectAsArray(TypeMap.AsTypeSymbol),
                     left,
                     plainName,
                     members,
@@ -5269,7 +5269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound);
+            TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).TypeSymbol;
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
             // Spec 14.3: "Within an enum member initializer, values of other enum members are
@@ -5338,7 +5338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
         }
 
         private BoundExpression BindEventAccess(
@@ -5360,7 +5360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
         }
 
         // Say if the receive is an instance or a type, or could be either (returns null).
@@ -5682,7 +5682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.Arguments.Count != rank)
             {
                 Error(diagnostics, ErrorCode.ERR_BadIndexCount, node, rank);
-                return new BoundArrayAccess(node, expr, BuildArgumentsForErrorRecovery(arguments), arrayType.ElementType, hasErrors: true);
+                return new BoundArrayAccess(node, expr, BuildArgumentsForErrorRecovery(arguments), arrayType.ElementType.TypeSymbol, hasErrors: true);
             }
 
             // Convert all the arguments to the array index type.
@@ -5707,7 +5707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType);
+            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), arrayType.ElementType.TypeSymbol);
         }
 
         private BoundExpression ConvertToArrayIndex(BoundExpression index, CSharpSyntaxNode node, DiagnosticBag diagnostics)
@@ -5806,7 +5806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(expr.Type.IsPointerType());
             PointerTypeSymbol pointerType = (PointerTypeSymbol)expr.Type;
-            TypeSymbol pointedAtType = pointerType.PointedAtType;
+            TypeSymbol pointedAtType = pointerType.PointedAtType.TypeSymbol;
 
             if (numArguments != 1)
             {
@@ -6075,7 +6075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentRefKinds,
                     isExpanded,
                     argsToParams,
-                    property.Type,
+                    property.Type.TypeSymbol,
                     gotError);
             }
 

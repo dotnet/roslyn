@@ -9,18 +9,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class ConstructedMethodSymbol : SubstitutedMethodSymbol
     {
-        private readonly ImmutableArray<TypeSymbol> _typeArguments;
+        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
 
-        internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeSymbol> typeArguments)
+        internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
             : base(containingSymbol: constructedFrom.ContainingType,
-                   map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers)),
+                   map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArguments),
                    originalDefinition: (MethodSymbol)constructedFrom.OriginalDefinition,
                    constructedFrom: constructedFrom)
         {
             _typeArguments = typeArguments;
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {

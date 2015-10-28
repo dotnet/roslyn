@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static void CopyMethodCustomModifiers(
             MethodSymbol sourceMethod,
             MethodSymbol destinationMethod,
-            out TypeSymbol returnType,
-            out ImmutableArray<CustomModifier> returnTypeCustomModifiers,
+            out TypeSymbolWithAnnotations returnType,
             out ImmutableArray<ParameterSymbol> parameters,
             bool alsoCopyParamsModifier) // Last since always named.
         {
@@ -26,8 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Assert: none of the method's type parameters have been substituted
             Debug.Assert((object)sourceMethod == sourceMethod.ConstructedFrom);
-
-            returnTypeCustomModifiers = sourceMethod.ReturnTypeCustomModifiers;
 
             // For the most part, we will copy custom modifiers by copying types.
             // The only time when this fails is when the type refers to a type parameter
@@ -40,15 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             parameters = CopyParameterCustomModifiers(constructedSourceMethod.Parameters, destinationMethod.Parameters, alsoCopyParamsModifier);
 
             returnType = destinationMethod.ReturnType; // Default value - in case we don't copy the custom modifiers.
+            TypeSymbol returnTypeSymbol = returnType.TypeSymbol;
+
+            var sourceMethodReturnType = constructedSourceMethod.ReturnType;
 
             // We do an extra check before copying the return type to handle the case where the overriding
             // method (incorrectly) has a different return type than the overridden method.  In such cases,
             // we want to retain the original (incorrect) return type to avoid hiding the return type
             // given in source.
-            TypeSymbol returnTypeWithCustomModifiers = constructedSourceMethod.ReturnType;
-            if (returnType.Equals(returnTypeWithCustomModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
+            TypeSymbol returnTypeWithCustomModifiers = sourceMethodReturnType.TypeSymbol;
+            if (returnTypeSymbol.Equals(returnTypeWithCustomModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
             {
-                returnType = CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnType, RefKind.None, destinationMethod.ContainingAssembly);
+                returnType = returnType.Update(CopyTypeCustomModifiers(returnTypeWithCustomModifiers, returnTypeSymbol, RefKind.None, destinationMethod.ContainingAssembly),
+                                               sourceMethodReturnType.CustomModifiers);
             }
         }
 
@@ -91,8 +92,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SourceParameterSymbolBase destinationParameter = (SourceParameterSymbolBase)destinationParameters[i];
                 ParameterSymbol sourceParameter = sourceParameters[i];
 
-                if (sourceParameter.CustomModifiers.Any() || sourceParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) ||
-                    destinationParameter.CustomModifiers.Any() || destinationParameter.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) || // Could happen if the associated property has custom modifiers.
+                if (sourceParameter.Type.CustomModifiers.Any() || sourceParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) ||
+                    destinationParameter.Type.CustomModifiers.Any() || destinationParameter.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds:true) || // Could happen if the associated property has custom modifiers.
                     (alsoCopyParamsModifier && (sourceParameter.IsParams != destinationParameter.IsParams)))
                 {
                     if (builder == null)
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     bool newParams = alsoCopyParamsModifier ? sourceParameter.IsParams : destinationParameter.IsParams;
-                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type, sourceParameter.CustomModifiers, 
+                    builder.Add(destinationParameter.WithCustomModifiersAndParams(sourceParameter.Type.TypeSymbol, sourceParameter.Type.CustomModifiers, 
                                                                                   destinationParameter.RefKind != RefKind.None ? sourceParameter.CountOfCustomModifiersPrecedingByRef : (ushort)0,
                                                                                   newParams));
                 }

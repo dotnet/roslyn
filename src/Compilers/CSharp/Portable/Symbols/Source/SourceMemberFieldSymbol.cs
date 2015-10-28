@@ -17,13 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly DeclarationModifiers _modifiers;
         private readonly bool _hasInitializer;
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations _lazyType;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
         private int _lazyFieldTypeInferred;
-
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 
         internal SourceMemberFieldSymbol(
             SourceMemberContainerTypeSymbol containingType,
@@ -135,10 +133,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_lazyType != null)
                 {
-                    Debug.Assert(_lazyType.IsPointerType() ==
+                    Debug.Assert(_lazyType.TypeSymbol.IsPointerType() ==
                         IsPointerFieldSyntactically());
 
-                    return _lazyType.IsPointerType();
+                    return _lazyType.TypeSymbol.IsPointerType();
                 }
 
                 return IsPointerFieldSyntactically();
@@ -167,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
@@ -183,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbol type;
+            TypeSymbolWithAnnotations type;
 
             // When we have multiple declarators, we report the type diagnostics on only the first.
             DiagnosticBag diagnosticsForFirstDeclarator = DiagnosticBag.GetInstance();
@@ -199,11 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // CONSIDER: Do we want to guard against the possibility that someone has created their own EventRegistrationTokenTable<T>
                     // type that has additional generic constraints?
-                    type = tokenTableType.Construct(@event.Type);
+                    type = TypeSymbolWithAnnotations.Create(tokenTableType.Construct(@event.Type.TypeSymbol));
                 }
                 else
                 {
-                    type = @event.Type;
+                    type = TypeSymbolWithAnnotations.Create(@event.Type.TypeSymbol);
                 }
             }
             else
@@ -217,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
                     if (IsFixed)
                     {
-                        type = new PointerTypeSymbol(type);
+                        type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(type));
                     }
                 }
                 else
@@ -254,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if ((object)initializerOpt.Type != null && !initializerOpt.Type.IsErrorType())
                                 {
-                                    type = initializerOpt.Type;
+                                    type = TypeSymbolWithAnnotations.Create(initializerOpt.Type);
                                 }
 
                                 _lazyFieldTypeInferred = 1;
@@ -263,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if ((object)type == null)
                         {
-                            type = binder.CreateErrorType("var");
+                            type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                         }
                     }
                 }
@@ -275,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    var elementType = ((PointerTypeSymbol)type).PointedAtType;
+                    var elementType = ((PointerTypeSymbol)type.TypeSymbol).PointedAtType.TypeSymbol;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
                     {
@@ -291,9 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
-            if ((object)Interlocked.CompareExchange(ref _lazyType, type, null) == null)
+            if ((object)Interlocked.CompareExchange(ref _lazyType, type.WithModifiers(this.RequiredCustomModifiers), null) == null)
             {
-                TypeChecks(type, fieldSyntax, declarator, diagnostics);
+                TypeChecks(type.TypeSymbol, fieldSyntax, declarator, diagnostics);
 
                 // CONSIDER: SourceEventFieldSymbol would like to suppress these diagnostics.
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
@@ -472,19 +470,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result;
-        }
-
-        public sealed override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                if (_lazyCustomModifiers.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyCustomModifiers, base.CustomModifiers, default(ImmutableArray<CustomModifier>));
-                }
-
-                return _lazyCustomModifiers;
-            }
         }
 
         internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)

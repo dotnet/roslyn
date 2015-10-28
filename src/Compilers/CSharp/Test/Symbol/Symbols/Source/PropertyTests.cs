@@ -414,7 +414,7 @@ class C1
             PropertySymbol ein = (PropertySymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
             Assert.Equal("C1.@in", ein.ToString());
-            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type;
+            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type.TypeSymbol;
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
         }
@@ -1790,7 +1790,7 @@ class Program
             {
                 var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program");
                 var field = program.GetMember<FieldSymbol>("testClass");
-                var type = field.Type;
+                var type = field.Type.TypeSymbol;
                 // Non-generic type.
                 //var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("WithParameterizedProps");
                 var getters = type.GetMembers("get_P").OfType<MethodSymbol>();
@@ -1843,7 +1843,7 @@ public class A : Attribute
             Assert.Equal(2, xs.Length);
             foreach (var x in xs)
             {
-                Assert.Equal(a, (x as PropertySymbol).Type); // duplicate, but all the same.
+                Assert.Equal(a, (x as PropertySymbol).Type.TypeSymbol); // duplicate, but all the same.
             }
 
             var errors = comp.GetDeclarationDiagnostics();

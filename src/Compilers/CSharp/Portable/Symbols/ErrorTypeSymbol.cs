@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual LookupResultKind ResultKind { get { return LookupResultKind.Empty; } }
 
         /// <summary>
-        /// Called by <see cref="AbstractTypeMap.SubstituteType"/> to perform substitution
+        /// Called by <see cref="AbstractTypeMap.SubstituteType(TypeSymbol)"/> to perform substitution
         /// on types with TypeKind ErrorType.  The general pattern is to use the type map
         /// to perform substitution on the wrapped type, if any, and then construct a new
         /// error type symbol from the result (if there was a change).
         /// </summary>
-        internal virtual TypeWithModifiers Substitute(AbstractTypeMap typeMap)
+        internal virtual TypeSymbolWithAnnotations Substitute(AbstractTypeMap typeMap)
         {
-            return new TypeWithModifiers((ErrorTypeSymbol)typeMap.SubstituteNamedType(this));
+            return TypeSymbolWithAnnotations.Create((ErrorTypeSymbol)typeMap.SubstituteNamedType(this));
         }
 
         /// <summary>
@@ -268,27 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If nothing has been substituted for a give type parameters,
         /// then the type parameter itself is consider the type argument.
         /// </summary>
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
-            }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
+                return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
             }
         }
 
@@ -443,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override NamedTypeSymbol ConstructCore(ImmutableArray<TypeWithModifiers> typeArguments, bool unbound)
+        protected override NamedTypeSymbol ConstructCore(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, bool unbound)
         {
             return new ConstructedErrorTypeSymbol(this, typeArguments);
         }
@@ -596,26 +580,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class ConstructedErrorTypeSymbol : SubstitutedErrorTypeSymbol
     {
         private readonly ErrorTypeSymbol _constructedFrom;
-        private readonly ImmutableArray<TypeSymbol> _typeArguments;
-        private readonly bool _hasTypeArgumentsCustomModifiers;
+        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
         private readonly TypeMap _map;
 
-        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeWithModifiers> typeArguments) :
+        public ConstructedErrorTypeSymbol(ErrorTypeSymbol constructedFrom, ImmutableArray<TypeSymbolWithAnnotations> typeArguments) :
             base((ErrorTypeSymbol)constructedFrom.OriginalDefinition)
         {
             _constructedFrom = constructedFrom;
-            bool hasTypeArgumentsCustomModifiers = false;
-            _typeArguments = typeArguments.SelectAsArray(a =>
-                                                            {
-                                                                if (!a.CustomModifiers.IsDefaultOrEmpty)
-                                                                {
-                                                                    hasTypeArgumentsCustomModifiers = true;
-                                                                }
-
-                                                                return a.Type;
-                                                            });
-
-            _hasTypeArgumentsCustomModifiers = hasTypeArgumentsCustomModifiers;
+            _typeArguments = typeArguments;
             _map = new TypeMap(constructedFrom.ContainingType, constructedFrom.OriginalDefinition.TypeParameters, typeArguments);
         }
 
@@ -624,30 +596,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _constructedFrom.TypeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
             get { return _typeArguments; }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return _hasTypeArgumentsCustomModifiers;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                if (_hasTypeArgumentsCustomModifiers)
-                {
-                    return _map.GetTypeArgumentsCustomModifiersFor(_constructedFrom.OriginalDefinition);
-                }
-
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
         }
 
         public override NamedTypeSymbol ConstructedFrom
@@ -684,25 +635,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        internal override ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
         {
-            get { return this.TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
-        }
-
-        internal override bool HasTypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
-        {
-            get
-            {
-                return CreateEmptyTypeArgumentsCustomModifiers();
-            }
+            get { return this.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
         }
 
         public override NamedTypeSymbol ConstructedFrom

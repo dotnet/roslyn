@@ -384,13 +384,13 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(varI1, param[0].Type);
-            Assert.Same(varI2, param[1].Type);
+            Assert.Same(varI1, param[0].Type.TypeSymbol);
+            Assert.Same(varI2, param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Same(varS1, param[0].Type);
-            Assert.Same(varS2, param[1].Type);
+            Assert.Same(varS1, param[0].Type.TypeSymbol);
+            Assert.Same(varS2, param[1].Type.TypeSymbol);
 
             var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -415,13 +415,13 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(varI1, param[0].Type);
-            Assert.Same(varI2, param[1].Type);
+            Assert.Same(varI1, param[0].Type.TypeSymbol);
+            Assert.Same(varI2, param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Same(varS1, param[0].Type);
-            Assert.Same(varS2, param[1].Type);
+            Assert.Same(varS1, param[0].Type.TypeSymbol);
+            Assert.Same(varS2, param[1].Type.TypeSymbol);
 
             var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -446,8 +446,8 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(pia1_3.GlobalNamespace.GetTypeMembers("I1").Single(), param[0].Type);
-            Assert.Same(pia1_3.GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single(), param[1].Type);
+            Assert.Same(pia1_3.GlobalNamespace.GetTypeMembers("I1").Single(), param[0].Type.TypeSymbol);
+            Assert.Same(pia1_3.GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single(), param[1].Type.TypeSymbol);
 
             // This tests that we cannot find canonical type for an embedded structure if we don't know
             // whether it is a structure because we can't find definition of the base class. Mscorlib is
@@ -457,7 +457,7 @@ public class LocalTypes3
             NoPiaMissingCanonicalTypeSymbol missing;
 
             Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type;
+            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes2_3, missing.EmbeddingAssembly);
             Assert.Null(missing.Guid);
             Assert.Equal(varS1.ToTestDisplayString(), missing.FullTypeName);
@@ -465,7 +465,7 @@ public class LocalTypes3
             Assert.Equal(varS1.ToTestDisplayString(), missing.Identifier);
 
             Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -499,22 +499,22 @@ public class LocalTypes3
             param = test1.Parameters;
 
             Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type;
+            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes1_5, missing.EmbeddingAssembly);
             Assert.Equal("27e3e649-994b-4f58-b3c6-f8089a5f2c01", missing.Guid);
             Assert.Equal(varI1.ToTestDisplayString(), missing.FullTypeName);
             Assert.Null(missing.Scope);
             Assert.Null(missing.Identifier);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -533,17 +533,17 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -563,17 +563,17 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(TypeKind.Interface, param[0].Type.TypeKind);
-            Assert.Equal(TypeKind.Interface, param[1].Type.TypeKind);
-            Assert.NotEqual(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.NotEqual(SymbolKind.ErrorType, param[1].Type.Kind);
+            Assert.Equal(TypeKind.Interface, param[0].Type.TypeSymbol.TypeKind);
+            Assert.Equal(TypeKind.Interface, param[1].Type.TypeSymbol.TypeKind);
+            Assert.NotEqual(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -598,14 +598,14 @@ public class LocalTypes3
 
             NoPiaAmbiguousCanonicalTypeSymbol ambiguous;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            ambiguous = (NoPiaAmbiguousCanonicalTypeSymbol)param[0].Type;
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            ambiguous = (NoPiaAmbiguousCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes1_8, ambiguous.EmbeddingAssembly);
             Assert.Same(pia4_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.FirstCandidate);
             Assert.Same(pia1_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.SecondCandidate);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -683,13 +683,13 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(varI1, param[0].Type);
-            Assert.Same(varI2, param[1].Type);
+            Assert.Same(varI1, param[0].Type.TypeSymbol);
+            Assert.Same(varI2, param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Same(varS1, param[0].Type);
-            Assert.Same(varS2, param[1].Type);
+            Assert.Same(varS1, param[0].Type.TypeSymbol);
+            Assert.Same(varS2, param[1].Type.TypeSymbol);
 
             var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -714,13 +714,13 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(varI1, param[0].Type);
-            Assert.Same(varI2, param[1].Type);
+            Assert.Same(varI1, param[0].Type.TypeSymbol);
+            Assert.Same(varI2, param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Same(varS1, param[0].Type);
-            Assert.Same(varS2, param[1].Type);
+            Assert.Same(varS1, param[0].Type.TypeSymbol);
+            Assert.Same(varS2, param[1].Type.TypeSymbol);
 
             var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -745,8 +745,8 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(pia1_3.GlobalNamespace.GetTypeMembers("I1").Single(), param[0].Type);
-            Assert.Same(pia1_3.GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single(), param[1].Type);
+            Assert.Same(pia1_3.GlobalNamespace.GetTypeMembers("I1").Single(), param[0].Type.TypeSymbol);
+            Assert.Same(pia1_3.GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single(), param[1].Type.TypeSymbol);
 
             // This tests that we cannot find canonical type for an embedded structure if we don't know
             // whether it is a structure because we can't find definition of the base class. Mscorlib is
@@ -756,15 +756,15 @@ public class LocalTypes3
             NoPiaMissingCanonicalTypeSymbol missing;
 
             Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type;
+            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes2_3, missing.EmbeddingAssembly);
             Assert.Null(missing.Guid);
             Assert.Equal(varS1.ToTestDisplayString(), missing.FullTypeName);
             Assert.Equal("f9c2d51d-4f44-45f0-9eda-c9d599b58257", missing.Scope);
             Assert.Equal(varS1.ToTestDisplayString(), missing.Identifier);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -797,23 +797,23 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type;
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes1_5, missing.EmbeddingAssembly);
             Assert.Equal("27e3e649-994b-4f58-b3c6-f8089a5f2c01", missing.Guid);
             Assert.Equal(varI1.ToTestDisplayString(), missing.FullTypeName);
             Assert.Null(missing.Scope);
             Assert.Null(missing.Identifier);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -832,17 +832,17 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -862,17 +862,17 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(TypeKind.Interface, param[0].Type.TypeKind);
-            Assert.Equal(TypeKind.Interface, param[1].Type.TypeKind);
-            Assert.NotEqual(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.NotEqual(SymbolKind.ErrorType, param[1].Type.Kind);
+            Assert.Equal(TypeKind.Interface, param[0].Type.TypeSymbol.TypeKind);
+            Assert.Equal(TypeKind.Interface, param[1].Type.TypeSymbol.TypeKind);
+            Assert.NotEqual(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -898,13 +898,13 @@ public class LocalTypes3
             NoPiaAmbiguousCanonicalTypeSymbol ambiguous;
 
             Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            ambiguous = (NoPiaAmbiguousCanonicalTypeSymbol)param[0].Type;
+            ambiguous = (NoPiaAmbiguousCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes1_8, ambiguous.EmbeddingAssembly);
             Assert.Same(pia4_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.FirstCandidate);
             Assert.Same(pia1_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.SecondCandidate);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -985,13 +985,13 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(varI1, param[0].Type);
-            Assert.Same(varI2, param[1].Type);
+            Assert.Same(varI1, param[0].Type.TypeSymbol);
+            Assert.Same(varI2, param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Same(varS1, param[0].Type);
-            Assert.Same(varS2, param[1].Type);
+            Assert.Same(varS1, param[0].Type.TypeSymbol);
+            Assert.Same(varS2, param[1].Type.TypeSymbol);
 
             var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -1016,13 +1016,13 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(varI1, param[0].Type);
-            Assert.Same(varI2, param[1].Type);
+            Assert.Same(varI1, param[0].Type.TypeSymbol);
+            Assert.Same(varI2, param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Same(varS1, param[0].Type);
-            Assert.Same(varS2, param[1].Type);
+            Assert.Same(varS1, param[0].Type.TypeSymbol);
+            Assert.Same(varS2, param[1].Type.TypeSymbol);
 
             var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -1047,8 +1047,8 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Same(pia1_3.GlobalNamespace.GetTypeMembers("I1").Single(), param[0].Type);
-            Assert.Same(pia1_3.GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single(), param[1].Type);
+            Assert.Same(pia1_3.GlobalNamespace.GetTypeMembers("I1").Single(), param[0].Type.TypeSymbol);
+            Assert.Same(pia1_3.GlobalNamespace.GetMembers("NS1").OfType<NamespaceSymbol>().Single().GetTypeMembers("I2").Single(), param[1].Type.TypeSymbol);
 
             // This tests that we cannot find canonical type for an embedded structure if we don't know
             // whether it is a structure because we can't find definition of the base class. Mscorlib is
@@ -1057,16 +1057,16 @@ public class LocalTypes3
 
             NoPiaMissingCanonicalTypeSymbol missing;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type;
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes2_3, missing.EmbeddingAssembly);
             Assert.Null(missing.Guid);
             Assert.Equal(varS1.ToTestDisplayString(), missing.FullTypeName);
             Assert.Equal("f9c2d51d-4f44-45f0-9eda-c9d599b58257", missing.Scope);
             Assert.Equal(varS1.ToTestDisplayString(), missing.Identifier);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -1099,23 +1099,23 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type;
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            missing = (NoPiaMissingCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes1_5, missing.EmbeddingAssembly);
             Assert.Equal("27e3e649-994b-4f58-b3c6-f8089a5f2c01", missing.Guid);
             Assert.Equal(varI1.ToTestDisplayString(), missing.FullTypeName);
             Assert.Null(missing.Scope);
             Assert.Null(missing.Identifier);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -1134,17 +1134,17 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -1164,17 +1164,17 @@ public class LocalTypes3
 
             param = test1.Parameters;
 
-            Assert.Equal(TypeKind.Interface, param[0].Type.TypeKind);
-            Assert.Equal(TypeKind.Interface, param[1].Type.TypeKind);
-            Assert.NotEqual(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.NotEqual(SymbolKind.ErrorType, param[1].Type.Kind);
+            Assert.Equal(TypeKind.Interface, param[0].Type.TypeSymbol.TypeKind);
+            Assert.Equal(TypeKind.Interface, param[1].Type.TypeSymbol.TypeKind);
+            Assert.NotEqual(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.NotEqual(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
 
             param = test2.Parameters;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type);
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[0].Type.TypeSymbol);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaMissingCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies8 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -1199,14 +1199,14 @@ public class LocalTypes3
 
             NoPiaAmbiguousCanonicalTypeSymbol ambiguous;
 
-            Assert.Equal(SymbolKind.ErrorType, param[0].Type.Kind);
-            ambiguous = (NoPiaAmbiguousCanonicalTypeSymbol)param[0].Type;
+            Assert.Equal(SymbolKind.ErrorType, param[0].Type.TypeSymbol.Kind);
+            ambiguous = (NoPiaAmbiguousCanonicalTypeSymbol)param[0].Type.TypeSymbol;
             Assert.Same(localTypes1_8, ambiguous.EmbeddingAssembly);
             Assert.Same(pia4_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.FirstCandidate);
             Assert.Same(pia1_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.SecondCandidate);
 
-            Assert.Equal(SymbolKind.ErrorType, param[1].Type.Kind);
-            Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type);
+            Assert.Equal(SymbolKind.ErrorType, param[1].Type.TypeSymbol.Kind);
+            Assert.IsType<NoPiaAmbiguousCanonicalTypeSymbol>(param[1].Type.TypeSymbol);
 
             var assemblies9 = MetadataTestHelpers.GetSymbolsForReferences(new CSharpCompilation[] { LocalTypes1, LocalTypes2 },
                                                                           null,
@@ -1341,11 +1341,11 @@ public class LocalTypes3
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test2").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.Equal(SymbolKind.ErrorType, localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.Kind);
 
-            NoPiaIllegalGenericInstantiationSymbol illegal = (NoPiaIllegalGenericInstantiationSymbol)localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType;
+            NoPiaIllegalGenericInstantiationSymbol illegal = (NoPiaIllegalGenericInstantiationSymbol)localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
             Assert.Equal("C31<I1>.I31<C33>", illegal.UnderlyingSymbol.ToTestDisplayString());
 
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
 
             assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
@@ -1360,10 +1360,10 @@ public class LocalTypes3
 
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test1").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test2").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
         }
 
         [ClrOnlyFact]
@@ -1388,11 +1388,11 @@ public class LocalTypes3
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test2").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.Equal(SymbolKind.ErrorType, localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.Kind);
 
-            NoPiaIllegalGenericInstantiationSymbol illegal = (NoPiaIllegalGenericInstantiationSymbol)localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType;
+            NoPiaIllegalGenericInstantiationSymbol illegal = (NoPiaIllegalGenericInstantiationSymbol)localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
             Assert.Equal("C31<I1>.I31<C33>", illegal.UnderlyingSymbol.ToTestDisplayString());
 
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
 
             assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
@@ -1407,10 +1407,10 @@ public class LocalTypes3
 
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test1").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test2").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
         }
 
         [ClrOnlyFact]
@@ -1438,11 +1438,11 @@ public class LocalTypes3
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test2").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.Equal(SymbolKind.ErrorType, localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.Kind);
 
-            NoPiaIllegalGenericInstantiationSymbol illegal = (NoPiaIllegalGenericInstantiationSymbol)localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType;
+            NoPiaIllegalGenericInstantiationSymbol illegal = (NoPiaIllegalGenericInstantiationSymbol)localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
             Assert.Equal("C31<I1>.I31<C33>", illegal.UnderlyingSymbol.ToTestDisplayString());
 
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
 
             assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                 new CSharpCompilation[] { LocalTypes3 },
@@ -1457,10 +1457,10 @@ public class LocalTypes3
 
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test1").OfType<MethodSymbol>().Single().ReturnType.Kind);
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test2").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMembers("Test4").OfType<MethodSymbol>().Single().ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localTypes3.GetMembers("Test6").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol);
         }
 
         [ClrOnlyFact]
@@ -1535,8 +1535,8 @@ public struct S1
             NamedTypeSymbol lt = compilation.GetTypeByMetadataName("LocalTypes2");
             var test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1550,8 +1550,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1565,8 +1565,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1580,8 +1580,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1660,8 +1660,8 @@ public struct S1
             NamedTypeSymbol lt = compilation.GetTypeByMetadataName("LocalTypes2");
             var test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1675,8 +1675,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1690,8 +1690,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1705,8 +1705,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1785,8 +1785,8 @@ public struct S1
             NamedTypeSymbol lt = compilation.GetTypeByMetadataName("LocalTypes2");
             var test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.TypeSymbol.ContainingAssembly.Name);
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1800,8 +1800,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.TypeSymbol.ContainingAssembly.Name);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1815,8 +1815,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.TypeSymbol.ContainingAssembly.Name);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1830,8 +1830,8 @@ public struct S1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.Equal("LocalTypes2", test2.Parameters[1].Type.TypeSymbol.ContainingAssembly.Name);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1897,8 +1897,8 @@ interface AttrTest1
             NamedTypeSymbol lt = compilation.GetTypeByMetadataName("LocalTypes2");
             var test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1912,8 +1912,8 @@ interface AttrTest1
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -1993,8 +1993,8 @@ public struct S2<T>
             NamedTypeSymbol lt = compilation.GetTypeByMetadataName("LocalTypes2");
             var test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             NamedTypeSymbol attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             var args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -2008,8 +2008,8 @@ public struct S2<T>
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -2023,8 +2023,8 @@ public struct S2<T>
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;
@@ -2038,8 +2038,8 @@ public struct S2<T>
             lt = compilation.GetTypeByMetadataName("LocalTypes2");
             test2 = lt.GetMember<MethodSymbol>("Test2");
 
-            Assert.Equal("Pia", test2.Parameters[0].Type.ContainingAssembly.Name);
-            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type);
+            Assert.Equal("Pia", test2.Parameters[0].Type.TypeSymbol.ContainingAssembly.Name);
+            Assert.IsType<UnsupportedMetadataTypeSymbol>(test2.Parameters[1].Type.TypeSymbol);
 
             attrTest1 = compilation.GetTypeByMetadataName("AttrTest1");
             args = attrTest1.GetAttributes()[0].CommonConstructorArguments;

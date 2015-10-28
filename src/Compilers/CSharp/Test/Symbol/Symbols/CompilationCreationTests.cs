@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SpecialType.None, c107.SpecialType);
 
-            var arrayOfc107 = ArrayTypeSymbol.CreateCSharpArray(c1.Assembly, c107);
+            var arrayOfc107 = ArrayTypeSymbol.CreateCSharpArray(c1.Assembly, TypeSymbolWithAnnotations.Create(c107));
 
             Assert.Equal(SpecialType.None, arrayOfc107.SpecialType);
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var retval1 = asm2[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval1.Kind);
             Assert.Same(retval1, asm2[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var retval2 = asm3[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval2.Kind);
             Assert.Same(retval2, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -196,17 +196,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var type1 = asm3[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval3.Kind);
             Assert.Same(retval3, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval4.Kind);
             Assert.Same(retval4, asm3[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval5.Kind);
             Assert.Same(retval5, asm3[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var retval6 = asm4[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval6.Kind);
             Assert.Same(retval6, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -259,17 +259,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var type2 = asm4[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval7.Kind);
             Assert.Same(retval7, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval8.Kind);
             Assert.Same(retval8, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval9.Kind);
             Assert.Same(retval9, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -284,27 +284,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var type3 = asm4[4].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            var retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval10.Kind);
             Assert.Same(retval10, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval11.Kind);
             Assert.Same(retval11, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval12.Kind);
             Assert.Same(retval12, asm4[2].GlobalNamespace.GetMembers("Class3").Single());
 
-            var retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            var retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval13.Kind);
             Assert.Same(retval13, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            var retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            var retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval14.Kind);
             Assert.Same(retval14, asm4[3].GlobalNamespace.GetMembers("Class5").Single());
@@ -350,15 +350,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var type4 = asm7[2].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval15.Kind);
 
-            var retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval16.Kind);
 
-            var retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval17.Kind);
             Assert.Same(retval17, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -373,24 +373,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var type5 = asm7[3].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            var retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval18.Kind);
 
-            var retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval19.Kind);
 
-            var retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval20.Kind);
 
-            var retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            var retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval21.Kind);
             Assert.Same(retval21, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            var retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            var retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval22.Kind);
             Assert.Same(retval22, asm7[2].GlobalNamespace.GetMembers("Class5").Single());
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             retval1 = asm2[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval1.Kind);
             Assert.Same(retval1, asm2[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             retval2 = asm3[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval2.Kind);
             Assert.Same(retval2, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -498,17 +498,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             type1 = asm3[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval3.Kind);
             Assert.Same(retval3, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval4.Kind);
             Assert.Same(retval4, asm3[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval5.Kind);
             Assert.Same(retval5, asm3[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             retval6 = asm4[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval6.Kind);
             Assert.Same(retval6, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -551,17 +551,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             type2 = asm4[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval7.Kind);
             Assert.Same(retval7, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval8.Kind);
             Assert.Same(retval8, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval9.Kind);
             Assert.Same(retval9, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -576,27 +576,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             type3 = asm4[4].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval10.Kind);
             Assert.Same(retval10, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval11.Kind);
             Assert.Same(retval11, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval12.Kind);
             Assert.Same(retval12, asm4[2].GlobalNamespace.GetMembers("Class3").Single());
 
-            retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval13.Kind);
             Assert.Same(retval13, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval14.Kind);
             Assert.Same(retval14, asm4[3].GlobalNamespace.GetMembers("Class5").Single());
@@ -616,15 +616,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             type4 = asm7[2].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval15.Kind);
 
-            retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval16.Kind);
 
-            retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval17.Kind);
             Assert.Same(retval17, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -639,24 +639,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             type5 = asm7[3].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval18.Kind);
 
-            retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval19.Kind);
 
-            retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal(SymbolKind.ErrorType, retval20.Kind);
 
-            retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval21.Kind);
             Assert.Same(retval21, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval22.Kind);
             Assert.Same(retval22, asm7[2].GlobalNamespace.GetMembers("Class5").Single());
@@ -727,7 +727,7 @@ public class Class4
 
             var retval1 = asm2[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval1.Kind);
             Assert.Same(retval1, asm2[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -823,7 +823,7 @@ public class Class5
 
             var retval2 = asm3[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval2.Kind);
             Assert.Same(retval2, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -844,17 +844,17 @@ public class Class5
             var type1 = asm3[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval3.Kind);
             Assert.Same(retval3, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval4.Kind);
             Assert.Same(retval4, asm3[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval5.Kind);
             Assert.Same(retval5, asm3[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -964,7 +964,7 @@ public class Class6
 
             var retval6 = asm4[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval6.Kind);
             Assert.Same(retval6, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -989,17 +989,17 @@ public class Class6
             var type2 = asm4[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval7.Kind);
             Assert.Same(retval7, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval8.Kind);
             Assert.Same(retval8, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval9.Kind);
             Assert.Same(retval9, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1014,27 +1014,27 @@ public class Class6
             var type3 = asm4[4].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            var retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval10.Kind);
             Assert.Same(retval10, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval11.Kind);
             Assert.Same(retval11, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval12.Kind);
             Assert.Same(retval12, asm4[2].GlobalNamespace.GetMembers("Class3").Single());
 
-            var retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            var retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval13.Kind);
             Assert.Same(retval13, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            var retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            var retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval14.Kind);
             Assert.Same(retval14, asm4[3].GlobalNamespace.GetMembers("Class5").Single());
@@ -1078,16 +1078,16 @@ public class Class6
             var type4 = asm7[2].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval15.ContainingAssembly.Name);
             Assert.Equal(0, (from a in asm7 where a != null && a.Name == "MTTestLib1" select a).Count());
 
-            var retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval16.ContainingAssembly.Name);
 
-            var retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval17.Kind);
             Assert.Same(retval17, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1102,24 +1102,24 @@ public class Class6
             var type5 = asm7[3].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            var retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval18.ContainingAssembly.Name);
 
-            var retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval19.ContainingAssembly.Name);
 
-            var retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval20.ContainingAssembly.Name);
 
-            var retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            var retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval21.Kind);
             Assert.Same(retval21, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            var retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            var retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval22.Kind);
             Assert.Same(retval22, asm7[2].GlobalNamespace.GetMembers("Class5").Single());
@@ -1175,7 +1175,7 @@ public class Class6
 
             retval1 = asm2[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval1.Kind);
             Assert.Same(retval1, asm2[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1202,7 +1202,7 @@ public class Class6
 
             retval2 = asm3[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval2.Kind);
             Assert.Same(retval2, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1223,17 +1223,17 @@ public class Class6
             type1 = asm3[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval3.Kind);
             Assert.Same(retval3, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval4.Kind);
             Assert.Same(retval4, asm3[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval5.Kind);
             Assert.Same(retval5, asm3[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1255,7 +1255,7 @@ public class Class6
 
             retval6 = asm4[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval6.Kind);
             Assert.Same(retval6, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1280,17 +1280,17 @@ public class Class6
             type2 = asm4[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval7.Kind);
             Assert.Same(retval7, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval8.Kind);
             Assert.Same(retval8, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval9.Kind);
             Assert.Same(retval9, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1305,27 +1305,27 @@ public class Class6
             type3 = asm4[4].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval10.Kind);
             Assert.Same(retval10, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval11.Kind);
             Assert.Same(retval11, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval12.Kind);
             Assert.Same(retval12, asm4[2].GlobalNamespace.GetMembers("Class3").Single());
 
-            retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval13.Kind);
             Assert.Same(retval13, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval14.Kind);
             Assert.Same(retval14, asm4[3].GlobalNamespace.GetMembers("Class5").Single());
@@ -1351,16 +1351,16 @@ public class Class6
             type4 = asm7[2].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval15.ContainingAssembly.Name);
             Assert.Equal(0, (from a in asm7 where a != null && a.Name == "MTTestLib1" select a).Count());
 
-            retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval16.ContainingAssembly.Name);
 
-            retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval17.Kind);
             Assert.Same(retval17, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1375,24 +1375,24 @@ public class Class6
             type5 = asm7[3].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval18.ContainingAssembly.Name);
 
-            retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval19.ContainingAssembly.Name);
 
-            retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", retval20.ContainingAssembly.Name);
 
-            retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval21.Kind);
             Assert.Same(retval21, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval22.Kind);
             Assert.Same(retval22, asm7[2].GlobalNamespace.GetMembers("Class5").Single());
@@ -1434,11 +1434,11 @@ public class Class6
 
             var retval1 = asm2[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(retval1, asm2[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Bar").OfType<FieldSymbol>().Single().Type);
+                          GetMembers("Bar").OfType<FieldSymbol>().Single().Type.TypeSymbol);
 
             Assert.NotEqual(SymbolKind.ErrorType, retval1.Kind);
             Assert.Same(retval1, asm2[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1493,11 +1493,11 @@ public class Class6
 
             var retval2 = asm3[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(retval2, asm3[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Bar").OfType<FieldSymbol>().Single().Type);
+                          GetMembers("Bar").OfType<FieldSymbol>().Single().Type.TypeSymbol);
 
             Assert.NotEqual(SymbolKind.ErrorType, retval2.Kind);
             Assert.Same(retval2, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1518,17 +1518,17 @@ public class Class6
 
             var type1 = asm3[3].GlobalNamespace.GetTypeMembers("Class5").Single();
 
-            var retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval3.Kind);
             Assert.Same(retval3, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval4.Kind);
             Assert.Same(retval4, asm3[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval5.Kind);
             Assert.Same(retval5, asm3[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1585,7 +1585,7 @@ public class Class6
 
             var retval6 = asm4[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval6.Kind);
             Assert.Same(retval6, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1610,17 +1610,17 @@ public class Class6
             var type2 = asm4[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval7.Kind);
             Assert.Same(retval7, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval8.Kind);
             Assert.Same(retval8, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval9.Kind);
             Assert.Same(retval9, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1635,27 +1635,27 @@ public class Class6
             var type3 = asm4[4].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            var retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval10.Kind);
             Assert.Same(retval10, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            var retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval11.Kind);
             Assert.Same(retval11, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            var retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval12.Kind);
             Assert.Same(retval12, asm4[2].GlobalNamespace.GetMembers("Class3").Single());
 
-            var retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            var retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval13.Kind);
             Assert.Same(retval13, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            var retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            var retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval14.Kind);
             Assert.Same(retval14, asm4[3].GlobalNamespace.GetMembers("Class5").Single());
@@ -1710,7 +1710,7 @@ public class Class6
             var type4 = asm7[2].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            var retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             AssemblySymbol missingAssembly;
 
@@ -1719,11 +1719,11 @@ public class Class6
             Assert.True(missingAssembly.IsMissing);
             Assert.Equal("MTTestLib1", missingAssembly.Identity.Name);
 
-            var retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(missingAssembly, retval16.ContainingAssembly);
 
-            var retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval17.Kind);
             Assert.Same(retval17, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1738,24 +1738,24 @@ public class Class6
             var type5 = asm7[3].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            var retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            var retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", ((MissingMetadataTypeSymbol)retval18).ContainingAssembly.Identity.Name);
 
-            var retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            var retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(retval18.ContainingAssembly, retval19.ContainingAssembly);
 
-            var retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            var retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(retval18.ContainingAssembly, retval20.ContainingAssembly);
 
-            var retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            var retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval21.Kind);
             Assert.Same(retval21, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            var retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            var retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval22.Kind);
             Assert.Same(retval22, asm7[2].GlobalNamespace.GetMembers("Class5").Single());
@@ -1821,7 +1821,7 @@ public class Class6
 
             retval1 = asm2[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval1.Kind);
             Assert.Same(retval1, asm2[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1848,7 +1848,7 @@ public class Class6
 
             retval2 = asm3[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval2.Kind);
             Assert.Same(retval2, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1869,17 +1869,17 @@ public class Class6
             type1 = asm3[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval3 = type1.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval3.Kind);
             Assert.Same(retval3, asm3[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval4 = type1.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval4.Kind);
             Assert.Same(retval4, asm3[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval5 = type1.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval5.Kind);
             Assert.Same(retval5, asm3[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1901,7 +1901,7 @@ public class Class6
 
             retval6 = asm4[1].GlobalNamespace.GetTypeMembers("Class4").
                           Single().
-                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+                          GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval6.Kind);
             Assert.Same(retval6, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
@@ -1926,17 +1926,17 @@ public class Class6
             type2 = asm4[3].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval7 = type2.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval7.Kind);
             Assert.Same(retval7, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval8 = type2.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval8.Kind);
             Assert.Same(retval8, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval9 = type2.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval9.Kind);
             Assert.Same(retval9, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -1951,27 +1951,27 @@ public class Class6
             type3 = asm4[4].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval10 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval10.Kind);
             Assert.Same(retval10, asm4[2].GlobalNamespace.GetMembers("Class1").Single());
 
-            retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval11 = type3.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval11.Kind);
             Assert.Same(retval11, asm4[2].GlobalNamespace.GetMembers("Class2").Single());
 
-            retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval12 = type3.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval12.Kind);
             Assert.Same(retval12, asm4[2].GlobalNamespace.GetMembers("Class3").Single());
 
-            retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            retval13 = type3.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval13.Kind);
             Assert.Same(retval13, asm4[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            retval14 = type3.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval14.Kind);
             Assert.Same(retval14, asm4[3].GlobalNamespace.GetMembers("Class5").Single());
@@ -1997,18 +1997,18 @@ public class Class6
             type4 = asm7[2].GlobalNamespace.GetTypeMembers("Class5").
                           Single();
 
-            retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval15 = type4.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             missingAssembly = retval15.ContainingAssembly;
 
             Assert.True(missingAssembly.IsMissing);
             Assert.Equal("MTTestLib1", missingAssembly.Identity.Name);
 
-            retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval16 = type4.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(missingAssembly, retval16.ContainingAssembly);
 
-            retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval17 = type4.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval17.Kind);
             Assert.Same(retval17, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
@@ -2023,24 +2023,24 @@ public class Class6
             type5 = asm7[3].GlobalNamespace.GetTypeMembers("Class6").
                           Single();
 
-            retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType;
+            retval18 = type5.GetMembers("Foo1").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("MTTestLib1", ((MissingMetadataTypeSymbol)retval18).ContainingAssembly.Identity.Name);
 
-            retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType;
+            retval19 = type5.GetMembers("Foo2").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(retval18.ContainingAssembly, retval19.ContainingAssembly);
 
-            retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType;
+            retval20 = type5.GetMembers("Foo3").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Same(retval18.ContainingAssembly, retval20.ContainingAssembly);
 
-            retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType;
+            retval21 = type5.GetMembers("Foo4").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval21.Kind);
             Assert.Same(retval21, asm7[1].GlobalNamespace.GetMembers("Class4").Single());
 
-            retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType;
+            retval22 = type5.GetMembers("Foo5").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.NotEqual(SymbolKind.ErrorType, retval22.Kind);
             Assert.Same(retval22, asm7[2].GlobalNamespace.GetMembers("Class5").Single());
@@ -2264,13 +2264,13 @@ public class C5 :
             var type4 = asm4_V2.GlobalNamespace.GetTypeMembers("C4").
                           Single();
 
-            var retval1 = (NamedTypeSymbol)type3.GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType;
+            var retval1 = (NamedTypeSymbol)type3.GetMembers("Foo").OfType<MethodSymbol>().Single().ReturnType.TypeSymbol;
 
             Assert.Equal("C1<C3>.C2<C4>", retval1.ToTestDisplayString());
 
             Assert.Same(retval1.OriginalDefinition, type2);
 
-            var args1 = retval1.ContainingType.TypeArguments.Concat(retval1.TypeArguments);
+            var args1 = retval1.ContainingType.TypeArguments.Concat(retval1.TypeArguments).SelectAsArray(TypeMap.AsTypeSymbol);
             var params1 = retval1.ContainingType.TypeParameters.Concat(retval1.TypeParameters);
 
             Assert.Same(params1[0], type1.TypeParameters[0]);
@@ -2286,7 +2286,7 @@ public class C5 :
             Assert.Same(retval2.OriginalDefinition, type1);
 
             var bar = type3.GetMembers("Bar").OfType<MethodSymbol>().Single();
-            var retval3 = (NamedTypeSymbol)bar.ReturnType;
+            var retval3 = (NamedTypeSymbol)bar.ReturnType.TypeSymbol;
             var type6 = asm5[1].GlobalNamespace.GetTypeMembers("C6").
                           Single();
 
@@ -2300,7 +2300,7 @@ public class C5 :
 
             Assert.Same(params3[0], type6.TypeParameters[0]);
             Assert.Same(params3[0].ContainingAssembly, asm5[1]);
-            Assert.Same(args3[0], type4);
+            Assert.Same(args3[0].TypeSymbol, type4);
 
             var foo1 = type3.GetMembers("Foo1").OfType<MethodSymbol>().Single();
             var retval4 = foo1.ReturnType;
@@ -2333,21 +2333,21 @@ public class C5 :
             var x4 = foo2Params[3];
 
             Assert.Equal("x1", x1.Name);
-            Assert.NotEqual(localC3Foo2.Parameters[0].Type, x1.Type);
+            Assert.NotEqual(localC3Foo2.Parameters[0].Type.TypeSymbol, x1.Type.TypeSymbol);
             Assert.Equal(localC3Foo2.Parameters[0].ToTestDisplayString(), x1.ToTestDisplayString());
             Assert.Same(asm5[1], x1.ContainingAssembly);
             Assert.Same(foo2, x1.ContainingSymbol);
             Assert.False(x1.HasExplicitDefaultValue);
             Assert.False(x1.IsOptional);
             Assert.Equal(RefKind.Ref, x1.RefKind);
-            Assert.Equal(2, ((ArrayTypeSymbol)x1.Type).Rank);
+            Assert.Equal(2, ((ArrayTypeSymbol)x1.Type.TypeSymbol).Rank);
 
             Assert.Equal("x2", x2.Name);
-            Assert.NotEqual(localC3Foo2.Parameters[1].Type, x2.Type);
+            Assert.NotEqual(localC3Foo2.Parameters[1].Type.TypeSymbol, x2.Type.TypeSymbol);
             Assert.Equal(RefKind.Out, x2.RefKind);
 
             Assert.Equal("x3", x3.Name);
-            Assert.Same(localC3Foo2.Parameters[2].Type, x3.Type);
+            Assert.Same(localC3Foo2.Parameters[2].Type.TypeSymbol, x3.Type.TypeSymbol);
 
             Assert.Equal("x4", x4.Name);
             Assert.True(x4.HasExplicitDefaultValue);
@@ -2383,7 +2383,7 @@ public class C5 :
             var foo3TypeParams = foo3.TypeParameters;
             Assert.Equal(1, foo3TypeParams.Length);
             Assert.Equal(1, foo3.TypeArguments.Length);
-            Assert.Same(foo3TypeParams[0], foo3.TypeArguments[0]);
+            Assert.Same(foo3TypeParams[0], foo3.TypeArguments[0].TypeSymbol);
 
             var typeC301 = type3.GetTypeMembers("C301").Single();
             var typeC302 = type3.GetTypeMembers("C302").Single();
@@ -2436,7 +2436,7 @@ public class C5 :
             var localC6Params = typeC6.TypeParameters;
             Assert.Equal(1, localC6Params.Length);
             Assert.Equal(1, typeC6.TypeArguments.Length);
-            Assert.Same(localC6Params[0], typeC6.TypeArguments[0]);
+            Assert.Same(localC6Params[0], typeC6.TypeArguments[0].TypeSymbol);
 
             Assert.Same(((RetargetingNamedTypeSymbol)type3).UnderlyingNamedType,
                 asm3.GlobalNamespace.GetTypeMembers("C3").Single());
@@ -2451,7 +2451,7 @@ public class C5 :
             Assert.Equal(0, localC6_T.ConstraintTypes.Length);
 
             Assert.Equal(1, foo3TypeParam.ConstraintTypes.Length);
-            Assert.Same(type4, foo3TypeParam.ConstraintTypes.Single());
+            Assert.Same(type4, foo3TypeParam.ConstraintTypes.Single().TypeSymbol);
 
             Assert.Same(typeC6, localC6_T.ContainingSymbol);
             Assert.False(foo3TypeParam.HasConstructorConstraint);
@@ -2569,9 +2569,9 @@ class Module1
             MethodSymbol m2 = classModule1.GetMembers("M2").OfType<MethodSymbol>().Single();
             MethodSymbol m3 = classModule1.GetMembers("M3").OfType<MethodSymbol>().Single();
 
-            Assert.Same(module2, m1.ReturnType.ContainingModule);
-            Assert.Same(module2, m2.ReturnType.ContainingModule);
-            Assert.Same(module2, m3.ReturnType.ContainingModule);
+            Assert.Same(module2, m1.ReturnType.TypeSymbol.ContainingModule);
+            Assert.Same(module2, m2.ReturnType.TypeSymbol.ContainingModule);
+            Assert.Same(module2, m3.ReturnType.TypeSymbol.ContainingModule);
         }
 
         // Very simplistic test if a compilation has a single type with the given full name. Does NOT handle generics.

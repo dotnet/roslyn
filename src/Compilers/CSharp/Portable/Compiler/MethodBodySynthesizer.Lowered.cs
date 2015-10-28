@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         F.If(
                             F.Binary(BinaryOperatorKind.ObjectNotEqual, F.SpecialType(SpecialType.System_Boolean),
                                 F.Parameter(text),
-                                F.Null(text.Type)),
+                                F.Null(text.Type.TypeSymbol)),
                             F.Block(
                                 F.Assignment(F.Local(hashCode), F.Literal((uint)2166136261)),
                                 F.Assignment(F.Local(i), F.Literal(0)),
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 F.Label(again),
                                 F.Assignment(
                                     F.Local(hashCode),
-                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type,
-                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type,
-                                            F.Convert(hashCode.Type,
+                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type.TypeSymbol,
+                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type.TypeSymbol,
+                                            F.Convert(hashCode.Type.TypeSymbol,
                                                 F.Call(
                                                     F.Parameter(text),
                                                     F.SpecialMethod(SpecialMember.System_String__Chars),
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         F.Literal(16777619))),
                                 F.Assignment(
                                     F.Local(i),
-                                    F.Binary(BinaryOperatorKind.Addition, i.Type,
+                                    F.Binary(BinaryOperatorKind.Addition, i.Type.TypeSymbol,
                                         F.Local(i),
                                         F.Literal(1))),
                                 F.Label(start),

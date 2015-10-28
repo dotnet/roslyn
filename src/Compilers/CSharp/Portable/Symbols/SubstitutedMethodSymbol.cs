@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -214,11 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
             get
             {
-                return TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+                return TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
             }
         }
 
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.ContainingType;
                 }
 
-                return reduced.Parameters[0].Type;
+                return reduced.Parameters[0].Type.TypeSymbol;
             }
         }
 
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var notUsed = originalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
 
             Debug.Assert((object)notUsed == null && (object)originalDefinition.ReducedFrom != null);
-            return this.TypeArguments[reducedFromTypeParameter.Ordinal];
+            return this.TypeArguments[reducedFromTypeParameter.Ordinal].TypeSymbol;
         }
 
         public sealed override MethodSymbol ReducedFrom
@@ -454,26 +454,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override TypeSymbol ReturnType
+        public sealed override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
                 var returnType = _lazyReturnType;
-                if (returnType != null)
+                if ((object)returnType != null)
                 {
                     return returnType;
                 }
 
-                returnType = Map.SubstituteType(originalDefinition.ReturnType).Type;
+                returnType = Map.SubstituteType(originalDefinition.ReturnType);
                 return Interlocked.CompareExchange(ref _lazyReturnType, returnType, null) ?? returnType;
-            }
-        }
-
-        public sealed override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return Map.SubstituteCustomModifiers(originalDefinition.ReturnType, originalDefinition.ReturnTypeCustomModifiers);
             }
         }
 
@@ -612,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var arg in this.TypeArguments)
                 {
-                    code = Hash.Combine(arg, code);
+                    code = Hash.Combine(arg.TypeSymbol, code);
                 }
             }
 
@@ -650,7 +642,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int arity = this.Arity;
             for (int i = 0; i < arity; i++)
             {
-                if (this.TypeArguments[i] != other.TypeArguments[i])
+                // TODO: what about annotations
+                if (this.TypeArguments[i].TypeSymbol != other.TypeArguments[i].TypeSymbol)
                 {
                     return false;
                 }

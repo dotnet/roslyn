@@ -78,18 +78,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
             // This prevents constraint checking from failing for corresponding type parameters. 
-            var typeArgsForConstraintsCheck = typeArgs;
+            var typeArgsForConstraintsCheck = typeArgs.SelectAsArray(a => (object)a == null ? null : TypeSymbolWithAnnotations.Create(a));
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
                 if ((object)typeArgsForConstraintsCheck[i] == null)
                 {
                     firstNullInTypeArgs = i;
-                    var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-                    builder.AddRange(typeArgs, firstNullInTypeArgs);
+                    var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+                    builder.AddRange(typeArgsForConstraintsCheck, firstNullInTypeArgs);
 
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
-                        builder.Add(typeArgsForConstraintsCheck[i] ?? ErrorTypeSymbol.UnknownResultType);
+                        builder.Add(typeArgsForConstraintsCheck[i] ?? TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType));
                     }
 
                     typeArgsForConstraintsCheck = builder.ToImmutableAndFree();
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Check constraints.
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             var typeParams = method.TypeParameters;
-            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
+            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
             var success = method.CheckConstraints(conversions, substitution, typeParams, typeArgsForConstraintsCheck, compilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
             diagnosticsBuilder.Free();
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns a constructed method symbol if 'method' is generic, otherwise just returns 'method'
         /// </summary>
-        public static MethodSymbol ConstructIfGeneric(this MethodSymbol method, ImmutableArray<TypeSymbol> typeArguments)
+        public static MethodSymbol ConstructIfGeneric(this MethodSymbol method, ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
         {
             Debug.Assert(method.IsGenericMethod == (typeArguments.Length > 0));
             return method.IsGenericMethod ? method.Construct(typeArguments) : method;
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+                && method.ReturnType.TypeSymbol == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
         }
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return method.IsAsync
                 && (object)method.ReturnType != null
                 && method.ReturnType.Kind == SymbolKind.NamedType
-                && ((NamedTypeSymbol)method.ReturnType).ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                && ((NamedTypeSymbol)method.ReturnType.TypeSymbol).ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
         }
     }
 }

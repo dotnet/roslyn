@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(underlyingNamedType.IsDefinition);
             // Definition doesn't have custom modifiers on type arguments
-            Debug.Assert(!underlyingNamedType.HasTypeArgumentsCustomModifiers);
+            Debug.Assert(!underlyingNamedType.TypeArgumentsNoUseSiteDiagnostics.Any(a => a.CustomModifiers.Any()));
         }
 
         public sealed override void Dispatch(Cci.MetadataVisitor visitor)
@@ -32,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var builder = ArrayBuilder<Cci.ITypeReference>.GetInstance();
-            foreach (TypeSymbol type in UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics)
+            foreach (TypeSymbolWithAnnotations type in UnderlyingNamedType.TypeArgumentsNoUseSiteDiagnostics)
             {
-                builder.Add(moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
+                builder.Add(moduleBeingBuilt.Translate(type.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics));
             }
 
             return builder.ToImmutableAndFree();

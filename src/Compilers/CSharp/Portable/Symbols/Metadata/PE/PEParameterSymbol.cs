@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private readonly Symbol _containingSymbol;
         private readonly string _name;
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly ParameterHandle _handle;
         private readonly ParameterAttributes _flags;
         private readonly PEModuleSymbol _moduleSymbol;
@@ -167,9 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Symbol containingSymbol,
             int ordinal,
             bool isByRef,
-            TypeSymbol type,
+            TypeSymbolWithAnnotations type,
             ParameterHandle handle,
-            int countOfCustomModifiers,
             out bool isBad)
         {
             Debug.Assert((object)moduleSymbol != null);
@@ -214,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // CONSIDER: Can we make parameter type computation lazy?
-                _type = DynamicTypeDecoder.TransformType(type, countOfCustomModifiers, handle, moduleSymbol, refKind);
+                _type = type.Update(DynamicTypeDecoder.TransformType(type.TypeSymbol, type.CustomModifiers.Length, handle, moduleSymbol, refKind), type.CustomModifiers);
             }
 
             if (string.IsNullOrEmpty(_name))
@@ -239,44 +238,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             out bool isBad)
         {
-            if (customModifiers.IsDefaultOrEmpty)
+            var typeWithModifiers = TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers));
+
+            if (countOfCustomModifiersPrecedingByRef == 0)
             {
-                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, 0, out isBad);
+                return new PEParameterSymbol(moduleSymbol, containingSymbol, ordinal, isByRef,
+                                             typeWithModifiers, handle, out isBad);
             }
 
-            return new PEParameterSymbolWithCustomModifiers(moduleSymbol, containingSymbol, ordinal, isByRef, countOfCustomModifiersPrecedingByRef, type, handle, customModifiers, out isBad);
+            return new PEParameterSymbolWithCustomModifiersPrecedingByRef(moduleSymbol, containingSymbol, ordinal, isByRef, countOfCustomModifiersPrecedingByRef,
+                                                                          typeWithModifiers, handle, out isBad);
         }
 
-        private sealed class PEParameterSymbolWithCustomModifiers : PEParameterSymbol
+        private sealed class PEParameterSymbolWithCustomModifiersPrecedingByRef : PEParameterSymbol
         {
-            private readonly ImmutableArray<CustomModifier> _customModifiers;
             private readonly ushort _countOfCustomModifiersPrecedingByRef;
 
-            public PEParameterSymbolWithCustomModifiers(
+            public PEParameterSymbolWithCustomModifiersPrecedingByRef(
                 PEModuleSymbol moduleSymbol,
                 Symbol containingSymbol,
                 int ordinal,
                 bool isByRef,
                 ushort countOfCustomModifiersPrecedingByRef,
-                TypeSymbol type,
+                TypeSymbolWithAnnotations type,
                 ParameterHandle handle,
-                ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
                 out bool isBad) :
-                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, customModifiers.Length, out isBad)
+                    base(moduleSymbol, containingSymbol, ordinal, isByRef, type, handle, out isBad)
             {
-                _customModifiers = CSharpCustomModifier.Convert(customModifiers);
                 _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
 
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef == 0 || isByRef);
-                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= _customModifiers.Length);
-            }
-
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get
-                {
-                    return _customModifiers;
-                }
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef > 0);
+                Debug.Assert(isByRef);
+                Debug.Assert(_countOfCustomModifiersPrecedingByRef <= type.CustomModifiers.Length);
             }
 
             internal override ushort CountOfCustomModifiersPrecedingByRef
@@ -509,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isCallerLineNumber = HasCallerLineNumberAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type.TypeSymbol, ref useSiteDiagnostics);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
@@ -529,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     bool isCallerFilePath = !HasCallerLineNumberAttribute
                         && HasCallerFilePathAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type.TypeSymbol, ref useSiteDiagnostics);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
@@ -550,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     bool isCallerMemberName = !HasCallerLineNumberAttribute
                         && !HasCallerFilePathAttribute
                         && HasCallerMemberNameAttribute
-                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type.TypeSymbol, ref useSiteDiagnostics);
 
                     value = _packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
@@ -558,19 +551,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
                 return _type;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return ImmutableArray<CustomModifier>.Empty;
             }
         }
 

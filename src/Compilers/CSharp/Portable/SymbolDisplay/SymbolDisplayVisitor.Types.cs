@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
                         {
                             var namedType = symbol as NamedTypeSymbol;
-                            if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
+                            if ((object)namedType != null)
                             {
-                                AddCustomModifiersIfRequired(namedType.TypeArgumentsCustomModifiers[0], leadingSpace: true, trailingSpace: false);
+                                AddCustomModifiersIfRequired(namedType.TypeArgumentsNoUseSiteDiagnostics[0].CustomModifiers, leadingSpace: true, trailingSpace: false);
                             }
                         }
 
@@ -311,9 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (this.format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers))
                     {
                         var namedType = symbol as NamedTypeSymbol;
-                        if ((object)namedType != null && namedType.HasTypeArgumentsCustomModifiers)
+                        if ((object)namedType != null)
                         {
-                            modifiers = namedType.TypeArgumentsCustomModifiers;
+                            modifiers = namedType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers) ;
                         }
                     }
 

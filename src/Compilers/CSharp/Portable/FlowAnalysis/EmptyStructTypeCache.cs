@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)field != null)
                 {
-                    var actualFiledType = field.Type;
+                    var actualFiledType = field.Type.TypeSymbol;
                     if (!IsEmptyStructType(actualFiledType, typesWithMembersOfThisType))
                     {
                         return false;
@@ -167,11 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                         var field = (FieldSymbol)member;
-                        return (field.IsFixed || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
+                        return (field.IsFixed || ShouldIgnoreStructField(field, field.Type.TypeSymbol)) ? null : field.AsMember(type);
 
                     case SymbolKind.Event:
                         EventSymbol eventSymbol = (EventSymbol)member;
-                        return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
+                        return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type.TypeSymbol)) ? null : eventSymbol.AssociatedField.AsMember(type);
                 }
             }
             return null;

@@ -898,7 +898,7 @@ namespace N1.N2
             var fieldDecl = (FieldDeclarationSyntax)typeDecl.Members[0];
             var fSymbol = model.GetDeclaredSymbol(fieldDecl.Declaration.Variables[0]) as FieldSymbol;
             Assert.Equal("field", fSymbol.Name);
-            Assert.Equal("T", fSymbol.Type.Name);
+            Assert.Equal("T", fSymbol.Type.TypeSymbol.Name);
             Assert.Equal<ISymbol>(structSymbol, fSymbol.ContainingSymbol);
             Assert.Null(model.GetDeclaredSymbol(fieldDecl));
 
@@ -924,7 +924,7 @@ namespace N1.N2
             var mSymbol = model.GetDeclaredSymbol(memDecl) as MethodSymbol;
             Assert.Equal("ReturnEnum", mSymbol.Name);
             Assert.Equal("N1.N2.St<System.Object>.Em", mSymbol.ReturnType.ToTestDisplayString());
-            Assert.Equal<ISymbol>(enumSymbol, mSymbol.ReturnType.OriginalDefinition);
+            Assert.Equal<ISymbol>(enumSymbol, mSymbol.ReturnType.TypeSymbol.OriginalDefinition);
 
             typeDecl = (TypeDeclarationSyntax)nsDecl.Members[1];
             memDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
@@ -932,7 +932,7 @@ namespace N1.N2
             Assert.Equal(2, mSymbol.Parameters.Length);
             Assert.Equal("p1", mSymbol.Parameters[0].Name);
             Assert.Equal("St", mSymbol.Parameters[0].Type.Name);
-            Assert.Equal<ISymbol>(structSymbol, mSymbol.Parameters[1].Type.OriginalDefinition);
+            Assert.Equal<ISymbol>(structSymbol, mSymbol.Parameters[1].Type.TypeSymbol.OriginalDefinition);
             // CC
             var psym = model.GetDeclaredSymbol(memDecl.ParameterList.Parameters[0]);
             Assert.Equal(SymbolKind.Parameter, psym.Kind);
@@ -1798,11 +1798,11 @@ static class S
             // Get types for A<int> and B<string>.
             var symbols = model.LookupSymbols(methodStart, null, name: "a");
             CheckSymbolsUnordered(symbols, "A<int> a");
-            var typeA = ((ParameterSymbol)symbols[0]).Type;
+            var typeA = ((ParameterSymbol)symbols[0]).Type.TypeSymbol;
             Assert.NotNull(typeA);
             symbols = model.LookupSymbols(methodStart, null, name: "b");
             CheckSymbolsUnordered(symbols, "B<string> b");
-            var typeB = ((ParameterSymbol)symbols[0]).Type;
+            var typeB = ((ParameterSymbol)symbols[0]).Type.TypeSymbol;
             Assert.NotNull(typeB);
 
             Func<ISymbol, bool> isExtensionMethod = symbol =>
@@ -1861,11 +1861,11 @@ static class E
             CheckSymbolsUnordered(symbols, "void E.F<T>(T t)");
 
             // Type satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
             CheckSymbolsUnordered(symbols, "void A.F<A>()");
 
             // Type not satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
             CheckSymbolsUnordered(symbols);
 
             // Same tests as above but with position outside of
@@ -1900,11 +1900,11 @@ static class E
             CheckSymbols(symbols);
 
             // Type satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[0].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
             CheckSymbolsUnordered(symbols, "void A.F<A>()");
 
             // Type not satisfying constraint.
-            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type, name: "F", includeReducedExtensionMethods: true);
+            symbols = model.LookupSymbols(position, container: method.Parameters[1].Type.TypeSymbol, name: "F", includeReducedExtensionMethods: true);
             CheckSymbols(symbols);
         }
 
@@ -1934,7 +1934,7 @@ class C
             // Get type for object[].
             var symbols = model.LookupSymbols(methodStart, null, name: "o");
             CheckSymbolsUnordered(symbols, "object[] o");
-            var type = ((ParameterSymbol)symbols[0]).Type;
+            var type = ((ParameterSymbol)symbols[0]).Type.TypeSymbol;
             Assert.NotNull(type);
 
             // Extension method overloads for o.First.

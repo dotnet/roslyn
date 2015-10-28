@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     internal abstract class RetargetingParameterSymbol : ParameterSymbol
     {
         private readonly ParameterSymbol _underlyingParameter;
-        private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 
         /// <summary>
         /// Retargeted custom attributes
@@ -45,21 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get;
         }
 
-        public sealed override TypeSymbol Type
+        public sealed override TypeSymbolWithAnnotations Type
         {
             get
             {
                 return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-            }
-        }
-
-        public sealed override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return RetargetingModule.RetargetingTranslator.RetargetModifiers(
-                    _underlyingParameter.CustomModifiers,
-                    ref _lazyCustomModifiers);
             }
         }
 

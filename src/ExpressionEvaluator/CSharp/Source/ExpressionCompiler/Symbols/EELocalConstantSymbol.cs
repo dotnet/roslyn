@@ -10,13 +10,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly ConstantValue _value;
 
         public EELocalConstantSymbol(
             MethodSymbol method,
             string name,
             TypeSymbol type,
+            ConstantValue value)
+            : this(method, name, TypeSymbolWithAnnotations.Create(type), value)
+        {
+        }
+
+        public EELocalConstantSymbol(
+            MethodSymbol method,
+            string name,
+            TypeSymbolWithAnnotations type,
             ConstantValue value)
         {
             _method = method;
@@ -28,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)
         {
             var type = typeMap.SubstituteType(_type);
-            return new EELocalConstantSymbol(method, _name, type.Type, _value);
+            return new EELocalConstantSymbol(method, _name, type, _value);
         }
 
         public override string Name
@@ -51,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _method; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _type; }
         }

@@ -15,29 +15,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SignatureOnlyParameterSymbol : ParameterSymbol
     {
-        private readonly TypeSymbol _type;
-        private readonly ImmutableArray<CustomModifier> _customModifiers;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly bool _isParams;
         private readonly RefKind _refKind;
 
         public SignatureOnlyParameterSymbol(
-            TypeSymbol type,
-            ImmutableArray<CustomModifier> customModifiers,
+            TypeSymbolWithAnnotations type,
             bool isParams,
             RefKind refKind)
         {
-            Debug.Assert(type != null);
-            Debug.Assert(!customModifiers.IsDefault);
+            Debug.Assert((object)type != null);
 
             _type = type;
-            _customModifiers = customModifiers;
             _isParams = isParams;
             _refKind = refKind;
         }
 
-        public override TypeSymbol Type { get { return _type; } }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers { get { return _customModifiers; } }
+        public override TypeSymbolWithAnnotations Type { get { return _type; } }
 
         public override bool IsParams { get { return _isParams; } }
 

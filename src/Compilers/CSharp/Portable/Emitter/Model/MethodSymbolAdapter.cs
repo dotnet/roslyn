@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return this.ReturnType.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -218,15 +218,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnType is ByRefReturnErrorTypeSymbol;
+                return this.ReturnType.TypeSymbol is ByRefReturnErrorTypeSymbol;
             }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            ByRefReturnErrorTypeSymbol byRefType = this.ReturnType as ByRefReturnErrorTypeSymbol;
+            ByRefReturnErrorTypeSymbol byRefType = this.ReturnType.TypeSymbol as ByRefReturnErrorTypeSymbol;
             return ((PEModuleBuilder)context.Module).Translate(
-                (object)byRefType == null ? this.ReturnType : byRefType.ReferencedType,
+                (object)byRefType == null ? this.ReturnType.TypeSymbol : byRefType.ReferencedType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics);
         }
@@ -239,7 +239,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var arg in this.TypeArguments)
             {
-                yield return moduleBeingBuilt.Translate(arg,
+                Debug.Assert(arg.CustomModifiers.IsEmpty);
+                yield return moduleBeingBuilt.Translate(arg.TypeSymbol,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }

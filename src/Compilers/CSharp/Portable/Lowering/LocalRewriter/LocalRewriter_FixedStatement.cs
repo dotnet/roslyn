@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // NOTE: Dev10 nulls out the locals in declaration order (as opposed to "popping" them in reverse order).
-                cleanup[i] = _factory.Assignment(_factory.Local(localToClear), _factory.Null(localToClear.Type));
+                cleanup[i] = _factory.Assignment(_factory.Local(localToClear), _factory.Null(localToClear.Type.TypeSymbol));
             }
 
             BoundStatement rewrittenBody = VisitStatement(node.Body);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out LocalSymbol stringTemp,
             out LocalSymbol localToClear)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
             TypeSymbol initializerType = initializerExpr.Type;
 
@@ -283,13 +283,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // &temp[0] to UIntPtr with a conv.u instruction because then if a GC occurs between
             // the time of the cast and the assignment to the local, we're toast.
 
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
             TypeSymbol initializerType = initializerExpr.Type;
 
             arrayTemp = factory.SynthesizedLocal(initializerType);
-            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)arrayTemp.Type;
-            TypeSymbol arrayElementType = arrayType.ElementType;
+            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)arrayTemp.Type.TypeSymbol;
+            TypeSymbolWithAnnotations arrayElementType = arrayType.ElementType;
 
             // NOTE: we pin the pointer, not the array.
             Debug.Assert(!arrayTemp.IsPinned);

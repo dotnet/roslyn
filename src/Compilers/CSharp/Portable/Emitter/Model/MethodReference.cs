@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.ReturnTypeCustomModifiers.As<Cci.ICustomModifier>();
+                return UnderlyingMethod.ReturnType.CustomModifiers.As<Cci.ICustomModifier>();
             }
         }
 
@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.ReturnType is ByRefReturnErrorTypeSymbol;
+                return UnderlyingMethod.ReturnType.TypeSymbol is ByRefReturnErrorTypeSymbol;
             }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(UnderlyingMethod.ReturnType.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
         }
 
         public virtual Cci.IGenericMethodInstanceReference AsGenericMethodInstanceReference

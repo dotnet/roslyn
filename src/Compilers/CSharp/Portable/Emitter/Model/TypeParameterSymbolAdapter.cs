@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         seenValueType = true;
                         break;
                 }
-                yield return moduleBeingBuilt.Translate(type,
+                yield return moduleBeingBuilt.Translate(type.TypeSymbol,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                         diagnostics: context.Diagnostics);
             }

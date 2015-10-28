@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private ImmutableArray<ParameterSymbol> _parameters;
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeSymbol _returnType;
+        private TypeSymbolWithAnnotations _returnType;
         private bool _isVar;
         private bool _isVararg;
         private TypeSymbol _iteratorElementType;
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddDiagnostics(diagnostics.ToReadOnlyAndFree());
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ComputeReturnType(body: null, returnNullIfUnknown: true, isIterator: false);
+                return ComputeReturnType(body: null, returnNullIfUnknown: true, isIterator: false)?.TypeSymbol;
             }
         }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: true);
+                return ComputeReturnType(body: null, returnNullIfUnknown: false, isIterator: true).TypeSymbol;
             }
         }
 
@@ -169,15 +169,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         before any (valid) uses of the local function are bound that require knowing the return type. This assumption breaks in the IDE, where
         a use of a local function may be bound before BindLocalFunctionStatement is called on the corresponding local function.
         */
-        internal TypeSymbol ComputeReturnType(BoundBlock body, bool returnNullIfUnknown, bool isIterator)
+        internal TypeSymbolWithAnnotations ComputeReturnType(BoundBlock body, bool returnNullIfUnknown, bool isIterator)
         {
-            if (_returnType != null)
+            if ((object)_returnType != null)
             {
                 return _returnType;
             }
             var diagnostics = DiagnosticBag.GetInstance();
             // we might call this multiple times if it's var. Only bind the first time, and cache if it's var.
-            TypeSymbol returnType = null; // guaranteed to be assigned, but compiler doesn't know that.
+            TypeSymbolWithAnnotations returnType = null; // guaranteed to be assigned, but compiler doesn't know that.
             if (!_isVar)
             {
                 bool isVar;
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Completely disallow use of var inferred in an iterator context.
                     // This is because we may have IAsyncEnumerable and similar types, which determine the type of state machine to emit.
                     // If we infer the return type, we won't know which state machine to generate.
-                    returnType = _binder.CreateErrorType("var");
+                    returnType = TypeSymbolWithAnnotations.Create(_binder.CreateErrorType("var"));
                     // InMethodBinder reports ERR_BadIteratorReturn, so no need to report a diagnostic here.
                 }
                 else if (body == null)
@@ -201,16 +201,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Free();
                         return null;
                     }
-                    returnType = _binder.CreateErrorType("var");
+                    returnType = TypeSymbolWithAnnotations.Create(_binder.CreateErrorType("var"));
                     diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, _syntax.ReturnType.Location, this);
                 }
                 else
                 {
-                    returnType = InferReturnType(body, diagnostics);
+                    returnType = TypeSymbolWithAnnotations.Create(InferReturnType(body, diagnostics));
                 }
             }
+
             var raceReturnType = Interlocked.CompareExchange(ref _returnType, returnType, null);
-            if (raceReturnType != null)
+            if ((object)raceReturnType != null)
             {
                 diagnostics.Free();
                 return raceReturnType;
@@ -292,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int Arity => TypeParameters.Length;
 
-        public override ImmutableArray<TypeSymbol> TypeArguments => TypeParameters.Cast<TypeParameterSymbol, TypeSymbol>();
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations);
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => _typeParameters;
 
@@ -343,8 +344,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 
         internal override bool GenerateDebugInfo => true;
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
         internal override MethodImplAttributes ImplementationAttributes => default(MethodImplAttributes);
 
@@ -455,10 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
         }
 
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
+        internal ImmutableArray<TypeSymbolWithAnnotations> GetTypeParameterConstraintTypes(int ordinal)
         {
             var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SubstitutedNamedTypeSymbol _containingType;
         private readonly FieldSymbol _originalDefinition;
 
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations _lazyType;
 
         internal SubstitutedFieldSymbol(SubstitutedNamedTypeSymbol containingType, FieldSymbol substitutedFrom)
         {
@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalDefinition = substitutedFrom.OriginalDefinition as FieldSymbol;
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if ((object)_lazyType == null)
             {
-                Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.GetFieldType(fieldsBeingBound)).Type, null);
+                Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.GetFieldType(fieldsBeingBound)), null);
             }
 
             return _lazyType;
@@ -217,21 +217,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return _containingType.TypeSubstitution.SubstituteCustomModifiers(_originalDefinition.Type,_originalDefinition.CustomModifiers);
-            }
-        }
-
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
             // This occurs rarely, if ever.  The scenario would be a generic struct
             // containing a fixed-size buffer.  Given the rarity there would be little
             // benefit to "optimizing" the performance of this by caching the
             // translated implementation type.
-            return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(_originalDefinition.FixedImplementationType(emitModule)).Type;
+            return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(_originalDefinition.FixedImplementationType(emitModule)).TypeSymbol;
         }
 
         public override bool Equals(object obj)

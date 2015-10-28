@@ -1340,11 +1340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound);
+                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).TypeSymbol;
                     break;
 
                 case SymbolKind.Property:
-                    type = ((PropertySymbol)symbol).Type;
+                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
                     break;
             }
 

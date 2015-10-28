@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxReference _syntaxRef;
         private readonly Location _location;
         private readonly DeclarationModifiers _modifiers;
-        private readonly ImmutableArray<CustomModifier> _typeCustomModifiers;
         private readonly SourcePropertyAccessorSymbol _getMethod;
         private readonly SourcePropertyAccessorSymbol _setMethod;
         private readonly SynthesizedBackingFieldSymbol _backingField;
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbol _lazyType;
+        private TypeSymbolWithAnnotations _lazyType;
 
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
@@ -183,7 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PropertySymbol explicitlyImplementedProperty = null;
-            _typeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
 
             // The runtime will not treat the accessors of this property as overrides or implementations
             // of those of another property unless both the signatures and the custom modifiers match.
@@ -228,14 +226,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)overriddenOrImplementedProperty != null)
                 {
-                    _typeCustomModifiers = overriddenOrImplementedProperty.TypeCustomModifiers;
-
-                    TypeSymbol overriddenPropertyType = overriddenOrImplementedProperty.Type;
+                    TypeSymbolWithAnnotations overriddenPropertyType = overriddenOrImplementedProperty.Type;
 
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (_lazyType.Equals(overriddenPropertyType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
+                    if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: false))
                     {
                         _lazyType = overriddenPropertyType;
                     }
@@ -377,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourcePropertySymbol(containingType, bodyBinder, syntax, DefaultIndexerName, location, diagnostics);
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
@@ -579,11 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations
         {
             get { return _explicitInterfaceImplementations; }
-        }
-
-        public override ImmutableArray<CustomModifier> TypeCustomModifiers
-        {
-            get { return _typeCustomModifiers; }
         }
 
         public override Accessibility DeclaredAccessibility
@@ -1009,10 +1000,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-            if (this.Type.ContainsDynamic())
+            var type = this.Type;
+
+            if (type.TypeSymbol.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeCustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length));
             }
         }
 
@@ -1180,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (this.Type.IsRestrictedType())
                             {
-                                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type);
+                                diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type.TypeSymbol);
                             }
 
                             if (_state.NotePartComplete(CompletionPart.Type))
@@ -1238,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        private TypeSymbol ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        private TypeSymbolWithAnnotations ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             var type = binder.BindType(syntax.Type, diagnostics);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1247,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
-                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), _location, this, type);
+                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), _location, this, type.TypeSymbol);
             }
 
             diagnostics.Add(_location, useSiteDiagnostics);
@@ -1271,7 +1264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (!this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, _location, this, param.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, _location, this, param.Type.TypeSymbol);
                 }
                 else if ((object)_setMethod != null && param.Name == ParameterSymbol.ValueParameterName)
                 {

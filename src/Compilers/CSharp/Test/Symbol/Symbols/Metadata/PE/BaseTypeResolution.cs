@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             @base = orderablePartitioner.BaseType;
 
             AssertBaseType(@base, "System.Collections.Concurrent.Partitioner<TSource>");
-            Assert.Same(((NamedTypeSymbol)@base).TypeArguments[0], orderablePartitioner.TypeParameters[0]);
+            Assert.Same(((NamedTypeSymbol)@base).TypeArguments[0].TypeSymbol, orderablePartitioner.TypeParameters[0]);
 
             var partitioners = ((NamespaceSymbol)concurrent[0]).GetMembers("Partitioner");
             NamedTypeSymbol partitioner = null;

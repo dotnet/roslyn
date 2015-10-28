@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
                 foreach (var constraintType in constraintTypes)
                 {
-                    if (IsNullableTypeOrTypeParameter(constraintType))
+                    if (constraintType.IsNullableTypeOrTypeParameter())
                     {
                         return true;
                     }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsNullableType(type));
             Debug.Assert(type is NamedTypeSymbol);  //not testing Kind because it may be an ErrorType
 
-            return ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
+            return ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
         }
 
         public static TypeSymbol StrippedType(this TypeSymbol type)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 kind = TypedConstantKind.Array;
-                type = arrayType.ElementType;
+                type = arrayType.ElementType.TypeSymbol;
             }
 
             // enum or enum[]
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)type == null) return null;
             if (type.IsExpressionTree())
             {
-                type = ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
+                type = ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
             }
 
             return type.IsDelegateType() ? (NamedTypeSymbol)type : null;
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Delegate:
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {
-                            var result = typeArg.VisitType(predicate, arg);
+                            var result = typeArg.TypeSymbol.VisitType(predicate, arg);
                             if ((object)result != null)
                             {
                                 return result;
@@ -520,11 +520,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return null;
 
                     case TypeKind.Array:
-                        current = ((ArrayTypeSymbol)current).ElementType;
+                        current = ((ArrayTypeSymbol)current).ElementType.TypeSymbol;
                         continue;
 
                     case TypeKind.Pointer:
-                        current = ((PointerTypeSymbol)current).PointedAtType;
+                        current = ((PointerTypeSymbol)current).PointedAtType.TypeSymbol;
                         continue;
 
                     default:
@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Pointer:
                         return true;
                     case TypeKind.Array:
-                        type = ((ArrayTypeSymbol)type).ElementType;
+                        type = ((ArrayTypeSymbol)type).ElementType.TypeSymbol;
                         break;
                     default:
                         // NOTE: we could consider a generic type with unsafe type arguments to be unsafe,
@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var arg in type.TypeArgumentsNoUseSiteDiagnostics)
                 {
-                    code = Hash.Combine(arg, code);
+                    code = Hash.Combine(arg.TypeSymbol, code);
                 }
             }
 

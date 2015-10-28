@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         {
             MetadataSignatureHelper.AppendMethodAttributes(result, method.Flags);
             result.Append(" ");
-            AppendSignatureType(result, method.ReturnType, RefKind.None);
+            AppendSignatureType(result, method.ReturnType.TypeSymbol, RefKind.None);
             result.Append(" ");
 
             if (includeTypeName)
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     result.Append(" ");
                 }
 
-                AppendSignatureType(result, parameter.Type, parameter.RefKind);
+                AppendSignatureType(result, parameter.Type.TypeSymbol, parameter.RefKind);
                 result.Append(" ");
                 result.Append(parameter.Name);
                 i++;

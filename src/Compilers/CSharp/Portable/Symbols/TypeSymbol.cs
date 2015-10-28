@@ -952,7 +952,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.TypeParameters,
                     interfaceMethod.Parameters,
                     interfaceMethod.ReturnType,
-                    interfaceMethod.ReturnTypeCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
 
                 // Make sure that the corresponding accessor is a real implementation.
@@ -1052,13 +1051,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (interfaceMember.Kind)
                 {
                     case SymbolKind.Method:
-                        interfaceMemberReturnType = ((MethodSymbol)interfaceMember).ReturnType;
+                        interfaceMemberReturnType = ((MethodSymbol)interfaceMember).ReturnType.TypeSymbol;
                         break;
                     case SymbolKind.Property:
-                        interfaceMemberReturnType = ((PropertySymbol)interfaceMember).Type;
+                        interfaceMemberReturnType = ((PropertySymbol)interfaceMember).Type.TypeSymbol;
                         break;
                     case SymbolKind.Event:
-                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type;
+                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type.TypeSymbol;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
@@ -1333,8 +1332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion Abstract base type checks
 
-        [Obsolete("Use TypeWithModifiers.Is method.", true)]
-        internal bool Equals(TypeWithModifiers other)
+        [Obsolete("Use TypeSymbolWithAnnotations.Is method.", true)]
+        internal bool Equals(TypeSymbolWithAnnotations other)
         {
             return other.Is(this);
         }

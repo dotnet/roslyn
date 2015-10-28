@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SynthesizedLocal : LocalSymbol
     {
         private readonly MethodSymbol _containingMethodOpt;
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly SynthesizedLocalKind _kind;
         private readonly SyntaxNode _syntaxOpt;
         private readonly bool _isPinned;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SynthesizedLocal(
             MethodSymbol containingMethodOpt,
-            TypeSymbol type,
+            TypeSymbolWithAnnotations type,
             SynthesizedLocalKind kind,
             SyntaxNode syntaxOpt = null,
             bool isPinned = false,
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _type; }
         }

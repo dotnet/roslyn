@@ -1624,7 +1624,7 @@ namespace System.Printing
                 GetMember<NamedTypeSymbol>("PrintDialog").
                 GetMember<MethodSymbol>("Test");
 
-            AssemblyIdentity actualIdentity = method.ReturnType.ContainingAssembly.Identity;
+            AssemblyIdentity actualIdentity = method.ReturnType.TypeSymbol.ContainingAssembly.Identity;
 
             // Even though the compilation has the correct version number, the referenced binary is preferred.
             Assert.Equal(oldMetadata.GetAssembly().Identity, actualIdentity);

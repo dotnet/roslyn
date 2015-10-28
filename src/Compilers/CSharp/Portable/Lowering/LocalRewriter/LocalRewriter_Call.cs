@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var receiverNamedType = invokedAsExtensionMethod ?
-                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
+                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type.TypeSymbol as NamedTypeSymbol :
                                     methodOrIndexer.ContainingType;
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var paramArrayType = parameters[paramsParam].Type;
+            var paramArrayType = parameters[paramsParam].Type.TypeSymbol;
             var arrayArgs = paramArray.ToImmutableAndFree();
 
             // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
@@ -630,7 +630,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (arrayEmpty != null) // will be null if Array.Empty<T> doesn't exist in reference assemblies
                     {
                         // return an invocation of "Array.Empty<T>()"
-                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType));
+                        arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(ats.ElementType.TypeSymbol));
                         return new BoundCall(
                             syntax,
                             null,
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             invokedAsExtensionMethod: false,
                             argsToParamsOpt: default(ImmutableArray<int>),
                             resultKind: LookupResultKind.Viable,
-                            type: arrayEmpty.ReturnType);
+                            type: arrayEmpty.ReturnType.TypeSymbol);
                     }
                 }
             }
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ParameterSymbol parameter = parameters[p];
                     Debug.Assert(parameter.IsOptional);
                     arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
-                    Debug.Assert(arguments[p].Type == parameter.Type);
+                    Debug.Assert(arguments[p].Type == parameter.Type.TypeSymbol);
                 }
             }
         }
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // but often the immediate caller does not have the required information, so all possible call chains should be analyzed and possibly updated
             // to pass this information, and this might be a big task. We should consider doing this when the time permits.
 
-            TypeSymbol parameterType = parameter.Type;
+            TypeSymbol parameterType = parameter.Type.TypeSymbol;
             Debug.Assert(parameter.IsOptional);
             ConstantValue defaultConstantValue = parameter.ExplicitDefaultConstantValue;
             BoundExpression defaultValue;
@@ -1041,20 +1041,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameter.IsMarshalAsObject)
             {
                 // default(object)
-                defaultValue = new BoundDefaultOperator(syntax, parameter.Type);
+                defaultValue = new BoundDefaultOperator(syntax, parameter.Type.TypeSymbol);
             }
             else if (parameter.IsIUnknownConstant)
             {
                 // new UnknownWrapper(default(object))
                 var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor);
-                var argument = new BoundDefaultOperator(syntax, parameter.Type);
+                var argument = new BoundDefaultOperator(syntax, parameter.Type.TypeSymbol);
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
             }
             else if (parameter.IsIDispatchConstant)
             {
                 // new DispatchWrapper(default(object))
                 var methodSymbol = (MethodSymbol)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor);
-                var argument = new BoundDefaultOperator(syntax, parameter.Type);
+                var argument = new BoundDefaultOperator(syntax, parameter.Type.TypeSymbol);
                 defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, argument);
             }
             else
@@ -1064,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable);
             }
 
-            defaultValue = MakeConversion(defaultValue, parameter.Type, @checked: false);
+            defaultValue = MakeConversion(defaultValue, parameter.Type.TypeSymbol, @checked: false);
 
             return defaultValue;
         }

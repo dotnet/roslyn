@@ -599,7 +599,7 @@ class Test
             var parameter = method.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, parameter.RefKind);
-            Assert.False(parameter.CustomModifiers.IsEmpty);
+            Assert.False(parameter.Type.CustomModifiers.IsEmpty);
             Assert.Equal(0, parameter.CountOfCustomModifiersPrecedingByRef);
 
             CompileAndVerify(comp, expectedOutput: "2");
@@ -655,7 +655,7 @@ class Test
             var baseParameter = baseMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, baseParameter.RefKind);
-            Assert.False(baseParameter.CustomModifiers.IsEmpty);
+            Assert.False(baseParameter.Type.CustomModifiers.IsEmpty);
             Assert.Equal(0, baseParameter.CountOfCustomModifiersPrecedingByRef);
 
             var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
@@ -663,7 +663,7 @@ class Test
             var derivedParameter = derivedMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
-            Assert.False(derivedParameter.CustomModifiers.IsEmpty);
+            Assert.False(derivedParameter.Type.CustomModifiers.IsEmpty);
             Assert.Equal(0, derivedParameter.CountOfCustomModifiersPrecedingByRef);
 
             CompileAndVerify(comp, expectedOutput: "2");

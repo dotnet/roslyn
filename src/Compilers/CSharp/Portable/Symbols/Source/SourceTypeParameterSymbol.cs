@@ -83,10 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<TypeSymbol> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
         {
             var bounds = this.GetBounds(inProgress);
-            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
+            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var constraintType in constraintTypes)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                constraintType.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                constraintType.TypeSymbol.AddUseSiteDiagnostics(ref useSiteDiagnostics);
 
                 if (!diagnostics.Add(location, useSiteDiagnostics))
                 {
@@ -693,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var map = _map.TypeMap;
             Debug.Assert(map != null);
 
-            var constraintTypes = map.SubstituteTypesWithoutModifiers(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
+            var constraintTypes = map.SubstituteTypes(typeParameter.ConstraintTypesNoUseSiteDiagnostics);
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, true, this.DeclaringCompilation, diagnostics);
         }
 

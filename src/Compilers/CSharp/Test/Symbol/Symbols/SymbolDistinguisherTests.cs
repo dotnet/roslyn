@@ -206,8 +206,8 @@ public class C
             var sourceAssembly = comp.SourceAssembly;
             var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);
 
-            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type;
-            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type;
+            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type.TypeSymbol;
+            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("F").Type.TypeSymbol;
             var distinguisher = new SymbolDistinguisher(comp, sourceType, referencedType);
             // NOTE: Locations come from element types.
             Assert.Equal("C[] [file.cs(2)]", distinguisher.First.ToString());
@@ -231,8 +231,8 @@ unsafe public struct S
             var sourceAssembly = comp.SourceAssembly;
             var referencedAssembly = (AssemblySymbol)comp.GetAssemblyOrModuleSymbol(libRef);
 
-            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type;
-            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type;
+            var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type.TypeSymbol;
+            var referencedType = referencedAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<FieldSymbol>("F").Type.TypeSymbol;
             var distinguisher = new SymbolDistinguisher(comp, sourceType, referencedType);
             // NOTE: Locations come from element types.
             Assert.Equal("S* [file.cs(2)]", distinguisher.First.ToString());

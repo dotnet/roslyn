@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // * An implicit reference conversion exists from SE to TE.
             return
                 s.HasSameShapeAs(d) &&
-                HasImplicitReferenceConversion(s.ElementType, d.ElementType, ref useSiteDiagnostics);
+                HasImplicitReferenceConversion(s.ElementType.TypeSymbol, d.ElementType.TypeSymbol, ref useSiteDiagnostics);
         }
 
         public bool HasIdentityOrImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1054,9 +1054,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            TypeSymbol argument0 = destinationAgg.TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics);
+            TypeSymbol argument0 = destinationAgg.TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics).TypeSymbol;
 
-            return HasIdentityOrImplicitReferenceConversion(source.ElementType, argument0, ref useSiteDiagnostics);
+            return HasIdentityOrImplicitReferenceConversion(source.ElementType.TypeSymbol, argument0, ref useSiteDiagnostics);
         }
 
         private bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1906,8 +1906,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < sourceTypeArguments.Length; ++i)
             {
-                var sourceArg = sourceTypeArguments[i];
-                var destinationArg = destinationTypeArguments[i];
+                var sourceArg = sourceTypeArguments[i].TypeSymbol;
+                var destinationArg = destinationTypeArguments[i].TypeSymbol;
 
                 switch (original.TypeParameters[i].Variance)
                 {
@@ -1961,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // though SE.IsReferenceType may be false. Again, HasExplicitReferenceConversion
                 // already handles these cases.
                 return sourceArray.HasSameShapeAs(destinationArray) &&
-                    HasExplicitReferenceConversion(sourceArray.ElementType, destinationArray.ElementType, ref useSiteDiagnostics);
+                    HasExplicitReferenceConversion(sourceArray.ElementType.TypeSymbol, destinationArray.ElementType.TypeSymbol, ref useSiteDiagnostics);
             }
 
             // SPEC: From System.Array and the interfaces it implements to any array-type.
@@ -1989,7 +1989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)sourceArray != null && sourceArray.IsSZArray && destination.IsPossibleArrayGenericInterface())
             {
-                if (HasExplicitReferenceConversion(sourceArray.ElementType, ((NamedTypeSymbol)destination).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics), ref useSiteDiagnostics))
+                if (HasExplicitReferenceConversion(sourceArray.ElementType.TypeSymbol, ((NamedTypeSymbol)destination).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics).TypeSymbol, ref useSiteDiagnostics))
                 {
                     return true;
                 }
@@ -2009,8 +2009,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     specialDefinition == SpecialType.System_Collections_Generic_IReadOnlyList_T ||
                     specialDefinition == SpecialType.System_Collections_Generic_IReadOnlyCollection_T)
                 {
-                    var sourceElement = ((NamedTypeSymbol)source).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics);
-                    var destinationElement = destinationArray.ElementType;
+                    var sourceElement = ((NamedTypeSymbol)source).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics).TypeSymbol;
+                    var destinationElement = destinationArray.ElementType.TypeSymbol;
 
                     if (HasIdentityConversion(sourceElement, destinationElement))
                     {

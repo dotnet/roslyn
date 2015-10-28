@@ -14,9 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MessageID _messageID;
         private readonly CSharpSyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
-        private TypeSymbol _returnType;
+        private TypeSymbolWithAnnotations _returnType;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
+
+        /// <summary>
+        /// This symbol is used as the return type of a LambdaSymbol when we are interpreting 
+        /// lambda's body in order to infer its return type.
+        /// </summary>
+        internal static readonly TypeSymbolWithAnnotations ReturnTypeIsBeingInferred = TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
 
         public LambdaSymbol(
             CSharpCompilation compilation,
@@ -28,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
-            _returnType = returnType;
+            _returnType = (object)returnType == null ? ReturnTypeIsBeingInferred : TypeSymbolWithAnnotations.Create(returnType);
             _isSynthesized = unboundLambda.WasCompilerGenerated;
             _isAsync = unboundLambda.IsAsync;
             // No point in making this lazy. We are always going to need these soon after creation of the symbol.
@@ -39,6 +45,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol containingSymbol,
             ImmutableArray<ParameterSymbol> parameters,
             TypeSymbol returnType,
+            MessageID messageID,
+            CSharpSyntaxNode syntax,
+            bool isSynthesized,
+            bool isAsync)
+        {
+            _containingSymbol = containingSymbol;
+            _messageID = messageID;
+            _syntax = syntax;
+            _returnType = (object)returnType == null ? ReturnTypeIsBeingInferred : TypeSymbolWithAnnotations.Create(returnType); 
+            _isSynthesized = isSynthesized;
+            _isAsync = isAsync;
+            _parameters = parameters.SelectAsArray(CopyParameter, this);
+        }
+
+        public LambdaSymbol(
+            Symbol containingSymbol,
+            ImmutableArray<ParameterSymbol> parameters,
+            TypeSymbolWithAnnotations returnType,
             MessageID messageID,
             CSharpSyntaxNode syntax,
             bool isSynthesized,
@@ -180,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (object)this.ReturnType != null && this.ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get { return _returnType; }
         }
@@ -192,13 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetInferredReturnType(TypeSymbol inferredReturnType)
         {
             Debug.Assert((object)inferredReturnType != null);
-            Debug.Assert((object)_returnType == null);
-            _returnType = inferredReturnType;
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
+            Debug.Assert((object)_returnType == ReturnTypeIsBeingInferred);
+            _returnType = TypeSymbolWithAnnotations.Create(inferredReturnType);
         }
 
         internal override bool IsExplicitInterfaceImplementation
@@ -216,9 +235,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -307,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // can, then we use the lambda types. (Whatever you do, do not use the names 
                 // in the delegate parameters; they are not in scope!)
 
-                TypeSymbol type;
+                TypeSymbolWithAnnotations type;
                 RefKind refKind;
                 if (hasExplicitlyTypedParameterList)
                 {
@@ -322,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    type = new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null);
+                    type = TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
                 }
 
@@ -343,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new SynthesizedParameterSymbol(
                     owner,
-                parameter.Type,
+                parameter.Type.TypeSymbol,
                 parameter.Ordinal,
                 parameter.RefKind,
                     string.Empty); // Make sure nothing binds to this.
@@ -356,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var lambda = symbol as LambdaSymbol;
             return (object)lambda != null
                 && lambda._syntax == _syntax
-                && lambda.ReturnType == this.ReturnType
+                && lambda.ReturnType.TypeSymbol == this.ReturnType.TypeSymbol
                 && System.Linq.ImmutableArrayExtensions.SequenceEqual(lambda.ParameterTypes, this.ParameterTypes)
                 && Equals(lambda.ContainingSymbol, this.ContainingSymbol);
         }

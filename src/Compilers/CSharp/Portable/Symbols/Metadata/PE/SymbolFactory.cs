@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return elementType;
             }
 
-            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, elementType, rank, sizes, lowerBounds, CSharpCustomModifier.Convert(customModifiers));
+            return ArrayTypeSymbol.CreateMDArray(moduleSymbol.ContainingAssembly, TypeSymbolWithAnnotations.Create(elementType, CSharpCustomModifier.Convert(customModifiers)), rank, sizes, lowerBounds);
         }
 
         internal override TypeSymbol GetByRefReturnTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol referencedType, ushort countOfCustomModifiersPrecedingByRef)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return type;
             }
 
-            return new PointerTypeSymbol(type, CSharpCustomModifier.Convert(customModifiers));
+            return new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(type, CSharpCustomModifier.Convert(customModifiers)));
         }
 
         internal override TypeSymbol GetEnumUnderlyingType(PEModuleSymbol moduleSymbol, TypeSymbol type)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return elementType;
             }
 
-            return ArrayTypeSymbol.CreateSZArray(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers));
+            return ArrayTypeSymbol.CreateSZArray(moduleSymbol.ContainingAssembly, TypeSymbolWithAnnotations.Create(elementType, CSharpCustomModifier.Convert(customModifiers)));
         }
 
         internal override TypeSymbol GetUnsupportedMetadataTypeSymbol(PEModuleSymbol moduleSymbol, BadImageFormatException exception)
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return new UnsupportedMetadataTypeSymbol();
             }
 
-            TypeMap substitution = new TypeMap(typeParameters, arguments.SelectAsArray(arg => new TypeWithModifiers(arg.Key, CSharpCustomModifier.Convert(arg.Value))));
+            TypeMap substitution = new TypeMap(typeParameters, arguments.SelectAsArray(arg => TypeSymbolWithAnnotations.Create(arg.Key, CSharpCustomModifier.Convert(arg.Value))));
 
             NamedTypeSymbol constructedType = substitution.SubstituteNamedType(genericType);
 

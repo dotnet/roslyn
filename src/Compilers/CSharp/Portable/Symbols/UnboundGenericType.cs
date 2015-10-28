@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class UnboundArgumentErrorTypeSymbol : ErrorTypeSymbol
     {
-        public static ImmutableArray<TypeWithModifiers> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, int n, DiagnosticInfo errorInfo)
+        public static ImmutableArray<TypeSymbolWithAnnotations> CreateTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, int n, DiagnosticInfo errorInfo)
         {
-            var result = ArrayBuilder<TypeWithModifiers>.GetInstance();
+            var result = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             for (int i = 0; i < n; i++)
             {
                 string name = (i < typeParameters.Length) ? typeParameters[i].Name : string.Empty;
-                result.Add(new TypeWithModifiers(new UnboundArgumentErrorTypeSymbol(name, errorInfo)));
+                result.Add(TypeSymbolWithAnnotations.Create(new UnboundArgumentErrorTypeSymbol(name, errorInfo)));
             }
             return result.ToImmutableAndFree();
         }

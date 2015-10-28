@@ -324,13 +324,13 @@ class Derived : PropertyCustomModifierCombinations
         {
             if (!method.ReturnsVoid)
             {
-                CheckCustomModifier(inReturnType, ((ArrayTypeSymbol)method.ReturnType).CustomModifiers);
-                CheckCustomModifier(onReturnType, method.ReturnTypeCustomModifiers);
+                CheckCustomModifier(inReturnType, ((ArrayTypeSymbol)method.ReturnType.TypeSymbol).ElementType.CustomModifiers);
+                CheckCustomModifier(onReturnType, method.ReturnType.CustomModifiers);
             }
             if (method.Parameters.Any())
             {
-                CheckCustomModifier(inParameterType, ((ArrayTypeSymbol)method.Parameters.Single().Type).CustomModifiers);
-                CheckCustomModifier(onParameterType, method.Parameters.Single().CustomModifiers);
+                CheckCustomModifier(inParameterType, ((ArrayTypeSymbol)method.Parameters.Single().Type.TypeSymbol).ElementType.CustomModifiers);
+                CheckCustomModifier(onParameterType, method.Parameters.Single().Type.CustomModifiers);
             }
         }
 
@@ -342,8 +342,8 @@ class Derived : PropertyCustomModifierCombinations
         /// <param name="onType">True if a custom modifier is expected on the return type.</param>
         private static void CheckPropertyCustomModifiers(PropertySymbol property, bool inType, bool onType)
         {
-            CheckCustomModifier(inType, ((ArrayTypeSymbol)property.Type).CustomModifiers);
-            CheckCustomModifier(onType, property.TypeCustomModifiers);
+            CheckCustomModifier(inType, ((ArrayTypeSymbol)property.Type.TypeSymbol).ElementType.CustomModifiers);
+            CheckCustomModifier(onType, property.Type.CustomModifiers);
         }
 
         /// <summary>
@@ -426,7 +426,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
 
             //Method1 is implemented in Class3, but a bridge is needed because custom modifiers are not copied
             var class3Method1 = class3.GetMember<MethodSymbol>("Method1");
-            Assert.False(class3Method1.Parameters.Single().CustomModifiers.Any());
+            Assert.False(class3Method1.Parameters.Single().Type.CustomModifiers.Any());
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
@@ -470,7 +470,7 @@ class Class : I2
 
             // explicit implementation copies custom modifiers
             var classMethod1 = @class.GetMethod("I2.M1");
-            var classMethod1CustomModifiers = classMethod1.Parameters.Single().CustomModifiers;
+            var classMethod1CustomModifiers = classMethod1.Parameters.Single().Type.CustomModifiers;
             Assert.Equal(2, classMethod1CustomModifiers.Length);
             foreach (var customModifier in classMethod1CustomModifiers)
             {
@@ -1247,23 +1247,23 @@ class Derived : Base
             Assert.Equal(0, derivedProperty.CustomModifierCount());
             Assert.Equal(0, derivedIndexer.CustomModifierCount());
 
-            Assert.Equal(int8Type, baseProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, baseProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, derivedProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, baseProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, derivedProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, baseIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, baseIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, derivedIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, baseIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, derivedIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int32Type, baseIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
-            Assert.Equal(int32Type, derivedIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, baseIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, derivedIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int64Type, baseIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
-            Assert.Equal(int64Type, derivedIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, baseIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, derivedIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1366,14 +1366,14 @@ class Derived : Base
             Assert.Equal(0, derivedIndexer.GetMethod.CustomModifierCount());
             Assert.Equal(0, derivedIndexer.SetMethod.CustomModifierCount());
 
-            Assert.Equal(int8Type, baseProperty.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedProperty.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseProperty.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedProperty.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, baseIndexer.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, derivedIndexer.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, baseIndexer.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, derivedIndexer.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, baseIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, derivedIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, baseIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, derivedIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1459,23 +1459,23 @@ class Implementation : I
             Assert.Equal(0, implementationProperty.CustomModifierCount());
             Assert.Equal(0, implementationIndexer.CustomModifierCount());
 
-            Assert.Equal(int8Type, interfaceProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationProperty.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationProperty.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, interfaceProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, implementationProperty.SetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, interfaceProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, implementationProperty.SetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, interfaceIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationIndexer.GetMethod.ReturnTypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationIndexer.GetMethod.ReturnType.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, interfaceIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, implementationIndexer.GetMethod.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, interfaceIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, implementationIndexer.GetMethod.Parameters.Single().Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int32Type, interfaceIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
-            Assert.Equal(int32Type, implementationIndexer.SetMethod.Parameters[0].CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, interfaceIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int32Type, implementationIndexer.SetMethod.Parameters[0].Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int64Type, interfaceIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
-            Assert.Equal(int64Type, implementationIndexer.SetMethod.Parameters[1].CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, interfaceIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int64Type, implementationIndexer.SetMethod.Parameters[1].Type.CustomModifiers.Single().Modifier);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1563,14 +1563,14 @@ class Implementation : I
             Assert.Equal(0, implementationIndexer.GetMethod.CustomModifierCount());
             Assert.Equal(0, implementationIndexer.SetMethod.CustomModifierCount());
 
-            Assert.Equal(int8Type, interfaceProperty.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationProperty.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceProperty.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationProperty.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int8Type, interfaceIndexer.TypeCustomModifiers.Single().Modifier);
-            Assert.Equal(int8Type, implementationIndexer.TypeCustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, interfaceIndexer.Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int8Type, implementationIndexer.Type.CustomModifiers.Single().Modifier);
 
-            Assert.Equal(int16Type, interfaceIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
-            Assert.Equal(int16Type, implementationIndexer.Parameters.Single().CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, interfaceIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
+            Assert.Equal(int16Type, implementationIndexer.Parameters.Single().Type.CustomModifiers.Single().Modifier);
         }
 
         private static Func<Symbol, bool> IsPropertyWithSingleParameter(SpecialType paramSpecialType, bool isArrayType = false)
@@ -1581,8 +1581,8 @@ class Implementation : I
                 {
                     return false;
                 }
-                var paramType = s.GetParameters().Single().Type;
-                var comparisonType = isArrayType ? ((ArrayTypeSymbol)paramType).ElementType : paramType;
+                var paramType = s.GetParameters().Single().Type.TypeSymbol;
+                var comparisonType = isArrayType ? ((ArrayTypeSymbol)paramType).ElementType.TypeSymbol : paramType;
                 return comparisonType.SpecialType == paramSpecialType;
             };
         }
@@ -1596,7 +1596,7 @@ class Implementation : I
                 if (!(ignoreLast && i == numParameters - 1))
                 {
                     var param = parameters[i];
-                    Assert.Equal(ConstModOptType, param.CustomModifiers.Single().Modifier.ToTestDisplayString());
+                    Assert.Equal(ConstModOptType, param.Type.CustomModifiers.Single().Modifier.ToTestDisplayString());
                 }
             }
         }
@@ -1605,7 +1605,7 @@ class Implementation : I
         {
             foreach (var param in member.GetParameters())
             {
-                Assert.Equal(0, param.CustomModifiers.Length);
+                Assert.Equal(0, param.Type.CustomModifiers.Length);
             }
         }
     }

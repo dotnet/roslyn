@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override NamedTypeSymbol Type
         {
-            get { return (NamedTypeSymbol)this.Local.Type; }
+            get { return (NamedTypeSymbol)this.Local.Type.TypeSymbol; }
         }
 
         internal override DisplayClassInstance ToOtherMethod(MethodSymbol method, TypeMap typeMap)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override BoundExpression ToBoundExpression(CSharpSyntaxNode syntax)
         {
-            return new BoundLocal(syntax, this.Local, constantValueOpt: null, type: this.Local.Type) { WasCompilerGenerated = true };
+            return new BoundLocal(syntax, this.Local, constantValueOpt: null, type: this.Local.Type.TypeSymbol) { WasCompilerGenerated = true };
         }
     }
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override NamedTypeSymbol Type
         {
-            get { return (NamedTypeSymbol)this.Parameter.Type; }
+            get { return (NamedTypeSymbol)this.Parameter.Type.TypeSymbol; }
         }
 
         internal override DisplayClassInstance ToOtherMethod(MethodSymbol method, TypeMap typeMap)

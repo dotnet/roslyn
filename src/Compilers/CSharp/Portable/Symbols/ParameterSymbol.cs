@@ -47,17 +47,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the type of the parameter.
         /// </summary>
-        public abstract TypeSymbol Type { get; }
+        public abstract TypeSymbolWithAnnotations Type { get; }
 
         /// <summary>
         /// Determines if the parameter ref, out or neither.
         /// </summary>
         public abstract RefKind RefKind { get; }
-
-        /// <summary>
-        /// The list of custom modifiers, if any, associated with the parameter.
-        /// </summary>
-        public abstract ImmutableArray<CustomModifier> CustomModifiers { get; }
 
         /// <summary>
         /// Describes how the parameter is marshalled when passed to native code.
@@ -399,12 +394,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IParameterSymbol.Type
         {
-            get { return this.Type; }
+            get { return this.Type.TypeSymbol; }
         }
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {
-            get { return this.CustomModifiers; }
+            get { return this.Type.CustomModifiers; }
         }
 
         IParameterSymbol IParameterSymbol.OriginalDefinition

@@ -710,6 +710,11 @@ class C1<T>
 
     internal abstract class SymbolChecker
     {
+        public void CheckSymbols(SymbolWithAnnotations a, SymbolWithAnnotations b, bool recurse)
+        {
+            CheckSymbols(a.Symbol, b.Symbol, recurse);
+        }
+
         public void CheckSymbols(Symbol a, Symbol b, bool recurse)
         {
             Assert.Equal(a == null, b == null);
@@ -827,7 +832,7 @@ class C1<T>
             Assert.Equal(a.HasConstructorConstraint, b.HasConstructorConstraint);
             Assert.Equal(a.HasReferenceTypeConstraint, b.HasReferenceTypeConstraint);
             Assert.Equal(a.HasValueTypeConstraint, b.HasValueTypeConstraint);
-            CheckSymbols(a.ConstraintTypes, b.ConstraintTypes, false);
+            CheckSymbols(a.ConstraintTypes.SelectAsArray(c => c.TypeSymbol), b.ConstraintTypes.SelectAsArray(c => c.TypeSymbol), false);
         }
     }
 

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             // CreateVariable(Type type, string name)
             var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
-            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
+            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type.TypeSymbol), null, typeType);
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
 
             bool hasCustomTypeInfoPayload;
@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // be rewritten in PlaceholderLocalRewriter.
                 var assignment = new BoundAssignmentOperator(
                     syntax,
-                    new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type),
+                    new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type.TypeSymbol),
                     initializer,
                     RefKind.None,
-                    local.Type);
+                    local.Type.TypeSymbol);
                 statements.Add(new BoundExpressionStatement(syntax, assignment));
             }
         }
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,
-                compilation.GetSpecialType(SpecialType.System_Byte));
+                TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte)));
 
-            var flags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, customModifiersCount: 0, refKind: RefKind.None);
+            var flags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type.TypeSymbol, customModifiersCount: 0, refKind: RefKind.None);
             var bytes = DynamicFlagsCustomTypeInfo.Create(flags).GetCustomTypeInfoPayload();
             hasCustomTypeInfoPayload = bytes != null;
             if (!hasCustomTypeInfoPayload)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return new BoundLiteral(syntax, ConstantValue.Null, byteArrayType);
             }
 
-            var byteType = byteArrayType.ElementType;
+            var byteType = byteArrayType.ElementType.TypeSymbol;
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
 
             var numBytes = bytes.Count;

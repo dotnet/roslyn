@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType;
+            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType.TypeSymbol;
             TypeSymbol elementType = enumeratorInfo.ElementType;
 
             // E e
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenType: elementType,
                     @checked: node.Checked),
                 conversion: node.ElementConversion,
-                rewrittenType: iterationVar.Type,
+                rewrittenType: iterationVar.Type.TypeSymbol,
                 @checked: node.Checked);
 
             // V v = (V)(T)e.Current;
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement positionIncrement = MakePositionIncrement(forEachSyntax, boundPositionVar, intType);
 
             LocalSymbol iterationVar = node.IterationVariable;
-            TypeSymbol iterationVarType = iterationVar.Type;
+            TypeSymbol iterationVarType = iterationVar.Type.TypeSymbol;
             Debug.Assert(node.ElementConversion.IsValid);
 
             // (V)s.Chars[p]
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v
             LocalSymbol iterationVar = node.IterationVariable;
-            TypeSymbol iterationVarType = iterationVar.Type;
+            TypeSymbol iterationVarType = iterationVar.Type.TypeSymbol;
 
             // (V)a[p]
             BoundExpression iterationVarInitValue = MakeConversion(
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create<BoundExpression>(boundPositionVar),
-                    type: arrayType.ElementType),
+                    type: arrayType.ElementType.TypeSymbol),
                 conversion: node.ElementConversion,
                 rewrittenType: iterationVarType,
                 @checked: node.Checked);
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // V v
             LocalSymbol iterationVar = node.IterationVariable;
-            TypeSymbol iterationVarType = iterationVar.Type;
+            TypeSymbol iterationVarType = iterationVar.Type.TypeSymbol;
 
             // (V)a[p_0, p_1, ...]
             BoundExpression iterationVarInitValue = MakeConversion(
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenOperand: new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
-                    type: arrayType.ElementType),
+                    type: arrayType.ElementType.TypeSymbol),
                 conversion: node.ElementConversion,
                 rewrittenType: iterationVarType,
                 @checked: node.Checked);

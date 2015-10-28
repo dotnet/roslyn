@@ -27,7 +27,7 @@ public class X
 ", new[] { MinCorlibRef });
 
             var field = c.GlobalNamespace.GetMember<NamedTypeSymbol>("X").GetMember<FieldSymbol>("A");
-            Assert.Equal(0, field.Type.Interfaces.Length);
+            Assert.Equal(0, field.Type.TypeSymbol.Interfaces.Length);
             c.VerifyDiagnostics();
         }
     }

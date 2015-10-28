@@ -1375,18 +1375,18 @@ oneMoreTime:
         private LocalDefinition DefineLocal(LocalSymbol local, CSharpSyntaxNode syntaxNode)
         {
             var transformFlags = default(ImmutableArray<TypedConstant>);
-            bool hasDynamic = local.Type.ContainsDynamic();
+            bool hasDynamic = local.Type.TypeSymbol.ContainsDynamic();
             var isDynamicSourceLocal = hasDynamic && !local.IsCompilerGenerated;
             if (isDynamicSourceLocal)
             {
                 NamedTypeSymbol booleanType = _module.Compilation.GetSpecialType(SpecialType.System_Boolean);
-                transformFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type, booleanType, 0, RefKind.None);
+                transformFlags = CSharpCompilation.DynamicTransformsEncoder.Encode(local.Type.TypeSymbol, booleanType, 0, RefKind.None);
             }
 
             if (local.IsConst)
             {
                 Debug.Assert(local.HasConstantValue);
-                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type, local.ConstantValue, syntaxNode, _diagnostics);
+                MetadataConstant compileTimeValue = _module.CreateConstant(local.Type.TypeSymbol, local.ConstantValue, syntaxNode, _diagnostics);
                 LocalConstantDefinition localConstantDef = new LocalConstantDefinition(local.Name, local.Locations.FirstOrDefault() ?? Location.None, compileTimeValue, isDynamicSourceLocal, transformFlags);
                 _builder.AddLocalConstantToScope(localConstantDef);
                 return null;
@@ -1406,8 +1406,8 @@ oneMoreTime:
                 Debug.Assert(local.Type.IsPointerType());
 
                 constraints = LocalSlotConstraints.ByRef | LocalSlotConstraints.Pinned;
-                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type;
-                TypeSymbol pointedAtType = pointerType.PointedAtType;
+                PointerTypeSymbol pointerType = (PointerTypeSymbol)local.Type.TypeSymbol;
+                TypeSymbol pointedAtType = pointerType.PointedAtType.TypeSymbol;
 
                 // We can't declare a reference to void, so if the pointed-at type is void, use native int
                 // (represented here by IntPtr) instead.
@@ -1419,7 +1419,7 @@ oneMoreTime:
             {
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics);
+                translatedType = _module.Translate(local.Type.TypeSymbol, syntaxNode, _diagnostics);
             }
 
             // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.

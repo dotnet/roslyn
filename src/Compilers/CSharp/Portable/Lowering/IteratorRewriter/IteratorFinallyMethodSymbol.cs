@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return false; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
-            get { return ContainingAssembly.GetSpecialType(SpecialType.System_Void); }
+            get { return TypeSymbolWithAnnotations.Create(ContainingAssembly.GetSpecialType(SpecialType.System_Void)); }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return ImmutableArray<TypeSymbol>.Empty; }
+            get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -155,11 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override Symbol AssociatedSymbol

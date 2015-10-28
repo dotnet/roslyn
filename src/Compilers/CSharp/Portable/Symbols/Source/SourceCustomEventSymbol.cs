@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceCustomEventSymbol : SourceEventSymbol
     {
-        private readonly TypeSymbol _type;
+        private readonly TypeSymbolWithAnnotations _type;
         private readonly string _name;
         private readonly SourceCustomEventAccessorSymbol _addMethod;
         private readonly SourceCustomEventAccessorSymbol _removeMethod;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get { return _type; }
         }

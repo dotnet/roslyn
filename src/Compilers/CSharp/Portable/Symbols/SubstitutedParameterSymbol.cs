@@ -42,36 +42,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
                 var mapOrType = _mapOrType;
-                var type = mapOrType as TypeSymbol;
-                if (type != null)
+                var type = mapOrType as TypeSymbolWithAnnotations;
+                if ((object)type != null)
                 {
                     return type;
                 }
 
-                TypeWithModifiers substituted = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
-
-                type = substituted.Type;
-
-                if (substituted.CustomModifiers.IsDefaultOrEmpty)
-                {
-                    _mapOrType = type;
-                }
-
+                type = ((TypeMap)mapOrType).SubstituteType(this.underlyingParameter.Type);
+                _mapOrType = type;
                 return type;
-            }
-        }
-
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                var map = _mapOrType as TypeMap;
-                return map != null ? map.SubstituteCustomModifiers(this.underlyingParameter.Type, this.underlyingParameter.CustomModifiers) : this.underlyingParameter.CustomModifiers;
             }
         }
 

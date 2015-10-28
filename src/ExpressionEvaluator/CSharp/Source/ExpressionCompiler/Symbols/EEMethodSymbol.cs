@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// exactly once, otherwise it may be skipped.)
         /// </summary>
         private readonly GenerateMethodBody _generateMethodBody;
-        private TypeSymbol _lazyReturnType;
+        private TypeSymbolWithAnnotations _lazyReturnType;
 
         // NOTE: This is only used for asserts, so it could be conditional on DEBUG.
         private readonly ImmutableArray<TypeParameterSymbol> _allTypeParameters;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (substitutedSourceHasThisParameter)
             {
                 _thisParameter = MakeParameterSymbol(0, GeneratedNames.ThisProxyFieldName(), substitutedSourceThisParameter);
-                Debug.Assert(_thisParameter.Type == this.SubstitutedSourceMethod.ContainingType);
+                Debug.Assert(_thisParameter.Type.TypeSymbol == this.SubstitutedSourceMethod.ContainingType);
                 parameterBuilder.Add(_thisParameter);
             }
 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers);
+            return new SynthesizedParameterSymbol(this, sourceParameter.Type.TypeSymbol, ordinal, sourceParameter.RefKind, name, sourceParameter.Type.CustomModifiers);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -270,11 +270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        public override TypeSymbol ReturnType
+        public override TypeSymbolWithAnnotations ReturnType
         {
             get
             {
-                if (_lazyReturnType == null)
+                if ((object)_lazyReturnType == null)
                 {
                     throw new InvalidOperationException();
                 }
@@ -282,9 +282,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
         }
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
+        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
         {
-            get { return _typeParameters.Cast<TypeParameterSymbol, TypeSymbol>(); }
+            get { return _typeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations); }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters
@@ -300,11 +300,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
             get { return ImmutableArray<MethodSymbol>.Empty; }
-        }
-
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
         }
 
         public override Symbol AssociatedSymbol
@@ -400,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var body = _generateMethodBody(this, diagnostics);
             var compilation = compilationState.Compilation;
 
-            _lazyReturnType = CalculateReturnType(compilation, body);
+            _lazyReturnType = TypeSymbolWithAnnotations.Create(CalculateReturnType(compilation, body));
 
             // Can't do this until the return type has been computed.
             TypeParameterChecker.Check(this, _allTypeParameters);
@@ -637,12 +632,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             base.AddSynthesizedReturnTypeAttributes(ref attributes);
 
-            if (this.ReturnType.ContainsDynamic())
+            if (this.ReturnType.TypeSymbol.ContainsDynamic())
             {
                 var compilation = this.DeclaringCompilation;
                 if ((object)compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null)
                 {
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType, this.ReturnTypeCustomModifiers.Length));
+                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.ReturnType.TypeSymbol, this.ReturnType.CustomModifiers.Length));
                 }
             }
         }

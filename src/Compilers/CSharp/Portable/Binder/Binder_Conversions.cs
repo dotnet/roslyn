@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression userDefinedConversion;
 
-            TypeSymbol conversionReturnType = conversion.BestUserDefinedConversionAnalysis.Operator.ReturnType;
+            TypeSymbol conversionReturnType = conversion.BestUserDefinedConversionAnalysis.Operator.ReturnType.TypeSymbol;
             TypeSymbol conversionToType = conversion.BestUserDefinedConversionAnalysis.ToType;
             Conversion toConversion = conversion.UserDefinedToConversion;
 
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)containingType != null)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                bool isAccessible = this.IsSymbolAccessibleConditional(memberSymbol.GetTypeOrReturnType(), containingType, ref useSiteDiagnostics);
+                bool isAccessible = this.IsSymbolAccessibleConditional(memberSymbol.GetTypeOrReturnType().TypeSymbol, containingType, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
 
                 if (!isAccessible)
@@ -583,14 +583,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
             Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
+                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type.TypeSymbol, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
 
             useSiteDiagnostics = null;
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameterType = delegateParameters[i].Type;
-                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type;
+                var delegateParameterType = delegateParameters[i].Type.TypeSymbol;
+                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type.TypeSymbol;
 
                 if (!Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameterType, methodParameterType, ref useSiteDiagnostics))
                 {
@@ -604,10 +604,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - Return types "match"
             var returnsMatch =
                 method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
+                Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType.TypeSymbol, delegateMethod.ReturnType.TypeSymbol, ref useSiteDiagnostics);
             if (!returnsMatch)
             {
-                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
+                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType.TypeSymbol);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }

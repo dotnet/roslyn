@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -184,13 +185,18 @@ class CL3
             Assert.Equal("void CL3.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) x)", test.ToTestDisplayString());
 
             var withModifiers = cl3.BaseType.BaseType;
-            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments);
-            Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
-            Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
+            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol));
+            Assert.True(HasTypeArgumentsCustomModifiers(withModifiers));
+            Assert.False(HasTypeArgumentsCustomModifiers(withoutModifiers));
             Assert.True(withoutModifiers.Equals(withModifiers, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
             Assert.NotEqual(withoutModifiers, withModifiers);
 
             CompileAndVerify(compilation, expectedOutput: "Overriden");
+        }
+
+        private bool HasTypeArgumentsCustomModifiers(NamedTypeSymbol type)
+        {
+            return type.TypeArgumentsNoUseSiteDiagnostics.Any(a => a.CustomModifiers.Any());
         }
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
@@ -573,7 +579,7 @@ class CL3
             var test = cl3.GetMember<PropertySymbol>("Test");
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL3.Test { get; set; }", test.ToTestDisplayString());
             Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL3.Test.get", test.GetMethod.ToTestDisplayString());
-            Assert.True(test.GetMethod.ReturnTypeCustomModifiers.SequenceEqual(test.SetMethod.Parameters.First().CustomModifiers));
+            Assert.True(test.GetMethod.ReturnType.CustomModifiers.SequenceEqual(test.SetMethod.Parameters.First().Type.CustomModifiers));
 
             CompileAndVerify(compilation, expectedOutput: @"Set Overriden
 Get Overriden");
@@ -797,12 +803,12 @@ class Module1
             var base2 = compilation.GetTypeByMetadataName("CL3").BaseType;
             var base3 = compilation.GetTypeByMetadataName("CL4").BaseType;
 
-            Assert.True(base1.HasTypeArgumentsCustomModifiers);
-            Assert.True(base2.HasTypeArgumentsCustomModifiers);
+            Assert.True(HasTypeArgumentsCustomModifiers(base1));
+            Assert.True(HasTypeArgumentsCustomModifiers(base2));
             Assert.True(base1.Equals(base2, ignoreCustomModifiersAndArraySizesAndLowerBounds:true));
             Assert.NotEqual(base1, base2);
 
-            Assert.True(base3.HasTypeArgumentsCustomModifiers);
+            Assert.True(HasTypeArgumentsCustomModifiers(base3));
             Assert.True(base1.Equals(base3, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
             Assert.Equal(base1, base3);
             Assert.NotSame(base1, base3);
@@ -854,8 +860,8 @@ class Module1
 
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
-            Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsCustomModifiers.First().First().Modifier.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.TypeSymbol.OriginalDefinition.ContainingAssembly);
+            Assert.Same(compilation1.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.First().CustomModifiers.First().Modifier.ContainingAssembly);
 
             var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] {}, references: new [] {new CSharpCompilationReference(compilation1)});
 
@@ -863,8 +869,8 @@ class Module1
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());
 
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingAssemblySymbol>(test.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
-            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsCustomModifiers.First().First().Modifier.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), test.Parameters.First().Type.TypeSymbol.OriginalDefinition.ContainingAssembly);
+            Assert.Same(compilation2.SourceModule.CorLibrary(), ((NamedTypeSymbol)test.Parameters.First().Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.First().CustomModifiers.First().Modifier.ContainingAssembly);
 
             Assert.NotSame(compilation1.SourceModule.CorLibrary(), compilation2.SourceModule.CorLibrary());
         }

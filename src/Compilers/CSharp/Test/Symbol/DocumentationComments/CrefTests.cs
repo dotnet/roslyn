@@ -1522,7 +1522,7 @@ class B<T, T>
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
-            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").TypeArguments[0];
+            var expectedSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").TypeArguments[0].TypeSymbol;
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
                 // (3,20): warning CS1723: XML comment has cref attribute 'T' that refers to a type parameter
                 // /// See <see cref="T"/>.
@@ -1603,7 +1603,7 @@ class B
             Assert.Equal("U", typeArgument.Name);
             Assert.IsType<CrefTypeParameterSymbol>(typeArgument);
             Assert.Equal(0, ((TypeParameterSymbol)typeArgument).Ordinal);
-            Assert.Equal(typeArgument, actualSymbol.GetParameters().Single().Type);
+            Assert.Equal(typeArgument, actualSymbol.GetParameters().Single().Type.TypeSymbol);
         }
 
         [Fact]
@@ -1628,8 +1628,8 @@ class A<M, N>
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
             Assert.Equal(expectedOriginalDefinitionSymbol, actualSymbol.OriginalDefinition);
 
-            var expectedOriginalParameterTypes = expectedOriginalDefinitionSymbol.Parameters.Select(p => p.Type).Cast<TypeParameterSymbol>();
-            var actualParameterTypes = actualSymbol.GetParameters().Select(p => p.Type).Cast<TypeParameterSymbol>();
+            var expectedOriginalParameterTypes = expectedOriginalDefinitionSymbol.Parameters.Select(p => p.Type.TypeSymbol).Cast<TypeParameterSymbol>();
+            var actualParameterTypes = actualSymbol.GetParameters().Select(p => p.Type.TypeSymbol).Cast<TypeParameterSymbol>();
 
             AssertEx.Equal(expectedOriginalParameterTypes.Select(t => t.Ordinal), actualParameterTypes.Select(t => t.Ordinal));
             AssertEx.None(expectedOriginalParameterTypes.Zip(actualParameterTypes, object.Equals), x => x);
@@ -1661,8 +1661,8 @@ class A<T, U>
 
             Assert.False(actualWinner.IsDefinition);
 
-            var actualParameterType = actualWinner.GetParameters().Single().Type;
-            AssertEx.All(actualWinner.ContainingType.TypeArguments, typeParam => typeParam == actualParameterType); //CONSIDER: Would be different in Dev11.
+            var actualParameterType = actualWinner.GetParameters().Single().Type.TypeSymbol;
+            AssertEx.All(actualWinner.ContainingType.TypeArguments, typeParam => typeParam.TypeSymbol == actualParameterType); //CONSIDER: Would be different in Dev11.
             Assert.Equal(1, ((TypeParameterSymbol)actualParameterType).Ordinal);
 
             Assert.Equal(2, actualCandidates.Length);
@@ -1699,9 +1699,9 @@ class A<T>
 
             Assert.False(actualWinner.IsDefinition);
 
-            var actualParameterType = actualWinner.GetParameters().Single().Type;
-            Assert.Equal(actualParameterType, actualWinner.ContainingType.TypeArguments.Single());
-            Assert.Equal(actualParameterType, actualWinner.ContainingType.ContainingType.TypeArguments.Single());
+            var actualParameterType = actualWinner.GetParameters().Single().Type.TypeSymbol;
+            Assert.Equal(actualParameterType, actualWinner.ContainingType.TypeArguments.Single().TypeSymbol);
+            Assert.Equal(actualParameterType, actualWinner.ContainingType.ContainingType.TypeArguments.Single().TypeSymbol);
 
             Assert.Equal(2, actualCandidates.Length);
             Assert.Equal(actualWinner, actualCandidates[0]);
@@ -5515,7 +5515,7 @@ class C<T>
             NamedTypeSymbol referencedType = (NamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
             Assert.NotNull(referencedType);
 
-            var crefTypeParam = referencedType.TypeArguments.Single();
+            var crefTypeParam = referencedType.TypeArguments.Single().TypeSymbol;
             Assert.IsType<CrefTypeParameterSymbol>(crefTypeParam);
 
             var sourceTypeParam = referencedType.TypeParameters.Single();
@@ -6026,7 +6026,7 @@ enum E { }
             var methodSymbol = model.GetSymbolInfo(methodNameSyntax).Symbol;
             Assert.Equal(SymbolKind.Method, methodSymbol.Kind);
 
-            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType);
+            var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((MethodSymbol)methodSymbol).ReturnType.TypeSymbol);
             Assert.Equal(0, members.Length);
         }
 

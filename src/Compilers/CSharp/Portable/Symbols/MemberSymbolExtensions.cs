@@ -168,13 +168,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += method.ReturnTypeCustomModifiers.Length;
-            count += method.ReturnType.CustomModifierCount();
+            var methodReturnType = method.ReturnType;
+            count += methodReturnType.CustomModifiers.Length;
+            count += methodReturnType.TypeSymbol.CustomModifierCount();
 
             foreach (ParameterSymbol param in method.Parameters)
             {
-                count += param.CustomModifiers.Length;
-                count += param.Type.CustomModifierCount();
+                var paramType = param.Type;
+                count += paramType.CustomModifiers.Length;
+                count += paramType.TypeSymbol.CustomModifierCount();
             }
 
             return count;
@@ -203,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static int CustomModifierCount(this EventSymbol e)
         {
-            return e.Type.CustomModifierCount();
+            return e.Type.TypeSymbol.CustomModifierCount();
         }
 
         /// <summary>
@@ -214,13 +216,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            count += property.TypeCustomModifiers.Length;
-            count += property.Type.CustomModifierCount();
+            var type = property.Type;
+            count += type.CustomModifiers.Length;
+            count += type.TypeSymbol.CustomModifierCount();
 
             foreach (ParameterSymbol param in property.Parameters)
             {
-                count += param.CustomModifiers.Length;
-                count += param.Type.CustomModifierCount();
+                var paramType = param.Type;
+                count += paramType.CustomModifiers.Length;
+                count += paramType.TypeSymbol.CustomModifierCount();
             }
 
             return count;
@@ -304,10 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
-                    return ((MethodSymbol)symbol).TypeArguments;
+                    return ((MethodSymbol)symbol).TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.NamedType:
                 case SymbolKind.ErrorType:
-                    return ((NamedTypeSymbol)symbol).TypeArgumentsNoUseSiteDiagnostics;
+                    return ((NamedTypeSymbol)symbol).TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
@@ -453,38 +457,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static TypeSymbol GetTypeOrReturnType(this Symbol member)
-        {
-            TypeSymbol returnType;
-            ImmutableArray<CustomModifier> returnTypeCustomModifiers;
-            GetTypeOrReturnType(member, out returnType, out returnTypeCustomModifiers);
-            return returnType;
-        }
-
-        internal static void GetTypeOrReturnType(this Symbol member, out TypeSymbol returnType, out ImmutableArray<CustomModifier> returnTypeCustomModifiers)
+        internal static TypeSymbolWithAnnotations GetTypeOrReturnType(this Symbol member)
         {
             switch (member.Kind)
             {
                 case SymbolKind.Field:
                     FieldSymbol field = (FieldSymbol)member;
-                    returnType = field.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    break;
+                    return field.Type;
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;
-                    returnType = method.ReturnType;
-                    returnTypeCustomModifiers = method.ReturnTypeCustomModifiers;
-                    break;
+                    return method.ReturnType;
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)member;
-                    returnType = property.Type;
-                    returnTypeCustomModifiers = property.TypeCustomModifiers;
-                    break;
+                    return property.Type;
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
-                    returnType = @event.Type;
-                    returnTypeCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                    break;
+                    return @event.Type;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }

@@ -1737,7 +1737,7 @@ interface UsePia5 : ITest29
                     Assert.False(t2.HasValueTypeConstraint);
                     Assert.False(t2.HasReferenceTypeConstraint);
                     Assert.Equal(1, t2.ConstraintTypes.Length);
-                    Assert.Same(itest28, t2.ConstraintTypes[0]);
+                    Assert.Same(itest28, t2.ConstraintTypes[0].TypeSymbol);
                     Assert.Equal(VarianceKind.None, t2.Variance);
 
                     var t5 = m21.TypeParameters[2];
