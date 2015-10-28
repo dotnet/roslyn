@@ -317,11 +317,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
 
                     // See if we can cache the delegate instance
-                    if (symbolOpt != null
-                        && symbolOpt.MethodKind != MethodKind.StaticConstructor
-                        && !explicitCastInCode)
+                    if (!explicitCastInCode)
                     {
-                        _sawStaticMethodGroupConversion = true;
+                        var targetMethod = (rewrittenOperand as BoundMethodGroup)?.LookupSymbolOpt as MethodSymbol;
+                        if (targetMethod != null
+                            && targetMethod.IsStatic
+                            && targetMethod.MethodKind == MethodKind.Ordinary
+                            && symbolOpt != null
+                            && symbolOpt.MethodKind != MethodKind.StaticConstructor)
+                        {
+                            _sawMethodGroupConversionFromStaticMethod = true;
+                        }
                     }
 
                     break;
