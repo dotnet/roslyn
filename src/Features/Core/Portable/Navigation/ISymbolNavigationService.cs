@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// <param name="project">A project context with which to generate source for symbol
         /// if it has no source locations</param>
         /// <param name="symbol">The symbol to navigate to</param>
-        /// <param name="options">An set of options. If these options are not supplied the
+        /// <param name="options">A set of options. If these options are not supplied the
         /// current set of options from the project's workspace will be used.</param>
         /// <param name="cancellationToken">The token to check for cancellation</param>
         bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken));
