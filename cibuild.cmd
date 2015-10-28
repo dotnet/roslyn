@@ -7,6 +7,12 @@ set NugetZipUrl=%NuGetZipUrlRoot%/nuget.26.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
+
+REM Because override the C#/VB toolset to build against our LKG package, it is important
+REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
+REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
+set MSBuildAdditionalCommandLineArgs=/nologo /v:m /m /nodeReuse:false
+
 :ParseArguments
 if "%1" == "" goto :DoneParsing
 if /I "%1" == "/?" call :Usage && exit /b 1
@@ -46,14 +52,14 @@ if "%BuildRestore%" == "true" (
 REM Set the build version only so the assembly version is set to the semantic version,
 REM which allows analyzers to laod because the compiler has binding redirects to the
 REM semantic version
-msbuild /nologo /v:m /m /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration%
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BuildVersion=0.0.0.0 %RoslynRoot%build/Toolset.sln /p:NuGetRestorePackages=false /p:Configuration=%BuildConfiguration%
 
 mkdir %RoslynRoot%Binaries\Bootstrap
 move Binaries\%BuildConfiguration%\* %RoslynRoot%Binaries\Bootstrap
 copy build\scripts\* %RoslynRoot%Binaries\Bootstrap
 
 REM Clean the previous build
-msbuild /v:m /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
+msbuild %MSBuildAdditionalCommandLineArgs% /t:Clean build/Toolset.sln /p:Configuration=%BuildConfiguration%
 taskkill /F /IM vbcscompiler.exe
 
 if defined Perf (
@@ -66,7 +72,7 @@ nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
 nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
 nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
 
-msbuild /v:m /m /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
+msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
 if ERRORLEVEL 1 (
     taskkill /F /IM vbcscompiler.exe
     echo Build failed
