@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
         WhenKeyword = 8437,
+        MatchKeyword = 8438,
 
         // additional preprocessor keywords
         ElifKeyword = 8467,
@@ -548,5 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ShebangDirectiveTrivia = 8922,
         LoadDirectiveTrivia = 8923,
+        MatchSection = 8924,
+        MatchExpression = 8925,
     }
 }

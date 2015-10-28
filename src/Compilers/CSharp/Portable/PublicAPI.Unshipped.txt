@@ -9,6 +9,9 @@ Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CSharpCompilationOptions(
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithDeterministic(bool deterministic) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithReportSuppressedDiagnostics(bool reportSuppressedDiagnostics) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithKind(Microsoft.CodeAnalysis.SourceCodeKind kind) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
+Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo
+Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo.PreviousScriptCompilation.get -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
+Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo.WithPreviousScriptCompilation(Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation) -> Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo
 Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax.Condition.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax.Pattern.get -> Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax
@@ -19,9 +22,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax.WithCondition(Microsof
 Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax.WithKeyword(Microsoft.CodeAnalysis.SyntaxToken keyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax.WithPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax.WithWhenKeyword(Microsoft.CodeAnalysis.SyntaxToken whenKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CaseMatchLabelSyntax
-Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo
-Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo.PreviousScriptCompilation.get -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
-Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo.WithPreviousScriptCompilation(Microsoft.CodeAnalysis.CSharp.CSharpCompilation compilation) -> Microsoft.CodeAnalysis.CSharp.CSharpScriptCompilationInfo
 Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax.GetLoadDirectives() -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax>
 Microsoft.CodeAnalysis.CSharp.Syntax.ConstantPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ConstantPatternSyntax.Expression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax
@@ -75,13 +75,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax.WithParameterL
 Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax.WithReturnType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax returnType) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax.WithSemicolonToken(Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax.WithTypeParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax typeParameterList) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.ExclamationToken.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithExclamationToken(Microsoft.CodeAnalysis.SyntaxToken exclamationToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithHashToken(Microsoft.CodeAnalysis.SyntaxToken hashToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
-Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithIsActive(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.AddPatternListSubPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
@@ -97,6 +90,13 @@ Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Type.get -> Microsof
 Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.WithPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.WithType(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.ExclamationToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithEndOfDirectiveToken(Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithExclamationToken(Microsoft.CodeAnalysis.SyntaxToken exclamationToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithHashToken(Microsoft.CodeAnalysis.SyntaxToken hashToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.WithIsActive(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax.AddSubPatterns(params Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax.CloseBraceToken.get -> Microsoft.CodeAnalysis.SyntaxToken
@@ -140,9 +140,10 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.IsPatternExpression = 8657 -> Microsoft
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LoadDirectiveTrivia = 8923 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LoadKeyword = 8485 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.LocalFunctionStatement = 8830 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.ShebangDirectiveTrivia = 8922 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.MatchKeyword = 8438 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.PropertyPattern = 8554 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RecursivePattern = 8661 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.ShebangDirectiveTrivia = 8922 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubPropertyPattern = 8555 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubPropertyPatternList = 8556 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SubRecursivePattern = 8662 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
@@ -155,9 +156,9 @@ override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitDeclarationPatt
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
-override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubPropertyPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitSubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax node) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -180,16 +181,15 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.HashToke
 override Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax.IsActive.get -> bool
 override Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+override Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.EndOfDirectiveToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.HashToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 override Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.IsActive.get -> bool
-static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateScriptCompilation(string assemblyName, Microsoft.CodeAnalysis.SyntaxTree syntaxTree = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilation previousScriptCompilation = null, System.Type returnType = null, System.Type globalsType = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
-override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
-override Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
-override Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
-override Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
@@ -200,6 +200,7 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.Accept(M
 override Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
 override Microsoft.CodeAnalysis.CSharp.Syntax.WildcardPatternSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.WildcardPatternSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor) -> TResult
+static Microsoft.CodeAnalysis.CSharp.CSharpCompilation.CreateScriptCompilation(string assemblyName, Microsoft.CodeAnalysis.SyntaxTree syntaxTree = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> references = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions options = null, Microsoft.CodeAnalysis.CSharp.CSharpCompilation previousScriptCompilation = null, System.Type returnType = null, System.Type globalsType = null) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilation
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxToken token, string indentation, bool elasticTrivia) -> Microsoft.CodeAnalysis.SyntaxToken
 static Microsoft.CodeAnalysis.CSharp.SyntaxExtensions.NormalizeWhitespace(this Microsoft.CodeAnalysis.SyntaxTriviaList list, string indentation = "    ", string eol = "\r\n", bool elasticTrivia = false) -> Microsoft.CodeAnalysis.SyntaxTriviaList
@@ -217,12 +218,12 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LocalFunctionStatement(Micros
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax returnType, string identifier) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LocalFunctionStatement(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax returnType, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax typeParameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax> constraintClauses, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.LocalFunctionStatement(Microsoft.CodeAnalysis.SyntaxTokenList modifiers, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax returnType, Microsoft.CodeAnalysis.SyntaxToken identifier, Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax typeParameterList, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax> constraintClauses, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax body, Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax expressionBody, Microsoft.CodeAnalysis.SyntaxToken semicolonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.PropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type, Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternListSyntax patternList) -> Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax left, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax left, Microsoft.CodeAnalysis.SyntaxToken isKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.SubPropertyPattern(string left, Microsoft.CodeAnalysis.CSharp.Syntax.PatternSyntax pattern) -> Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax
@@ -240,9 +241,9 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitDeclarationPatter
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> void
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubPropertyPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitSubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax node) -> void
@@ -254,9 +255,9 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitDeclarat
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitIsPatternExpression(Microsoft.CodeAnalysis.CSharp.Syntax.IsPatternExpressionSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLoadDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.LoadDirectiveTriviaSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitLocalFunctionStatement(Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax node) -> TResult
-virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.PropertyPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.RecursivePatternSyntax node) -> TResult
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitShebangDirectiveTrivia(Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubPropertyPattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubPropertyPatternList(Microsoft.CodeAnalysis.CSharp.Syntax.SubPropertyPatternListSyntax node) -> TResult
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitSubRecursivePattern(Microsoft.CodeAnalysis.CSharp.Syntax.SubRecursivePatternSyntax node) -> TResult

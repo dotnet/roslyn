@@ -1598,6 +1598,35 @@
       <summary>Creates an IsPatternExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="MatchExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="MatchExpression"/>
+    <Field Name="Left" Type="ExpressionSyntax" />
+    <Field Name="MatchToken" Type="SyntaxToken">
+      <Kind Name="MatchKeyword"/>
+    </Field>>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Sections" Type="SyntaxList&lt;MatchSectionSyntax&gt;" />
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="MatchSectionSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="MatchSection" />
+    <Field Name="CaseKeyword" Type="SyntaxToken">
+      <Kind Name="CaseKeyword"/>
+    </Field>
+    <Field Name="Pattern" Type="PatternSyntax" />
+    <Field Name="WhenKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="WhenKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax" Optional="true" />
+    <Field Name="ColonToken" Type="SyntaxToken">
+      <Kind Name="ColonToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" />
+  </Node>
   <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeclarationPattern" />
