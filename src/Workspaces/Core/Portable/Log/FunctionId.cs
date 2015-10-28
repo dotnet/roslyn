@@ -313,7 +313,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         GlobalOperationRegistration,
         CommandHandler_FindAllReference,
 
-        Infobar_EnableCodefix,
-        Infobar_EnableCodefixAndIgnoreFutureErrors,
+        CodefixInfobar_Enable,
+        CodefixInfobar_EnableAndIgnoreFutureErrors,
+        CodefixInfobar_LeaveDisabled,
+        CodefixInfobar_ErrorIgnored,
     }
 }

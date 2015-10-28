@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _listener = listener;
         }
 
-        public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked)
+        public void ShowErrorInfoForCodeFix(string codefixName, Action OnEnableClicked, Action OnEnableAndIgnoreClicked, Action OnClose)
         {
             // We can be called from any thread since errors can occur anywhere, however we can only construct and InfoBar from the UI thread.
             _foregroundNotificationService.RegisterNotification(() =>
@@ -39,12 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 IVsInfoBarUIFactory factory;
                 if (_workspace.TryGetInfoBarData(out frame, out factory))
                 {
-                    CreateInfoBar(codefixName, OnEnableClicked, OnEnableAndIgnoreClicked, frame, factory);
+                    CreateInfoBar(codefixName, OnEnableClicked, OnEnableAndIgnoreClicked, OnClose, frame, factory);
                 }
             }, _listener.BeginAsyncOperation("Show InfoBar"));
         }
 
-        private void CreateInfoBar(string name, Action onEnableClicked, Action onEnableAndIgnoreClicked, IVsWindowFrame frame, IVsInfoBarUIFactory factory)
+        private void CreateInfoBar(string name, Action onEnableClicked, Action onEnableAndIgnoreClicked, Action onClose, IVsWindowFrame frame, IVsInfoBarUIFactory factory)
         {
             object unknown;
             if (frame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out unknown) == VSConstants.S_OK)
@@ -70,6 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     uint? infoBarCookie = null;
                     InfoBarEvents eventSink = new InfoBarEvents(onEnableClicked, onEnableAndIgnoreClicked, () =>
                     {
+                        onClose();
                         if (infoBarCookie.HasValue)
                         {
                             infoBarUI.Unadvise(infoBarCookie.Value);

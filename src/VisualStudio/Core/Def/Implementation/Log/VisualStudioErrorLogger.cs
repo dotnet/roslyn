@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Watson;
 using Microsoft.VisualStudio.Shell;
-using static Microsoft.CodeAnalysis.RoslynAssemblyAttributeHelper;
+using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;
 
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Log
             return watsonReportResult && activityLogResult;
         }
 
-        private bool ShouldReportCrashDumps(object source) => HasRoslynAssemblyAttribute(source);
+        private bool ShouldReportCrashDumps(object source) => HasRoslynPublicKey(source);
 
         private static string ToLogFormat(Exception exception)
         {

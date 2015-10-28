@@ -1,1 +1,0 @@
-﻿[assembly: Microsoft.CodeAnalysis.RoslynAssembly()]

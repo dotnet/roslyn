@@ -5,18 +5,18 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using static Microsoft.CodeAnalysis.Internal.Log.Logger;
 using static Microsoft.CodeAnalysis.Internal.Log.FunctionId;
-using static Microsoft.CodeAnalysis.RoslynAssemblyAttributeHelper;
+using static Microsoft.CodeAnalysis.Internal.Log.Logger;
+using static Microsoft.CodeAnalysis.RoslynAssemblyHelper;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -71,7 +71,19 @@ namespace Microsoft.CodeAnalysis.Editor
                         _errorReportingService?.ShowErrorInfoForCodeFix(
                             provider.GetType().Name,
                             () => { EnableProvider(provider); LogEnableProvider(provider); },
-                            () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); });
+                            () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); },
+                            () => LogLeaveDisabled(provider));
+                    }
+                    else
+                    {
+                        if (IsRoslynCodefix(provider))
+                        {
+                            Log(CodefixInfobar_ErrorIgnored, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
+                        }
+                        else
+                        {
+                            Log(CodefixInfobar_ErrorIgnored);
+                        }
                     }
                 }
                 else
@@ -87,15 +99,27 @@ namespace Microsoft.CodeAnalysis.Editor
                 _errorLoggerService?.LogException(provider, exception);
             }
 
+            private void LogLeaveDisabled(object provider)
+            {
+                if (IsRoslynCodefix(provider))
+                {
+                    Log(CodefixInfobar_LeaveDisabled, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
+                }
+                else
+                {
+                    Log(CodefixInfobar_LeaveDisabled);
+                }
+            }
+
             private void LogEnableAndIgnoreProvider(object provider)
             {
                 if (IsRoslynCodefix(provider))
                 {
-                    Log(Infobar_EnableCodefixAndIgnoreFutureErrors, provider.GetType().Name);
+                    Log(CodefixInfobar_EnableAndIgnoreFutureErrors, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
                 }
                 else
                 {
-                    Log(Infobar_EnableCodefixAndIgnoreFutureErrors);
+                    Log(CodefixInfobar_EnableAndIgnoreFutureErrors);
                 }
             }
 
@@ -103,15 +127,15 @@ namespace Microsoft.CodeAnalysis.Editor
             {
                 if (IsRoslynCodefix(provider))
                 {
-                    Log(Infobar_EnableCodefix, provider.GetType().Name);
+                    Log(CodefixInfobar_Enable, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
                 }
                 else
                 {
-                    Log(Infobar_EnableCodefix);
+                    Log(CodefixInfobar_Enable);
                 }
             }
 
-            private bool IsRoslynCodefix(object source) => HasRoslynAssemblyAttribute(source);
+            private bool IsRoslynCodefix(object source) => HasRoslynPublicKey(source);
         }
     }
 }
