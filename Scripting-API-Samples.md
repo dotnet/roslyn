@@ -47,13 +47,13 @@ catch (CompilationErrorException e)
 ### <a name="addref"></a>Add references
 ```csharp
 var result = await CSharpScript.EvaluateAsync("MyLib.DoStuff()", 
-                         ScriptOptions.Default.WithReferences(typeof(Lib).Assembly));
+     ScriptOptions.Default.WithReferences(typeof(Lib).Assembly));
 ```
 
 ### <a name="addimports"></a>Add imports
 ```csharp
 var result = await CSharpScript.EvaluateAsync("Sqrt(2)", 
-                ScriptOptions.Default.WithImports("System.Math"));
+     ScriptOptions.Default.WithImports("System.Math"));
 ```
 
 ### <a name="parameter"></a>Parameterize a script
