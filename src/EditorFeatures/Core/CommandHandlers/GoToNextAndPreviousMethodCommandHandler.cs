@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -103,83 +106,61 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var members = syntaxFactsService.GetMethodLevelMembers(root);
-
             if (members.Count == 0)
             {
                 return null;
             }
 
-            var currentMember = GetMember(syntaxFactsService, caretPosition, root);
-            int indexOfCurrentMember;
-            if (currentMember == null)
+            var spans = members.Select(m => m.Span).ToArray();
+            var index = Array.BinarySearch(spans, new TextSpan(caretPosition, 0), PositionToTextSpanComparer.Instance);
+            if (index >= 0)
             {
-                // We're not contained in any member currently.  Find the first member to start after our
-                // position and use that.
-                for (indexOfCurrentMember = 0; indexOfCurrentMember < members.Count; indexOfCurrentMember++)
-                {
-                    if (members[indexOfCurrentMember].FullSpan.Start > caretPosition)
-                    {
-                        break;
-                    }
-                }
-
-                if (indexOfCurrentMember == members.Count)
-                {
-                    // After the last member, count ourselves as part of that last member, so that we wrap
-                    // to the first, or back to the beginning of last.
-                    indexOfCurrentMember--;
-                }
-
-                currentMember = members[indexOfCurrentMember];
+                // We're actually contained in a member, go to the next or previous.
+                index = next ? index + 1 : index - 1;
             }
             else
             {
-                indexOfCurrentMember = members.IndexOf(currentMember);
-                if (indexOfCurrentMember < 0)
-                {
-                    Debug.Fail("Couldn't find current member in members?");
-                    return null;
-                }
+                // We're in between to members, ~index gives us the member we're before, so we'll just
+                // advance to the start of it
+                index = next ? ~index : ~index - 1;
             }
 
-            if (next)
+            // Wrap if necessary
+            if (index >= members.Count)
             {
-                // If we're in leading trivia, we just want to go to the start of this member.
-                if (caretPosition >= currentMember.Span.Start)
-                {
-                    indexOfCurrentMember++;
-                    if (indexOfCurrentMember == members.Count)
-                    {
-                        indexOfCurrentMember = 0;
-                    }
-                }
+                index = 0;
             }
-            else
+            else if (index < 0)
             {
-                // If we're in trailing trivia, we just want to go to the start of this member.
-                if (caretPosition <= currentMember.Span.End)
-                {
-                    indexOfCurrentMember--;
-                    if (indexOfCurrentMember < 0)
-                    {
-                        indexOfCurrentMember = members.Count - 1;
-                    }
-                }
+                index = members.Count - 1;
             }
 
             // TODO: Better position within the node (e.g. attributes?)
-            return members[indexOfCurrentMember].Span.Start;
+            return members[index].Span.Start;
         }
 
-        private static SyntaxNode GetMember(ISyntaxFactsService syntaxFactService, int position, SyntaxNode root)
+        /// <summary>
+        /// A custom comparer that returns true if two <see cref="TextSpan"/>'s intersect, and otherwise
+        /// compares by <see cref="TextSpan.Start"/>.
+        /// </summary>
+        private class PositionToTextSpanComparer : IComparer
         {
-            var node = root.FindToken(position).Parent;
-            while (node != null && !syntaxFactService.IsMethodLevelMember(node))
-            {
-                node = node.Parent;
-            }
+            public static IComparer Instance { get; } = new PositionToTextSpanComparer();
 
-            return node;
+            private PositionToTextSpanComparer() { }
+
+            int IComparer.Compare(object x, object y)
+            {
+                var left = (TextSpan)x;
+                var right = (TextSpan)y;
+
+                if (left.IntersectsWith(right))
+                {
+                    return 0;
+                }
+
+                return left.Start - right.Start;
+            }
         }
     }
 }
