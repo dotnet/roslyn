@@ -261,7 +261,7 @@ System.Diagnostics.Process.GetCurrentProcess()
 
                 // we shouldn't throw while compiling:
                 var script = CSharpScript.Create("new S1()", options);
-                script.Build();
+                script.Compile();
 
                 Assert.Throws<TypeLoadException>(() => script.EvaluateAsync().GetAwaiter().GetResult());
             }
