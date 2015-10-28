@@ -127,6 +127,7 @@ namespace Roslyn.Test.Utilities
             public const string TypeInferenceService = "TypeInferenceService";
             public const string Venus = "Venus";
             public const string VsLanguageBlock = "VsLanguageBlock";
+            public const string VsNavInfo = "VsNavInfo";
             public const string XmlTagCompletion = "XmlTagCompletion";
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
             public const string CodeActionsAddNew = "CodeActions.AddNew";

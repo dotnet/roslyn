@@ -364,6 +364,7 @@
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
+    <Compile Include="VsNavInfo\VsNavInfoTests.vb" />
     <Compile Include="ObjectBrowser\AbstractObjectBrowserTests.vb" />
     <Compile Include="ObjectBrowser\CSharp\ObjectBrowerTests.vb" />
     <Compile Include="ObjectBrowser\Helpers.vb" />
