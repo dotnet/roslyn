@@ -314,6 +314,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(constantValueOpt == null);
                     return _dynamicFactory.MakeDynamicConversion(rewrittenOperand, explicitCastInCode || conversionKind == ConversionKind.ExplicitDynamic, isArrayIndex, @checked, rewrittenType).ToExpression();
 
+                case ConversionKind.MethodGroup:
+
+                    // See if we can cache the delegate instance
+                    if (symbolOpt != null
+                        && symbolOpt.MethodKind != MethodKind.StaticConstructor
+                        && !explicitCastInCode)
+                    {
+                        _sawStaticMethodGroupConversion = true;
+                    }
+
+                    break;
+
                 default:
                     break;
             }
