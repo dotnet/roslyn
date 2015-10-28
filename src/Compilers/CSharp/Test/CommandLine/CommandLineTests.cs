@@ -92,6 +92,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         }
 
         [Fact]
+        public void RunWithShiftJisFile()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("sjis.cs").WriteAllBytes(TestResources.General.ShiftJisSource);
+
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "/codepage:932", src.Path });
+
+            Assert.Equal(932, cmd.Arguments.Encoding?.WindowsCodePage);
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var result = ProcessUtilities.Run(Path.Combine(dir.Path, "sjis.exe"), arguments: "", workingDirectory: dir.Path);
+            Assert.Equal(0, result.ExitCode);
+            Assert.Equal("星野 八郎太", File.ReadAllText(Path.Combine(dir.Path, "output.txt"), Encoding.GetEncoding(932)));
+        }
+
+        [Fact]
         [WorkItem(946954)]
         public void CompilerBinariesAreAnyCPU()
         {
