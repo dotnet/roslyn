@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                    (operationContext) =>
                                    {
                                        IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                                       AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value.ResultType);
+                                       AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
                                    },
                                    OperationKind.AssignmentExpression,
                                    OperationKind.CompoundAssignmentExpression,
@@ -91,10 +91,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                         foreach (IVariable variable in declaration.Variables)
                                         {
                                             ILocalSymbol local = variable.Variable;
-                                            var localType = local.Type;
                                             if (variable.InitialValue != null)
                                             {
-                                                AssignTo(local, localType, localsSourceTypes, variable.InitialValue.ResultType);
+                                                AssignTo(local, local.Type, localsSourceTypes, variable.InitialValue);
                                             }
                                         }
                                     },
@@ -199,6 +198,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
             return false;
         }
 
+        static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, IExpression sourceValue)
+        {
+            AssignTo(target, localsSourceTypes, fieldsSourceTypes, OriginalType(sourceValue));
+        }
+
         static void AssignTo(IExpression target, Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes, Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes, ITypeSymbol sourceType)
         {
             OperationKind targetKind = target.Kind;
@@ -212,6 +216,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 IFieldSymbol targetField = ((IFieldReferenceExpression)target).Field;
                 AssignTo(targetField, targetField.Type, fieldsSourceTypes, sourceType);
             }
+        }
+
+        static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, IExpression sourceValue)
+        {
+            AssignTo(target, targetType, sourceTypes, OriginalType(sourceValue));
         }
 
         static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, ITypeSymbol sourceType)
@@ -232,6 +241,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 
                 symbolSourceTypes.Add((INamedTypeSymbol)sourceType);
             }
+        }
+
+        static ITypeSymbol OriginalType (IExpression value)
+        {
+            if (value.Kind == OperationKind.ConversionExpression)
+            {
+                IConversionExpression conversion = (IConversionExpression)value;
+                if (!conversion.IsExplicit)
+                {
+                    return conversion.Operand.ResultType;
+                }
+            }
+
+            return value.ResultType;
         }
 
         void Report(OperationBlockAnalysisContext context, ILocalSymbol local, ITypeSymbol moreSpecificType, DiagnosticDescriptor descriptor)

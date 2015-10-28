@@ -449,8 +449,8 @@ class C
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CouldHaveMoreSpecificTypeAnalyzer() }, null, null, false,
-                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "a").WithLocation(13, 13),
-                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "b").WithLocation(14, 16)
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "a").WithArguments("a", "C.Middle").WithLocation(6, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "b").WithArguments("b", "C.Value").WithLocation(7, 16)
                 );
         }
     }
