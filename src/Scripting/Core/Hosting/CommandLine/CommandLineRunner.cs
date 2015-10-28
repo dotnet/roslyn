@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, CancellationToken cancellationToken)
         {
-            var diagnostics = newScript.Build(cancellationToken);
+            var diagnostics = newScript.Compile(cancellationToken);
             DisplayDiagnostics(diagnostics);
             if (diagnostics.HasAnyErrors())
             {

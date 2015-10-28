@@ -290,6 +290,10 @@ readonly var y = 2;
 const int z = 3;
 ");
 
+            Assert.False(state.GetVariable("x").IsReadOnly);
+            Assert.True(state.GetVariable("y").IsReadOnly);
+            Assert.True(state.GetVariable("z").IsReadOnly);
+
             Assert.Throws<ArgumentException>(() => state.GetVariable("x").Value = "str");
             Assert.Throws<InvalidOperationException>(() => state.GetVariable("y").Value = "str");
             Assert.Throws<InvalidOperationException>(() => state.GetVariable("z").Value = "str");
