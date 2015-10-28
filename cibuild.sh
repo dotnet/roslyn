@@ -58,7 +58,7 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.24.zip"
+    local package_name="nuget.stabilization.25.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
