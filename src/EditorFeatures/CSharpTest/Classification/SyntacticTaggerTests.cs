@@ -8,6 +8,11 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Collections.Generic;
+using System;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -33,7 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                     workspace.GetService<IForegroundNotificationService>(),
                     AggregateAsynchronousOperationListener.CreateEmptyListener(),
                     null,
-                    new SyntacticClassificationTaggerProvider(null, null, null));
+                    new SyntacticClassificationTaggerProvider(
+                        null, 
+                        null, 
+                        ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>>.Empty,
+                        ImmutableArray<Lazy<IAsynchronousOperationListener, FeatureMetadata>>.Empty,
+                        ImmutableArray<Lazy<ILanguageService, ContentTypeLanguageMetadata>>.Empty),
+                    null, 
+                    null);
 
                 SnapshotSpan span = default(SnapshotSpan);
                 tagComputer.TagsChanged += (s, e) =>

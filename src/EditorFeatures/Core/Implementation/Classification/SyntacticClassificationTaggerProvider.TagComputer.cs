@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -9,8 +10,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -63,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly IForegroundNotificationService _notificationService;
             private readonly ClassificationTypeMap _typeMap;
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
+            private readonly IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> _editorClassificationLanguageServices;
+            private readonly IEnumerable<Lazy<ILanguageService, ContentTypeLanguageMetadata>> _contentTypesToLanguageNames;
 
             private int _taggerReferenceCount;
 
@@ -71,13 +75,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 IForegroundNotificationService notificationService,
                 IAsynchronousOperationListener asyncListener,
                 ClassificationTypeMap typeMap,
-                SyntacticClassificationTaggerProvider taggerProvider)
+                SyntacticClassificationTaggerProvider taggerProvider,
+                IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> editorClassificationLanguageServices,
+                IEnumerable<Lazy<ILanguageService, ContentTypeLanguageMetadata>> contentTypesToLanguageNames)
             {
                 _subjectBuffer = subjectBuffer;
                 _notificationService = notificationService;
                 _listener = asyncListener;
                 _typeMap = typeMap;
                 _taggerProvider = taggerProvider;
+                _editorClassificationLanguageServices = editorClassificationLanguageServices;
+                _contentTypesToLanguageNames = contentTypesToLanguageNames;
 
                 _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
                 _reportChangeCancellationSource = new CancellationTokenSource();
@@ -87,10 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
                 _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
 
-                if (_workspaceRegistration.Workspace != null)
-                {
-                    ConnectToWorkspace(_workspaceRegistration.Workspace);
-                }
+                ConnectToWorkspace(_workspaceRegistration.Workspace);
             }
 
             private void OnWorkspaceRegistrationChanged(object sender, EventArgs e)
@@ -135,21 +140,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 ResetLastParsedDocument();
 
                 _workspace = workspace;
-                _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-                _workspace.DocumentOpened += this.OnDocumentOpened;
-                _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
 
-                var textContainer = _subjectBuffer.AsTextContainer();
-
-                var documentId = _workspace.GetDocumentIdInCurrentContext(textContainer);
-                if (documentId != null)
+                if (_workspace != null)
                 {
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    if (document != null)
+                    _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+                    _workspace.DocumentOpened += this.OnDocumentOpened;
+                    _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
+
+                    var textContainer = _subjectBuffer.AsTextContainer();
+
+                    var documentId = _workspace.GetDocumentIdInCurrentContext(textContainer);
+                    if (documentId != null)
                     {
-                        EnqueueParseSnapshotTask(document);
+                        var document = workspace.CurrentSolution.GetDocument(documentId);
+                        if (document != null)
+                        {
+                            EnqueueParseSnapshotTask(document);
+                            return;
+                        }
                     }
                 }
+
+                EnqueueParseSnapshotTask(null);
             }
 
             public void DisconnectFromWorkspace()
@@ -161,17 +173,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
 
                     _workspace = null;
-
-                    ResetLastParsedDocument();
                 }
+
+                ResetLastParsedDocument();
             }
 
             private void EnqueueParseSnapshotTask(Document newDocument)
             {
-                if (newDocument != null)
-                {
-                    _workQueue.EnqueueBackgroundTask(c => this.EnqueueParseSnapshotWorkerAsync(newDocument, c), GetType() + ".EnqueueParseSnapshotTask.1", CancellationToken.None);
-                }
+                _workQueue.EnqueueBackgroundTask(
+                    c => this.EnqueueParseSnapshotWorkerAsync(newDocument, c),
+                    GetType() + ".EnqueueParseSnapshotTask.1",
+                    CancellationToken.None);
             }
 
             private async Task EnqueueParseSnapshotWorkerAsync(Document document, CancellationToken cancellationToken)
@@ -179,18 +191,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // we will enqueue new one soon, cancel pending refresh right away
                 _reportChangeCancellationSource.Cancel();
 
-                var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var snapshot = newText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot == null)
+                ITextSnapshot snapshot;
+                if (document != null)
                 {
-                    // It's possible that we're seeing a notification for an update that happened
-                    // just before the file was opened, and so the document we're given is still the
-                    // old one.
-                    return;
+                    var newText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    snapshot = newText.FindCorrespondingEditorTextSnapshot();
+                    if (snapshot == null)
+                    {
+                        // It's possible that we're seeing a notification for an update that happened
+                        // just before the file was opened, and so the document we're given is still the
+                        // old one.
+                        return;
+                    }
+
+                    // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
+                    var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    // This buffer isn't being tracked by the workspace. In Visual Studio, this
+                    // can happen if it is not in the Running Document Table. We'll try to do
+                    // basic syntax classification anyway.
+
+                    snapshot = _subjectBuffer.CurrentSnapshot;
+
+                    var languageName = _contentTypesToLanguageNames.FirstOrDefault(x => _subjectBuffer.ContentType.MatchesAny(x.Metadata.DefaultContentType))?.Metadata.Language;
+                    if (languageName != null)
+                    {
+                        var workspace = new AdhocWorkspace();
+                        var solution = workspace.CreateSolution(SolutionId.CreateNewId());
+                        var project = solution.AddProject("Temp", "Temp", languageName);
+                        document = project.AddDocument("Temp", snapshot.AsText());
+                    }
                 }
 
-                // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 lock (_gate)
                 {
                     _lastParsedSnapshot = snapshot;
@@ -233,26 +267,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
                 {
-                    if (spans.Count > 0 && _workspace != null)
+                    var languageName = _contentTypesToLanguageNames.FirstOrDefault(x => _subjectBuffer.ContentType.MatchesAny(x.Metadata.DefaultContentType))?.Metadata.Language;
+                    var classificationService = _editorClassificationLanguageServices.FirstOrDefault(x => x.Metadata.Language == languageName);
+
+                    if (classificationService != null && spans.Count > 0)
                     {
-                        var firstSpan = spans[0];
-                        var languageServices = _workspace.Services.GetLanguageServices(firstSpan.Snapshot.ContentType);
-                        if (languageServices != null)
+                        var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+
+                        foreach (var span in spans)
                         {
-                            var classificationService = languageServices.GetService<IEditorClassificationService>();
-
-                            if (classificationService != null)
-                            {
-                                var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-
-                                foreach (var span in spans)
-                                {
-                                    AddClassifiedSpans(classificationService, span, classifiedSpans);
-                                }
-
-                                return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
-                            }
+                            AddClassifiedSpans((IEditorClassificationService)classificationService.Value, span, classifiedSpans);
                         }
+
+                        return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
                     }
 
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
