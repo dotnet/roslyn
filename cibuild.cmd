@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.26.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.27.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -40,11 +40,7 @@ call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\VsDevCmd
 
 REM Restore the NuGet packages 
 if "%BuildRestore%" == "true" (
-    nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/ToolsetPackages/project.json
-    nuget.exe restore -nocache -verbosity quiet %RoslynRoot%build/Toolset.sln
-    nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
-    nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
-    nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
+    call "%RoslynRoot%\Restore.cmd"
 ) else (
     powershell -noprofile -executionPolicy RemoteSigned -command "%RoslynRoot%\build\scripts\restore.ps1 %NugetZipUrl%"
 )
@@ -67,10 +63,6 @@ if defined Perf (
 ) else (
   set Target=BuildAndTest
 )
-
-nuget.exe restore -nocache %RoslynRoot%build\ToolsetPackages\project.json
-nuget.exe restore -nocache %RoslynRoot%Roslyn.sln
-nuget.exe restore -nocache %RoslynRoot%src\Samples\Samples.sln
 
 msbuild %MSBuildAdditionalCommandLineArgs% /p:BootstrapBuildPath=%RoslynRoot%Binaries\Bootstrap BuildAndTest.proj /t:%Target% /p:Configuration=%BuildConfiguration% /p:Test64=%Test64%
 if ERRORLEVEL 1 (
