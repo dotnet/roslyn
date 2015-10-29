@@ -188,17 +188,33 @@ namespace Microsoft.CodeAnalysis
             return string.Empty;
         }
 
-        protected ImmutableArray<KeyValuePair<string, string>> ParsePathMap(string pathMap)
+        protected ImmutableArray<KeyValuePair<string, string>> ParsePathMap(string pathMap, IList<Diagnostic> errors)
         {
             var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance();
+            if (pathMap.IsEmpty())
+            {
+                return pathMapBuilder.ToImmutableAndFree();
+            }
+
             foreach (var kEqualsV in pathMap.Split(','))
             {
                 var kv = kEqualsV.Split('=');
-                if (kv.Length != 2) continue;
+                if (kv.Length != 2)
+                {
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                    continue;
+                }
                 var from = PathUtilities.TrimTrailingSeparators(kv[0]);
                 var to = PathUtilities.TrimTrailingSeparators(kv[1]);
-                if (from.Length == 0 || to.Length == 0) continue;
-                pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
+
+                if (from.Length == 0 || (to.Length == 0 && kv[1] != "/"))
+                {
+                    errors.Add(Diagnostic.Create(_messageProvider, _messageProvider.ERR_InvalidPathMap, kEqualsV));
+                }
+                else
+                {
+                    pathMapBuilder.Add(new KeyValuePair<string, string>(from, to));
+                }
             }
 
             return pathMapBuilder.ToImmutableAndFree();

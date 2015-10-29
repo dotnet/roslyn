@@ -7927,12 +7927,20 @@ class C {
             Assert.Equal(KeyValuePair.Create("K2", "V2"), parsedArgs.PathMap[1]);
 
             parsedArgs = DefaultParse(new [] { "/pathmap:,,,", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(0, parsedArgs.PathMap.Length);
+            Assert.Equal(4, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[2].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[3].Code);
 
             parsedArgs = DefaultParse(new [] { "/pathmap:k=,=v", "a.cs" }, _baseDirectory);
-            parsedArgs.Errors.Verify();
-            Assert.Equal(0, parsedArgs.PathMap.Length);
+            Assert.Equal(2, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[1].Code);
+
+            parsedArgs = DefaultParse(new [] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
+            Assert.Equal(1, parsedArgs.Errors.Count());
+            Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
         }
     }
 
