@@ -62,19 +62,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 // If span is not found in _span, BinarySearch returns a negative number that is the 
                 // bitwise complement of the index of the next span with larger starting index, or if
-                // there is no such span, the bitwise complement of _span.Count.
-
-                // Try get next span in _span with larger starting index, in case the span starts 
-                // before the first one in _span, e.g. span starts within the logo of interactive window.
-                // If there's truly no overlap, then the for-loop will stop before first iteration.
+                // there is no such span, the bitwise complement of _span.Count.   
+                
+                // Try get the span before the one with next larger starting index on in the list,
+                // unless the first span is the next larger one, then we just get the first one. 
                 if (startIndex < 0)
                 {
                     startIndex = ~startIndex;
                 }
-
-                // It still possible that the it overlaps with last span in _span,
-                // so we will only check the last one.
-                if (startIndex == count)
+                                                       
+                if (startIndex > 0)
                 {
                     startIndex = startIndex - 1;
                 }
