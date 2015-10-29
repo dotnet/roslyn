@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value == null)
                                     break;
 
-                                pathMap = pathMap.Concat(ParsePathMap(value));
+                                pathMap = pathMap.Concat(ParsePathMap(value, diagnostics));
                             }
                             continue;
 

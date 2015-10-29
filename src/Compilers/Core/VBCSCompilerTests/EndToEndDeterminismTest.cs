@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <param name="source"> The source code for the program that will be compiled </param>
         /// <param name="additionalFlags"> A string containing any additional compiler flags </param>
         /// <returns> An array of bytes that were read from the compiled DLL</returns>
-        private byte[] CompileAndGetBytes(string source, string additionalFlags)
+        private byte[] CompileAndGetBytes(string source, string additionalFlags, out string finalFlags)
         {
             var tempRoot = new TempRoot();
 
@@ -27,12 +27,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var tempDir = tempRoot.CreateDirectory();
             var srcFile = tempDir.CreateFile("test.cs").WriteAllText(source).Path;
             var outFile = srcFile.Replace("test.cs", "test.dll");
+
+            finalFlags = $"{ _flags } { additionalFlags } /pathmap:{tempDir.Path}=/";
             try
             {
                 var errorsFile = srcFile + ".errors";
 
                 // Compile
-                var result = ProcessUtilities.Run("cmd", $"/C {CompilerServerUnitTests.s_csharpCompilerExecutableSrc} { _flags } { additionalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
+                var result = ProcessUtilities.Run("cmd", $"/C {CompilerServerUnitTests.s_csharpCompilerExecutableSrc} { finalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
                 if (result.ExitCode != 0)
                 {
                     var errors = File.ReadAllText(errorsFile);
@@ -58,14 +60,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <param name="additionalFlags"> A string containing any additional compiler flags </param>
         private void RunDeterministicTest(string source, string additionalFlags = "")
         {
-            var first = CompileAndGetBytes(source, additionalFlags);
-            var second = CompileAndGetBytes(source, additionalFlags);
+            string finalFlags1;
+            string finalFlags2;
+
+            var first = CompileAndGetBytes(source, additionalFlags, out finalFlags1);
+            var second = CompileAndGetBytes(source, additionalFlags, out finalFlags2);
             Assert.Equal(first.Length, second.Length);
             for (int i = 0; i < first.Length; i++)
             {
                 if (first[i] != second[i])
                 {
-                    AssertEx.Fail($"Bytes were different at position { i } ({ first[i] } vs { second[i] }).  Flags used were '{ _flags } { additionalFlags }'");
+                    AssertEx.Fail($"Bytes were different at position { i } ({ first[i] } vs { second[i] }).  Flags used were (\"{ finalFlags1 }\" vs \"{ finalFlags2 }\")");
                 }
             }
         }
@@ -85,8 +90,7 @@ class Hello
             RunDeterministicTest(source);
         }
 
-        // Waiting on PathMap support
-        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/6008")]
+        [Fact]
         public void CallerInfo()
         {
             var source = @"using System;
