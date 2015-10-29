@@ -504,6 +504,9 @@ Keyboard shortcuts:
   DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
 REPL commands:
   #help         Display help on available commands and key bindings.
+Script directives:
+  #r            Add a metadata reference to specified assembly and all its dependencies, e.g. #r ""myLib.dll"".
+  #load         Load specified script file and execute it, e.g. #load ""myScript.csx"".
 > ", runner.Console.Out.ToString());
         }
     }

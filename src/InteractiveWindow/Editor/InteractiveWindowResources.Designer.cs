@@ -10,6 +10,7 @@
 
 namespace Microsoft.VisualStudio.InteractiveWindow {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -111,6 +112,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string CommandNamePlaceholder {
             get {
                 return ResourceManager.GetString("CommandNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Script directives:.
+        /// </summary>
+        internal static string CSVBScriptDirectives {
+            get {
+                return ResourceManager.GetString("CSVBScriptDirectives", resourceCulture);
             }
         }
         
@@ -295,7 +305,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add a metadata reference to specified assembly, e.g. #r &quot;myLib.dll&quot;..
+        ///   Looks up a localized string similar to Add a metadata reference to specified assembly and all its dependencies, e.g. #r &quot;myLib.dll&quot;..
         /// </summary>
         internal static string RefHelp {
             get {
@@ -345,15 +355,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string ResetCommandParametersDescription {
             get {
                 return ResourceManager.GetString("ResetCommandParametersDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Script directives:.
-        /// </summary>
-        internal static string ScriptDirectives {
-            get {
-                return ResourceManager.GetString("ScriptDirectives", resourceCulture);
             }
         }
         

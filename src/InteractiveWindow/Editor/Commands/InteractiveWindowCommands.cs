@@ -53,7 +53,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                     {
                         length += _commandSeparator.Length;
                     }
-                    length += name.Length;
+                    // plus the length of `#` for display purpose
+                    length += name.Length + 1;
 
                     commandsDict[name] = command;
                 }
@@ -167,7 +168,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
         {
             string format = "{0,-" + _maxCommandNameLength + "}  {1}";
             return _commands.GroupBy(entry => entry.Value).
-                Select(group => string.Format(format, string.Join(_commandSeparator, group.Key.Names), group.Key.Description)).
+                Select(group => string.Format(format, string.Join(_commandSeparator, group.Key.Names.Select(s => "#" + s)), group.Key.Description)).
                 OrderBy(line => line);
         }
 
@@ -256,10 +257,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 "Ctrl-A               " + InteractiveWindowResources.CtrlAHelp,
         };
 
-        private static readonly string[] s_scriptDirectives = new[]
+        private static readonly string[] s_CSVBScriptDirectives = new[]
         {
-"r                    " + InteractiveWindowResources.RefHelp,
-"load                 " + InteractiveWindowResources.LoadHelp
+"#r                   " + InteractiveWindowResources.RefHelp,
+"#load                " + InteractiveWindowResources.LoadHelp
         };
 
         public void DisplayHelp()
@@ -278,11 +279,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
                 _window.WriteLine(line);
             }
 
-            _window.WriteLine(InteractiveWindowResources.ScriptDirectives);
-            foreach (var line in s_scriptDirectives)
+            // Hack: Display script directives only in CS/VB interactive window
+            // TODO: https://github.com/dotnet/roslyn/issues/6441
+            var evaluatorTypeName = _window.Evaluator.GetType().Name;
+            if (evaluatorTypeName == "CSharpInteractiveEvaluator" ||
+                evaluatorTypeName == "VisualBasicInteractiveEvaluator")
             {
-                _window.Write(HelpIndent);
-                _window.WriteLine(line);
+                _window.WriteLine(InteractiveWindowResources.CSVBScriptDirectives);
+                foreach (var line in s_CSVBScriptDirectives)
+                {
+                    _window.Write(HelpIndent);
+                    _window.WriteLine(line);
+                }
             }
         }
 
