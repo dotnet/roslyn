@@ -44,9 +44,16 @@
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
+    <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
+    <Compile Include="Implementation\Library\ILibraryService.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\Extensions.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfo.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfoFactory.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfoNode.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
@@ -108,6 +115,8 @@
     <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="RoslynPackage.cs" />
@@ -487,7 +496,6 @@
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.LinkFlags.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_Description.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_NavInfo.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_Search.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Helpers.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\FolderListItem.cs" />
@@ -498,10 +506,6 @@
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\ReferenceListItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\SymbolListItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\TypeListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\EnumNavInfoNodes.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\NavInfo.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\NavInfoList.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\NavInfoNode.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectList.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectListItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectListKind.cs" />

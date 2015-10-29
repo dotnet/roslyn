@@ -2,39 +2,36 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.NavInfos
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo
 {
     internal class NavInfoNode : IVsNavInfoNode
     {
-        private readonly string _name;
-        private readonly uint _listType;
+        public string Name { get; }
+        public _LIB_LISTTYPE ListType { get; }
 
         public NavInfoNode(string name, uint listType)
         {
-            _name = name;
-            _listType = listType;
+            Name = name;
+            ListType = (_LIB_LISTTYPE)listType;
         }
 
-        public string Name
+        public NavInfoNode(string name, _LIB_LISTTYPE listType)
         {
-            get { return _name; }
-        }
-
-        public uint ListType
-        {
-            get { return _listType; }
+            Name = name;
+            ListType = listType;
         }
 
         int IVsNavInfoNode.get_Name(out string pbstrName)
         {
-            pbstrName = _name;
+            pbstrName = Name;
             return VSConstants.S_OK;
         }
 
         int IVsNavInfoNode.get_Type(out uint pllt)
         {
-            pllt = _listType;
+            pllt = (uint)ListType;
             return VSConstants.S_OK;
         }
     }
+
 }

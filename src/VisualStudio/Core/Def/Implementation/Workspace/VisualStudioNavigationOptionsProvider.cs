@@ -6,17 +6,14 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Completion
+namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportOptionProvider, Shared]
-    internal class CompletionOptionsProvider : IOptionProvider
+    internal class VisualStudioNavigationOptionsProvider : IOptionProvider
     {
         private readonly IEnumerable<IOption> _options = new List<IOption>
             {
-                CompletionOptions.HideAdvancedMembers,
-                CompletionOptions.IncludeKeywords,
-                CompletionOptions.TriggerOnTyping,
-                CompletionOptions.TriggerOnTypingLetters
+                VisualStudioNavigationOptions.NavigateToObjectBrowser
             }.ToImmutableArray();
 
         public IEnumerable<IOption> GetOptions()
