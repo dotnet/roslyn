@@ -421,36 +421,193 @@ class C
     {
         object a = new Middle();
         object b = new Value(10);
+        object c = new Middle();
+        c = new Base();
+        Base d = new Derived();
+        Base e = new Derived();
+        e = new Middle();
+        Base f = new Middle();
+        f = new Base();
+        object g = new Derived();
+        g = new Base();
+        g = new Middle();
+        var h = new Middle();
+        h = new Derived();
+        object i = 3;
+        object j;
+        j = 10;
+        j = 10.1;
+        Middle k = new Derived();
+        Middle l = new Derived();
+        object o = new Middle();
+        M(out l, ref o);
+
+        IBase1 ibase1 = null;
+        IBase2 ibase2 = null;
+        IMiddle imiddle = null;
+        IDerived iderived = null;
+
+        object ia = imiddle;
+        object ic = imiddle;
+        ic = ibase1;
+        IBase1 id = iderived;
+        IBase1 ie = iderived;
+        ie = imiddle;
+        IBase1 iff = imiddle;
+        iff = ibase1;
+        object ig = iderived;
+        ig = ibase1;
+        ig = imiddle;
+        var ih = imiddle;
+        ih = iderived;
+        IMiddle ik = iderived;
+        IMiddle il = iderived;
+        object io = imiddle;
+        IM(out il, ref io);
+        IBase2 im = iderived;
+        object isink = ibase2;
+        isink = 3;
     }
 
-    class Base
+    object fa = new Middle();
+    object fb = new Value(10);
+    object fc = new Middle();
+    Base fd = new Derived();
+    Base fe = new Derived();
+    Base ff = new Middle();
+    object fg = new Derived();
+    Middle fh = new Middle();
+    object fi = 3;
+    object fj;
+    Middle fk = new Derived();
+    Middle fl = new Derived();
+    object fo = new Middle();
+
+    static IBase1 fibase1 = null;
+    static IBase2 fibase2 = null;
+    static IMiddle fimiddle = null;
+    static IDerived fiderived = null;
+
+    object fia = fimiddle;
+    object fic = fimiddle;
+    IBase1 fid = fiderived;
+    IBase1 fie = fiderived;
+    IBase1 fiff = fimiddle;
+    object fig = fiderived;
+    IMiddle fih = fimiddle;
+    IMiddle fik = fiderived;
+    IMiddle fil = fiderived;
+    object fio = fimiddle;
+    object fisink = fibase2;
+    IBase2 fim = fiderived;
+
+    void M1()
     {
+        fc = new Base();
+        fe = new Middle();
+        ff = new Base();
+        fg = new Base();
+        fg = new Middle();
+        fh = new Derived();
+        fj = 10;
+        fj = 10.1;
+        M(out fl, ref fo);
+
+        fic = fibase1;
+        fie = fimiddle;
+        fiff = fibase1;
+        fig = fibase1;
+        fig = fimiddle;
+        fih = fiderived;
+        IM(out fil, ref fio);
+        fisink = 3;
     }
 
-    class Middle
+    void M(out Middle p1, ref object p2)
     {
+        p1 = new Middle();
+        p2 = null;
     }
 
-    class Derived
+    void IM(out IMiddle p1, ref object p2)
     {
-    }
-
-    struct Value
-    {
-        public Value(int a)
-        {
-            X = a;
-        }
-
-        public int X;
+        p1 = null;
+        p2 = null;
     }
 }
+
+class Base
+{
+}
+
+class Middle : Base
+{
+}
+
+class Derived : Middle
+{
+}
+
+struct Value
+{
+    public Value(int a)
+    {
+        X = a;
+    }
+
+    public int X;
+}
+
+interface IBase1
+{
+}
+
+interface IBase2
+{
+}
+
+interface IMiddle : IBase1
+{
+}
+
+interface IDerived : IMiddle, IBase2
+{
+}
+
 ";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
             .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new CouldHaveMoreSpecificTypeAnalyzer() }, null, null, false,
-                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "a").WithArguments("a", "C.Middle").WithLocation(6, 16),
-                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "b").WithArguments("b", "C.Value").WithLocation(7, 16)
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "a").WithArguments("a", "Middle").WithLocation(6, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "b").WithArguments("b", "Value").WithLocation(7, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "c").WithArguments("c", "Base").WithLocation(8, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "d").WithArguments("d", "Derived").WithLocation(10, 14),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "e").WithArguments("e", "Middle").WithLocation(11, 14),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "g").WithArguments("g", "Base").WithLocation(15, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "i").WithArguments("i", "int").WithLocation(20, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "k").WithArguments("k", "Derived").WithLocation(24, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "ia").WithArguments("ia", "IMiddle").WithLocation(34, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "ic").WithArguments("ic", "IBase1").WithLocation(35, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "id").WithArguments("id", "IDerived").WithLocation(37, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "ie").WithArguments("ie", "IMiddle").WithLocation(38, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "ig").WithArguments("ig", "IBase1").WithLocation(42, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "ik").WithArguments("ik", "IDerived").WithLocation(47, 17),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.LocalCouldHaveMoreSpecificTypeDescriptor.Id, "im").WithArguments("im", "IDerived").WithLocation(51, 16),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fa").WithArguments("C.fa", "Middle").WithLocation(56, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fb").WithArguments("C.fb", "Value").WithLocation(57, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fc").WithArguments("C.fc", "Base").WithLocation(58, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fd").WithArguments("C.fd", "Derived").WithLocation(59, 10),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fe").WithArguments("C.fe", "Middle").WithLocation(60, 10),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fg").WithArguments("C.fg", "Base").WithLocation(62, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fi").WithArguments("C.fi", "int").WithLocation(64, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fk").WithArguments("C.fk", "Derived").WithLocation(66, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fia").WithArguments("C.fia", "IMiddle").WithLocation(75, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fic").WithArguments("C.fic", "IBase1").WithLocation(76, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fid").WithArguments("C.fid", "IDerived").WithLocation(77, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fie").WithArguments("C.fie", "IMiddle").WithLocation(78, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fig").WithArguments("C.fig", "IBase1").WithLocation(80, 12),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fik").WithArguments("C.fik", "IDerived").WithLocation(82, 13),
+                Diagnostic(CouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fim").WithArguments("C.fim", "IDerived").WithLocation(86, 12)
                 );
         }
     }

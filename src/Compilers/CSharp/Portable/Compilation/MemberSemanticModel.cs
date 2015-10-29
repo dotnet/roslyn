@@ -1054,7 +1054,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld || _nodeMapLock.IsReadLockHeld);
             ImmutableArray<BoundNode> result;
-            return _guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
+            return _guardedNodeMap.TryGetValue(AsNodeMapKey(node), out result) ? result : default(ImmutableArray<BoundNode>);
+        }
+
+        private static CSharpSyntaxNode AsNodeMapKey(CSharpSyntaxNode node)
+        {
+            return node.Kind() == SyntaxKind.EqualsValueClause ? ((EqualsValueClauseSyntax)node).Value : node;
         }
 
         // Adds every syntax/bound pair in a tree rooted at the given bound node to the map, and the
@@ -1067,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (bound != null)
             {
-                alreadyInTree = _guardedNodeMap.ContainsKey(bound.Syntax);
+                alreadyInTree = _guardedNodeMap.ContainsKey(AsNodeMapKey(bound.Syntax));
             }
 
             // check if we already have node in the cache.
@@ -1078,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundNode> result;
-            return _guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
+            return _guardedNodeMap.TryGetValue(AsNodeMapKey(syntax), out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
         internal void UnguardedAddBoundTreeForStandaloneSyntax(CSharpSyntaxNode syntax, BoundNode bound)
@@ -1098,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this may happen if we have races and in such case we are no longer interested in adding
             if (bound != null)
             {
-                alreadyInTree = _guardedNodeMap.ContainsKey(bound.Syntax);
+                alreadyInTree = _guardedNodeMap.ContainsKey(AsNodeMapKey(bound.Syntax));
             }
 
             if (!alreadyInTree)

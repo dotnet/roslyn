@@ -42,15 +42,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 {
                     Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>> fieldsSourceTypes = new Dictionary<IFieldSymbol, HashSet<INamedTypeSymbol>>();
 
-                    compilationContext.RegisterSymbolAction(
-                        (symbolContext) =>
-                        {
-                            IFieldSymbol field = (IFieldSymbol)symbolContext.Symbol;
-
-                            // Need to get access to the field's initializer, or at least the type of the initializer.
-                        },
-                        SymbolKind.Field);
-
                     compilationContext.RegisterOperationBlockStartAction(
                         (operationBlockContext) =>
                         {
@@ -112,6 +103,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                         }
                                     });
                             }
+                            else
+                            {
+                                IFieldSymbol containingField = operationBlockContext.OwningSymbol as IFieldSymbol;
+                                if (containingField != null)
+                                {
+                                    AssignTo(containingField, containingField.Type, fieldsSourceTypes, (IExpression)operationBlockContext.OperationBlocks[0]);
+                                }
+                            }
                         });
 
                     compilationContext.RegisterCompilationEndAction(
@@ -129,23 +128,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 });
         }
 
-        static bool HasMoreSpecificSourceType<SymbolType>(SymbolType symbol, ITypeSymbol symbolType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> symbolsSourceTypes, out INamedTypeSymbol mostSpecificSourceType)
+        static bool HasMoreSpecificSourceType<SymbolType>(SymbolType symbol, ITypeSymbol symbolType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> symbolsSourceTypes, out INamedTypeSymbol commonSourceType)
         {
             HashSet<INamedTypeSymbol> sourceTypes;
             if (symbolsSourceTypes.TryGetValue(symbol, out sourceTypes))
             {
-                mostSpecificSourceType = MostSpecificType(sourceTypes);
-                if (mostSpecificSourceType != null && DerivesFrom(mostSpecificSourceType, (INamedTypeSymbol)symbolType))
+                commonSourceType = CommonType(sourceTypes);
+                if (commonSourceType != null && DerivesFrom(commonSourceType, (INamedTypeSymbol)symbolType))
                 {
                     return true;
                 }
             }
 
-            mostSpecificSourceType = null;
+            commonSourceType = null;
             return false;
         }
 
-        static INamedTypeSymbol MostSpecificType(IEnumerable<INamedTypeSymbol> types)
+        static INamedTypeSymbol CommonType(IEnumerable<INamedTypeSymbol> types)
         {
             foreach (INamedTypeSymbol type in types)
             {
@@ -154,7 +153,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                 {
                     if (type != testType)
                     {
-                        if (!DerivesFrom(type, testType))
+                        if (!DerivesFrom(testType, type))
                         {
                             success = false;
                             break;
@@ -193,6 +192,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                         return true;
                     }
                 }
+
+                return baseType.TypeKind == TypeKind.Class && baseType.SpecialType == SpecialType.System_Object;
             }
 
             return false;
@@ -225,21 +226,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 
         static void AssignTo<SymbolType>(SymbolType target, ITypeSymbol targetType, Dictionary<SymbolType, HashSet<INamedTypeSymbol>> sourceTypes, ITypeSymbol sourceType)
         {
-            HashSet<INamedTypeSymbol> symbolSourceTypes;
-            TypeKind targetTypeKind = targetType.TypeKind;
-            TypeKind sourceTypeKind = sourceType.TypeKind;
-
-            // Don't suggest using an interface type instead of a class type, or vice versa.
-            if ((targetTypeKind == sourceTypeKind && (targetTypeKind == TypeKind.Class || targetTypeKind == TypeKind.Interface)) ||
-                (targetTypeKind == TypeKind.Class && sourceTypeKind == TypeKind.Structure && targetType.SpecialType == SpecialType.System_Object))
+            if (sourceType != null && targetType != null)
             {
-                if (!sourceTypes.TryGetValue(target, out symbolSourceTypes))
-                {
-                    symbolSourceTypes = new HashSet<INamedTypeSymbol>();
-                    sourceTypes[target] = symbolSourceTypes;
-                }
+                HashSet<INamedTypeSymbol> symbolSourceTypes;
+                TypeKind targetTypeKind = targetType.TypeKind;
+                TypeKind sourceTypeKind = sourceType.TypeKind;
 
-                symbolSourceTypes.Add((INamedTypeSymbol)sourceType);
+                // Don't suggest using an interface type instead of a class type, or vice versa.
+                if ((targetTypeKind == sourceTypeKind && (targetTypeKind == TypeKind.Class || targetTypeKind == TypeKind.Interface)) ||
+                    (targetTypeKind == TypeKind.Class && (sourceTypeKind == TypeKind.Structure || sourceTypeKind == TypeKind.Interface) && targetType.SpecialType == SpecialType.System_Object))
+                {
+                    if (!sourceTypes.TryGetValue(target, out symbolSourceTypes))
+                    {
+                        symbolSourceTypes = new HashSet<INamedTypeSymbol>();
+                        sourceTypes[target] = symbolSourceTypes;
+                    }
+
+                    symbolSourceTypes.Add((INamedTypeSymbol)sourceType);
+                }
             }
         }
 
