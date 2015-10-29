@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal TestDiagnosticAnalyzerService(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null, Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), hostDiagnosticUpdateSource, new MockDiagnosticUpdateSourceRegistrationService())
+           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), null, hostDiagnosticUpdateSource, new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }

@@ -3125,7 +3125,7 @@ public class C2 { }
 
         #region ComImportAttribute, CoClassAttribute
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void TestComImportAttribute()
         {
             string source = @"
@@ -4937,7 +4937,7 @@ using System.Runtime.InteropServices;
 
         #region WindowsRuntimeImportAttribute
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void TestWindowsRuntimeImportAttribute()
         {
             var source = @"

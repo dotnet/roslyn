@@ -4,14 +4,10 @@
     <!-- Explicitly set the language before anything else is imported. That way VSL.Settings.targets sees the right value
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
     <ProjectLanguage>CSharp</ProjectLanguage>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
-  <PropertyGroup>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-  </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -76,6 +72,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

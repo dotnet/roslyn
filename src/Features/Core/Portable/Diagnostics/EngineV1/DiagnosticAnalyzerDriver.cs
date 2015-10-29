@@ -7,10 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetry;
-using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
@@ -111,20 +110,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             return _lazyCompilationWithAnalyzers;
-        }
-
-        public async Task<ActionCounts> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer)
-        {
-            try
-            {
-                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                var compWithAnalyzers = this.GetCompilationWithAnalyzers(compilation);
-                return await compWithAnalyzers.GetAnalyzerActionCountsAsync(analyzer, _cancellationToken).ConfigureAwait(false);
-            }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
         }
 
         public async Task<ImmutableArray<Diagnostic>> GetSyntaxDiagnosticsAsync(DiagnosticAnalyzer analyzer)
@@ -325,8 +310,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         {
             try
             {
-                var actionCounts = await compilationWithAnalyzers.GetAnalyzerActionCountsAsync(analyzer, _cancellationToken).ConfigureAwait(false);
-                DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, actionCounts, _project, _owner.DiagnosticLogAggregator);
+                var analyzerTelemetryInfo = await compilationWithAnalyzers.GetAnalyzerTelemetryInfoAsync(analyzer, _cancellationToken).ConfigureAwait(false);
+                DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, analyzerTelemetryInfo, _project, _owner.DiagnosticLogAggregator);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {

@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </remarks>
     internal sealed class RuntimeMetadataReferenceResolver : MetadataReferenceResolver, IEquatable<RuntimeMetadataReferenceResolver>
     {
+        // Ideally we'd use properties with no aliases, but currently that's not possible since empty aliases mean {global}.
+        private static readonly MetadataReferenceProperties ResolvedMissingAssemblyReferenceProperties = MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<implicit>"));
+
         public static readonly RuntimeMetadataReferenceResolver Default = new RuntimeMetadataReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
         internal readonly RelativePathResolver PathResolver;
@@ -56,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 var path = GacFileResolver.Resolve(referenceIdentity.GetDisplayName());
                 if (path != null)
                 {
-                    return _fileReferenceProvider(path, MetadataReferenceProperties.Assembly);
+                    return CreateResolvedMissingReference(path);
                 }
             }
 
@@ -70,12 +73,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     var fullPath = pathWithoutExtension + extension;
                     if (File.Exists(fullPath))
                     {
-                        return _fileReferenceProvider(fullPath, MetadataReferenceProperties.Assembly);
+                        return CreateResolvedMissingReference(fullPath);
                     }
                 }
             }
 
             return null;
+        }
+
+        private PortableExecutableReference CreateResolvedMissingReference(string fullPath)
+        {
+            return _fileReferenceProvider(fullPath, ResolvedMissingAssemblyReferenceProperties);
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
@@ -110,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return ImmutableArray.Create(_fileReferenceProvider(path, properties));
                 }
             }
+
             return ImmutableArray<PortableExecutableReference>.Empty;
         }
 

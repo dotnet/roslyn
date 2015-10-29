@@ -58,7 +58,7 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.25.zip"
+    local package_name="nuget.26.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -154,7 +154,7 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc /p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln

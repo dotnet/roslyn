@@ -24,9 +24,10 @@
     "xunit.extensibility.execution": "2.1.0"
   },
   "frameworks": {
-    "net46": {}
+    "net46": { }
   },
   "runtimes": {
-    "win7-anycpu": {}
+    "win7": { },
+    "win7-anycpu": { }
   }
 }

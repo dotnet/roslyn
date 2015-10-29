@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Interactive
 {
-    public sealed class CSharpInteractiveEvaluator : InteractiveEvaluator
+    internal sealed class CSharpInteractiveEvaluator : InteractiveEvaluator
     {
         private static readonly CSharpParseOptions s_parseOptions =
             new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6, kind: SourceCodeKind.Script);

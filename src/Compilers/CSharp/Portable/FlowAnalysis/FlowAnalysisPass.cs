@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,12 +18,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method">the method to be analyzed</param>
         /// <param name="block">the method's body</param>
         /// <param name="diagnostics">the receiver of the reported diagnostics</param>
+        /// <param name="hasTrailingExpression">indicates whether this Script had a trailing expression</param>
         /// <returns>the rewritten block for the method (with a return statement possibly inserted)</returns>
         public static BoundBlock Rewrite(
             MethodSymbol method,
             BoundBlock block,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool hasTrailingExpression)
         {
+#if DEBUG
+            // We should only see a trailingExpression if we're in a Script initializer.
+            Debug.Assert(!hasTrailingExpression || method.IsScriptInitializer);
+            var initialDiagnosticCount = diagnostics.ToReadOnly().Length;
+#endif
             var compilation = method.DeclaringCompilation;
 
             if (method.ReturnsVoid || method.IsIterator ||
@@ -41,9 +49,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // will be reported by the lambda binder.
                 Debug.Assert(method.MethodKind != MethodKind.AnonymousFunction);
 
+                // Add implicit "return default(T)" if this is a submission that does not have a trailing expression.
+                var submissionResultType = (method as SynthesizedInteractiveInitializerMethod)?.ResultType;
+                if (!hasTrailingExpression && ((object)submissionResultType != null))
+                {
+                    Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
+
+                    var trailingExpression = new BoundDefaultOperator(method.GetNonNullSyntaxNode(), submissionResultType);
+                    var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, trailingExpression));
+                    block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
+#if DEBUG
+                    // It should not be necessary to repeat analysis after adding this node, because adding a trailing
+                    // return in cases where one was missing should never produce different Diagnostics.
+                    var flowAnalysisDiagnostics = DiagnosticBag.GetInstance();
+                    Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics));
+                    Debug.Assert(flowAnalysisDiagnostics.ToReadOnly().SequenceEqual(diagnostics.ToReadOnly().Skip(initialDiagnosticCount)));
+                    flowAnalysisDiagnostics.Free();
+#endif
+                }
                 // If there's more than one location, then the method is partial and we
                 // have already reported a non-void partial method error.
-                if (method.Locations.Length == 1)
+                else if (method.Locations.Length == 1)
                 {
                     diagnostics.Add(ErrorCode.ERR_ReturnExpected, method.Locations[0], method);
                 }

@@ -11,7 +11,7 @@ Imports Microsoft.VisualStudio.InteractiveWindow.Commands
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Interactive
 
-    Public NotInheritable Class VisualBasicInteractiveEvaluator
+    Friend NotInheritable Class VisualBasicInteractiveEvaluator
         Inherits InteractiveEvaluator
 
         Private Shared ReadOnly s_parseOptions As ParseOptions = New VisualBasicParseOptions(languageVersion:=LanguageVersion.VisualBasic11, kind:=SourceCodeKind.Script)

@@ -4,7 +4,9 @@
     "net45": { }
   },
   "runtimes": {
+    "win7": { },
     "win7-anycpu": { },
+    "ubuntu.14.04": { },
     "ubuntu.14.04-anycpu": { }
   }
 }

@@ -76,7 +76,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private static readonly string s_compilerServerExecutableSrc = ResolveAssemblyPath(CompilerServerExeName);
         private static readonly string s_buildTaskDllSrc = ResolveAssemblyPath(BuildTaskDllName);
-        private static readonly string s_csharpCompilerExecutableSrc = ResolveAssemblyPath("csc.exe");
+
+        // Used by EndToEndDeterminismTest
+        internal static readonly string s_csharpCompilerExecutableSrc = ResolveAssemblyPath("csc.exe");
         private static readonly string s_basicCompilerExecutableSrc = ResolveAssemblyPath("vbc.exe");
         private static readonly string s_microsoftCodeAnalysisDllSrc = ResolveAssemblyPath("Microsoft.CodeAnalysis.dll");
         private static readonly string s_systemCollectionsImmutableDllSrc = ResolveAssemblyPath("System.Collections.Immutable.dll");
