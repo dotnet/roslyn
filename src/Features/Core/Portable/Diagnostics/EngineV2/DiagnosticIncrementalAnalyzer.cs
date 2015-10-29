@@ -62,13 +62,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         public override void RemoveDocument(DocumentId documentId)
         {
             Owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(
+                    ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty,
+                    DiagnosticsUpdatedKind.DiagnosticsRemoved));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
             Owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty));
+                this, new DiagnosticsUpdatedArgs(
+                    ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty,
+                    DiagnosticsUpdatedKind.DiagnosticsRemoved));
         }
         #endregion
 
@@ -215,13 +219,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     Owner.RaiseDiagnosticsUpdated(
                         this, new DiagnosticsUpdatedArgs(
-                            ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
+                            ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty(),
+                            kind: DiagnosticsUpdatedKind.DiagnosticsCreated));
                     continue;
                 }
 
                 Owner.RaiseDiagnosticsUpdated(
                     this, new DiagnosticsUpdatedArgs(
-                        ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
+                        ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty(),
+                        kind: DiagnosticsUpdatedKind.DiagnosticsCreated));
             }
         }
     }

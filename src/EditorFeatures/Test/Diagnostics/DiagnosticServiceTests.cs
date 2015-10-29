@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var diagnostic = CreateDiagnosticData(workspace, project, document);
 
             source.RaiseUpdateEvent(
-                new DiagnosticsUpdatedArgs(id, workspace, workspace.CurrentSolution, project, document, ImmutableArray.Create(diagnostic)));
+                new DiagnosticsUpdatedArgs(id, workspace, workspace.CurrentSolution, project, document, ImmutableArray.Create(diagnostic),
+                DiagnosticsUpdatedKind.DiagnosticsCreated));
 
             set.WaitOne();
 

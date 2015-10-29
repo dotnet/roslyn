@@ -536,7 +536,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     solution: null,
                     projectId: null,
                     documentId: null,
-                    diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic));
+                    diagnostics: ImmutableArray.Create<DiagnosticData>(diagnostic),
+                    kind: DiagnosticsUpdatedKind.DiagnosticsCreated);
 
                 _hostUpdateSource.RaiseDiagnosticsUpdated(args);
             }

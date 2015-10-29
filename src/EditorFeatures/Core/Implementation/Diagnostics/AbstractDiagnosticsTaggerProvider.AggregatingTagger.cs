@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
                     {
                         var diagnostics = _owner._diagnosticService.GetDiagnostics(updateArgs.Workspace, updateArgs.ProjectId, updateArgs.DocumentId, updateArgs.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken);
-                        OnDiagnosticsUpdated(new DiagnosticsUpdatedArgs(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty()));
+                        OnDiagnosticsUpdated(new DiagnosticsUpdatedArgs(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty(), DiagnosticsUpdatedKind.DiagnosticsCreated));
                     }
                 }
             }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 // First see if this is a document/project removal.  If so, clear out any state we
                 // have associated with any analyzers we have for that document/project.
-                ProcessDocumentOrProjectRemoval(e);
+                ProcessRemovedDiagnostics(e);
 
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
@@ -210,13 +210,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 }
             }
 
-            private void ProcessDocumentOrProjectRemoval(DiagnosticsUpdatedArgs e)
+            private void ProcessRemovedDiagnostics(DiagnosticsUpdatedArgs e)
             {
-                if (e.Solution != null)
+                if (e.Kind != DiagnosticsUpdatedKind.DiagnosticsRemoved)
                 {
-                    // Wasn't a removal.  See DiagnosticIncrementalAnalyzer.RemoveDocument and RemoveProject.
-                    // In the cases where we're removing a document or project, the solution, projectId and
-                    // documentId are all null.
+                    // Wasn't a removal.  We don't need to do anything here.
                     return;
                 }
 

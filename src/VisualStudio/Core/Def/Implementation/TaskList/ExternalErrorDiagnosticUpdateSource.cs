@@ -282,13 +282,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var project = item as Project;
             if (project != null)
             {
-                RaiseDiagnosticsUpdated(project.Id, project.Id, null, buildErrors);
+                RaiseDiagnosticsUpdated(project.Id, project.Id, null, buildErrors, DiagnosticsUpdatedKind.DiagnosticsCreated);
                 return;
             }
 
             // must be not null
             var document = item as Document;
-            RaiseDiagnosticsUpdated(document.Id, document.Project.Id, document.Id, buildErrors);
+            RaiseDiagnosticsUpdated(document.Id, document.Project.Id, document.Id, buildErrors, DiagnosticsUpdatedKind.DiagnosticsCreated);
         }
 
         private Dictionary<ProjectId, HashSet<string>> GetSupportedLiveDiagnosticId(Solution solution, InprogressState state)
@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private void ClearProjectErrors(ProjectId projectId, Solution solution = null)
         {
             // remove all project errors
-            RaiseDiagnosticsUpdated(projectId, projectId, null, ImmutableArray<DiagnosticData>.Empty);
+            RaiseDiagnosticsUpdated(projectId, projectId, null, ImmutableArray<DiagnosticData>.Empty, DiagnosticsUpdatedKind.DiagnosticsRemoved);
 
             var project = (solution ?? _workspace.CurrentSolution).GetProject(projectId);
             if (project == null)
@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private void ClearDocumentErrors(ProjectId projectId, DocumentId documentId)
         {
-            RaiseDiagnosticsUpdated(documentId, projectId, documentId, ImmutableArray<DiagnosticData>.Empty);
+            RaiseDiagnosticsUpdated(documentId, projectId, documentId, ImmutableArray<DiagnosticData>.Empty, DiagnosticsUpdatedKind.DiagnosticsRemoved);
         }
 
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
@@ -363,10 +363,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             return _state;
         }
 
-        private void RaiseDiagnosticsUpdated(object id, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
+        private void RaiseDiagnosticsUpdated(object id, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items,
+            DiagnosticsUpdatedKind kind)
         {
             DiagnosticsUpdated?.Invoke(this, new DiagnosticsUpdatedArgs(
-                   new ArgumentKey(id), _workspace, _workspace.CurrentSolution, projectId, documentId, items));
+                   new ArgumentKey(id), _workspace, _workspace.CurrentSolution, projectId, documentId, items, kind));
         }
 
         private void RaiseBuildStarted(bool started)

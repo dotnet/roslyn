@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetSyntaxAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsUpdated(StateType.Syntax, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticsUpdated(StateType.Syntax, document.Id, stateSet, new SolutionArgument(document), data.Items, DiagnosticsUpdatedKind.DiagnosticsCreated);
                             continue;
                         }
 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsUpdated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticsUpdated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items, DiagnosticsUpdatedKind.DiagnosticsCreated);
                             continue;
                         }
 
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                         var data = await _executor.GetDocumentAnalysisDataAsync(userDiagnosticDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
                         {
-                            RaiseDiagnosticsUpdated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items);
+                            RaiseDiagnosticsUpdated(StateType.Document, document.Id, stateSet, new SolutionArgument(document), data.Items, DiagnosticsUpdatedKind.DiagnosticsCreated);
                             continue;
                         }
 
@@ -434,7 +434,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     var solutionArgs = new SolutionArgument(null, documentId.ProjectId, documentId);
                     for (var stateType = 0; stateType < s_stateTypeCount; stateType++)
                     {
-                        RaiseDiagnosticsUpdated((StateType)stateType, documentId, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+                        RaiseDiagnosticsUpdated((StateType)stateType, documentId, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty,
+                            DiagnosticsUpdatedKind.DiagnosticsRemoved);
                     }
                 }
             }
@@ -449,7 +450,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     stateSet.Remove(projectId);
 
                     var solutionArgs = new SolutionArgument(null, projectId, null);
-                    RaiseDiagnosticsUpdated(StateType.Project, projectId, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+                    RaiseDiagnosticsUpdated(StateType.Project, projectId, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty,
+                        DiagnosticsUpdatedKind.DiagnosticsRemoved);
                 }
             }
 
@@ -601,7 +603,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return;
             }
 
-            RaiseDiagnosticsUpdated(type, document.Id, stateSet, new SolutionArgument(document), newItems);
+            RaiseDiagnosticsUpdated(type, document.Id, stateSet, new SolutionArgument(document), newItems,
+                DiagnosticsUpdatedKind.DiagnosticsCreated);
         }
 
         private void RaiseProjectDiagnosticsUpdatedIfNeeded(
@@ -630,13 +633,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 if (documentId == null)
                 {
-                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), ImmutableArray<DiagnosticData>.Empty);
+                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), ImmutableArray<DiagnosticData>.Empty,
+                        DiagnosticsUpdatedKind.DiagnosticsRemoved);
                     continue;
                 }
 
                 var document = project.GetDocument(documentId);
                 var argument = documentId == null ? new SolutionArgument(null, documentId.ProjectId, documentId) : new SolutionArgument(document);
-                RaiseDiagnosticsUpdated(StateType.Project, documentId, stateSet, argument, ImmutableArray<DiagnosticData>.Empty);
+                RaiseDiagnosticsUpdated(StateType.Project, documentId, stateSet, argument, ImmutableArray<DiagnosticData>.Empty,
+                    DiagnosticsUpdatedKind.DiagnosticsRemoved);
             }
         }
 
@@ -647,11 +652,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 if (kv.Key == null)
                 {
-                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), kv.ToImmutableArrayOrEmpty());
+                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), kv.ToImmutableArrayOrEmpty(),
+                        DiagnosticsUpdatedKind.DiagnosticsCreated);
                     continue;
                 }
 
-                RaiseDiagnosticsUpdated(StateType.Project, kv.Key, stateSet, new SolutionArgument(project.GetDocument(kv.Key)), kv.ToImmutableArrayOrEmpty());
+                RaiseDiagnosticsUpdated(StateType.Project, kv.Key, stateSet, new SolutionArgument(project.GetDocument(kv.Key)), kv.ToImmutableArrayOrEmpty(),
+                    DiagnosticsUpdatedKind.DiagnosticsCreated);
             }
         }
 
@@ -661,7 +668,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         }
 
         private void RaiseDiagnosticsUpdated(
-            StateType type, object key, StateSet stateSet, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics)
+            StateType type, object key, StateSet stateSet, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics,
+            DiagnosticsUpdatedKind kind)
         {
             if (Owner == null)
             {
@@ -673,7 +681,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 new HostAnalyzerKey(stateSet.Analyzer, type, key, stateSet.ErrorSourceName) : (object)new ArgumentKey(stateSet.Analyzer, type, key);
 
             Owner.RaiseDiagnosticsUpdated(this,
-                new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
+                new DiagnosticsUpdatedArgs(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics, kind));
         }
 
         private ImmutableArray<DiagnosticData> UpdateDocumentDiagnostics(
@@ -920,7 +928,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var documentId = document.Id;
                 var solutionArgs = new SolutionArgument(document);
 
-                RaiseDiagnosticsUpdated(type, document.Id, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+                RaiseDiagnosticsUpdated(type, document.Id, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty,
+                    DiagnosticsUpdatedKind.DiagnosticsRemoved);
             }
         }
 
@@ -947,7 +956,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             // raise diagnostic updated event
             var solutionArgs = new SolutionArgument(project);
-            RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty);
+            RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, solutionArgs, ImmutableArray<DiagnosticData>.Empty,
+                DiagnosticsUpdatedKind.DiagnosticsRemoved);
         }
 
         private async Task ClearExistingDiagnostics(Document document, StateSet stateSet, StateType type, CancellationToken cancellationToken)

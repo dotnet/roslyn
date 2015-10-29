@@ -37,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void RaiseDiagnosticsUpdatedForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
+        private void RaiseDiagnosticsUpdatedForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items,
+            DiagnosticsUpdatedKind kind)
         {
             var args = new DiagnosticsUpdatedArgs(
                 id: Tuple.Create(this, projectId, key),
@@ -45,7 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 solution: null,
                 projectId: projectId,
                 documentId: null,
-                diagnostics: items.AsImmutableOrEmpty());
+                diagnostics: items.AsImmutableOrEmpty(),
+                kind: kind);
 
             RaiseDiagnosticsUpdated(args);
         }
@@ -61,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>()).Add(key);
             }
 
-            RaiseDiagnosticsUpdatedForProject(projectId, key, items);
+            RaiseDiagnosticsUpdatedForProject(projectId, key, items, DiagnosticsUpdatedKind.DiagnosticsCreated);
         }
 
         public void ClearAllDiagnosticsForProject(ProjectId projectId)
@@ -81,7 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 foreach (var key in projectDiagnosticKeys)
                 {
-                    RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
+                    RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>(), 
+                        DiagnosticsUpdatedKind.DiagnosticsRemoved);
                 }
             }
         }
@@ -103,7 +106,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             if (raiseEvent)
             {
-                RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
+                RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>(),
+                    DiagnosticsUpdatedKind.DiagnosticsRemoved);
             }
         }
     }

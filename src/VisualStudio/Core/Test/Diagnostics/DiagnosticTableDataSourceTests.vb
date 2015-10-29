@@ -738,7 +738,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim id = If(CObj(item.DocumentId), item.ProjectId)
                 RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                        New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray()))
+                        New ErrorId(Me, id), workspace, workspace.CurrentSolution, item.ProjectId, item.DocumentId, items.ToImmutableArray(),
+                        DiagnosticsUpdatedKind.DiagnosticsCreated))
             End Sub
 
             Public Sub RaiseDiagnosticsUpdated(workspace As Workspace)
@@ -746,20 +747,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 For Each group In documentMap
                     RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty(),
+                        DiagnosticsUpdatedKind.DiagnosticsCreated))
                 Next
 
                 Dim projectMap = Items.Where(Function(t) t.DocumentId Is Nothing).Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.ProjectId)
 
                 For Each group In projectMap
                     RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty()))
+                        New ErrorId(Me, group.Key), workspace, workspace.CurrentSolution, group.Key, Nothing, group.ToImmutableArrayOrEmpty(),
+                        DiagnosticsUpdatedKind.DiagnosticsCreated))
                 Next
             End Sub
 
             Public Sub RaiseClearDiagnosticsUpdated(workspace As Workspace, projectId As ProjectId, documentId As DocumentId)
                 RaiseEvent DiagnosticsUpdated(Me, New DiagnosticsUpdatedArgs(
-                    New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray(Of DiagnosticData).Empty))
+                    New ErrorId(Me, documentId), workspace, workspace.CurrentSolution, projectId, documentId, ImmutableArray(Of DiagnosticData).Empty,
+                    DiagnosticsUpdatedKind.DiagnosticsRemoved))
             End Sub
 
             Private Class ErrorId

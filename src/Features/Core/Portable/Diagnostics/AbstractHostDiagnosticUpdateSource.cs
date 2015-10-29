@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (raiseDiagnosticsUpdated)
             {
-                RaiseDiagnosticsUpdated(MakeArgs(analyzer, dxs, project));
+                RaiseDiagnosticsUpdated(MakeArgs(analyzer, dxs, project, DiagnosticsUpdatedKind.DiagnosticsCreated));
             }
         }
 
@@ -115,24 +115,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     ImmutableInterlocked.TryUpdate(ref _analyzerHostDiagnosticsMap, analyzer, newDiags, existing))
                 {
                     var project = this.Workspace.CurrentSolution.GetProject(projectId);
-                    RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project));
+                    RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project,
+                        DiagnosticsUpdatedKind.DiagnosticsRemoved));
                 }
             }
             else if (ImmutableInterlocked.TryRemove(ref _analyzerHostDiagnosticsMap, analyzer, out existing))
             {
                 var project = this.Workspace.CurrentSolution.GetProject(projectId);
-                RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project));
+                RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project,
+                    DiagnosticsUpdatedKind.DiagnosticsRemoved));
 
                 if (existing.Any(d => d.ProjectId == null))
                 {
-                    RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project: null));
+                    RaiseDiagnosticsUpdated(MakeArgs(analyzer, ImmutableHashSet<DiagnosticData>.Empty, project: null,
+                        kind: DiagnosticsUpdatedKind.DiagnosticsRemoved));
                 }
             }
         }
 
-        private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project)
+        private DiagnosticsUpdatedArgs MakeArgs(DiagnosticAnalyzer analyzer, ImmutableHashSet<DiagnosticData> items, Project project,
+            DiagnosticsUpdatedKind kind)
         {
             return new DiagnosticsUpdatedArgs(
+                kind: kind,
                 id: new HostArgsId(this, analyzer, project?.Id),
                 workspace: this.Workspace,
                 solution: project?.Solution,

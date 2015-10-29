@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         public void ClearDiagnostics(DebuggingSession session, Workspace workspace, object errorId, ProjectId projectId, DocumentId documentId)
         {
-            RaiseDiagnosticsUpdated(MakeArgs(session, workspace, errorId, projectId, documentId, ImmutableArray.Create<DiagnosticData>()));
+            RaiseDiagnosticsUpdated(MakeArgs(session, workspace, errorId, projectId, documentId, ImmutableArray.Create<DiagnosticData>(),
+                DiagnosticsUpdatedKind.DiagnosticsRemoved));
         }
 
         public ImmutableArray<DocumentId> ReportDiagnostics(DebuggingSession session, object errorId, ProjectId projectId, Solution solution, IEnumerable<Diagnostic> diagnostics)
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 where document != null
                 let item = MakeDiagnosticData(projectId, document, solution, diagnostic)
                 group item by document.Id into itemsByDocumentId
-                select MakeArgs(session, errorId, solution.Workspace, solution, projectId, itemsByDocumentId.Key, ImmutableArray.CreateRange(itemsByDocumentId)));
+                select MakeArgs(session, errorId, solution.Workspace, solution, projectId, itemsByDocumentId.Key, ImmutableArray.CreateRange(itemsByDocumentId), DiagnosticsUpdatedKind.DiagnosticsCreated));
 
             foreach (var args in argsByDocument)
             {
@@ -85,13 +86,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         }
 
         private DiagnosticsUpdatedArgs MakeArgs(
-            DebuggingSession session, Workspace workspace, object errorId, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
+            DebuggingSession session, Workspace workspace, object errorId, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items,
+            DiagnosticsUpdatedKind kind)
         {
-            return MakeArgs(session, errorId, workspace, solution: null, projectId: projectId, documentId: documentId, items: items);
+            return MakeArgs(session, errorId, workspace, solution: null, projectId: projectId, documentId: documentId, items: items, kind: kind);
         }
 
         private DiagnosticsUpdatedArgs MakeArgs(
-            DebuggingSession session, object errorId, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items)
+            DebuggingSession session, object errorId, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> items,
+            DiagnosticsUpdatedKind kind)
         {
             return new DiagnosticsUpdatedArgs(
                 id: new EnCId(session, errorId),
@@ -99,7 +102,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 solution: solution,
                 projectId: projectId,
                 documentId: documentId,
-                diagnostics: items);
+                diagnostics: items,
+                kind: kind);
         }
 
         private void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)

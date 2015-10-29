@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Common;
 
@@ -7,15 +8,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal class DiagnosticsUpdatedArgs : UpdatedEventArgs
     {
+        public DiagnosticsUpdatedKind Kind { get; }
         public Solution Solution { get; }
         public ImmutableArray<DiagnosticData> Diagnostics { get; }
 
         public DiagnosticsUpdatedArgs(
-            object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics) :
-                base(id, workspace, projectId, documentId)
+            object id,
+            Workspace workspace,
+            Solution solution,
+            ProjectId projectId,
+            DocumentId documentId,
+            ImmutableArray<DiagnosticData> diagnostics,
+            DiagnosticsUpdatedKind kind)
+                : base(id, workspace, projectId, documentId)
         {
-            this.Solution = solution;
-            this.Diagnostics = diagnostics;
+            Solution = solution;
+            Diagnostics = diagnostics;
+            Kind = kind;
         }
+    }
+
+    internal enum DiagnosticsUpdatedKind
+    {
+        /// <summary>
+        /// Called when the diagnostic analyzer engine decides to remove existing diagnostics.
+        /// For example, this can happen when a document is removed from a solution.  In that
+        /// case the analyzer engine will delete all diagnostics associated with that document.
+        /// Any layers caching diagnostics should listen for these events to know when to 
+        /// delete their cached items entirely.
+        /// </summary>
+        DiagnosticsRemoved,
+
+        /// <summary>
+        /// Called when a new set of (possibly empty) diagnostics have been produced.  This
+        /// happens through normal editing and processing of files as diagnostic analyzers
+        /// produce new diagnostics for documents and projects.
+        /// </summary>
+        DiagnosticsCreated,
     }
 }
