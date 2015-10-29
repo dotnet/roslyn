@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            var options = workspace.Options.WithChangedOption(NavigationOptions.UsePreviewTab, previewTab);
+            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab);
             if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, line, column, options))
             {
                 return true;

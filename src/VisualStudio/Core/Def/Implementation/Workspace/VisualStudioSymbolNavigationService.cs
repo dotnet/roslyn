@@ -94,19 +94,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                var navInfo = libraryService.NavInfo.CreateForSymbol(symbol, project, compilation);
+                var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
                 if (navInfo == null)
                 {
-                    navInfo = libraryService.NavInfo.CreateForProject(project);
+                    navInfo = libraryService.NavInfoFactory.CreateForProject(project);
                 }
 
-                if (navInfo == null)
+                if (navInfo != null)
                 {
-                    return false;
+                    var navigationTool = GetService<SVsObjBrowser, IVsNavigationTool>();
+                    return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
                 }
 
-                var navigationTool = GetService<SVsObjBrowser, IVsNavigationTool>();
-                return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
+                // Note: we'll fallback to Metadata-As-Source if we fail to get IVsNavInfo, but that should never happen.
             }
 
             // Generate new source or retrieve existing source for the symbol in question
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     workspace: editorWorkspace,
                     documentId: openedDocument.Id,
                     textSpan: result.IdentifierLocation.SourceSpan,
-                    options: options.WithChangedOption(NavigationOptions.UsePreviewTab, true));
+                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
             }
 
             return true;

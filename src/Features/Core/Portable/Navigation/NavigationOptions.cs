@@ -8,6 +8,10 @@ namespace Microsoft.CodeAnalysis.Navigation
     {
         public const string FeatureName = "Navigation";
 
-        public static readonly Option<bool> UsePreviewTab = new Option<bool>(FeatureName, "UsePreviewTab", defaultValue: false);
+        /// <summary>
+        /// This option can be passed to the <see cref="IDocumentNavigationService"/> APIs to request that a provisional (or preview) tab 
+        /// be used for any document that needs to be opened, if one is available.
+        /// </summary>
+        public static readonly Option<bool> PreferProvisionalTab = new Option<bool>(FeatureName, "PreferProvisionalTab", defaultValue: false);
     }
 }

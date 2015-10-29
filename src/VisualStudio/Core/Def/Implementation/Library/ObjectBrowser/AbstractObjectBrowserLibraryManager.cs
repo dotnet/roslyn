@@ -399,7 +399,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             SharedPools.Default<StringBuilder>().ClearAndFree(className);
 
             // TODO: Make sure we pass the right value for Visual Basic.
-            ppNavInfo = this.LibraryService.NavInfo.Create(libraryName, referenceOwnerName, namespaceName.ToString(), className.ToString(), memberName);
+            ppNavInfo = this.LibraryService.NavInfoFactory.Create(libraryName, referenceOwnerName, namespaceName.ToString(), className.ToString(), memberName);
 
             return VSConstants.S_OK;
         }
@@ -426,18 +426,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             if (symbolListItem is MemberListItem)
             {
-                return this.LibraryService.NavInfo.CreateForMember(symbol, project, compilation, useExpandedHierarchy);
+                return this.LibraryService.NavInfoFactory.CreateForMember(symbol, project, compilation, useExpandedHierarchy);
             }
             else if (symbolListItem is TypeListItem)
             {
-                return this.LibraryService.NavInfo.CreateForType((INamedTypeSymbol)symbol, project, compilation, useExpandedHierarchy);
+                return this.LibraryService.NavInfoFactory.CreateForType((INamedTypeSymbol)symbol, project, compilation, useExpandedHierarchy);
             }
             else if (symbolListItem is NamespaceListItem)
             {
-                return this.LibraryService.NavInfo.CreateForNamespace((INamespaceSymbol)symbol, project, compilation, useExpandedHierarchy);
+                return this.LibraryService.NavInfoFactory.CreateForNamespace((INamespaceSymbol)symbol, project, compilation, useExpandedHierarchy);
             }
 
-            return this.LibraryService.NavInfo.CreateForProject(project);
+            return this.LibraryService.NavInfoFactory.CreateForProject(project);
         }
 
         protected override bool TryQueryStatus(Guid commandGroup, uint commandId, ref OLECMDF commandFlags)

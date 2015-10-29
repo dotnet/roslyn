@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // in a permanent tab, this allows the document to transition to the new state.
             if (workspace.CanOpenDocuments)
             {
-                if (options.GetOption(NavigationOptions.UsePreviewTab))
+                if (options.GetOption(NavigationOptions.PreferProvisionalTab))
                 {
                     using (NewDocumentStateScope ndss = new NewDocumentStateScope(__VSNEWDOCUMENTSTATE.NDS_Provisional, VSConstants.NewDocumentStateReason.Navigation))
                     {

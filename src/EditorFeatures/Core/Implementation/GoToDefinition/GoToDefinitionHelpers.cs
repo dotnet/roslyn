@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
                 return symbolNavigationService.TryNavigateToSymbol(
                     symbol, project,
-                    options: options.WithChangedOption(NavigationOptions.UsePreviewTab, true),
+                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
                     cancellationToken: cancellationToken);
             }
 
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                         workspace,
                         documentId: solution.GetDocument(firstItem.SourceTree).Id,
                         textSpan: firstItem.SourceSpan,
-                        options: options.WithChangedOption(NavigationOptions.UsePreviewTab, true));
+                        options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
                 }
                 else
                 {

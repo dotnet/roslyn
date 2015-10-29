@@ -11,14 +11,8 @@ namespace Microsoft.CodeAnalysis.Navigation
     [ExportOptionProvider, Shared]
     internal class NavigationOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = new List<IOption>
-            {
-                NavigationOptions.UsePreviewTab
-            }.ToImmutableArray();
+        private readonly IEnumerable<IOption> _options = ImmutableArray.Create(NavigationOptions.PreferProvisionalTab);
 
-        public IEnumerable<IOption> GetOptions()
-        {
-            return _options;
-        }
+        public IEnumerable<IOption> GetOptions() => _options;
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         public SymbolDisplayFormat TypeDisplayFormat { get; }
         public SymbolDisplayFormat MemberDisplayFormat { get; }
 
-        public NavInfoFactory NavInfo { get; }
+        public NavInfoFactory NavInfoFactory { get; }
 
         protected AbstractLibraryService(
             Guid libraryId,
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
             this.TypeDisplayFormat = typeDisplayFormat;
             this.MemberDisplayFormat = memberDisplayFormat;
 
-            this.NavInfo = new NavInfoFactory(this);
+            this.NavInfoFactory = new NavInfoFactory(this);
         }
     }
 }

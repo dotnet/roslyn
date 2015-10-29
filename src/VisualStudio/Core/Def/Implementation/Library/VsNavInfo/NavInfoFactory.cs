@@ -128,6 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
 
         public IVsNavInfo CreateForMember(ISymbol memberSymbol, Project project, Compilation compilation, bool useExpandedHierarchy = false)
         {
+            memberSymbol = memberSymbol.OriginalDefinition;
+
             return Create(
                 memberSymbol.ContainingAssembly,
                 project,

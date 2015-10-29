@@ -274,6 +274,128 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                  })
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub CSharp_TestMetadata_GenericType()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            using System.Collections.Generic;
+            class C
+            {
+                $$List&lt;int&gt; s;
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace,
+                 canonicalNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System"),
+                    [Namespace]("Collections"),
+                    [Namespace]("Generic"),
+                    [Class]("List<T>")
+                 },
+                 presentationNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System.Collections.Generic"),
+                    [Class]("List<T>")
+                 })
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub CSharp_TestMetadata_GenericMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            using System;
+            class C
+            {
+                void M()
+                {
+                    var a = new int[] { 1, 2, 3, 4, 5 };
+                    var r = Array.AsReadOnly$$(a);
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace,
+                 canonicalNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System"),
+                    [Class]("Array"),
+                    Member("AsReadOnly<T>(T[])")
+                 },
+                 presentationNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System"),
+                    [Class]("Array"),
+                    Member("AsReadOnly<T>(T[])")
+                 })
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub CSharp_TestNull_Parameter()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            class C
+            {
+                void M(int i$$) { }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            TestIsNull(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub CSharp_TestNull_Local()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            class C
+            {
+                void M()
+                {
+                    int i$$;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            TestIsNull(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub CSharp_TestNull_Label()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSharpTestAssembly">
+        <Document>
+            class C
+            {
+                void M()
+                {
+                    label$$:
+                        int i;
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            TestIsNull(workspace)
+        End Sub
+
 #End Region
 
 #Region "Visual Basic Tests"
@@ -564,6 +686,124 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                  })
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub VisualBasic_TestMetadata_GenericType()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Imports System.Collections.Generic
+            Class C
+                Dim s As List$$(Of Integer)
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace,
+                 canonicalNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System"),
+                    [Namespace]("Collections"),
+                    [Namespace]("Generic"),
+                    [Class]("List(Of T)")
+                 },
+                 presentationNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System.Collections.Generic"),
+                    [Class]("List(Of T)")
+                 })
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub VisualBasic_TestMetadata_GenericMethod()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VisualBasicTestAssembly">
+        <Document>
+            Imports System
+            Class C
+                Sub M()
+                    Dim a = New Integer() { 1, 2, 3, 4, 5 }
+                    Dim r = Array.AsReadOnly$$(a)
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace,
+                 canonicalNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System"),
+                    [Class]("Array"),
+                    Member("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
+                 },
+                 presentationNodes:={
+                    Package("Z:\FxReferenceAssembliesUri"),
+                    [Namespace]("System"),
+                    [Class]("Array"),
+                    Member("AsReadOnly(Of T)(T()) As System.Collections.ObjectModel.ReadOnlyCollection(Of T)")
+                 })
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub VisualBasic_TestNull_Parameter()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Class C
+                Sub M(i$$ As Integer)
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            TestIsNull(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub VisualBasic_TestNull_Local()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Class C
+                Sub M()
+                    Dim i$$ As Integer
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            TestIsNull(workspace)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.VsNavInfo)>
+        Public Sub VisualBasic_TestNull_Label()
+            Dim workspace =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="VBTestAssembly">
+        <Document>
+            Class C
+                void M()
+                {
+                Sub M()
+                    label$$:
+                    Dim i As Integer
+                End Sub
+                }
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            TestIsNull(workspace)
+        End Sub
+
 #End Region
 
         Private Shared Sub IsOK(comAction As Func(Of Integer))
@@ -639,7 +879,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
 
                 Dim project = document.Project
                 Dim compilation = project.GetCompilationAsync(CancellationToken.None).Result
-                Dim navInfo = libraryService.NavInfo.CreateForSymbol(symbol, document.Project, compilation, useExpandedHierarchy)
+                Dim navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, compilation, useExpandedHierarchy)
                 Assert.True(navInfo IsNot Nothing, $"Could not retrieve nav info for {symbol.ToDisplayString()}")
 
                 If canonicalNodes IsNot Nothing Then
@@ -657,5 +897,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
                 End If
             End Using
         End Sub
+
+        Private Shared Sub TestIsNull(
+            workspaceDefinition As XElement,
+            Optional useExpandedHierarchy As Boolean = False
+        )
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition, exportProvider:=VisualStudioTestExportProvider.ExportProvider)
+                Dim hostDocument = workspace.DocumentWithCursor
+                Assert.True(hostDocument IsNot Nothing, "Test defined without cursor position")
+
+                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+                Dim semanticModel = document.GetSemanticModelAsync(CancellationToken.None).Result
+                Dim position As Integer = hostDocument.CursorPosition.Value
+                Dim symbol = SymbolFinder.FindSymbolAtPosition(semanticModel, position, workspace, CancellationToken.None)
+                Assert.True(symbol IsNot Nothing, $"Could not find symbol as position, {position}")
+
+                Dim libraryService = document.Project.LanguageServices.GetService(Of ILibraryService)
+
+                Dim project = document.Project
+                Dim compilation = project.GetCompilationAsync(CancellationToken.None).Result
+                Dim navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, compilation, useExpandedHierarchy)
+                Assert.Null(navInfo)
+            End Using
+        End Sub
+
     End Class
 End Namespace

@@ -1,10 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Library
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
+    <ExportLanguageService(GetType(ILibraryService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicLibraryService
         Inherits AbstractLibraryService
 

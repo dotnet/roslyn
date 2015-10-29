@@ -61,8 +61,5 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
         /// </summary>
         [ExportOption]
         public static readonly PerLanguageOption<bool> RefactoringVerification = new PerLanguageOption<bool>(OptionName, "Refactoring Verification", defaultValue: false);
-
-        [ExportOption]
-        public static readonly PerLanguageOption<bool> GoToDefinitionUsesObjectBrowser = new PerLanguageOption<bool>(OptionName, "Go To Definition Uses Object Browser", defaultValue: false);
     }
 }

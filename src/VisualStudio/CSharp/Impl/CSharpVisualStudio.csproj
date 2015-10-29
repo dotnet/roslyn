@@ -198,7 +198,6 @@
     <Compile Include="Debugging\LocationInfoGetter.cs" />
     <Compile Include="LanguageService\HACK_CSharpCreateServicesOnUIThread.cs" />
     <Compile Include="ObjectBrowser\CSharpLibraryService.cs" />
-    <Compile Include="ObjectBrowser\CSharpLibraryServiceFactory.cs" />
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
