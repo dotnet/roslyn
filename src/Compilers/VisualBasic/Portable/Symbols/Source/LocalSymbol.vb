@@ -499,6 +499,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If node.IsKind(SyntaxKind.PropertyStatement) Then
                             Dim propertyBlock = DirectCast(node.Parent, PropertyBlockSyntax)
                             Return propertyBlock.Accessors.Where(Function(a) a.IsKind(SyntaxKind.GetAccessorBlock)).Single().BlockStatement
+                        ElseIf node.IsKind(SyntaxKind.EventStatement) Then
+                            Dim eventBlock = DirectCast(node.Parent, EventBlockSyntax)
+                            Return eventBlock.Accessors.Where(Function(a) a.IsKind(SyntaxKind.AddHandlerAccessorBlock)).Single().BlockStatement
                         End If
 
                         Debug.Assert(node.IsKind(SyntaxKind.FunctionStatement))
