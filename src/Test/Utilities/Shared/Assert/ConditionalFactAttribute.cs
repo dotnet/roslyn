@@ -33,7 +33,7 @@ namespace Roslyn.Test.Utilities
 
     public class HasShiftJisDefaultEncoding : ExecutionCondition
     {
-        public override bool ShouldSkip => Encoding.GetEncoding(0)?.WindowsCodePage != 932;
+        public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 932;
 
         public override string SkipReason => "OS default codepage is not Shift-JIS (932).";
     }
