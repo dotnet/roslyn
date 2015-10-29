@@ -15,9 +15,14 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        internal CompilationErrorException(string message, ImmutableArray<Diagnostic> diagnostics)
+        public CompilationErrorException(string message, ImmutableArray<Diagnostic> diagnostics)
             : base(message)
         {
+            if (diagnostics.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+
             Diagnostics = diagnostics;
         }
     }

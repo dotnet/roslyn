@@ -29,7 +29,7 @@
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.0": {},
       "Microsoft.Net.Compilers/1.1.0-rc1-20151014-05": {},
       "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
@@ -107,7 +107,7 @@
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {
+      "Microsoft.DiaSymReader.Native/1.3.0": {
         "native": {
           "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll": {},
           "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll": {},
@@ -1059,14 +1059,14 @@
         "package/services/metadata/core-properties/f64bfc9a6f91426492917a4c8a1b955e.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader.Native/1.2.0-rc": {
-      "sha512": "dSk3ln9b2MMOFnXVB47HVbdjl3r7EcikC2qTCmVrfGDJiMyLt2F3kumxICbRTuQhEGNvPnVH9p9lWKIQlNjd+w==",
+    "Microsoft.DiaSymReader.Native/1.3.0": {
+      "sha512": "SOJ7SQGJvXJesWiRQ6YMZYbQNor7ID2MYMfhwcffbWTXGjIm3Zi8SbJ3c2YERagVlL9UpRU93jm7GXYJhVj6Sw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/9e1fb86d21eb4b64b48d73be0a3ac9f7.psmdcp",
+        "package/services/metadata/core-properties/4cddea24a9c44495aca95eb46f272367.psmdcp",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
@@ -1086,17 +1086,30 @@
         "package/services/metadata/core-properties/c980ba75c8bc4276a2cc0b019677578b.psmdcp",
         "ThirdPartyNotices.rtf",
         "tools/csc.exe",
+        "tools/csc.exe.config",
+        "tools/csc.rsp",
+        "tools/csi.exe",
+        "tools/csi.rsp",
         "tools/Microsoft.Build.Tasks.CodeAnalysis.dll",
         "tools/Microsoft.CodeAnalysis.CSharp.dll",
         "tools/Microsoft.CodeAnalysis.dll",
+        "tools/Microsoft.CodeAnalysis.Scripting.CSharp.dll",
+        "tools/Microsoft.CodeAnalysis.Scripting.dll",
         "tools/Microsoft.CodeAnalysis.VisualBasic.dll",
         "tools/Microsoft.CSharp.Core.targets",
         "tools/Microsoft.DiaSymReader.Native.amd64.dll",
         "tools/Microsoft.DiaSymReader.Native.x86.dll",
         "tools/Microsoft.VisualBasic.Core.targets",
+        "tools/System.AppContext.dll",
         "tools/System.Collections.Immutable.dll",
+        "tools/System.Console.dll",
+        "tools/System.Diagnostics.StackTrace.dll",
+        "tools/System.IO.FileSystem.dll",
+        "tools/System.IO.FileSystem.Primitives.dll",
         "tools/System.Reflection.Metadata.dll",
         "tools/vbc.exe",
+        "tools/vbc.exe.config",
+        "tools/vbc.rsp",
         "tools/VBCSCompiler.exe",
         "tools/VBCSCompiler.exe.config"
       ]
@@ -1244,7 +1257,7 @@
       "FakeSign >= 0.9.2",
       "Microsoft.Build.Mono.Debug >= 14.1.0-prerelease",
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.2.0-beta-20151016-11",
-      "Microsoft.DiaSymReader.Native >= 1.2.0-rc",
+      "Microsoft.DiaSymReader.Native >= 1.3.0",
       "Microsoft.Net.Compilers >= 1.1.0-rc1-20151014-05",
       "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150818-01",
       "xunit >= 2.1.0-beta4-build3109",

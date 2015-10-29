@@ -16,6 +16,8 @@ OS_NAME=$(uname -s)
 USE_CACHE=true
 MONO_ARGS='--debug=mdb-optimizations --attach=disable'
 
+export MONO_THREADS_PER_CPU=50
+
 # There are some stability issues that are causing Jenkins builds to fail at an 
 # unacceptable rate.  To temporarily work around that we are going to retry the 
 # unstable tasks a number of times.  
@@ -58,7 +60,7 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.27.zip"
+    local package_name="nuget.28.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
@@ -154,7 +156,8 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc /p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln

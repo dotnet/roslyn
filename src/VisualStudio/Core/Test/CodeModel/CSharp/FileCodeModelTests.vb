@@ -949,14 +949,14 @@ class $$C
     void M() { }
 }
 </Code>
-            Using workspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeClass = workspaceAndFileCodeModel.GetCodeElementAtCursor(Of EnvDTE80.CodeClass2)
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Dim codeClass = state.GetCodeElementAtCursor(Of EnvDTE80.CodeClass2)
                 Assert.Equal(1, codeClass.Members.OfType(Of EnvDTE80.CodeFunction2)().Count())
-                Dim project = workspaceAndFileCodeModel.VisualStudioWorkspace.CurrentSolution.Projects.First()
+                Dim project = state.VisualStudioWorkspace.CurrentSolution.Projects.First()
                 Dim documentId = project.DocumentIds.First()
-                workspaceAndFileCodeModel.VisualStudioWorkspace.CloseDocument(documentId)
-                Dim newSolution = workspaceAndFileCodeModel.VisualStudioWorkspace.CurrentSolution.RemoveDocument(documentId)
-                workspaceAndFileCodeModel.VisualStudioWorkspace.TryApplyChanges(newSolution)
+                state.VisualStudioWorkspace.CloseDocument(documentId)
+                Dim newSolution = state.VisualStudioWorkspace.CurrentSolution.RemoveDocument(documentId)
+                state.VisualStudioWorkspace.TryApplyChanges(newSolution)
                 ' throws COMException with HResult = E_FAIL
                 Assert.Throws(Of System.Runtime.InteropServices.COMException)(
                     Sub()
