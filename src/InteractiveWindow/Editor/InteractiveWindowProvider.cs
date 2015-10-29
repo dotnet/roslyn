@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         private readonly ITextBufferFactoryService _bufferFactory;
         private readonly IProjectionBufferFactoryService _projectionBufferFactory;
         private readonly IEditorOperationsFactoryService _editorOperationsFactory;
+        private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
         private readonly ITextEditorFactoryService _editorFactory;
         private readonly IRtfBuilderService _rtfBuilderService;
         private readonly IIntellisenseSessionStackMapService _intellisenseSessionStackMap;
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             ITextBufferFactoryService bufferFactory,
             IProjectionBufferFactoryService projectionBufferFactory,
             IEditorOperationsFactoryService editorOperationsFactory,
+            ITextBufferUndoManagerProvider textBufferUndoManagerProvider,
             ITextEditorFactoryService editorFactory,
             IRtfBuilderService rtfBuilderService,
             IIntellisenseSessionStackMapService intellisenseSessionStackMap,
@@ -44,6 +46,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             _bufferFactory = bufferFactory;
             _projectionBufferFactory = projectionBufferFactory;
             _editorOperationsFactory = editorOperationsFactory;
+            _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
             _editorFactory = editorFactory;
             _rtfBuilderService = rtfBuilderService;
             _intellisenseSessionStackMap = intellisenseSessionStackMap;
@@ -65,6 +68,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _bufferFactory,
                 _projectionBufferFactory,
                 _editorOperationsFactory,
+                _textBufferUndoManagerProvider,
                 _editorFactory,
                 _rtfBuilderService,
                 _intellisenseSessionStackMap,

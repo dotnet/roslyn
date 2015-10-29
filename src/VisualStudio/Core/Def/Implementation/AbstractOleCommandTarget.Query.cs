@@ -216,6 +216,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case VSConstants.VSStd2KCmdID.REORDERPARAMETERS:
                     return QueryReorderParametersStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
 
+                case VSConstants.VSStd2KCmdID.ECMD_NEXTMETHOD:
+                    return QueryGoToNextMethodStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+
+                case VSConstants.VSStd2KCmdID.ECMD_PREVMETHOD:
+                    return QueryGoToPreviousMethodStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
+
                 case VSConstants.VSStd2KCmdID.OUTLN_START_AUTOHIDING:
                     return QueryStartAutomaticOutliningStatus(ref pguidCmdGroup, commandCount, prgCmds, commandText);
 
@@ -504,6 +510,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 (v, b) => new ReorderParametersCommandArgs(v, b),
                 ref pguidCmdGroup, commandCount, prgCmds, commandText);
         }
+
+        private int QueryGoToNextMethodStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
+        {
+            return GetCommandState(
+                (v, b) => new GoToAdjacentMemberCommandArgs(v, b, NavigateDirection.Down),
+                ref pguidCmdGroup, commandCount, prgCmds, commandText);
+        }
+
+        private int QueryGoToPreviousMethodStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
+        {
+            return GetCommandState(
+                (v, b) => new GoToAdjacentMemberCommandArgs(v, b, NavigateDirection.Up),
+                ref pguidCmdGroup, commandCount, prgCmds, commandText);
+        }
+
 
         private int QueryStartAutomaticOutliningStatus(ref Guid pguidCmdGroup, uint commandCount, OLECMD[] prgCmds, IntPtr commandText)
         {

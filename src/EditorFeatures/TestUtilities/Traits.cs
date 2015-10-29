@@ -96,6 +96,7 @@ namespace Roslyn.Test.Utilities
             public const string Formatting = "Formatting";
             public const string GoToDefinition = "GoToDefinition";
             public const string GoToImplementation = "GoToImplementation";
+            public const string GoToAdjacentMember = "GoToAdjacentMember";
             public const string Interactive = "Interactive";
             public const string InteractiveHost = "InteractiveHost";
             public const string KeywordHighlighting = "KeywordHighlighting";
@@ -127,6 +128,7 @@ namespace Roslyn.Test.Utilities
             public const string TypeInferenceService = "TypeInferenceService";
             public const string Venus = "Venus";
             public const string VsLanguageBlock = "VsLanguageBlock";
+            public const string VsNavInfo = "VsNavInfo";
             public const string XmlTagCompletion = "XmlTagCompletion";
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
             public const string CodeActionsAddNew = "CodeActions.AddNew";

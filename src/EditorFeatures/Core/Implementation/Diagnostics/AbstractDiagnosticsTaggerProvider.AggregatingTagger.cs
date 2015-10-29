@@ -161,6 +161,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                         {
                             return;
                         }
+
+                        // Make sure the editor we've got associated with these diagnostics is the 
+                        // same one we're a tagger for.  It is possible for us to hear about diagnostics
+                        // for the *same* Document that are not from the *same* buffer.  For example,
+                        // say we have the following chain of events:
+                        //
+                        //      Document is opened.
+                        //      Diagnostics start analyzing.
+                        //      Document is closed.
+                        //      Document is opened.
+                        //      Diagnostics finish and report for document.
+                        //
+                        // We'll hear about diagnostics for the original Document/Buffer that was 
+                        // opened.  But we'll be trying to apply them to this current Document/Buffer.
+                        // That won't work since these will be different buffers (and thus, we won't
+                        // be able to map the diagnostic spans appropriately).  
+                        //
+                        // Note: returning here is safe.  Because the file is closed/opened, The 
+                        // Diagnostics Service will reanalyze it.  It will then report the new results
+                        // which we will hear about and use.
+                        if (editorSnapshot.TextBuffer != _subjectBuffer)
+                        {
+                            return;
+                        }
                     }
                 }
 

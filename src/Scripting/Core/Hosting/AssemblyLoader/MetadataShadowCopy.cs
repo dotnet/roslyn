@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// Assembly manifest module copy or a standalone module copy.
         /// </summary>
-        public ShadowCopy PrimaryModule { get; }
+        public FileShadowCopy PrimaryModule { get; }
 
         /// <summary>
         /// Documentation file copy or null if there is none.
@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <remarks>
         /// Documentation files are currently only supported for manifest modules, not modules included in an assembly.
         /// </remarks>
-        public ShadowCopy DocumentationFile { get; }
+        public FileShadowCopy DocumentationFile { get; }
 
         // this instance doesn't own the image
         public Metadata Metadata { get; }
 
-        internal MetadataShadowCopy(ShadowCopy primaryModule, ShadowCopy documentationFileOpt, Metadata metadataCopy)
+        internal MetadataShadowCopy(FileShadowCopy primaryModule, FileShadowCopy documentationFileOpt, Metadata metadataCopy)
         {
             Debug.Assert(primaryModule != null);
             Debug.Assert(metadataCopy != null);
