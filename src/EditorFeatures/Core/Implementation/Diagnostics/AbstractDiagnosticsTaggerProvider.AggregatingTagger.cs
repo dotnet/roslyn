@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -99,16 +100,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     {
                         var tagger = kvp.Value.Item2;
 
-                        tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
-                        var disposable = tagger as IDisposable;
-                        if (disposable != null)
-                        {
-                            disposable.Dispose();
-                        }
+                        DisconnectFromTagger(tagger);
                     }
 
                     _idToProviderAndTagger.Clear();
                     _owner.RemoveTagger(this, _subjectBuffer);
+                }
+            }
+
+            private void DisconnectFromTagger(IAccurateTagger<TTag> tagger)
+            {
+                tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
+                var disposable = tagger as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
                 }
             }
 
@@ -125,6 +131,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e)
             {
+                // First see if this is a document/project removal.  If so, clear out any state we
+                // have associated with any analyzers we have for that document/project.
+                ProcessDocumentOrProjectRemoval(e);
+
                 // Do some quick checks to avoid doing any further work for diagnostics  we don't
                 // care about.
                 var ourDocument = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -196,6 +206,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     RegisterNotification(() => OnDiagnosticsUpdatedOnForeground(e, sourceText, editorSnapshot));
                 }
+            }
+
+            private void ProcessDocumentOrProjectRemoval(DiagnosticsUpdatedArgs e)
+            {
+                if (e.Solution != null)
+                {
+                    // Wasn't a removal.  See DiagnosticIncrementalAnalyzer.RemoveDocument and RemoveProject.
+                    // In the cases where we're removing a document or project, the solution, projectId and
+                    // documentId are all null.
+                    return;
+                }
+
+                if (this.IsForeground())
+                {
+                    ProcessDocumentOrProjectRemovalOnForeground(e);
+                }
+                else
+                {
+                    RegisterNotification(() => ProcessDocumentOrProjectRemovalOnForeground(e));
+                }
+            }
+
+            private void ProcessDocumentOrProjectRemovalOnForeground(DiagnosticsUpdatedArgs e)
+            {
+                // See if we're being told about diagnostics going away because a document/project
+                // was removed.  If so, clear out any diagnostics we have associated with this
+                // diagnostic source ID and notify any listeners that 
+
+                this.AssertIsForeground();
+                if (_disposed)
+                {
+                    return;
+                }
+
+                var id = e.Id;
+                ValueTuple<TaggerProvider, IAccurateTagger<TTag>> providerAndTagger;
+                if (!_idToProviderAndTagger.TryGetValue(id, out providerAndTagger))
+                {
+                    // Wasn't a diagnostic source we care about.
+                    return;
+                }
+
+                _idToProviderAndTagger.Remove(id);
+                DisconnectFromTagger(providerAndTagger.Item2);
+
+                OnUnderlyingTaggerTagsChanged(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
             }
 
             private void OnDiagnosticsUpdatedOnForeground(
