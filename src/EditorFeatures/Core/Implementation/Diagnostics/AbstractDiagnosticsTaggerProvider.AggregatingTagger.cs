@@ -110,6 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
             private void DisconnectFromTagger(IAccurateTagger<TTag> tagger)
             {
+                this.AssertIsForeground();
+
                 tagger.TagsChanged -= OnUnderlyingTaggerTagsChanged;
                 var disposable = tagger as IDisposable;
                 if (disposable != null)
