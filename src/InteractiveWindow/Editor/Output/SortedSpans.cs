@@ -50,19 +50,39 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             lock (_mutex)
             {
-                int startIndex = _spans.BinarySearch(span, comparer);
-                if (startIndex < 0)
-                {
-                    startIndex = ~startIndex - 1;
-                }
+                var count = _spans.Count;
 
-                if (startIndex < 0)
+                // _span is empty, no overlap.
+                if (count == 0)
                 {
                     return Enumerable.Empty<Span>();
                 }
 
+                int startIndex = _spans.BinarySearch(span, comparer);
+
+                // If span is not found in _span, BinarySearch returns a negative number that is the 
+                // bitwise complement of the index of the next span with larger starting index, or if
+                // there is no such span, the bitwise complement of _span.Count.
+
+                // Try get next span in _span with larger starting index, in case the span starts 
+                // before the first one in _span, e.g. span starts within the logo of interactive window.
+                // If there's truly no overlap, then the for-loop will stop before first iteration.
+                if (startIndex < 0)
+                {
+                    startIndex = ~startIndex;
+                }
+
+                // It still possible that the it overlaps with last span in _span,
+                // so we will only check the last one.
+                if (startIndex == count)
+                {
+                    startIndex = startIndex - 1;
+                }
+
+                Debug.Assert(startIndex >= 0);
+
                 int spanEnd = span.End;
-                for (int i = startIndex; i < _spans.Count && _spans[i].Start < spanEnd; i++)
+                for (int i = startIndex; i < count && _spans[i].Start < spanEnd; i++)
                 {
                     var overlap = span.Overlap(_spans[i]);
                     if (overlap.HasValue)
