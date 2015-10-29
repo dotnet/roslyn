@@ -17,7 +17,9 @@ namespace RunTests
 
         public string NoTrait { get; set; }
 
-        public string[] Assemblies { get; set; }
+        public List<string> Assemblies { get; set; }
+
+        public List<string> MissingAssemblies { get; set; }
 
         public string XunitPath { get; set; }
 
@@ -78,22 +80,26 @@ namespace RunTests
             {
                 Console.WriteLine($"The file '{opt.XunitPath}' does not exist.");
                 return null;
-            }            
+            }
 
-            opt.Assemblies = args.Skip(index).ToArray();
+            opt.Assemblies = new List<string>();
+            opt.MissingAssemblies = new List<string>();
+            var assemblyArgs = args.Skip(index).ToArray();
 
-            if (!opt.Assemblies.Any())
+            if (!assemblyArgs.Any())
             {
                 Console.WriteLine("No test assemblies specified.");
                 return null;
             }
 
-            foreach (var assemblyPath in opt.Assemblies)
+            foreach (var assemblyPath in assemblyArgs)
             {
-                if (File.Exists(assemblyPath)) continue;
-
-                Console.WriteLine($"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
-                return null;                
+                if (File.Exists(assemblyPath))
+                {
+                    opt.Assemblies.Add(assemblyPath);
+                    continue;
+                }
+                opt.MissingAssemblies.Add(assemblyPath);                
             }
 
             return opt;
@@ -103,7 +109,7 @@ namespace RunTests
         {
             Console.WriteLine("runtests [xunit-console-runner] [-test64] [-xml] [-trait:name1=value1;...] [-notrait:name1=value1;...] [assembly1] [assembly2] [...]");
             Console.WriteLine("Example:");
-            Console.WriteLine(@"runtests c:\path-to-xunit\xunit.console.exe -trait:Feature=Classification Assembly1.dll Assembly2.dll");
+            Console.WriteLine(@"runtests c:\path-that-contains-xunit.console.exe\ -trait:Feature=Classification Assembly1.dll Assembly2.dll");
         }
 
     }

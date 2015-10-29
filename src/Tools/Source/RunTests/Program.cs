@@ -33,11 +33,17 @@ namespace RunTests
             var testRunner = new TestRunner(options);
             var start = DateTime.Now;
 
-            Console.WriteLine("Running {0} test assemblies", options.Assemblies.Length);
+            Console.WriteLine("Running {0} test assemblies", options.Assemblies.Count());
 
             var orderedList = OrderAssemblyList(options.Assemblies);
             var result = testRunner.RunAllAsync(orderedList, cts.Token).Result;
             var span = DateTime.Now - start;
+
+            foreach (var assemblyPath in options.MissingAssemblies)
+            {
+                ConsoleUtil.WriteLine(ConsoleColor.Red, $"The file '{assemblyPath}' does not exist, is an invalid file name, or you do not have sufficient permissions to read the specified file.");
+            }
+
             if (!result)
             {
                 ConsoleUtil.WriteLine(ConsoleColor.Red, "Test failures encountered: {0}", span);
@@ -45,7 +51,7 @@ namespace RunTests
             }
 
             Console.WriteLine("All tests passed: {0}", span);
-            return 0;
+            return options.MissingAssemblies.Any() ? 1 : 0;
         }
 
         /// <summary>
