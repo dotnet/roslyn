@@ -91,8 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         leadingTrivia = ScanXmlTrivia(c)
 
                     Case "/"c
-                        Dim ch As Char
-                        If Peep(1, ch) AndAlso ch = ">"c Then
+                        If Peep(1, c) AndAlso c = ">"c Then
                             Return XmlMakeEndEmptyElementToken(leadingTrivia)
                         End If
                         Return XmlMakeDivToken(leadingTrivia)
@@ -112,12 +111,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeDoubleQuoteToken(leadingTrivia, c, isOpening:=True)
 
                     Case "<"c
-                        Dim ch As Char, cx As Char
-                        If Peep(1, ch) Then
-                            Select Case ch
+                        If Peep(1, c) Then
+                            Select Case c
                                 Case "!"c
-                                    If Peep(2, cx) Then
-                                        Select Case cx
+                                    If Peep(2, c) Then
+                                        Select Case c
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(leadingTrivia, s_scanNoTriviaFunc)
@@ -127,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                     Return XmlMakeBeginCDataToken(leadingTrivia, s_scanNoTriviaFunc)
                                                 End If
                                             Case "D"c
-                                                If Nextare(3, "OCTYPE") Then
+                                                If NextAre(3, "OCTYPE") Then
                                                     Return XmlMakeBeginDTDToken(leadingTrivia)
                                                 End If
                                         End Select
@@ -340,13 +338,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
 
                         Debug.Assert(Here = 0)
-                        Dim ch As Char
-                        If Peep(1, ch) Then
-                            Select Case ch
+                        If Peep(1, c) Then
+                            Select Case c
                                 Case "!"c
-                                    Dim cx As Char
-                                    If Peep(2, cx) Then
-                                        Select Case cx
+                                    If Peep(2, c) Then
+                                        Select Case c
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
@@ -729,9 +725,8 @@ CleanUp:
                         precedingTrivia = ScanXmlTrivia(c)
 
                     Case "<"c
-                        Dim ch As Char
-                        If Peep(1, ch) Then
-                            Select Case ch
+                        If Peep(1, c) Then
+                            Select Case c
                                 Case "!"c
                                     If NextAre(2, "--") Then
                                         Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
@@ -987,7 +982,7 @@ CleanUp:
             Dim c2 As Char
 #If DEBUG Then
             Debug.Assert(Here >= 0)
-            dim ok = Peep(Here, c2)
+            Dim ok = Peep(Here, c2)
             Debug.Assert(ok)
             Debug.Assert(c2 = c1)
 #End If
@@ -1162,9 +1157,8 @@ CreateNCNameToken:
                     Case "a"c
                         ' // &amp;
                         ' // &apos;
-                        Dim ch As Char
-                        If Peep(4, ch) AndAlso NextAre(2, "mp") Then
-                            If ch = ";"c Then
+                        If Peep(4, c) AndAlso NextAre(2, "mp") Then
+                            If c = ";"c Then
                                 Return XmlMakeAmpLiteralToken(precedingTrivia)
                             Else
                                 Dim noSemicolon = XmlMakeEntityLiteralToken(precedingTrivia, 4, "&")
@@ -1172,9 +1166,9 @@ CreateNCNameToken:
                                 Return DirectCast(noSemicolon.SetDiagnostics({noSemicolonError}), XmlTextTokenSyntax)
                             End If
 
-                        ElseIf Peep(5, ch) AndAlso NextAre(2, "pos") Then
+                        ElseIf Peep(5, c) AndAlso NextAre(2, "pos") Then
 
-                            If ch = ";"c Then
+                            If c = ";"c Then
                                 Return XmlMakeAposLiteralToken(precedingTrivia)
                             Else
                                 Dim noSemicolon = XmlMakeEntityLiteralToken(precedingTrivia, 5, "'")
@@ -1185,10 +1179,9 @@ CreateNCNameToken:
 
                     Case "l"c
                         ' // &lt;
-                        Dim ch As Char
-                        If Peep(3, ch) AndAlso NextIs(2, "t"c) Then
+                        If Peep(3, c) AndAlso NextIs(2, "t"c) Then
 
-                            If ch = ";"c Then
+                            If c = ";"c Then
                                 Return XmlMakeLtLiteralToken(precedingTrivia)
                             Else
                                 Dim noSemicolon = XmlMakeEntityLiteralToken(precedingTrivia, 3, "<")
@@ -1199,10 +1192,9 @@ CreateNCNameToken:
 
                     Case "g"c
                         ' // &gt;
-                        Dim ch As Char
-                        If Peep(3, ch) AndAlso NextIs(2, "t"c) Then
+                        If Peep(3, c) AndAlso NextIs(2, "t"c) Then
 
-                            If ch = ";"c Then
+                            If c = ";"c Then
                                 Return XmlMakeGtLiteralToken(precedingTrivia)
                             Else
                                 Dim noSemicolon = XmlMakeEntityLiteralToken(precedingTrivia, 3, ">")
@@ -1213,10 +1205,9 @@ CreateNCNameToken:
 
                     Case "q"c
                         ' // &quot;
-                        Dim ch As Char
-                        If Peep(5, ch) AndAlso NextAre(2, "uot") Then
+                        If Peep(5, c) AndAlso NextAre(2, "uot") Then
 
-                            If ch = ";"c Then
+                            If c = ";"c Then
                                 Return XmlMakeQuotLiteralToken(precedingTrivia)
                             Else
                                 Dim noSemicolon = XmlMakeEntityLiteralToken(precedingTrivia, 5, """")
