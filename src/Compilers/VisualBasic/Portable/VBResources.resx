@@ -5051,7 +5051,7 @@
 /debug:portable                   Emit debugging information in the portable format.
 /debug:pdbonly                    Emit PDB file only.
 /deterministic                    Produce a deterministic assembly
-                                  (module version GUID and timestamp)
+                                  (including module version GUID and timestamp)
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.

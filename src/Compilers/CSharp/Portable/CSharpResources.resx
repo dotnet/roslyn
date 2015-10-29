@@ -4396,7 +4396,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                                program. 'portable' is a cross-platform format)
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
-                               (module version GUID and timestamp)
+                               (including module version GUID and timestamp)
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
