@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _inExpressionLambda;
 
         private bool _sawAwait;
-        private bool _sawMethodGroupConversionFromStaticMethod;
+        private bool _sawRewritableMethodGroupConversion;
         private bool _sawAwaitInExceptionHandler;
         private readonly DiagnosticBag _diagnostics;
 
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics,
             out bool sawLambdas,
-            out bool sawMethodGroupConversionFromStaticMethod,
+            out bool sawRewritableMethodGroupConversion,
             out bool sawAwaitInExceptionHandler)
         {
             Debug.Assert(statement != null);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter._sawLambdas;
-                sawMethodGroupConversionFromStaticMethod = localRewriter._sawMethodGroupConversionFromStaticMethod;
+                sawRewritableMethodGroupConversion = localRewriter._sawRewritableMethodGroupConversion;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
                 var block = loweredStatement as BoundBlock;
                 var result = (block == null) ? loweredStatement : InsertPrologueSequencePoint(block, method);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                sawLambdas = sawAwaitInExceptionHandler = sawMethodGroupConversionFromStaticMethod = false;
+                sawLambdas = sawAwaitInExceptionHandler = sawRewritableMethodGroupConversion = false;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }

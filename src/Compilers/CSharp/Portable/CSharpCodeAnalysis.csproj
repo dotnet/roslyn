@@ -453,6 +453,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Yield.cs" />
     <Compile Include="Lowering\LocalRewriter\LoweredDynamicOperation.cs" />
     <Compile Include="Lowering\LocalRewriter\LoweredDynamicOperationFactory.cs" />
+    <Compile Include="Lowering\MethodGroupConversionRewriter\MethodGroupConversionRewriter.cs" />
     <Compile Include="Lowering\MethodToClassRewriter.cs" />
     <Compile Include="Lowering\StateMachineRewriter\CapturedSymbol.cs" />
     <Compile Include="Lowering\StateMachineRewriter\IteratorAndAsyncCaptureWalker.cs" />
