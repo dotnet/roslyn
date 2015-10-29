@@ -1369,7 +1369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             While Peep(len, ch)
 
                 Dim code = Convert.ToUInt16(ch)
-                If code < 128 AndAlso IsNarrowIdentifierCharacter(code) OrElse
+                If code < 128us AndAlso IsNarrowIdentifierCharacter(code) OrElse
                     IsWideIdentifierCharacter(ch) Then
 
                     len += 1
@@ -1390,38 +1390,36 @@ FullWidthRepeat:
                         If Peep(len + 1, ch) Then
                             If IsIdentifierStartCharacter(ch) OrElse
                                 MatchOneOrAnotherOrFullwidth(ch, "["c, "]"c) Then
+                                len -= 1
                                 Exit Select
                             End If
                         End If
                         TypeCharacter = TypeCharacter.Single  'typeChars.chType_sR4
-                        len += 1
 
                     Case "#"c
                         TypeCharacter = TypeCharacter.Double ' typeChars.chType_sR8
-                        len += 1
 
                     Case "$"c
                         TypeCharacter = TypeCharacter.String 'typeChars.chType_String
-                        len += 1
 
                     Case "%"c
                         TypeCharacter = TypeCharacter.Integer ' typeChars.chType_sI4
-                        len += 1
 
                     Case "&"c
                         TypeCharacter = TypeCharacter.Long 'typeChars.chType_sI8
-                        len += 1
 
                     Case "@"c
                         TypeCharacter = TypeCharacter.Decimal 'chType_sDecimal
-                        len += 1
 
                     Case Else
                         If IsFullWidth(ch) Then
                             ch = MakeHalfWidth(ch)
                             GoTo FullWidthRepeat
                         End If
+                        len -= 1
                 End Select
+                len += 1
+
             End If
 
             Dim tokenType As SyntaxKind = SyntaxKind.IdentifierToken

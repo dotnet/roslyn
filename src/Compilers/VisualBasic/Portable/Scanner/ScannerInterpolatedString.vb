@@ -112,21 +112,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function IsInterpolatedStringPunctuation(Optional offset As Integer = 0) As Boolean
-            Dim c, ch As Char
+            Dim c As Char
             If Not Peep(offset, c) Then Return False
 
             If IsLeftCurlyBracket(c) Then
-                Return Not Peep(offset + 1, ch) OrElse Not IsLeftCurlyBracket(ch)
+                Return Not Peep(offset + 1, c) OrElse Not IsLeftCurlyBracket(c)
 
             ElseIf IsRightCurlyBracket(c) Then
-                Return Not Peep(offset + 1, ch) OrElse Not IsRightCurlyBracket(ch)
+                Return Not Peep(offset + 1, c) OrElse Not IsRightCurlyBracket(c)
 
             ElseIf IsDoubleQuote(c)
                 'A subtle difference between this case and the one above.
                 ' In both interpolated and literal strings the two quote characters used in an escape sequence don't have to match.
                 ' It's enough that the next character is *a* quote char. It doesn't have to be the same quote.
                 ' If we want to preserve consistency the quotes need to be special cased.
-                Return Not Peep(offset + 1, ch) OrElse Not IsDoubleQuote(ch)
+                Return Not Peep(offset + 1, c) OrElse Not IsDoubleQuote(c)
 
             Else
                 Return False
