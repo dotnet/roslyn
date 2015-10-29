@@ -32,6 +32,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        private static SourceText CreateMemoryStreamBasedEncodedText(byte[] bytes, 
+            Func<Encoding> getEncoding,
+            Encoding readEncodingOpt = null,
+            SourceHashAlgorithm algorithm = SourceHashAlgorithm.Sha1)
+        {
+            // For testing purposes, create a bigger buffer so that we verify 
+            // that the implementation only uses the part that's covered by the stream and not the entire array.
+            byte[] buffer = new byte[bytes.Length + 10];
+            bytes.CopyTo(buffer, 0);
+
+            using (var stream = new MemoryStream(buffer, 0, bytes.Length, writable: true, publiclyVisible: true))
+            {
+                return EncodedStringText.Create(stream, getEncoding, readEncodingOpt, algorithm);
+            }
+        }
+
+        [Fact]
+        public void ShiftJisGetEncoding()
+        {
+            var sjis = Encoding.GetEncoding(932);
+            var data = CreateMemoryStreamBasedEncodedText(TestResources.General.ShiftJisSource, () => sjis);
+
+            Assert.Equal(932, data.Encoding?.WindowsCodePage);
+            Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
+        }
+
         [Fact]
         public void ShiftJisFile()
         {
