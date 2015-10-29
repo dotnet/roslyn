@@ -116,31 +116,124 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return newNode;
             }
 
+            private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
+            {
+                return new SpeculationAnalyzer(expression, newExpression, this._semanticModel, this._cancellationToken);
+            }
+
+            private bool TryCastTo(ITypeSymbol targetType, ExpressionSyntax expression, ExpressionSyntax newExpression, out ExpressionSyntax newExpressionWithCast)
+            {
+                var speculativeAnalyzer = GetSpeculationAnalyzer(expression, newExpression);
+                var speculativeSemanticModel = speculativeAnalyzer.SpeculativeSemanticModel;
+                var speculatedExpression = speculativeAnalyzer.ReplacedExpression;
+
+                var result = speculatedExpression.CastIfPossible(targetType, speculatedExpression.SpanStart, speculativeSemanticModel);
+
+                if (result != speculatedExpression)
+                {
+                    newExpressionWithCast = result;
+                    return true;
+                }
+
+                newExpressionWithCast = null;
+                return false;
+            }
+
+            private bool TryGetLambdaExpressionBodyWithCast(LambdaExpressionSyntax lambdaExpression, LambdaExpressionSyntax newLambdaExpression, out ExpressionSyntax newLambdaExpressionBodyWithCast)
+            {
+                if (newLambdaExpression.Body is ExpressionSyntax)
+                {
+                    var body = (ExpressionSyntax)lambdaExpression.Body;
+                    var newBody = (ExpressionSyntax)newLambdaExpression.Body;
+
+                    var returnType = (_semanticModel.GetSymbolInfo(lambdaExpression).Symbol as IMethodSymbol)?.ReturnType;
+                    if (returnType != null)
+                    {
+                        return TryCastTo(returnType, body, newBody, out newLambdaExpressionBodyWithCast);
+                    }
+                }
+
+                newLambdaExpressionBodyWithCast = null;
+                return false;
+            }
+
+            public override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
+            {
+                var newNode = base.VisitReturnStatement(node);
+
+                if (newNode is ReturnStatementSyntax)
+                {
+                    var newReturnStatement = (ReturnStatementSyntax)newNode;
+
+                    var parentLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
+                    if (parentLambda != null)
+                    {
+                        var returnType = (_semanticModel.GetSymbolInfo(parentLambda).Symbol as IMethodSymbol)?.ReturnType;
+                        if (returnType != null)
+                        {
+                            ExpressionSyntax newExpressionWithCast;
+                            if (TryCastTo(returnType, node.Expression, newReturnStatement.Expression, out newExpressionWithCast))
+                            {
+                                newNode = newReturnStatement.WithExpression(newExpressionWithCast);
+                            }
+                        }
+                    }
+                }
+
+                return newNode;
+            }
+
+            public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+            {
+                var newNode = base.VisitParenthesizedLambdaExpression(node);
+
+                if (newNode is ParenthesizedLambdaExpressionSyntax)
+                {
+                    var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)newNode;
+
+                    ExpressionSyntax newLambdaExpressionBodyWithCast;
+                    if (TryGetLambdaExpressionBodyWithCast(node, parenthesizedLambda, out newLambdaExpressionBodyWithCast))
+                    {
+                        newNode = parenthesizedLambda.WithBody(newLambdaExpressionBodyWithCast);
+                    }
+                }
+
+                return newNode;
+            }
+
             public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
             {
                 var newNode = base.VisitSimpleLambdaExpression(node);
+
+                if (newNode is SimpleLambdaExpressionSyntax)
+                {
+                    var simpleLambda = (SimpleLambdaExpressionSyntax)newNode;
+
+                    ExpressionSyntax newLambdaExpressionBodyWithCast;
+                    if (TryGetLambdaExpressionBodyWithCast(node, simpleLambda, out newLambdaExpressionBodyWithCast))
+                    {
+                        newNode = simpleLambda.WithBody(newLambdaExpressionBodyWithCast);
+                    }
+                }
 
                 if (newNode is SimpleLambdaExpressionSyntax && _expandParameter)
                 {
                     var newSimpleLambda = (SimpleLambdaExpressionSyntax)newNode;
                     var parameterSymbol = _semanticModel.GetDeclaredSymbol(node.Parameter);
-                    if (parameterSymbol != null && parameterSymbol.Kind == SymbolKind.Parameter)
+                    if (parameterSymbol?.Type?.ContainsAnonymousType() == false)
                     {
-                        if (parameterSymbol.Type != null)
-                        {
-                            var typeSyntax = parameterSymbol.Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
-                            var newSimpleLambdaParameter = newSimpleLambda.Parameter.WithType(typeSyntax).WithoutTrailingTrivia();
+                        var typeSyntax = parameterSymbol.Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
+                        var newSimpleLambdaParameter = newSimpleLambda.Parameter.WithType(typeSyntax).WithoutTrailingTrivia();
 
-                            var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
-                                newSimpleLambda.AsyncKeyword,
-                                SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(newSimpleLambdaParameter))
-                                    .WithTrailingTrivia(newSimpleLambda.Parameter.GetTrailingTrivia())
-                                    .WithLeadingTrivia(newSimpleLambda.Parameter.GetLeadingTrivia()),
-                                newSimpleLambda.ArrowToken,
-                                newSimpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
+                        var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
+                            newSimpleLambda.AsyncKeyword,
+                            SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(newSimpleLambdaParameter))
+                                .WithTrailingTrivia(newSimpleLambda.Parameter.GetTrailingTrivia())
+                                .WithLeadingTrivia(newSimpleLambda.Parameter.GetLeadingTrivia()),
+                            newSimpleLambda.ArrowToken,
+                            newSimpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
 
-                            return SimplificationHelpers.CopyAnnotations(newNode, parenthesizedLambda);
-                        }
+                        return SimplificationHelpers.CopyAnnotations(newNode, parenthesizedLambda);
                     }
                 }
 
@@ -157,15 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (argumentType != null &&
                     !IsPassedToDelegateCreationExpression(node, argumentType))
                 {
-                    var specAnalyzer = new SpeculationAnalyzer(node.Expression, newArgument.Expression, _semanticModel, _cancellationToken);
-                    var speculativeSemanticModel = specAnalyzer.SpeculativeSemanticModel;
-                    var speculatedExpression = specAnalyzer.ReplacedExpression;
-
-                    bool wasCastAdded;
-                    var newArgumentExpression = speculatedExpression.CastIfPossible(argumentType, speculatedExpression.SpanStart, speculativeSemanticModel, out wasCastAdded);
-                    if (wasCastAdded)
+                    ExpressionSyntax newArgumentExpressionWithCast;
+                    if (TryCastTo(argumentType, node.Expression, newArgument.Expression, out newArgumentExpressionWithCast))
                     {
-                        return newArgument.WithExpression(newArgumentExpression);
+                        return newArgument.WithExpression(newArgumentExpressionWithCast);
                     }
                 }
 
@@ -605,18 +693,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
                     {
                         var typeArguments = ((IMethodSymbol)symbol).TypeArguments;
+                        if (!typeArguments.Any(t => t.ContainsAnonymousType()))
+                        {
+                            var genericName = SyntaxFactory.GenericName(
+                                            ((IdentifierNameSyntax)newNode).Identifier,
+                                            SyntaxFactory.TypeArgumentList(
+                                                SyntaxFactory.SeparatedList(
+                                                    typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayParts(s_typeNameFormatWithGenerics).ToDisplayString())))))
+                                            .WithLeadingTrivia(newNode.GetLeadingTrivia())
+                                            .WithTrailingTrivia(newNode.GetTrailingTrivia())
+                                            .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                        var genericName = SyntaxFactory.GenericName(
-                                        ((IdentifierNameSyntax)newNode).Identifier,
-                                        SyntaxFactory.TypeArgumentList(
-                                            SyntaxFactory.SeparatedList(
-                                                typeArguments.Select(p => SyntaxFactory.ParseTypeName(p.ToDisplayParts(s_typeNameFormatWithGenerics).ToDisplayString())))))
-                                        .WithLeadingTrivia(newNode.GetLeadingTrivia())
-                                        .WithTrailingTrivia(newNode.GetTrailingTrivia())
-                                        .WithAdditionalAnnotations(Simplifier.Annotation);
-
-                        genericName = newNode.CopyAnnotationsTo(genericName);
-                        return genericName;
+                            genericName = newNode.CopyAnnotationsTo(genericName);
+                            return genericName;
+                        }
                     }
                 }
 
@@ -805,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         {
                             return left
                                 .WithLeadingTrivia(rewrittenNode.GetLeadingTrivia())
-                                    .WithTrailingTrivia(rewrittenNode.GetTrailingTrivia());
+                                .WithTrailingTrivia(rewrittenNode.GetTrailingTrivia());
                         }
 
                         // now create syntax for the combination of left and right syntax, or a simple replacement in case of an identifier

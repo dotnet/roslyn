@@ -546,5 +546,29 @@ class C
                 result.AssertLabeledSpansAre("second", "DefaultValue(C.Method)", type:=RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
+
+        <WorkItem(6306, "https://github.com/dotnet/roslyn/issues/6306")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ResolveConflictInAnonymousTypeProperty()
+            Using result = RenameEngineResult.Create(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document><![CDATA[
+using System;
+class C
+{
+    void X<T>(T t, Func<T, long> e) { {|first:X|}(new { a = 1 }, a => a.a); }
+
+    [Obsolete]
+    void {|second:$$Y|}<T>(T t, Func<T, int> e) { }
+}
+                        ]]></Document>
+                    </Project>
+                </Workspace>, renameTo:="X")
+
+                result.AssertLabeledSpansAre("first", "X(new { a = 1 }, a => (long)a.a);", type:=RelatedLocationType.ResolvedNonReferenceConflict)
+                result.AssertLabeledSpansAre("second", "X", type:=RelatedLocationType.NoConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
