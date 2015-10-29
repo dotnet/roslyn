@@ -48,6 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return ((PragmaChecksumDirectiveTriviaSyntax)this).PragmaKeyword;
                     case SyntaxKind.ReferenceDirectiveTrivia:
                         return ((ReferenceDirectiveTriviaSyntax)this).ReferenceKeyword;
+                    case SyntaxKind.LoadDirectiveTrivia:
+                        return ((LoadDirectiveTriviaSyntax)this).LoadKeyword;
+                    case SyntaxKind.ShebangDirectiveTrivia:
+                        return ((ShebangDirectiveTriviaSyntax)this).ExclamationToken;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.Kind());
                 }

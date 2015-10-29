@@ -2,12 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -190,7 +188,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, line, column, usePreviewTab: previewTab))
+            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab);
+            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, line, column, options))
             {
                 return true;
             }

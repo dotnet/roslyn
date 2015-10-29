@@ -293,30 +293,24 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
         }
 
-        /// <summary>
-        /// Creates a top level code action with multiple code action choices a user can invoke.
-        /// </summary>
-        public static CodeAction Create(string title, IEnumerable<CodeAction> nestedActions, string equivalenceKey = null)
-        {
-            if (title == null)
-            {
-                throw new ArgumentNullException(nameof(title));
-            }
-
-            return new SimpleCodeAction(title, nestedActions.AsImmutableOrEmpty(), equivalenceKey);
-        }
-
         internal class SimpleCodeAction : CodeAction
         {
             private readonly string _title;
             private readonly string _equivalenceKey;
             private readonly ImmutableArray<CodeAction> _nestedActions;
 
-            public SimpleCodeAction(string title, ImmutableArray<CodeAction> nestedActions, string equivalenceKey)
+            public SimpleCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
             {
                 _title = title;
                 _nestedActions = nestedActions;
+                _equivalenceKey = ComputeEquivalenceKey(nestedActions);
+            }
+
+            public SimpleCodeAction(string title, string equivalenceKey)
+            {
+                _title = title;
                 _equivalenceKey = equivalenceKey;
+                _nestedActions = ImmutableArray<CodeAction>.Empty;
             }
 
             public sealed override string Title => _title;
@@ -334,6 +328,29 @@ namespace Microsoft.CodeAnalysis.CodeActions
             {
                 return Task.FromResult<Document>(null);
             }
+
+            private static string ComputeEquivalenceKey(IEnumerable<CodeAction> nestedActions)
+            {
+                if (nestedActions == null)
+                {
+                    return null;
+                }
+
+                var equivalenceKey = StringBuilderPool.Allocate();
+                try
+                {
+                    foreach (var action in nestedActions)
+                    {
+                        equivalenceKey.Append(action.EquivalenceKey ?? action.GetHashCode().ToString() + ";");
+                    }
+
+                    return equivalenceKey.Length > 0 ? equivalenceKey.ToString() : null;
+                }
+                finally
+                {
+                    StringBuilderPool.ReturnAndFree(equivalenceKey);
+                }
+            }
         }
 
         internal class DocumentChangeAction : SimpleCodeAction
@@ -341,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
             public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
-                : base(title, nestedActions: ImmutableArray<CodeAction>.Empty, equivalenceKey: equivalenceKey)
+                : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
             }
@@ -359,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
             public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
-                : base(title, nestedActions: ImmutableArray<CodeAction>.Empty, equivalenceKey: equivalenceKey)
+                : base(title, equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;
             }

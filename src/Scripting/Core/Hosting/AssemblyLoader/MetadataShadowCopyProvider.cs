@@ -411,10 +411,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     string assemblyCopyDir = CreateUniqueDirectory(ShadowCopyDirectory);
                     string shadowCopyPath = Path.Combine(assemblyCopyDir, Path.GetFileName(originalPath));
 
-                    ShadowCopy documentationFileCopy = TryCopyDocumentationFile(originalPath, assemblyCopyDir, _documentationCommentsCulture);
+                    FileShadowCopy documentationFileCopy = TryCopyDocumentationFile(originalPath, assemblyCopyDir, _documentationCommentsCulture);
 
                     var manifestModuleCopyStream = CopyFile(originalPath, shadowCopyPath);
-                    var manifestModuleCopy = new ShadowCopy(manifestModuleCopyStream, originalPath, shadowCopyPath);
+                    var manifestModuleCopy = new FileShadowCopy(manifestModuleCopyStream, originalPath, shadowCopyPath);
 
                     Metadata privateMetadata;
                     if (kind == MetadataImageKind.Assembly)
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private static ShadowCopy TryCopyDocumentationFile(string originalAssemblyPath, string assemblyCopyDirectory, CultureInfo docCultureOpt)
+        private static FileShadowCopy TryCopyDocumentationFile(string originalAssemblyPath, string assemblyCopyDirectory, CultureInfo docCultureOpt)
         {
             // Note: Doc comments are not supported for netmodules.
 
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             var xmlStream = CopyFile(xmlOriginalPath, xmlCopyPath, fileMayNotExist: true);
 
-            return (xmlStream != null) ? new ShadowCopy(xmlStream, xmlOriginalPath, xmlCopyPath) : null;
+            return (xmlStream != null) ? new FileShadowCopy(xmlStream, xmlOriginalPath, xmlCopyPath) : null;
         }
 
         private static bool TryFindCollocatedDocumentationFile(

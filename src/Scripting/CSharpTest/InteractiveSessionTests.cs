@@ -1171,7 +1171,7 @@ public class E { }
             var script = CSharpScript.Create(@"new C()", 
                 ScriptOptions.Default.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
 
-            script.Build().Verify();
+            script.Compile().Verify();
         }
 
         #endregion

@@ -380,11 +380,21 @@ namespace Microsoft.CodeAnalysis
             Interlocked.Exchange(ref _isBound, 1);
         }
 
+        /// <summary>
+        /// Global namespaces of assembly references that have been superseded by an assembly reference with a higher version are 
+        /// hidden behind <see cref="SupersededAlias"/> to avoid ambiguity when they are accessed from source.
+        /// All existing aliases of a superseded assembly are discarded.
+        /// </summary>
+        private static readonly ImmutableArray<string> SupersededAlias = ImmutableArray.Create("<superseded>");
+
         protected static void BuildReferencedAssembliesAndModulesMaps(
             BoundInputAssembly[] bindingResult,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<ResolvedReference> referenceMap,
             int referencedModuleCount,
+            int explicitlyReferencedAsemblyCount,
+            IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
+            bool supersedeLowerVersions,
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
             out Dictionary<MetadataReference, int> referencedModulesMap,
             out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies)
@@ -426,6 +436,20 @@ namespace Microsoft.CodeAnalysis
             }
 
             Debug.Assert(!aliasesOfReferencedAssembliesBuilder.Any(a => a.IsDefault));
+
+            if (supersedeLowerVersions)
+            {
+                foreach (var assemblyReference in assemblyReferencesBySimpleName)
+                {
+                    // the item in the list is the highest version, by construction
+                    for (int i = 1; i < assemblyReference.Value.Count; i++)
+                    {
+                        int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAsemblyCount);
+                        aliasesOfReferencedAssembliesBuilder[assemblyIndex] = SupersededAlias;
+                    }
+                }
+            }
+
             aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
         }
 

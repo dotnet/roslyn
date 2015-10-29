@@ -748,4 +748,7 @@ Do you want to proceed?</value>
   <data name="Paste" xml:space="preserve">
     <value>Paste</value>
   </data>
+  <data name="Navigating" xml:space="preserve">
+    <value>Navigating...</value>
+  </data>
 </root>
