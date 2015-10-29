@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             if (symbol != null && referencingProject != null)
             {
                 var navigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                return navigationService.TryNavigateToSymbol(symbol, referencingProject, CancellationToken.None)
+                return navigationService.TryNavigateToSymbol(symbol, referencingProject, cancellationToken: CancellationToken.None)
                     ? VSConstants.S_OK
                     : VSConstants.E_FAIL;
             }

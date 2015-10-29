@@ -2465,6 +2465,34 @@ public static class TestReferences
                     return s_EN_US;
                 }
             }
+
+            private static PortableExecutableReference s_C1;
+            public static PortableExecutableReference C1
+            {
+                get
+                {
+                    if (s_C1 == null)
+                    {
+                        s_C1 = AssemblyMetadata.CreateFromImage(TestResources.General.C1).GetReference(display: "C1");
+                    }
+
+                    return s_C1;
+                }
+            }
+
+            private static PortableExecutableReference s_C2;
+            public static PortableExecutableReference C2
+            {
+                get
+                {
+                    if (s_C2 == null)
+                    {
+                        s_C2 = AssemblyMetadata.CreateFromImage(TestResources.General.C2).GetReference(display: "C2");
+                    }
+
+                    return s_C2;
+                }
+            }
         }
     }
 }

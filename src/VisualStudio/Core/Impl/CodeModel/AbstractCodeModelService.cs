@@ -260,7 +260,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     }
 
                 case SymbolKind.Property:
-                    return (EnvDTE.CodeElement)ExternalCodeProperty.Create(state, projectId, (IPropertySymbol)symbol);
+                    var propertySymbol = (IPropertySymbol)symbol;
+                    return propertySymbol.IsWithEvents
+                        ? (EnvDTE.CodeElement)ExternalCodeVariable.Create(state, projectId, propertySymbol)
+                        : (EnvDTE.CodeElement)ExternalCodeProperty.Create(state, projectId, (IPropertySymbol)symbol);
                 default:
                     throw Exceptions.ThrowEFail();
             }
@@ -519,7 +522,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract SyntaxNode SetName(SyntaxNode node, string name);
 
         public abstract string GetFullName(SyntaxNode node, SemanticModel semanticModel);
-        public abstract string GetFullName(ISymbol symbol);
 
         public abstract string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
@@ -567,6 +569,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // Update the node keys.
             nodeKeyValidation.RestoreKeys();
         }
+
+        public abstract bool IsValidExternalSymbol(ISymbol symbol);
+        public abstract string GetExternalSymbolName(ISymbol symbol);
+        public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
         public VirtualTreePoint? GetStartPoint(SyntaxNode node, EnvDTE.vsCMPart? part)
         {

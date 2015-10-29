@@ -120,12 +120,12 @@ namespace RunTests
             try
             { 
                 var assemblyName = Path.GetFileName(assemblyPath);
-                var extension = _useHtml ? "html" : "xml";
-                var resultsFile = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults", $"{assemblyName}.{extension}");
-                var resultsPath = Path.GetDirectoryName(resultsFile);
+                var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), "xUnitResults");
+                var resultsFile = Path.Combine(resultsDir, $"{assemblyName}.{(_useHtml ? "html" : "xml")}");
+                var outputLogPath = Path.Combine(resultsDir, $"{assemblyName}.out.log");
 
                 // NOTE: xUnit doesn't always create the log directory
-                Directory.CreateDirectory(resultsPath);
+                Directory.CreateDirectory(resultsDir);
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.
@@ -134,7 +134,7 @@ namespace RunTests
                 var builder = new StringBuilder();
                 builder.AppendFormat(@"""{0}""", assemblyPath);
                 builder.AppendFormat(@" -{0} ""{1}""", _useHtml ? "html" : "xml", resultsFile);
-                builder.Append(" -noshadow");
+                builder.Append(" -noshadow -verbose");
 
                 var errorOutput = new StringBuilder();
                 var start = DateTime.UtcNow;
@@ -151,31 +151,30 @@ namespace RunTests
 
                 if (processOutput.ExitCode != 0)
                 {
+                    File.WriteAllLines(outputLogPath, processOutput.OutputLines);
+
                     // On occasion we get a non-0 output but no actual data in the result file.  The could happen
                     // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
                     // To avoid losing information, write the process output to the console.  In addition, delete the results
                     // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
-                    var all = string.Empty;
+                    var resultData = string.Empty;
                     try
                     {
-                        all = File.ReadAllText(resultsFile).Trim();
+                        resultData = File.ReadAllText(resultsFile).Trim();
                     }
                     catch
                     {
                         // Happens if xunit didn't produce a log file
                     }
 
-                    bool noResultsData = (all.Length == 0);
-                    if (noResultsData)
+                    if (resultData.Length == 0)
                     {
-                        var output = processOutput.OutputLines.Concat(processOutput.ErrorLines);
-                        Console.Write(string.Join(Environment.NewLine, output));
-
                         // Delete the output file.
                         File.Delete(resultsFile);
                     }
 
                     errorOutput.AppendLine($"Command: {_xunitConsolePath} {builder}");
+                    errorOutput.AppendLine($"xUnit output: {outputLogPath}");
 
                     if (processOutput.ErrorLines.Any())
                     {
@@ -191,7 +190,7 @@ namespace RunTests
 
                     // If the results are html, use Process.Start to open in the browser.
 
-                    if (_useHtml && !noResultsData)
+                    if (_useHtml && resultData.Length > 0)
                     {
                         Process.Start(resultsFile);
                     }

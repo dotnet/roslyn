@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                         // Wrap the generate type actions into a single top level suggestion
                         // so as to not clutter the list.
                         return SpecializedCollections.SingletonEnumerable(
-                            new MyCodeAction(FeaturesResources.Generate_type, actions.AsImmutable(), actions[0].EquivalenceKey));
+                            new MyCodeAction(FeaturesResources.Generate_type, actions.AsImmutable()));
                     }
                     else
                     {
@@ -295,8 +295,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
         private class MyCodeAction : CodeAction.SimpleCodeAction
         {
-            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions, string equivalenceKey)
-                : base(title, nestedActions, equivalenceKey)
+            public MyCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
+                : base(title, nestedActions)
             {
             }
         }

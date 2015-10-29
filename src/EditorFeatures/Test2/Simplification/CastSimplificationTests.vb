@@ -7687,7 +7687,7 @@ End Class
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(995855)>
-        Public Sub VisualBasic_Remove_UnnecessaryCastInTernaryExpression()
+        Public Sub VisualBasic_DontRemove_NecessaryCastInTernaryExpression1()
             Dim input =
 <Workspace>
     <Project Language="Visual Basic" CommonReferences="true">
@@ -7696,7 +7696,109 @@ Class C
     Private Shared Sub Main(args As String())
         Dim s As Byte = 0
         Dim i As Integer = 0
-        s += If(i = 0, {|Simplify:CByte(0)|}, {|Simplify:CByte(0)|})
+        s += If(i = 0, CByte(0), {|Simplify:CByte(0)|})
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, CByte(0), CByte(0))
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(995855)>
+        Public Sub VisualBasic_DontRemove_NecessaryCastInTernaryExpression2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, {|Simplify:CByte(0)|}, CByte(0))
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, CByte(0), CByte(0))
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(995855)>
+        Public Sub VisualBasic_Remove_UnnecessaryCastInTernaryExpression1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, 0, {|Simplify:CByte(0)|})
+    End Sub
+End Class
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, 0, 0)
+    End Sub
+End Class
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(995855)>
+        Public Sub VisualBasic_Remove_UnnecessaryCastInTernaryExpression2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document><![CDATA[
+Class C
+    Private Shared Sub Main(args As String())
+        Dim s As Byte = 0
+        Dim i As Integer = 0
+        s += If(i = 0, {|Simplify:CByte(0)|}, 0)
     End Sub
 End Class
 ]]>
@@ -8201,6 +8303,165 @@ Class C
     End Sub
 End Class
 ]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_Remove_IntegerToByte_OptionStrictOff()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict Off
+Class C
+    Sub M()
+        Dim b As Byte
+        b += {|Simplify:CByte(1)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict Off
+Class C
+    Sub M()
+        Dim b As Byte
+        b += 1
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn1()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b += {|Simplify:CByte(1)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b += CByte(1)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn2()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Const x = 1
+        b += {|Simplify:CByte(x)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Const x = 1
+        b += CByte(x)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn3()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Dim x As Integer = 1
+        b += {|Simplify:CByte(x)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        Dim x As Integer = 1
+        b += CByte(x)
+    End Sub
+End Class
+</code>
+
+            Test(input, expected)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Sub VisualBasic_DontRemove_IntegerToByte_OptionStrictOn4()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b = b + {|Simplify:CByte(1)|}
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+Option Strict On
+Class C
+    Sub M()
+        Dim b As Byte
+        b = b + CByte(1)
+    End Sub
+End Class
 </code>
 
             Test(input, expected)

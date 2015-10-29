@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// </summary>
     public sealed class ScriptOptions
     {
-        public static readonly ScriptOptions Default = new ScriptOptions(
-            filePath: "", 
+        public static ScriptOptions Default { get; } = new ScriptOptions(
+            filePath: "",
             references: ImmutableArray<MetadataReference>.Empty,
             namespaces: ImmutableArray<string>.Empty,
             metadataResolver: RuntimeMetadataReferenceResolver.Default,

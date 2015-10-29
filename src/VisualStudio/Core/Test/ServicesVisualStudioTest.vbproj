@@ -284,6 +284,7 @@
     <Compile Include="CodeModel\CSharp\CodeStructTests.vb" />
     <Compile Include="CodeModel\CSharp\CodeVariableTests.vb" />
     <Compile Include="CodeModel\CSharp\EventCollectorTests.vb" />
+    <Compile Include="CodeModel\CSharp\ExternalCodeClassTests.vb" />
     <Compile Include="CodeModel\CSharp\FileCodeModelTests.vb" />
     <Compile Include="CodeModel\CSharp\RootCodeModelTests.vb" />
     <Compile Include="CodeModel\CSharp\SyntaxNodeKeyTests.vb" />
@@ -317,6 +318,7 @@
     <Compile Include="CodeModel\VisualBasic\CodeStructTests.vb" />
     <Compile Include="CodeModel\VisualBasic\CodeVariableTests.vb" />
     <Compile Include="CodeModel\VisualBasic\EventCollectorTests.vb" />
+    <Compile Include="CodeModel\VisualBasic\ExternalCodeClassTests.vb" />
     <Compile Include="CodeModel\VisualBasic\FileCodeModelTests.vb" />
     <Compile Include="CodeModel\VisualBasic\ImplementsStatementTests.vb" />
     <Compile Include="CodeModel\VisualBasic\InheritsStatementTests.vb" />
@@ -362,6 +364,7 @@
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
+    <Compile Include="VsNavInfo\VsNavInfoTests.vb" />
     <Compile Include="ObjectBrowser\AbstractObjectBrowserTests.vb" />
     <Compile Include="ObjectBrowser\CSharp\ObjectBrowerTests.vb" />
     <Compile Include="ObjectBrowser\Helpers.vb" />

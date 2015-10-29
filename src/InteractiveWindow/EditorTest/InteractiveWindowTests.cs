@@ -763,25 +763,6 @@ System.Console.WriteLine();",
             Assert.Equal("> a\r\n> bc123", GetTextFromCurrentSnapshot());
         }
 
-        private void CopyToClipboard(BufferBlock[] blocks, bool includeRepl)
-        {
-            _testClipboard.Clear();
-            var data = new DataObject();
-            var builder = new StringBuilder();
-            foreach (var block in blocks)
-            {
-                builder.Append(block.Content);
-            }
-            var text = builder.ToString();
-            data.SetData(DataFormats.UnicodeText, text);
-            data.SetData(DataFormats.StringFormat, text);
-            if (includeRepl)
-            {
-                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
-            }
-            _testClipboard.SetDataObject(data, false);
-        }
-
         [WpfFact]
         public void JsonSerialization()
         {
@@ -1524,6 +1505,74 @@ System.Console.WriteLine();",
         public async Task SubmitAsyncMultiple()
         {
             await SubmitAsync("1", "2", "1 + 2").ConfigureAwait(true);
+        }
+
+        [WorkItem(6054, "https://github.com/dotnet/roslyn/issues/6054")]
+        [WpfFact]
+        public void UndoMultiLinePaste()
+        {
+            CopyToClipboard(
+@"1
+2
+3");
+
+            // paste multi-line text
+            Window.Operations.Paste();
+            Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
+
+            // undo paste
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> ", GetTextFromCurrentSnapshot());
+
+            // redo paste
+            ((InteractiveWindow)Window).Redo_TestOnly(1);
+            Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
+
+
+            CopyToClipboard(
+@"4
+5
+6");
+            // replace current text 
+            Window.Operations.SelectAll();
+            Window.Operations.Paste();
+            Assert.Equal("> 4\r\n> 5\r\n> 6", GetTextFromCurrentSnapshot());
+
+            // undo replace
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> 1\r\n> 2\r\n> 3", GetTextFromCurrentSnapshot());
+
+            // undo paste
+            ((InteractiveWindow)Window).Undo_TestOnly(1);
+            Assert.Equal("> ", GetTextFromCurrentSnapshot());
+        }
+
+        private void CopyToClipboard(string text)
+        {
+            _testClipboard.Clear();
+            var data = new DataObject();
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.StringFormat, text);
+            _testClipboard.SetDataObject(data, false);
+        }
+
+        private void CopyToClipboard(BufferBlock[] blocks, bool includeRepl)
+        {
+            _testClipboard.Clear();
+            var data = new DataObject();
+            var builder = new StringBuilder();
+            foreach (var block in blocks)
+            {
+                builder.Append(block.Content);
+            }
+            var text = builder.ToString();
+            data.SetData(DataFormats.UnicodeText, text);
+            data.SetData(DataFormats.StringFormat, text);
+            if (includeRepl)
+            {
+                data.SetData(InteractiveWindow.ClipboardFormat, BufferBlock.Serialize(blocks));
+            }
+            _testClipboard.SetDataObject(data, false);
         }
 
         private async Task SubmitAsync(params string[] submissions)

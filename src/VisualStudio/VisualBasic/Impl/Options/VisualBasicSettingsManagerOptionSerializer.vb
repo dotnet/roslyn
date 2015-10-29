@@ -1,22 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
+Imports System.Composition
+Imports System.Reflection
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Options.Providers
-Imports Microsoft.VisualStudio.Shell
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
-Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
-Imports System.Composition
-Imports Microsoft.VisualStudio.Settings
-Imports System.ComponentModel
-Imports Microsoft.Internal.VisualStudio.Shell.Interop
-Imports System.Collections.Immutable
-Imports System.Reflection
-Imports System.Linq
+Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
+Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ExportLanguageSpecificOptionSerializer(
@@ -25,7 +21,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         ExtractMethodOptions.FeatureName,
         FeatureOnOffOptions.OptionName,
         ServiceFeatureOnOffOptions.OptionName,
-        FormattingOptions.InternalTabFeatureName), [Shared]>
+        FormattingOptions.InternalTabFeatureName,
+        VisualStudioNavigationOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicSettingsManagerOptionSerializer
         Inherits AbstractSettingsManagerOptionSerializer
 
@@ -38,21 +35,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Dim Result As ImmutableDictionary(Of String, IOption).Builder = ImmutableDictionary.Create(Of String, IOption)(StringComparer.OrdinalIgnoreCase).ToBuilder()
 
             Result.AddRange(New KeyValuePair(Of String, IOption)() {
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "PrettyListing", FeatureOnOffOptions.PrettyListing),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "DisplayLineSeparators", FeatureOnOffOptions.LineSeparator),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "Outlining", FeatureOnOffOptions.Outlining),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "EnableHighlightReferences", FeatureOnOffOptions.ReferenceHighlighting),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "EnableHighlightRelatedKeywords", FeatureOnOffOptions.KeywordHighlighting),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "RenameTrackingPreview", FeatureOnOffOptions.RenameTrackingPreview),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoEndInsert", FeatureOnOffOptions.EndConstruct),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoComment", FeatureOnOffOptions.AutoXmlDocCommentGeneration),
-                                New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoRequiredMemberInsert", FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers)})
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "PrettyListing", FeatureOnOffOptions.PrettyListing),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "DisplayLineSeparators", FeatureOnOffOptions.LineSeparator),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "Outlining", FeatureOnOffOptions.Outlining),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "EnableHighlightReferences", FeatureOnOffOptions.ReferenceHighlighting),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "EnableHighlightRelatedKeywords", FeatureOnOffOptions.KeywordHighlighting),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "RenameTrackingPreview", FeatureOnOffOptions.RenameTrackingPreview),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoEndInsert", FeatureOnOffOptions.EndConstruct),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoComment", FeatureOnOffOptions.AutoXmlDocCommentGeneration),
+                            New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoRequiredMemberInsert", FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers)})
 
             Dim Types As Type() = {
                 GetType(FormattingOptions),
                 GetType(ExtractMethodOptions),
                 GetType(SimplificationOptions),
-                GetType(ServiceFeatureOnOffOptions)}
+                GetType(ServiceFeatureOnOffOptions),
+                GetType(VisualStudioNavigationOptions)}
 
             Dim Flags As BindingFlags = BindingFlags.Public Or BindingFlags.Static
             Result.AddRange(AbstractSettingsManagerOptionSerializer.GetOptionInfoFromTypeFields(Types, Flags, AddressOf GetOptionInfo))
@@ -89,7 +87,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return [option].Feature = FormattingOptions.InternalTabFeatureName Or
                        [option].Feature = ExtractMethodOptions.FeatureName Or
                        [option].Feature = SimplificationOptions.PerLanguageFeatureName Or
-                       [option].Feature = ServiceFeatureOnOffOptions.OptionName
+                       [option].Feature = ServiceFeatureOnOffOptions.OptionName Or
+                       [option].Feature = VisualStudioNavigationOptions.FeatureName
             End If
 
             Return False
