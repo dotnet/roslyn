@@ -13,11 +13,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodGroupConversionRewriter : BoundTreeRewriterWithStackGuard
     {
-        private MethodSymbol CurrentMethod;
-        private TypeCompilationState CompilationState;
-        private DiagnosticBag Diagnostics;
+        private readonly MethodSymbol CurrentMethod;
+        private readonly TypeCompilationState CompilationState;
+        private readonly DiagnosticBag Diagnostics;
+        private readonly SyntheticBoundNodeFactory F;
 
-        private MethodGroupConversionRewriter() { }
+        private MethodGroupConversionRewriter(MethodSymbol currentMethod, TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        {
+            CurrentMethod = currentMethod;
+            CompilationState = compilationState;
+            Diagnostics = diagnostics;
+            F = new SyntheticBoundNodeFactory(currentMethod, (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics);
+        }
 
         public static BoundStatement Rewrite(
             MethodSymbol currentMethod,
@@ -30,20 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 
-            if (IsCurrentMethodNotSuitableForRewrite(currentMethod))
-            {
-                return loweredBody;
-            }
-
-            var rewriter = new MethodGroupConversionRewriter
-            {
-                CurrentMethod = currentMethod,
-                CompilationState = compilationState,
-                Diagnostics = diagnostics,
-            };
-
-            var result = (BoundStatement)rewriter.Visit(loweredBody);
-            return result;
+            var rewriter = new MethodGroupConversionRewriter(currentMethod, compilationState, diagnostics);
+            return (BoundStatement)rewriter.Visit(loweredBody);
         }
 
         internal static bool IsConversionRewritable(BoundConversion conversion, BoundExpression operand)
@@ -54,21 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Static constructors are not suitable to cache
-            if (IsCurrentMethodNotSuitableForRewrite(conversion.SymbolOpt))
-            {
-                return false;
-            }
-
             // Make sure the operand is just an ordinary static method
             var targetMethod = GetTargetMethod(conversion);
             return (targetMethod != null
                 && targetMethod.IsStatic
                 && targetMethod.MethodKind == MethodKind.Ordinary);
         }
-
-        private static bool IsCurrentMethodNotSuitableForRewrite(MethodSymbol currentMethod)
-            => currentMethod?.MethodKind == MethodKind.StaticConstructor;
 
         private static MethodSymbol GetTargetMethod(BoundConversion conversion)
             => conversion.ExpressionSymbol as MethodSymbol;
@@ -91,64 +77,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetMethod != null);
             Debug.Assert(currentModule != null);
 
-            var F = new SyntheticBoundNodeFactory(CurrentMethod, conversion.Syntax, CompilationState, Diagnostics);
+            F.Syntax = conversion.Syntax;
+            try
+            {
+                BoundFieldAccess boundDelegateField = GetBoundDelegateField(F, targetMethod, conversion);
 
-            BoundFieldAccess boundBackingField = CreateBoundBackingField(F, targetMethod, conversion);
+                var boundDelegateCreation = new BoundDelegateCreationExpression(
+                    conversion.Syntax,
+                    conversion.Operand,
+                    targetMethod,
+                    targetMethod.IsExtensionMethod,
+                    conversion.Type)
+                {
+                    WasCompilerGenerated = true
+                };
 
-            var boundDelegateCreation = new BoundDelegateCreationExpression(
-                conversion.Syntax,
-                conversion.Operand,
-                targetMethod,
-                targetMethod.IsExtensionMethod,
-                conversion.Type);
-
-            return F.Coalesce(boundBackingField, F.AssignmentExpression(boundBackingField, boundDelegateCreation));
+                return F.Coalesce(boundDelegateField, F.AssignmentExpression(boundDelegateField, boundDelegateCreation));
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember e)
+            {
+                return new BoundBadExpression(F.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(conversion), conversion.Type);
+            }
         }
 
-        private BoundFieldAccess CreateBoundBackingField(SyntheticBoundNodeFactory F, MethodSymbol targetMethod, BoundConversion conversion)
+        private BoundFieldAccess GetBoundDelegateField(SyntheticBoundNodeFactory F, MethodSymbol targetMethod, BoundConversion conversion)
         {
-            var cacheFrameName = "<>S_" + targetMethod.ContainingType.Name;//GeneratedNames.Make...ClassName();
-
-            MethodGroupConversionCacheFrame cacheFrameSymbol;
-            NamedTypeSymbol constructedCacheFrameSymbol;
-
-            ImmutableArray<TypeParameterSymbol> typeParameters;
-            ImmutableArray<TypeSymbol> typeArguments;
             var frameContainer = CompilationState.Compilation.Assembly;
-            if (TryGetGenericInfo(targetMethod, out typeParameters, out typeArguments))
-            {
-                var typeMap = new TypeMap(typeParameters, typeArguments);
-                cacheFrameSymbol = new MethodGroupConversionCacheFrame(frameContainer, cacheFrameName, targetMethod, typeParameters, typeMap);
+            var typeArguments = GetTypeArgumentsForFrame(targetMethod);
+            var frameSymbol = MethodGroupConversionCacheFrame.Create(frameContainer, typeArguments.Length, conversion.Type, targetMethod);
 
-                constructedCacheFrameSymbol = cacheFrameSymbol.Construct(typeArguments);
-            }
-            else
-            {
-                cacheFrameSymbol = new MethodGroupConversionCacheFrame(frameContainer, cacheFrameName, targetMethod);
-                constructedCacheFrameSymbol = cacheFrameSymbol;
-            }
+            frameSymbol.Sythesize(CompilationState);
 
-            var boundCacheFrame = F.Type(cacheFrameSymbol);
-
-            var backingFieldName = "<>F_" + targetMethod.MetadataName;//GeneratedNames.Make...FieldName();
-            var backingFieldType = conversion.Type;
-            var backingFieldSymbol = new SynthesizedFieldSymbol(cacheFrameSymbol, backingFieldType, backingFieldName, isPublic: true, isStatic: true);
-
-            return F.Field(null, backingFieldSymbol.AsMember(constructedCacheFrameSymbol));
+            var constructedFrameSymbol = typeArguments.Length == 0 ? frameSymbol : frameSymbol.Construct(typeArguments);
+            return F.Field(null, frameSymbol.FieldForCachedDelegate.AsMember(constructedFrameSymbol));
         }
 
-        private bool TryGetGenericInfo(
-            MethodSymbol targetMethod,
-            out ImmutableArray<TypeParameterSymbol> typeParameters,
-            out ImmutableArray<TypeSymbol> typeArguments)
+        private ImmutableArray<TypeSymbol> GetTypeArgumentsForFrame(MethodSymbol targetMethod)
         {
-            var typeParametersBuilder = ArrayBuilder<TypeParameterSymbol>.GetInstance();
             var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
 
             if (targetMethod.Arity > 0)
             {
                 var constructed = (ConstructedMethodSymbol)targetMethod;
-                typeParametersBuilder.AddRange(constructed.TypeParameters);
                 typeArgumentsBuilder.AddRange(constructed.TypeArguments);
             }
 
@@ -157,19 +127,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (containingType.Arity > 0)
                 {
-                    typeParametersBuilder.AddRange(containingType.TypeParameters);
                     typeArgumentsBuilder.AddRange(containingType.TypeArguments);
                 }
 
                 containingType = containingType.ContainingType;
             }
 
-            typeParameters = typeParametersBuilder.ToImmutableAndFree();
-            typeArguments = typeArgumentsBuilder.ToImmutableAndFree();
-
-            Debug.Assert(typeParameters.Length == typeArguments.Length);
-
-            return typeArguments.Length > 0;
+            return typeArgumentsBuilder.ToImmutableAndFree();
         }
     }
 }

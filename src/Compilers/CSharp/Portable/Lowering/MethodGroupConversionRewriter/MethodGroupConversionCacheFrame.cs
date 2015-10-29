@@ -12,38 +12,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class MethodGroupConversionCacheFrame : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
-        private readonly Symbol FrameContainer;
+        private readonly Symbol Container;
+        public override Symbol ContainingSymbol => Container;
+
         private readonly MethodSymbol TargetMethod;
-        private readonly SynthesizedFieldSymbol CacheBackingField;
+        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => TargetMethod;
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
-        public MethodGroupConversionCacheFrame(
-                Symbol frameContainer,
-                string name,
-                MethodSymbol targetMethod,
-                ImmutableArray<TypeParameterSymbol> typeParameters,
-                TypeMap typeMap
-            )
-            : base(name, typeParameters, typeMap)
-        {
-            TargetMethod = targetMethod;
-        }
+        private readonly MethodGroupConversionCacheFrameConstructor _Constructor;
+        internal override MethodSymbol Constructor => _Constructor;
 
-        public MethodGroupConversionCacheFrame(
-                Symbol frameContainer,
-                string name,
-                MethodSymbol targetMethod
-            )
-            : base(name, 0, false)
-        {
-            TargetMethod = targetMethod;
-        }
-
-        public override Symbol ContainingSymbol => FrameContainer;
+        internal SynthesizedFieldSymbol FieldForCachedDelegate { get; private set; }
 
         public override TypeKind TypeKind => TypeKind.Class;
 
-        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
+        private MethodGroupConversionCacheFrame(
+                Symbol container,
+                string name,
+                int typeParametersCount,
+                MethodSymbol targetMethod
+            )
+            : base(name, typeParametersCount, true)
+        {
+            Container = container;
+            TargetMethod = targetMethod;
+            _Constructor = new MethodGroupConversionCacheFrameConstructor(this);
+        }
 
-        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => TargetMethod;
+        internal static MethodGroupConversionCacheFrame Create(Symbol container, int typeParametersCount, TypeSymbol delegateType, MethodSymbol targetMethod)
+        {
+            var frameName = "<>S_"; //GeneratedNames.
+            var fieldName = "<>F_"; //GeneratedNames.
+
+            var frameSymbol = new MethodGroupConversionCacheFrame(container, frameName, typeParametersCount, targetMethod);
+            var fieldSymbol = new SynthesizedFieldSymbol(frameSymbol, delegateType, fieldName, isPublic: true, isStatic: true);
+            frameSymbol.FieldForCachedDelegate = fieldSymbol;
+
+            return frameSymbol;
+        }
+
+        internal void Sythesize(TypeCompilationState compilationState)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
