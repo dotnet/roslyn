@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -69,21 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor
                         base.HandleException(provider, exception);
 
                         _errorReportingService?.ShowErrorInfoForCodeFix(
-                            provider.GetType().Name,
-                            () => { EnableProvider(provider); LogEnableProvider(provider); },
-                            () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); },
-                            () => LogLeaveDisabled(provider));
+                            codefixName: provider.GetType().Name,
+                            OnEnableClicked: () => { EnableProvider(provider); LogEnableProvider(provider); },
+                            OnEnableAndIgnoreClicked: () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); },
+                            OnClose: () => LogLeaveDisabled(provider));
                     }
                     else
                     {
-                        if (IsRoslynCodefix(provider))
-                        {
-                            Log(CodefixInfobar_ErrorIgnored, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
-                        }
-                        else
-                        {
-                            Log(CodefixInfobar_ErrorIgnored);
-                        }
+                        LogAction(CodefixInfobar_ErrorIgnored, provider);
                     }
                 }
                 else
@@ -99,43 +93,34 @@ namespace Microsoft.CodeAnalysis.Editor
                 _errorLoggerService?.LogException(provider, exception);
             }
 
-            private void LogLeaveDisabled(object provider)
+            private static void LogLeaveDisabled(object provider)
+            {
+                LogAction(CodefixInfobar_LeaveDisabled, provider);
+            }
+
+            private static void LogEnableAndIgnoreProvider(object provider)
+            {
+                LogAction(CodefixInfobar_EnableAndIgnoreFutureErrors, provider);
+            }
+
+            private static void LogEnableProvider(object provider)
+            {
+                LogAction(CodefixInfobar_Enable, provider);
+            }
+
+            private static void LogAction(FunctionId functionId, object provider)
             {
                 if (IsRoslynCodefix(provider))
                 {
-                    Log(CodefixInfobar_LeaveDisabled, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
+                    Log(functionId, $"Name: {provider.GetType().FullName} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
                 }
                 else
                 {
-                    Log(CodefixInfobar_LeaveDisabled);
+                    Log(functionId);
                 }
             }
 
-            private void LogEnableAndIgnoreProvider(object provider)
-            {
-                if (IsRoslynCodefix(provider))
-                {
-                    Log(CodefixInfobar_EnableAndIgnoreFutureErrors, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
-                }
-                else
-                {
-                    Log(CodefixInfobar_EnableAndIgnoreFutureErrors);
-                }
-            }
-
-            private void LogEnableProvider(object provider)
-            {
-                if (IsRoslynCodefix(provider))
-                {
-                    Log(CodefixInfobar_Enable, $"Name: {provider.GetType().Name} Assembly Version: {provider.GetType().Assembly.GetName().Version}");
-                }
-                else
-                {
-                    Log(CodefixInfobar_Enable);
-                }
-            }
-
-            private bool IsRoslynCodefix(object source) => HasRoslynPublicKey(source);
+            private static bool IsRoslynCodefix(object source) => HasRoslynPublicKey(source);
         }
     }
 }
