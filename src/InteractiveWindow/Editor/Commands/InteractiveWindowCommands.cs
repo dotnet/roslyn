@@ -256,6 +256,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 "Ctrl-A               " + InteractiveWindowResources.CtrlAHelp,
         };
 
+        private static readonly string[] s_scriptDirectives = new[]
+        {
+"r                    " + InteractiveWindowResources.RefHelp,
+"load                 " + InteractiveWindowResources.LoadHelp
+        };
+
         public void DisplayHelp()
         {
             _window.WriteLine(InteractiveWindowResources.KeyboardShortcuts);
@@ -267,6 +273,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
 
             _window.WriteLine(InteractiveWindowResources.ReplCommands);
             foreach (var line in Help())
+            {
+                _window.Write(HelpIndent);
+                _window.WriteLine(line);
+            }
+
+            _window.WriteLine(InteractiveWindowResources.ScriptDirectives);
+            foreach (var line in s_scriptDirectives)
             {
                 _window.Write(HelpIndent);
                 _window.WriteLine(line);
