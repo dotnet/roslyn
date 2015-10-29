@@ -131,6 +131,15 @@ class C
             VerifySendEnterThroughToEnter("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(6405, "https://github.com/dotnet/roslyn/issues/6405")]
+        public void SnippetsNotInPreProcessorContextForScriptDirectives()
+        {
+            VerifyItemIsAbsent(@"#r f$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
+            VerifyItemIsAbsent(@"#load f$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
+            VerifyItemIsAbsent(@"#!$$", MockSnippetInfoService.SnippetShortcut, sourceCodeKind: SourceCodeKind.Script);
+        }
+
         private class MockSnippetInfoService : ISnippetInfoService
         {
             internal const string SnippetShortcut = "SnippetShortcut";
