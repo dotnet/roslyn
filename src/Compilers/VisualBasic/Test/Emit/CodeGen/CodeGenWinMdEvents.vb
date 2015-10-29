@@ -896,6 +896,35 @@ End Class
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(6313, "https://github.com/dotnet/roslyn/issues/6313")>
+        Public Sub CustomEventWinMd()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System.Runtime.InteropServices.WindowsRuntime
+
+Class Test
+    Public Custom Event CustomEvent As System.Action(Of Integer)
+        AddHandler(value As System.Action(Of Integer))
+            Return Nothing		
+        End AddHandler
+
+        RemoveHandler(value As EventRegistrationToken)
+
+        End RemoveHandler
+
+        RaiseEvent()
+
+        End RaiseEvent
+    End Event
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithReferences(source, WinRtRefs, options:=TestOptions.DebugWinMD)
+            Dim verifier = CompileAndVerify(comp)
+        End Sub
+
         ' Field-like and custom events are not treated differently.
         <Fact(), WorkItem(1003209)>
         Public Sub HandlesClauses_EventKinds()
