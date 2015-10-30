@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis
         private Dictionary<MetadataReference, int> _lazyReferencedModuleIndexMap;
 
         /// <summary>
-        /// Maps reference string used in #r directive to a resolved metadata reference.
-        /// If multiple #r's use the same value as a reference the resolved metadata reference is the same as well.
+        /// Maps (containing syntax tree file name, reference string) of #r directive to a resolved metadata reference.
+        /// If multiple #r's in the same tree use the same value as a reference the resolved metadata reference is the same as well.
         /// </summary>
-        private IDictionary<string, MetadataReference> _lazyReferenceDirectiveMap;
+        private IDictionary<ValueTuple<string, string>, MetadataReference> _lazyReferenceDirectiveMap;
 
         /// <summary>
         /// Array of unique bound #r references.
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal IDictionary<string, MetadataReference> ReferenceDirectiveMap
+        internal IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
         {
             get
             {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
         internal void InitializeNoLock(
             Dictionary<MetadataReference, int> referencedAssembliesMap,
             Dictionary<MetadataReference, int> referencedModulesMap,
-            IDictionary<string, MetadataReference> boundReferenceDirectiveMap,
+            IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap,
             ImmutableArray<MetadataReference> boundReferenceDirectives,
             bool containsCircularReferences,
             ImmutableArray<Diagnostic> diagnostics,
