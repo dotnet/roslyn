@@ -177,7 +177,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsOverride)
                 {
-                    return (PropertySymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    if (IsDefinition)
+                    {
+                        return (PropertySymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    }
+
+                    return (PropertySymbol)OverriddenOrHiddenMembersResult.GetOverriddenMember(this, OriginalDefinition.OverriddenProperty);
                 }
                 return null;
             }

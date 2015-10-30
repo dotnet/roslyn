@@ -84,6 +84,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
+        Public Shared Function GetOverriddenMember(substitutedOverridingMember As TSymbol, overriddenByDefinitionMember As TSymbol) As TSymbol
+            Debug.Assert(Not substitutedOverridingMember.IsDefinition)
+
+            If overriddenByDefinitionMember IsNot Nothing Then
+                Dim overriddenByDefinitionContaining As NamedTypeSymbol = overriddenByDefinitionMember.ContainingType
+                Dim overriddenByDefinitionContainingTypeDefinition As NamedTypeSymbol = overriddenByDefinitionContaining.OriginalDefinition
+                Dim baseType As NamedTypeSymbol = substitutedOverridingMember.ContainingType.BaseTypeNoUseSiteDiagnostics
+                While baseType IsNot Nothing
+                    If baseType.OriginalDefinition = overriddenByDefinitionContainingTypeDefinition Then
+                        If baseType = overriddenByDefinitionContaining Then
+                            Return overriddenByDefinitionMember
+                        End If
+
+                        Return DirectCast(overriddenByDefinitionMember.OriginalDefinition.AsMember(baseType), TSymbol)
+                    End If
+
+                    baseType = baseType.BaseTypeNoUseSiteDiagnostics
+                End While
+
+                Throw ExceptionUtilities.Unreachable
+            End If
+
+            Return Nothing
+        End Function
+
+        ''' <summary>
+        ''' It Is Not suitable to call this method on a <see cref="OverriddenMembersResult"/> object
+        ''' associated with a member within substituted type, <see cref="GetOverriddenMember(TSymbol, TSymbol)"/>
+        ''' should be used instead.
+        ''' </summary>
         Public ReadOnly Property OverriddenMember As TSymbol
             Get
                 For Each overridden In OverriddenMembers
