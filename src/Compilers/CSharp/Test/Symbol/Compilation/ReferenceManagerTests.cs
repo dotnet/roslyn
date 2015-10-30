@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1343,6 +1344,40 @@ public class A
             var c2 = c1.AddSyntaxTrees(Parse("class D { }"));
 
             var a2 = c2.SourceAssembly;
+        }
+
+        [Fact]
+        public void ReferenceResolution_RelativePaths()
+        {
+            var t1 = Parse(@"
+#r ""lib.dll"" 
+", filename: @"C:\A\a.csx", options: TestOptions.Script);
+
+            var rd1 = (ReferenceDirectiveTriviaSyntax)t1.GetRoot().GetDirectives().Single();
+
+            var t2 = Parse(@"
+#r ""lib.dll""
+", filename: @"C:\B\b.csx", options: TestOptions.Script);
+
+            var rd2 = (ReferenceDirectiveTriviaSyntax)t2.GetRoot().GetDirectives().Single();
+
+            var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                new TestMetadataReferenceResolver(
+                    pathResolver: new VirtualizedRelativePathResolver(new[] 
+                    {
+                        @"C:\A\lib.dll",
+                        @"C:\B\lib.dll"
+                    }), 
+                    files: new Dictionary<string, PortableExecutableReference>()
+                    {
+                        { @"C:\A\lib.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
+                        { @"C:\B\lib.dll", TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic },
+                    })));
+
+            c.VerifyDiagnostics();
+
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2));
         }
 
         [Fact]
