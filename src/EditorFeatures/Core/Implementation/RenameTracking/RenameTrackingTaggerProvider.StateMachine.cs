@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                         _diagnosticAnalyzerService?.Reanalyze(
                             document.Project.Solution.Workspace,
-                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
+                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id), highPriority: true);
                     }
 
                     // Disallow the existing TrackingSession from triggering IdentifierFound.

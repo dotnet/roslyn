@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
                 // don't rely on background parser to have tree. explicitly do it here.
                 await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
-                service.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable<DocumentId>(info.Id));
+                service.Reanalyze(workspace, worker, projectIds: null, documentIds: SpecializedCollections.SingletonEnumerable<DocumentId>(info.Id), highPriority: false);
 
                 await TouchEverything(workspace.CurrentSolution).ConfigureAwait(true);
 
