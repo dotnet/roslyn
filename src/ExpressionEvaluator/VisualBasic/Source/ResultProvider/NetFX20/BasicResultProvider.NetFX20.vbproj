@@ -20,7 +20,6 @@
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <RemoveIntegerChecks>true</RemoveIntegerChecks>
     <RestorePackages>true</RestorePackages>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
