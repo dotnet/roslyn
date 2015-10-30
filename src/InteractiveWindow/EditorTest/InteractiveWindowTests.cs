@@ -175,10 +175,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             var commands = interactiveCommands.GetCommands();
 
             Assert.NotEmpty(commands);
-            Assert.Equal(2, commands.Where(n => n.Names.First() == "#cls").Count());
-            Assert.Equal(2, commands.Where(n => n.Names.Last() == "#clear").Count());
-            Assert.NotNull(commands.Where(n => n.Names.First() == "#help").SingleOrDefault());
-            Assert.NotNull(commands.Where(n => n.Names.First() == "#reset").SingleOrDefault());
+            Assert.Equal(2, commands.Where(n => n.Names.First() == "cls").Count());
+            Assert.Equal(2, commands.Where(n => n.Names.Last() == "clear").Count());
+            Assert.NotNull(commands.Where(n => n.Names.First() == "help").SingleOrDefault());
+            Assert.NotNull(commands.Where(n => n.Names.First() == "reset").SingleOrDefault());
         }
 
         [WorkItem(3970, "https://github.com/dotnet/roslyn/issues/3970")]
