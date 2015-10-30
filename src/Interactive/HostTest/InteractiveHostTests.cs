@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
@@ -1064,6 +1065,35 @@ new object[] { new Class1(), new Class2(), new Class3() }
 
             output = ReadOutputToEnd();
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
+        }
+
+        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        public void MissingReferencesReuse()
+        {
+            var source = @"
+public class C
+{
+    public System.Diagnostics.Process P;
+}
+";
+
+            var lib = CSharpCompilation.Create(
+"Lib",
+new[] { SyntaxFactory.ParseSyntaxTree(source) },
+new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System },
+new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
+
+            Execute($@"#r ""{libFile.Path}""");
+            Execute("C c;");
+            Execute("c = new C()");
+
+            var error = ReadErrorOutputToEnd();
+            Assert.Equal("", error);
+
+            var output = ReadOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
         #region Submission result printing - null/void/value.
