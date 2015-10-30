@@ -9261,6 +9261,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to static null checking.
+        /// </summary>
+        internal static string IDS_FeatureStaticNullChecking {
+            get {
+                return ResourceManager.GetString("IDS_FeatureStaticNullChecking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to switch on boolean type.
         /// </summary>
         internal static string IDS_FeatureSwitchOnBool {

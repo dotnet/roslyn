@@ -4687,4 +4687,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_CantInferVoid" xml:space="preserve">
     <value>Cannot infer the type of '{0}' as it does not return a value.</value>
   </data>
+  <data name="IDS_FeatureStaticNullChecking" xml:space="preserve">
+    <value>static null checking</value>
+  </data>
 </root>

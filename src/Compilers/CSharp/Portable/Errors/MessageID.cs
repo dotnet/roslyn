@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureBinaryLiteral = MessageBase + 12706,
         IDS_FeatureDigitSeparator = MessageBase + 12707,
         IDS_FeatureLocalFunctions = MessageBase + 12708,
+        IDS_FeatureStaticNullChecking = MessageBase + 12709,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -164,7 +165,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "digitSeparators";
                 case MessageID.IDS_FeatureLocalFunctions:
                     return "localFunctions";
-
+                case MessageID.IDS_FeatureStaticNullChecking:
+                    return "staticNullChecking";
                 default:
                     return null;
             }
