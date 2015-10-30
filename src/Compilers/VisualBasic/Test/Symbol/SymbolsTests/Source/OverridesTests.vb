@@ -6904,5 +6904,312 @@ End Class
             CompileAndVerify(compilation)
         End Sub
 
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_01()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator
+
+    Public Overrides Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void Validator<T>.DoValidate(object objectToValidate)")
+    End Sub
+
+    Protected MustOverride Overloads Sub DoValidate(objectToValidate As T)
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Protected Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
+            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+
+            Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
+            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)")
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_02()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator
+
+    Public MustOverride Overrides Sub DoValidate(objectToValidate As Object)
+
+    Public Overloads Overridable Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void Validator<T>.DoValidate(T objectToValidate)")
+    End Sub
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Public Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics(
+                <expected>
+BC30610: Class 'Required' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    Validator(Of Object): Public MustOverride Overrides Sub DoValidate(objectToValidate As Object).
+Public Class Required
+             ~~~~~~~~
+                </expected>)
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_03()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator0(Of T)
+    Public MustOverride Sub DoValidate(objectToValidate As T)
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator0(Of T)
+
+    Public Overloads Overridable Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void Validator<T>.DoValidate(object objectToValidate)")
+    End Sub
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Public Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)")
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_04()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator
+
+    Public Overloads Overridable Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void Validator<T>.DoValidate(T objectToValidate)")
+    End Sub
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Public Overrides Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(object objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="void ValidatorBase<T>.DoValidate(object objectToValidate)
+void Validator<T>.DoValidate(T objectToValidate)")
+        End Sub
+
+        <Fact(), WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")>
+        Public Sub AbstractGenericBase_05()
+            Dim code =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class Class1
+    Public Shared Sub Main()
+        Dim t = New Required()
+        t.Test1(Nothing)
+        t.Test2(Nothing)
+    End Sub
+End Class
+
+
+Public MustInherit Class Validator0(Of T)
+    Public MustOverride Sub DoValidate(objectToValidate As Object)
+
+    Public Sub Test1(objectToValidate As Object)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class Validator(Of T)
+    Inherits Validator0(Of Integer)
+
+    Public Overrides Sub DoValidate(objectToValidate As Object)
+        System.Console.WriteLine("void Validator<T>.DoValidate(object objectToValidate)")
+    End Sub
+
+    Protected MustOverride Overloads Sub DoValidate(objectToValidate As T)
+
+    Public Sub Test2(objectToValidate As T)
+        DoValidate(objectToValidate)
+    End Sub
+End Class
+
+Public MustInherit Class ValidatorBase(Of T)
+    Inherits Validator(Of T)
+
+    Protected Overrides Sub DoValidate(objectToValidate As T)
+        System.Console.WriteLine("void ValidatorBase<T>.DoValidate(T objectToValidate)")
+    End Sub
+End Class
+
+Public Class Required
+    Inherits ValidatorBase(Of Object)
+End Class
+        ]]></file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(code, TestOptions.ReleaseExe)
+
+            Dim validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1")
+            Dim doVaidateT = validatorBaseT.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(1, doVaidateT.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateT.OverriddenMethod.ToTestDisplayString())
+
+            Dim validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType)
+            Dim doVaidateObject = validatorBaseObject.GetMember(Of MethodSymbol)("DoValidate")
+
+            Assert.Equal(2, doVaidateObject.OverriddenMembers.OverriddenMembers.Length)
+            Assert.Equal("Sub Validator(Of T).DoValidate(objectToValidate As T)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString())
+
+            CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)")
+        End Sub
+
     End Class
 End Namespace
