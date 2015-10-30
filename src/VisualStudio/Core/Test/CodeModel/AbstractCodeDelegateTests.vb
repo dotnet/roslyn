@@ -77,13 +77,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestBaseClass(code As XElement, expectedFullName As String)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeDelegate2)()
-                Assert.NotNull(codeElement)
-                Assert.NotNull(codeElement.BaseClass)
-
-                Assert.Equal(expectedFullName, codeElement.BaseClass.FullName)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.NotNull(codeElement.BaseClass)
+                    Assert.Equal(expectedFullName, codeElement.BaseClass.FullName)
+                End Sub)
         End Sub
 
     End Class

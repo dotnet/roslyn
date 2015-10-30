@@ -1232,6 +1232,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Navigating....
+        /// </summary>
+        internal static string Navigating {
+            get {
+                return ResourceManager.GetString("Navigating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Navigating to definition....
         /// </summary>
         internal static string NavigatingToDefinition {
@@ -1354,6 +1363,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Overrides {
             get {
                 return ResourceManager.GetString("Overrides", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste.
+        /// </summary>
+        internal static string Paste {
+            get {
+                return ResourceManager.GetString("Paste", resourceCulture);
             }
         }
         

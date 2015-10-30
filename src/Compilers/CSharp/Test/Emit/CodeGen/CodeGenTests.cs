@@ -10201,7 +10201,7 @@ class Test
         }
 
         [WorkItem(528183, "DevDiv")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void TestExternWithoutDLLImport()
         {
             string source = @"

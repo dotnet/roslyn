@@ -4,8 +4,8 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var documents = textContainer.GetRelatedDocuments();
-            var supportSuggestionService = workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (!documents.All(d => supportSuggestionService.SupportsRename(d)))
+            var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
+            if (!documents.All(d => supportsFeatureService.SupportsRename(d)))
             {
                 return nextHandler();
             }

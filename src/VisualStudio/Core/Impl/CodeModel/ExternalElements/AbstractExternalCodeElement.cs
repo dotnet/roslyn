@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         protected virtual string GetFullName()
         {
-            return CodeModelService.GetFullName(LookupSymbol());
+            return CodeModelService.GetExternalSymbolFullName(LookupSymbol());
         }
 
         protected virtual bool GetIsShared()
@@ -72,8 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         protected virtual string GetName()
         {
-            var symbol = LookupSymbol();
-            return symbol.Name;
+            return CodeModelService.GetExternalSymbolName(LookupSymbol());
         }
 
         protected virtual object GetParent()

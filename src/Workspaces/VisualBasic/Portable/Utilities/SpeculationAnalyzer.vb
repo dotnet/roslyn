@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 semanticModel = semanticModel.ParentModel
             End If
 
-            Dim speculativeModel As semanticModel = Nothing
+            Dim speculativeModel As SemanticModel = Nothing
             Dim statementNode = TryCast(nodeToSpeculate, ExecutableStatementSyntax)
             If statementNode IsNot Nothing Then
                 semanticModel.TryGetSpeculativeSemanticModel(position, statementNode, speculativeModel)
@@ -328,7 +328,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 Return Not ImplicitConversionsAreCompatible(originalExpression, newExpression)
-            ElseIf currentOriginalNode.Kind = SyntaxKind.ConditionalAccessExpression
+            ElseIf TypeOf currentOriginalNode Is AssignmentStatementSyntax Then
+                Dim originalAssignmentStatement = DirectCast(currentOriginalNode, AssignmentStatementSyntax)
+
+                If SyntaxFacts.IsAssignmentStatementOperatorToken(originalAssignmentStatement.OperatorToken.Kind()) Then
+                    Dim newAssignmentStatement = DirectCast(currentReplacedNode, AssignmentStatementSyntax)
+
+                    If ReplacementBreaksCompoundAssignment(originalAssignmentStatement.Left, originalAssignmentStatement.Right, newAssignmentStatement.Left, newAssignmentStatement.Right) Then
+                        Return True
+                    End If
+                End If
+            ElseIf currentOriginalNode.Kind = SyntaxKind.ConditionalAccessExpression Then
                 Dim originalExpression = DirectCast(currentOriginalNode, ConditionalAccessExpressionSyntax)
                 Dim newExpression = DirectCast(currentReplacedNode, ConditionalAccessExpressionSyntax)
                 Return ReplacementBreaksConditionalAccessExpression(originalExpression, newExpression)
@@ -472,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             If SyntaxFacts.IsAssignmentStatementOperatorToken(operatorTokenKind) AndAlso
                 operatorTokenKind <> SyntaxKind.LessThanLessThanEqualsToken AndAlso
                 operatorTokenKind <> SyntaxKind.GreaterThanGreaterThanEqualsToken AndAlso
-                ReplacementBreaksCompoundAssignExpression(binaryExpression.Left, binaryExpression.Right, newBinaryExpression.Left, newBinaryExpression.Right) Then
+                ReplacementBreaksCompoundAssignment(binaryExpression.Left, binaryExpression.Right, newBinaryExpression.Left, newBinaryExpression.Right) Then
                 Return True
             End If
 
@@ -515,6 +525,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Protected Overrides Function ConversionsAreCompatible(originalExpression As ExpressionSyntax, originalTargetType As ITypeSymbol, newExpression As ExpressionSyntax, newTargetType As ITypeSymbol) As Boolean
             Dim originalConversion = Me.OriginalSemanticModel.ClassifyConversion(originalExpression, originalTargetType)
             Dim newConversion = Me.SpeculativeSemanticModel.ClassifyConversion(newExpression, newTargetType)
+
+            ' When Option Strict is not Off and the new expression has a constant value, it's possible that
+            ' there Is a hidden narrowing conversion that will be missed. In that case, use the
+            ' conversion between the type of the new expression and the new target type.
+
+            If Me.OriginalSemanticModel.OptionStrict() <> OptionStrict.Off AndAlso
+               Me.SpeculativeSemanticModel.GetConstantValue(newExpression).HasValue Then
+
+                Dim newExpressionType = Me.SpeculativeSemanticModel.GetTypeInfo(newExpression).Type
+                newConversion = Me.OriginalSemanticModel.Compilation.ClassifyConversion(newExpressionType, newTargetType)
+            End If
+
             Return ConversionsAreCompatible(originalConversion, newConversion)
         End Function
 

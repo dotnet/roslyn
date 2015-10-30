@@ -380,10 +380,21 @@ namespace Microsoft.CodeAnalysis
             Interlocked.Exchange(ref _isBound, 1);
         }
 
+        /// <summary>
+        /// Global namespaces of assembly references that have been superseded by an assembly reference with a higher version are 
+        /// hidden behind <see cref="SupersededAlias"/> to avoid ambiguity when they are accessed from source.
+        /// All existing aliases of a superseded assembly are discarded.
+        /// </summary>
+        private static readonly ImmutableArray<string> SupersededAlias = ImmutableArray.Create("<superseded>");
+
         protected static void BuildReferencedAssembliesAndModulesMaps(
+            BoundInputAssembly[] bindingResult,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<ResolvedReference> referenceMap,
             int referencedModuleCount,
+            int explicitlyReferencedAsemblyCount,
+            IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
+            bool supersedeLowerVersions,
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
             out Dictionary<MetadataReference, int> referencedModulesMap,
             out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies)
@@ -391,6 +402,7 @@ namespace Microsoft.CodeAnalysis
             referencedAssembliesMap = new Dictionary<MetadataReference, int>(referenceMap.Length);
             referencedModulesMap = new Dictionary<MetadataReference, int>(referencedModuleCount);
             var aliasesOfReferencedAssembliesBuilder = ArrayBuilder<ImmutableArray<string>>.GetInstance(referenceMap.Length - referencedModuleCount);
+            bool hasRecursiveAliases = false;
 
             for (int i = 0; i < referenceMap.Length; i++)
             {
@@ -412,11 +424,101 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(aliasesOfReferencedAssembliesBuilder.Count == assemblyIndex);
 
                     referencedAssembliesMap.Add(references[i], assemblyIndex);
-                    aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].Aliases);
+                    aliasesOfReferencedAssembliesBuilder.Add(referenceMap[i].AliasesOpt);
+
+                    hasRecursiveAliases |= !referenceMap[i].RecursiveAliasesOpt.IsDefault;
+                }
+            }
+
+            if (hasRecursiveAliases)
+            {
+                PropagateRecursiveAliases(bindingResult, referenceMap, aliasesOfReferencedAssembliesBuilder);
+            }
+
+            Debug.Assert(!aliasesOfReferencedAssembliesBuilder.Any(a => a.IsDefault));
+
+            if (supersedeLowerVersions)
+            {
+                foreach (var assemblyReference in assemblyReferencesBySimpleName)
+                {
+                    // the item in the list is the highest version, by construction
+                    for (int i = 1; i < assemblyReference.Value.Count; i++)
+                    {
+                        int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAsemblyCount);
+                        aliasesOfReferencedAssembliesBuilder[assemblyIndex] = SupersededAlias;
+                    }
                 }
             }
 
             aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
+        }
+
+        // #r references are recursive, their aliases should be merged into all their dependencies.
+        //
+        // For example, if a compilation has a reference to LibA with alias A and the user #r's LibB with alias B,
+        // which references LibA, LibA should be available under both aliases A and B. B is usually "global",
+        // which means LibA namespaces should become available to the compilation without any qualification when #r LibB 
+        // is encountered.
+        // 
+        // Pairs: (assembly index -- index into bindingResult array; index of the #r reference in referenceMap array).
+        private static void PropagateRecursiveAliases(
+            BoundInputAssembly[] bindingResult,
+            ImmutableArray<ResolvedReference> referenceMap,
+            ArrayBuilder<ImmutableArray<string>> aliasesOfReferencedAssembliesBuilder)
+        {
+            var assemblyIndicesToProcess = ArrayBuilder<int>.GetInstance();
+            var visitedAssemblies = BitVector.Create(bindingResult.Length);
+
+            // +1 for assembly being built
+            Debug.Assert(bindingResult.Length == aliasesOfReferencedAssembliesBuilder.Count + 1);
+
+            foreach (ResolvedReference reference in referenceMap)
+            {
+                if (!reference.IsSkipped && !reference.RecursiveAliasesOpt.IsDefault)
+                {
+                    var recursiveAliases = reference.RecursiveAliasesOpt;
+
+                    Debug.Assert(reference.Kind == MetadataImageKind.Assembly);
+                    visitedAssemblies.Clear();
+                    
+                    Debug.Assert(assemblyIndicesToProcess.Count == 0);
+                    assemblyIndicesToProcess.Add(reference.Index);
+
+                    while (assemblyIndicesToProcess.Count > 0)
+                    {
+                        int assemblyIndex = assemblyIndicesToProcess.Pop();
+                        visitedAssemblies[assemblyIndex] = true;
+
+                        // merge aliases:
+                        aliasesOfReferencedAssembliesBuilder[assemblyIndex] = MergedAliases.Merge(aliasesOfReferencedAssembliesBuilder[assemblyIndex], recursiveAliases);
+
+                        // push dependencies onto the stack:
+                        // +1 for the assembly being built:
+                        foreach (var binding in bindingResult[assemblyIndex + 1].ReferenceBinding)
+                        {
+                            if (binding.IsBound)
+                            {
+                                // -1 for the assembly being built:
+                                int dependentAssemblyIndex = binding.DefinitionIndex - 1;
+                                if (!visitedAssemblies[dependentAssemblyIndex])
+                                {
+                                    assemblyIndicesToProcess.Add(dependentAssemblyIndex);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < aliasesOfReferencedAssembliesBuilder.Count; i++)
+            {
+                if (aliasesOfReferencedAssembliesBuilder[i].IsDefault)
+                {
+                    aliasesOfReferencedAssembliesBuilder[i] = ImmutableArray<string>.Empty;
+                }
+            }
+
+            assemblyIndicesToProcess.Free();
         }
 
         #region Compilation APIs Implementation

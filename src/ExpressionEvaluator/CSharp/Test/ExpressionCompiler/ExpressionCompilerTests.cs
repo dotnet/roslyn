@@ -6353,5 +6353,60 @@ class C
   IL_008b:  ret
 }");
         }
+
+        [WorkItem(2501)]
+        [Fact]
+        public void ImportsInAsyncLambda()
+        {
+            var source =
+@"namespace N
+{
+    using System.Linq;
+    class C
+    {
+        static void M()
+        {
+            System.Action f = async () =>
+            {
+                var c = new[] { 1, 2, 3 };
+                c.Select(i => i);
+            };
+        }
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(
+                source,
+                options: TestOptions.DebugDll,
+                references: new[] { SystemCoreRef },
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "N.C.<>c.<<M>b__0_0>d.MoveNext");
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("c.Where(n => n > 0)", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int[] N.C.<>c.<<M>b__0_0>d.<c>5__1""
+  IL_0006:  ldsfld     ""System.Func<int, bool> <>x.<>c.<>9__0_0""
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0025
+  IL_000e:  pop
+  IL_000f:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_0014:  ldftn      ""bool <>x.<>c.<<>m0>b__0_0(int)""
+  IL_001a:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+  IL_001f:  dup
+  IL_0020:  stsfld     ""System.Func<int, bool> <>x.<>c.<>9__0_0""
+  IL_0025:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+  IL_002a:  ret
+}");
+        }
     }
 }

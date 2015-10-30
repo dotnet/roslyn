@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
@@ -61,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 symbol = ((IMethodSymbol)symbol).PartialImplementationPart ?? symbol;
             }
 
+            var options = project.Solution.Workspace.Options;
+
             var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).ToArray();
             if (!preferredSourceLocations.Any())
             {
@@ -70,7 +71,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 // to a metadata-as-source view.
 
                 var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
-                return symbolNavigationService.TryNavigateToSymbol(symbol, project, cancellationToken: cancellationToken, usePreviewTab: true);
+                return symbolNavigationService.TryNavigateToSymbol(
+                    symbol, project,
+                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
+                    cancellationToken: cancellationToken);
             }
 
             // If we have a single location, then just navigate to it.
@@ -82,7 +86,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
                 if (navigationService.CanNavigateToSpan(workspace, solution.GetDocument(firstItem.SourceTree).Id, firstItem.SourceSpan))
                 {
-                    return navigationService.TryNavigateToSpan(workspace, solution.GetDocument(firstItem.SourceTree).Id, firstItem.SourceSpan, usePreviewTab: true);
+                    return navigationService.TryNavigateToSpan(
+                        workspace,
+                        documentId: solution.GetDocument(firstItem.SourceTree).Id,
+                        textSpan: firstItem.SourceSpan,
+                        options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
                 }
                 else
                 {

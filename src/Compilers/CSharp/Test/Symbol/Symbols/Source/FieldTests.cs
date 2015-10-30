@@ -354,7 +354,7 @@ class A
         /// Fields named "value__" should be marked rtspecialname.
         /// </summary>
         [WorkItem(546185, "DevDiv")]
-        [ClrOnlyFact(ClrOnlyReason.Unknown)]
+        [ClrOnlyFact(ClrOnlyReason.Unknown, Skip = "https://github.com/dotnet/roslyn/issues/6190")]
         public void RTSpecialName()
         {
             var source =

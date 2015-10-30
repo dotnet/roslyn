@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Scripting.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -349,6 +350,44 @@ Options:
             AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
 error CS0246: The type or namespace name 'Foo' could not be found (are you missing a using directive or an assembly reference?)
 ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void Script_NoHostNamespaces()
+        {
+            var runner = CreateRunner(input: "nameof(Microsoft.CodeAnalysis)");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {CompilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> nameof(Microsoft.CodeAnalysis)
+«Red»
+(1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)
+«Gray»
+> ", runner.Console.Out.ToString());
+        }
+
+        [WorkItem(5748)]
+        [Fact]
+        public void RelativePath()
+        {
+            using (var directory = new DisposableDirectory(Temp))
+            {
+                const string scriptName = "c.csx";
+                var script = directory.CreateFile(scriptName).WriteAllText("Print(3);");
+                var scriptPath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetFileName(directory.Path), scriptName);
+                var workingDirectory = PathUtilities.GetDirectoryName(directory.Path);
+                Assert.False(PathUtilities.IsAbsolute(scriptPath));
+                var runner = CreateRunner(
+                    args: new[] { scriptPath },
+                    workingDirectory: workingDirectory);
+                runner.RunInteractive();
+                AssertEx.AssertEqualToleratingWhitespaceDifferences("3", runner.Console.Out.ToString());
+            }
         }
 
         [Fact]

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -257,6 +258,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend Function CreateAndSetSourceAssemblyFullBind(compilation As VisualBasicCompilation) As Boolean
 
                 Dim resolutionDiagnostics = DiagnosticBag.GetInstance()
+                Dim supersedeLowerVersions = compilation.IsSubmission
+                Dim assemblyReferencesBySimpleName = PooledDictionary(Of String, List(Of ReferencedAssemblyIdentity)).GetInstance()
 
                 Try
                     Dim boundReferenceDirectiveMap As IDictionary(Of String, MetadataReference) = Nothing
@@ -267,6 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim referenceMap As ImmutableArray(Of ResolvedReference) = ResolveMetadataReferences(
                         compilation,
+                        assemblyReferencesBySimpleName,
                         references,
                         boundReferenceDirectiveMap,
                         boundReferenceDirectives,
@@ -290,6 +294,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      referenceMap,
                                                                      compilation.Options.MetadataReferenceResolver,
                                                                      compilation.Options.MetadataImportOptions,
+                                                                     supersedeLowerVersions,
+                                                                     assemblyReferencesBySimpleName,
                                                                      allAssemblyData,
                                                                      implicitlyResolvedReferences,
                                                                      implicitlyResolvedReferenceMap,
@@ -307,9 +313,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim aliasesOfReferencedAssemblies As ImmutableArray(Of ImmutableArray(Of String)) = Nothing
 
                     BuildReferencedAssembliesAndModulesMaps(
+                        bindingResult,
                         references,
                         referenceMap,
                         modules.Length,
+                        referencedAssemblies.Length,
+                        assemblyReferencesBySimpleName,
+                        supersedeLowerVersions,
                         referencedAssembliesMap,
                         referencedModulesMap,
                         aliasesOfReferencedAssemblies)
@@ -407,6 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 Finally
                     resolutionDiagnostics.Free()
+                    assemblyReferencesBySimpleName.Free()
                 End Try
             End Function
 

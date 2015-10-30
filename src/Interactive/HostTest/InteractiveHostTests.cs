@@ -939,6 +939,18 @@ WriteLine(new Complex(2, 6).Real);
         }
 
         [Fact]
+        public void Script_NoHostNamespaces()
+        {
+            Execute("nameof(Microsoft.CodeAnalysis)");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+(1,8): error CS0234: The type or namespace name 'CodeAnalysis' does not exist in the namespace 'Microsoft' (are you missing an assembly reference?)",
+                ReadErrorOutputToEnd());
+
+            Assert.Equal("", ReadOutputToEnd());
+        }
+
+        [Fact]
         public void ExecutesOnStaThread()
         {
             Execute(@"

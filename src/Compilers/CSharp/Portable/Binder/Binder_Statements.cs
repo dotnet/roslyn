@@ -216,6 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInCatch, node.YieldKeyword);
             }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
 
             return new BoundYieldReturnStatement(node, argument);
         }
@@ -225,6 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Flags.Includes(BinderFlags.InFinallyBlock))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInFinally, node.YieldKeyword);
+            }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
             GetIteratorElementType(node, diagnostics);
@@ -2893,14 +2901,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 arg = BindValue(expressionSyntax, diagnostics, BindValueKind.RValue);
             }
+            else
+            {
+                // If this is a void return statement in a script, return default(T).
+                var interactiveInitializerMethod = this.ContainingMemberOrLambda as SynthesizedInteractiveInitializerMethod;
+                if (interactiveInitializerMethod != null)
+                {
+                    arg = new BoundDefaultOperator(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
+                }
+            }
 
             bool hasErrors;
-            if (BindingTopLevelScriptCode)
-            {
-                diagnostics.Add(ErrorCode.ERR_ReturnNotAllowedInScript, syntax.ReturnKeyword.GetLocation());
-                hasErrors = true;
-            }
-            else if (IsDirectlyInIterator)
+            if (IsDirectlyInIterator)
             {
                 diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                 hasErrors = true;
