@@ -79,38 +79,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
         }
 
-        public IVsInteractiveWindow Create(int instanceId)
+        public void Create(int instanceId)
         {
             var evaluator = CreateInteractiveEvaluator(_vsServiceProvider, _classifierAggregator, _contentTypeRegistry, _vsWorkspace);
 
-            // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.
-            var vsWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
-            vsWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
+            Debug.Assert(this._vsInteractiveWindow == null);
 
-            vsWindow.InteractiveWindow.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, true);
+            // ForceCreate means that the window should be created if the persisted layout indicates that it is visible.
+            _vsInteractiveWindow = _vsInteractiveWindowFactory.Create(Id, instanceId, Title, evaluator, __VSCREATETOOLWIN.CTW_fForceCreate);
+            _vsInteractiveWindow.SetLanguage(LanguageServiceGuid, evaluator.ContentType);
+
+            var window = _vsInteractiveWindow.InteractiveWindow;
+            window.TextView.Options.SetOptionValue(DefaultTextViewHostOptions.SuggestionMarginId, true);
 
             EventHandler closeEventDelegate = null;
             closeEventDelegate = (sender, e) =>
             {
-                vsWindow.InteractiveWindow.TextView.Closed -= closeEventDelegate;
-                InteractiveWindow.InteractiveWindow intWindow = vsWindow.InteractiveWindow as InteractiveWindow.InteractiveWindow;
+                window.TextView.Closed -= closeEventDelegate;
+                InteractiveWindow.InteractiveWindow intWindow = window as InteractiveWindow.InteractiveWindow;
                 LogCloseSession(intWindow.LanguageBufferCounter);
 
                 evaluator.Dispose();
             };
 
             // the tool window now owns the engine:
-            vsWindow.InteractiveWindow.TextView.Closed += closeEventDelegate;
+            window.TextView.Closed += closeEventDelegate;
             // vsWindow.AutoSaveOptions = true;
-
-            var window = vsWindow.InteractiveWindow;
 
             // fire and forget:
             window.InitializeAsync();
 
             LogSession(LogMessage.Window, LogMessage.Create);
-
-            return vsWindow;
         }
 
         public IVsInteractiveWindow Open(int instanceId, bool focus)
@@ -120,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             if (_vsInteractiveWindow == null)
             {
-                _vsInteractiveWindow = Create(instanceId);
+                Create(instanceId);
             }
 
             _vsInteractiveWindow.Show(focus);

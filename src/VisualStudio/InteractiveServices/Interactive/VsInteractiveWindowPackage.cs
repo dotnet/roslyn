@@ -73,9 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             if (rguidPersistenceSlot == ToolWindowId)
             {
-                var result = _interactiveWindowProvider.Create((int)id);
-
-                return (result != null) ? VSConstants.S_OK : VSConstants.E_FAIL;
+                _interactiveWindowProvider.Create((int)id);
+                return VSConstants.S_OK;
             }
 
             return VSConstants.E_FAIL;
