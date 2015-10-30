@@ -10,6 +10,7 @@
 
 namespace Microsoft.VisualStudio.InteractiveWindow {
     using System;
+    using System.Reflection;
     
     
     /// <summary>
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.InteractiveWindow.InteractiveWindowResources", typeof(InteractiveWindowResources).GetTypeInfo().Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -111,6 +112,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string CommandNamePlaceholder {
             get {
                 return ResourceManager.GetString("CommandNamePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Script directives:.
+        /// </summary>
+        internal static string CSVBScriptDirectives {
+            get {
+                return ResourceManager.GetString("CSVBScriptDirectives", resourceCulture);
             }
         }
         
@@ -250,6 +260,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Load specified script file and execute it, e.g. #load &quot;myScript.csx&quot;..
+        /// </summary>
+        internal static string LoadHelp {
+            get {
+                return ResourceManager.GetString("LoadHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The command of type &apos;{0}&apos; has no command names..
         /// </summary>
         internal static string MissingCommandName {
@@ -282,6 +301,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         internal static string Paste {
             get {
                 return ResourceManager.GetString("Paste", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a metadata reference to specified assembly and all its dependencies, e.g. #r &quot;myLib.dll&quot;..
+        /// </summary>
+        internal static string RefHelp {
+            get {
+                return ResourceManager.GetString("RefHelp", resourceCulture);
             }
         }
         
