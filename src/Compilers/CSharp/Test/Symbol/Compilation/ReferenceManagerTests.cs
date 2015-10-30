@@ -1346,7 +1346,8 @@ public class A
             var a2 = c2.SourceAssembly;
         }
 
-        [Fact]
+        // TODO: make x-plat (https://github.com/dotnet/roslyn/issues/6465)
+        [ConditionalFact(typeof(WindowsOnly))]
         public void ReferenceResolution_RelativePaths()
         {
             var t1 = Parse(@"
