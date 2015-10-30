@@ -21,6 +21,19 @@ End Class
             TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
         End Sub
 
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DocComment2()
+            Dim code =
+<Code>
+''' &lt;summary&gt;This is my comment!&lt;/summary&gt;
+''' &lt;remarks /&gt;
+Class C$$
+End Class
+</Code>
+
+            TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "  <remarks />" & vbCrLf & "</doc>")
+        End Sub
+
 #End Region
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>

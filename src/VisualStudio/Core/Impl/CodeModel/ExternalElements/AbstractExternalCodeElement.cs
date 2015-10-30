@@ -57,6 +57,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             return CodeModelService.GetAccess(LookupSymbol());
         }
 
+        private static bool TryParseDocCommentXml(string text, out XElement xml)
+        {
+            try
+            {
+                xml = XElement.Parse(text);
+                return true;
+            }
+            catch (XmlException)
+            {
+                xml = null;
+                return false;
+            }
+        }
+
         protected virtual string GetDocComment()
         {
             var symbol = LookupSymbol();
@@ -73,13 +87,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
             }
 
             XElement xml;
-            try
+            if (!TryParseDocCommentXml(documentationCommentXml, out xml))
             {
-                xml = XElement.Parse(documentationCommentXml);
-            }
-            catch (XmlException)
-            {
-                return string.Empty;
+                // If we failed to parse, maybe it was because the XML fragment represents multiple elements.
+                // Try surrounding with <doc></doc> and parse again.
+
+                if (!TryParseDocCommentXml($"<doc>{documentationCommentXml}</doc>", out xml))
+                {
+                    return string.Empty;
+                }
             }
 
             // Surround with <doc> element. Or replace <member> element with <doc>, if it exists.
@@ -88,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
                 xml.Name = "doc";
                 xml.RemoveAttributes();
             }
-            else
+            else if (xml.Name != "doc")
             {
                 xml = new XElement("doc", xml);
             }
