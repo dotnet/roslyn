@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbol _switchGoverningType;
         private readonly GeneratedLabelSymbol _breakLabel;
 
+        private bool PatternsEnabled =>
+            (_switchSyntax?.SyntaxTree?.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) == true;
+
         internal SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
         {
@@ -126,13 +129,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<LabelSymbol> labels = null;
 
-            foreach (var section in _switchSyntax.Sections)
+            if (!IsPatternSwitch(_switchSyntax))
             {
-                // add switch case/default labels
-                BuildSwitchLabels(section.Labels, ref labels);
+                foreach (var section in _switchSyntax.Sections)
+                {
+                    // add switch case/default labels
+                    BuildSwitchLabels(section.Labels, ref labels);
 
-                // add regular labels from the statements in the switch section
-                base.BuildLabels(section.Statements, ref labels);
+                    // add regular labels from the statements in the switch section
+                    base.BuildLabels(section.Statements, ref labels);
+                }
             }
 
             return (labels != null) ? labels.ToImmutableAndFree() : ImmutableArray<LabelSymbol>.Empty;
@@ -297,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsPatternSwitch(node))
             {
                 _isPatternSwitch = true;
-                return (Compilation.Feature("patterns") != null)
+                return PatternsEnabled
                     ? (BoundStatement)BindPatternSwitch(node, diagnostics)
                     : new BoundBlock(node, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty, true);
             }
@@ -306,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // switch statement's controlling expression, try to bind it as a pattern-matching switch statement
             var localDiagnostics = DiagnosticBag.GetInstance();
             var boundSwitchExpression = BindSwitchExpressionAndGoverningType(node.Expression, localDiagnostics);
-            if (localDiagnostics.HasAnyResolvedErrors() && Compilation.Feature("patterns") != null)
+            if (localDiagnostics.HasAnyResolvedErrors() && PatternsEnabled)
             {
                 _isPatternSwitch = true;
                 return BindPatternSwitch(node, diagnostics);

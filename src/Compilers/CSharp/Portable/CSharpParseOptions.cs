@@ -210,6 +210,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsFeatureEnabled(MessageID feature)
         {
+            // in "demo" mode enable all language features.
+            if (PreprocessorSymbols.Contains("__DEMO__"))
+            {
+                return true;
+            }
+
             string featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {

@@ -1937,6 +1937,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
         {
             var options = (CSharpParseOptions)location.SourceTree.Options;
+            if (options.IsFeatureEnabled(feature))
+            {
+                return;
+            }
+
             if (feature.RequiredFeature() != null)
             {
                 if (!options.IsFeatureEnabled(feature))
@@ -1945,6 +1950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return;
             }
+
             LanguageVersion availableVersion = options.LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)

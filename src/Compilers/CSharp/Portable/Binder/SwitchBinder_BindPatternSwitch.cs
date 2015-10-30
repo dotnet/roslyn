@@ -105,18 +105,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsPatternSwitch(SwitchStatementSyntax node)
         {
-            // we add a feature flag to help test binding and lowering of "traditional" non-erroneous switch statements
-            // using the infrastructure added to support pattern matching.
-            if (Compilation.Feature("match") != null) return true;
+            if (_isPatternSwitch.HasValue)
+            {
+                return _isPatternSwitch.GetValueOrDefault();
+            }
 
             foreach (var section in node.Sections)
             {
                 foreach (var label in section.Labels)
                 {
-                    if (label.Kind() == SyntaxKind.CaseMatchLabel) return true;
+                    if (label.Kind() == SyntaxKind.CaseMatchLabel)
+                    {
+                        _isPatternSwitch = true;
+                        return true;
+                    }
                 }
             }
 
+            _isPatternSwitch = false;
             return false;
         }
     }
