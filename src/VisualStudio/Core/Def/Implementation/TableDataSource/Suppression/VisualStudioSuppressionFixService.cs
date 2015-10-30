@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -36,7 +35,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IWpfTableControl _tableControl;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
-        private readonly ExternalErrorDiagnosticUpdateSource _buildErrorDiagnosticService;
         private readonly ICodeFixService _codeFixService;
         private readonly IFixMultipleOccurrencesService _fixMultipleOccurencesService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
@@ -48,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             SVsServiceProvider serviceProvider,
             VisualStudioWorkspaceImpl workspace,
             IDiagnosticAnalyzerService diagnosticService,
-            ExternalErrorDiagnosticUpdateSource buildErrorDiagnosticService,
             ICodeFixService codeFixService,
             ICodeActionEditHandlerService editHandlerService,
             IVisualStudioDiagnosticListSuppressionStateService suppressionStateService,
@@ -56,7 +53,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
-            _buildErrorDiagnosticService = buildErrorDiagnosticService;
             _codeFixService = codeFixService;
             _suppressionStateService = (VisualStudioDiagnosticListSuppressionStateService)suppressionStateService;
             _editHandlerService = editHandlerService;
@@ -74,17 +70,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 return false;
             }
 
+            // Apply suppressions fix in global suppressions file for non-compiler diagnostics.
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
-
-            // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
-            // in source only for compiler diagnostics.
-            var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true);
-            if (!ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false))
-            {
-                return false;
-            }
-
-            return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: true, onlyCompilerDiagnostics: true, showPreviewChangesDialog: false);
+            return ApplySuppressionFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true, isSuppressionInSource: false);
         }
 
         public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt)
@@ -95,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
-            return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
+            return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: true, isSuppressionInSource: suppressInSource);
         }
 
         public bool RemoveSuppressions(bool selectedErrorListEntriesOnly, IVsHierarchy projectHierarchyOpt)
@@ -106,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
-            return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: false, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: true);
+            return ApplySuppressionFix(shouldFixInProject, selectedErrorListEntriesOnly, isAddSuppression: false, isSuppressionInSource: false);
         }
 
         private static Func<Project, bool> GetShouldFixInProjectDelegate(VisualStudioWorkspaceImpl workspace, IVsHierarchy projectHierarchyOpt)
@@ -126,48 +114,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
+        private async Task<ImmutableArray<DiagnosticData>> GetAllDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
         {
             var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
-            var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
             var solution = _workspace.CurrentSolution;
-            foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
+            foreach (var project in solution.Projects)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (diagnosticsByProject.Key == null)
+                if (shouldFixInProject(project))
                 {
-                    // Diagnostics with no projectId cannot be suppressed.
-                    continue;
-                }
-
-                var project = solution.GetProject(diagnosticsByProject.Key);
-                if (project != null && shouldFixInProject(project))
-                {
-                    var diagnosticsByDocument = diagnosticsByProject.GroupBy(d => d.DocumentId);
-                    foreach (var group in diagnosticsByDocument)
-                    {
-                        var documentId = group.Key;
-                        if (documentId == null)
-                        {
-                            // Project diagnostics, just add all of them.
-                            builder.AddRange(group);
-                            continue;
-                        }
-
-                        // For document diagnostics, build does not have the computed text span info.
-                        // So we explicitly calculate the text span from the source text for the diagnostics.
-                        var document = project.GetDocument(documentId);
-                        if (document != null)
-                        {
-                            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                            var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            foreach (var diagnostic in group)
-                            {
-                                builder.Add(diagnostic.WithCalculatedSpan(text));
-                            }
-                        }
-                    }
+                    var diagnostics = await _diagnosticService.GetDiagnosticsAsync(solution, project.Id, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    builder.AddRange(diagnostics.Where(d => d.Severity != DiagnosticSeverity.Hidden));
                 }
             }
 
@@ -179,12 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return isAddSuppression ? ServicesVSResources.SuppressMultipleOccurrences : ServicesVSResources.RemoveSuppressMultipleOccurrences;
         }
 
-        private static string GetWaitDialogMessage(bool isAddSuppression)
-        {
-            return isAddSuppression ? ServicesVSResources.ComputingSuppressionFix : ServicesVSResources.ComputingRemoveSuppressionFix;
-        }
-
-        private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
+        private ImmutableHashSet<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
         {
             var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
             Action<CancellationToken> computeDiagnosticsToFix = cancellationToken =>
@@ -192,15 +143,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry snapshots.
                 // Otherwise, get all diagnostics from the diagnostic service.
                 var diagnosticsToFixTask = selectedEntriesOnly ?
-                    _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken):
-                    GetAllBuildDiagnosticsAsync(shouldFixInProject, cancellationToken);
+                    _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken) :
+                    GetAllDiagnosticsAsync(shouldFixInProject, cancellationToken);
 
                 diagnosticsToFix = diagnosticsToFixTask.WaitAndGetResult(cancellationToken).ToImmutableHashSet();
             };
 
             var title = GetFixTitle(isAddSuppression);
-            var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
-            var result = InvokeWithWaitDialog(computeDiagnosticsToFix, title, waitDialogMessage);
+            var result = InvokeWithWaitDialog(computeDiagnosticsToFix, title, ServicesVSResources.ComputingDiagnostics);
 
             // Bail out if the user cancelled.
             if (result == WaitIndicatorResult.Canceled)
@@ -211,20 +161,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return diagnosticsToFix;
         }
 
-        private bool ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private bool ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource)
         {
             var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly, isAddSuppression);
-            return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, selectedEntriesOnly, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
+            return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, selectedEntriesOnly, isAddSuppression, isSuppressionInSource);
         }
 
-        private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
+        private bool ApplySuppressionFix(IEnumerable<DiagnosticData> diagnosticsToFix, Func<Project, bool> shouldFixInProject, bool filterStaleDiagnostics, bool isAddSuppression, bool isSuppressionInSource)
         {
             if (diagnosticsToFix == null)
             {
                 return false;
             }
 
-            diagnosticsToFix = FilterDiagnostics(diagnosticsToFix, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics);
+            diagnosticsToFix = FilterDiagnostics(diagnosticsToFix, isAddSuppression, isSuppressionInSource);
             if (diagnosticsToFix.IsEmpty())
             {
                 // Nothing to fix.
@@ -235,7 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectDiagnosticsToFixMap = null;
 
             var title = GetFixTitle(isAddSuppression);
-            var waitDialogMessage = GetWaitDialogMessage(isAddSuppression);
+            var waitDialogMessage = ServicesVSResources.ComputingFix;
             var noDiagnosticsToFix = false;
             var cancelled = false;
             var newSolution = _workspace.CurrentSolution;
@@ -346,22 +296,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 return true;
             }
 
-            if (showPreviewChangesDialog)
-            {
-                newSolution = FixAllGetFixesService.PreviewChanges(
+            newSolution = FixAllGetFixesService.PreviewChanges(
                     _workspace.CurrentSolution,
                     newSolution,
                     fixAllPreviewChangesTitle: title,
                     fixAllTopLevelHeader: title,
                     languageOpt: languages?.Count == 1 ? languages.Single() : null,
                     workspace: _workspace);
-                if (newSolution == null)
-                {
-                    return false;
-                }
+            if (newSolution == null)
+            {
+                return false;
             }
 
-            waitDialogMessage = isAddSuppression ? ServicesVSResources.ApplyingSuppressionFix : ServicesVSResources.ApplyingRemoveSuppressionFix;
+            waitDialogMessage = ServicesVSResources.ApplyingFix;
             Action<CancellationToken> applyFix = cancellationToken =>
             {
                 var operations = SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(newSolution));
@@ -389,21 +336,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             return true;
         }
 
-        private static IEnumerable<DiagnosticData> FilterDiagnostics(IEnumerable<DiagnosticData> diagnostics, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics)
+        private static IEnumerable<DiagnosticData> FilterDiagnostics(IEnumerable<DiagnosticData> diagnostics, bool isAddSuppression, bool isSuppressionInSource)
         {
             foreach (var diagnostic in diagnostics)
             {
-                var isCompilerDiagnostic = SuppressionHelpers.IsCompilerDiagnostic(diagnostic);
-                if (onlyCompilerDiagnostics && !isCompilerDiagnostic)
-                {
-                    continue;
-                }
-
                 if (isAddSuppression)
                 {
                     // Compiler diagnostics can only be suppressed in source.
                     if (!diagnostic.IsSuppressed &&
-                        (isSuppressionInSource || !isCompilerDiagnostic))
+                        (isSuppressionInSource || !SuppressionHelpers.IsCompilerDiagnostic(diagnostic)))
                     {
                         yield return diagnostic;
                     }
