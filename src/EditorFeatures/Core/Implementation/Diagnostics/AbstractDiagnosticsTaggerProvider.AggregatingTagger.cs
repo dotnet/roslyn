@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
                     {
                         var diagnostics = _owner._diagnosticService.GetDiagnostics(updateArgs.Workspace, updateArgs.ProjectId, updateArgs.DocumentId, updateArgs.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken);
-                        OnDiagnosticsUpdated(new DiagnosticsUpdatedArgs(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty(), DiagnosticsUpdatedKind.DiagnosticsCreated));
+                        OnDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty()));
                     }
                 }
             }

@@ -200,12 +200,11 @@ class Program
             {
                 var document = workspace.Documents.First();
 
-                var updateArgs = new DiagnosticsUpdatedArgs(
+                var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            CreateDiagnosticData(workspace, document, new TextSpan(0, 1))),
-                        DiagnosticsUpdatedKind.DiagnosticsCreated);
+                            CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
 
                 var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs).ConfigureAwait(true);
 
@@ -234,12 +233,11 @@ class Program
             {
                 var document = workspace.Documents.First();
 
-                var updateArgs = new DiagnosticsUpdatedArgs(
+                var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
                         new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
                         ImmutableArray.Create(
                             CreateDiagnosticData(workspace, document, new TextSpan(0, 0)),
-                            CreateDiagnosticData(workspace, document, new TextSpan(0, 1))),
-                        DiagnosticsUpdatedKind.DiagnosticsCreated);
+                            CreateDiagnosticData(workspace, document, new TextSpan(0, 1))));
 
                 var spans = await GetErrorsFromUpdateSource(workspace, document, updateArgs).ConfigureAwait(true);
 

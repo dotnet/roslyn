@@ -61,18 +61,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public override void RemoveDocument(DocumentId documentId)
         {
-            Owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(
-                    ValueTuple.Create(this, documentId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty,
-                    DiagnosticsUpdatedKind.DiagnosticsRemoved));
+            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                ValueTuple.Create(this, documentId), Workspace, null, null, null));
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
-            Owner.RaiseDiagnosticsUpdated(
-                this, new DiagnosticsUpdatedArgs(
-                    ValueTuple.Create(this, projectId), Workspace, null, null, null, ImmutableArray<DiagnosticData>.Empty,
-                    DiagnosticsUpdatedKind.DiagnosticsRemoved));
+            Owner.RaiseDiagnosticsUpdated(this, DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                ValueTuple.Create(this, projectId), Workspace, null, null, null));
         }
         #endregion
 
@@ -218,16 +214,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (kv.Key == null)
                 {
                     Owner.RaiseDiagnosticsUpdated(
-                        this, new DiagnosticsUpdatedArgs(
-                            ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty(),
-                            kind: DiagnosticsUpdatedKind.DiagnosticsCreated));
+                        this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                            ValueTuple.Create(this, project.Id), workspace, solution, project.Id, null, kv.ToImmutableArrayOrEmpty()));
                     continue;
                 }
 
                 Owner.RaiseDiagnosticsUpdated(
-                    this, new DiagnosticsUpdatedArgs(
-                        ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty(),
-                        kind: DiagnosticsUpdatedKind.DiagnosticsCreated));
+                    this, DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                        ValueTuple.Create(this, kv.Key), workspace, solution, project.Id, kv.Key, kv.ToImmutableArrayOrEmpty()));
             }
         }
     }

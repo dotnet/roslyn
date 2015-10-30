@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Common;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Solution Solution { get; }
         public ImmutableArray<DiagnosticData> Diagnostics { get; }
 
-        public DiagnosticsUpdatedArgs(
+        private DiagnosticsUpdatedArgs(
             object id,
             Workspace workspace,
             Solution solution,
@@ -25,6 +26,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Solution = solution;
             Diagnostics = diagnostics;
             Kind = kind;
+
+            if (kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
+            {
+                Debug.Assert(diagnostics.IsEmpty);
+            }
+        }
+
+        public static DiagnosticsUpdatedArgs DiagnosticsCreated(
+            object id,
+            Workspace workspace,
+            Solution solution,
+            ProjectId projectId,
+            DocumentId documentId,
+            ImmutableArray<DiagnosticData> diagnostics)
+        {
+            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
+        }
+
+        public static DiagnosticsUpdatedArgs DiagnosticsRemoved(
+            object id,
+            Workspace workspace,
+            Solution solution,
+            ProjectId projectId,
+            DocumentId documentId)
+        {
+            return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, ImmutableArray<DiagnosticData>.Empty, DiagnosticsUpdatedKind.DiagnosticsCreated);
         }
     }
 

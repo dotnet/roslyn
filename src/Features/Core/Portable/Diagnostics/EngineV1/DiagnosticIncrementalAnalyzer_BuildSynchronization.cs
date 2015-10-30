@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                     var mergedDiagnostics = MergeDiagnostics(liveDiagnostics, GetExistingDiagnostics(existingDiagnostics));
                     await state.PersistAsync(project, new AnalysisData(projectTextVersion, semanticVersion, mergedDiagnostics), CancellationToken.None).ConfigureAwait(false);
-                    RaiseDiagnosticsUpdated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), mergedDiagnostics,
-                        DiagnosticsUpdatedKind.DiagnosticsCreated);
+                    RaiseDiagnosticsCreated(StateType.Project, project.Id, stateSet, new SolutionArgument(project), mergedDiagnostics);
                 }
             }
         }
@@ -106,8 +105,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             var mergedDiagnostics = MergeDiagnostics(diagnostics, GetExistingDiagnostics(existingDiagnostics));
             await state.PersistAsync(document, new AnalysisData(textVersion, semanticVersion, mergedDiagnostics), CancellationToken.None).ConfigureAwait(false);
-            RaiseDiagnosticsUpdated(stateType, document.Id, stateSet, new SolutionArgument(document), mergedDiagnostics,
-                DiagnosticsUpdatedKind.DiagnosticsCreated);
+            RaiseDiagnosticsCreated(stateType, document.Id, stateSet, new SolutionArgument(document), mergedDiagnostics);
         }
 
         private static ImmutableArray<DiagnosticData> GetExistingDiagnostics(AnalysisData analysisData)
