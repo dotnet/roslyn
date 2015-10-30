@@ -7,6 +7,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class ExternalCodeClassTests
         Inherits AbstractCodeClassTests
 
+#Region "Doc Comment"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub DocComment1()
+            Dim code =
+<Code>
+/// &lt;summary&gt;This is my comment!&lt;/summary&gt;
+class C$$
+{
+}
+</Code>
+
+            TestDocComment(code, "<doc>" & vbCrLf & "  <summary>This is my comment!</summary>" & vbCrLf & "</doc>")
+        End Sub
+
+#End Region
+
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub ExpectedClassMembers()
             Dim code =

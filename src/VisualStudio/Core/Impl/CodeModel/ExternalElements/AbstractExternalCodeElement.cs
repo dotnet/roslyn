@@ -4,7 +4,10 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using System.Xml;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -56,7 +59,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
 
         protected virtual string GetDocComment()
         {
-            throw new NotImplementedException();
+            var symbol = LookupSymbol();
+
+            if (symbol == null)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            var documentationCommentXml = symbol.OriginalDefinition.GetDocumentationCommentXml();
+            if (string.IsNullOrWhiteSpace(documentationCommentXml))
+            {
+                return string.Empty;
+            }
+
+            XElement xml;
+            try
+            {
+                xml = XElement.Parse(documentationCommentXml);
+            }
+            catch (XmlException)
+            {
+                return string.Empty;
+            }
+
+            // Surround with <doc> element. Or replace <member> element with <doc>, if it exists.
+            if (xml.Name == "member")
+            {
+                xml.Name = "doc";
+                xml.RemoveAttributes();
+            }
+            else
+            {
+                xml = new XElement("doc", xml);
+            }
+
+            return xml.ToString();
         }
 
         protected virtual string GetFullName()
