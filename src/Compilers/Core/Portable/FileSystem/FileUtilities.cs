@@ -300,9 +300,14 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
+            return RethrowExceptionsAsIOException(() => PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read, 4096, PortableShim.FileOptions.Asynchronous));
+        }
+
+        internal static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+        {
             try
             {
-                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read, 4096, PortableShim.FileOptions.Asynchronous);
+                return operation();
             }
             catch (IOException)
             {
