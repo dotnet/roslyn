@@ -784,14 +784,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
             Dim summary = GetBoundNodeSummary(node)
+            Dim result As BoundNode
             Select Case options
                 Case GetOperationOptions.Highest
-                    Return TryCast(summary.HighestBoundNode, IOperation)
+                    result = summary.HighestBoundNode
                 Case GetOperationOptions.Parent
-                    Return TryCast(summary.LowestBoundNodeOfSyntacticParent, IOperation)
+                    result = summary.LowestBoundNodeOfSyntacticParent
                 Case Else
-                    Return TryCast(summary.LowestBoundNode, IOperation)
+                    result = summary.LowestBoundNode
             End Select
+
+            ' Screen out bound nodes that aren't appropriate as IOperations.
+            If result IsNot Nothing Then
+                Select Case result.Kind
+                    Case BoundKind.FieldOrPropertyInitializer
+                        result = DirectCast(result, BoundFieldOrPropertyInitializer).InitialValue
+                End Select
+            End If
+
+            Return TryCast(result, IOperation)
         End Function
 
         Friend Overrides Function GetExpressionTypeInfo(node As ExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As VisualBasicTypeInfo

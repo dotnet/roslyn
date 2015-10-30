@@ -1057,6 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(AsNodeMapKey(node), out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
+        // Map a syntax node to a usable key into a collection of bound nodes, digging into syntax nodes that do not directly map to a bound node.
         private static CSharpSyntaxNode AsNodeMapKey(CSharpSyntaxNode node)
         {
             return node.Kind() == SyntaxKind.EqualsValueClause ? ((EqualsValueClauseSyntax)node).Value : node;

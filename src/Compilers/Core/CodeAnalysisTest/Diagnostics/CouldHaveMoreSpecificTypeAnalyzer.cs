@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Semantics;
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 {
     /// <summary>Analyzer used to identify local variables and fields that could be declared with more specific types.</summary>
-    public class CouldHaveMoreSpecificTypeAnalyzer : DiagnosticAnalyzer
+    public class SymbolCouldHaveMoreSpecificTypeAnalyzer : DiagnosticAnalyzer
     {
         private const string SystemCategory = "System";
 
@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                             {
                                 Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>> localsSourceTypes = new Dictionary<ILocalSymbol, HashSet<INamedTypeSymbol>>();
 
+                                // Track explicit assignments.
                                 operationBlockContext.RegisterOperationAction(
                                    (operationContext) =>
                                    {
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                    OperationKind.CompoundAssignmentExpression,
                                    OperationKind.IncrementExpression);
 
+                                // Track arguments that match out or ref parameters.
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
@@ -75,6 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                     },
                                     OperationKind.InvocationExpression);
 
+                                // Track local variable initializations.
                                 operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
@@ -90,6 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                                     },
                                     OperationKind.VariableDeclarationStatement);
 
+                                // Report locals that could have more specific types.
                                 operationBlockContext.RegisterOperationBlockEndAction(
                                     (operationBlockEndContext) =>
                                     {
@@ -105,6 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                             }
                             else
                             {
+                                // Track field initializations.
                                 IFieldSymbol containingField = operationBlockContext.OwningSymbol as IFieldSymbol;
                                 if (containingField != null)
                                 {
@@ -113,6 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
                             }
                         });
 
+                    // Report fields that could have more specific types.
                     compilationContext.RegisterCompilationEndAction(
                         (compilationEndContext) =>
                         {
