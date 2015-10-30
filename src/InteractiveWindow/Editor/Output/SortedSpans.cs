@@ -69,11 +69,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 if (startIndex < 0)
                 {
                     startIndex = ~startIndex;
-                }
-                                                       
-                if (startIndex > 0)
-                {
-                    startIndex = startIndex - 1;
+
+                    if (startIndex > 0)
+                    {
+                        startIndex = startIndex - 1;
+                    }
                 }
 
                 Debug.Assert(startIndex >= 0);

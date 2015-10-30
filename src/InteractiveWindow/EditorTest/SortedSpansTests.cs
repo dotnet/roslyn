@@ -42,7 +42,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                          spans.GetOverlap(new Span(10, 10)));
             // overlap with [0, 30)
             Assert.Equal(new Span[] { new Span(10, 10) },
-                         spans.GetOverlap(new Span(0, 30)));
+                         spans.GetOverlap(new Span(0, 30))); 
+
+            // no overlap with [0, 0]
+            Assert.Empty(spans.GetOverlap(new Span(0, 0)));
+            // no overlap with [10, 10]
+            Assert.Empty(spans.GetOverlap(new Span(10, 0)));
+            // no overlap with [15, 15]
+            Assert.Empty(spans.GetOverlap(new Span(15, 0)));
 
             // now has both [10, 20) and [30, 40)
             spans.Add(new Span(30, 10));
