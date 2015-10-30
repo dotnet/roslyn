@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
             }
         }
 
-        [WpfFact]
+        [WpfFact, Skip("https://github.com/dotnet/roslyn/issues/6459")]
         public async Task Test_Delay()
         {
             var asyncToken = EmptyAsyncToken.Instance;
