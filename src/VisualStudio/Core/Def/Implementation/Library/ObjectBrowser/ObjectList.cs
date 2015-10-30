@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.NavInfos;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -561,13 +561,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var projectListItem = listItem as ProjectListItem;
             if (projectListItem != null)
             {
-                return this.LibraryManager.GetProjectNavInfo(projectListItem.ProjectId);
+                var project = this.LibraryManager.GetProject(projectListItem.ProjectId);
+                if (project != null)
+                {
+                    return this.LibraryManager.LibraryService.NavInfoFactory.CreateForProject(project);
+                }
             }
 
             var referenceListItem = listItem as ReferenceListItem;
             if (referenceListItem != null)
             {
-                return this.LibraryManager.GetReferenceNavInfo(referenceListItem.MetadataReference);
+                return this.LibraryManager.LibraryService.NavInfoFactory.CreateForReference(referenceListItem.MetadataReference);
             }
 
             var symbolListItem = listItem as SymbolListItem;

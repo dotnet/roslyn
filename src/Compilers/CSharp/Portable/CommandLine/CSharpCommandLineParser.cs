@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugInformationFormat debugInformationFormat = DebugInformationFormat.Pdb;
             bool debugPlus = false;
             string pdbPath = null;
-            bool noStdLib = false;
+            bool noStdLib = IsScriptRunner; // don't add mscorlib from sdk dir when running scripts
             string outputDirectory = baseDirectory;
             ImmutableArray<KeyValuePair<string, string>> pathMap = ImmutableArray<KeyValuePair<string, string>>.Empty;
             string outputFileName = null;
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (value == null)
                                     break;
 
-                                pathMap = pathMap.Concat(ParsePathMap(value));
+                                pathMap = pathMap.Concat(ParsePathMap(value, diagnostics));
                             }
                             continue;
 

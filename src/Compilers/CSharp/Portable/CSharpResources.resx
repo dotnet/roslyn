@@ -4657,4 +4657,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
     <value>Source file references are not supported.</value>
   </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
+  </data>
 </root>

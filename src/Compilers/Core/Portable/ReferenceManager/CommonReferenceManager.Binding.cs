@@ -39,6 +39,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="resolverOpt">
         /// Reference resolver used to look up missing assemblies.
         /// </param>
+        /// <param name="supersedeLowerVersions">
+        /// Hide lower versions of dependencies that have multiple versions behind an alias.
+        /// </param>
+        /// <param name="assemblyReferencesBySimpleName">
+        /// Used to filter out assemblies that have the same strong or weak identity.
+        /// Maps simple name to a list of identities. The highest version of each name is the first.
+        /// </param>
         /// <param name="importOptions">
         /// Import options applied to implicitly resolved references.
         /// </param>
@@ -81,10 +88,12 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ResolvedReference> explicitReferenceMap,
             MetadataReferenceResolver resolverOpt,
             MetadataImportOptions importOptions,
+            bool supersedeLowerVersions,
+            [In, Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<AssemblyData> allAssemblies,
             out ImmutableArray<MetadataReference> implicitlyResolvedReferences,
             out ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap,
-            DiagnosticBag resolutionDiagnostics,
+            [In, Out] DiagnosticBag resolutionDiagnostics,
             out bool hasCircularReference,
             out int corLibraryIndex)
         {
@@ -103,7 +112,20 @@ namespace Microsoft.CodeAnalysis
 
                 if (resolverOpt?.ResolveMissingAssemblies == true)
                 {
-                    ResolveAndBindMissingAssemblies(explicitAssemblies, explicitModules, explicitReferences, explicitReferenceMap, resolverOpt, importOptions, referenceBindings, out allAssemblies, out implicitlyResolvedReferences, out implicitlyResolvedReferenceMap, resolutionDiagnostics);
+                    ResolveAndBindMissingAssemblies(
+                        explicitAssemblies, 
+                        explicitModules, 
+                        explicitReferences,
+                        explicitReferenceMap,
+                        resolverOpt, 
+                        importOptions, 
+                        supersedeLowerVersions,
+                        referenceBindings,
+                        assemblyReferencesBySimpleName,
+                        out allAssemblies, 
+                        out implicitlyResolvedReferences, 
+                        out implicitlyResolvedReferenceMap, 
+                        resolutionDiagnostics);
                 }
                 else
                 {
@@ -116,7 +138,7 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(referenceBindings.Count == allAssemblies.Length);
 
                 hasCircularReference = CheckCircularReference(referenceBindings);
-                corLibraryIndex = IndexOfCorLibrary(allAssemblies);
+                corLibraryIndex = IndexOfCorLibrary(explicitAssemblies, assemblyReferencesBySimpleName, supersedeLowerVersions);
 
                 // For each assembly, locate AssemblySymbol with similar reference resolution
                 // What does similar mean?
@@ -166,7 +188,9 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ResolvedReference> explicitReferenceMap,
             MetadataReferenceResolver resolver,
             MetadataImportOptions importOptions,
+            bool supersedeLowerVersions,
             [In, Out] ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings,
+            [In, Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<AssemblyData> allAssemblies,
             out ImmutableArray<MetadataReference> metadataReferences,
             out ImmutableArray<ResolvedReference> resolvedReferences,
@@ -185,8 +209,7 @@ namespace Microsoft.CodeAnalysis
             var requestedIdentities = PooledHashSet<AssemblyIdentity>.GetInstance();
 
             var metadataReferencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
-
-            Dictionary<string, List<ReferencedAssemblyIdentity>> lazyResolvedReferencesBySimpleName = null;
+            
             Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
 
             // metadata references and corresponding bindings of their references, used to calculate a fixed point:
@@ -194,6 +217,9 @@ namespace Microsoft.CodeAnalysis
 
             // collect all missing identities, resolve the assemblies and bind their references against explicit definitions:
             GetInitialReferenceBindingsToProcess(explicitModules, explicitReferences, explicitReferenceMap, referenceBindings, totalReferencedAssemblyCount, referenceBindingsToProcess);
+
+            // NB: includes the assembly being built:
+            int explicitAssemblyCount = explicitAssemblies.Length;
 
             try
             {
@@ -234,7 +260,10 @@ namespace Microsoft.CodeAnalysis
                         // If such case occurs merge the properties (aliases) of the resulting references in the same way we do
                         // during initial explicit references resolution.
 
-                        var existingReference = TryAddAssembly(data.Identity, resolvedReference, resolutionDiagnostics, Location.None, ref lazyResolvedReferencesBySimpleName);
+                        // -1 for assembly being built:
+                        int index = explicitAssemblyCount - 1 + metadataReferencesBuilder.Count;
+
+                        var existingReference = TryAddAssembly(data.Identity, resolvedReference, index, resolutionDiagnostics, Location.None, assemblyReferencesBySimpleName, supersedeLowerVersions);
                         if (existingReference != null)
                         {
                             MergeReferenceProperties(existingReference, resolvedReference, resolutionDiagnostics, ref lazyAliasMap);
@@ -253,7 +282,6 @@ namespace Microsoft.CodeAnalysis
                 if (implicitAssemblies.Count == 0)
                 {
                     Debug.Assert(lazyAliasMap == null);
-                    Debug.Assert(lazyResolvedReferencesBySimpleName == null);
 
                     resolvedReferences = ImmutableArray<ResolvedReference>.Empty;
                     metadataReferences = ImmutableArray<MetadataReference>.Empty;
@@ -264,8 +292,6 @@ namespace Microsoft.CodeAnalysis
                 // Rebind assembly references that were initially missing. All bindings established above
                 // are against explicitly specified references.
 
-                // NB: includes the assembly being built:
-                int explicitAssemblyCount = explicitAssemblies.Length;
                 allAssemblies = explicitAssemblies.AddRange(implicitAssemblies);
 
                 for (int bindingsIndex = 0; bindingsIndex < referenceBindings.Count; bindingsIndex++)
@@ -826,26 +852,35 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        private static int IndexOfCorLibrary(ImmutableArray<AssemblyData> assemblies)
+        private static bool IsSuperseded(AssemblyIdentity identity, IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName)
+        {
+            return assemblyReferencesBySimpleName[identity.Name][0].Identity.Version != identity.Version;
+        }
+
+        private static int IndexOfCorLibrary(ImmutableArray<AssemblyData> assemblies, IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName, bool supersedeLowerVersions)
         {
             // Figure out COR library for this compilation.
             ArrayBuilder<int> corLibraryCandidates = null;
 
             for (int i = 1; i < assemblies.Length; i++)
             {
+                var assembly = assemblies[i];
+
                 // The logic about deciding what assembly is a candidate for being a Cor library here and in
                 // Microsoft.CodeAnalysis.VisualBasic.CommandLineCompiler.ResolveMetadataReferencesFromArguments
                 // should be equivalent.
 
                 // Linked references cannot be used as COR library.
                 // References containing NoPia local types also cannot be used as COR library.
-                if (!assemblies[i].IsLinked && assemblies[i].AssemblyReferences.Length == 0 &&
-                    !assemblies[i].ContainsNoPiaLocalTypes)
+                if (!assembly.IsLinked &&
+                    assembly.AssemblyReferences.Length == 0 &&
+                    !assembly.ContainsNoPiaLocalTypes &&
+                    (!supersedeLowerVersions || !IsSuperseded(assembly.Identity, assemblyReferencesBySimpleName)))
                 {
                     // We have referenced assembly that doesn't have assembly references,
                     // check if it declares baseless System.Object.
 
-                    if (assemblies[i].DeclaresTheObjectClass)
+                    if (assembly.DeclaresTheObjectClass)
                     {
                         if (corLibraryCandidates == null)
                         {

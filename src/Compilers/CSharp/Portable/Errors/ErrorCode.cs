@@ -1316,5 +1316,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PPLoadFollowsToken = 8098,
         ERR_SourceFileReferencesNotSupported = 8099,
         ERR_BadAwaitInStaticVariableInitializer = 8100,
+        ERR_InvalidPathMap = 8101,
     }
 }
