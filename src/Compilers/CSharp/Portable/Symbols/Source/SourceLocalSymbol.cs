@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetTypeSymbol(TypeSymbol newType)
         {
+#if PATTERNS_FIXED
             TypeSymbol originalType = _type;
 
             // In the event that we race to set the type of a local, we should
@@ -238,6 +239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Interlocked.CompareExchange(ref _type, newType, null);
             }
+#else
+            Interlocked.CompareExchange(ref _type, newType, _type);
+#endif
         }
 
         /// <summary>
