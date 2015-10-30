@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
@@ -1152,6 +1153,28 @@ new Metadata.ICSPropImpl()
                 ScriptOptions.Default.WithFilePath(Path.Combine(dir, "a.csx")));
 
             script.GetCompilation().VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        public async Task MissingReferencesReuse()
+        {
+            var source = @"
+public class C
+{
+    public System.Diagnostics.Process P;
+}
+";
+
+            var lib = CSharpCompilation.Create(
+                "Lib",
+                new[] { SyntaxFactory.ParseSyntaxTree(source) },
+                new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System },
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
+
+            var s0 = await CSharpScript.RunAsync("C c;", ScriptOptions.Default.WithReferences(libFile.Path));
+            var s1 = await s0.ContinueWithAsync("c = new C()");
         }
 
         #endregion

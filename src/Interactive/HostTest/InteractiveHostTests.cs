@@ -876,18 +876,31 @@ typeof(C).Assembly.GetName()");
 
             Execute(@"
 dynamic d = new ExpandoObject();
+");
+            Execute(@"
 Process p = new Process();
+");
+            Execute(@"
 Expression<Func<int>> e = () => 1;
+");
+            Execute(@"
 var squares = from x in new[] { 1, 2, 3 } select x * x;
+");
+            Execute(@"
 var sb = new StringBuilder();
+");
+            Execute(@"
 var list = new List<int>();
+");
+            Execute(@"
 var stream = new MemoryStream();
 await Task.Delay(10);
+p = new Process();
 
 Console.Write(""OK"")
 ");
 
-            Assert.Equal("", ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"Loading context from '{Path.GetFileName(rspFile.Path)}'.

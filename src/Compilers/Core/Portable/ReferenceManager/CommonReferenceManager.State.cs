@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis
         internal abstract IEnumerable<ValueTuple<IAssemblySymbol, ImmutableArray<string>>> GetReferencedAssemblyAliases();
 
         internal abstract MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol);
+        internal abstract ImmutableArray<MetadataReference> ExplicitReferences { get; }
+        internal abstract ImmutableArray<MetadataReference> ImplicitReferences { get; }
+        internal abstract IEnumerable<KeyValuePair<AssemblyIdentity, PortableExecutableReference>> GetImplicitlyResolvedAssemblyReferences();
     }
 
     internal partial class CommonReferenceManager<TCompilation, TAssemblySymbol> : CommonReferenceManager
@@ -109,6 +112,9 @@ namespace Microsoft.CodeAnalysis
         /// have the same "priority" with respect to each other.
         /// </remarks>
         private ImmutableArray<MetadataReference> _lazyDirectiveReferences;
+
+        private ImmutableArray<MetadataReference> _lazyExplicitReferences;
+        private ImmutableArray<MetadataReference> _lazyImplicitReferences;
 
         /// <summary>
         /// Diagnostics produced during reference resolution and binding.
@@ -228,6 +234,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal override ImmutableArray<MetadataReference> ImplicitReferences
+        {
+            get
+            {
+                AssertBound();
+                return _lazyImplicitReferences;
+            }
+        }
+
+        internal override ImmutableArray<MetadataReference> ExplicitReferences
+        {
+            get
+            {
+                AssertBound();
+                return _lazyExplicitReferences;
+            }
+        }
+
         #region Symbols necessary to set up source assembly and module
 
         internal TAssemblySymbol CorLibraryOpt
@@ -298,6 +322,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_lazyReferencedModuleIndexMap == null);
             Debug.Assert(_lazyReferenceDirectiveMap == null);
             Debug.Assert(_lazyDirectiveReferences.IsDefault);
+            Debug.Assert(_lazyImplicitReferences.IsDefault);
+            Debug.Assert(_lazyExplicitReferences.IsDefault);
             Debug.Assert(_lazyReferencedModules.IsDefault);
             Debug.Assert(_lazyReferencedModulesReferences.IsDefault);
             Debug.Assert(_lazyReferencedAssemblies.IsDefault);
@@ -315,6 +341,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_lazyReferencedModuleIndexMap != null);
             Debug.Assert(_lazyReferenceDirectiveMap != null);
             Debug.Assert(!_lazyDirectiveReferences.IsDefault);
+            Debug.Assert(!_lazyImplicitReferences.IsDefault);
+            Debug.Assert(!_lazyExplicitReferences.IsDefault);
             Debug.Assert(!_lazyReferencedModules.IsDefault);
             Debug.Assert(!_lazyReferencedModulesReferences.IsDefault);
             Debug.Assert(!_lazyReferencedAssemblies.IsDefault);
@@ -346,7 +374,9 @@ namespace Microsoft.CodeAnalysis
             Dictionary<MetadataReference, int> referencedAssembliesMap,
             Dictionary<MetadataReference, int> referencedModulesMap,
             IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap,
-            ImmutableArray<MetadataReference> boundReferenceDirectives,
+            ImmutableArray<MetadataReference> directiveReferences,
+            ImmutableArray<MetadataReference> explicitReferences,
+            ImmutableArray<MetadataReference> implicitReferences,
             bool containsCircularReferences,
             ImmutableArray<Diagnostic> diagnostics,
             TAssemblySymbol corLibraryOpt,
@@ -366,7 +396,9 @@ namespace Microsoft.CodeAnalysis
             _lazyReferencedModuleIndexMap = referencedModulesMap;
             _lazyDiagnostics = diagnostics;
             _lazyReferenceDirectiveMap = boundReferenceDirectiveMap;
-            _lazyDirectiveReferences = boundReferenceDirectives;
+            _lazyDirectiveReferences = directiveReferences;
+            _lazyExplicitReferences = explicitReferences;
+            _lazyImplicitReferences = implicitReferences;
 
             _lazyCorLibraryOpt = corLibraryOpt;
             _lazyReferencedModules = referencedModules;
@@ -571,6 +603,14 @@ namespace Microsoft.CodeAnalysis
         {
             var aliases = AliasesOfReferencedAssemblies[referencedAssemblyIndex];
             return aliases.Length == 0 || aliases.IndexOf(MetadataReferenceProperties.GlobalAlias, StringComparer.Ordinal) >= 0;
+        }
+
+        internal override IEnumerable<KeyValuePair<AssemblyIdentity, PortableExecutableReference>> GetImplicitlyResolvedAssemblyReferences()
+        {
+            foreach (PortableExecutableReference reference in ImplicitReferences)
+            {
+                yield return KeyValuePair.Create(ReferencedAssemblies[ReferencedAssembliesMap[reference]].Identity, reference);
+            }
         }
 
         #endregion

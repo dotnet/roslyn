@@ -789,6 +789,13 @@ namespace Microsoft.CodeAnalysis
                 // add external reference at the end, so that they are processed first:
                 referencesBuilder.AddRange(compilation.ExternalReferences);
 
+                // Add all explicit references of the previous script compilation.
+                var previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+                if (previousScriptCompilation != null)
+                {
+                    referencesBuilder.AddRange(previousScriptCompilation.GetBoundReferenceManager().ExplicitReferences);
+                }
+
                 if (boundReferenceDirectives == null)
                 {
                     // no directive references resolved successfully:

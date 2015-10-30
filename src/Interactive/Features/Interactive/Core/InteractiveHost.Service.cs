@@ -440,6 +440,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // successful if compiled
                         success = true;
 
+                        // remove references and imports from the options, they have been applied and will be inherited from now on:
+                        state = state.WithOptions(state.ScriptOptions.WithReferences(Array.Empty<MetadataReference>()).WithImports(Array.Empty<string>()));
+
                         var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
                         if (newScriptState != null)
                         {
@@ -647,6 +650,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 {
                                     rspState = rspState.WithScriptState(newScriptState);
                                 }
+
+                                // remove references and imports from the options, they have been applied and will be inherited from now on:
+                                rspState = rspState.WithOptions(rspState.ScriptOptions.WithReferences(Array.Empty<MetadataReference>()).WithImports(Array.Empty<string>()));
                             }
 
                             state = rspState;
