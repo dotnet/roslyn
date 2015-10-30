@@ -1313,13 +1313,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             var stateWhenFalse = this.State.Clone();
-            foreach (BoundDeclarationPattern pattern in PatternFinder.DeclarationPatternsIn(node.Pattern))
-            {
-                var patternVariable = pattern.LocalSymbol;
-                Assign(pattern, null, RefKind.None, false);
-            }
+            VisitPattern(node.Pattern);
             SetConditionalState(this.State, stateWhenFalse);
             return null;
+        }
+
+        public override void VisitPattern(BoundPattern pattern)
+        {
+            foreach (BoundDeclarationPattern p in PatternFinder.DeclarationPatternsIn(pattern))
+            {
+                var patternVariable = p.LocalSymbol;
+                Assign(p, null, RefKind.None, false);
+            }
         }
 
         class PatternFinder // : BoundTreeVisitor
@@ -1362,26 +1367,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitMatchSection(BoundMatchSection node, bool isLastSection)
         {
+            // TODO: this an probably depend more heavily on the base class implementation.
             DeclareVariables(node.Locals);
-            var startState = this.State.Clone();
-            var endState = UnreachableState();
-            foreach (var label in node.MatchLabels)
-            {
-                this.SetState(startState.Clone());
-                AssignPatternVariables(label.Pattern);
-                if (label.Guard != null)
-                {
-                    VisitCondition(label.Guard);
-                    IntersectWith(ref endState, ref StateWhenTrue);
-                }
-                else
-                {
-                    IntersectWith(ref endState, ref this.State);
-                }
-            }
-
-            SetState(endState);
-            VisitStatementList(node);
+            base.VisitMatchSection(node, isLastSection);
         }
 
         private void AssignPatternVariables(BoundPattern pattern)

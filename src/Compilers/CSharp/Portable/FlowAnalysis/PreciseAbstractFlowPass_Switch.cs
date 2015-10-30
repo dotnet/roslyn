@@ -144,12 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var afterSwitchState = UnreachableState();
             var switchSections = node.MatchSections;
             var iLastSection = (switchSections.Length - 1);
-            var dispatchState = State.Clone();
+            var dispatchState = this.State.Clone();
 
             // visit switch sections
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
-                SetState(dispatchState);
+                SetState(dispatchState.Clone());
                 VisitMatchSection(switchSections[iSection], iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
@@ -159,34 +159,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(afterSwitchState);
         }
 
+        /// <summary>
+        /// Visit the switch expression, and return the initial break state.
+        /// </summary>
         private LocalState VisitMatchHeader(BoundMatchStatement node)
         {
-            // Initial value for the Break state for a switch statement is established as follows:
-            //  Break state = UnreachableState if either of the following is true:
-            //  (1) there is a default label, or
-            //  (2) the switch expression is constant and there is a matching case label.
-            //  Otherwise, the Break state = current state.
+            // decide if the switch has the moral equivalent of a default label.
+            bool hasDefaultLabel = false;
+            foreach (var section in node.MatchSections)
+            {
+                foreach (var boundMatchLabel in section.MatchLabels)
+                {
+                    if (boundMatchLabel.Guard != null && !IsConstantTrue(boundMatchLabel.Guard))
+                    {
+                        continue;
+                    }
+
+                    if (boundMatchLabel.Pattern.Kind == BoundKind.WildcardPattern ||
+                        boundMatchLabel.Pattern.Kind == BoundKind.DeclarationPattern && ((BoundDeclarationPattern)boundMatchLabel.Pattern).IsVar)
+                    {
+                        hasDefaultLabel = true;
+                        goto foundDefaultLabel;
+                    }
+                }
+            }
+            foundDefaultLabel:;
 
             // visit switch expression
             VisitRvalue(node.Expression);
-            LocalState breakState = this.State;
 
-            // TODO: handle the switch expression being a constant.
-
-            return breakState;
+            // return the state to use if no pattern matches
+            if (hasDefaultLabel)
+            {
+                return UnreachableState();
+            }
+            else
+            {
+                return this.State;
+            }
         }
 
         protected virtual void VisitMatchSection(BoundMatchSection node, bool isLastSection)
         {
             // visit switch section labels
+            var initialState = this.State;
+            var afterGuardState = UnreachableState();
             foreach (var label in node.MatchLabels)
             {
-                // VisitPattern(label.Pattern); // TODO: implement this
-                VisitRvalue(label.Guard);
+                SetState(initialState.Clone());
+                VisitPattern(label.Pattern);
+                if (label.Guard != null)
+                {
+                    VisitCondition(label.Guard);
+                    SetState(StateWhenTrue);
+                }
+                IntersectWith(ref afterGuardState, ref this.State);
             }
 
             // visit switch section body
+            SetState(afterGuardState);
             VisitStatementList(node);
+        }
+
+        public virtual void VisitPattern(BoundPattern pattern)
+        {
         }
     }
 }
