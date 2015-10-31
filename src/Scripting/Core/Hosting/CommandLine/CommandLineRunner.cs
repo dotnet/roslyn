@@ -280,6 +280,21 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 state = task.GetAwaiter().GetResult();
             }
+            catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+            {
+                var oldColor = _console.ForegroundColor;
+                try
+                {
+                    _console.ForegroundColor = ConsoleColor.Red;
+                    _console.Out.WriteLine(e.InnerException.Message);
+                }
+                finally
+                {
+                    _console.ForegroundColor = oldColor;
+                }
+
+                return false;
+            }
             catch (Exception e)
             {
                 DisplayException(e);

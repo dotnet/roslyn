@@ -16,5 +16,14 @@ namespace Microsoft.CodeAnalysis.Scripting
                 new[] { TestReferences.NetFx.v4_0_30319.mscorlib },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
+
+        internal static Compilation CreateCompilation(string source, MetadataReference[] references, string assemblyName, CSharpCompilationOptions options = null)
+        {
+            return CSharpCompilation.Create(
+                assemblyName,
+                new[] { SyntaxFactory.ParseSyntaxTree(source) },
+                references,
+                options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        }
     }
 }

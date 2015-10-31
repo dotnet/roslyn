@@ -65,6 +65,7 @@
     <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoaderException.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineHelpers.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />

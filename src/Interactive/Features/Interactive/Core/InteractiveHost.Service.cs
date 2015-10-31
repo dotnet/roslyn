@@ -864,6 +864,11 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                         return await task.ConfigureAwait(false);
                     }
+                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+                    {
+                        Console.Error.WriteLine(e.InnerException.Message);
+                        return null;
+                    }
                     catch (Exception e)
                     {
                         // TODO (tomat): format exception
