@@ -96,6 +96,7 @@
     <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="AppDomainUtils.cs" />
     <Compile Include="CLRHelpers.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="ProcessUtilities.cs" />
