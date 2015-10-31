@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             {
                 return null;
             }
+
             var methodSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol as IMethodSymbol;
             if (methodSymbol == null)
             {

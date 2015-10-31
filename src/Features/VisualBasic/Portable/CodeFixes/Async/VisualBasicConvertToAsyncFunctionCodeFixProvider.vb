@@ -47,6 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
             If oldNode Is Nothing Then
                 Return Nothing
             End If
+
             Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(oldNode).Symbol, IMethodSymbol)
             If methodSymbol Is Nothing Then
                 Return Nothing
