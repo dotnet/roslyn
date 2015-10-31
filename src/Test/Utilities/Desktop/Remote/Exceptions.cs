@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.Remote
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     [Serializable]
     public class EmitException : Exception
@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Remote
         }
     }
 
+    [Serializable]
     public class ExecutionException : Exception
     {
         public ExecutionException(string expectedOutput, string actualOutput, string exePath) : base(GetMessageFromResult(expectedOutput, actualOutput, exePath)) { }

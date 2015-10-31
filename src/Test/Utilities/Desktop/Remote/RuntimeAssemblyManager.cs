@@ -16,15 +16,13 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Test.Utilities.Remote
+namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal sealed class RuntimeAssemblyManager : MarshalByRefObject, IDisposable
     {
-        // Per-domain cache, contains all assemblies loaded to this app domain since the first manager was created.
-        // The key is the manifest module MVID, which is unique for each distinct assembly. 
-        private static readonly ConcurrentDictionary<Guid, Assembly> s_domainAssemblyCache;
-        private static readonly ConcurrentDictionary<Guid, Assembly> s_domainReflectionOnlyAssemblyCache;
         private static int s_dumpCount;
+
+        private readonly AppDomainAssemblyCache _assemblyCache = AppDomainAssemblyCache.GetOrCreate();
 
         // Modules managed by this manager. All such modules must have unique simple name.
         private readonly Dictionary<string, ModuleData> _modules;
@@ -33,13 +31,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Remote
         private readonly List<Guid> _mainMvids;
 
         private bool _containsNetModules;
-
-        static RuntimeAssemblyManager()
-        {
-            s_domainAssemblyCache = new ConcurrentDictionary<Guid, Assembly>();
-            s_domainReflectionOnlyAssemblyCache = new ConcurrentDictionary<Guid, Assembly>();
-            AppDomain.CurrentDomain.AssemblyLoad += DomainAssemblyLoad;
-        }
 
         public RuntimeAssemblyManager()
         {
@@ -129,20 +120,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Remote
             return data.Image;
         }
 
-        private static void DomainAssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            // We need to add loaded assemblies to the cache in order to avoid loading them twice.
-            // This is not just optimization. CLR isn't able to load the same assembly from multiple "locations".
-            // Location for byte[] assemblies is the location of the assembly that invokes Assembly.Load. 
-            // PE verifier invokes load directly for the assembly being verified. If this assembly is also a dependency 
-            // of another assembly we verify our AssemblyResolve is invoked. If we didn't reuse the assembly already loaded 
-            // by PE verifier we would get an error from Assembly.Load.
-
-            var assembly = args.LoadedAssembly;
-            var cache = assembly.ReflectionOnly ? s_domainReflectionOnlyAssemblyCache : s_domainAssemblyCache;
-            cache.TryAdd(assembly.ManifestModule.ModuleVersionId, assembly);
-        }
-
         private void AssemblyLoad(object sender, AssemblyLoadEventArgs args)
         {
             var assembly = args.LoadedAssembly;
@@ -206,10 +183,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Remote
                 return null;
             }
 
-            ConcurrentDictionary<Guid, Assembly> cache = reflectionOnly ? s_domainReflectionOnlyAssemblyCache : s_domainAssemblyCache;
-
-            var assembly = cache.GetOrAdd(data.Mvid, _ => LoadAsAssembly(data.Image, reflectionOnly));
-
+            var assembly = _assemblyCache.GetOrLoad(data, reflectionOnly);
             if (!MonoHelpers.IsRunningOnMono())
             {
                 assembly.ModuleResolve += ModuleResolve;

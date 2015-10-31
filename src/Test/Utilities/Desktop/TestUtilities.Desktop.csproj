@@ -100,6 +100,7 @@
     <Compile Include="CLRHelpers.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="ProcessUtilities.cs" />
+    <Compile Include="Remote\AppDomainAssemblyCache.cs" />
     <Compile Include="Remote\Exceptions.cs" />
     <Compile Include="ModuleData.cs" />
     <Compile Include="Extensions.cs" />

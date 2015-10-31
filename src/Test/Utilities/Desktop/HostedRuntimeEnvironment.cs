@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.Remote;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
