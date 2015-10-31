@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public class HostedRuntimeEnvironment : IDisposable
     {
         private static readonly Dictionary<string, Guid> s_allModuleNames = new Dictionary<string, Guid>();
+        private static bool s_hookedResolve;
 
         private bool _disposed;
         private AppDomain _domain;
@@ -60,14 +61,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string conflict = DetectNameCollision(allModules);
             if (conflict != null && !MonoHelpers.IsRunningOnMono())
             {
-                Type appDomainProxyType = typeof(RuntimeAssemblyManager);
-                Assembly thisAssembly = appDomainProxyType.Assembly;
+                lock (s_allModuleNames)
+                {
+                    if (!s_hookedResolve)
+                    {
+                        AppDomain.CurrentDomain.AssemblyResolve += OnResolve;
+                        s_hookedResolve = true;
+                    }
+                }
+
+                var appDomainProxyType = typeof(RuntimeAssemblyManager);
+                var thisAssembly = appDomainProxyType.Assembly;
+                var appBasePath = Path.GetDirectoryName(thisAssembly.Location);
 
                 AppDomain appDomain = null;
                 RuntimeAssemblyManager manager;
                 try
                 {
-                    appDomain = AppDomain.CreateDomain("HostedRuntimeEnvironment", null, AppDomain.CurrentDomain.BaseDirectory, null, false);
+                    appDomain = AppDomain.CreateDomain(
+                        "HostedRuntimeEnvironment",
+                        null,
+                        appBasePath: appBasePath,
+                        appRelativeSearchPath: null,
+                        shadowCopyFiles: false);
                     manager = (RuntimeAssemblyManager)appDomain.CreateInstanceAndUnwrap(thisAssembly.FullName, appDomainProxyType.FullName);
                 }
                 catch
@@ -93,6 +109,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 _assemblyManager.AddMainModuleMvid(mainModule.Mvid);
             }
+        }
+
+        /// <summary>
+        /// When run under xunit without AppDomains all DLLs get loaded via the AssemblyResolve
+        /// event.  In some cases the xunit, AppDomain marshalling, xunit doesn't fully hook
+        /// the event and we need to do it for our assemblies.
+        /// </summary>
+        private static Assembly OnResolve(object sender, ResolveEventArgs e)
+        {
+            var assemblyName = new AssemblyName(e.Name);
+            var fullPath = Path.Combine(
+                Path.GetDirectoryName(typeof(RuntimeAssemblyManager).Assembly.Location),
+                assemblyName.Name + ".dll");
+            if (File.Exists(fullPath))
+            {
+                return Assembly.LoadFrom(fullPath);
+            }
+
+            return null;
         }
 
         // Determines if any of the given dependencies has the same name as already loaded assembly with different content.
