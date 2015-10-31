@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (map.ContainsKey(key))
                     {
-#if DEBUG
+#if DEBUG && PATTERNS_FIXED
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
                         // then we'll see an entry in the map.  Since the incremental binder should also have seen the
                         // pre-existing map entry, the entry in addition map should be identical.
@@ -102,13 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-#if PATTERNS_FIXED // the features/patterns branch has not restored these invariants yet.
                                 Debug.Assert(
                                     (object)existing[i] == added[i] || !(key is StatementSyntax),
                                     string.Format(
                                         CultureInfo.InvariantCulture,
                                         "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
-#endif
                             }
                         }
 #endif
