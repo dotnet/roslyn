@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.Utf8StringToken:
                 case SyntaxKind.LoadKeyword:
                     return true;
                 default:

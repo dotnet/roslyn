@@ -6308,6 +6308,7 @@ tryAgain:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.EqualsGreaterThanToken:
@@ -8589,6 +8590,7 @@ tryAgain:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.CharacterLiteralToken:
@@ -8809,6 +8811,7 @@ tryAgain:
                     case SyntaxKind.TrueKeyword:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.Utf8StringToken:
                     case SyntaxKind.InterpolatedStringStartToken:
                     case SyntaxKind.InterpolatedStringToken:
                     case SyntaxKind.NumericLiteralToken:
