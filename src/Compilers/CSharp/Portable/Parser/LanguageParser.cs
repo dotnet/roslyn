@@ -6112,6 +6112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.EqualsGreaterThanToken:
@@ -8070,6 +8071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.CharacterLiteralToken:
@@ -8265,6 +8267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.TrueKeyword:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.Utf8StringToken:
                     case SyntaxKind.InterpolatedStringStartToken:
                     case SyntaxKind.InterpolatedStringToken:
                     case SyntaxKind.NumericLiteralToken:
