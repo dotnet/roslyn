@@ -68,8 +68,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
+    <None Include="xunit.runner.json" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

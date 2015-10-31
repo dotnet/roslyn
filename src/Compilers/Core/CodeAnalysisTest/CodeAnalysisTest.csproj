@@ -166,12 +166,12 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources/default.win32manifest" />
     <None Include="Resources/nativeWithStringIDsAndTypesAndIntTypes.res" />
     <None Include="Resources/Roslyn.ico.blah" />
     <None Include="Resources/VerResourceBuiltByRC.RES" />
+    <None Include="xunit.runner.json" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

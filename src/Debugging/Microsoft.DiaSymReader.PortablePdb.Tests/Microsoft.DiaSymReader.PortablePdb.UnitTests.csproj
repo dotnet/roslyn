@@ -103,8 +103,8 @@
     <Compile Include="SymReaderTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
+    <None Include="xunit.runner.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

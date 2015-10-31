@@ -88,8 +88,8 @@
     <Compile Include="VisualBasicResultProviderTestBase.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
+    <None Include="xunit.runner.json" />
   </ItemGroup>
   <Import Project="..\..\Source\ResultProvider\BasicResultProvider.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

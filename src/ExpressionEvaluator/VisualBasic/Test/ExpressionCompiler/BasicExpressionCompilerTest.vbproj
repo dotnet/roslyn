@@ -110,8 +110,8 @@
     <Compile Include="WinMdTests.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="project.json" />
+    <None Include="xunit.runner.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

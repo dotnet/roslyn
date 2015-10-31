@@ -145,9 +145,11 @@
     <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
-    <None Include="app.config" />
     <None Include="project.json" />
     <None Include="Resources\VBAllInOne.vb" />
+    <None Include="xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
