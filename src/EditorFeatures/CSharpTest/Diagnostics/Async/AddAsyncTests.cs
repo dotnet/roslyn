@@ -417,7 +417,6 @@ class Program
 @"using System ; using System . Threading . Tasks ; class Program { private async void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
         }
 
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
         public void AddAsyncInDelegate2()
         {
@@ -432,6 +431,29 @@ class Program
             Test(
 @"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( delegate ( ) { [|await Task . Delay ( 1000 )|] ; return ""Test"" ; } ) ; } } ",
 @"using System ; using System . Threading . Tasks ; class Program { private void method ( ) { string content = await Task < String > . Run ( async delegate ( ) { await Task . Delay ( 1000 ) ; return ""Test"" ; } ) ; } } ");
+        }
+
+        [WorkItem(6477, @"https://github.com/dotnet/roslyn/issues/6477")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAsync)]
+        public void NullNodeCrash()
+        {
+            TestMissing(
+@"using System.Threading.Tasks;
+
+class C
+{
+    static async void Main()
+    {
+        try
+        {
+            [|await|]
+            await Task.Delay(100);
+        }
+        finally
+        {
+        }
+    }
+}");
         }
 
         internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
