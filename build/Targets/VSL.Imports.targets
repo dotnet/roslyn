@@ -2,12 +2,6 @@
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
   <!-- This file is imported by all projects at the end of the project files -->
-  <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
-    <DeployVSHive>Roslyn</DeployVSHive>
-    <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
-    <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
-  </PropertyGroup>
-
   <!-- Update common properties -->
   <PropertyGroup>
     <OutputPath>$(OutDir)</OutputPath>
@@ -104,7 +98,6 @@
     <BuildDependsOn>
       $(BuildDependsOn);
       CopyCppOutputBackToIntDir;
-      DeployToPreviewPackageFolders;
     </BuildDependsOn>
   </PropertyGroup>
 
@@ -124,26 +117,6 @@
   <Target Name="VerifyBuildFlags">
     <Error Condition="('$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real') AND '$(BuildVersion)' == '42.42.42.42'"
            Text="Must specify a build version in order to real sign a build." />
-  </Target>
-
-  <!-- ====================================================================================
-        Deploy binary to 14.0 Package folders
-  ===================================================================================== -->
-  <PropertyGroup>
-    <RoslynOssComponentPath>$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(VisualStudioVersion)$(DeployVSHive)\Extensions\MSOpenTech\OpenSourceDebug\0.7</RoslynOssComponentPath>
-    <TargetConfigFile>$(TargetPath).config</TargetConfigFile>
-    <TargetPdbFile>$(TargetDir)$(TargetName).pdb</TargetPdbFile>
-    <TargetRspFile>$(TargetDir)$(TargetName).rsp</TargetRspFile>
-  </PropertyGroup>
-
-  <Target Name="DeployToPreviewPackageFolders" Condition="'$(DeployToPackageFolders)' == 'true' and '$(VisualStudioVersion)' == '14.0'">
-    <ItemGroup>
-      <CopySources Condition="('$(TargetExt)' == '.dll' or '$(TargetExt)' == '.exe') and Exists($(TargetPath))" Include="$(TargetPath)"/>
-      <CopySources Condition="('$(TargetExt)' == '.dll' or '$(TargetExt)' == '.exe') and Exists($(TargetPdb))" Include="$(TargetPdbFile)"/>
-      <CopySources Condition="'$(TargetExt)' == '.exe' and Exists($(TargetConfigFile))" Include="$(TargetConfigFile)"/>
-      <CopySources Condition="'$(TargetExt)' == '.exe' and Exists($(TargetRspFile))" Include="$(TargetRspFile)"/>
-    </ItemGroup>
-    <Copy SourceFiles="@(CopySources)" DestinationFolder="$(RoslynOssComponentPath)"  SkipUnchangedFiles="true" />
   </Target>
 
   <!-- ====================================================================================
