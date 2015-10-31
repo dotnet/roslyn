@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public const string DocumentRemoved = "DocumentRemoved";
         public const string DocumentOpened = "DocumentOpened";
         public const string DocumentClosed = "DocumentClosed";
+        public const string HighPriority = "HighPriority";
 
         public const string SyntaxChanged = "SyntaxChanged";
         public const string SemanticChanged = "SemanticChanged";
