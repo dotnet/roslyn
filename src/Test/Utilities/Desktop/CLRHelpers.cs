@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static readonly Guid s_clsIdCorMetaDataDispenser = new Guid("E5CB7A31-7512-11d2-89CE-0080C792E5D8");
 
         public static event ResolveEventHandler ReflectionOnlyAssemblyResolve;
+        internal static bool assemblyResolveCannotBeTrusted;
 
         static CLRHelpers()
         {
@@ -34,7 +35,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // 
             // As A workaround we add a single forwarding handler before any calls to Validate and then subscribe all of our true handlers 
             // to this event. 
-            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += ReflectionOnlyAssemblyResolveHandler;
+            ResolveEventHandler handler = ReflectionOnlyAssemblyResolveHandler;
+            AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += handler;
+
+            var handlerField = typeof(AppDomain).GetField("ReflectionOnlyAssemblyResolve", BindingFlags.NonPublic | BindingFlags.Instance);
+            var installedHandler = handlerField.GetValue(AppDomain.CurrentDomain);
+
+            if ((object)handler != installedHandler)
+            {
+                // we should be the first to install the handler.
+                assemblyResolveCannotBeTrusted = true;
+            }
         }
 
         private static Assembly ReflectionOnlyAssemblyResolveHandler(object sender, ResolveEventArgs args)
