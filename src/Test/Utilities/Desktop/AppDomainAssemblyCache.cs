@@ -46,6 +46,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        internal Assembly GetOrDefault(ModuleDataId id, bool reflectionOnly)
+        {
+            var cache = reflectionOnly ? _reflectionOnlyAssemblyCache : _assemblyCache;
+            lock (s_guard)
+            {
+                Assembly assembly;
+                if (cache.TryGetValue(id.Mvid, out assembly))
+                {
+                    return assembly;
+                }
+
+                return null;
+            }
+        }
+
         internal Assembly GetOrLoad(ModuleData moduleData, bool reflectionOnly)
         {
             var cache = reflectionOnly ? _reflectionOnlyAssemblyCache : _assemblyCache;
@@ -58,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return assembly;
                 }
 
-                var loadedAssembly = RuntimeAssemblyManager.LoadAsAssembly(moduleData.Image, reflectionOnly);
+                var loadedAssembly = RuntimeAssemblyManager.LoadAsAssembly(moduleData.SimpleName, moduleData.Image, reflectionOnly);
 
                 // Validate the loaded assembly matches the value that we now have in the cache. 
                 if (!cache.TryGetValue(moduleData.Mvid, out assembly))

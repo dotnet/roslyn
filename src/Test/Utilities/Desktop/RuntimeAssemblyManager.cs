@@ -174,6 +174,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        public bool HasConflicts(IEnumerable<ModuleDataId> moduleDataIds)
+        {
+            foreach (var id in moduleDataIds)
+            {
+                AssemblyData assemblyData;
+                bool fullMatch;
+                if (TryGetMatchingByFullName(id, out assemblyData, out fullMatch) && !fullMatch)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private void AddAssemblyData(AssemblyData assemblyData)
         {
             _fullNameToAssemblyDataMap.Add(assemblyData.Id.FullName, assemblyData);
@@ -267,19 +282,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <summary>
         /// Loads given array of bytes as an assembly image using <see cref="System.Reflection.Assembly.Load"/> or <see cref="System.Reflection.Assembly.ReflectionOnlyLoad"/>.
         /// </summary>
-        internal static Assembly LoadAsAssembly(ImmutableArray<byte> rawAssembly, bool reflectionOnly = false)
+        internal static Assembly LoadAsAssembly(string moduleName, ImmutableArray<byte> rawAssembly, bool reflectionOnly = false)
         {
             Debug.Assert(!rawAssembly.IsDefault);
 
             byte[] bytes = rawAssembly.ToArray();
 
-            if (reflectionOnly)
+            try
             {
-                return System.Reflection.Assembly.ReflectionOnlyLoad(bytes);
+                if (reflectionOnly)
+                {
+                    return Assembly.ReflectionOnlyLoad(bytes);
+                }
+                else
+                {
+                    return Assembly.Load(bytes);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return System.Reflection.Assembly.Load(bytes);
+                throw new Exception($"Exception loading {moduleName} reflectionOnly:{reflectionOnly}", ex);
             }
         }
 
@@ -328,18 +350,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return assembly.LoadModule(args.Name, rawModule.ToArray());
         }
 
-        internal SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
+        internal SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName, IEnumerable<ModuleDataId> searchModules)
         {
-            var signatures = new SortedSet<string>();
-            foreach (var module in _fullNameToAssemblyDataMap) // Check inside each assembly in the compilation
+            try
             {
-                foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(GetAssembly(module.Key, true),
-                                                                                      fullyQualifiedTypeName, memberName))
+                var signatures = new SortedSet<string>();
+                foreach (var id in searchModules) // Check inside each assembly in the compilation
                 {
-                    signatures.Add(signature);
+                    var assembly = GetAssembly(id.FullName, reflectionOnly: true);
+                    foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(assembly, fullyQualifiedTypeName, memberName))
+                    {
+                        signatures.Add(signature);
+                    }
                 }
+                return signatures;
             }
-            return signatures;
+            catch (Exception ex)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine($"Error getting signatures {fullyQualifiedTypeName}.{memberName}");
+                builder.AppendLine($"Assemblies");
+                foreach (var module in _fullNameToAssemblyDataMap.Values)
+                {
+                    builder.AppendLine($"\t{module.Id.SimpleName} {module.Id.Mvid} - {module.Kind} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: false) != null} {_assemblyCache.GetOrDefault(module.Id, reflectionOnly: true) != null}");
+                }
+
+                throw new Exception(builder.ToString(), ex);
+            }
         }
 
         internal SortedSet<string> GetFullyQualifiedTypeNames(string assemblyName)
@@ -354,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public int Execute(string moduleName, int expectedOutputLength, out string output)
         {
             ImmutableArray<byte> bytes = GetModuleBytesByName(moduleName);
-            Assembly assembly = LoadAsAssembly(bytes);
+            Assembly assembly = LoadAsAssembly(moduleName, bytes);
             MethodInfo entryPoint = assembly.EntryPoint;
             Debug.Assert(entryPoint != null, "Attempting to execute an assembly that has no entrypoint; is your test trying to execute a DLL?");
 

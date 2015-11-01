@@ -20,6 +20,41 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class HostedRuntimeEnvironment : IDisposable
     {
+        private sealed class RuntimeData : IDisposable
+        {
+            internal RuntimeAssemblyManager Manager { get; }
+            internal AppDomain AppDomain { get; }
+            internal bool PeverifyRequested { get; set; }
+            internal bool ExecuteRequested { get; set; }
+            internal bool Disposed { get; set; }
+            internal int ConflictCount { get; set; }
+
+            internal RuntimeData(RuntimeAssemblyManager manager, AppDomain appDomain)
+            {
+                Manager = manager;
+                AppDomain = appDomain;
+            }
+
+            public void Dispose()
+            {
+                if (Disposed)
+                {
+                    return;
+                }
+
+                Manager.Dispose();
+
+                // A workaround for known bug DevDiv 369979 - don't unload the AppDomain if we may have loaded a module
+                var safeToUnload = !(Manager.ContainsNetModules() && (PeverifyRequested || ExecuteRequested));
+                if (safeToUnload && AppDomain != null)
+                {
+                    AppDomain.Unload(AppDomain);
+                }
+
+                Disposed = true;
+            }
+        }
+
         private struct EmitOutput
         {
             internal ImmutableArray<byte> Assembly { get; }
@@ -34,10 +69,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private sealed class EmitData
         {
-            internal RuntimeAssemblyManager AssemblyManager;
+            internal RuntimeData RuntimeData;
 
-            // Holds the created AppDomain, if one was created,
-            internal AppDomain AppDomain;
+            internal RuntimeAssemblyManager Manager => RuntimeData?.Manager;
 
             // All of the <see cref="ModuleData"/> created for this Emit
             internal List<ModuleData> AllModuleData;
@@ -54,19 +88,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        /// <summary>
+        /// Profiling demonstrates the creation of AppDomains take up a significant amount of time in the 
+        /// test run time.  Hence we re-use them so long as there are no conflicts with the existing loaded
+        /// modules.
+        /// </summary>
+        private static readonly List<RuntimeData> s_runtimeDataCache = new List<RuntimeData>();
+        private const int MaxCachedRuntimeData = 5;
+
         private EmitData _emitData;
         private bool _disposed;
         private readonly CompilationTestData _testData = new CompilationTestData();
         private readonly IEnumerable<ModuleData> _additionalDependencies;
-        private bool _executeRequested;
-        private bool _peVerifyRequested;
 
         public HostedRuntimeEnvironment(IEnumerable<ModuleData> additionalDependencies = null)
         {
             _additionalDependencies = additionalDependencies;
         }
 
-        private void CreateAssemblyManager(EmitData emitData, IEnumerable<ModuleData> compilationDependencies, ModuleDataId mainModuleId)
+        private RuntimeData CreateAndInitializeRuntimeData(IEnumerable<ModuleData> compilationDependencies, ModuleDataId mainModuleId)
         {
             var allModules = compilationDependencies;
             if (_additionalDependencies != null)
@@ -76,41 +116,89 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             allModules = allModules.ToArray();
 
-            if (!MonoHelpers.IsRunningOnMono())
-            {
-                var appDomainProxyType = typeof(RuntimeAssemblyManager);
-                var thisAssembly = appDomainProxyType.Assembly;
-
-                AppDomain appDomain = null;
-                RuntimeAssemblyManager manager;
-                try
-                {
-                    appDomain = AppDomainUtils.Create("HostedRuntimeEnvironment");
-                    manager = (RuntimeAssemblyManager)appDomain.CreateInstanceAndUnwrap(thisAssembly.FullName, appDomainProxyType.FullName);
-                }
-                catch
-                {
-                    if (appDomain != null)
-                    {
-                        AppDomain.Unload(appDomain);
-                    }
-                    throw;
-                }
-
-                emitData.AppDomain = appDomain;
-                emitData.AssemblyManager = manager;
-            }
-            else
-            {
-                emitData.AssemblyManager = new RuntimeAssemblyManager();
-            }
+            var runtimeData = GetOrCreateRuntimeData(compilationDependencies);
 
             // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only 
             // add in the delta values to reduce serialization overhead going across AppDomains.
-            var missingList = emitData.AssemblyManager.GetMissing(allModules.Select(x => x.Id).ToList());
+            var manager = runtimeData.Manager;
+            var missingList = manager.GetMissing(allModules.Select(x => x.Id).ToList());
             var deltaList = allModules.Where(x => missingList.Contains(x.Id)).ToList();
-            emitData.AssemblyManager.AddModuleData(deltaList);
-            emitData.AssemblyManager.AddMainModuleMvid(mainModuleId.Mvid);
+            manager.AddModuleData(deltaList);
+            manager.AddMainModuleMvid(mainModuleId.Mvid);
+
+            return runtimeData;
+        }
+
+        private static RuntimeData GetOrCreateRuntimeData(IEnumerable<ModuleData> modules)
+        {
+            // Mono doesn't support AppDomains to the degree we use them for our tests and as a result many of 
+            // the checks are disabled.  Create an instance in this domain since it's not actually used.
+            if (MonoHelpers.IsRunningOnMono())
+            {
+                return new RuntimeData(new RuntimeAssemblyManager(), null);
+            }
+
+            var data = TryGetCachedRuntimeData(modules);
+            if (data != null)
+            {
+                return data;
+            }
+
+            return CreateRuntimeData();
+        }
+
+        private static RuntimeData TryGetCachedRuntimeData(IEnumerable<ModuleData> modules)
+        {
+            lock (s_runtimeDataCache)
+            {
+                var i = 0;
+                while (i < s_runtimeDataCache.Count)
+                {
+                    var data = s_runtimeDataCache[i];
+                    var manager = data.Manager;
+                    if (!manager.HasConflicts(modules.Select(x => x.Id).ToList()))
+                    {
+                        s_runtimeDataCache.RemoveAt(i);
+                        return data;
+                    }
+
+                    data.ConflictCount++;
+                    if (data.ConflictCount > 5)
+                    {
+                        // Once a RuntimeAssemblyManager is proven to have conflicts it's likely subsequent runs
+                        // will also have conflicts.  Take it out of the cache. 
+                        data.Dispose();
+                        s_runtimeDataCache.RemoveAt(i);
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static RuntimeData CreateRuntimeData()
+        {
+            AppDomain appDomain = null;
+            try
+            {
+                var appDomainProxyType = typeof(RuntimeAssemblyManager);
+                var thisAssembly = appDomainProxyType.Assembly;
+                appDomain = AppDomainUtils.Create("HostedRuntimeEnvironment");
+                var manager = (RuntimeAssemblyManager)appDomain.CreateInstanceAndUnwrap(thisAssembly.FullName, appDomainProxyType.FullName);
+                return new RuntimeData(manager, appDomain);
+            }
+            catch
+            {
+                if (appDomain != null)
+                {
+                    AppDomain.Unload(appDomain);
+                }
+                throw;
+            }
         }
 
         /// <summary>
@@ -338,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 // If an assembly is loaded directly via PEVerify(image) another assembly of the same full name
                 // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
                 _emitData.AllModuleData.Insert(0, _emitData.MainModule);
-                CreateAssemblyManager(_emitData, dependencies, _emitData.MainModule.Id);
+                _emitData.RuntimeData = CreateAndInitializeRuntimeData(dependencies, _emitData.MainModule.Id);
             }
             else
             {
@@ -353,21 +441,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public int Execute(string moduleName, int expectedOutputLength, out string processOutput)
         {
-            _executeRequested = true;
-
             try
             {
-                return GetEmitData().AssemblyManager.Execute(moduleName, expectedOutputLength, out processOutput);
+                var emitData = GetEmitData();
+                emitData.RuntimeData.ExecuteRequested = true;
+                return emitData.Manager.Execute(moduleName, expectedOutputLength, out processOutput);
             }
             catch (TargetInvocationException tie)
             {
-                if (_emitData?.AssemblyManager == null)
+                if (_emitData.Manager == null)
                 {
                     throw;
                 }
 
                 string dumpDir;
-                _emitData.AssemblyManager.DumpAssemblyData(out dumpDir);
+                _emitData.Manager.DumpAssemblyData(out dumpDir);
                 throw new ExecutionException(tie.InnerException, dumpDir);
             }
         }
@@ -380,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (expectedOutput.Trim() != actualOutput.Trim())
             {
                 string dumpDir;
-                GetEmitData().AssemblyManager.DumpAssemblyData(out dumpDir);
+                GetEmitData().Manager.DumpAssemblyData(out dumpDir);
                 throw new ExecutionException(expectedOutput, actualOutput, dumpDir);
             }
 
@@ -419,35 +507,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void PeVerify()
         {
-            _peVerifyRequested = true;
             var emitData = GetEmitData();
-            emitData.AssemblyManager.PeVerifyModules(new[] { emitData.MainModule.FullName });
+            emitData.RuntimeData.PeverifyRequested = true;
+            emitData.Manager.PeVerifyModules(new[] { emitData.MainModule.FullName });
         }
 
         internal string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
         {
-            _peVerifyRequested = true;
             var emitData = GetEmitData();
-            return emitData.AssemblyManager.PeVerifyModules(modulesToVerify, throwOnError);
+            emitData.RuntimeData.PeverifyRequested = true;
+            return emitData.Manager.PeVerifyModules(modulesToVerify, throwOnError);
         }
 
         internal SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
         {
-            return GetEmitData().AssemblyManager.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
-        }
-
-        // A workaround for known bug DevDiv 369979 - don't unload the AppDomain if we may have loaded a module
-        private bool IsSafeToUnloadDomain
-        {
-            get
-            {
-                if (_emitData?.AssemblyManager == null)
-                {
-                    return true;
-                }
-
-                return !(_emitData.AssemblyManager.ContainsNetModules() && (_peVerifyRequested || _executeRequested));
-            }
+            var emitData = GetEmitData();
+            var searchIds = emitData.AllModuleData.Select(x => x.Id).ToList();
+            return GetEmitData().Manager.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName, searchIds);
         }
 
         void IDisposable.Dispose()
@@ -459,11 +535,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (_emitData != null)
             {
-                _emitData.AssemblyManager?.Dispose();
-
-                if (_emitData.AppDomain != null && IsSafeToUnloadDomain)
+                lock (s_runtimeDataCache)
                 {
-                    AppDomain.Unload(_emitData.AppDomain);
+                    if (_emitData.RuntimeData != null && s_runtimeDataCache.Count < MaxCachedRuntimeData)
+                    {
+                        s_runtimeDataCache.Add(_emitData.RuntimeData);
+                        _emitData.RuntimeData = null;
+                    }
+                }
+
+                if (_emitData.RuntimeData != null)
+                {
+                    _emitData.RuntimeData.Dispose();
                 }
 
                 _emitData = null;
