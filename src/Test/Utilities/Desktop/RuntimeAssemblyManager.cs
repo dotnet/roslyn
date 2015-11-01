@@ -296,6 +296,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 case Kind.Assembly:
                     assembly = data.Assembly;
+                    if (reflectionOnly && !assembly.ReflectionOnly)
+                    {
+                        assembly = Assembly.ReflectionOnlyLoad(assembly.FullName);
+                    }
                     break;
                 case Kind.ModuleData:
                     assembly = _assemblyCache.GetOrLoad(data.ModuleData, reflectionOnly);
