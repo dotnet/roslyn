@@ -20,11 +20,37 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     internal sealed class RuntimeAssemblyManager : MarshalByRefObject, IDisposable
     {
+        private enum Kind
+        {
+            ModuleData,
+            Assembly
+        }
+
+        private struct AssemblyData
+        {
+            internal ModuleData ModuleData { get; }
+            internal Assembly Assembly { get; }
+            internal Kind Kind => Assembly != null ? Kind.Assembly : Kind.ModuleData;
+            internal ModuleDataId Id => Assembly != null ? new ModuleDataId(Assembly) : ModuleData.Id;
+
+            internal AssemblyData(ModuleData moduleData)
+            {
+                ModuleData = moduleData;
+                Assembly = null;
+            }
+
+            internal AssemblyData(Assembly assembly)
+            {
+                ModuleData = default(ModuleData);
+                Assembly = assembly;
+            }
+        }
+
         private static int s_dumpCount;
 
         private readonly AppDomainAssemblyCache _assemblyCache = AppDomainAssemblyCache.GetOrCreate();
-        private readonly Dictionary<string, ModuleData> _fullNameToModuleDataMap;
-        private readonly Dictionary<Guid, ModuleData> _mvidToModuleDataMap;
+        private readonly Dictionary<string, AssemblyData> _fullNameToAssemblyDataMap;
+        private readonly Dictionary<Guid, AssemblyData> _mvidToAssemblyDataMap;
         private readonly List<Guid> _mainMvids;
 
         // Assemblies loaded by this manager.
@@ -43,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public RuntimeAssemblyManager()
         {
-            _fullNameToModuleDataMap = new Dictionary<string, ModuleData>(StringComparer.OrdinalIgnoreCase);
-            _mvidToModuleDataMap = new Dictionary<Guid, ModuleData>();
+            _fullNameToAssemblyDataMap = new Dictionary<string, AssemblyData>(StringComparer.OrdinalIgnoreCase);
+            _mvidToAssemblyDataMap = new Dictionary<Guid, AssemblyData>();
             _loadedAssemblies = new HashSet<Assembly>();
             _mainMvids = new List<Guid>();
 
@@ -56,8 +82,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _preloadedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var assembly in currentDomain.GetAssemblies())
             {
-                var id = new ModuleDataId(assembly);
-                _preloadedSet.Add(id.SimpleName);
+                var assemblyData = new AssemblyData(assembly);
+                _preloadedSet.Add(assemblyData.Id.SimpleName);
+                AddAssemblyData(assemblyData);
             }
         }
 
@@ -81,8 +108,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             //a RuntimeAssemblyManager, but according to heap dumps, it does. Even though the appdomain is not
             //unloaded, its RuntimeAssemblyManager is explicitly disposed. So make sure that it cleans up this
             //memory hog - the modules dictionary.
-            _fullNameToModuleDataMap.Clear();
-            _mvidToModuleDataMap.Clear();
+            _fullNameToAssemblyDataMap.Clear();
+            _mvidToAssemblyDataMap.Clear();
         }
 
         /// <summary>
@@ -90,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public void AddMainModuleMvid(Guid mvid)
         {
-            if (!_mvidToModuleDataMap.ContainsKey(mvid))
+            if (!_mvidToAssemblyDataMap.ContainsKey(mvid))
             {
                 throw new Exception($"No module with {mvid} loaded");
             }
@@ -126,13 +153,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             foreach (var module in modules)
             {
                 // If the module is already added then nothing else to do
-                ModuleData other;
+                AssemblyData assemblyData;
                 bool fullMatch;
-                if (TryGetMatchingByFullName(module.Id, out other, out fullMatch))
+                if (TryGetMatchingByFullName(module.Id, out assemblyData, out fullMatch))
                 {
                     if (!fullMatch)
                     {
-                        throw new Exception($"Two modules of name {other.FullName} have different MVID");
+                        throw new Exception($"Two modules of name {assemblyData.Id.FullName} have different MVID");
                     }
                 }
                 else
@@ -142,10 +169,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         _containsNetModules = true;
                     }
 
-                    _fullNameToModuleDataMap.Add(module.FullName, module);
-                    _mvidToModuleDataMap.Add(module.Mvid, module);
+                    AddAssemblyData(new AssemblyData(module));
                 }
             }
+        }
+
+        private void AddAssemblyData(AssemblyData assemblyData)
+        {
+            _fullNameToAssemblyDataMap.Add(assemblyData.Id.FullName, assemblyData);
+            _mvidToAssemblyDataMap.Add(assemblyData.Id.Mvid, assemblyData);
         }
 
         /// <summary>
@@ -156,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var list = new List<ModuleDataId>();
             foreach (var id in moduleIds)
             {
-                ModuleData other;
+                AssemblyData other;
                 bool fullMatch;
                 if (!TryGetMatchingByFullName(id, out other, out fullMatch) || !fullMatch)
                 {
@@ -167,28 +199,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return list;
         }
 
-        private bool TryGetMatchingByFullName(ModuleDataId id, out ModuleData moduleData, out bool fullMatch)
+        private bool TryGetMatchingByFullName(ModuleDataId id, out AssemblyData assemblyData, out bool fullMatch)
         {
-            if (_fullNameToModuleDataMap.TryGetValue(id.FullName, out moduleData))
+            if (_fullNameToAssemblyDataMap.TryGetValue(id.FullName, out assemblyData))
             {
-                fullMatch = _preloadedSet.Contains(id.SimpleName) || id.Mvid == moduleData.Mvid;
+                fullMatch = _preloadedSet.Contains(id.SimpleName) || id.Mvid == assemblyData.Id.Mvid;
                 return true;
             }
 
-            moduleData = null;
+            assemblyData = default(AssemblyData);
             fullMatch = false;
             return false;
         }
 
         private ImmutableArray<byte> GetModuleBytesByName(string moduleName)
         {
-            ModuleData data;
-            if (!_fullNameToModuleDataMap.TryGetValue(moduleName, out data))
+            AssemblyData data;
+            if (!_fullNameToAssemblyDataMap.TryGetValue(moduleName, out data))
             {
                 throw new KeyNotFoundException(String.Format("Could not find image for module '{0}'.", moduleName));
             }
 
-            return data.Image;
+            if (data.Kind != Kind.ModuleData)
+            {
+                throw new Exception($"Cannot get bytes for preloaded Assembly {data.Id.FullName}");
+            }
+
+            return data.ModuleData.Image;
         }
 
         private void AssemblyLoad(object sender, AssemblyLoadEventArgs args)
@@ -248,13 +285,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal Assembly GetAssembly(string fullName, bool reflectionOnly)
         {
-            ModuleData data;
-            if (!_fullNameToModuleDataMap.TryGetValue(fullName, out data))
+            AssemblyData data;
+            if (!_fullNameToAssemblyDataMap.TryGetValue(fullName, out data))
             {
                 return null;
             }
 
-            var assembly = _assemblyCache.GetOrLoad(data, reflectionOnly);
+            Assembly assembly;
+            switch (data.Kind)
+            {
+                case Kind.Assembly:
+                    assembly = data.Assembly;
+                    break;
+                case Kind.ModuleData:
+                    assembly = _assemblyCache.GetOrLoad(data.ModuleData, reflectionOnly);
+                    break;
+                default:
+                    throw new InvalidOperationException();
+            }
+
             if (!MonoHelpers.IsRunningOnMono())
             {
                 assembly.ModuleResolve += ModuleResolve;
@@ -278,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
         {
             var signatures = new SortedSet<string>();
-            foreach (var module in _fullNameToModuleDataMap) // Check inside each assembly in the compilation
+            foreach (var module in _fullNameToAssemblyDataMap) // Check inside each assembly in the compilation
             {
                 foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(GetAssembly(module.Key, true),
                                                                                       fullyQualifiedTypeName, memberName))
@@ -333,7 +382,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string DumpAssemblyData(out string dumpDirectory)
         {
-            return DumpAssemblyData(_fullNameToModuleDataMap.Values, out dumpDirectory);
+            var modules = _fullNameToAssemblyDataMap.Values.Where(x => x.Kind == Kind.ModuleData).Select(x => x.ModuleData);
+            return DumpAssemblyData(modules, out dumpDirectory);
         }
 
         public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)

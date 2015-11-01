@@ -66,20 +66,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _additionalDependencies = additionalDependencies;
         }
 
-        private void CreateAssemblyManager(EmitData emitData, IEnumerable<ModuleData> compilationDependencies, ModuleData mainModule)
+        private void CreateAssemblyManager(EmitData emitData, IEnumerable<ModuleData> compilationDependencies, ModuleDataId mainModuleId)
         {
             var allModules = compilationDependencies;
             if (_additionalDependencies != null)
             {
                 allModules = allModules.Concat(_additionalDependencies);
-            }
-
-            // We need to add the main module so that it gets checked against already loaded assembly names.
-            // If an assembly is loaded directly via PEVerify(image) another assembly of the same full name
-            // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
-            if (mainModule != null)
-            {
-                allModules = allModules.Concat(new[] { mainModule });
             }
 
             allModules = allModules.ToArray();
@@ -113,12 +105,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 emitData.AssemblyManager = new RuntimeAssemblyManager();
             }
 
-            emitData.AssemblyManager.AddModuleData(allModules);
-
-            if (mainModule != null)
-            {
-                emitData.AssemblyManager.AddMainModuleMvid(mainModule.Mvid);
-            }
+            // Many prominent assemblys like mscorlib are already in the RuntimeAssemblyManager.  Only 
+            // add in the delta values to reduce serialization overhead going across AppDomains.
+            var missingList = emitData.AssemblyManager.GetMissing(allModules.Select(x => x.Id).ToList());
+            var deltaList = allModules.Where(x => missingList.Contains(x.Id)).ToList();
+            emitData.AssemblyManager.AddModuleData(deltaList);
+            emitData.AssemblyManager.AddMainModuleMvid(mainModuleId.Mvid);
         }
 
         /// <summary>
@@ -341,8 +333,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     inMemoryModule: true);
                 _emitData.MainModulePdb = mainPdb;
                 _emitData.AllModuleData = dependencies;
+
+                // We need to add the main module so that it gets checked against already loaded assembly names.
+                // If an assembly is loaded directly via PEVerify(image) another assembly of the same full name
+                // can't be loaded as a dependency (via Assembly.ReflectionOnlyLoad) in the same domain.
                 _emitData.AllModuleData.Insert(0, _emitData.MainModule);
-                CreateAssemblyManager(_emitData, dependencies, _emitData.MainModule);
+                CreateAssemblyManager(_emitData, dependencies, _emitData.MainModule.Id);
             }
             else
             {
@@ -463,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (_emitData != null)
             {
-                _emitData?.AssemblyManager.Dispose();
+                _emitData.AssemblyManager?.Dispose();
 
                 if (_emitData.AppDomain != null && IsSafeToUnloadDomain)
                 {
