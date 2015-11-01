@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly BoundStatement Body;
             public readonly ImportChain ImportChainOpt;
 
-            internal MethodWithBody(MethodSymbol method, BoundStatement body, ImportChain importChainOpt)
+            internal MethodWithBody( MethodSymbol method, BoundStatement body, ImportChain importChainOpt )
             {
                 Debug.Assert(method != null);
                 Debug.Assert(body != null);
@@ -66,6 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly CSharpCompilation Compilation;
 
         public LambdaFrame StaticLambdaFrame;
+
+        /// <summary>
+        /// Container for all <see cref="MethodGroupConversionCacheTargetFrame"/>s produced by <see cref="MethodGroupConversionRewriter"/>.
+        /// </summary>
+        public Dictionary<KeyValuePair<NamedTypeSymbol, MethodSymbol>, MethodGroupConversionCacheTargetFrame> MethodGroupConversionCacheTargetFrames;
 
         /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.
@@ -178,6 +184,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _synthesizedMethods.Free();
                 _synthesizedMethods = null;
+            }
+
+            if (MethodGroupConversionCacheTargetFrames != null)
+            {
+                foreach (var frame in MethodGroupConversionCacheTargetFrames.Values)
+                {
+                    frame.Free();
+                }
             }
 
             _wrappers = null;

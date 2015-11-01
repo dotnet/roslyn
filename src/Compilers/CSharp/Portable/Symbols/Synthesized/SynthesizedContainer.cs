@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A container synthesized for a lambda, iterator method, async method, or dynamic-sites.
+    /// A container synthesized for a lambda, iterator method, async method, dynamic-sites, or method group conversion cache sites.
     /// </summary>
     internal abstract class SynthesizedContainer : NamedTypeSymbol
     {

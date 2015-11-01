@@ -35,6 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AsyncBuilderField = 't',
         DynamicCallSiteContainerType = 'o',
         DynamicCallSiteField = 'p',
+        MethodGroupConversionCacheTargetFrame = 'q',
+        MethodGroupConversionCacheDelegateFrame = 'r',
+        MethodGroupConversionCacheDelegateField = 's',
     }
 
     internal static class GeneratedNameKindExtensions
@@ -46,6 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case GeneratedNameKind.LambdaDisplayClass:
                 case GeneratedNameKind.StateMachineType:
                 case GeneratedNameKind.DynamicCallSiteContainerType:
+                case GeneratedNameKind.MethodGroupConversionCacheTargetFrame:
+                case GeneratedNameKind.MethodGroupConversionCacheDelegateFrame:
                     return true;
 
                 default:

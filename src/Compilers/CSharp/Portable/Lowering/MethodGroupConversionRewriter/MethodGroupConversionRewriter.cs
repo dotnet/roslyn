@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -23,7 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             CurrentMethod = currentMethod;
             CompilationState = compilationState;
             Diagnostics = diagnostics;
+
             F = new SyntheticBoundNodeFactory(currentMethod, (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics);
+
+            if (CompilationState.MethodGroupConversionCacheTargetFrames == null)
+            {
+                compilationState.MethodGroupConversionCacheTargetFrames = new Dictionary<KeyValuePair<NamedTypeSymbol, MethodSymbol>, MethodGroupConversionCacheTargetFrame>();
+            }
         }
 
         public static BoundStatement Rewrite(
@@ -76,11 +83,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(targetMethod != null);
             Debug.Assert(currentModule != null);
+            Debug.Assert(conversion.Type is NamedTypeSymbol);
 
             F.Syntax = conversion.Syntax;
             try
             {
-                BoundFieldAccess boundDelegateField = GetBoundDelegateField(F, targetMethod, conversion);
+                var boundDelegateField = GetBoundDelegateField(F, targetMethod, conversion);
 
                 var boundDelegateCreation = new BoundDelegateCreationExpression(
                     conversion.Syntax,
@@ -96,44 +104,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember e)
             {
+                Diagnostics.Add(e.Diagnostic);
                 return new BoundBadExpression(F.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(conversion), conversion.Type);
             }
         }
 
         private BoundFieldAccess GetBoundDelegateField(SyntheticBoundNodeFactory F, MethodSymbol targetMethod, BoundConversion conversion)
         {
-            var frameContainer = CompilationState.Compilation.Assembly;
-            var typeArguments = GetTypeArgumentsForFrame(targetMethod);
-            var frameSymbol = MethodGroupConversionCacheFrame.Create(frameContainer, typeArguments.Length, conversion.Type, targetMethod);
+            var typeArguments = MethodGroupConversionCacheTargetFrame.GetTypeArgumentsFromTarget(targetMethod);
 
-            frameSymbol.Sythesize(CompilationState);
-
-            var constructedFrameSymbol = typeArguments.Length == 0 ? frameSymbol : frameSymbol.Construct(typeArguments);
-            return F.Field(null, frameSymbol.FieldForCachedDelegate.AsMember(constructedFrameSymbol));
-        }
-
-        private ImmutableArray<TypeSymbol> GetTypeArgumentsForFrame(MethodSymbol targetMethod)
-        {
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
-
-            if (targetMethod.Arity > 0)
+            MethodGroupConversionCacheTargetFrame targetFrame;
+            var keyForTargetFrame = new KeyValuePair<NamedTypeSymbol, MethodSymbol>(CurrentMethod.ContainingType, targetMethod.OriginalDefinition);
+            if (!CompilationState.MethodGroupConversionCacheTargetFrames.TryGetValue(keyForTargetFrame, out targetFrame))
             {
-                var constructed = (ConstructedMethodSymbol)targetMethod;
-                typeArgumentsBuilder.AddRange(constructed.TypeArguments);
+                targetFrame = MethodGroupConversionCacheTargetFrame.Create(CurrentMethod.ContainingType, targetMethod, typeArguments.Length);
+                CompilationState.MethodGroupConversionCacheTargetFrames.Add(keyForTargetFrame, targetFrame);
             }
 
-            var containingType = targetMethod.ContainingType;
-            while (containingType != null)
-            {
-                if (containingType.Arity > 0)
-                {
-                    typeArgumentsBuilder.AddRange(containingType.TypeArguments);
-                }
+            var delegateType = (NamedTypeSymbol)conversion.Type;
+            var delegateFrame = targetFrame.GetOrAddDelegateFrame(delegateType);
+            var delegateField = delegateFrame.DelegateField;
 
-                containingType = containingType.ContainingType;
-            }
-
-            return typeArgumentsBuilder.ToImmutableAndFree();
+            var constructedTargetFrame = typeArguments.Length == 0 ? targetFrame : targetFrame.Construct(typeArguments);
+            var constructedDelegateFrame = delegateType.Arity == 0 ? delegateFrame : delegateFrame.AsMember(constructedTargetFrame).Construct(delegateType.TypeArguments);
+            return F.Field(null, delegateField.AsMember(constructedDelegateFrame));
         }
     }
 }
