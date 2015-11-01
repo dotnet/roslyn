@@ -25,21 +25,41 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static readonly string NETMODULE = ".netmodule";
     }
 
+    [Serializable]
+    public sealed class ModuleDataId
+    {
+        // Simple assembly name  ("foo") or module name ("bar.netmodule").
+        public string FullName { get; }
+        public Guid Mvid { get; }
+
+        public ModuleDataId(string fullName, Guid mvid)
+        {
+            FullName = fullName;
+            Mvid = mvid;
+        }
+
+        public override string ToString()
+        {
+            return $"{FullName} - {Mvid}";
+        }
+    }
+
     [Serializable, DebuggerDisplay("{GetDebuggerDisplay()}")]
     public sealed class ModuleData : ISerializable
     {
-        // Simple assembly name  ("foo") or module name ("bar.netmodule").
-        public readonly string FullName;
+        public readonly ModuleDataId Id;
 
         public readonly OutputKind Kind;
         public readonly ImmutableArray<byte> Image;
         public readonly ImmutableArray<byte> Pdb;
         public readonly bool InMemoryModule;
-        private Guid? _mvid;
+
+        public string FullName => Id.FullName;
+        public Guid Mvid => Id.Mvid;
 
         public ModuleData(string netModuleName, ImmutableArray<byte> image, ImmutableArray<byte> pdb, bool inMemoryModule)
         {
-            this.FullName = netModuleName;
+            this.Id = new ModuleDataId(netModuleName, GetMvid(image));
             this.Kind = OutputKind.NetModule;
             this.Image = image;
             this.Pdb = pdb;
@@ -48,26 +68,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public ModuleData(AssemblyIdentity identity, OutputKind kind, ImmutableArray<byte> image, ImmutableArray<byte> pdb, bool inMemoryModule)
         {
-            this.FullName = identity.GetDisplayName();
+            this.Id = new ModuleDataId(identity.GetDisplayName(), GetMvid(image));
             this.Kind = kind;
             this.Image = image;
             this.Pdb = pdb;
             this.InMemoryModule = inMemoryModule;
         }
 
-        public Guid Mvid
+        private static Guid GetMvid(ImmutableArray<byte> image)
         {
-            get
+            using (var metadata = ModuleMetadata.CreateFromImage(image))
             {
-                if (_mvid == null)
-                {
-                    using (var metadata = ModuleMetadata.CreateFromImage(Image))
-                    {
-                        _mvid = metadata.GetModuleVersionId();
-                    }
-                }
-
-                return _mvid.Value;
+                return metadata.GetModuleVersionId();
             }
         }
 
@@ -78,44 +90,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            //public readonly string FullName;
-            info.AddValue("FullName", this.FullName);
-
-            //public readonly OutputKind Kind;
-            info.AddValue("kind", (int)this.Kind);
-
-            //public readonly ImmutableArray<byte> Image;
-            info.AddByteArray("Image", this.Image);
-
-            //public readonly ImmutableArray<byte> PDB;
-            info.AddByteArray("PDB", this.Pdb);
-
-            //public readonly bool InMemoryModule;
-            info.AddValue("InMemoryModule", this.InMemoryModule);
-
-            //private Guid? mvid;
-            info.AddValue("mvid", _mvid, typeof(Guid?));
+            info.AddValue(nameof(Id), this.Id);
+            info.AddValue(nameof(Kind), (int)this.Kind);
+            info.AddByteArray(nameof(Image), this.Image);
+            info.AddByteArray(nameof(Pdb), this.Pdb);
+            info.AddValue(nameof(InMemoryModule), this.InMemoryModule);
         }
 
         private ModuleData(SerializationInfo info, StreamingContext context)
         {
-            //public readonly string FullName;
-            this.FullName = info.GetString("FullName");
-
-            //public readonly OutputKind Kind;
-            this.Kind = (OutputKind)info.GetInt32("kind");
-
-            //public readonly ImmutableArray<byte> Image;
-            this.Image = info.GetByteArray("Image");
-
-            //public readonly ImmutableArray<byte> PDB;
-            this.Pdb = info.GetByteArray("PDB");
-
-            //public readonly bool InMemoryModule;
-            this.InMemoryModule = info.GetBoolean("InMemoryModule");
-
-            //private Guid? mvid;
-            _mvid = (Guid?)info.GetValue("mvid", typeof(Guid?));
+            this.Id = (ModuleDataId)info.GetValue(nameof(Id), typeof(ModuleDataId));
+            this.Kind = (OutputKind)info.GetInt32(nameof(Kind));
+            this.Image = info.GetByteArray(nameof(Image));
+            this.Pdb = info.GetByteArray(nameof(Pdb));
+            this.InMemoryModule = info.GetBoolean(nameof(InMemoryModule));
         }
     }
 }

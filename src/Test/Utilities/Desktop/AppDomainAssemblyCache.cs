@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static AppDomainAssemblyCache s_singleton;
         private static readonly object s_guard = new object();
 
-        // Per-domain cache, contains all assemblies loaded to this app domain since the first manager was created.
         // The key is the manifest module MVID, which is unique for each distinct assembly. 
         private readonly Dictionary<Guid, Assembly> _assemblyCache = new Dictionary<Guid, Assembly>();
         private readonly Dictionary<Guid, Assembly> _reflectionOnlyAssemblyCache = new Dictionary<Guid, Assembly>();
@@ -35,6 +34,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return s_singleton;
+            }
+        }
+
+        private AppDomainAssemblyCache()
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var cache = assembly.ReflectionOnly ? _assemblyCache : _reflectionOnlyAssemblyCache;
+                cache.Add(assembly.ManifestModule.ModuleVersionId, assembly);
             }
         }
 

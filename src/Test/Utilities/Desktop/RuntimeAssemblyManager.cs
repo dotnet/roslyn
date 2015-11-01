@@ -67,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _modules.Clear();
         }
 
-
         /// <summary>
         /// Adds given MVID into a list of module MVIDs that are considered owned by this manager.
         /// </summary>
