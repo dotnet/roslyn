@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly BoundStatement Body;
             public readonly ImportChain ImportChainOpt;
 
-            internal MethodWithBody( MethodSymbol method, BoundStatement body, ImportChain importChainOpt )
+            internal MethodWithBody(MethodSymbol method, BoundStatement body, ImportChain importChainOpt)
             {
                 Debug.Assert(method != null);
                 Debug.Assert(body != null);

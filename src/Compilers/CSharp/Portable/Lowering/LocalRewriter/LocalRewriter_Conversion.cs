@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.MethodGroup:
 
-                    if (MethodGroupConversionRewriter.IsConversionRewritable(oldNode, rewrittenOperand))
+                    if (MethodGroupConversionRewriter.IsInterestedConversion(oldNode, rewrittenOperand, _inExpressionLambda))
                     {
                         _sawRewritableMethodGroupConversion = true;
                     }

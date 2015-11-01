@@ -51,9 +51,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (BoundStatement)rewriter.Visit(loweredBody);
         }
 
-        internal static bool IsConversionRewritable(BoundConversion conversion, BoundExpression operand)
+        /// <remarks>
+        /// This method is also used by <see cref="LocalRewriter.VisitConversion(BoundConversion)"/> to discover interested conversions.
+        /// <see cref="LocalRewriter"/> steps inside expression lambdas, while this don't.
+        /// </remarks>
+        internal static bool IsInterestedConversion(BoundConversion conversion, BoundExpression operand, bool isInExpressionLambda)
         {
-            // We only target implicit method group conversion
+            // Not interested in expression lambdas
+            if (isInExpressionLambda)
+            {
+                return false;
+            }
+
+            // We only target implicit method group conversions
             if (conversion.ExplicitCastInCode || conversion.ConversionKind != ConversionKind.MethodGroup)
             {
                 return false;
@@ -69,9 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetTargetMethod(BoundConversion conversion)
             => conversion.ExpressionSymbol as MethodSymbol;
 
+        public override BoundNode VisitLambda(BoundLambda node)
+            => node.Type.IsExpressionTree() ? node : base.VisitLambda(node);
+
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            if (IsConversionRewritable(node, node.Operand))
+            if (IsInterestedConversion(node, node.Operand, isInExpressionLambda: false))
             {
                 return RewriteConversion(node);
             }
