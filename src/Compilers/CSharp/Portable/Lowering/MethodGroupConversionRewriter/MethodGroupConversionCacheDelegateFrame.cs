@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static MethodGroupConversionCacheDelegateFrame Create(MethodGroupConversionCacheTargetFrame containerFrame, NamedTypeSymbol delegateType)
         {
-            var frameName = GeneratedNames.MakeMethodGroupConversionCacheDelegateFrameName(delegateType);
+            var frameName = GeneratedNames.MakeMethodGroupConversionCacheDelegateFrameName(delegateType.OriginalDefinition);
             return new MethodGroupConversionCacheDelegateFrame(containerFrame, delegateType.OriginalDefinition, frameName, delegateType.Arity);
         }
 

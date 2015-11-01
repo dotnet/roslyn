@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string MakeMethodGroupConversionCacheTargetFrameName(MethodSymbol targetMethod)
         {
             Debug.Assert((char)GeneratedNameKind.MethodGroupConversionCacheTargetFrame == 'q');
-            return "<" + targetMethod.Name + ">q__MGCCTargetFrame";
+            return "<" + targetMethod.Name + targetMethod.GetHashCode() + ">q__MethodGroupTarget";
         }
 
         internal static string MakeMethodGroupConversionCacheDelegateFrameName(NamedTypeSymbol delegateType)
         {
             Debug.Assert((char)GeneratedNameKind.MethodGroupConversionCacheDelegateFrame == 'r');
-            return "<" + delegateType.Name + ">r__MGCCDelegateFrame";
+            return "<" + delegateType.Name + delegateType.GetHashCode() + ">r__ConversionType";
         }
 
         internal static string MakeMethodGroupConversionCacheDelegateFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.MethodGroupConversionCacheDelegateField == 's');
-            return "<>s__MGCCDelegateField";
+            return "<>s__ConvertedInstance";
         }
 
         internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)
