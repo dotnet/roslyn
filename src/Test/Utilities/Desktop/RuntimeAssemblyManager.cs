@@ -125,10 +125,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             foreach (var module in modules)
             {
+                // If the module is already added then nothing else to do
                 ModuleData other;
-                if (_fullNameToModuleDataMap.TryGetValue(module.FullName, out other))
+                bool fullMatch;
+                if (TryGetMatchingByFullName(module.Id, out other, out fullMatch))
                 {
-                    if (!_preloadedSet.Contains(module.SimpleName) && other.Mvid != module.Mvid)
+                    if (!fullMatch)
                     {
                         throw new Exception($"Two modules of name {other.FullName} have different MVID");
                     }
@@ -144,6 +146,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     _mvidToModuleDataMap.Add(module.Mvid, module);
                 }
             }
+        }
+
+        /// <summary>
+        /// Return the subset of IDs passed in which are not currently tracked by this instance.
+        /// </summary>
+        public List<ModuleDataId> GetMissing(IEnumerable<ModuleDataId> moduleIds)
+        {
+            var list = new List<ModuleDataId>();
+            foreach (var id in moduleIds)
+            {
+                ModuleData other;
+                bool fullMatch;
+                if (!TryGetMatchingByFullName(id, out other, out fullMatch) || !fullMatch)
+                {
+                    list.Add(id);
+                }
+            }
+
+            return list;
+        }
+
+        private bool TryGetMatchingByFullName(ModuleDataId id, out ModuleData moduleData, out bool fullMatch)
+        {
+            if (_fullNameToModuleDataMap.TryGetValue(id.FullName, out moduleData))
+            {
+                fullMatch = _preloadedSet.Contains(id.SimpleName) || id.Mvid == moduleData.Mvid;
+                return true;
+            }
+
+            moduleData = null;
+            fullMatch = false;
+            return false;
         }
 
         private ImmutableArray<byte> GetModuleBytesByName(string moduleName)

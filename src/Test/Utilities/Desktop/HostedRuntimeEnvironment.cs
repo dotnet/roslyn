@@ -333,7 +333,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var mainImage = mainOutput.Value.Assembly;
                 var mainPdb = mainOutput.Value.Pdb;
-                var emitData = new EmitData();
                 _emitData.MainModule = new ModuleData(
                     mainCompilation.Assembly.Identity,
                     mainCompilation.Options.OutputKind,
@@ -342,8 +341,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     inMemoryModule: true);
                 _emitData.MainModulePdb = mainPdb;
                 _emitData.AllModuleData = dependencies;
-                _emitData.AllModuleData.Insert(0, emitData.MainModule);
-                CreateAssemblyManager(_emitData, dependencies, emitData.MainModule);
+                _emitData.AllModuleData.Insert(0, _emitData.MainModule);
+                CreateAssemblyManager(_emitData, dependencies, _emitData.MainModule);
             }
             else
             {
