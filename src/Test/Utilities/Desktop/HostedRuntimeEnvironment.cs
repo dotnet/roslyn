@@ -20,25 +20,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class HostedRuntimeEnvironment : IDisposable
     {
-        private struct EmitData
+        private struct EmitOutput
         {
             internal ImmutableArray<byte> Assembly { get; }
             internal ImmutableArray<byte> Pdb { get; }
 
-            internal EmitData(ImmutableArray<byte> assembly, ImmutableArray<byte> pdb)
+            internal EmitOutput(ImmutableArray<byte> assembly, ImmutableArray<byte> pdb)
             {
                 Assembly = assembly;
                 Pdb = pdb;
             }
         }
 
+        private sealed class EmitData
+        {
+            internal RuntimeAssemblyManager AssemblyManager;
+
+            // Holds the created AppDomain, if one was created,
+            internal AppDomain AppDomain;
+
+            // All of the <see cref="ModuleData"/> created for this Emit
+            internal List<ModuleData> AllModuleData;
+
+            // Main module for this emit
+            internal ModuleData MainModule;
+            internal ImmutableArray<byte> MainModulePdb;
+
+            internal ImmutableArray<Diagnostic> Diagnostics;
+
+            internal EmitData()
+            {
+
+            }
+        }
+
+        private EmitData _emitData;
         private bool _disposed;
-        private AppDomain _domain;
-        private RuntimeAssemblyManager _assemblyManager;
-        private ImmutableArray<Diagnostic> _lazyDiagnostics;
-        private ModuleData _mainModule;
-        private ImmutableArray<byte> _mainModulePdb;
-        private List<ModuleData> _allModuleData;
         private readonly CompilationTestData _testData = new CompilationTestData();
         private readonly IEnumerable<ModuleData> _additionalDependencies;
         private bool _executeRequested;
@@ -49,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _additionalDependencies = additionalDependencies;
         }
 
-        private void CreateAssemblyManager(IEnumerable<ModuleData> compilationDependencies, ModuleData mainModule)
+        private void CreateAssemblyManager(EmitData emitData, IEnumerable<ModuleData> compilationDependencies, ModuleData mainModule)
         {
             var allModules = compilationDependencies;
             if (_additionalDependencies != null)
@@ -88,19 +105,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw;
                 }
 
-                _domain = appDomain;
-                _assemblyManager = manager;
+                emitData.AppDomain = appDomain;
+                emitData.AssemblyManager = manager;
             }
             else
             {
-                _assemblyManager = new RuntimeAssemblyManager();
+                emitData.AssemblyManager = new RuntimeAssemblyManager();
             }
 
-            _assemblyManager.AddModuleData(allModules);
+            emitData.AssemblyManager.AddModuleData(allModules);
 
             if (mainModule != null)
             {
-                _assemblyManager.AddMainModuleMvid(mainModule.Mvid);
+                emitData.AssemblyManager.AddMainModuleMvid(mainModule.Mvid);
             }
         }
 
@@ -183,6 +200,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     ModuleData moduleData;
                     if (isManifestModule)
                     {
+                        fullNameSet.Add(identity.GetDisplayName());
                         moduleData = new ModuleData(identity,
                                                     OutputKind.DynamicallyLinkedLibrary,
                                                     bytes,
@@ -208,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
         }
 
-        private static EmitData? EmitCompilation(
+        private static EmitOutput? EmitCompilation(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
             List<ModuleData> dependencies,
@@ -246,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return EmitCompilationCore(compilation, manifestResources, diagnostics, testData);
         }
 
-        private static EmitData? EmitCompilationCore(
+        private static EmitOutput? EmitCompilationCore(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
             DiagnosticBag diagnostics,
@@ -290,7 +308,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (result.Success)
                 {
-                    return new EmitData(assembly, pdb);
+                    return new EmitOutput(assembly, pdb);
                 }
 
                 return null;
@@ -306,23 +324,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var diagnostics = DiagnosticBag.GetInstance();
             var dependencies = new List<ModuleData>();
-            var mainData = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
+            var mainOutput = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
 
-            _lazyDiagnostics = diagnostics.ToReadOnlyAndFree();
+            _emitData = new EmitData();
+            _emitData.Diagnostics = diagnostics.ToReadOnlyAndFree();
 
-            if (mainData.HasValue)
+            if (mainOutput.HasValue)
             {
-                var mainImage = mainData.Value.Assembly;
-                var mainPdb = mainData.Value.Pdb;
-                _mainModule = new ModuleData(mainCompilation.Assembly.Identity,
-                                                 mainCompilation.Options.OutputKind,
-                                                 mainImage,
-                                                 pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
-                                                 inMemoryModule: true);
-                _mainModulePdb = mainPdb;
-                _allModuleData = dependencies;
-                _allModuleData.Insert(0, _mainModule);
-                CreateAssemblyManager(dependencies, _mainModule);
+                var mainImage = mainOutput.Value.Assembly;
+                var mainPdb = mainOutput.Value.Pdb;
+                var emitData = new EmitData();
+                _emitData.MainModule = new ModuleData(
+                    mainCompilation.Assembly.Identity,
+                    mainCompilation.Options.OutputKind,
+                    mainImage,
+                    pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
+                    inMemoryModule: true);
+                _emitData.MainModulePdb = mainPdb;
+                _emitData.AllModuleData = dependencies;
+                _emitData.AllModuleData.Insert(0, emitData.MainModule);
+                CreateAssemblyManager(_emitData, dependencies, emitData.MainModule);
             }
             else
             {
@@ -331,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.
-                throw new EmitException(_lazyDiagnostics, dumpDir);
+                throw new EmitException(_emitData.Diagnostics, dumpDir);
             }
         }
 
@@ -341,12 +362,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             try
             {
-                return _assemblyManager.Execute(moduleName, expectedOutputLength, out processOutput);
+                return GetEmitData().AssemblyManager.Execute(moduleName, expectedOutputLength, out processOutput);
             }
             catch (TargetInvocationException tie)
             {
+                if (_emitData?.AssemblyManager == null)
+                {
+                    throw;
+                }
+
                 string dumpDir;
-                _assemblyManager.DumpAssemblyData(out dumpDir);
+                _emitData.AssemblyManager.DumpAssemblyData(out dumpDir);
                 throw new ExecutionException(tie.InnerException, dumpDir);
             }
         }
@@ -359,85 +385,60 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (expectedOutput.Trim() != actualOutput.Trim())
             {
                 string dumpDir;
-                _assemblyManager.DumpAssemblyData(out dumpDir);
+                GetEmitData().AssemblyManager.DumpAssemblyData(out dumpDir);
                 throw new ExecutionException(expectedOutput, actualOutput, dumpDir);
             }
 
             return exitCode;
         }
 
-        internal ImmutableArray<Diagnostic> GetDiagnostics()
+        private EmitData GetEmitData()
         {
-            if (_lazyDiagnostics.IsDefault)
+            if (_emitData == null)
             {
-                throw new InvalidOperationException("You must call Emit before calling GetBuffer.");
+                throw new InvalidOperationException("You must call Emit before calling this method.");
             }
 
-            return _lazyDiagnostics;
+            return _emitData;
+        }
+
+        internal ImmutableArray<Diagnostic> GetDiagnostics()
+        {
+            return GetEmitData().Diagnostics;
         }
 
         public ImmutableArray<byte> GetMainImage()
         {
-            if (_mainModule == null)
-            {
-                throw new InvalidOperationException("You must call Emit before calling GetMainImage.");
-            }
-
-            return _mainModule.Image;
+            return GetEmitData().MainModule.Image;
         }
 
         public ImmutableArray<byte> GetMainPdb()
         {
-            if (_mainModule == null)
-            {
-                throw new InvalidOperationException("You must call Emit before calling GetMainPdb.");
-            }
-
-            return _mainModulePdb;
+            return GetEmitData().MainModulePdb;
         }
 
         internal IList<ModuleData> GetAllModuleData()
         {
-            if (_allModuleData == null)
-            {
-                throw new InvalidOperationException("You must call Emit before calling GetAllModuleData.");
-            }
-
-            return _allModuleData;
+            return GetEmitData().AllModuleData;
         }
 
         public void PeVerify()
         {
             _peVerifyRequested = true;
-
-            if (_assemblyManager == null)
-            {
-                throw new InvalidOperationException("You must call Emit before calling PeVerify.");
-            }
-
-            _assemblyManager.PeVerifyModules(new[] { _mainModule.FullName });
+            var emitData = GetEmitData();
+            emitData.AssemblyManager.PeVerifyModules(new[] { emitData.MainModule.FullName });
         }
 
         internal string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true)
         {
             _peVerifyRequested = true;
-
-            if (_assemblyManager == null)
-            {
-                CreateAssemblyManager(new ModuleData[0], null);
-            }
-
-            return _assemblyManager.PeVerifyModules(modulesToVerify, throwOnError);
+            var emitData = GetEmitData();
+            return emitData.AssemblyManager.PeVerifyModules(modulesToVerify, throwOnError);
         }
 
         internal SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
         {
-            if (_assemblyManager == null)
-            {
-                throw new InvalidOperationException("You must call Emit before calling GetMemberSignaturesFromMetadata.");
-            }
-
-            return _assemblyManager.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
+            return GetEmitData().AssemblyManager.GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
         }
 
         // A workaround for known bug DevDiv 369979 - don't unload the AppDomain if we may have loaded a module
@@ -445,12 +446,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             get
             {
-                if (_assemblyManager == null)
+                if (_emitData?.AssemblyManager == null)
                 {
                     return true;
                 }
 
-                return !(_assemblyManager.ContainsNetModules() && (_peVerifyRequested || _executeRequested));
+                return !(_emitData.AssemblyManager.ContainsNetModules() && (_peVerifyRequested || _executeRequested));
             }
         }
 
@@ -461,26 +462,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
-            if (_domain == null)
+            if (_emitData != null)
             {
-                if (_assemblyManager != null)
-                {
-                    _assemblyManager.Dispose();
-                    _assemblyManager = null;
-                }
-            }
-            else
-            {
-                Debug.Assert(_assemblyManager != null);
-                _assemblyManager.Dispose();
+                _emitData?.AssemblyManager.Dispose();
 
-                if (IsSafeToUnloadDomain)
+                if (_emitData.AppDomain != null && IsSafeToUnloadDomain)
                 {
-                    AppDomain.Unload(_domain);
+                    AppDomain.Unload(_emitData.AppDomain);
                 }
 
-                _assemblyManager = null;
-                _domain = null;
+                _emitData = null;
             }
 
             _disposed = true;
