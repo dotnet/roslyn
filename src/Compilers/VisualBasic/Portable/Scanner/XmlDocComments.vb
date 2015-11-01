@@ -148,13 +148,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' lexes (ws)'''
         Private Function TrySkipXmlDocMarker(ByRef len As Integer) As Boolean
             Dim Here = len
-            While CanGet(Here)
-                Dim c = Peek(Here)
-                If IsWhitespace(c) Then
-                    Here += 1
-                Else
-                    Exit While
-                End If
+            Dim c As Char
+            While Peep(Here, c) AndAlso IsWhitespace(c)
+                Here += 1
             End While
 
             If StartsXmlDoc(Here) Then
@@ -240,9 +236,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Here As Integer = 0
             Dim scratch = GetScratch()
-
-            While CanGet(Here)
-                Dim c As Char = Peek(Here)
+            Dim c As Char
+            While Peep(Here, c)
 
                 Select Case (c)
                     Case CARRIAGE_RETURN, LINE_FEED
@@ -282,12 +277,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
 
                         Debug.Assert(Here = 0)
-                        If CanGet(1) Then
-                            Dim ch As Char = Peek(1)
+                        Dim ch As Char
+                        If Peep(1, ch) Then
                             Select Case ch
                                 Case "!"c
-                                    If CanGet(2) Then
-                                        Select Case (Peek(2))
+                                    If Peep(2, ch) Then
+                                        Select Case ch
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
@@ -369,11 +364,10 @@ ScanChars:
                 End If
                 precedingTrivia.Add(xDocTrivia)
             End If
-
-            If state = ScannerState.StartProcessingInstruction AndAlso CanGet() Then
+            Dim c As Char
+            If state = ScannerState.StartProcessingInstruction AndAlso Peep(0, c) Then
                 ' // Whitespace
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                Dim c = Peek()
                 Select Case c
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         Dim offsets = CreateOffsetRestorePoint()
@@ -387,8 +381,7 @@ ScanChars:
             End If
 
             Dim Here = 0
-            While CanGet(Here)
-                Dim c As Char = Peek(Here)
+            While Peep(Here, c)
                 Select Case (c)
 
                     Case CARRIAGE_RETURN, LINE_FEED
@@ -460,16 +453,14 @@ CleanUp:
                 End If
                 precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
-
-            While CanGet()
+            Dim c As Char
+            While Peep(0, c)
                 If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not _doNotRequireXmlDocCommentPrefix Then
                     ' this would indicate that we looked at Trivia, but did not find
                     ' XmlDoc prefix (or we would not be at the line start)
                     ' must terminate XmlDoc scanning
                     Return MakeEofToken(precedingTrivia)
                 End If
-
-                Dim c As Char = Peek()
 
                 Select Case (c)
                     ' // Whitespace
@@ -506,12 +497,12 @@ CleanUp:
                         Return XmlMakeDoubleQuoteToken(precedingTrivia, c, isOpening:=True)
 
                     Case "<"c
-                        If CanGet(1) Then
-                            Dim ch As Char = Peek(1)
+                        Dim ch As Char
+                        If Peep(1, ch) Then
                             Select Case ch
                                 Case "!"c
-                                    If CanGet(2) Then
-                                        Select Case (Peek(2))
+                                    If Peep(2, ch) Then
+                                        Select Case ch
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)

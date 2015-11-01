@@ -9,7 +9,7 @@ Option Strict On
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports System.RuntiInteropServices
+Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
