@@ -130,7 +130,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private bool IsOwned(Assembly assembly)
         {
-            return _mainMvids.Count == 0 || _mainMvids.Contains(assembly.ManifestModule.ModuleVersionId) || _loadedAssemblies.Contains(assembly);
+            return _mainMvids.Count == 0 
+                || (assembly.ManifestModule != null && _mainMvids.Contains(assembly.ManifestModule.ModuleVersionId)) 
+                || _loadedAssemblies.Contains(assembly);
         }
 
         internal bool ContainsNetModules()
