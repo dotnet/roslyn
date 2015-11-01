@@ -23,30 +23,47 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static int s_dumpCount;
 
         private readonly AppDomainAssemblyCache _assemblyCache = AppDomainAssemblyCache.GetOrCreate();
+        private readonly Dictionary<string, ModuleData> _fullNameToModuleDataMap;
+        private readonly Dictionary<Guid, ModuleData> _mvidToModuleDataMap;
+        private readonly List<Guid> _mainMvids;
 
-        // Modules managed by this manager. All such modules must have unique simple name.
-        private readonly Dictionary<string, ModuleData> _modules;
         // Assemblies loaded by this manager.
         private readonly HashSet<Assembly> _loadedAssemblies;
-        private readonly List<Guid> _mainMvids;
+
+        /// <summary>
+        /// The AppDomain we create to host the RuntimeAssemblyManager will always have the mscorlib
+        /// it was compiled against.  It's possible the data we are verifying or running used a slightly
+        /// different mscorlib.  Hence we can't do exact MVID matching on them.  This tracks the set of 
+        /// modules loaded when we started the RuntimeAssemblyManager for which we can't do strict 
+        /// comparisons.
+        /// </summary>
+        private readonly HashSet<string> _preloadedSet;
 
         private bool _containsNetModules;
 
         public RuntimeAssemblyManager()
         {
-            _modules = new Dictionary<string, ModuleData>(StringComparer.OrdinalIgnoreCase);
+            _fullNameToModuleDataMap = new Dictionary<string, ModuleData>(StringComparer.OrdinalIgnoreCase);
+            _mvidToModuleDataMap = new Dictionary<Guid, ModuleData>();
             _loadedAssemblies = new HashSet<Assembly>();
             _mainMvids = new List<Guid>();
 
-            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
-            AppDomain.CurrentDomain.AssemblyLoad += AssemblyLoad;
+            var currentDomain = AppDomain.CurrentDomain;
+            currentDomain.AssemblyResolve += AssemblyResolve;
+            currentDomain.AssemblyLoad += AssemblyLoad;
             CLRHelpers.ReflectionOnlyAssemblyResolve += ReflectionOnlyAssemblyResolve;
+
+            _preloadedSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var assembly in currentDomain.GetAssemblies())
+            {
+                var id = new ModuleDataId(assembly);
+                _preloadedSet.Add(id.SimpleName);
+            }
         }
 
         public void Dispose()
         {
             // clean up our handlers, so that they don't accumulate
-
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolve;
             AppDomain.CurrentDomain.AssemblyLoad -= AssemblyLoad;
             CLRHelpers.ReflectionOnlyAssemblyResolve -= ReflectionOnlyAssemblyResolve;
@@ -64,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             //a RuntimeAssemblyManager, but according to heap dumps, it does. Even though the appdomain is not
             //unloaded, its RuntimeAssemblyManager is explicitly disposed. So make sure that it cleans up this
             //memory hog - the modules dictionary.
-            _modules.Clear();
+            _fullNameToModuleDataMap.Clear();
+            _mvidToModuleDataMap.Clear();
         }
 
         /// <summary>
@@ -72,6 +90,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         public void AddMainModuleMvid(Guid mvid)
         {
+            if (!_mvidToModuleDataMap.ContainsKey(mvid))
+            {
+                throw new Exception($"No module with {mvid} loaded");
+            }
+
             _mainMvids.Add(mvid);
         }
 
@@ -93,17 +116,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return null;
         }
 
+        /// <summary>
+        /// Add this to the set of <see cref="ModuleData"/> that is managed by this instance.  It is okay to 
+        /// return values that are already present. 
+        /// </summary>
+        /// <param name="modules"></param>
         public void AddModuleData(IEnumerable<ModuleData> modules)
         {
             foreach (var module in modules)
             {
-                if (!_modules.ContainsKey(module.FullName))
+                ModuleData other;
+                if (_fullNameToModuleDataMap.TryGetValue(module.FullName, out other))
                 {
+                    if (!_preloadedSet.Contains(module.SimpleName) && other.Mvid != module.Mvid)
+                    {
+                        throw new Exception($"Two modules of name {other.FullName} have different MVID");
+                    }
+                }
+                else
+                { 
                     if (module.Kind == OutputKind.NetModule)
                     {
                         _containsNetModules = true;
                     }
-                    _modules.Add(module.FullName, module);
+
+                    _fullNameToModuleDataMap.Add(module.FullName, module);
+                    _mvidToModuleDataMap.Add(module.Mvid, module);
                 }
             }
         }
@@ -111,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private ImmutableArray<byte> GetModuleBytesByName(string moduleName)
         {
             ModuleData data;
-            if (!_modules.TryGetValue(moduleName, out data))
+            if (!_fullNameToModuleDataMap.TryGetValue(moduleName, out data))
             {
                 throw new KeyNotFoundException(String.Format("Could not find image for module '{0}'.", moduleName));
             }
@@ -177,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal Assembly GetAssembly(string fullName, bool reflectionOnly)
         {
             ModuleData data;
-            if (!_modules.TryGetValue(fullName, out data))
+            if (!_fullNameToModuleDataMap.TryGetValue(fullName, out data))
             {
                 return null;
             }
@@ -206,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName)
         {
             var signatures = new SortedSet<string>();
-            foreach (var module in _modules) // Check inside each assembly in the compilation
+            foreach (var module in _fullNameToModuleDataMap) // Check inside each assembly in the compilation
             {
                 foreach (var signature in MetadataSignatureHelper.GetMemberSignatures(GetAssembly(module.Key, true),
                                                                                       fullyQualifiedTypeName, memberName))
@@ -261,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public string DumpAssemblyData(out string dumpDirectory)
         {
-            return DumpAssemblyData(_modules.Values, out dumpDirectory);
+            return DumpAssemblyData(_fullNameToModuleDataMap.Values, out dumpDirectory);
         }
 
         public static string DumpAssemblyData(IEnumerable<ModuleData> modules, out string dumpDirectory)
@@ -352,7 +390,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             foreach (var name in modulesToVerify)
             {
-                var module = _modules[name];
+                var module = _fullNameToModuleDataMap[name];
                 string[] output = CLRHelpers.PeVerify(module.Image);
                 if (output.Length > 0)
                 {
@@ -378,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (throwOnError && errors.Length > 0)
             {
                 string dumpDir;
-                DumpAssemblyData(_modules.Values, out dumpDir);
+                DumpAssemblyData(_fullNameToModuleDataMap.Values, out dumpDir);
                 throw new PeVerifyException(errors.ToString(), dumpDir);
             }
 #endif

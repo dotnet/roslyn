@@ -26,14 +26,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     }
 
     [Serializable]
-    public sealed class ModuleDataId
+    public struct ModuleDataId
     {
-        // Simple assembly name  ("foo") or module name ("bar.netmodule").
+        public string SimpleName { get; }
         public string FullName { get; }
         public Guid Mvid { get; }
 
-        public ModuleDataId(string fullName, Guid mvid)
+        public ModuleDataId(Assembly assembly)
         {
+            SimpleName = assembly.GetName().Name;
+            FullName = assembly.FullName;
+            Mvid = assembly.ManifestModule.ModuleVersionId;
+        }
+
+        public ModuleDataId(string simpleName, string fullName, Guid mvid)
+        {
+            SimpleName = simpleName;
             FullName = fullName;
             Mvid = mvid;
         }
@@ -54,12 +62,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public readonly ImmutableArray<byte> Pdb;
         public readonly bool InMemoryModule;
 
+        public string SimpleName => Id.SimpleName;
         public string FullName => Id.FullName;
         public Guid Mvid => Id.Mvid;
 
         public ModuleData(string netModuleName, ImmutableArray<byte> image, ImmutableArray<byte> pdb, bool inMemoryModule)
         {
-            this.Id = new ModuleDataId(netModuleName, GetMvid(image));
+            this.Id = new ModuleDataId(netModuleName, netModuleName, GetMvid(image));
             this.Kind = OutputKind.NetModule;
             this.Image = image;
             this.Pdb = pdb;
@@ -68,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public ModuleData(AssemblyIdentity identity, OutputKind kind, ImmutableArray<byte> image, ImmutableArray<byte> pdb, bool inMemoryModule)
         {
-            this.Id = new ModuleDataId(identity.GetDisplayName(), GetMvid(image));
+            this.Id = new ModuleDataId(identity.Name, identity.GetDisplayName(), GetMvid(image));
             this.Kind = kind;
             this.Image = image;
             this.Pdb = pdb;

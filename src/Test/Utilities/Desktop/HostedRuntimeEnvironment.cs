@@ -18,9 +18,25 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public class HostedRuntimeEnvironment : IDisposable
+    public sealed class HostedRuntimeEnvironment : IDisposable
     {
-        private static readonly Dictionary<string, Guid> s_allModuleNames = new Dictionary<string, Guid>();
+        private struct EmitData
+        {
+            internal ImmutableArray<byte> Assembly { get; }
+            internal ImmutableArray<byte> Pdb { get; }
+
+            internal EmitData(ImmutableArray<byte> assembly, ImmutableArray<byte> pdb)
+            {
+                Assembly = assembly;
+                Pdb = pdb;
+            }
+        }
+
+        private sealed class EmitTracker
+        {
+            internal readonly List<ModuleData> Dependencies = new List<ModuleData>();
+            internal readonly HashSet<Compilation> CompilationSet = new HashSet<Compilation>();
+        }
 
         private bool _disposed;
         private AppDomain _domain;
@@ -57,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             allModules = allModules.ToArray();
 
-            string conflict = DetectNameCollision(allModules);
-            if (conflict != null && !MonoHelpers.IsRunningOnMono())
+            if (!MonoHelpers.IsRunningOnMono())
             {
                 var appDomainProxyType = typeof(RuntimeAssemblyManager);
                 var thisAssembly = appDomainProxyType.Assembly;
@@ -95,55 +110,39 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        // Determines if any of the given dependencies has the same name as already loaded assembly with different content.
-        private static string DetectNameCollision(IEnumerable<ModuleData> modules)
-        {
-            lock (s_allModuleNames)
-            {
-                foreach (var module in modules)
-                {
-                    Guid mvid;
-                    if (s_allModuleNames.TryGetValue(module.FullName, out mvid))
-                    {
-                        if (mvid != module.Mvid)
-                        {
-                            return module.FullName;
-                        }
-                    }
-                }
-
-                // only add new modules if there is no collision:
-                foreach (var module in modules)
-                {
-                    s_allModuleNames[module.FullName] = module.Mvid;
-                }
-            }
-
-            return null;
-        }
-
         private static void EmitDependentCompilation(Compilation compilation,
-                                                     List<ModuleData> dependencies,
+                                                     EmitTracker tracker,
                                                      DiagnosticBag diagnostics,
                                                      bool usePdbForDebugging = false)
         {
-            ImmutableArray<byte> assembly, pdb;
-            if (EmitCompilation(compilation, null, dependencies, diagnostics, null, out assembly, out pdb))
+            // It is possible for the same Compilation to appear multiple times 
+            // as a dependent reference in a Compilation.  Only need to emit it 
+            // once.
+            if (tracker.CompilationSet.Contains(compilation))
             {
-                dependencies.Add(new ModuleData(compilation.Assembly.Identity,
+                return;
+            }
+
+            tracker.CompilationSet.Add(compilation);
+
+            var emitData = EmitCompilation(compilation, null, tracker, diagnostics, null);
+            if (emitData.HasValue)
+            {
+                var moduleData = new ModuleData(compilation.Assembly.Identity,
                                                 OutputKind.DynamicallyLinkedLibrary,
-                                                assembly,
-                                                pdb: usePdbForDebugging ? pdb : default(ImmutableArray<byte>),
-                                                inMemoryModule: true));
+                                                emitData.Value.Assembly,
+                                                pdb: usePdbForDebugging ? emitData.Value.Pdb : default(ImmutableArray<byte>),
+                                                inMemoryModule: true);
+                tracker.Dependencies.Add(moduleData);
             }
         }
 
-        internal static void EmitReferences(Compilation compilation, List<ModuleData> dependencies, DiagnosticBag diagnostics)
+        private static void EmitReferences(Compilation compilation, EmitTracker tracker, DiagnosticBag diagnostics)
         {
             var previousSubmission = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
             if (previousSubmission != null)
             {
-                EmitDependentCompilation(previousSubmission, dependencies, diagnostics);
+                EmitDependentCompilation(previousSubmission, tracker, diagnostics);
             }
 
             foreach (MetadataReference r in compilation.References)
@@ -153,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if ((compilationRef = r as CompilationReference) != null)
                 {
-                    EmitDependentCompilation(compilationRef.Compilation, dependencies, diagnostics);
+                    EmitDependentCompilation(compilationRef.Compilation, tracker, diagnostics);
                 }
                 else if ((peRef = r as PortableExecutableReference) != null)
                 {
@@ -162,22 +161,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     foreach (var module in EnumerateModules(metadata))
                     {
                         ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
+                        ModuleData moduleData;
                         if (isManifestModule)
                         {
-                            dependencies.Add(new ModuleData(((AssemblyMetadata)metadata).GetAssembly().Identity,
+                            moduleData = new ModuleData(((AssemblyMetadata)metadata).GetAssembly().Identity,
                                                             OutputKind.DynamicallyLinkedLibrary,
                                                             bytes,
                                                             pdb: default(ImmutableArray<byte>),
-                                                            inMemoryModule: true));
+                                                            inMemoryModule: true);
                         }
                         else
                         {
-                            dependencies.Add(new ModuleData(module.Name,
+                            moduleData = new ModuleData(module.Name,
                                                             bytes,
                                                             pdb: default(ImmutableArray<byte>),
-                                                            inMemoryModule: true));
+                                                            inMemoryModule: true);
                         }
 
+                        tracker.Dependencies.Add(moduleData);
                         isManifestModule = false;
                     }
                 }
@@ -193,24 +194,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return (metadata.Kind == MetadataImageKind.Assembly) ? ((AssemblyMetadata)metadata).GetModules().AsEnumerable() : SpecializedCollections.SingletonEnumerable((ModuleMetadata)metadata);
         }
 
-        internal static bool EmitCompilation(
+        private static EmitData? EmitCompilation(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
-            List<ModuleData> dependencies,
+            EmitTracker tracker,
             DiagnosticBag diagnostics,
-            CompilationTestData testData,
-            out ImmutableArray<byte> assembly,
-            out ImmutableArray<byte> pdb
+            CompilationTestData testData
         )
         {
-            assembly = default(ImmutableArray<byte>);
-            pdb = default(ImmutableArray<byte>);
-
-            EmitReferences(compilation, dependencies, diagnostics);
+            EmitReferences(compilation, tracker, diagnostics);
 
             using (var executableStream = new MemoryStream())
             {
-                MemoryStream pdbStream = MonoHelpers.IsRunningOnMono()
+                var pdb = default(ImmutableArray<byte>);
+                var assembly = default(ImmutableArray<byte>);
+                var pdbStream = MonoHelpers.IsRunningOnMono()
                     ? null
                     : new MemoryStream();
 
@@ -241,7 +239,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 diagnostics.AddRange(result.Diagnostics);
                 assembly = executableStream.ToImmutable();
 
-                return result.Success;
+                if (result.Success)
+                {
+                    return new EmitData(assembly, pdb);
+                }
+
+                return null;
             }
         }
 
@@ -250,36 +253,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             bool usePdbForDebugging = false)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
-            var dependencies = new List<ModuleData>();
-
             _testData.Methods.Clear();
 
-            ImmutableArray<byte> mainImage, mainPdb;
-            bool succeeded = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData, out mainImage, out mainPdb);
+            var diagnostics = DiagnosticBag.GetInstance();
+            var tracker = new EmitTracker();
+            var mainData = EmitCompilation(mainCompilation, manifestResources, tracker, diagnostics, _testData);
 
             _lazyDiagnostics = diagnostics.ToReadOnlyAndFree();
 
-            if (succeeded)
+            if (mainData.HasValue)
             {
+                var mainImage = mainData.Value.Assembly;
+                var mainPdb = mainData.Value.Pdb;
                 _mainModule = new ModuleData(mainCompilation.Assembly.Identity,
                                                  mainCompilation.Options.OutputKind,
                                                  mainImage,
                                                  pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
                                                  inMemoryModule: true);
                 _mainModulePdb = mainPdb;
-                _allModuleData = dependencies;
+                _allModuleData = tracker.Dependencies;
                 _allModuleData.Insert(0, _mainModule);
-                CreateAssemblyManager(dependencies, _mainModule);
+                CreateAssemblyManager(tracker.Dependencies, _mainModule);
             }
             else
             {
                 string dumpDir;
-                RuntimeAssemblyManager.DumpAssemblyData(dependencies, out dumpDir);
+                RuntimeAssemblyManager.DumpAssemblyData(tracker.Dependencies, out dumpDir);
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.
-                throw new EmitException(_lazyDiagnostics, dumpDir); // ToArray for serializability.
+                throw new EmitException(_lazyDiagnostics, dumpDir); 
             }
         }
 
