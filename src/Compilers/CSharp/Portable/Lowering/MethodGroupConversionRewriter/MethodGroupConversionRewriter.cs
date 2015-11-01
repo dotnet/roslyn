@@ -114,16 +114,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeArguments = MethodGroupConversionCacheTargetFrame.GetTypeArgumentsFromTarget(targetMethod);
 
             MethodGroupConversionCacheTargetFrame targetFrame;
-            var keyForTargetFrame = new KeyValuePair<NamedTypeSymbol, MethodSymbol>(CurrentMethod.ContainingType, targetMethod.OriginalDefinition);
+            var container = CurrentMethod.ContainingType;
+            var keyForTargetFrame = new KeyValuePair<NamedTypeSymbol, MethodSymbol>(container, targetMethod.OriginalDefinition);
             if (!CompilationState.MethodGroupConversionCacheTargetFrames.TryGetValue(keyForTargetFrame, out targetFrame))
             {
-                targetFrame = MethodGroupConversionCacheTargetFrame.Create(CurrentMethod.ContainingType, targetMethod, typeArguments.Length);
+                targetFrame = MethodGroupConversionCacheTargetFrame.Create(container, targetMethod, typeArguments.Length);
+
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(container, targetFrame);
                 CompilationState.MethodGroupConversionCacheTargetFrames.Add(keyForTargetFrame, targetFrame);
             }
 
             var delegateType = (NamedTypeSymbol)conversion.Type;
-            var delegateFrame = targetFrame.GetOrAddDelegateFrame(delegateType);
+
+            bool wasDelegateFrameAdded;
+            var delegateFrame = targetFrame.GetOrAddDelegateFrame(delegateType, out wasDelegateFrameAdded);
             var delegateField = delegateFrame.DelegateField;
+
+            if (wasDelegateFrameAdded)
+            {
+                var moduleBuilder = CompilationState.ModuleBuilderOpt;
+                moduleBuilder.AddSynthesizedDefinition(targetFrame, delegateFrame);
+            }
 
             var constructedTargetFrame = typeArguments.Length == 0 ? targetFrame : targetFrame.Construct(typeArguments);
             var constructedDelegateFrame = delegateType.Arity == 0 ? delegateFrame : delegateFrame.AsMember(constructedTargetFrame).Construct(delegateType.TypeArguments);

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeArgumentsBuilder.ToImmutableAndFree();
         }
 
-        public MethodGroupConversionCacheDelegateFrame GetOrAddDelegateFrame(NamedTypeSymbol delegateType)
+        public MethodGroupConversionCacheDelegateFrame GetOrAddDelegateFrame(NamedTypeSymbol delegateType, out bool wasAdded)
         {
             var originalDefinition = delegateType.OriginalDefinition;
 
@@ -80,12 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var frame = DelegateFrames[i];
                 if (frame.DelegateField.Type == originalDefinition)
                 {
+                    wasAdded = false;
                     return frame;
                 }
             }
 
             var delegateFrame = MethodGroupConversionCacheDelegateFrame.Create(this, originalDefinition);
             DelegateFrames.Add(delegateFrame);
+
+            wasAdded = true;
             return delegateFrame;
         }
 
