@@ -420,7 +420,18 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("ErrorWhileReadingSpecifiedConfigFile", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while creating the task queue for the workspace.An implementation of the IWorkspaceTaskSchedulerFactory could not be found in the workspace services.Please provide an implementation for this interface.
+        /// </summary>
+        internal static string ErrorWhileCreatingTaskQueue
+        {
+            get
+            {
+                return ResourceManager.GetString("ErrorWhileCreatingTaskQueue", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Exceptions:.
         /// </summary>

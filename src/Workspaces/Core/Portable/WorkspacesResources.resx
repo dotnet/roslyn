@@ -120,6 +120,9 @@
   <data name="ErrorWhileReadingSpecifiedConfigFile" xml:space="preserve">
     <value>An error occurred while reading the specified configuration file: {0}</value>
   </data>
+  <data name="ErrorWhileCreatingTaskQueue" xml:space="preserve">
+    <value>An error occurred while creating the task queue for the workspace. An implementation of the IWorkspaceTaskSchedulerFactory could not be found in the workspace services. Please provide an implementation for this interface.</value>
+  </data>
   <data name="RenameSymbolIsNotFromSource" xml:space="preserve">
     <value>Symbol "{0}" is not from source.</value>
   </data>
