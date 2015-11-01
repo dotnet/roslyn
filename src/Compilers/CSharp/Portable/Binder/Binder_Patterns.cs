@@ -132,7 +132,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckValidPatternType(CSharpSyntaxNode typeSyntax, BoundExpression operand, TypeSymbol operandType, TypeSymbol patternType, bool isVar, DiagnosticBag diagnostics)
         {
-            if (patternType.IsNullableType() && !isVar)
+            if (operandType?.IsErrorType() == true || patternType?.IsErrorType() == true)
+            {
+                return false;
+            }
+            else if (patternType.IsNullableType() && !isVar)
             {
                 // It is an error to use pattern-matching with a nullable type, because you'll never get null. Use the underlying type.
                 Error(diagnostics, ErrorCode.ERR_PatternNullableType, typeSyntax, patternType, patternType.GetNullableUnderlyingType());
@@ -224,6 +228,122 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             DeclareLocalVariable(localSymbol, identifier, declType);
             return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
+        }
+
+        private TypeSymbol BestType(MatchExpressionSyntax node, ArrayBuilder<BoundMatchCase> cases, DiagnosticBag diagnostics)
+        {
+            var types = ArrayBuilder<TypeSymbol>.GetInstance();
+
+            int n = cases.Count;
+            for (int i = 0; i < n; i++)
+            {
+                var e = cases[i].Expression;
+                if (e.Type != null && !types.Contains(e.Type)) types.Add(e.Type);
+            }
+
+            var allTypes = types.ToImmutableAndFree();
+
+            TypeSymbol bestType;
+            if (allTypes.IsDefaultOrEmpty)
+            {
+                diagnostics.Add(ErrorCode.ERR_AmbigMatch0, node.MatchToken.GetLocation());
+                bestType = CreateErrorType();
+            }
+            else if (allTypes.Length == 1)
+            {
+                bestType = allTypes[0];
+            }
+            else
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                bestType = BestTypeInferrer.InferBestType(
+                    allTypes,
+                    Conversions,
+                    ref useSiteDiagnostics);
+                diagnostics.Add(node, useSiteDiagnostics);
+                if ((object)bestType == null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AmbigMatch1, node.MatchToken.GetLocation());
+                    bestType = CreateErrorType();
+                }
+            }
+
+            for (int i = 0; i < n; i++)
+            {
+                var c = cases[i];
+                var e = c.Expression;
+                var converted = GenerateConversionForAssignment(bestType, e, diagnostics);
+                if (e != converted)
+                {
+                    cases[i] = new BoundMatchCase(c.Syntax, c.Locals, c.Pattern, c.Guard, converted);
+                }
+            }
+
+            return bestType;
+        }
+
+        private BoundExpression BindMatchExpression(MatchExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var expression = BindValue(node.Left, diagnostics, BindValueKind.RValue);
+            // TODO: any constraints on a switch expression must be enforced here. For example,
+            // it must have a type (not be target-typed, lambda, null, etc)
+
+            var sectionBuilder = ArrayBuilder<BoundMatchCase>.GetInstance();
+            foreach (var section in node.Sections)
+            {
+                var sectionBinder = new PatternVariableBinder(section, this); // each section has its own locals.
+                var pattern = sectionBinder.BindPattern(section.Pattern, expression, expression.Type, section.HasErrors, diagnostics);
+                var guard = (section.Condition != null) ? sectionBinder.BindBooleanExpression(section.Condition, diagnostics) : null;
+                var e = sectionBinder.BindExpression(section.Expression, diagnostics);
+                sectionBuilder.Add(new BoundMatchCase(section, sectionBinder.Locals, pattern, guard, e, section.HasErrors));
+            }
+
+            var resultType = BestType(node, sectionBuilder, diagnostics);
+            return new BoundMatchExpression(node, expression, sectionBuilder.ToImmutableAndFree(), resultType);
+        }
+
+        private BoundExpression BindThrowExpression(ThrowExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            bool hasErrors = false;
+            if (node.Parent != null && !node.HasErrors)
+            {
+                switch (node.Parent.Kind())
+                {
+                    case SyntaxKind.ConditionalExpression:
+                        {
+                            var papa = (ConditionalExpressionSyntax)node.Parent;
+                            if (node == papa.WhenTrue || node == papa.WhenFalse) goto syntaxOk;
+                            break;
+                        }
+                    case SyntaxKind.CoalesceExpression:
+                        {
+                            var papa = (BinaryExpressionSyntax)node.Parent;
+                            if (node == papa.Right) goto syntaxOk;
+                            break;
+                        }
+                    case SyntaxKind.MatchSection:
+                        {
+                            var papa = (MatchSectionSyntax)node.Parent;
+                            if (node == papa.Expression) goto syntaxOk;
+                            break;
+                        }
+                    case SyntaxKind.ArrowExpressionClause:
+                        {
+                            var papa = (ArrowExpressionClauseSyntax)node.Parent;
+                            if (node == papa.Expression) goto syntaxOk;
+                            break;
+                        }
+                    default:
+                        break;
+                }
+
+                diagnostics.Add(ErrorCode.ERR_ThrowMisplaced, node.ThrowKeyword.GetLocation());
+                hasErrors = true;
+                syntaxOk:;
+            }
+
+            var thrownExpression = BindThrownExpression(node.Expression, diagnostics, ref hasErrors);
+            return new BoundThrowExpression(node, thrownExpression, null, hasErrors);
         }
     }
 }

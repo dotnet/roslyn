@@ -485,6 +485,7 @@
     <Compile Include="Parser\Directives.cs" />
     <Compile Include="Parser\DocumentationCommentParser.cs" />
     <Compile Include="Parser\DocumentationCommentXmlTokens.cs" />
+    <Compile Include="Parser\LanguageParser_Patterns.cs" />
     <Compile Include="Parser\LanguageParser.cs" />
     <Compile Include="Parser\LanguageParser_InterpolatedString.cs" />
     <Compile Include="Parser\Lexer.cs" />

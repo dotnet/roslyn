@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class PatternVariableBinder : LocalScopeBinder
     {
-        private readonly ExpressionSyntax expression;
-        private readonly ImmutableArray<ExpressionSyntax> expressions;
-        private readonly ImmutableArray<PatternSyntax> patterns;
+        private readonly ExpressionSyntax Expression;
+        private readonly ImmutableArray<ExpressionSyntax> Expressions;
+        private readonly ImmutableArray<PatternSyntax> Patterns;
         public readonly SyntaxNode Syntax;
 
         internal PatternVariableBinder(SyntaxNode syntax, ImmutableArray<ExpressionSyntax> expressions, Binder next) : base(next)
         {
             this.Syntax = syntax;
-            this.expressions = expressions;
+            this.Expressions = expressions;
         }
 
         internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<VariableDeclaratorSyntax> declarations, Binder next) : base(next)
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var value = decl.Initializer?.Value;
                 if (value != null) expressions.Add(value);
             }
-            this.expressions = expressions.ToImmutableAndFree();
+            this.Expressions = expressions.ToImmutableAndFree();
         }
 
         internal PatternVariableBinder(SyntaxNode syntax, IEnumerable<ArgumentSyntax> arguments, Binder next) : base(next)
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var value = arg.Expression;
                 if (value != null) expressions.Add(value);
             }
-            this.expressions = expressions.ToImmutableAndFree();
+            this.Expressions = expressions.ToImmutableAndFree();
         }
 
         internal PatternVariableBinder(SwitchSectionSyntax syntax, Binder next) : base(next)
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var patterns = ArrayBuilder<PatternSyntax>.GetInstance();
             foreach (var label in syntax.Labels)
             {
-                var match = label as CaseMatchLabelSyntax;
+                var match = label as CasePatternSwitchLabelSyntax;
                 if (match != null)
                 {
                     patterns.Add(match.Pattern);
@@ -64,8 +64,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            this.expressions = expressions.ToImmutableAndFree();
-            this.patterns = patterns.ToImmutableAndFree();
+            this.Expressions = expressions.ToImmutableAndFree();
+            this.Patterns = patterns.ToImmutableAndFree();
+        }
+
+        internal PatternVariableBinder(MatchSectionSyntax syntax, Binder next) : base(next)
+        {
+            this.Syntax = syntax;
+            this.Patterns = ImmutableArray.Create<PatternSyntax>(syntax.Pattern);
+            this.Expressions = syntax.Condition != null
+                ? ImmutableArray.Create<ExpressionSyntax>(syntax.Expression, syntax.Condition)
+                : ImmutableArray.Create<ExpressionSyntax>(syntax.Expression)
+                ;
         }
 
         internal PatternVariableBinder(ForStatementSyntax syntax, Binder next) : base(next)
@@ -77,21 +87,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var value = decl.Initializer?.Value;
                 if (value != null) expressions.Add(value);
             }
+
             if (syntax.Initializers != null) expressions.AddRange(syntax.Initializers);
             if (syntax.Condition != null) expressions.Add(syntax.Condition);
             if (syntax.Incrementors != null) expressions.AddRange(syntax.Incrementors);
-            this.expressions = expressions.ToImmutableAndFree();
+            this.Expressions = expressions.ToImmutableAndFree();
         }
 
         internal PatternVariableBinder(SyntaxNode syntax, ExpressionSyntax expression, Binder next) : base(next)
         {
-            this.expression = expression;
+            this.Expression = expression;
             this.Syntax = syntax;
         }
 
         protected override ImmutableArray<LocalSymbol> BuildLocals()
         {
-            var patterns = PatternVariableFinder.FindPatternVariables(expression, expressions, this.patterns);
+            var patterns = PatternVariableFinder.FindPatternVariables(Expression, Expressions, this.Patterns);
             var builder = ArrayBuilder<LocalSymbol>.GetInstance();
             foreach (var pattern in patterns)
             {
@@ -121,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finder.Visit(expression);
                 if (!expressions.IsDefaultOrEmpty) foreach (var subExpression in expressions)
                 {
-                    finder.Visit(subExpression);
+                    if(subExpression != null) finder.Visit(subExpression);
                 }
 
                 var result = finder.declarationPatterns;
@@ -148,6 +159,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) { }
             public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node) { }
             public override void VisitQueryExpression(QueryExpressionSyntax node) { }
+            public override void VisitMatchExpression(MatchExpressionSyntax node)
+            {
+                Visit(node.Left);
+            }
 
             #region pool
             private static readonly ObjectPool<PatternVariableFinder> s_poolInstance = CreatePool();

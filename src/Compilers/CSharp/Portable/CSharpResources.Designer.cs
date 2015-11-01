@@ -341,6 +341,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a type.
+        /// </summary>
+        internal static string ERR_AmbigMatch0 {
+            get {
+                return ResourceManager.GetString("ERR_AmbigMatch0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a most specific type.
+        /// </summary>
+        internal static string ERR_AmbigMatch1 {
+            get {
+                return ResourceManager.GetString("ERR_AmbigMatch1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ambiguity between &apos;{0}&apos; and &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AmbigMember {
@@ -8140,6 +8158,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ThisStructNotInAnonMeth {
             get {
                 return ResourceManager.GetString("ERR_ThisStructNotInAnonMeth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A throw expression is not allowed here..
+        /// </summary>
+        internal static string ERR_ThrowMisplaced {
+            get {
+                return ResourceManager.GetString("ERR_ThrowMisplaced", resourceCulture);
             }
         }
         

@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 var exprType = expr.Type;
                 // Expression type will be null for "throw null;".
-                if (((object)exprType != null) && (exprType.TypeKind == TypeKind.TypeParameter))
+                if (exprType?.TypeKind == TypeKind.TypeParameter)
                 {
                     this.EmitBox(exprType, expr.Syntax);
                 }

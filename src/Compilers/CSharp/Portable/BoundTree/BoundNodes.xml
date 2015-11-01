@@ -677,22 +677,22 @@
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
 
-  <Node Name="BoundMatchStatement" Base="BoundStatement">
+  <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
     <Field Name="Expression" Type="BoundExpression"/>
 
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
-    <Field Name="MatchSections" Type="ImmutableArray&lt;BoundMatchSection&gt;"/>
+    <Field Name="PatternSwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
   </Node>
 
-  <Node Name="BoundMatchSection" Base="BoundStatementList">
+  <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="MatchLabels" Type="ImmutableArray&lt;BoundMatchLabel&gt;"/>
+    <Field Name="PatternSwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
   </Node>
 
-  <Node Name="BoundMatchLabel" Base="BoundNode">
+  <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
     <Field Name="Pattern" Type="BoundPattern"/>
     <Field Name="Guard" Type="BoundExpression" Null="allow"/>
   </Node>
@@ -1370,6 +1370,22 @@
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundMatchExpression" Base="BoundExpression">
+    <Field Name="Left" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Cases" Type="ImmutableArray&lt;BoundMatchCase&gt;"/>
+  </Node>
+
+  <Node Name="BoundMatchCase" Base="BoundNode">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+  </Node>
+
+  <Node Name="BoundThrowExpression" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
   <AbstractNode Name="BoundPattern" Base="BoundNode"/>

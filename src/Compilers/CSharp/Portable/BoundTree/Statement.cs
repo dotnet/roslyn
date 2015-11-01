@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override OperationKind StatementKind => OperationKind.LocalFunctionStatement;
     }
 
-    partial class BoundMatchStatement
+    partial class BoundPatternSwitchStatement
     {
         // TODO: this may need its own OperationKind.
         protected override OperationKind StatementKind => OperationKind.SwitchStatement;

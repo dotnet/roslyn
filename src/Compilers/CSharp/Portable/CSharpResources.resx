@@ -4690,4 +4690,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadIsPatternExpression" xml:space="preserve">
     <value>Invalid operand for pattern match.</value>
   </data>
+  <data name="ERR_AmbigMatch0" xml:space="preserve">
+    <value>Type of match expression cannot be determined because no branch has a type</value>
+  </data>
+  <data name="ERR_AmbigMatch1" xml:space="preserve">
+    <value>Type of match expression cannot be determined because no branch has a most specific type</value>
+  </data>
+  <data name="ERR_ThrowMisplaced" xml:space="preserve">
+    <value>A throw expression is not allowed here.</value>
+  </data>
 </root>

@@ -1627,6 +1627,13 @@
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax" />
   </Node>
+  <Node Name="ThrowExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ThrowExpression" />
+    <Field Name="ThrowKeyword" Type="SyntaxToken" Optional="false">
+      <Kind Name="ThrowKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax" Optional="false"/>
+  </Node>
   <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeclarationPattern" />
@@ -2289,8 +2296,8 @@
       <summary>Represents a switch label within a switch statement.</summary>
     </TypeComment>
   </AbstractNode>
-  <Node Name="CaseMatchLabelSyntax" Base="SwitchLabelSyntax">
-    <Kind Name="CaseMatchLabel"/>
+  <Node Name="CasePatternSwitchLabelSyntax" Base="SwitchLabelSyntax">
+    <Kind Name="CasePatternSwitchLabel"/>
     <Field Name="Keyword" Type="SyntaxToken" Override="true">
       <Kind Name="CaseKeyword"/>
       <PropertyComment>

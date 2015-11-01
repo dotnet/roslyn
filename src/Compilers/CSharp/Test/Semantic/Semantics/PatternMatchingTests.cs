@@ -506,7 +506,7 @@ public struct X
     public static void Main()
     {
         var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X(), new Exception(""boo"") };
-            foreach (var o in oa)
+        foreach (var o in oa)
         {
             switch (o)
             {
@@ -587,6 +587,48 @@ public class X
                 //                 Console.WriteLine(x4); // error
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x4").WithArguments("x4").WithLocation(14, 35)
                 );
+        }
+
+        [Fact]
+        public void MatchExpression00()
+        {
+            var source =
+@"using System;
+public struct X
+{
+    public static void Main()
+    {
+        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X(), new Exception(""boo"") };
+        foreach (var o in oa)
+        {
+            var s = o match (
+                case 1 : ""one""
+                case int i : $""int {i}""
+                case long l : $""long {l}""
+                case double d : $""double {d}""
+                case null : $""null""
+                case ValueType z : $""struct {z.GetType().Name} {z}""
+                case object q : $""class {q.GetType().Name} {q}""
+                );
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedOutput =
+@"one
+int 10
+long 20
+double 1.2
+class String foo
+struct Boolean True
+null
+struct X X
+class Exception System.Exception: boo
+";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

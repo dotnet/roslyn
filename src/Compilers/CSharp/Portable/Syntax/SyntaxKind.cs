@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         PropertyPattern = 8554,
         SubPropertyPattern = 8555,
         SubPropertyPatternList = 8556,
-        CaseMatchLabel = 8557,
+        CasePatternSwitchLabel = 8557,
 
         // binary expressions
         AddExpression = 8668,
@@ -551,5 +551,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         LoadDirectiveTrivia = 8923,
         MatchSection = 8924,
         MatchExpression = 8925,
+        ThrowExpression = 8926,
     }
 }

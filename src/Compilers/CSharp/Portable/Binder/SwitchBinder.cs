@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.DefaultSwitchLabel:
                         break;
-                    case SyntaxKind.CaseMatchLabel:
+                    case SyntaxKind.CasePatternSwitchLabel:
                         throw new NotImplementedException();
                     default:
                         throw ExceptionUtilities.UnexpectedValue(labelSyntax.Kind());
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Fetch the matching switch case label symbols
                     matchedLabelSymbols = FindMatchingSwitchCaseLabels(labelExpressionConstant, caseLabelSyntax);
                     break;
-                case SyntaxKind.CaseMatchLabel:
+                case SyntaxKind.CasePatternSwitchLabel:
                     // pattern matching in case is not yet implemented.
                     if (!node.HasErrors)
                     {

@@ -333,14 +333,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitMatchSection(BoundMatchSection node, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
-            base.VisitMatchSection(node, isLastSection);
+            base.VisitPatternSwitchSection(node, isLastSection);
 
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                var syntax = node.MatchLabels.Last().Pattern.Syntax;
+                var syntax = node.PatternSwitchLabels.Last().Pattern.Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
                 this.State.Reported = true;

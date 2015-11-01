@@ -127,22 +127,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Below here is the implementation for the pattern-matching variation of the switch statement.
         // ===========================
 
-        public override BoundNode VisitMatchStatement(BoundMatchStatement node)
+        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
             // visit switch header
-            LocalState breakState = VisitMatchHeader(node);
+            LocalState breakState = VisitPatternSwitchHeader(node);
 
             // visit switch block
-            VisitMatchBlock(node);
+            VisitPatternSwitchBlock(node);
             IntersectWith(ref breakState, ref this.State);
             ResolveBreaks(breakState, node.BreakLabel);
             return null;
         }
 
-        private void VisitMatchBlock(BoundMatchStatement node)
+        private void VisitPatternSwitchBlock(BoundPatternSwitchStatement node)
         {
             var afterSwitchState = UnreachableState();
-            var switchSections = node.MatchSections;
+            var switchSections = node.PatternSwitchSections;
             var iLastSection = (switchSections.Length - 1);
             var dispatchState = this.State.Clone();
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
                 SetState(dispatchState.Clone());
-                VisitMatchSection(switchSections[iSection], iSection == iLastSection);
+                VisitPatternSwitchSection(switchSections[iSection], iSection == iLastSection);
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
                 IntersectWith(ref afterSwitchState, ref this.State);
@@ -162,21 +162,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Visit the switch expression, and return the initial break state.
         /// </summary>
-        private LocalState VisitMatchHeader(BoundMatchStatement node)
+        private LocalState VisitPatternSwitchHeader(BoundPatternSwitchStatement node)
         {
             // decide if the switch has the moral equivalent of a default label.
             bool hasDefaultLabel = false;
-            foreach (var section in node.MatchSections)
+            foreach (var section in node.PatternSwitchSections)
             {
-                foreach (var boundMatchLabel in section.MatchLabels)
+                foreach (var boundPatternSwitchLabel in section.PatternSwitchLabels)
                 {
-                    if (boundMatchLabel.Guard != null && !IsConstantTrue(boundMatchLabel.Guard))
+                    if (boundPatternSwitchLabel.Guard != null && !IsConstantTrue(boundPatternSwitchLabel.Guard))
                     {
                         continue;
                     }
 
-                    if (boundMatchLabel.Pattern.Kind == BoundKind.WildcardPattern ||
-                        boundMatchLabel.Pattern.Kind == BoundKind.DeclarationPattern && ((BoundDeclarationPattern)boundMatchLabel.Pattern).IsVar)
+                    if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern ||
+                        boundPatternSwitchLabel.Pattern.Kind == BoundKind.DeclarationPattern && ((BoundDeclarationPattern)boundPatternSwitchLabel.Pattern).IsVar)
                     {
                         hasDefaultLabel = true;
                         goto foundDefaultLabel;
@@ -199,12 +199,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void VisitMatchSection(BoundMatchSection node, bool isLastSection)
+        protected virtual void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             // visit switch section labels
             var initialState = this.State;
             var afterGuardState = UnreachableState();
-            foreach (var label in node.MatchLabels)
+            foreach (var label in node.PatternSwitchLabels)
             {
                 SetState(initialState.Clone());
                 VisitPattern(label.Pattern);
@@ -223,6 +223,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public virtual void VisitPattern(BoundPattern pattern)
         {
+        }
+
+        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
+        {
+            VisitRvalue(node.Expression);
+            SetUnreachable();
+            return node;
+        }
+
+        public override BoundNode VisitMatchExpression(BoundMatchExpression node)
+        {
+            VisitRvalue(node.Left);
+            var initialState = this.State;
+            var endState = UnreachableState();
+            foreach (var c in node.Cases)
+            {
+                SetState(initialState.Clone());
+                VisitPattern(c.Pattern);
+                if (c.Guard != null)
+                {
+                    VisitCondition(c.Guard);
+                    SetState(StateWhenTrue);
+                }
+                VisitRvalue(c.Expression);
+                IntersectWith(ref endState, ref this.State);
+            }
+
+            SetState(endState);
+            return node;
         }
     }
 }

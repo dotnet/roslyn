@@ -1356,20 +1356,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitMatchStatement(BoundMatchStatement node)
+        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
         {
             DeclareVariables(node.InnerLocals);
-            var result = base.VisitMatchStatement(node);
+            var result = base.VisitPatternSwitchStatement(node);
             ReportUnusedVariables(node.InnerLocals);
             ReportUnusedVariables(node.InnerLocalFunctions);
             return result;
         }
 
-        protected override void VisitMatchSection(BoundMatchSection node, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             // TODO: this an probably depend more heavily on the base class implementation.
             DeclareVariables(node.Locals);
-            base.VisitMatchSection(node, isLastSection);
+            base.VisitPatternSwitchSection(node, isLastSection);
         }
 
         private void AssignPatternVariables(BoundPattern pattern)

@@ -148,5 +148,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _factory.SpecialType(SpecialType.System_Boolean));
             }
         }
+
+        public override BoundNode VisitMatchExpression(BoundMatchExpression node)
+        {
+            // TODO: find a better way to preserve the scope of pattern variables in a match.
+
+            // we translate a match expression into a sequence of conditionals.
+            // However, because we have no way to express the proper scope of the pattern
+            // variables, we lump them all together at the top.
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance();
+            BoundAssignmentOperator initialStore;
+            var temp =_factory.StoreToTemp(node.Left, out initialStore);
+            locals.Add(temp.LocalSymbol);
+            int n = node.Cases.Length;
+            BoundExpression result = _factory.ThrowNullExpression(node.Type);
+            for (int i = n-1; i >= 0; i--)
+            {
+                var c = node.Cases[i];
+                locals.AddRange(c.Locals);
+                var condition = TranslatePattern(temp, c.Pattern);
+                if (c.Guard != null) condition = _factory.LogicalAnd(condition, VisitExpression(c.Guard));
+                var consequence = VisitExpression(c.Expression);
+                _factory.Syntax = c.Syntax;
+                result = _factory.Conditional(condition, consequence, result, node.Type);
+            }
+
+            return _factory.Sequence(locals.ToImmutableAndFree(), initialStore, result);
+        }
     }
 }

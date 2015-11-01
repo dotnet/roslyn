@@ -581,6 +581,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IsPatternExpression:
                     return BindIsPatternExpression((IsPatternExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.MatchExpression:
+                    return BindMatchExpression((MatchExpressionSyntax)node, diagnostics);
+
+                case SyntaxKind.ThrowExpression:
+                    return BindThrowExpression((ThrowExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected

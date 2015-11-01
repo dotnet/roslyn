@@ -1323,5 +1323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantInferVoid = 8104,
         ERR_PatternNullableType = 8105,
         ERR_BadIsPatternExpression = 8106,
+        ERR_AmbigMatch0 = 8107,
+        ERR_AmbigMatch1 = 8108,
+        ERR_ThrowMisplaced = 8109,
     }
 }
