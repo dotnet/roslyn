@@ -32,12 +32,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private sealed class EmitTracker
-        {
-            internal readonly List<ModuleData> Dependencies = new List<ModuleData>();
-            internal readonly HashSet<Compilation> CompilationSet = new HashSet<Compilation>();
-        }
-
         private bool _disposed;
         private AppDomain _domain;
         private RuntimeAssemblyManager _assemblyManager;
@@ -110,81 +104,101 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private static void EmitDependentCompilation(Compilation compilation,
-                                                     EmitTracker tracker,
-                                                     DiagnosticBag diagnostics,
-                                                     bool usePdbForDebugging = false)
+        /// <summary>
+        /// Find all of the <see cref="Compilation"/> values reachable from this instance.
+        /// </summary>
+        /// <param name="compilation"></param>
+        /// <returns></returns>
+        private static List<Compilation> FindReferencedCompilations(Compilation original)
         {
-            // It is possible for the same Compilation to appear multiple times 
-            // as a dependent reference in a Compilation.  Only need to emit it 
-            // once.
-            if (tracker.CompilationSet.Contains(compilation))
+            var list = new List<Compilation>();
+            var toVisit = new Queue<Compilation>(FindDirectReferencedCompilations(original));
+
+            while (toVisit.Count > 0)
             {
-                return;
+                var current = toVisit.Dequeue();
+                if (list.Contains(current))
+                {
+                    continue;
+                }
+
+                list.Add(current);
+
+                foreach (var other in FindDirectReferencedCompilations(current))
+                {
+                    toVisit.Enqueue(other);
+                }
             }
 
-            tracker.CompilationSet.Add(compilation);
-
-            var emitData = EmitCompilation(compilation, null, tracker, diagnostics, null);
-            if (emitData.HasValue)
-            {
-                var moduleData = new ModuleData(compilation.Assembly.Identity,
-                                                OutputKind.DynamicallyLinkedLibrary,
-                                                emitData.Value.Assembly,
-                                                pdb: usePdbForDebugging ? emitData.Value.Pdb : default(ImmutableArray<byte>),
-                                                inMemoryModule: true);
-                tracker.Dependencies.Add(moduleData);
-            }
+            return list;
         }
 
-        private static void EmitReferences(Compilation compilation, EmitTracker tracker, DiagnosticBag diagnostics)
+        private static List<Compilation> FindDirectReferencedCompilations(Compilation compilation)
         {
-            var previousSubmission = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
-            if (previousSubmission != null)
+            var list = new List<Compilation>();
+            var previousCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previousCompilation != null)
             {
-                EmitDependentCompilation(previousSubmission, tracker, diagnostics);
+                list.Add(previousCompilation);
             }
 
-            foreach (MetadataReference r in compilation.References)
+            foreach (var reference in compilation.References.OfType<CompilationReference>())
             {
-                CompilationReference compilationRef;
-                PortableExecutableReference peRef;
+                list.Add(reference.Compilation);
+            }
 
-                if ((compilationRef = r as CompilationReference) != null)
+            return list;
+        }
+
+        /// <summary>
+        /// Emit all of the references which are not directly or indirectly a <see cref="Compilation"/> value.
+        /// </summary>
+        private static void EmitReferences(Compilation compilation, HashSet<string> fullNameSet, List<ModuleData> dependencies, DiagnosticBag diagnostics)
+        {
+            var previousSubmission = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            foreach (var metadataReference in compilation.References)
+            {
+                if (metadataReference is CompilationReference)
                 {
-                    EmitDependentCompilation(compilationRef.Compilation, tracker, diagnostics);
+                    continue;
                 }
-                else if ((peRef = r as PortableExecutableReference) != null)
+
+                var peRef = (PortableExecutableReference)metadataReference;
+                var metadata = peRef.GetMetadata();
+                var isManifestModule = peRef.Properties.Kind == MetadataImageKind.Assembly;
+                var identity = isManifestModule
+                    ? ((AssemblyMetadata)metadata).GetAssembly().Identity
+                    : null;
+
+                // If this is an indirect reference to a Compilation then it is already been emitted 
+                // so no more work to be done.
+                if (isManifestModule && fullNameSet.Contains(identity.GetDisplayName()))
                 {
-                    var metadata = peRef.GetMetadata();
-                    bool isManifestModule = peRef.Properties.Kind == MetadataImageKind.Assembly;
-                    foreach (var module in EnumerateModules(metadata))
+                    continue;
+                }
+
+                foreach (var module in EnumerateModules(metadata))
+                {
+                    ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
+                    ModuleData moduleData;
+                    if (isManifestModule)
                     {
-                        ImmutableArray<byte> bytes = module.Module.PEReaderOpt.GetEntireImage().GetContent();
-                        ModuleData moduleData;
-                        if (isManifestModule)
-                        {
-                            moduleData = new ModuleData(((AssemblyMetadata)metadata).GetAssembly().Identity,
-                                                            OutputKind.DynamicallyLinkedLibrary,
-                                                            bytes,
-                                                            pdb: default(ImmutableArray<byte>),
-                                                            inMemoryModule: true);
-                        }
-                        else
-                        {
-                            moduleData = new ModuleData(module.Name,
-                                                            bytes,
-                                                            pdb: default(ImmutableArray<byte>),
-                                                            inMemoryModule: true);
-                        }
-
-                        tracker.Dependencies.Add(moduleData);
-                        isManifestModule = false;
+                        moduleData = new ModuleData(identity,
+                                                    OutputKind.DynamicallyLinkedLibrary,
+                                                    bytes,
+                                                    pdb: default(ImmutableArray<byte>),
+                                                    inMemoryModule: true);
                     }
-                }
-                else
-                {
-                    throw new InvalidOperationException();
+                    else
+                    {
+                        moduleData = new ModuleData(module.Name,
+                                                    bytes,
+                                                    pdb: default(ImmutableArray<byte>),
+                                                    inMemoryModule: true);
+                    }
+
+                    dependencies.Add(moduleData);
+                    isManifestModule = false;
                 }
             }
         }
@@ -197,13 +211,48 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private static EmitData? EmitCompilation(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources,
-            EmitTracker tracker,
+            List<ModuleData> dependencies,
             DiagnosticBag diagnostics,
             CompilationTestData testData
         )
         {
-            EmitReferences(compilation, tracker, diagnostics);
+            // A Compilation can appear multiple times in a depnedency graph as both a Compilation and as a MetadataReference
+            // value.  Iterate the Compilations eagerly so they are always emitted directly and later references can re-use 
+            // the value.  This gives better, and consistent, diagostic information.
+            var referencedCompilations = FindReferencedCompilations(compilation);
+            var fullNameSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            foreach (var referencedCompilation in referencedCompilations)
+            {
+                var emitData = EmitCompilationCore(referencedCompilation, null, diagnostics, null);
+                if (emitData.HasValue)
+                {
+                    var moduleData = new ModuleData(referencedCompilation.Assembly.Identity,
+                                                    OutputKind.DynamicallyLinkedLibrary,
+                                                    emitData.Value.Assembly,
+                                                    pdb: default(ImmutableArray<byte>),
+                                                    inMemoryModule: true);
+                    fullNameSet.Add(moduleData.Id.FullName);
+                    dependencies.Add(moduleData);
+                }
+            }
+
+            // Now that the Compilation values have been emitted, emit the non-compilation references
+            foreach (var current in (new[] { compilation }).Concat(referencedCompilations))
+            {
+                EmitReferences(current, fullNameSet, dependencies, diagnostics);
+            }
+
+            return EmitCompilationCore(compilation, manifestResources, diagnostics, testData);
+        }
+
+        private static EmitData? EmitCompilationCore(
+            Compilation compilation,
+            IEnumerable<ResourceDescription> manifestResources,
+            DiagnosticBag diagnostics,
+            CompilationTestData testData
+        )
+        {
             using (var executableStream = new MemoryStream())
             {
                 var pdb = default(ImmutableArray<byte>);
@@ -256,8 +305,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _testData.Methods.Clear();
 
             var diagnostics = DiagnosticBag.GetInstance();
-            var tracker = new EmitTracker();
-            var mainData = EmitCompilation(mainCompilation, manifestResources, tracker, diagnostics, _testData);
+            var dependencies = new List<ModuleData>();
+            var mainData = EmitCompilation(mainCompilation, manifestResources, dependencies, diagnostics, _testData);
 
             _lazyDiagnostics = diagnostics.ToReadOnlyAndFree();
 
@@ -271,18 +320,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                                  pdb: usePdbForDebugging ? mainPdb : default(ImmutableArray<byte>),
                                                  inMemoryModule: true);
                 _mainModulePdb = mainPdb;
-                _allModuleData = tracker.Dependencies;
+                _allModuleData = dependencies;
                 _allModuleData.Insert(0, _mainModule);
-                CreateAssemblyManager(tracker.Dependencies, _mainModule);
+                CreateAssemblyManager(dependencies, _mainModule);
             }
             else
             {
                 string dumpDir;
-                RuntimeAssemblyManager.DumpAssemblyData(tracker.Dependencies, out dumpDir);
+                RuntimeAssemblyManager.DumpAssemblyData(dependencies, out dumpDir);
 
                 // This method MUST throw if compilation did not succeed.  If compilation succeeded and there were errors, that is bad.
                 // Please see KevinH if you intend to change this behavior as many tests expect the Exception to indicate failure.
-                throw new EmitException(_lazyDiagnostics, dumpDir); 
+                throw new EmitException(_lazyDiagnostics, dumpDir);
             }
         }
 
