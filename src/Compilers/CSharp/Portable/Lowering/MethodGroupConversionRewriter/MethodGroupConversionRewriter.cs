@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TypeCompilationState CompilationState;
         private readonly DiagnosticBag Diagnostics;
         private readonly SyntheticBoundNodeFactory F;
+        private readonly PEModuleBuilder ModuleBuilder;
 
         private MethodGroupConversionRewriter(MethodSymbol currentMethod, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
@@ -26,11 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Diagnostics = diagnostics;
 
             F = new SyntheticBoundNodeFactory(currentMethod, (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot(), compilationState, diagnostics);
-
-            if (CompilationState.MethodGroupConversionCacheTargetFrames == null)
-            {
-                compilationState.MethodGroupConversionCacheTargetFrames = new Dictionary<KeyValuePair<NamedTypeSymbol, MethodSymbol>, MethodGroupConversionCacheTargetFrame>();
-            }
+            ModuleBuilder = compilationState.ModuleBuilderOpt;
         }
 
         public static BoundStatement Rewrite(
@@ -41,8 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(currentMethod != null);
             Debug.Assert(loweredBody?.HasErrors == false);
-            Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
+            Debug.Assert(compilationState != null);
+            Debug.Assert(compilationState.ModuleBuilderOpt != null);
+
+            if (compilationState.MethodGroupConversionCacheTargetFrames == null)
+            {
+                compilationState.MethodGroupConversionCacheTargetFrames = new Dictionary<KeyValuePair<NamedTypeSymbol, MethodSymbol>, MethodGroupConversionCacheTargetFrame>();
+            }
 
             var rewriter = new MethodGroupConversionRewriter(currentMethod, compilationState, diagnostics);
             return (BoundStatement)rewriter.Visit(loweredBody);
@@ -79,10 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode RewriteConversion(BoundConversion conversion)
         {
             var targetMethod = GetTargetMethod(conversion);
-            var currentModule = CompilationState.ModuleBuilderOpt;
 
             Debug.Assert(targetMethod != null);
-            Debug.Assert(currentModule != null);
             Debug.Assert(conversion.Type is NamedTypeSymbol);
 
             F.Syntax = conversion.Syntax;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 targetFrame = MethodGroupConversionCacheTargetFrame.Create(container, targetMethod, typeArguments.Length);
 
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(container, targetFrame);
+                ModuleBuilder.AddSynthesizedDefinition(container, targetFrame);
                 CompilationState.MethodGroupConversionCacheTargetFrames.Add(keyForTargetFrame, targetFrame);
             }
 
@@ -132,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (wasDelegateFrameAdded)
             {
-                var moduleBuilder = CompilationState.ModuleBuilderOpt;
-                moduleBuilder.AddSynthesizedDefinition(targetFrame, delegateFrame);
+                ModuleBuilder.AddSynthesizedDefinition(targetFrame, delegateFrame);
             }
 
             var constructedTargetFrame = typeArguments.Length == 0 ? targetFrame : targetFrame.Construct(typeArguments);
-            var constructedDelegateFrame = delegateType.Arity == 0 ? delegateFrame : delegateFrame.AsMember(constructedTargetFrame).Construct(delegateType.TypeArguments);
+            var substitutedDelegateFrame = delegateFrame.AsMember(constructedTargetFrame);
+            var constructedDelegateFrame = delegateType.Arity == 0 ? substitutedDelegateFrame : substitutedDelegateFrame.Construct(delegateType.TypeArguments);
             return F.Field(null, delegateField.AsMember(constructedDelegateFrame));
         }
     }
