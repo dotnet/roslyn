@@ -1051,6 +1051,7 @@ class C
         }
 
         [Fact]
+        /// For implicit conversion <see cref="CodeGenMethodGroupConversionTests.TestConditionalOperatorMethodGroup">
         public void TestConditionalOperatorMethodGroup()
         {
             var source = @"
@@ -1061,9 +1062,9 @@ class C
         bool b = true;
         System.Func<int> f = null;
         System.Console.WriteLine(f);
-        System.Func<int> g1 = b ? f : M;
+        System.Func<int> g1 = b ? f : (System.Func<int>)M;
         System.Console.WriteLine(g1);
-        System.Func<int> g2 = b ? M : f;
+        System.Func<int> g2 = b ? (System.Func<int>)M : f;
         System.Console.WriteLine(g2);
     }
 
