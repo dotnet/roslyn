@@ -137,7 +137,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
         autoCloseFailedPullRequests(false)
         orgWhitelist('Microsoft')
         allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(true)
+        permitAll(false)
         extensions {
           commitStatus {
             context(contextName.replace('_', '/').substring(7))
@@ -165,7 +165,7 @@ static void addPullRequestTrigger(def myJob, String contextName, String opsysNam
             switch (opsys) {
               case 'win':
                 myJob.with {
-                  label('windows-roslyn')
+                  label('windows-roslyn || windows-roslyn-internal')
                   steps {
                     batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
