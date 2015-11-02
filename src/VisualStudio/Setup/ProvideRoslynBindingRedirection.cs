@@ -53,11 +53,22 @@ namespace Roslyn.VisualStudio.Setup
         public override void Register(RegistrationContext context)
         {
             _redirectionAttribute.Register(context);
+
+#if !OFFICIAL_BUILD
+
+            // If we're not an official build, we need to opt into overriding the devenv.exe.config binding redirect
+            using (var key = context.CreateKey(@"RuntimeConfiguration\dependentAssembly\bindingRedirection\" + _redirectionAttribute.Guid.ToString("B").ToUpperInvariant()))
+            {
+                key.SetValue("isPkgDefOverrideEnabled", true);
+            }
+
+#endif
         }
 
         public override void Unregister(RegistrationContext context)
         {
             _redirectionAttribute.Unregister(context);
         }
+
     }
 }
