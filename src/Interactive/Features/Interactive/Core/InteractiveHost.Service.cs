@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                         success = true;
 
                         // remove references and imports from the options, they have been applied and will be inherited from now on:
-                        state = state.WithOptions(RemoveImportsAndReferences(state.ScriptOptions));
+                        state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
 
                         var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
                         if (newScriptState != null)
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                                     // remove references and imports from the options, they have been applied and will be inherited from now on:
                                     rspState = rspState.
                                         WithScriptState(newScriptState).
-                                        WithOptions(RemoveImportsAndReferences(rspState.ScriptOptions));
+                                        WithOptions(rspState.ScriptOptions.RemoveImportsAndReferences());
                                 }
                             }
 
@@ -674,11 +674,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 return state;
-            }
-
-            private static ScriptOptions RemoveImportsAndReferences(ScriptOptions options)
-            {
-                return options.WithReferences(Array.Empty<MetadataReference>()).WithImports(Array.Empty<string>());
             }
 
             private string ResolveRelativePath(string path, string baseDirectory, ImmutableArray<string> searchPaths, bool displayPath)

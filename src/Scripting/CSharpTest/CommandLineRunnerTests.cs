@@ -446,6 +446,76 @@ C4 { }
         }
 
         [Fact]
+        public void SourceSearchPaths_Change1()
+        {
+            var dir = Temp.CreateDirectory();
+            var main = dir.CreateFile("a.csx").WriteAllText("int X = 1;");
+
+            var runner = CreateRunner(input: 
+$@"SourcePaths
+#load ""a.csx""
+SourcePaths.Add(@""{dir.Path}"")
+#load ""a.csx""
+X
+");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> SourcePaths
+SearchPaths {{ }}
+> #load ""a.csx""
+«Red»
+(1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
+«Gray»
+> SourcePaths.Add(@""{dir.Path}"")
+> #load ""a.csx""
+> X
+1
+> 
+", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void ReferenceSearchPaths_Change1()
+        {
+            var dir = Temp.CreateDirectory();
+            var main = dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
+
+            var runner = CreateRunner(input:
+$@"ReferencePaths
+#r ""C.dll""
+ReferencePaths.Add(@""{dir.Path}"")
+#r ""C.dll""
+new C()
+");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> ReferencePaths
+SearchPaths {{ }}
+> #r ""C.dll""
+«Red»
+(1,1): error CS0006: Metadata file 'C.dll' could not be found
+«Gray»
+> ReferencePaths.Add(@""{dir.Path}"")
+> #r ""C.dll""
+> new C()
+C {{ }}
+> 
+", runner.Console.Out.ToString());
+        }
+
+        [Fact]
         public void ResponseFile()
         {
             var rsp = Temp.CreateFile().WriteAllText(@"
