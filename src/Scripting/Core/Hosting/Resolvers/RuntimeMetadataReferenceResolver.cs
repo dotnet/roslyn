@@ -140,5 +140,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         public override bool Equals(object other) => Equals(other as RuntimeMetadataReferenceResolver);
+
+        internal RuntimeMetadataReferenceResolver WithRelativePathResolver(RelativePathResolver resolver)
+        {
+            return Equals(resolver, PathResolver) ? this :
+                new RuntimeMetadataReferenceResolver(resolver, PackageResolver, GacFileResolver, _fileReferenceProvider);
+        }
     }
 }

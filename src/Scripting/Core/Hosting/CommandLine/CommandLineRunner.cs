@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, ref ScriptOptions options, CancellationToken cancellationToken)
+        private bool TryBuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object> state, ref ScriptOptions options, CancellationToken cancellationToken)
         {
             var diagnostics = newScript.Compile(cancellationToken);
             DisplayDiagnostics(diagnostics);
@@ -301,9 +301,31 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return false;
             }
 
-            // options have been used up:
-            options = null;
+            options = UpdateOptions(options, globals);
+
             return true;
+        }
+
+        private static ScriptOptions UpdateOptions(ScriptOptions options, InteractiveScriptGlobals globals)
+        {
+            var currentMetadataResolver = (RuntimeMetadataReferenceResolver)options.MetadataResolver;
+            var currentSourceResolver = (CommonCompiler.LoggingSourceFileResolver)options.SourceResolver;
+
+            string newWorkingDirectory = Directory.GetCurrentDirectory();
+            var newReferenceSearchPaths = ImmutableArray.CreateRange(globals.ReferencePaths);
+            var newSourceSearchPaths = ImmutableArray.CreateRange(globals.SourcePaths);
+
+            // remove references and imports from the options, they have been applied and will be inherited from now on:
+            return options.
+                RemoveImportsAndReferences().
+                WithMetadataResolver(currentMetadataResolver.
+                    WithRelativePathResolver(
+                        currentMetadataResolver.PathResolver.
+                            WithBaseDirectory(newWorkingDirectory).
+                            WithSearchPaths(newReferenceSearchPaths))).
+                WithSourceResolver(currentSourceResolver.
+                        WithBaseDirectory(newWorkingDirectory).
+                        WithSearchPaths(newSourceSearchPaths));
         }
 
         private void DisplayException(Exception e)

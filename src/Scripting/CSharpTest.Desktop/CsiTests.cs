@@ -29,6 +29,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.False(result.ContainsErrors);
         }
 
+        [Fact]
+        public void CurrentWorkingDirectory_Change()
+        {
+            var dir = Temp.CreateDirectory();
+            dir.CreateFile("a.csx").WriteAllText(@"int X = 1;");
+            dir.CreateFile("C.dll").WriteAllBytes(TestResources.General.C1);
+
+            var result = ProcessUtilities.Run(CsiPath, "", stdInput: 
+$@"#load ""a.csx""
+#r ""C.dll""
+Directory.SetCurrentDirectory(@""{dir.Path}"")
+#load ""a.csx""
+#r ""C.dll""
+X
+new C()
+Environment.Exit(0)
+");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+Microsoft (R) Visual C# Interactive Compiler version 42.42.42.42
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> (1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
+> (1,1): error CS0006: Metadata file 'C.dll' could not be found
+> > > > 1
+> C { }
+> 
+", result.Output);
+
+            Assert.False(result.ContainsErrors);
+        }
+
         /// <summary>
         /// csi does NOT use LIB environment variable to populate reference search paths.
         /// </summary>
