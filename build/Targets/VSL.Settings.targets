@@ -68,7 +68,7 @@
     <MicrosoftCompositionAssemblyVersion Condition="'$(MicrosoftCompositionAssemblyVersion)' == ''">1.0.27</MicrosoftCompositionAssemblyVersion>
     <SystemReflectionMetadataVersion>$(SystemReflectionMetadataAssemblyVersion)</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>$(SystemCollectionsImmutableAssemblyVersion)</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.3.0</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.3.2</MicrosoftDiaSymReaderNativeVersion>
     <NuGetCommandLineVersion>$(NuGetCommandLineAssemblyVersion)</NuGetCommandLineVersion>
     <MicrosoftCompositionVersion>$(MicrosoftCompositionAssemblyVersion)</MicrosoftCompositionVersion>
     <MicrosoftCodeAnalysisAnalyzersVersionStable Condition="'$(MicrosoftCodeAnalysisAnalyzersVersionStable)' == ''">1.0.0</MicrosoftCodeAnalysisAnalyzersVersionStable>

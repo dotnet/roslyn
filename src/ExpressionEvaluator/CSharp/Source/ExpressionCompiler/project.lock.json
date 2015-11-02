@@ -11,7 +11,6 @@
           "lib/portable-net45+win8/Microsoft.DiaSymReader.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.3.0": {},
       "System.Collections.Immutable/1.1.37": {
         "compile": {
           "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll": {}
@@ -46,22 +45,6 @@
         "lib/portable-net45+win8/Microsoft.DiaSymReader.xml",
         "Microsoft.DiaSymReader.nuspec",
         "package/services/metadata/core-properties/ead7dc5d4bf24fbe8708f348725a9b02.psmdcp"
-      ]
-    },
-    "Microsoft.DiaSymReader.Native/1.3.0": {
-      "sha512": "SOJ7SQGJvXJesWiRQ6YMZYbQNor7ID2MYMfhwcffbWTXGjIm3Zi8SbJ3c2YERagVlL9UpRU93jm7GXYJhVj6Sw==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/4cddea24a9c44495aca95eb46f272367.psmdcp",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
-        "runtimes/win8-arm/native/Microsoft.DiaSymReader.Native.arm.dll",
-        "runtimes/win-x64/native/Microsoft.DiaSymReader.Native.amd64.dll",
-        "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll"
       ]
     },
     "System.Collections.Immutable/1.1.37": {
