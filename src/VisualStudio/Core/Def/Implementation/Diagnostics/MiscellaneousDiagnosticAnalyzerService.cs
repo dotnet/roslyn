@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
                 _service.RaiseDiagnosticsUpdated(
-                    new DiagnosticsUpdatedArgs(new MiscUpdateArgsId(document.Id),
+                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new MiscUpdateArgsId(document.Id),
                     _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
@@ -120,7 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             private void RaiseEmptyDiagnosticUpdated(DocumentId documentId)
             {
-                _service.RaiseDiagnosticsUpdated(new DiagnosticsUpdatedArgs(ValueTuple.Create(this, documentId), _workspace, null, documentId.ProjectId, documentId, ImmutableArray<DiagnosticData>.Empty));
+                _service.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                    ValueTuple.Create(this, documentId), _workspace, null, documentId.ProjectId, documentId));
             }
 
             // method we don't care. misc project only supports syntax errors

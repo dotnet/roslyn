@@ -109,8 +109,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             public ArgumentKey(DiagnosticAnalyzer analyzer, StateType stateType, object key) : base(analyzer)
             {
-                this.StateType = stateType;
-                this.Key = key;
+                StateType = stateType;
+                Key = key;
             }
 
             public override bool Equals(object obj)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return false;
                 }
 
-                return StateType == other.StateType && Key == other.Key && base.Equals(obj);
+                return StateType == other.StateType && Equals(Key, other.Key) && base.Equals(obj);
             }
 
             public override int GetHashCode()
