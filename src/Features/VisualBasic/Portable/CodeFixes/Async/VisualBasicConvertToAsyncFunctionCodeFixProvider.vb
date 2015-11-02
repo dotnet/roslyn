@@ -44,6 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Async
         End Function
 
         Private Async Function GetMethodFromExpression(oldNode As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Tuple(Of SyntaxNode, MethodBlockSyntax))
+            If oldNode Is Nothing Then
+                Return Nothing
+            End If
+
             Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(oldNode).Symbol, IMethodSymbol)
             If methodSymbol Is Nothing Then
                 Return Nothing
