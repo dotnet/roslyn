@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim assemblyReferencesBySimpleName = PooledDictionary(Of String, List(Of ReferencedAssemblyIdentity)).GetInstance()
 
                 Try
-                    Dim boundReferenceDirectiveMap As IDictionary(Of String, MetadataReference) = Nothing
+                    Dim boundReferenceDirectiveMap As IDictionary(Of ValueTuple(Of String, String), MetadataReference) = Nothing
                     Dim boundReferenceDirectives As ImmutableArray(Of MetadataReference) = Nothing
                     Dim referencedAssemblies As ImmutableArray(Of AssemblyData) = Nothing
                     Dim modules As ImmutableArray(Of PEModule) = Nothing ' To make sure the modules are not collected ahead of time.

@@ -36,6 +36,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
                     Return -1
                 End If
 
+                ' Furthermore, preselection is more important than case sensitivity
+                If leftItem.Preselect AndAlso Not rightItem.Preselect Then
+                    Return -1
+                ElseIf rightItem.Preselect AndAlso Not leftItem.Preselect
+                    Return 1
+                End If
+
                 diff = PatternMatch.CompareCase(leftMatch, rightMatch)
                 If diff <> 0 Then
                     Return diff
