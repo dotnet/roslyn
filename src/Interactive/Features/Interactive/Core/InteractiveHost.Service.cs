@@ -440,6 +440,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // successful if compiled
                         success = true;
 
+                        // remove references and imports from the options, they have been applied and will be inherited from now on:
+                        state = state.WithOptions(RemoveImportsAndReferences(state.ScriptOptions));
+
                         var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
                         if (newScriptState != null)
                         {
@@ -645,7 +648,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 var newScriptState = await ExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
                                 if (newScriptState != null)
                                 {
-                                    rspState = rspState.WithScriptState(newScriptState);
+                                    // remove references and imports from the options, they have been applied and will be inherited from now on:
+                                    rspState = rspState.
+                                        WithScriptState(newScriptState).
+                                        WithOptions(RemoveImportsAndReferences(rspState.ScriptOptions));
                                 }
                             }
 
@@ -668,6 +674,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
 
                 return state;
+            }
+
+            private static ScriptOptions RemoveImportsAndReferences(ScriptOptions options)
+            {
+                return options.WithReferences(Array.Empty<MetadataReference>()).WithImports(Array.Empty<string>());
             }
 
             private string ResolveRelativePath(string path, string baseDirectory, ImmutableArray<string> searchPaths, bool displayPath)
@@ -857,6 +868,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                             script.ContinueAsync(stateOpt, CancellationToken.None);
 
                         return await task.ConfigureAwait(false);
+                    }
+                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+                    {
+                        Console.Error.WriteLine(e.InnerException.Message);
+                        return null;
                     }
                     catch (Exception e)
                     {

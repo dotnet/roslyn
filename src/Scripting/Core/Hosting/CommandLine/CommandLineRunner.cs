@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             if (initialScriptCodeOpt != null)
             {
                 var script = Script.CreateInitialScript<object>(_scriptCompiler, initialScriptCodeOpt, options, globals.GetType(), assemblyLoaderOpt: null);
-                TryBuildAndRun(script, globals, ref state, cancellationToken);
+                TryBuildAndRun(script, globals, ref state, ref options, cancellationToken);
             }
 
             while (true)
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     newScript = state.Script.ContinueWith(code, options);
                 }
 
-                if (!TryBuildAndRun(newScript, globals, ref state, cancellationToken))
+                if (!TryBuildAndRun(newScript, globals, ref state, ref options, cancellationToken))
                 {
                     continue;
                 }
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, CancellationToken cancellationToken)
+        private bool TryBuildAndRun(Script<object> newScript, object globals, ref ScriptState<object> state, ref ScriptOptions options, CancellationToken cancellationToken)
         {
             var diagnostics = newScript.Compile(cancellationToken);
             DisplayDiagnostics(diagnostics);
@@ -280,12 +280,29 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 state = task.GetAwaiter().GetResult();
             }
+            catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+            {
+                var oldColor = _console.ForegroundColor;
+                try
+                {
+                    _console.ForegroundColor = ConsoleColor.Red;
+                    _console.Out.WriteLine(e.InnerException.Message);
+                }
+                finally
+                {
+                    _console.ForegroundColor = oldColor;
+                }
+
+                return false;
+            }
             catch (Exception e)
             {
                 DisplayException(e);
                 return false;
             }
 
+            // options have been used up:
+            options = null;
             return true;
         }
 

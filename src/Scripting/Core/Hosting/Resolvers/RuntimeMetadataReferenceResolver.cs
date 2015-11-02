@@ -27,7 +27,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal readonly NuGetPackageResolver PackageResolver;
         internal readonly GacFileResolver GacFileResolver;
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _fileReferenceProvider;
-        private static ImmutableArray<string> s_assemblyExtensions = ImmutableArray.Create(".dll", ".exe", ".winmd");
+
+        // TODO: Look for .winmd, but only if the identity has content WindowsRuntime (https://github.com/dotnet/roslyn/issues/6483)
+        // The extensions are in order in which the CLR loader looks for assembly files.
+        internal static ImmutableArray<string> AssemblyExtensions = ImmutableArray.Create(".dll", ".exe");
 
         internal RuntimeMetadataReferenceResolver(
             ImmutableArray<string> searchPaths,
@@ -68,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             if (definitionPath != null)
             {
                 var pathWithoutExtension = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(definitionPath), referenceIdentity.Name);
-                foreach (var extension in s_assemblyExtensions)
+                foreach (var extension in AssemblyExtensions)
                 {
                     var fullPath = pathWithoutExtension + extension;
                     if (File.Exists(fullPath))
