@@ -910,6 +910,33 @@ OK
         }
 
         [Fact]
+        public void InitialScript_Error()
+        {
+            var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
+
+            var rspFile = Temp.CreateFile();
+
+            rspFile.WriteAllText($@"
+/r:System
+/u:System.Diagnostics
+{initFile.Path}
+");
+
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
+            Execute("new Process()");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+{initFile.Path}(1,3): error CS1002: ; expected
+", ReadErrorOutputToEnd());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Loading context from '{Path.GetFileName(rspFile.Path)}'.
+[System.Diagnostics.Process]
+", ReadOutputToEnd());
+        }
+
+        [Fact]
         public void ScriptAndArguments()
         {
             var scriptFile = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");

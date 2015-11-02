@@ -485,6 +485,47 @@ C4 { }
         }
 
         [Fact]
+        public void InitialScript1()
+        {
+            var init = Temp.CreateFile(extension: ".csx").WriteAllText(@"
+int X = 1;
+");
+            var runner = CreateRunner(new[] { "/i", init.Path }, input: 
+@"X");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+> X
+1
+> 
+", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        public void InitialScript_Error()
+        {
+            var reference = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.General.C1);
+
+            var init = Temp.CreateFile(extension: ".csx").WriteAllText(@"
+1 1
+");
+            var runner = CreateRunner(new[] { $@"/r:""{reference.Path}""", "/i", init.Path }, input:
+@"new C()");
+
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+«Red»
+{init.Path}(2,3): error CS1002: ; expected
+«Gray»
+> new C()
+C {{ }}
+> 
+", runner.Console.Out.ToString());
+        }
+
+        [Fact]
         public void HelpCommand()
         {
             var runner = CreateRunner(input:
