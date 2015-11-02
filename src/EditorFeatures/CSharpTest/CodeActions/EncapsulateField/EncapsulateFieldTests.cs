@@ -1003,5 +1003,165 @@ enum E
     [|x|] = 1;
 }");
         }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishDottedI()
+        {
+            using (new CultureContext("tr-TR"))
+            {
+                Test(@"
+class C
+{
+    int [|iyi|];
+}
+", @"
+class C
+{
+    int iyi;
+
+    public int Iyi
+    {
+        get
+        {
+            return iyi;
+        }
+        set
+        {
+            iyi = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_TurkishUndottedI()
+        {
+            using (new CultureContext("tr-TR"))
+            {
+                Test(@"
+class C
+{
+    int [|ırak|];
+}
+", @"
+class C
+{
+    int ırak;
+
+    public int Irak
+    {
+        get
+        {
+            return ırak;
+        }
+        set
+        {
+            ırak = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_Arabic()
+        {
+            using (new CultureContext("ar-EG"))
+            {
+                Test(@"
+class C
+{
+    int [|بيت|];
+}
+", @"
+class C
+{
+    int بيت;
+
+    public int بيت1
+    {
+        get
+        {
+            return بيت;
+        }
+        set
+        {
+            بيت = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_Spanish()
+        {
+            using (new CultureContext("es-ES"))
+            {
+                Test(@"
+class C
+{
+    int [|árbol|];
+}
+", @"
+class C
+{
+    int árbol;
+
+    public int Árbol
+    {
+        get
+        {
+            return árbol;
+        }
+        set
+        {
+            árbol = value;
+        }
+    }
+}
+");
+            }
+        }
+
+        [WorkItem(5524, "https://github.com/dotnet/roslyn/issues/5524")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public void AlwaysUseEnglishUSCultureWhenFixingVariableNames_Greek()
+        {
+            using (new CultureContext("el-GR"))
+            {
+                Test(@"
+class C
+{
+    int [|σκύλος|];
+}
+", @"
+class C
+{
+    int σκύλος;
+
+    public int Σκύλος
+    {
+        get
+        {
+            return σκύλος;
+        }
+        set
+        {
+            σκύλος = value;
+        }
+    }
+}
+");
+            }
+        }
     }
 }

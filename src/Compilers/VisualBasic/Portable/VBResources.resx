@@ -5048,7 +5048,10 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
+/debug:portable                   Emit debugging information in the portable format.
 /debug:pdbonly                    Emit PDB file only.
+/deterministic                    Produce a deterministic assembly
+                                  (including module version GUID and timestamp)
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.

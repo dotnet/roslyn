@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterSpan: filterSpan,
                 descriptionFactory: c => Task.FromResult(keyword.DescriptionFactory(c)),
                 glyph: Glyph.Keyword,
-                isIntrinsic: keyword.IsIntrinsic);
+                isIntrinsic: keyword.IsIntrinsic,
+                preselect: keyword.ShouldPreselect);
         }
 
         protected virtual async Task<IEnumerable<RecommendedKeyword>> RecommendKeywordsAsync(
