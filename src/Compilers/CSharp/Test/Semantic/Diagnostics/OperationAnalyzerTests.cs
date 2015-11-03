@@ -87,6 +87,12 @@ struct S
         Y = 2;
         return p1;
     }
+}
+
+class D
+{
+    object OField = 33;
+    object SField = ""Zap"";
 }";
             CreateCompilationWithMscorlib45(source)
             .VerifyDiagnostics()
@@ -97,7 +103,8 @@ struct S
                 Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "3").WithLocation(13, 21),
                 Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "v3").WithLocation(17, 21),
                 Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "p1").WithLocation(35, 9),
-                Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "this").WithLocation(36, 13)
+                Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "this").WithLocation(36, 13),
+                Diagnostic(BoxingOperationAnalyzer.BoxingDescriptor.Id, "33").WithLocation(45, 21)
                 );
         }
 

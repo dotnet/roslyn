@@ -785,17 +785,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode boundParent;
 
             GetBoundNodes(node, out bindableNode, out lowestBoundNode, out highestBoundNode, out boundParent);
-
+            BoundNode result;
             switch (options)
             {
                 case GetOperationOptions.Parent:
-                    return boundParent as IOperation;
+                    result = boundParent;
+                    break;
                 case GetOperationOptions.Highest:
-                    return highestBoundNode as IOperation;
+                    result= highestBoundNode;
+                    break;
                 case GetOperationOptions.Lowest:
                 default:
-                    return lowestBoundNode as IOperation;
+                    result = lowestBoundNode;
+                    break;
             }
+
+            // Screen out bound nodes that aren't appropriate as IOperations.
+            if (result != null)
+            {
+                switch (result.Kind)
+                {
+                    case BoundKind.FieldInitializer:
+                        result = ((BoundFieldInitializer)result).InitialValue;
+                        break;
+                    case BoundKind.PropertyInitializer:
+                        result = ((BoundPropertyInitializer)result).InitialValue;
+                        break;
+                }
+            }
+
+            return result as IOperation;
         }
 
         internal override SymbolInfo GetSymbolInfoWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
@@ -1054,13 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_nodeMapLock.IsWriteLockHeld || _nodeMapLock.IsReadLockHeld);
             ImmutableArray<BoundNode> result;
-            return _guardedNodeMap.TryGetValue(AsNodeMapKey(node), out result) ? result : default(ImmutableArray<BoundNode>);
-        }
-
-        // Map a syntax node to a usable key into a collection of bound nodes, digging into syntax nodes that do not directly map to a bound node.
-        private static CSharpSyntaxNode AsNodeMapKey(CSharpSyntaxNode node)
-        {
-            return node.Kind() == SyntaxKind.EqualsValueClause ? ((EqualsValueClauseSyntax)node).Value : node;
+            return _guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
         // Adds every syntax/bound pair in a tree rooted at the given bound node to the map, and the
@@ -1073,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (bound != null)
             {
-                alreadyInTree = _guardedNodeMap.ContainsKey(AsNodeMapKey(bound.Syntax));
+                alreadyInTree = _guardedNodeMap.ContainsKey(bound.Syntax);
             }
 
             // check if we already have node in the cache.
@@ -1084,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundNode> result;
-            return _guardedNodeMap.TryGetValue(AsNodeMapKey(syntax), out result) ? result : default(ImmutableArray<BoundNode>);
+            return _guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
         internal void UnguardedAddBoundTreeForStandaloneSyntax(CSharpSyntaxNode syntax, BoundNode bound)
@@ -1104,7 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // this may happen if we have races and in such case we are no longer interested in adding
             if (bound != null)
             {
-                alreadyInTree = _guardedNodeMap.ContainsKey(AsNodeMapKey(bound.Syntax));
+                alreadyInTree = _guardedNodeMap.ContainsKey(bound.Syntax);
             }
 
             if (!alreadyInTree)

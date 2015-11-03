@@ -181,20 +181,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolKind.Field:
                     {
-                        var enumField = this.MemberSymbol as SourceEnumConstantSymbol;
+                        var fieldSymbol = (FieldSymbol)this.MemberSymbol;
+                        var enumField = fieldSymbol as SourceEnumConstantSymbol;
                         if ((object)enumField != null)
                         {
                             return binder.BindEnumConstantInitializer(enumField, equalsValue.Value, diagnostics);
                         }
 
-                        var fieldType = ((FieldSymbol)this.MemberSymbol).GetFieldType(binder.FieldsBeingBound);
-                        return binder.BindVariableOrAutoPropInitializer(equalsValue, fieldType, diagnostics);
+                        var fieldType = (fieldSymbol).GetFieldType(binder.FieldsBeingBound);
+                        return new BoundFieldInitializer(equalsValue, fieldSymbol, binder.BindVariableOrAutoPropInitializer(equalsValue, fieldType, diagnostics));
                     }
 
                 case SymbolKind.Property:
                     {
-                        var propertyType = ((PropertySymbol)this.MemberSymbol).Type;
-                        return binder.BindVariableOrAutoPropInitializer(equalsValue, propertyType, diagnostics);
+                        var propertySymbol = (PropertySymbol)this.MemberSymbol;
+                        var propertyType = propertySymbol.Type;
+                        return new BoundPropertyInitializer(equalsValue, propertySymbol, binder.BindVariableOrAutoPropInitializer(equalsValue, propertyType, diagnostics));
                     }
 
                 case SymbolKind.Parameter:
