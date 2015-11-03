@@ -3,8 +3,6 @@
 using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Setup;
 
-[assembly: ProvideRoslynBindingRedirection("Microsoft.Build.Tasks.CodeAnalysis")]
-
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.EditorFeatures")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.CSharp.Features")]
