@@ -596,37 +596,68 @@ public class X
 @"using System;
 public struct X
 {
-    public static void Main()
+    static void Main(string[] args)
     {
-        var oa = new object[] { 1, 10, 20L, 1.2, ""foo"", true, null, new X(), new Exception(""boo"") };
+        Person[] oa = {
+            new Student(""Einstein"", 4.0),
+            new Student(""Elvis"", 3.0),
+            new Student(""Poindexter"", 3.2),
+            new Teacher(""Feynmann"", ""Physics""),
+            new Person(""Anders""),
+        };
         foreach (var o in oa)
         {
-            var s = o match (
-                case 1 : ""one""
-                case int i : $""int {i}""
-                case long l : $""long {l}""
-                case double d : $""double {d}""
-                case null : $""null""
-                case ValueType z : $""struct {z.GetType().Name} {z}""
-                case object q : $""class {q.GetType().Name} {q}""
-                );
-            Console.WriteLine(s);
+            Console.WriteLine(PrintedForm(o));
         }
+        //Console.ReadKey();
     }
+    static string PrintedForm(Person p) => p match (
+        case Student s when s.Gpa > 3.5 :
+            $""Honor Student { s.Name } ({ s.Gpa :N1})""
+        case Student { Name is ""Poindexter"" } :
+            ""A Nerd""
+        case Student s :
+            $""Student {s.Name} ({s.Gpa:N1})""
+        case Teacher t :
+            $""Teacher {t.Name} of {t.Subject}""
+        case null :
+            throw new ArgumentNullException(nameof(p))
+        case * :
+            $""Person {p.Name}""
+        );
 }
+// class Person(string Name);
+class Person
+{
+    public Person(string name) { this.Name = name; }
+    public string Name { get; }
+}
+
+// class Student(string Name, double Gpa) : Person(Name);
+class Student : Person
+{
+    public Student(string name, double gpa) : base(name)
+        { this.Gpa = gpa; }
+    public double Gpa { get; }
+}
+
+// class Teacher(string Name, string Subject) : Person(Name);
+class Teacher : Person
+{
+    public Teacher(string name, string subject) : base(name)
+        { this.Subject = subject; }
+    public string Subject { get; }
+}
+
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var expectedOutput =
-@"one
-int 10
-long 20
-double 1.2
-class String foo
-struct Boolean True
-null
-struct X X
-class Exception System.Exception: boo
+@"Honor Student Einstein (4.0)
+Student Elvis (3.0)
+A Nerd
+Teacher Feynmann of Physics
+Person Anders
 ";
             var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
