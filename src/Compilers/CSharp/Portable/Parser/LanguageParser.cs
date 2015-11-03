@@ -8776,7 +8776,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var throwToken = this.EatToken(SyntaxKind.ThrowKeyword);
             var thrown = this.ParseSubExpression(Precedence.Coalescing);
             var result = _syntaxFactory.ThrowExpression(throwToken, thrown);
-            return CheckFeatureAvailability(result, MessageID.IDS_FeaturePatternMatching);
+
+            if (!IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching))
+            {
+                // use the existing error message if the throw expression is not supported
+                result = this.AddError(result, ErrorCode.ERR_InvalidExprTerm, throwToken.Text);
+            }
+
+            return result;
         }
 
         private ExpressionSyntax ParseIsExpression(ExpressionSyntax leftOperand, SyntaxToken opToken)
