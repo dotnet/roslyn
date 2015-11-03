@@ -36,6 +36,7 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyIdentityList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
+    <Compile Include="Implementation\Classification\ViewSupportsClassificationService.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
@@ -126,6 +127,7 @@
       <DependentUpon>ServicesVSResources.resx</DependentUpon>
     </Compile>
     <Compile Include="SolutionEventMonitor.cs" />
+    <Compile Include="Utilities\IVsTextViewExtensions.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
