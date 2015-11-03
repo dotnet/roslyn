@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using System.Xml.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -661,6 +662,284 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static SyntaxToken XmlEntity(SyntaxTriviaList leading, string text, string value, SyntaxTriviaList trailing)
         {
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlEntity((InternalSyntax.CSharpSyntaxNode)leading.Node, text, value, (InternalSyntax.CSharpSyntaxNode)trailing.Node));
+        }
+
+        public static DocumentationCommentTriviaSyntax DocumentationComment(params XmlNodeSyntax[] content)
+        {
+            return DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia, List(content))
+                .WithLeadingTrivia(DocumentationCommentExterior("/// "))
+                .WithTrailingTrivia(EndOfLine(Environment.NewLine));
+        }
+
+        public static XmlElementSyntax XmlSummaryElement(params XmlNodeSyntax[] content)
+        {
+            return XmlSummaryElement(List(content));
+        }
+
+        public static XmlElementSyntax XmlSummaryElement(SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlMultiLineElement("summary", content);
+        }
+
+        public static XmlEmptyElementSyntax XmlSeeElement(CrefSyntax cref)
+        {
+            return XmlEmptyElement("see").AddAttributes(XmlCrefAttribute(cref));
+        }
+
+        public static XmlEmptyElementSyntax XmlSeeAlsoElement(CrefSyntax cref)
+        {
+            return XmlEmptyElement("seealso").AddAttributes(XmlCrefAttribute(cref));
+        }
+
+        public static XmlElementSyntax XmlSeeAlsoElement(Uri linkAddress, SyntaxList<XmlNodeSyntax> linkText)
+        {
+            XmlElementSyntax element = XmlElement("seealso", linkText);
+            return element.WithStartTag(element.StartTag.AddAttributes(XmlTextAttribute("href", linkAddress.ToString())));
+        }
+
+        public static XmlEmptyElementSyntax XmlThreadSafetyElement()
+        {
+            return XmlThreadSafetyElement(true, false);
+        }
+
+        public static XmlEmptyElementSyntax XmlThreadSafetyElement(bool @static, bool instance)
+        {
+            return XmlEmptyElement("threadsafety").AddAttributes(
+                XmlTextAttribute("static", @static.ToString().ToLowerInvariant()),
+                XmlTextAttribute("instance", instance.ToString().ToLowerInvariant()));
+        }
+
+        public static XmlNameAttributeSyntax XmlNameAttribute(string parameterName)
+        {
+            return XmlNameAttribute(
+                XmlName("name"),
+                Token(SyntaxKind.DoubleQuoteToken),
+                parameterName,
+                Token(SyntaxKind.DoubleQuoteToken))
+                .WithLeadingTrivia(Whitespace(" "));
+        }
+
+        public static XmlEmptyElementSyntax PreliminaryElement()
+        {
+            return XmlEmptyElement("preliminary");
+        }
+
+        public static XmlCrefAttributeSyntax XmlCrefAttribute(CrefSyntax cref)
+        {
+            return XmlCrefAttribute(cref, SyntaxKind.DoubleQuoteToken);
+        }
+
+        public static XmlCrefAttributeSyntax XmlCrefAttribute(CrefSyntax cref, SyntaxKind quoteKind)
+        {
+            cref = cref.ReplaceTokens(cref.DescendantTokens(), XmlReplaceBracketTokens);
+            return XmlCrefAttribute(
+                XmlName("cref"),
+                Token(quoteKind),
+                cref,
+                Token(quoteKind))
+                .WithLeadingTrivia(Whitespace(" "));
+        }
+
+        public static XmlElementSyntax XmlRemarksElement(params XmlNodeSyntax[] content)
+        {
+            return XmlRemarksElement(List(content));
+        }
+
+        public static XmlElementSyntax XmlRemarksElement(SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlMultiLineElement("remarks", content);
+        }
+
+        public static XmlElementSyntax XmlReturnsElement(params XmlNodeSyntax[] content)
+        {
+            return XmlReturnsElement(List(content));
+        }
+
+        public static XmlElementSyntax XmlReturnsElement(SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlMultiLineElement("returns", content);
+        }
+
+        public static XmlElementSyntax XmlValueElement(params XmlNodeSyntax[] content)
+        {
+            return XmlValueElement(List(content));
+        }
+
+        public static XmlElementSyntax XmlValueElement(SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlMultiLineElement("value", content);
+        }
+
+        public static XmlElementSyntax XmlExceptionElement(CrefSyntax cref, params XmlNodeSyntax[] content)
+        {
+            return ExceptionElement(cref, List(content));
+        }
+
+        public static XmlElementSyntax ExceptionElement(CrefSyntax cref, SyntaxList<XmlNodeSyntax> content)
+        {
+            XmlElementSyntax element = XmlElement("exception", content);
+            return element.WithStartTag(element.StartTag.AddAttributes(XmlCrefAttribute(cref)));
+        }
+
+        public static XmlElementSyntax XmlParaElement(params XmlNodeSyntax[] content)
+        {
+            return XmlParaElement(List(content));
+        }
+
+        public static XmlElementSyntax XmlParaElement(SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlElement("para", content);
+        }
+
+        public static XmlElementSyntax XmlParamElement(string parameterName, params XmlNodeSyntax[] content)
+        {
+            return XmlParamElement(parameterName, List(content));
+        }
+
+        public static XmlElementSyntax XmlParamElement(string parameterName, SyntaxList<XmlNodeSyntax> content)
+        {
+            XmlElementSyntax element = XmlElement("param", content);
+            return element.WithStartTag(element.StartTag.AddAttributes(XmlNameAttribute(parameterName)));
+        }
+
+        public static XmlEmptyElementSyntax XmlParamRefElement(string parameterName)
+        {
+            return XmlEmptyElement("paramref").AddAttributes(XmlNameAttribute(parameterName));
+        }
+
+        public static XmlEmptyElementSyntax XmlNullKeywordElement()
+        {
+            return XmlKeywordElement("null");
+        }
+
+        private static XmlEmptyElementSyntax XmlKeywordElement(string keyword)
+        {
+            return XmlEmptyElement("see").AddAttributes(
+                XmlTextAttribute("langword", keyword));
+        }
+
+        public static XmlElementSyntax XmlPlaceholderElement(params XmlNodeSyntax[] content)
+        {
+            return XmlPlaceholderElement(List(content));
+        }
+
+        public static XmlElementSyntax XmlPlaceholderElement(SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlElement("placeholder", content);
+        }
+
+        public static XmlEmptyElementSyntax XmlEmptyElement(string localName)
+        {
+            return XmlEmptyElement(XmlName(localName));
+        }
+
+        public static XmlElementSyntax XmlElement(string localName, SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlElement(XmlName(localName), content);
+        }
+
+        public static XmlElementSyntax XmlElement(XmlNameSyntax name, SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlElement(
+                XmlElementStartTag(name),
+                content,
+                XmlElementEndTag(name));
+        }
+
+        public static XmlTextAttributeSyntax XmlTextAttribute(string name, string value)
+        {
+            return XmlTextAttribute(name, XmlTextLiteral(value));
+        }
+
+        public static XmlTextAttributeSyntax XmlTextAttribute(string name, params SyntaxToken[] textTokens)
+        {
+            return XmlTextAttribute(XmlName(name), SyntaxKind.DoubleQuoteToken, TokenList(textTokens));
+        }
+
+        public static XmlTextAttributeSyntax XmlTextAttribute(string name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
+        {
+            return XmlTextAttribute(XmlName(name), SyntaxKind.DoubleQuoteToken, textTokens);
+        }
+
+        public static XmlTextAttributeSyntax XmlTextAttribute(XmlNameSyntax name, SyntaxKind quoteKind, SyntaxTokenList textTokens)
+        {
+            return XmlTextAttribute(
+                name,
+                Token(quoteKind),
+                textTokens,
+                Token(quoteKind))
+                .WithLeadingTrivia(Whitespace(" "));
+        }
+
+        public static XmlElementSyntax XmlMultiLineElement(string localName, SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlMultiLineElement(XmlName(localName), content);
+        }
+
+        public static XmlElementSyntax XmlMultiLineElement(XmlNameSyntax name, SyntaxList<XmlNodeSyntax> content)
+        {
+            return XmlElement(
+                XmlElementStartTag(name),
+                content.Insert(0, XmlNewLine()).Add(XmlNewLine()),
+                XmlElementEndTag(name));
+        }
+
+        public static XmlTextSyntax XmlNewLine()
+        {
+            return XmlText(XmlTextNewLine());
+        }
+
+        public static SyntaxToken XmlTextNewLine()
+        {
+            return XmlTextNewLine(true);
+        }
+
+        public static SyntaxToken XmlTextNewLine(bool continueXmlDocumentationComment)
+        {
+            SyntaxToken token = XmlTextNewLine(
+                TriviaList(),
+                Environment.NewLine,
+                Environment.NewLine,
+                TriviaList());
+
+            if (continueXmlDocumentationComment)
+                token = token.WithTrailingTrivia(DocumentationCommentExterior("/// "));
+
+            return token;
+        }
+
+        public static XmlTextSyntax XmlText(string value)
+        {
+            return XmlText(XmlTextLiteral(value));
+        }
+
+        public static XmlTextSyntax XmlText(params SyntaxToken[] textTokens)
+        {
+            return XmlText(TokenList(textTokens));
+        }
+
+        public static SyntaxToken XmlTextLiteral(string value)
+        {
+            // TODO: [RobinSedlaczek] It is no compiler hot path here I think. But the contribution guide
+            //       states to avoid LINQ (https://github.com/dotnet/roslyn/wiki/Contributing-Code). With
+            //       XText we have a reference to System.Xml.Linq. Isn't this rule valid here? 
+            string encoded = new XText(value).ToString();
+            return XmlTextLiteral(
+                TriviaList(),
+                encoded,
+                value,
+                TriviaList());
+        }
+
+        private static SyntaxToken XmlReplaceBracketTokens(SyntaxToken originalToken, SyntaxToken rewrittenToken)
+        {
+            if (rewrittenToken.IsKind(SyntaxKind.LessThanToken) && string.Equals("<", rewrittenToken.Text, StringComparison.Ordinal))
+                return Token(rewrittenToken.LeadingTrivia, SyntaxKind.LessThanToken, "{", rewrittenToken.ValueText, rewrittenToken.TrailingTrivia);
+
+            if (rewrittenToken.IsKind(SyntaxKind.GreaterThanToken) && string.Equals(">", rewrittenToken.Text, StringComparison.Ordinal))
+                return Token(rewrittenToken.LeadingTrivia, SyntaxKind.GreaterThanToken, "}", rewrittenToken.ValueText, rewrittenToken.TrailingTrivia);
+
+            return rewrittenToken;
         }
 
         /// <summary>
