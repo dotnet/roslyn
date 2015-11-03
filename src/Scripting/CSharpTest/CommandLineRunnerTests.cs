@@ -445,7 +445,7 @@ C4 { }
 ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
         public void SourceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
@@ -480,7 +480,7 @@ SearchPaths {{ }}
 ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
         public void ReferenceSearchPaths_Change1()
         {
             var dir = Temp.CreateDirectory();
