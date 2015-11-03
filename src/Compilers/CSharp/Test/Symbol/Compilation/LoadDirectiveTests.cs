@@ -72,5 +72,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // #load "test"
                 Diagnostic(ErrorCode.ERR_SourceFileReferencesNotSupported, @"#load ""test""").WithLocation(1, 1));
         }
+
+        [Fact, WorkItem(6439, "https://github.com/dotnet/roslyn/issues/6439")]
+        public void ErrorInInactiveRegion()
+        {
+            var code = @"
+#if undefined
+#load nothing
+#endif";
+            var compilation = CreateCompilationWithMscorlib45(code, parseOptions: TestOptions.Script);
+
+            Assert.Single(compilation.SyntaxTrees);
+            compilation.VerifyDiagnostics();
+        }
     }
 }

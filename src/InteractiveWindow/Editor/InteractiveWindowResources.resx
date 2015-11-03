@@ -228,4 +228,13 @@
   <data name="Paste" xml:space="preserve">
     <value>Paste</value>
   </data>
+  <data name="CSVBScriptDirectives" xml:space="preserve">
+    <value>Script directives:</value>
+  </data>
+  <data name="RefHelp" xml:space="preserve">
+    <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
+  </data>
+  <data name="LoadHelp" xml:space="preserve">
+    <value>Load specified script file and execute it, e.g. #load "myScript.csx".</value>
+  </data>
 </root>

@@ -119,14 +119,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return _hostAnalyzerManager.IsAnalyzerSuppressed(analyzer, project);
         }
 
-        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null)
+        public void Reanalyze(Workspace workspace, IEnumerable<ProjectId> projectIds = null, IEnumerable<DocumentId> documentIds = null, bool highPriority = false)
         {
             BaseDiagnosticIncrementalAnalyzer analyzer;
 
             var service = workspace.Services.GetService<ISolutionCrawlerService>();
             if (service != null && _map.TryGetValue(workspace, out analyzer))
             {
-                service.Reanalyze(workspace, analyzer, projectIds, documentIds);
+                service.Reanalyze(workspace, analyzer, projectIds, documentIds, highPriority);
             }
         }
 
