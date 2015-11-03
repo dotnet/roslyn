@@ -1316,9 +1316,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PPLoadFollowsToken = 8098,
         ERR_SourceFileReferencesNotSupported = 8099,
         ERR_BadAwaitInStaticVariableInitializer = 8100,
-        ERR_ExpressionTreeContainsLocalFunction = 8101,
-        ERR_ReturnTypesDontMatch = 8102,
-        ERR_DynamicLocalFunctionParameter = 8103,
-        ERR_CantInferVoid = 8104
+        ERR_InvalidPathMap = 8101,
+        ERR_ExpressionTreeContainsLocalFunction = 8102,
+        ERR_ReturnTypesDontMatch = 8103,
+        ERR_DynamicLocalFunctionParameter = 8104,
+        ERR_CantInferVoid = 8105
     }
 }

@@ -83,6 +83,7 @@
     <EmbeddedResource Include="DiagnosticTests\ErrTestMod01.netmodule" />
     <Content Include="DiagnosticTests\ErrTestMod02.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestMod02.netmodule" />
+    <EmbeddedResource Include="Encoding\sjis.cs" />
     <Content Include="MetadataTests\InterfaceAndClass\CSClasses01.cs" />
     <EmbeddedResource Include="MetadataTests\InterfaceAndClass\CSClasses01.dll" />
     <Content Include="MetadataTests\InterfaceAndClass\CSInterfaces01.cs" />

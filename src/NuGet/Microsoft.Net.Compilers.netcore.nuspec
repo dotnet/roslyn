@@ -25,6 +25,7 @@
                 <dependency id="System.Diagnostics.Debug" version="4.0.11-beta-23428" />
                 <dependency id="System.Diagnostics.FileVersionInfo" version="4.0.0-beta-23428" />
                 <dependency id="System.Diagnostics.Process" version="4.1.0-beta-23428" />
+                <dependency id="System.Diagnostics.StackTrace" version="4.0.1-beta-23428" />
                 <dependency id="System.Diagnostics.Tools" version="4.0.1-beta-23428" />
                 <dependency id="System.Dynamic.Runtime" version="4.0.11-beta-23428" />
                 <dependency id="System.IO.FileSystem" version="4.0.1-beta-23428" />
@@ -51,6 +52,7 @@
                 <dependency id="System.Threading.Thread" version="4.0.0-beta-23428" />
                 <dependency id="System.Xml.XDocument" version="4.0.11-beta-23428" />
                 <dependency id="System.Xml.XmlDocument" version="4.0.1-beta-23428" />
+                <dependency id="System.Xml.XPath.XDocument" version="4.0.1-beta-23428" />
             </group>
         </dependencies>
     </metadata>

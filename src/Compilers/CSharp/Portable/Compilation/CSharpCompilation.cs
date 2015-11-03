@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<string, MetadataReference> ReferenceDirectiveMap
+        internal override IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
         {
             get
             {
@@ -911,10 +911,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a metadata reference that a given #r resolves to.
         /// </summary>
         /// <param name="directive">#r directive.</param>
-        /// <returns>Metadata reference the specified directive resolves to.</returns>
+        /// <returns>Metadata reference the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
         public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
-            return ReferenceDirectiveMap[directive.File.ValueText];
+            MetadataReference reference;
+            return ReferenceDirectiveMap.TryGetValue(ValueTuple.Create(directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
         /// <summary>

@@ -119,21 +119,6 @@
           "lib/dotnet/System.Collections.Immutable.dll": {}
         }
       },
-      "System.Console/4.0.0-beta-23123": {
-        "dependencies": {
-          "System.Runtime": "[4.0.0, )",
-          "System.IO": "[4.0.0, )"
-        },
-        "frameworkAssemblies": [
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Console.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Console.dll": {}
-        }
-      },
       "System.Diagnostics.Debug/4.0.10": {
         "compile": {
           "ref/net46/_._": {}
@@ -517,21 +502,6 @@
         },
         "runtime": {
           "lib/dotnet/System.Collections.Immutable.dll": {}
-        }
-      },
-      "System.Console/4.0.0-beta-23123": {
-        "dependencies": {
-          "System.Runtime": "[4.0.0, )",
-          "System.IO": "[4.0.0, )"
-        },
-        "frameworkAssemblies": [
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Console.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Console.dll": {}
         }
       },
       "System.Diagnostics.Debug/4.0.10": {
@@ -1098,38 +1068,6 @@
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.dll",
         "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
-        "[Content_Types].xml"
-      ]
-    },
-    "System.Console/4.0.0-beta-23123": {
-      "sha512": "fPglodP4GQV7HBBDhmCZaCD8fzBvhtHmBmiN/8yWiJz0NNnA55YUNBh3myvR2DP/6IOHJ75/tTRkvwdpX3BWXA==",
-      "type": "Package",
-      "files": [
-        "_rels/.rels",
-        "System.Console.nuspec",
-        "lib/DNXCore50/System.Console.dll",
-        "lib/net46/System.Console.dll",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "ref/dotnet/System.Console.dll",
-        "ref/dotnet/System.Console.xml",
-        "ref/dotnet/zh-hant/System.Console.xml",
-        "ref/dotnet/de/System.Console.xml",
-        "ref/dotnet/fr/System.Console.xml",
-        "ref/dotnet/it/System.Console.xml",
-        "ref/dotnet/ja/System.Console.xml",
-        "ref/dotnet/ko/System.Console.xml",
-        "ref/dotnet/ru/System.Console.xml",
-        "ref/dotnet/zh-hans/System.Console.xml",
-        "ref/dotnet/es/System.Console.xml",
-        "ref/net46/System.Console.dll",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "package/services/metadata/core-properties/8d7a3fc8c6314a7b8e950ea4ca023405.psmdcp",
         "[Content_Types].xml"
       ]
     },

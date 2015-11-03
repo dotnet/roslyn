@@ -5273,6 +5273,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted.
+        /// </summary>
+        internal static string ERR_InvalidPathMap {
+            get {
+                return ResourceManager.GetString("ERR_InvalidPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid preprocessor expression.
         /// </summary>
         internal static string ERR_InvalidPreprocExpr {

@@ -181,8 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var path = (string)fileToken.Value;
                 if (path == null)
                 {
-                    // If there is no path, the parser should have some Diagnostics to report.
-                    Debug.Assert(tree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
+                    // If there is no path, the parser should have some Diagnostics to report (if we're in an active region).
+                    Debug.Assert(!directive.IsActive || tree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error));
                     continue;
                 }
 
