@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -307,10 +308,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             private bool CreateAndSetSourceAssemblyFullBind(CSharpCompilation compilation)
             {
                 var resolutionDiagnostics = DiagnosticBag.GetInstance();
+                var assemblyReferencesBySimpleName = PooledDictionary<string, List<ReferencedAssemblyIdentity>>.GetInstance();
+                bool supersedeLowerVersions = compilation.IsSubmission;
 
                 try
                 {
-                    IDictionary<string, MetadataReference> boundReferenceDirectiveMap;
+                    IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap;
                     ImmutableArray<MetadataReference> boundReferenceDirectives;
                     ImmutableArray<AssemblyData> referencedAssemblies;
                     ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.
@@ -318,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ImmutableArray<ResolvedReference> referenceMap = ResolveMetadataReferences(
                         compilation,
+                        assemblyReferencesBySimpleName,
                         out references,
                         out boundReferenceDirectiveMap,
                         out boundReferenceDirectives,
@@ -342,6 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         referenceMap,
                         compilation.Options.MetadataReferenceResolver,
                         compilation.Options.MetadataImportOptions,
+                        supersedeLowerVersions,
+                        assemblyReferencesBySimpleName,
                         out allAssemblyData,
                         out implicitlyResolvedReferences,
                         out implicitlyResolvedReferenceMap,
@@ -361,6 +367,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         references,
                         referenceMap,
                         modules.Length,
+                        referencedAssemblies.Length,
+                        assemblyReferencesBySimpleName,
+                        supersedeLowerVersions,
                         out referencedAssembliesMap,
                         out referencedModulesMap,
                         out aliasesOfReferencedAssemblies);
@@ -473,6 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finally
                 {
                     resolutionDiagnostics.Free();
+                    assemblyReferencesBySimpleName.Free();
                 }
             }
 

@@ -94,10 +94,10 @@ namespace Microsoft.CodeAnalysis
         private Dictionary<MetadataReference, int> _lazyReferencedModuleIndexMap;
 
         /// <summary>
-        /// Maps reference string used in #r directive to a resolved metadata reference.
-        /// If multiple #r's use the same value as a reference the resolved metadata reference is the same as well.
+        /// Maps (containing syntax tree file name, reference string) of #r directive to a resolved metadata reference.
+        /// If multiple #r's in the same tree use the same value as a reference the resolved metadata reference is the same as well.
         /// </summary>
-        private IDictionary<string, MetadataReference> _lazyReferenceDirectiveMap;
+        private IDictionary<ValueTuple<string, string>, MetadataReference> _lazyReferenceDirectiveMap;
 
         /// <summary>
         /// Array of unique bound #r references.
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal IDictionary<string, MetadataReference> ReferenceDirectiveMap
+        internal IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
         {
             get
             {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis
         internal void InitializeNoLock(
             Dictionary<MetadataReference, int> referencedAssembliesMap,
             Dictionary<MetadataReference, int> referencedModulesMap,
-            IDictionary<string, MetadataReference> boundReferenceDirectiveMap,
+            IDictionary<ValueTuple<string, string>, MetadataReference> boundReferenceDirectiveMap,
             ImmutableArray<MetadataReference> boundReferenceDirectives,
             bool containsCircularReferences,
             ImmutableArray<Diagnostic> diagnostics,
@@ -380,11 +380,21 @@ namespace Microsoft.CodeAnalysis
             Interlocked.Exchange(ref _isBound, 1);
         }
 
+        /// <summary>
+        /// Global namespaces of assembly references that have been superseded by an assembly reference with a higher version are 
+        /// hidden behind <see cref="SupersededAlias"/> to avoid ambiguity when they are accessed from source.
+        /// All existing aliases of a superseded assembly are discarded.
+        /// </summary>
+        private static readonly ImmutableArray<string> SupersededAlias = ImmutableArray.Create("<superseded>");
+
         protected static void BuildReferencedAssembliesAndModulesMaps(
             BoundInputAssembly[] bindingResult,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<ResolvedReference> referenceMap,
             int referencedModuleCount,
+            int explicitlyReferencedAsemblyCount,
+            IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
+            bool supersedeLowerVersions,
             out Dictionary<MetadataReference, int> referencedAssembliesMap,
             out Dictionary<MetadataReference, int> referencedModulesMap,
             out ImmutableArray<ImmutableArray<string>> aliasesOfReferencedAssemblies)
@@ -426,6 +436,20 @@ namespace Microsoft.CodeAnalysis
             }
 
             Debug.Assert(!aliasesOfReferencedAssembliesBuilder.Any(a => a.IsDefault));
+
+            if (supersedeLowerVersions)
+            {
+                foreach (var assemblyReference in assemblyReferencesBySimpleName)
+                {
+                    // the item in the list is the highest version, by construction
+                    for (int i = 1; i < assemblyReference.Value.Count; i++)
+                    {
+                        int assemblyIndex = assemblyReference.Value[i].GetAssemblyIndex(explicitlyReferencedAsemblyCount);
+                        aliasesOfReferencedAssembliesBuilder[assemblyIndex] = SupersededAlias;
+                    }
+                }
+            }
+
             aliasesOfReferencedAssemblies = aliasesOfReferencedAssembliesBuilder.ToImmutableAndFree();
         }
 

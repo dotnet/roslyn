@@ -115,16 +115,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         string GetFullName(SyntaxNode node, SemanticModel semanticModel);
 
         /// <summary>
-        /// Retrieves the value to be returned from the EnvDTE.CodeElement.FullName property for external code elements
-        /// </summary>
-        string GetFullName(ISymbol symbol);
-
-        /// <summary>
         /// Given a name, attempts to convert it to a fully qualified name.
         /// </summary>
         string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel);
 
         void Rename(ISymbol symbol, string newName, Solution solution);
+
+        /// <summary>
+        /// Returns true if the given <paramref name="symbol"/> can be used to create an external code element; otherwise, false.
+        /// </summary>
+        bool IsValidExternalSymbol(ISymbol symbol);
+
+        /// <summary>
+        /// Returns the value to be returned from <see cref="EnvDTE.CodeElement.Name"/> for external code elements.
+        /// </summary>
+        string GetExternalSymbolName(ISymbol symbol);
+
+        /// <summary>
+        /// Retrieves the value to be returned from <see cref="EnvDTE.CodeElement.FullName"/> for external code elements.
+        /// </summary>
+        string GetExternalSymbolFullName(ISymbol symbol);
 
         SyntaxNode GetNodeWithModifiers(SyntaxNode node);
         SyntaxNode GetNodeWithType(SyntaxNode node);

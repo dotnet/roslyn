@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
@@ -16,22 +17,22 @@ namespace Microsoft.CodeAnalysis.Navigation
             return false;
         }
 
-        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace = 0)
+        public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace)
         {
             return false;
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, bool usePreviewTab = false)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
         {
             return false;
         }
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, bool usePreviewTab = false)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
         {
             return false;
         }
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool usePreviewTab = false)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
         {
             return false;
         }

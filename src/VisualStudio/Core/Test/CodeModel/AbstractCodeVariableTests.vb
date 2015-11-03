@@ -95,12 +95,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Sub TestIsConstant(code As XElement, expected As Boolean)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeVariable2)()
-                Assert.NotNull(codeElement)
-
-                Assert.Equal(expected, codeElement.IsConstant)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.Equal(expected, codeElement.IsConstant)
+                End Sub)
         End Sub
 
         Protected Sub TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean)
@@ -108,25 +106,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestSetIsConstant(code As XElement, expectedCode As XElement, value As Boolean, action As SetterAction(Of Boolean))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeVariable2)()
-                Assert.NotNull(codeElement)
-
-                action(value, Sub(v) codeElement.IsConstant = v)
-
-                Dim text = state.GetDocumentAtCursor().GetTextAsync().Result.ToString()
-
-                Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
-            End Using
+            TestElementUpdate(code, expectedCode,
+                Sub(codeElement)
+                    action(value, Sub(v) codeElement.IsConstant = v)
+                End Sub)
         End Sub
 
         Protected Sub TestInitExpression(code As XElement, expected As Object)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeVariable2)()
-                Assert.NotNull(codeElement)
-
-                Assert.Equal(expected, codeElement.InitExpression)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.Equal(expected, codeElement.InitExpression)
+                End Sub)
         End Sub
 
         Protected Sub TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object)
@@ -134,16 +124,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Sub
 
         Protected Sub TestSetInitExpression(code As XElement, expectedCode As XElement, value As Object, action As SetterAction(Of Object))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeVariable2)()
-                Assert.NotNull(codeElement)
-
-                action(value, Sub(v) codeElement.InitExpression = v)
-
-                Dim text = state.GetDocumentAtCursor().GetTextAsync().Result.ToString()
-
-                Assert.Equal(expectedCode.NormalizedValue.Trim(), text.Trim())
-            End Using
+            TestElementUpdate(code, expectedCode,
+                Sub(codeElement)
+                    action(value, Sub(v) codeElement.InitExpression = v)
+                End Sub)
         End Sub
 
     End Class

@@ -9,14 +9,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
         Inherits AbstractObjectBrowserLibraryManager
 
         Public Sub New(serviceProvider As IServiceProvider)
-            MyBase.New(LanguageNames.VisualBasic, Guids.VisualBasicLibraryId, serviceProvider)
+            MyBase.New(LanguageNames.VisualBasic, Guids.VisualBasicLibraryId, __SymbolToolLanguage.SymbolToolLanguage_VB, serviceProvider)
         End Sub
-
-        Public Overrides ReadOnly Property SymbolToolLanguage As __SymbolToolLanguage
-            Get
-                Return __SymbolToolLanguage.SymbolToolLanguage_VB
-            End Get
-        End Property
 
         Friend Overrides Function CreateDescriptionBuilder(
             description As IVsObjectBrowserDescription3,

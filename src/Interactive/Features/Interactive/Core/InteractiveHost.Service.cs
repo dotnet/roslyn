@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _globals.GetType(), _assemblyLoader);
                 }
 
-                var diagnostics = script.Build();
+                var diagnostics = script.Compile();
                 if (diagnostics.HasAnyErrors())
                 {
                     DisplayInteractiveErrors(diagnostics, Console.Error);

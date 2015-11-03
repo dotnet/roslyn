@@ -178,6 +178,9 @@ namespace TestResources
         private static byte[] _DelegatesWithoutInvoke;
         public static byte[] DelegatesWithoutInvoke => ResourceLoader.GetOrCreateResource(ref _DelegatesWithoutInvoke, "SymbolsTests.Delegates.DelegatesWithoutInvoke.dll");
 
+        private static byte[] _shiftJisSource;
+        public static byte[] ShiftJisSource => ResourceLoader.GetOrCreateResource(ref _shiftJisSource, "Encoding.sjis.cs");
+
         private static byte[] _Events;
         public static byte[] Events => ResourceLoader.GetOrCreateResource(ref _Events, "SymbolsTests.Events.dll");
 

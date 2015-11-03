@@ -51,7 +51,7 @@
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.0": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
         "compile": {
           "ref/net45/_._": {}
@@ -117,21 +117,6 @@
         },
         "runtime": {
           "lib/dotnet/System.Collections.Immutable.dll": {}
-        }
-      },
-      "System.Console/4.0.0-beta-23123": {
-        "dependencies": {
-          "System.IO": "[4.0.0, )",
-          "System.Runtime": "[4.0.0, )"
-        },
-        "frameworkAssemblies": [
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Console.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Console.dll": {}
         }
       },
       "System.Diagnostics.Debug/4.0.10": {
@@ -246,7 +231,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-beta-23413": {
+      "System.Reflection.Metadata/1.1.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -264,10 +249,10 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.0": {
@@ -451,7 +436,7 @@
           "lib/net20/Microsoft.DiaSymReader.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.0": {},
       "Microsoft.NETCore.Portable.Compatibility/1.0.1-beta-23401": {
         "compile": {
           "ref/net45/_._": {}
@@ -517,21 +502,6 @@
         },
         "runtime": {
           "lib/dotnet/System.Collections.Immutable.dll": {}
-        }
-      },
-      "System.Console/4.0.0-beta-23123": {
-        "dependencies": {
-          "System.IO": "[4.0.0, )",
-          "System.Runtime": "[4.0.0, )"
-        },
-        "frameworkAssemblies": [
-          "mscorlib"
-        ],
-        "compile": {
-          "ref/net46/System.Console.dll": {}
-        },
-        "runtime": {
-          "lib/net46/System.Console.dll": {}
         }
       },
       "System.Diagnostics.Debug/4.0.10": {
@@ -646,7 +616,7 @@
           "lib/net45/_._": {}
         }
       },
-      "System.Reflection.Metadata/1.1.0-beta-23413": {
+      "System.Reflection.Metadata/1.1.0": {
         "dependencies": {
           "System.Collections": "[4.0.0, )",
           "System.Collections.Immutable": "[1.1.37, )",
@@ -664,10 +634,10 @@
           "System.Threading": "[4.0.0, )"
         },
         "compile": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         },
         "runtime": {
-          "lib/dotnet/System.Reflection.Metadata.dll": {}
+          "lib/dotnet5.2/System.Reflection.Metadata.dll": {}
         }
       },
       "System.Reflection.Primitives/4.0.0": {
@@ -876,14 +846,14 @@
         "package/services/metadata/core-properties/ead7dc5d4bf24fbe8708f348725a9b02.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader.Native/1.2.0-rc": {
-      "sha512": "dSk3ln9b2MMOFnXVB47HVbdjl3r7EcikC2qTCmVrfGDJiMyLt2F3kumxICbRTuQhEGNvPnVH9p9lWKIQlNjd+w==",
+    "Microsoft.DiaSymReader.Native/1.3.0": {
+      "sha512": "SOJ7SQGJvXJesWiRQ6YMZYbQNor7ID2MYMfhwcffbWTXGjIm3Zi8SbJ3c2YERagVlL9UpRU93jm7GXYJhVj6Sw==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
         "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/9e1fb86d21eb4b64b48d73be0a3ac9f7.psmdcp",
+        "package/services/metadata/core-properties/4cddea24a9c44495aca95eb46f272367.psmdcp",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
@@ -1099,38 +1069,6 @@
         "lib/portable-net45+win8+wp8+wpa81/System.Collections.Immutable.xml",
         "package/services/metadata/core-properties/a02fdeabe1114a24bba55860b8703852.psmdcp",
         "System.Collections.Immutable.nuspec"
-      ]
-    },
-    "System.Console/4.0.0-beta-23123": {
-      "sha512": "fPglodP4GQV7HBBDhmCZaCD8fzBvhtHmBmiN/8yWiJz0NNnA55YUNBh3myvR2DP/6IOHJ75/tTRkvwdpX3BWXA==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "lib/DNXCore50/System.Console.dll",
-        "lib/MonoAndroid10/_._",
-        "lib/MonoTouch10/_._",
-        "lib/net46/System.Console.dll",
-        "lib/xamarinios10/_._",
-        "lib/xamarinmac20/_._",
-        "package/services/metadata/core-properties/8d7a3fc8c6314a7b8e950ea4ca023405.psmdcp",
-        "ref/dotnet/de/System.Console.xml",
-        "ref/dotnet/es/System.Console.xml",
-        "ref/dotnet/fr/System.Console.xml",
-        "ref/dotnet/it/System.Console.xml",
-        "ref/dotnet/ja/System.Console.xml",
-        "ref/dotnet/ko/System.Console.xml",
-        "ref/dotnet/ru/System.Console.xml",
-        "ref/dotnet/System.Console.dll",
-        "ref/dotnet/System.Console.xml",
-        "ref/dotnet/zh-hans/System.Console.xml",
-        "ref/dotnet/zh-hant/System.Console.xml",
-        "ref/MonoAndroid10/_._",
-        "ref/MonoTouch10/_._",
-        "ref/net46/System.Console.dll",
-        "ref/xamarinios10/_._",
-        "ref/xamarinmac20/_._",
-        "System.Console.nuspec"
       ]
     },
     "System.Diagnostics.Debug/4.0.10": {
@@ -1504,17 +1442,17 @@
         "System.Reflection.Extensions.nuspec"
       ]
     },
-    "System.Reflection.Metadata/1.1.0-beta-23413": {
-      "sha512": "MefYFSh9jQV+S3mwvlvY2WDVSfdyvaIpas3ugXuQMAKmGFch4AuoFRRYmpA0iK0FP1FCYvSzhQBydkqSCqXrgA==",
+    "System.Reflection.Metadata/1.1.0": {
+      "sha512": "a8VsRm/B0Ik1o5FumSMWmpwbG7cvIIajAYhzTTy9VB9XItByJDQHGZkQTIAdsvVJ6MI5O3uH/lb0izgQDlDIWA==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
-        "lib/dotnet/System.Reflection.Metadata.dll",
-        "lib/dotnet/System.Reflection.Metadata.xml",
+        "lib/dotnet5.2/System.Reflection.Metadata.dll",
+        "lib/dotnet5.2/System.Reflection.Metadata.xml",
         "lib/portable-net45+win8/System.Reflection.Metadata.dll",
         "lib/portable-net45+win8/System.Reflection.Metadata.xml",
-        "package/services/metadata/core-properties/f9d77df49aee46698d78faee45b96d9d.psmdcp",
+        "package/services/metadata/core-properties/644d6c945e3d43e2806bf6892201a6ef.psmdcp",
         "System.Reflection.Metadata.nuspec"
       ]
     },

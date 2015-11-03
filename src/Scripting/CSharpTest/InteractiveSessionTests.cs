@@ -1171,7 +1171,7 @@ public class E { }
             var script = CSharpScript.Create(@"new C()", 
                 ScriptOptions.Default.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
 
-            script.Build().Verify();
+            script.Compile().Verify();
         }
 
         #endregion
@@ -1552,7 +1552,6 @@ new List<ArgumentException>()
                 "SMDiagnostics: <implicit>,<host>,global",
                 "System.Linq.Expressions: <implicit>,global",
                 "System.Threading.Tasks.Parallel: <implicit>,global",
-                "System.Console: <implicit>,<host>,global",
                 "System.Diagnostics.StackTrace: <implicit>,<host>,global",
                 "System.IO.FileSystem: <implicit>,<host>,global",
                 "System.IO.FileSystem.Primitives: <implicit>,<host>,global");
@@ -1605,7 +1604,6 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
                 "Microsoft.CodeAnalysis: <implicit>,global,<host>",
                 "System.Diagnostics.Tools: <implicit>,global,<host>",
                 "System.Resources.ResourceManager: <implicit>,global,<host>",
-                "System.Console: <implicit>,global,<host>",
                 "System.Diagnostics.StackTrace: <implicit>,global,<host>",
                 "System.IO.FileSystem: <implicit>,global,<host>",
                 "System.Linq: <implicit>,global,<host>",

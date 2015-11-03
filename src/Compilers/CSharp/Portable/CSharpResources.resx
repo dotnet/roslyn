@@ -4390,10 +4390,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly}         Specify debugging type ('full' is default, and 
+ /debug:{full|pdbonly|portable}
+                               Specify debugging type ('full' is default, and 
                                enables attaching a debugger to a running 
-                               program)
+                               program. 'portable' is a cross-platform format)
  /optimize[+|-]                Enable optimizations (Short form: /o)
+ /deterministic                Produce a deterministic assembly
+                               (including module version GUID and timestamp)
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4656,5 +4659,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
     <value>Source file references are not supported.</value>
+  </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
   </data>
 </root>

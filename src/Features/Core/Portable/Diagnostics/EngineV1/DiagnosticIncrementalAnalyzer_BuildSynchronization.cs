@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             if (PreferLiveErrorsOnOpenedFiles(workspace) && workspace.IsDocumentOpen(document.Id))
             {
                 // enqueue re-analysis of open documents.
-                this.Owner.Reanalyze(workspace, documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
+                this.Owner.Reanalyze(workspace, documentIds: SpecializedCollections.SingletonEnumerable(document.Id), highPriority: true);
                 return;
             }
 

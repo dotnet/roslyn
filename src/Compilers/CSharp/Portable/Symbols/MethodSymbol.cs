@@ -364,7 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsOverride && ReferenceEquals(this.ConstructedFrom, this))
                 {
-                    return (MethodSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    if (IsDefinition)
+                    {
+                        return (MethodSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    }
+
+                    return (MethodSymbol)OverriddenOrHiddenMembersResult.GetOverriddenMember(this, OriginalDefinition.OverriddenMethod);
                 }
 
                 return null;
