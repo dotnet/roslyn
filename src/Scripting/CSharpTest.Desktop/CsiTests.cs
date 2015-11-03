@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.False(result.ContainsErrors);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6523")]
         public void CurrentWorkingDirectory_Change()
         {
             var dir = Temp.CreateDirectory();

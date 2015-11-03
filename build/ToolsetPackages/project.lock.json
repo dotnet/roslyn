@@ -29,7 +29,7 @@
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {},
+      "Microsoft.DiaSymReader.Native/1.3.2": {},
       "Microsoft.Net.Compilers/1.1.0-beta1-20150727-01": {},
       "Microsoft.Net.RoslynDiagnostics/1.1.1-beta1-20150818-01": {},
       "Microsoft.Tpl.Dataflow/4.5.24": {
@@ -107,7 +107,7 @@
           "lib/net45/Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll": {}
         }
       },
-      "Microsoft.DiaSymReader.Native/1.2.0-rc": {
+      "Microsoft.DiaSymReader.Native/1.3.2": {
         "native": {
           "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll": {},
           "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll": {},
@@ -1059,14 +1059,15 @@
         "package/services/metadata/core-properties/ae20f2e7195a4e59ac40aa3e21a84268.psmdcp"
       ]
     },
-    "Microsoft.DiaSymReader.Native/1.2.0-rc": {
-      "sha512": "dSk3ln9b2MMOFnXVB47HVbdjl3r7EcikC2qTCmVrfGDJiMyLt2F3kumxICbRTuQhEGNvPnVH9p9lWKIQlNjd+w==",
+    "Microsoft.DiaSymReader.Native/1.3.2": {
+      "sha512": "pZZ8IPcNhEYFYdMtCRQAiXejmVGVlKwStEqSgsT/O7lzFMX0WAdnWkBQl1khy7LBWzMh6PVy8XZH+CddLP0HAg==",
       "type": "Package",
       "files": [
         "[Content_Types].xml",
         "_rels/.rels",
+        "build/Microsoft.DiaSymReader.Native.props",
         "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/9e1fb86d21eb4b64b48d73be0a3ac9f7.psmdcp",
+        "package/services/metadata/core-properties/0052b845b21949348020ae7d3995aad3.psmdcp",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
         "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
@@ -1242,7 +1243,7 @@
       "FakeSign >= 0.9.2",
       "Microsoft.Build.Mono.Debug >= 14.1.0-prerelease",
       "Microsoft.CodeAnalysis.Test.Resources.Proprietary >= 1.1.0-beta1-20150817-01",
-      "Microsoft.DiaSymReader.Native >= 1.2.0-rc",
+      "Microsoft.DiaSymReader.Native >= 1.3.2",
       "Microsoft.Net.Compilers >= 1.1.0-beta1-20150727-01",
       "Microsoft.Net.RoslynDiagnostics >= 1.1.1-beta1-20150818-01",
       "xunit >= 2.1.0-beta4-build3109",
