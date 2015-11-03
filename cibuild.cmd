@@ -3,7 +3,7 @@
 REM Parse Arguments.
 
 set NugetZipUrlRoot=https://dotnetci.blob.core.windows.net/roslyn
-set NugetZipUrl=%NuGetZipUrlRoot%/nuget.29.zip
+set NugetZipUrl=%NuGetZipUrlRoot%/nuget.30.zip
 set RoslynRoot=%~dp0
 set BuildConfiguration=Debug
 set BuildRestore=false
@@ -11,7 +11,7 @@ set BuildRestore=false
 REM Because override the C#/VB toolset to build against our LKG package, it is important
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-set MSBuildAdditionalCommandLineArgs=/nologo /v:m /m /nodeReuse:false
+set MSBuildAdditionalCommandLineArgs=/nologo /v:m /m /nodeReuse:false /p:DeployExtension=false
 
 :ParseArguments
 if "%1" == "" goto :DoneParsing

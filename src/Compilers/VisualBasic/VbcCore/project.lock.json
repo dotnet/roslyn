@@ -3,7 +3,6 @@
   "version": 1,
   "targets": {
     "DNXCore,Version=v5.0": {
-      "Microsoft.DiaSymReader.Native/1.3.0": {},
       "Microsoft.NETCore.Platforms/1.0.1-beta-23428": {},
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23428": {
         "dependencies": {
@@ -848,7 +847,6 @@
       }
     },
     "DNXCore,Version=v5.0/osx.10.10-x64": {
-      "Microsoft.DiaSymReader.Native/1.3.0": {},
       "Microsoft.NETCore.Platforms/1.0.1-beta-23428": {},
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23428": {
         "dependencies": {
@@ -1935,7 +1933,6 @@
       }
     },
     "DNXCore,Version=v5.0/ubuntu.14.04-x64": {
-      "Microsoft.DiaSymReader.Native/1.3.0": {},
       "Microsoft.NETCore.Platforms/1.0.1-beta-23428": {},
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23428": {
         "dependencies": {
@@ -3024,11 +3021,6 @@
       }
     },
     "DNXCore,Version=v5.0/win7-x64": {
-      "Microsoft.DiaSymReader.Native/1.3.0": {
-        "native": {
-          "runtimes/win-x64/native/Microsoft.DiaSymReader.Native.amd64.dll": {}
-        }
-      },
       "Microsoft.NETCore.Platforms/1.0.1-beta-23428": {},
       "Microsoft.NETCore.Runtime.CoreCLR/1.0.1-beta-23428": {
         "dependencies": {
@@ -4266,22 +4258,6 @@
     }
   },
   "libraries": {
-    "Microsoft.DiaSymReader.Native/1.3.0": {
-      "sha512": "SOJ7SQGJvXJesWiRQ6YMZYbQNor7ID2MYMfhwcffbWTXGjIm3Zi8SbJ3c2YERagVlL9UpRU93jm7GXYJhVj6Sw==",
-      "type": "Package",
-      "files": [
-        "[Content_Types].xml",
-        "_rels/.rels",
-        "Microsoft.DiaSymReader.Native.nuspec",
-        "package/services/metadata/core-properties/4cddea24a9c44495aca95eb46f272367.psmdcp",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.amd64.dll",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.arm.dll",
-        "runtimes/win/native/Microsoft.DiaSymReader.Native.x86.dll",
-        "runtimes/win8-arm/native/Microsoft.DiaSymReader.Native.arm.dll",
-        "runtimes/win-x64/native/Microsoft.DiaSymReader.Native.amd64.dll",
-        "runtimes/win-x86/native/Microsoft.DiaSymReader.Native.x86.dll"
-      ]
-    },
     "Microsoft.NETCore.Platforms/1.0.1-beta-23428": {
       "sha512": "KOX2qr3Xa9Unfr1ATQXNUrQdGMd7Hvvbzh4eJhxfs8DcSTVU7xn5i2Lmw+GyYsGnXdao2r4zHkTMngOjt/MTbg==",
       "type": "Package",

@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis
             DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
 
             TextAndVersion textAndVersion;
-            using (var stream = FileUtilities.OpenAsyncRead(_path))
+
+            // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
+            using (var stream = FileUtilities.RethrowExceptionsAsIOException(() => new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, useAsync: true)))
             {
                 var version = VersionStamp.Create(prevLastWriteTime);
-
-                Contract.Requires(stream.Position == 0);
 
                 // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
                 // but probably not for command line case where it doesn't use more sophisticated services.
@@ -85,20 +85,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // this has a potential to return corrupted state text if someone changed text in the middle of us reading it.
-            // previously, we attempted to detect such case and return empty string with workspace failed event. 
-            // but that is nothing better or even worse than returning what we have read so far.
-            //
-            // I am letting it to return what we have read so far. and hopefully, file change event let us re-read this file.
-            // (* but again, there is still a chance where file change event happens even before writing has finished which ends up
-            //    let us stay in corrupted state)
+            // Check if the file was definitely modified and closed while we were reading. In this case, we know the read we got was
+            // probably invalid, so throw an IOException which indicates to our caller that we should automatically attempt a re-read.
+            // If the file hasn't been closed yet and there's another writer, we will rely on file change notifications to notify us
+            // and reload the file.
             DateTime newLastWriteTime = FileUtilities.GetFileTimeStamp(_path);
             if (!newLastWriteTime.Equals(prevLastWriteTime))
             {
-                // TODO: remove this once we know how often this can happen.
-                //       I am leaving this here for now for diagnostic purpose.
                 var message = string.Format(WorkspacesResources.FileWasExternallyModified, _path);
-                workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, message, documentId));
+                throw new IOException(message);
             }
 
             return textAndVersion;
