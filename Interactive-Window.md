@@ -12,7 +12,7 @@ The C# Interactive Window is a [read-eval-print-loop (REPL)](https://en.wikipedi
 <hr/>
 
 ## <a name="start"></a>Getting Started
-You must have [Visual Studio 2015 Update 1 CTP](http://go.microsoft.com/fwlink/?LinkId=517106) installed to access the Interactive Window. Once you have this version installed, navigate to ```View > Other Windows > C# Interactive```. This will bring up the Interactive Window. 
+You must have [Visual Studio 2015 Update 1 CTP](http://go.microsoft.com/fwlink/?LinkId=517106) or [Visual Studio 2015 Update 1 RC](https://www.visualstudio.com/news/vs2015-update1-vs) installed to access the Interactive Window. Once you have one of these versions installed, navigate to ```View > Other Windows > C# Interactive```. This will bring up the Interactive Window. 
 
 Type any valid C# expression or statement and press ```Enter``` to evaluate. To learn more about what you can do in the Interactive Window, check out the [Basic Features](#basic) or [Code Samples](#samples).
 
@@ -29,7 +29,7 @@ You can also play with C# in the [command-line REPL](#repl).
 <hr/>
 
 ### <a name="language"></a>Language Features
-The Intersctive Window supports C# 6.0. Because the Interactive Window is for experimentation, there are some differences from regular C#.
+The Interactive Window supports C# 6.0. Because the Interactive Window is for experimentation, there are some differences from regular C#.
 
 #### ```async``` Context
 The Interactive Window has default async context, meaning you can await expressions at the top level. Despite the async context, the Interactive Window will execute synchronous code normally.
@@ -42,23 +42,6 @@ void
 	
 #### ```public``` Context
 All top level variables and methods are public by default.
-
-#### Variable/Method Shadowing
-Redefining variables/methods "shadows" the previous definition.
-
-```csharp
-> var x = 10;
-> var y = 2 * x;
-> y
-20
-> var x = 3;
-> y
-20
-> x
-3
-> 
-	
-```
 	
 #### Better Display for Enumerables
 In the Immediate Window, printing out enumerables takes up a lot of space. We have improved this experience with the following design:
@@ -113,7 +96,7 @@ Press ```Ctrl+Alt+UpArrow``` to replace the current submission with a previous s
 The Interactive Window imitates the Visual Studio Editor in most aspects. To navigate the editor buffer in the Window, use any of the arrow keys. 
 
 #### <a name="copy"></a>Copy/Paste
-Currently, everything you select and copy in the Interactive Window will be pasted (including carets and other symbols). RTF-paste is supported and will maintain the editor colorization. This is useful for sharing Interactive sessions over email or in Word/Powerpoint. If you paste back into the Interactive session, the carets and other symbols will autmatically be stripped.  
+Currently, everything you select and copy in the Interactive Window will be pasted (including carets and other symbols). RTF-paste is supported and will maintain the editor colorization. This is useful for sharing Interactive sessions over email or in Word/Powerpoint. If you paste back into the Interactive session, the carets and other symbols will automatically be stripped.  
 
 Use ```Ctrl+C``` and ```Ctrl+V``` to copy snippets from the Interactive Window and paste to another program. See [Selecting](#select) for related tips.
 
