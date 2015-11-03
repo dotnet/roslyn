@@ -471,6 +471,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 if (_workspace != null)
                 {
+                    // If the document's active context changes, then we can't cache anything.
+                    // All the data may now be invalid.
+                    _lastLineCache.Clear();
                     ParseIfThisDocument(null, args.Document.Project.Solution, args.Document.Id);
                 }
             }
@@ -583,10 +586,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 if (_workspace != null)
                 {
-                    var openDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
-                    if (openDocumentId == documentId)
+                    var relatedDocuments = _workspace.GetRelatedDocumentIds(_subjectBuffer.AsTextContainer());
+                    if (relatedDocuments.Contains(documentId))
                     {
-                        EnqueueParseSnapshotTask(newSolution.GetDocument(documentId));
+                        var documentIdInCurrentContext = _workspace.GetDocumentIdInCurrentContext(documentId);
+                        EnqueueParseSnapshotTask(newSolution.GetDocument(documentIdInCurrentContext));
                     }
                 }
             }

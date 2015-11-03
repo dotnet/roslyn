@@ -8,24 +8,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public abstract class AbstractCSharpClassifierTests : AbstractClassifierTests
     {
         internal abstract IEnumerable<ClassifiedSpan> GetClassificationSpans(string code, TextSpan textSpan, CSharpParseOptions options);
-
-        protected string GetText(Tuple<string, string> tuple)
-        {
-            return "(" + tuple.Item1 + ", " + tuple.Item2 + ")";
-        }
-
-        internal string GetText(ClassifiedSpan tuple)
-        {
-            return "(" + tuple.TextSpan + ", " + tuple.ClassificationType + ")";
-        }
 
         protected void Test(string code,
            string allCode,
@@ -38,27 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 
             var actual = GetClassificationSpans(allCode, span, options: options).ToList();
 
-            actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
-
-            var max = Math.Max(expected.Length, actual.Count);
-            for (int i = 0; i < max; i++)
-            {
-                if (i >= expected.Length)
-                {
-                    AssertEx.Fail("Unexpected actual classification: {0}", GetText(actual[i]));
-                }
-                else if (i >= actual.Count)
-                {
-                    AssertEx.Fail("Missing classification for: {0}", GetText(expected[i]));
-                }
-
-                var tuple = expected[i];
-                var classification = actual[i];
-
-                var text = allCode.Substring(classification.TextSpan.Start, classification.TextSpan.Length);
-                Assert.Equal(tuple.Item1, text);
-                Assert.Equal(tuple.Item2, classification.ClassificationType);
-            }
+            Validate(allCode, expected, actual);
         }
 
         protected Tuple<string, string>[] Classifications(params Tuple<string, string>[] expected)
