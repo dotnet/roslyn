@@ -1823,6 +1823,64 @@ End Module";
             }
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
+        public void ReduceIntegerLiteralWithLeadingZeros()
+        {
+            var code = @"[|
+Module Program
+    Sub Main(args As String())
+        Const i0 As Integer = 0060
+        Const i1 As Integer = 0060%
+        Const i2 As Integer = &H006F
+        Const i3 As Integer = &O0060
+        Const i4 As Integer = 0060I
+        Const i5 As Integer = -0060
+        Const l0 As Long = 0060L
+        Const l1 As Long = 0060&
+        Const s0 As Short = 0060S
+		
+        Console.WriteLine(i0)
+        Console.WriteLine(i1)
+        Console.WriteLine(i2)
+        Console.WriteLine(i3)
+        Console.WriteLine(i4)
+        Console.WriteLine(i5)
+        Console.WriteLine(l0)
+        Console.WriteLine(l1)
+        Console.WriteLine(s0)
+    End Sub
+End Module
+|]";
+
+            var expected = @"
+Module Program
+    Sub Main(args As String())
+        Const i0 As Integer = 60
+        Const i1 As Integer = 60%
+        Const i2 As Integer = &H6F
+        Const i3 As Integer = &O60
+        Const i4 As Integer = 60I
+        Const i5 As Integer = -60
+        Const l0 As Long = 60L
+        Const l1 As Long = 60&
+        Const s0 As Short = 60S
+
+        Console.WriteLine(i0)
+        Console.WriteLine(i1)
+        Console.WriteLine(i2)
+        Console.WriteLine(i3)
+        Console.WriteLine(i4)
+        Console.WriteLine(i5)
+        Console.WriteLine(l0)
+        Console.WriteLine(l1)
+        Console.WriteLine(s0)
+    End Sub
+End Module
+";
+            Verify(code, expected);
+        }
+
         private static void Verify(string codeWithMarker, string expectedResult)
         {
             var codeWithoutMarker = default(string);
