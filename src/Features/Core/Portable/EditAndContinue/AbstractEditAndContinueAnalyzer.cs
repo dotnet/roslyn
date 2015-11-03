@@ -593,8 +593,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 if (newActiveStatements[i] == default(LinePositionSpan))
                 {
-                    Debug.Assert(newExceptionRegions[i].IsDefault);
-
                     TextSpan trackedSpan = default(TextSpan);
                     bool isTracked = trackingService != null &&
                                      trackingService.TryGetSpan(new ActiveStatementId(documentId, i), newText, out trackedSpan);
@@ -617,9 +615,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
+                    // Finds a matching syntax node in the new source.
+                    // In case the node got deleted the newMember may be missing.
+                    // For those the active span should remain empty.
                     SyntaxNode newMember;
                     bool hasPartner = topMatch.TryGetNewNode(oldMember, out newMember);
-                    Debug.Assert(hasPartner);
+                    Debug.Assert(hasPartner || trackedSpan.IsEmpty);
+                    if (!hasPartner)
+                    {
+                        continue;
+                    }
 
                     SyntaxNode oldBody = TryGetDeclarationBody(oldMember, isMember: true);
                     SyntaxNode newBody = TryGetDeclarationBody(newMember, isMember: true);
@@ -886,7 +891,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         // TODO: VB field multi-initializers break this
                         // Debug.Assert(newActiveStatements[i] == default(LinePositionSpan));
 
-                        Debug.Assert(newSpan != default(TextSpan));
                         newActiveStatements[i] = newText.Lines.GetLinePositionSpan(newSpan);
                         newExceptionRegions[i] = ImmutableArray.Create<LinePositionSpan>();
                     }
