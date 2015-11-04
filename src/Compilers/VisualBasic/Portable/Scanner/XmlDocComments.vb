@@ -236,16 +236,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim Here As Integer = 0
             Dim scratch = GetScratch()
-            Dim c As Char
-            While Peep(Here, c)
+            Dim ch As Char
+            While Peep(Here, ch)
 
-                Select Case (c)
+                Select Case (ch)
                     Case CARRIAGE_RETURN, LINE_FEED
                         If Here <> 0 Then
                             Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
                         End If
 
-                        Here = SkipLineBreak(c, Here)
+                        Here = SkipLineBreak(ch, Here)
 
                         If _endOfXmlInsteadOfLastDocCommentLineBreak Then
                             Dim tempHere As Integer = Here
@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return MakeDocCommentLineBreakToken(precedingTrivia, Here)
 
                     Case " "c, CHARACTER_TABULATION
-                        scratch.Append(c)
+                        scratch.Append(ch)
                         Here += 1
 
                     Case "&"c
@@ -277,7 +277,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
 
                         Debug.Assert(Here = 0)
-                        Dim ch As Char
                         If Peep(1, ch) Then
                             Select Case ch
                                 Case "!"c
@@ -453,8 +452,8 @@ CleanUp:
                 End If
                 precedingTrivia = New SyntaxList(Of VisualBasicSyntaxNode)(xDocTrivia)
             End If
-            Dim c As Char
-            While Peep(0, c)
+            Dim ch As Char
+            While Peep(0, ch)
                 If Not precedingTrivia.Any AndAlso IsAtNewLine() AndAlso Not _doNotRequireXmlDocCommentPrefix Then
                     ' this would indicate that we looked at Trivia, but did not find
                     ' XmlDoc prefix (or we would not be at the line start)
@@ -462,7 +461,7 @@ CleanUp:
                     Return MakeEofToken(precedingTrivia)
                 End If
 
-                Select Case (c)
+                Select Case (ch)
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
@@ -470,7 +469,7 @@ CleanUp:
                         Debug.Assert(Not precedingTrivia.Any)
                         Dim offsets = CreateOffsetRestorePoint()
                         Dim triviaList = _triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
-                        Dim continueLine = ScanXmlTriviaInXmlDoc(c, triviaList)
+                        Dim continueLine = ScanXmlTriviaInXmlDoc(ch, triviaList)
                         precedingTrivia = triviaList.ToList()
                         _triviaListPool.Free(triviaList)
                         If Not continueLine Then
@@ -491,13 +490,12 @@ CleanUp:
                         Return XmlMakeEqualsToken(precedingTrivia)
 
                     Case "'"c, LEFT_SINGLE_QUOTATION_MARK, RIGHT_SINGLE_QUOTATION_MARK
-                        Return XmlMakeSingleQuoteToken(precedingTrivia, c, isOpening:=True)
+                        Return XmlMakeSingleQuoteToken(precedingTrivia, ch, isOpening:=True)
 
                     Case """"c, LEFT_DOUBLE_QUOTATION_MARK, RIGHT_DOUBLE_QUOTATION_MARK
-                        Return XmlMakeDoubleQuoteToken(precedingTrivia, c, isOpening:=True)
+                        Return XmlMakeDoubleQuoteToken(precedingTrivia, ch, isOpening:=True)
 
                     Case "<"c
-                        Dim ch As Char
                         If Peep(1, ch) Then
                             Select Case ch
                                 Case "!"c
@@ -541,11 +539,7 @@ CleanUp:
                     Case ")"c
                         Return XmlMakeRightParenToken(precedingTrivia)
 
-                    Case "!"c,
-                        ";"c,
-                        "#"c,
-                        ","c,
-                        "}"c
+                    Case "!"c, ";"c, "#"c, ","c, "}"c
                         Return XmlMakeBadToken(precedingTrivia, 1, ERRID.ERR_IllegalXmlNameChar)
 
                     Case ":"c

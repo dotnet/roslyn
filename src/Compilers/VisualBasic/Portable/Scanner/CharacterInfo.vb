@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '// IsFullWidth - Returns if the character is full width
         Friend Shared Function IsFullWidth(c As Char) As Boolean
             ' Do not use "AndAlso" or it will not inline.
-            Return c > ChrW(&HFF00US) And c < ChrW(&HFF5FUS)
+            Return (c > ChrW(&HFF00US)) AndAlso (c < ChrW(&HFF5FUS))
         End Function
 
         ''' <summary>
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Const s_fullwidth = CInt(&HFF00L - &H0020L)
+        Private Const s_fullwidth = &HFEE0L
 
         Friend Const CHARACTER_TABULATION As Char = ChrW(&H0009)
         Friend Const LINE_FEED As Char = ChrW(&H000A)
@@ -162,7 +162,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="c">The Unicode character.</param>
         ''' <returns>A boolean value set to True if character is a newline character.</returns>
         Public Shared Function IsNewLine(c As Char) As Boolean
-            Return CARRIAGE_RETURN = c OrElse LINE_FEED = c OrElse (c >= NEXT_LINE AndAlso (NEXT_LINE = c OrElse LINE_SEPARATOR = c OrElse PARAGRAPH_SEPARATOR = c))
+            'Select Case c
+            '    Case CARRIAGE_RETURN, LINE_FEED
+            '        Return True
+            '    Case NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
+            '        Return c >= NEXT_LINE
+            '    Case Else
+            '        Return False
+            'End Select
+            'Return False
+            Return (CARRIAGE_RETURN = c) Or (LINE_FEED = c) Or ((NEXT_LINE = c Or LINE_SEPARATOR = c Or PARAGRAPH_SEPARATOR = c))
         End Function
 
         Friend Shared Function IsSingleQuote(c As Char) As Boolean
@@ -170,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' // LEFT SINGLE QUOTATION MARK and RIGHT SINGLE QUOTATION MARK because
             ' // IME editors paste them in. This isn't really technically correct
             ' // because we ignore the left-ness or right-ness, but see VS 170991
-            Return c = "'"c OrElse (c >= LEFT_SINGLE_QUOTATION_MARK AndAlso (c = FULLWIDTH_APOSTROPHE Or c = LEFT_SINGLE_QUOTATION_MARK Or c = RIGHT_SINGLE_QUOTATION_MARK))
+            Return c = "'"c Or ((c = FULLWIDTH_APOSTROPHE Or c = LEFT_SINGLE_QUOTATION_MARK Or c = RIGHT_SINGLE_QUOTATION_MARK))
         End Function
 
         Friend Shared Function IsDoubleQuote(c As Char) As Boolean
@@ -178,15 +187,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' // LEFT DOUBLE QUOTATION MARK and RIGHT DOUBLE QUOTATION MARK because
             ' // IME editors paste them in. This isn't really technically correct
             ' // because we ignore the left-ness or right-ness, but see VS 170991
-            Return c = """"c OrElse (c >= LEFT_DOUBLE_QUOTATION_MARK AndAlso (c = FULLWIDTH_QUOTATION_MARK Or c = LEFT_DOUBLE_QUOTATION_MARK Or c = RIGHT_DOUBLE_QUOTATION_MARK))
+            Return (c = """"c) Or ((c = FULLWIDTH_QUOTATION_MARK Or c = LEFT_DOUBLE_QUOTATION_MARK Or c = RIGHT_DOUBLE_QUOTATION_MARK))
         End Function
 
         Friend Shared Function IsLeftCurlyBracket(c As Char) As Boolean
-            Return c = "{"c OrElse c = FULLWIDTH_LEFT_CURLY_BRACKET
+            Return c = "{"c Or c = FULLWIDTH_LEFT_CURLY_BRACKET
         End Function
 
         Friend Shared Function IsRightCurlyBracket(c As Char) As Boolean
-            Return c = "}"c OrElse c = FULLWIDTH_RIGHT_CURLY_BRACKET
+            Return c = "}"c Or c = FULLWIDTH_RIGHT_CURLY_BRACKET
         End Function
 
         ''' <summary>
@@ -195,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="c">The unicode character.</param>
         ''' <returns>A boolean value set to True if character is a colon character.</returns>
         Public Shared Function IsColon(c As Char) As Boolean
-            Return c = ":"c OrElse c = FULLWIDTH_COLON
+            Return c = ":"c Or c = FULLWIDTH_COLON
         End Function
 
         ''' <summary>
@@ -214,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="c">The unicode character.</param>
         ''' <returns>A boolean value set to True if character is a hash character.</returns>
         Public Shared Function IsHash(c As Char) As Boolean
-            Return c = "#"c OrElse c = FULLWIDTH_NUMBER_SIGN
+            Return c = "#"c Or c = FULLWIDTH_NUMBER_SIGN
         End Function
 
         ''' <summary>
@@ -228,15 +237,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'TODO: make easy cases fast (or check if they already are)
             Dim CharacterProperties As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
 
-            Return IsPropAlpha(CharacterProperties) OrElse
-            IsPropLetterDigit(CharacterProperties) OrElse
+            Return IsPropAlpha(CharacterProperties) Or
+            IsPropLetterDigit(CharacterProperties) Or
             IsPropConnectorPunctuation(CharacterProperties)
         End Function
 
         ' TODO: replace CByte with something faster.
-        Friend Shared Function IntegralLiteralCharacterValue(
-            Digit As Char
-        ) As Byte
+        Friend Shared Function IntegralLiteralCharacterValue(Digit As Char) As Byte
             If IsFullWidth(Digit) Then
                 Digit = MakeHalfWidth(Digit)
             End If
@@ -244,17 +251,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If IsDecimalDigit(Digit) Then
                 Return CByte(u - AscW("0"c))
-            ElseIf Digit >= "A"c AndAlso Digit <= "F"c Then
+            ElseIf Digit >= "A"c And Digit <= "F"c Then
                 Return CByte(u + (10 - AscW("A"c)))
             Else
-                Debug.Assert(Digit >= "a"c AndAlso Digit <= "f"c, "Surprising digit.")
+                Debug.Assert(Digit >= "a"c And Digit <= "f"c, "Surprising digit.")
                 Return CByte(u + (10 - AscW("a"c)))
             End If
         End Function
 
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
-            Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) OrElse
-                    (IsFullWidth(c) AndAlso (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O))
+            Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) Or
+                    (IsFullWidth(c) And (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O))
         End Function
 
         Private Shared ReadOnly s_isIDChar As Boolean() =
@@ -370,10 +377,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function IsWideIdentifierCharacter(c As Char) As Boolean
             Dim CharacterProperties As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
 
-            Return IsPropAlphaNumeric(CharacterProperties) OrElse
-                IsPropLetterDigit(CharacterProperties) OrElse
-                IsPropConnectorPunctuation(CharacterProperties) OrElse
-                IsPropCombining(CharacterProperties) OrElse
+            Return IsPropAlphaNumeric(CharacterProperties) Or
+                IsPropLetterDigit(CharacterProperties) Or
+                IsPropConnectorPunctuation(CharacterProperties) Or
+                IsPropCombining(CharacterProperties) Or
                 IsPropOtherFormat(CharacterProperties)
         End Function
 
@@ -382,20 +389,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsOctalDigit(c As Char) As Boolean
-            Return (c >= "0"c And c <= "7"c) Or
-                   (c >= FULLWIDTH_DIGIT_ZERO And c <= FULLWIDTH_DIGIT_SEVEN)
+            Return (c >= "0"c And c <= "7"c) Or (c >= FULLWIDTH_DIGIT_ZERO And c <= FULLWIDTH_DIGIT_SEVEN)
         End Function
 
         Friend Shared Function IsDecimalDigit(c As Char) As Boolean
-            Return (c >= "0"c And c <= "9"c) Or
-                   (c >= FULLWIDTH_DIGIT_ZERO And c <= FULLWIDTH_DIGIT_NINE)
+            Return (c >= "0"c And c <= "9"c) Or (c >= FULLWIDTH_DIGIT_ZERO And c <= FULLWIDTH_DIGIT_NINE)
         End Function
 
         Friend Shared Function IsHexDigit(c As Char) As Boolean
-            Return IsDecimalDigit(c) OrElse
-                    (c >= "a"c And c <= "f"c) OrElse
-                    (c >= "A"c And c <= "F"c) OrElse
-                    (c >= FULLWIDTH_LATIN_SMALL_LETTER_A And c <= FULLWIDTH_LATIN_SMALL_LETTER_F) OrElse
+            Return IsDecimalDigit(c) Or (c >= "a"c And c <= "f"c) Or (c >= "A"c And c <= "F"c) Or
+                    (c >= FULLWIDTH_LATIN_SMALL_LETTER_A And c <= FULLWIDTH_LATIN_SMALL_LETTER_F) Or
                     (c >= FULLWIDTH_LATIN_CAPITAL_LETTER_A And c <= FULLWIDTH_LATIN_CAPITAL_LETTER_F)
         End Function
 
@@ -407,8 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared ReadOnly DaysToMonth366() As Integer = New Integer(13 - 1) {0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366}
 
         Friend Shared Function IsLetterC(ch As Char) As Boolean
-            Return _
-                ch = "c"c Or ch = "C"c Or ch = FULLWIDTH_LATIN_CAPITAL_LETTER_C Or ch = FULLWIDTH_LATIN_SMALL_LETTER_C
+            Return ch = "c"c Or ch = "C"c Or ch = FULLWIDTH_LATIN_CAPITAL_LETTER_C Or ch = FULLWIDTH_LATIN_SMALL_LETTER_C
         End Function
 
         ''' <summary>
@@ -431,7 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If IsFullWidth(ch) Then
                 ch = MakeHalfWidth(ch)
             End If
-            Return ch = one Or ch = another
+            Return ch = one OrElse ch = another
         End Function
 
         Friend Shared Function IsPropAlpha(CharacterProperties As UnicodeCategory) As Boolean
@@ -451,7 +453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsPropCombining(CharacterProperties As UnicodeCategory) As Boolean
-            Return CharacterProperties >= UnicodeCategory.NonSpacingMark AndAlso
+            Return CharacterProperties >= UnicodeCategory.NonSpacingMark And
                 CharacterProperties <= UnicodeCategory.EnclosingMark
         End Function
 

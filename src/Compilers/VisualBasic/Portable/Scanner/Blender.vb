@@ -401,11 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' The reasons for it not be usable are typically that it intersects affected range.
         ''' </summary>
         Private Function CanReuseNode(node As VisualBasicSyntaxNode) As Boolean
-            If node Is Nothing Then
-                Return False
-            End If
-
-            If node.SlotCount = 0 Then
+            If (node Is Nothing) AndAlso (node.SlotCount = 0) Then
                 Return False
             End If
 
