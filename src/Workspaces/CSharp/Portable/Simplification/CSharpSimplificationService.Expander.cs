@@ -93,29 +93,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return false;
             }
 
-            // This expander expands only the parameters within the parameterList
-            public override SyntaxNode VisitParameter(ParameterSyntax node)
-            {
-                var newNode = (ParameterSyntax)base.VisitParameter(node);
-
-                if (node != null && node.IsParentKind(SyntaxKind.ParameterList) &&
-                    newNode != null && newNode.Type == null &&
-                    _expandParameter)
-                {
-                    var newNodeSymbol = _semanticModel.GetDeclaredSymbol(node);
-                    if (newNodeSymbol != null && newNodeSymbol.Kind == SymbolKind.Parameter)
-                    {
-                        if (newNodeSymbol.Type != null)
-                        {
-                            return newNode.WithType(newNodeSymbol.Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator))
-                                .WithAdditionalAnnotations(Simplifier.Annotation);
-                        }
-                    }
-                }
-
-                return newNode;
-            }
-
             private SpeculationAnalyzer GetSpeculationAnalyzer(ExpressionSyntax expression, ExpressionSyntax newExpression)
             {
                 return new SpeculationAnalyzer(expression, newExpression, this._semanticModel, this._cancellationToken);
@@ -191,11 +168,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)newNode;
 
+                    // First, try to add a cast to the lambda.
                     ExpressionSyntax newLambdaExpressionBodyWithCast;
                     if (TryGetLambdaExpressionBodyWithCast(node, parenthesizedLambda, out newLambdaExpressionBodyWithCast))
                     {
-                        newNode = parenthesizedLambda.WithBody(newLambdaExpressionBodyWithCast);
+                        parenthesizedLambda = parenthesizedLambda.WithBody(newLambdaExpressionBodyWithCast);
                     }
+
+                    // Next, try to add a types to the lambda parameters
+                    if (_expandParameter && parenthesizedLambda.ParameterList != null)
+                    {
+                        var parameterList = parenthesizedLambda.ParameterList;
+                        var parameters = parameterList.Parameters.ToArray();
+
+                        if (parameters.Length > 0 && parameters.Any(p => p.Type == null))
+                        {
+                            var parameterSymbols = node.ParameterList.Parameters
+                                .Select(p => _semanticModel.GetDeclaredSymbol(p, _cancellationToken))
+                                .ToArray();
+
+                            if (parameterSymbols.All(p => p.Type?.ContainsAnonymousType() == false))
+                            {
+                                var newParameters = parameterList.Parameters;
+
+                                for (int i = 0; i < parameterSymbols.Length; i++)
+                                {
+                                    var typeSyntax = parameterSymbols[i].Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
+                                    var newParameter = parameters[i].WithType(typeSyntax).WithAdditionalAnnotations(Simplifier.Annotation);
+                                    newParameters = newParameters.Replace(parameters[i], newParameter);
+                                }
+
+                                var newParameterList = parameterList.WithParameters(newParameters);
+                                var newParenthesizedLambda = parenthesizedLambda.WithParameterList(newParameterList);
+
+                                return SimplificationHelpers.CopyAnnotations(from: parenthesizedLambda, to: newParenthesizedLambda);
+                            }
+                        }
+                    }
+
+                    return parenthesizedLambda;
                 }
 
                 return newNode;
@@ -209,32 +220,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 {
                     var simpleLambda = (SimpleLambdaExpressionSyntax)newNode;
 
+                    // First, try to add a cast to the lambda.
                     ExpressionSyntax newLambdaExpressionBodyWithCast;
                     if (TryGetLambdaExpressionBodyWithCast(node, simpleLambda, out newLambdaExpressionBodyWithCast))
                     {
-                        newNode = simpleLambda.WithBody(newLambdaExpressionBodyWithCast);
+                        simpleLambda = simpleLambda.WithBody(newLambdaExpressionBodyWithCast);
                     }
-                }
 
-                if (newNode is SimpleLambdaExpressionSyntax && _expandParameter)
-                {
-                    var newSimpleLambda = (SimpleLambdaExpressionSyntax)newNode;
-                    var parameterSymbol = _semanticModel.GetDeclaredSymbol(node.Parameter);
-                    if (parameterSymbol?.Type?.ContainsAnonymousType() == false)
+                    // Next, try to add a type to the lambda parameter
+                    if (_expandParameter)
                     {
-                        var typeSyntax = parameterSymbol.Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
-                        var newSimpleLambdaParameter = newSimpleLambda.Parameter.WithType(typeSyntax).WithoutTrailingTrivia();
+                        var parameterSymbol = _semanticModel.GetDeclaredSymbol(node.Parameter);
+                        if (parameterSymbol?.Type?.ContainsAnonymousType() == false)
+                        {
+                            var typeSyntax = parameterSymbol.Type.GenerateTypeSyntax().WithTrailingTrivia(s_oneWhitespaceSeparator);
+                            var newSimpleLambdaParameter = simpleLambda.Parameter.WithType(typeSyntax).WithoutTrailingTrivia();
 
-                        var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
-                            newSimpleLambda.AsyncKeyword,
-                            SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(newSimpleLambdaParameter))
-                                .WithTrailingTrivia(newSimpleLambda.Parameter.GetTrailingTrivia())
-                                .WithLeadingTrivia(newSimpleLambda.Parameter.GetLeadingTrivia()),
-                            newSimpleLambda.ArrowToken,
-                            newSimpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
+                            var parenthesizedLambda = SyntaxFactory.ParenthesizedLambdaExpression(
+                                simpleLambda.AsyncKeyword,
+                                SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(newSimpleLambdaParameter))
+                                    .WithTrailingTrivia(simpleLambda.Parameter.GetTrailingTrivia())
+                                    .WithLeadingTrivia(simpleLambda.Parameter.GetLeadingTrivia()),
+                                simpleLambda.ArrowToken,
+                                simpleLambda.Body).WithAdditionalAnnotations(Simplifier.Annotation);
 
-                        return SimplificationHelpers.CopyAnnotations(newNode, parenthesizedLambda);
+                            return SimplificationHelpers.CopyAnnotations(from: simpleLambda, to: parenthesizedLambda);
+                        }
                     }
+
+                    return simpleLambda;
                 }
 
                 return newNode;
