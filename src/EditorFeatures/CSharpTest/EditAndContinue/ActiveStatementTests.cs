@@ -622,6 +622,28 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
+        [WpfFact]
+        public void Delete_Entire_Namespace()
+        {
+            string src1 = @"
+namespace N {
+    class C
+    {
+        static void Main(String[] args)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}";
+            string src2 = @"<AS:0></AS:0>";
+
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, null, "namespace"));
+        }
+
         #endregion
 
         #region Constructors
