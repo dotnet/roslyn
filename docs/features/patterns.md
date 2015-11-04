@@ -123,13 +123,13 @@ A recursive pattern enables the program to invoke an appropriate `operator is`, 
 >*recursive-pattern*:
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*type* `(` *subpattern-list*<sub>opt</sub> `)`
 
-Given a match of an expression *e* to the pattern *type* `(` *subpattern-list*<sub>opt</sub> `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution* (see §[5.5.1](#5.5.1)). It is a compile-time error if the expression *e* is not *pattern compatible* (see §[5.1](#5.1)) with the type of the first argument of the selected operator.
+Given a match of an expression *e* to the pattern *type* `(` *subpattern-list*<sub>opt</sub> `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution*. It is a compile-time error if the expression *e* is not *pattern compatible* with the type of the first argument of the selected operator.
 
-If a suitable `operator is` exists, at runtime, the value of the expression is tested against the type of the first argument as in a type pattern. If this fails then the recursive pattern match fails and the result is `false`. If it succeeds, the operator is invoked with fresh compiler-generated variables to receive the `out` parameters. Each value that was received is matched against the corresponding *subpattern* (see §[5.5.1](#5.5.1)), and the match succeeds if all of these succeed. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns.
+- If a suitable `operator is` exists, at runtime, the value of the expression is tested against the type of the first argument as in a type pattern. If this fails then the recursive pattern match fails and the result is `false`. If it succeeds, the operator is invoked with fresh compiler-generated variables to receive the `out` parameters. Each value that was received is matched against the corresponding *subpattern*, and the match succeeds if all of these succeed. The order in which subpatterns are matched is not specified, and a failed match may not match all subpatterns.
+- If no suitable `operator is` was found, and *type* designates a type that was defined with a parameter list, the number of subpatterns must be the same as the number of parameters of the type. In that case the properties declared in the type's parameter list are read and matched against the subpatterns, as above.
+- Otherwise it is an error.
 
-If no suitable `operator is` was found, and *type* designates a type that was defined with a parameter list, the number of subpatterns must be the same as the number of parameters of the type. In that case the properties declared in the type's parameter list are read and matched against the subpatterns, as above.
-
-If a *subpattern* has an *argument-name*, then every subsequent *subpattern* must have an *argument-name*.
+If a *subpattern* has an *argument-name*, then every subsequent *subpattern* must have an *argument-name*. In this case each argument name must match a parameter name (of an overloaded `operator is` in the first bullet above, or of the type's parameter list in the second bullet). [Note: this needs to be made more precise.]
 
 #### Property Pattern
 
@@ -164,6 +164,43 @@ The scope of a pattern variable is as follows:
 Other cases are errors for other reasons (e.g. in a parameter's default value or an attribute, both of which are an error because those contexts require a constant expression).
 
 The use of a pattern variables is a value, not a variable. In other words pattern variables are read-only.
+
+## User-defined operator is
+
+An explicit `operator is` may be declared to extend the pattern matching capabilities. Such a method is invoked by the `is` operator or a *switch-statement* with a *recursive-pattern*.
+
+For example, suppose we have a type representing a Cartesian point in 2-space:
+
+```
+public class Cartesian
+{
+	public int X { get; }
+	public int Y { get; }
+}
+```
+
+We may sometimes think of them in polar coordinates:
+
+```
+public static class Polar
+{
+	public static bool operator is(Cartesian c, out double R, out double Theta)
+	{
+		R = Math.Sqrt(c.X*c.X + c.Y*c.Y);
+		Theta = Math.Atan2(c.Y, c.X);
+		return c.X != 0 || c.Y != 0;
+	}
+}
+```
+
+And now we can operate on `Cartesian` values using polar coordinates
+
+```
+var c = Cartesian(3, 4);
+if (c is Polar(var R, *)) Console.WriteLine(R);
+```
+
+Which prints `5`.
 
 ## Switch Statement
 
@@ -399,13 +436,13 @@ var areas =
 The *let-statement* would apply to tuples as follows. Given
 
 ```cs
-public (int, int) ComputePoint() => …
+public (int, int) Coordinates => …
 ```
 
 You could receive the results into a block scope thusly
 
 ```cs
-	let (int x, int y) = ComputePoint();
+	let (int x, int y) = Coordinates;
 ```
 
 (This assumes much about the tuple spec and the interaction of tuples and pattern-matching, all of which is unsettled.)
