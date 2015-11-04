@@ -21,10 +21,17 @@
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
       <Name>csc</Name>
+      <Aliases>csc</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\VisualBasic\vbc\vbc.csproj">
       <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
+      <Aliases>vbc</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\MSBuildTask\MSBuildTask.csproj">
+      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
+      <Name>MSBuildTask</Name>
+      <Aliases>MSBuildTask</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
@@ -42,13 +49,13 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>TestUtilities.FX45</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Core\MSBuildTask\MSBuildTask.csproj">
-      <Project>{d874349c-8bb3-4bdc-8535-2d52ccca1198}</Project>
-      <Name>MSBuildTask</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
       <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Core\ServerCore.csproj">
+      <Project>{9929e5ae-85ca-46a8-a500-3be7bc634d87}</Project>
+      <Name>ServerCore</Name>
     </ProjectReference>
     <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508f118-f62e-4c16-a6f4-7c3b56e166ad}</Project>

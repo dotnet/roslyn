@@ -1,20 +1,39 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Text;
+using System.Runtime.InteropServices;
+using System.Security.Principal;
+using System.Security.AccessControl;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class DesktopCompilerServerHost : ICompilerServerHost
     {
-        public static readonly IAnalyzerAssemblyLoader AnalyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+        // Size of the buffers to use
+        private const int PipeBufferSize = 0x10000;  // 64K
+
+        private static readonly IAnalyzerAssemblyLoader s_analyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+        private readonly string _pipeName;
+
+        internal DesktopCompilerServerHost(string pipeName)
+        {
+            _pipeName = pipeName;
+        }
+
+        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => s_analyzerLoader;
+
+        public string GetSdkDirectory() => RuntimeEnvironment.GetRuntimeDirectory();
 
         public bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers, out BuildResponse response)
         {
-            if (!AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, AnalyzerLoader))
+            if (!AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, s_analyzerLoader))
             {
                 response = new AnalyzerInconsistencyBuildResponse();
                 return false;
@@ -24,8 +43,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return true;
         }
 
-        /*
-
+        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
+        {
+            var namedPipeServerStream = await CreateListenTaskCore(_pipeName, cancellationToken).ConfigureAwait(true);
+            return new NamedPipeClientConnection(namedPipeServerStream);
+        }
 
         /// <summary>
         /// Creates a Task that waits for a client connection to occur and returns the connected 
@@ -33,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         /// <param name="pipeName">Name of the pipe on which the instance will listen for requests.</param>
         /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
-        private async Task<NamedPipeServerStream> CreateListenTask(string pipeName, CancellationToken cancellationToken)
+        private async Task<NamedPipeServerStream> CreateListenTaskCore(string pipeName, CancellationToken cancellationToken)
         {
             // Create the pipe and begin waiting for a connection. This 
             // doesn't block, but could fail in certain circumstances, such
@@ -110,31 +132,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Creates a Task representing the processing of the new connection.  This will return a task that
-        /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
-        /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
-        /// </summary>
-        internal static async Task<ConnectionData> CreateHandleConnectionTask(Task<NamedPipeServerStream> pipeStreamTask, IRequestHandler handler, CancellationToken cancellationToken)
-        {
-            Connection connection;
-            try
-            {
-                var pipeStream = await pipeStreamTask.ConfigureAwait(false);
-                var clientConnection = new NamedPipeClientConnection(pipeStream);
-                connection = new Connection(clientConnection, handler);
-            }
-            catch (Exception ex)
-            {
-                // Unable to establish a connection with the client.  The client is responsible for
-                // handling this case.  Nothing else for us to do here.
-                CompilerServerLogger.LogException(ex, "Error creating client named pipe");
-                return new ConnectionData(CompletionReason.CompilationNotStarted);
-            }
-
-            return await connection.ServeConnection(cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
         /// Create an instance of the pipe. This might be the first instance, or a subsequent instance.
         /// There always needs to be an instance of the pipe created to listen for a new client connection.
         /// </summary>
@@ -167,6 +164,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return pipeStream;
         }
 
+        /*
+
+        BTODO: Need to rationalize this
         private static void LogAbnormalExit(string msg)
         {
             string roslynTempDir = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "RoslynCompilerServerCrash");
@@ -181,7 +181,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 writer.WriteLine(msg);
             }
         }
-
-    */
+        */
     }
 }

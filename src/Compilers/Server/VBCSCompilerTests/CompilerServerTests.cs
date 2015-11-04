@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+extern alias MSBuildTask;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,7 +17,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Xml;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BuildTasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -1956,7 +1957,7 @@ class Program
         [Fact]
         public void ExecuteCscBuildTaskWithServer()
         {
-            var csc = new Csc();
+            var csc = new MSBuildTask::Microsoft.CodeAnalysis.BuildTasks.Csc();
             var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcCs[0].Key).WriteAllText(s_helloWorldSrcCs[0].Value).Path;
             var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
 
@@ -1985,7 +1986,7 @@ class Program
         [Fact]
         public void ExecuteVbcBuildTaskWithServer()
         {
-            var vbc = new Vbc();
+            var vbc = new MSBuildTask::Microsoft.CodeAnalysis.BuildTasks.Vbc();
             var srcFile = _tempDirectory.CreateFile(s_helloWorldSrcVb[0].Key).WriteAllText(s_helloWorldSrcVb[0].Value).Path;
             var exeFile = Path.Combine(_tempDirectory.Path, "hello.exe");
 

@@ -11,6 +11,7 @@ using System.Globalization;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>
+    /// BTODO: separate file
     /// The interface used by <see cref="ServerDispatcher"/> to dispatch requests.
     /// </summary>
     internal interface IRequestHandler
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// <remarks>
     /// One instance of this is created per process.
     /// </remarks>
-    internal partial class ServerDispatcher
+    public partial class ServerDispatcher
     {
         /// <summary>
         /// Time to delay after the last connection before initiating a garbage collection
@@ -39,12 +40,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private readonly IRequestHandler _handler;
         private readonly IDiagnosticListener _diagnosticListener;
 
+        public ServerDispatcher(ICompilerServerHost compilerServerHost, string responseFileDirectory, IDiagnosticListener diagnosticListener) : 
+            this(compilerServerHost, new CompilerRequestHandler(compilerServerHost, responseFileDirectory), diagnosticListener)
+        {
+
+        }
+
         /// <summary>
+        /// BTODO: clean up the comments here
         /// Create a new server that listens on the given base pipe name.
         /// When a request comes in, it is dispatched on a separate thread
         /// via the IRequestHandler interface passed in.
         /// </summary>
-        public ServerDispatcher(ICompilerServerHost compilerServerHost, IRequestHandler handler, IDiagnosticListener diagnosticListener)
+        internal ServerDispatcher(ICompilerServerHost compilerServerHost, IRequestHandler handler, IDiagnosticListener diagnosticListener)
         {
             _compilerServerHost = compilerServerHost;
             _handler = handler;

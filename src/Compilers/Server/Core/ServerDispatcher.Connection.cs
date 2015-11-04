@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal partial class ServerDispatcher
+    public partial class ServerDispatcher
     {
         internal struct ConnectionData
         {
