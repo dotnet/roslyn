@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             SolutionCrawlerLogger.LogUnregistration(coordinator.CorrelationId);
         }
 
-        public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds, IEnumerable<DocumentId> documentIds)
+        public void Reanalyze(Workspace workspace, IIncrementalAnalyzer analyzer, IEnumerable<ProjectId> projectIds, IEnumerable<DocumentId> documentIds, bool highPriority)
         {
             lock (_gate)
             {
@@ -92,14 +92,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 // no specific projects or documents provided
                 if (projectIds == null && documentIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, workspace.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet());
+                    coordinator.Reanalyze(analyzer, workspace.CurrentSolution.Projects.SelectMany(p => p.DocumentIds).ToSet(), highPriority);
                     return;
                 }
 
                 // specific documents provided
                 if (projectIds == null)
                 {
-                    coordinator.Reanalyze(analyzer, documentIds.ToSet());
+                    coordinator.Reanalyze(analyzer, documentIds.ToSet(), highPriority);
                     return;
                 }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var set = new HashSet<DocumentId>(documentIds ?? SpecializedCollections.EmptyEnumerable<DocumentId>());
                 set.UnionWith(projectIds.Select(id => solution.GetProject(id)).SelectMany(p => p.DocumentIds));
 
-                coordinator.Reanalyze(analyzer, set);
+                coordinator.Reanalyze(analyzer, set, highPriority);
             }
         }
 

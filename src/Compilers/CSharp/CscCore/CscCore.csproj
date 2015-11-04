@@ -57,25 +57,25 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Core\MSBuildTask\BuildClient.cs">
+    <Compile Include="..\..\Shared\BuildClient.cs">
       <Link>BuildClient.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\MSBuildTask\NativeMethods.cs">
+    <Compile Include="..\..\Shared\NativeMethods.cs">
       <Link>NativeMethods.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\VBCSCompiler\BuildProtocol.cs">
+    <Compile Include="..\..\Shared\BuildProtocol.cs">
       <Link>BuildProtocol.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\VBCSCompiler\CompilerServerLogger.cs">
+    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\ConsoleUtil.cs">
+    <Compile Include="..\..\Shared\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\CoreClrAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+    <Compile Include="..\..\Shared\AnalyzerAssemblyLoadUtils.cs">
       <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
     <Compile Include="Csc.cs" />

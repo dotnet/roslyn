@@ -158,7 +158,9 @@ namespace Microsoft.CodeAnalysis.Scripting {
         ///  UpArrow       Replace the current submission with a previous submission.
         ///  DownArrow     Replace the current submission with a subsequent submission (after having previously navigated backwards).
         ///REPL commands:
-        ///  #help         Display help on available commands and key bindings..
+        ///  #help         Display help on available commands and key bindings.
+        ///Script directives:
+        ///  #r            Add a metad [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string HelpText {
             get {

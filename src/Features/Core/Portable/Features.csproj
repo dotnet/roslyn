@@ -108,6 +108,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\IFixAllGetFixesService.cs" />
     <Compile Include="CodeFixes\Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="CodeFixes\PredefinedCodeFixProviderNames.cs" />
+    <Compile Include="CodeFixes\RoslynAssemblyHelper.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.IPragmaBasedCodeAction.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaBatchFixHelpers.cs" />
     <Compile Include="CodeFixes\Suppression\AbstractSuppressionCodeFixProvider.PragmaHelpers.cs" />

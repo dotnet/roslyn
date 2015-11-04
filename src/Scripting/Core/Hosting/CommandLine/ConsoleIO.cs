@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     internal class ConsoleIO
     {
-        public static readonly ConsoleIO Default = new ConsoleIO(Console.Out, Console.Error, Console.In);
+        public static readonly ConsoleIO Default = new ConsoleIO(ConsoleShims.Out, ConsoleShims.Error, ConsoleShims.In);
 
         public TextWriter Error { get; }
         public TextWriter Out { get; }
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         {
             get
             {
-                return Console.ForegroundColor;
+                return ConsoleShims.ForegroundColor;
             }
 
             set
             {
-                Console.ForegroundColor = value;
+                ConsoleShims.ForegroundColor = value;
             }
         }
     }

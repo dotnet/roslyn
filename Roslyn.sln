@@ -7,9 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Com
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysis", "src\Compilers\Core\Portable\CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "src\Compilers\Core\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompilerTests", "src\Compilers\Core\VBCSCompilerTests\VBCSCompilerTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompilerTests", "src\Compilers\Server\VBCSCompilerTests\VBCSCompilerTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198} = {D874349C-8BB3-4BDC-8535-2D52CCCA1198}
 	EndProjectSection
@@ -335,8 +335,8 @@ Global
 		src\ExpressionEvaluator\CSharp\Source\ResultProvider\CSharpResultProvider.projitems*{bf9dac1e-3a5e-4dc3-bb44-9a64e0d4e9d3}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{fa0e905d-ec46-466d-b7b2-3b5557f9428c}*SharedItemsImports = 4
-		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 4
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bedc5a4a-809e-4017-9cfd-6c8d4e1847f0}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4

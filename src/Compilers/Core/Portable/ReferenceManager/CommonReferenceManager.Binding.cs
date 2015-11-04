@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
         /// One can think about the rest of the items in assemblies array as assembly references given to the compiler to
         /// build executable for the assembly being built. 
         /// </summary>
-        /// 
+        /// <param name="compilation">Compilation.</param>
         /// <param name="explicitAssemblies">
         /// An array of <see cref="AssemblyData"/> objects describing assemblies, for which this method should
         /// resolve references and find suitable AssemblySymbols. The first slot contains the assembly being built.
@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis
         ///     <see cref="AssemblyData.BindAssemblyReferences(ImmutableArray{AssemblyData}, AssemblyIdentityComparer)"/> method.
         /// </return>
         protected BoundInputAssembly[] Bind(
+            TCompilation compilation,
             ImmutableArray<AssemblyData> explicitAssemblies,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis
                 if (resolverOpt?.ResolveMissingAssemblies == true)
                 {
                     ResolveAndBindMissingAssemblies(
+                        compilation,
                         explicitAssemblies, 
                         explicitModules, 
                         explicitReferences,
@@ -182,6 +184,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private void ResolveAndBindMissingAssemblies(
+            TCompilation compilation,
             ImmutableArray<AssemblyData> explicitAssemblies,
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
@@ -207,6 +210,20 @@ namespace Microsoft.CodeAnalysis
 
             // tracks identities we already asked the resolver to resolve:
             var requestedIdentities = PooledHashSet<AssemblyIdentity>.GetInstance();
+
+            PooledDictionary<AssemblyIdentity, PortableExecutableReference> previouslyResolvedAssembliesOpt = null;
+
+            // Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
+            // which would not match the previously created ones. As a result we would get duplicate PE types and conversion errors.
+            var previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            if (previousScriptCompilation != null)
+            {
+                previouslyResolvedAssembliesOpt = PooledDictionary<AssemblyIdentity, PortableExecutableReference>.GetInstance();
+                foreach (var entry in previousScriptCompilation.GetBoundReferenceManager().GetImplicitlyResolvedAssemblyReferences())
+                {
+                    previouslyResolvedAssembliesOpt.Add(entry.Key, entry.Value);
+                }
+            }
 
             var metadataReferencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
             
@@ -242,10 +259,14 @@ namespace Microsoft.CodeAnalysis
                             continue;
                         }
 
-                        var resolvedReference = resolver.ResolveMissingAssembly(requestingReference, binding.ReferenceIdentity);
-                        if (resolvedReference == null)
+                        PortableExecutableReference resolvedReference;
+                        if (previouslyResolvedAssembliesOpt == null || !previouslyResolvedAssembliesOpt.TryGetValue(binding.ReferenceIdentity, out resolvedReference))
                         {
-                            continue;
+                            resolvedReference = resolver.ResolveMissingAssembly(requestingReference, binding.ReferenceIdentity);
+                            if (resolvedReference == null)
+                            {
+                                continue;
+                            }
                         }
 
                         var data = ResolveMissingAssembly(binding.ReferenceIdentity, resolvedReference, importOptions, resolutionDiagnostics);
@@ -330,6 +351,7 @@ namespace Microsoft.CodeAnalysis
                 requestedIdentities.Free();
                 referenceBindingsToProcess.Free();
                 metadataReferencesBuilder.Free();
+                previouslyResolvedAssembliesOpt?.Free();
             }
         }
 

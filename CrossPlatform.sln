@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Com
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysis", "src\Compilers\Core\Portable\CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "src\Compilers\Core\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{A41D1B99-F489-4C43-BBDF-96D61B19A6B9}"
 EndProject

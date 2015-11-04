@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
         private readonly IContentType _contentType;
         private readonly InteractiveWorkspace _workspace;
         private IInteractiveWindow _currentWindow;
-        private ImmutableHashSet<MetadataReference> _references;
+        private ImmutableArray<MetadataReference> _rspReferences;
         private ImmutableArray<string> _rspImports;
         private MetadataReferenceResolver _metadataReferenceResolver;
         private SourceReferenceResolver _sourceReferenceResolver;
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var mscorlibRef = metadataService.GetReference(typeof(object).Assembly.Location, MetadataReferenceProperties.Assembly);
             var interactiveHostObjectRef = metadataService.GetReference(typeof(InteractiveScriptGlobals).Assembly.Location, Script.HostAssemblyReferenceProperties);
 
-            _references = ImmutableHashSet.Create<MetadataReference>(mscorlibRef, interactiveHostObjectRef);
+            _rspReferences = ImmutableArray.Create<MetadataReference>(mscorlibRef, interactiveHostObjectRef);
             _rspImports = ImmutableArray<string>.Empty;
             _initialScriptFileOpt = null;
             ReferenceSearchPaths = ImmutableArray<string>.Empty;
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     ReferenceSearchPaths = args.ReferencePaths;
                     SourceSearchPaths = args.SourcePaths;
 
-                    _references = _references.Union(rspReferences);
+                    _rspReferences = _rspReferences.AddRange(rspReferences);
                     _rspImports = CommandLineHelpers.GetImports(args);
                 }
             }
@@ -330,29 +330,33 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             var solution = _workspace.CurrentSolution;
             Project project;
             ImmutableArray<string> imports;
+            ImmutableArray<MetadataReference> references;
 
             if (_previousSubmissionProjectId != null)
             {
-                // only the first project needs imports
+                // only the first project needs imports and references
                 imports = ImmutableArray<string>.Empty;
+                references = ImmutableArray<MetadataReference>.Empty;
             }
             else if (_initialScriptFileOpt != null)
             {
                 // insert a project for initialization script listed in .rsp:
-                project = CreateSubmissionProject(solution, languageName, _rspImports);
+                project = CreateSubmissionProject(solution, languageName, _rspImports, _rspReferences);
                 var documentId = DocumentId.CreateNewId(project.Id, debugName: _initialScriptFileOpt);
                 solution = project.Solution.AddDocument(documentId, Path.GetFileName(_initialScriptFileOpt), new FileTextLoader(_initialScriptFileOpt, defaultEncoding: null));
                 _previousSubmissionProjectId = project.Id;
 
                 imports = ImmutableArray<string>.Empty;
+                references = ImmutableArray<MetadataReference>.Empty;
             }
             else
             {
                 imports = _rspImports;
+                references = _rspReferences;
             }
 
             // project for the new submission:
-            project = CreateSubmissionProject(solution, languageName, imports);
+            project = CreateSubmissionProject(solution, languageName, imports, references);
 
             // Keep track of this buffer so we can freeze the classifications for it in the future.
             var viewAndBuffer = ValueTuple.Create(textView, subjectBuffer);
@@ -377,13 +381,12 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _currentTextView = textView;
         }
 
-        private Project CreateSubmissionProject(Solution solution, string languageName, ImmutableArray<string> imports)
+        private Project CreateSubmissionProject(Solution solution, string languageName, ImmutableArray<string> imports, ImmutableArray<MetadataReference> references)
         {
             var name = "Submission#" + (_submissionCount++);
 
             // Grab a local copy so we aren't closing over the field that might change. The
             // collection itself is an immutable collection.
-            var localReferences = _references;
             var localCompilationOptions = GetSubmissionCompilationOptions(name, _metadataReferenceResolver, _sourceReferenceResolver, imports);
 
             var localParseOptions = ParseOptions;
@@ -401,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     parseOptions: localParseOptions,
                     documents: null,
                     projectReferences: null,
-                    metadataReferences: localReferences,
+                    metadataReferences: references,
                     hostObjectType: typeof(InteractiveScriptGlobals),
                     isSubmission: true));
 
@@ -508,10 +511,6 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                     // only remember the submission if we compiled successfully, otherwise we
                     // ignore it's id so we don't reference it in the next submission.
                     _previousSubmissionProjectId = _currentSubmissionProjectId;
-
-                    // Grab any directive references from it
-                    var compilation = await _workspace.CurrentSolution.GetProject(_previousSubmissionProjectId).GetCompilationAsync().ConfigureAwait(false);
-                    _references = _references.Union(compilation.DirectiveReferences);
 
                     // update local search paths - remote paths has already been updated
                     UpdateResolvers(result);

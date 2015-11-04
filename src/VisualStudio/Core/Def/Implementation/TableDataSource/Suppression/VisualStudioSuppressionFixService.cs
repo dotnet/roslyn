@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             // Apply suppressions fix in global suppressions file for non-compiler diagnostics.
             Func<Project, bool> shouldFixInProject = GetShouldFixInProjectDelegate(_workspace, projectHierarchyOpt);
             return ApplySuppressionFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true, isSuppressionInSource: false);
-        }
+            }
 
         public bool AddSuppressions(bool selectedErrorListEntriesOnly, bool suppressInSource, IVsHierarchy projectHierarchyOpt)
         {
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     var diagnostics = await _diagnosticService.GetDiagnosticsAsync(solution, project.Id, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                     builder.AddRange(diagnostics.Where(d => d.Severity != DiagnosticSeverity.Hidden));
                 }
-            }
+                        }
 
             return builder.ToImmutable();
         }
@@ -296,17 +296,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 return true;
             }
 
-            newSolution = FixAllGetFixesService.PreviewChanges(
+                newSolution = FixAllGetFixesService.PreviewChanges(
                     _workspace.CurrentSolution,
                     newSolution,
                     fixAllPreviewChangesTitle: title,
                     fixAllTopLevelHeader: title,
                     languageOpt: languages?.Count == 1 ? languages.Single() : null,
                     workspace: _workspace);
-            if (newSolution == null)
-            {
-                return false;
-            }
+                if (newSolution == null)
+                {
+                    return false;
+                }
 
             waitDialogMessage = ServicesVSResources.ApplyingFix;
             Action<CancellationToken> applyFix = cancellationToken =>
@@ -329,8 +329,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             // Kick off diagnostic re-analysis for affected projects so that diagnostics gets refreshed.
             Task.Run(() =>
             {
-                var uniqueProjectIds = diagnosticsToFix.Where(d => d.ProjectId != null).Select(d => d.ProjectId).Distinct();
-                _diagnosticService.Reanalyze(_workspace, uniqueProjectIds);
+                var reanalyzeDocuments = diagnosticsToFix.Where(d => d.DocumentId != null).Select(d => d.DocumentId).Distinct();
+                _diagnosticService.Reanalyze(_workspace, documentIds: reanalyzeDocuments, highPriority: true);
             });
 
             return true;
