@@ -109,9 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var dispatcher = new ServerDispatcher(new DesktopCompilerServerHost(pipeName), compilerExeDirectory, new EmptyDiagnosticListener());
 
-            dispatcher.ListenAndDispatchConnections(
-                pipeName,
-                keepAliveTimeout);
+            dispatcher.ListenAndDispatchConnections(keepAliveTimeout);
             return CommonCompiler.Succeeded;
         }
     }

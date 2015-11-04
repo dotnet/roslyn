@@ -46,12 +46,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         }
 
-        /// <summary>
-        /// BTODO: clean up the comments here
-        /// Create a new server that listens on the given base pipe name.
-        /// When a request comes in, it is dispatched on a separate thread
-        /// via the IRequestHandler interface passed in.
-        /// </summary>
         internal ServerDispatcher(ICompilerServerHost compilerServerHost, IRequestHandler handler, IDiagnosticListener diagnosticListener)
         {
             _compilerServerHost = compilerServerHost;
@@ -66,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// accepting new connections and wait for existing connections to complete before
         /// returning.
         /// </summary>
-        public void ListenAndDispatchConnections( /* BTODO: delete pipeName */ string pipeName, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
+        public void ListenAndDispatchConnections(TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
             var isKeepAliveDefault = true;
             var connectionList = new List<Task<ConnectionData>>();

@@ -261,7 +261,7 @@ class Hello
             var compilerServerHost = new Mock<ICompilerServerHost>(MockBehavior.Strict);
             var dispatcher = new ServerDispatcher(compilerServerHost.Object, requestHandler.Object, new EmptyDiagnosticListener());
             var startTime = DateTime.Now;
-            dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
+            dispatcher.ListenAndDispatchConnections(keepAlive);
 
             Assert.True((DateTime.Now - startTime) > keepAlive);
         }
@@ -292,7 +292,7 @@ class Hello
             var dispatcherTask = Task.Run(() =>
             {
                 var dispatcher = new ServerDispatcher(CreateNopCompilerServerHost().Object, CreateNopRequestHandler().Object, listener);
-                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
+                dispatcher.ListenAndDispatchConnections(keepAlive);
             });
 
             await RunCSharpCompile(pipeName, HelloWorldSourceText).ConfigureAwait(false);
@@ -319,7 +319,7 @@ class Hello
                     new DesktopCompilerServerHost(pipeName),
                     responseFileDirectory,
                     listener);
-                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
+                dispatcher.ListenAndDispatchConnections(keepAlive);
             });
 
             for (int i = 0; i < 5; i++)
@@ -348,7 +348,7 @@ class Hello
                     new DesktopCompilerServerHost(pipeName),
                     Temp.CreateDirectory().Path, 
                     listener);
-                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
+                dispatcher.ListenAndDispatchConnections(keepAlive);
             });
 
             var list = new List<Task>();
@@ -388,7 +388,7 @@ class Hello
             var dispatcherTask = Task.Run(() =>
             {
                 var dispatcher = new ServerDispatcher(CreateNopCompilerServerHost().Object, CreateNopRequestHandler().Object, diagnosticListener.Object);
-                dispatcher.ListenAndDispatchConnections(pipeName, TimeSpan.FromSeconds(1), cancellationToken: cts.Token);
+                dispatcher.ListenAndDispatchConnections(TimeSpan.FromSeconds(1), cancellationToken: cts.Token);
             });
 
             var seconds = 10;
