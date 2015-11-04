@@ -25,7 +25,7 @@
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Interop\IVsSQM.cs" />
-    <Compile Include="..\..\..\Compilers\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\..\Compilers\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="Implementation\AnalyzerDependency\AnalyzerDependencyResults.cs" />

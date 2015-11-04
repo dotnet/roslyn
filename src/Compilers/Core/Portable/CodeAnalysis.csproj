@@ -53,7 +53,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Helpers\CoreClrShim.cs">
+    <Compile Include="..\..\Shared\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="AdditionalTextFile.cs" />
