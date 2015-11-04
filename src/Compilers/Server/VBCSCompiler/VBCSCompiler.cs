@@ -2,37 +2,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
 using System.Linq;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    /// <summary>
-    /// The interface used by <see cref="ServerDispatcher"/> to dispatch requests.
-    /// </summary>
-    internal interface IRequestHandler
-    {
-        BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken);
-    }
-
-    /// <summary>
-    /// This class handles the named pipe creation, listening, thread creation,
-    /// and so forth. When a request comes in, it is dispatched on a new thread
-    /// to the <see cref="IRequestHandler"/> interface. The request handler does the actual
-    /// compilation. This class itself has no dependencies on the compiler.
-    /// </summary>
-    /// <remarks>
-    /// One instance of this is created per process.
-    /// </remarks>
-    internal partial class ServerDispatcher
+    internal partial class VBCSCompiler
     {
         /// <summary>
         /// Default time the server will stay alive after the last request disconnects.
@@ -51,9 +29,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public static int Main(string[] args)
         {
-            CompilerServerLogger.Initialize("SRV");
-            CompilerServerLogger.Log("Process started");
-
             TimeSpan? keepAliveTimeout = null;
 
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 

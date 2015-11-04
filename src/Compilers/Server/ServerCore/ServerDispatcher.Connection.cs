@@ -4,7 +4,6 @@ using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Threading;

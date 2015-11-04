@@ -101,14 +101,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSBuildTaskTests", "src\Com
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerPerformanceTest", "src\Compilers\VisualBasic\Test\Performance\BasicCompilerPerformanceTest.vbproj", "{0835A7FB-C472-4F7D-A500-F9FD072CFF21}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{E35DA3D1-16C0-4318-9187-6B664F12A870}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerCore", "src\Compilers\Server\ServerCore\ServerCore.csproj", "{9929E5AE-85CA-46A8-A500-3BE7BC634D87}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Test\Utilities\Shared\TestUtilities.projitems*{76c6f005-c89d-4348-bb4a-391898dbeb52}*SharedItemsImports = 4
 		src\Test\Utilities\Shared\TestUtilities.projitems*{6ff42825-5464-4151-ac55-ed828168c192}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
-		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
+		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
@@ -869,6 +873,20 @@ Global
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x64.Build.0 = Release|Any CPU
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x86.ActiveCfg = Release|Any CPU
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x86.Build.0 = Release|Any CPU
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Debug|ARM.ActiveCfg = Debug|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Debug|x64.ActiveCfg = Debug|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Debug|x64.Build.0 = Debug|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Debug|x86.ActiveCfg = Debug|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Release|Any CPU.ActiveCfg = Release|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Release|ARM.ActiveCfg = Release|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Release|Mixed Platforms.Build.0 = Release|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Release|x64.ActiveCfg = Release|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Release|x64.Build.0 = Release|x64
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -876,8 +894,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{A4C99B85-765C-4C65-9C2A-BB609AAB09E6} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{9508F118-F62E-4C16-A6F4-7C3B56E166AD} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
-		{F5CE416E-B906-41D2-80B9-0078E887A3F6} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{9508F118-F62E-4C16-A6F4-7C3B56E166AD} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
+		{F5CE416E-B906-41D2-80B9-0078E887A3F6} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
 		{4B45CA0C-03A0-400F-B454-3D4BCB16AF38} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{B501A547-C911-4A05-AC6E-274A50DFF30E} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{50D26304-0961-4A51-ABF6-6CAD1A56D203} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
@@ -915,5 +933,6 @@ Global
 		{ECBB1F28-2672-4344-8CB3-83882F291739} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
 		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
+		{9929E5AE-85CA-46A8-A500-3BE7BC634D87} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
 	EndGlobalSection
 EndGlobal
