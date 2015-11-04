@@ -40,6 +40,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>m__Finally" + StringExtensions.GetNumeral(Math.Abs(iteratorState + 2));
         }
 
+        internal static string MakeMethodGroupConversionCacheTargetFrameName(MethodSymbol targetMethod)
+        {
+            Debug.Assert((char)GeneratedNameKind.MethodGroupConversionCacheTargetFrame == 'q');
+            return "<" + targetMethod.Name + targetMethod.GetHashCode() + ">q__MethodGroupTarget";
+        }
+
+        internal static string MakeMethodGroupConversionCacheDelegateFrameName(NamedTypeSymbol delegateType)
+        {
+            Debug.Assert((char)GeneratedNameKind.MethodGroupConversionCacheDelegateFrame == 'r');
+            return "<" + delegateType.Name + delegateType.GetHashCode() + ">r__ConversionType";
+        }
+
+        internal static string MakeMethodGroupConversionCacheDelegateFieldName()
+        {
+            Debug.Assert((char)GeneratedNameKind.MethodGroupConversionCacheDelegateField == 's');
+            return "<>s__ConvertedInstance";
+        }
+
         internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)
         {
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClass, methodOrdinal, generation);

@@ -1171,6 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool sawLambdas;
                 bool sawAwaitInExceptionHandler;
+                bool sawRewritableMethodGroupConversion;
                 var loweredBody = LocalRewriter.Rewrite(
                     method.DeclaringCompilation,
                     method,
@@ -1182,7 +1183,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     allowOmissionOfConditionalCalls: true,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
+                    sawRewritableMethodGroupConversion: out sawRewritableMethodGroupConversion,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
+
+                if (loweredBody.HasErrors)
+                {
+                    return loweredBody;
+                }
+
+                if (sawRewritableMethodGroupConversion)
+                {
+                    loweredBody = MethodGroupConversionRewriter.Rewrite(
+                        method,
+                        loweredBody,
+                        compilationState,
+                        diagnostics);
+                }
 
                 if (loweredBody.HasErrors)
                 {

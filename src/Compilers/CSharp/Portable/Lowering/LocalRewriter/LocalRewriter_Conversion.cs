@@ -314,6 +314,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(constantValueOpt == null);
                     return _dynamicFactory.MakeDynamicConversion(rewrittenOperand, explicitCastInCode || conversionKind == ConversionKind.ExplicitDynamic, isArrayIndex, @checked, rewrittenType).ToExpression();
 
+                case ConversionKind.MethodGroup:
+
+                    if (MethodGroupConversionRewriter.IsInterestedConversion(oldNode, rewrittenOperand, _inExpressionLambda))
+                    {
+                        _sawRewritableMethodGroupConversion = true;
+                    }
+
+                    break;
+
                 default:
                     break;
             }

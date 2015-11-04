@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 Debug.Assert(!body.HasErrors);
 
                 bool sawLambdas;
+                bool sawRewritableMethodGroupConversion;
                 bool sawAwaitInExceptionHandler;
                 body = LocalRewriter.Rewrite(
                     compilation: this.DeclaringCompilation,
@@ -502,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     allowOmissionOfConditionalCalls: false,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
+                    sawRewritableMethodGroupConversion: out sawRewritableMethodGroupConversion,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
                 Debug.Assert(!sawAwaitInExceptionHandler);
