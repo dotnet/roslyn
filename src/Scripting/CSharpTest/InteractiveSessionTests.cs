@@ -2188,7 +2188,7 @@ new List<ArgumentException>()
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6532")]
         public void HostObjectAssemblyReference3()
         {
             string source = $@"
