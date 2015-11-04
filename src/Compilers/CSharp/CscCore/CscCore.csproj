@@ -63,10 +63,10 @@
     <Compile Include="..\..\Core\MSBuildTask\NativeMethods.cs">
       <Link>NativeMethods.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\VBCSCompiler\BuildProtocol.cs">
+    <Compile Include="..\..\Helpers\BuildProtocol.cs">
       <Link>BuildProtocol.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\VBCSCompiler\CompilerServerLogger.cs">
+    <Compile Include="..\..\Helpers\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
     </Compile>
     <Compile Include="..\..\Helpers\ConsoleUtil.cs">

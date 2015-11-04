@@ -27,7 +27,7 @@
       <Project>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</Project>
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
+    <ProjectReference Include="..\..\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
@@ -59,9 +59,13 @@
     </Compile>
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
-    <Compile Include="BuildProtocol.cs" />
+    <Compile Include="..\..\Helpers\BuildProtocol.cs">
+      <Link>BuildProtocol.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Helpers\CompilerServerLogger.cs">
+      <Link>CompilerServerLogger.cs</Link>
+    </Compile>
     <Compile Include="CompilerRequestHandler.cs" />
-    <Compile Include="CompilerServerLogger.cs" />
     <Compile Include="CSharpCompilerServer.cs" />
     <Compile Include="DiagnosticListener.cs" />
     <Compile Include="IClientConnection.cs" />
