@@ -50,22 +50,22 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
       <Link>InternalUtilities\StreamExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\CoreClrShim.cs">
+    <Compile Include="..\..\..\Compilers\Shared\CoreClrShim.cs">
       <Link>InternalUtilities\CoreClrShim.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
       <Link>InternalUtilities\FileKey.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\..\Compilers\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\AnalyzerAssemblyLoadUtils.cs">
+    <Compile Include="..\..\..\Compilers\Shared\AnalyzerAssemblyLoadUtils.cs">
       <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\..\Compilers\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />

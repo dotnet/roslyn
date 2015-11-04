@@ -48,21 +48,21 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+    <Compile Include="..\..\Shared\AnalyzerAssemblyLoadUtils.cs">
       <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\ShadowCopyAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
-    <Compile Include="..\..\Helpers\BuildProtocol.cs">
+    <Compile Include="..\..\Shared\BuildProtocol.cs">
       <Link>BuildProtocol.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\CompilerServerLogger.cs">
+    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
     </Compile>
     <Compile Include="CompilerRequestHandler.cs" />

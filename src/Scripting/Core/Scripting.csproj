@@ -48,16 +48,16 @@
     <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>Resolvers\RelativePathResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>Resolvers\GacFileResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>Resolvers\GlobalAssemblyCache.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
     </Compile>
     <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
