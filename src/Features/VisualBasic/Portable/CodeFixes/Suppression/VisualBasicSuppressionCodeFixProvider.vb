@@ -2,10 +2,10 @@
 
 Imports System.Composition
 Imports System.Globalization
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return token.Kind = SyntaxKind.EndOfFileToken
         End Function
 
-        Protected Overrides Function AddGlobalSuppressMessageAttribute(newRoot As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic) As SyntaxNode
+        Protected Overrides Function AddGlobalSuppressMessageAttribute(newRoot As SyntaxNode, targetSymbol As ISymbol, diagnostic As Diagnostic, workspace As Workspace, cancellationToken As CancellationToken) As SyntaxNode
             Dim compilationRoot = DirectCast(newRoot, CompilationUnitSyntax)
             Dim isFirst = Not compilationRoot.Attributes.Any()
             Dim attributeList = CreateAttributeList(targetSymbol, diagnostic)
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 attributeStatement = attributeStatement.WithLeadingTrivia(attributeStatement.GetLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed))
             End If
 
-            attributeStatement = attributeStatement.WithAdditionalAnnotations(Formatter.Annotation)
+            attributeStatement = CType(Formatter.Format(attributeStatement, workspace, cancellationToken:=cancellationToken), AttributesStatementSyntax)
 
             Dim leadingTrivia = If(isFirst AndAlso Not compilationRoot.HasLeadingTrivia,
                 SyntaxFactory.TriviaList(SyntaxFactory.CommentTrivia(GlobalSuppressionsFileHeaderComment)),
@@ -145,8 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Dim attributeName = SyntaxFactory.ParseName(SuppressMessageAttributeName)
             Dim attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic)
 
-            Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(attributeTarget, attributeName, attributeArguments) _
-                .WithAdditionalAnnotations(Simplifier.Annotation)
+            Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(attributeTarget, attributeName, attributeArguments)
             Return SyntaxFactory.AttributeList().AddAttributes(attribute)
         End Function
 

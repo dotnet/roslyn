@@ -4775,5 +4775,216 @@ class C
         }
 
         #endregion
+
+        #region Synthesized Methods
+
+        [Fact]
+        public void ImportsInLambda()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    static void M()
+    {
+        System.Action f = () =>
+        {
+            var c = new[] { 1, 2, 3 };
+            c.Select(i => i);
+        };
+        f();
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            c.VerifyPdb("C+<>c.<M>b__0_0",
+@"<symbols>
+  <methods>
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_0"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""M"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""63"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""39"" />
+        <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""30"" />
+        <entry offset=""0x39"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x3a"">
+        <local name=""c"" il_index=""0"" il_start=""0x0"" il_end=""0x3a"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void ImportsInIterator()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    static IEnumerable<object> F()
+    {
+        var c = new[] { 1, 2, 3 };
+        foreach (var i in c.Select(i => i))
+        {
+            yield return i;
+        }
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            c.VerifyPdb("C+<F>d__0.MoveNext",
+@"<symbols>
+  <methods>
+    <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""C+&lt;&gt;c"" methodName=""&lt;F&gt;b__0_0"" parameterNames=""i"" />
+        <hoistedLocalScopes>
+          <slot startOffset=""0x27"" endOffset=""0xd4"" />
+          <slot startOffset=""0x0"" endOffset=""0x0"" />
+          <slot startOffset=""0x7f"" endOffset=""0xb5"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""temp"" />
+          <slot kind=""27"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x27"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x28"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" />
+        <entry offset=""0x3f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" />
+        <entry offset=""0x40"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""43"" />
+        <entry offset=""0x7d"" hidden=""true"" />
+        <entry offset=""0x7f"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""23"" />
+        <entry offset=""0x90"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" />
+        <entry offset=""0x91"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""28"" />
+        <entry offset=""0xad"" hidden=""true"" />
+        <entry offset=""0xb5"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" />
+        <entry offset=""0xb6"" startLine=""8"" startColumn=""24"" endLine=""8"" endColumn=""26"" />
+        <entry offset=""0xd1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" />
+        <entry offset=""0xd5"" hidden=""true"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void ImportsInAsync()
+        {
+            var source =
+@"using System.Linq;
+using System.Threading.Tasks;
+class C
+{
+    static async Task F()
+    {
+        var c = new[] { 1, 2, 3 };
+        c.Select(i => i);
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            c.VerifyPdb("C+<F>d__0.MoveNext",
+@"<symbols>
+  <methods>
+    <method containingType=""C+&lt;F&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""C+&lt;&gt;c"" methodName=""&lt;F&gt;b__0_0"" parameterNames=""i"" />
+        <hoistedLocalScopes>
+          <slot startOffset=""0x0"" endOffset=""0x78"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" />
+        <entry offset=""0x1f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" />
+        <entry offset=""0x4c"" hidden=""true"" />
+        <entry offset=""0x64"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
+        <entry offset=""0x6c"" hidden=""true"" />
+      </sequencePoints>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""F"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [WorkItem(2501)]
+        [Fact]
+        public void ImportsInAsyncLambda()
+        {
+            var source =
+@"using System.Linq;
+class C
+{
+    static void M()
+    {
+        System.Action f = async () =>
+        {
+            var c = new[] { 1, 2, 3 };
+            c.Select(i => i);
+        };
+    }
+}";
+            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            c.VerifyPdb("C+<>c.<M>b__0_0",
+@"<symbols>
+  <methods>
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_0"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;&lt;M&gt;b__0_0&gt;d"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""69"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>");
+            c.VerifyPdb("C+<>c+<<M>b__0_0>d.MoveNext",
+@"<symbols>
+  <methods>
+    <method containingType=""C+&lt;&gt;c+&lt;&lt;M&gt;b__0_0&gt;d"" name=""MoveNext"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""M"" />
+        <hoistedLocalScopes>
+          <slot startOffset=""0x0"" endOffset=""0x78"" />
+        </hoistedLocalScopes>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""50"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""39"" />
+        <entry offset=""0x1f"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""30"" />
+        <entry offset=""0x4c"" hidden=""true"" />
+        <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
+        <entry offset=""0x6c"" hidden=""true"" />
+      </sequencePoints>
+      <asyncInfo>
+        <catchHandler offset=""0x4c"" />
+        <kickoffMethod declaringType=""C+&lt;&gt;c"" methodName=""&lt;M&gt;b__0_0"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        #endregion
     }
 }

@@ -93,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string GoToImplementation = "Go To Implementation Command Handler";
 
         /// <summary>
+        /// Command handler name for Go to Adjacent Member.
+        /// </summary>
+        public const string GoToAdjacentMember = "Go To Adjacent Member Command Handler";
+
+        /// <summary>
         /// Command handler name for Indent.
         /// </summary>
         public const string Indent = "Indent Command Handler";
@@ -134,5 +139,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// handled by the <see cref="IntelliSense"/> command handler.
         /// </summary>
         public const string SignatureHelp = "Signature Help Command Handler";
+
+        /// <summary>
+        /// Command handler name for Paste Content in Interactive Format. 
+        /// </summary>
+        public const string InteractivePaste = "Interactive Paste Command Handler";
     }
 }

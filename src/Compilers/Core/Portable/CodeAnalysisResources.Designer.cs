@@ -234,6 +234,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t create a metadata reference to an assembly without location..
+        /// </summary>
+        internal static string CantCreateReferenceToAssemblyWithoutLocation {
+            get {
+                return ResourceManager.GetString("CantCreateReferenceToAssemblyWithoutLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t create a metadata reference to a dynamic assembly..
         /// </summary>
         internal static string CantCreateReferenceToDynamicAssembly {

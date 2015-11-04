@@ -12,15 +12,13 @@
     <AssemblyName>Microsoft.VisualStudio.LanguageServices</AssemblyName>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <CreateVsixContainer>false</CreateVsixContainer>
     <DeployExtension>false</DeployExtension>
     <UseCodebase>true</UseCodebase>
-    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ConcurrentLruCache.cs">
@@ -38,16 +36,25 @@
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyIdentityList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNameList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IgnorableAssemblyNamePrefixList.cs" />
+    <Compile Include="Implementation\Classification\ViewSupportsClassificationService.cs" />
     <Compile Include="Implementation\CompilationErrorTelemetry\CompilationErrorTelemetryIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\Diagnostics\VisualStudioVenusSpanMappingService.cs" />
+    <Compile Include="Implementation\Diagnostics\VisualStudioWorkspaceDiagnosticAnalyzerProviderService.AnalyzerAssemblyLoader.cs" />
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
+    <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\MetadataDefinitionTreeItem.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\SourceDefinitionTreeItem.cs" />
+    <Compile Include="Implementation\Library\ILibraryService.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfoNodeEnum.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\Extensions.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfo.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfoFactory.cs" />
+    <Compile Include="Implementation\Library\VsNavInfo\NavInfoNode.cs" />
     <Compile Include="Implementation\Log\VisualStudioErrorLogger.cs" />
     <Compile Include="Implementation\AnalyzerDependency\MissingAnalyzerDependency.cs" />
     <Compile Include="Implementation\Preview\ReferenceChange.MetadataReferenceChange.cs" />
@@ -109,6 +116,8 @@
     <Compile Include="Implementation\Workspace\Esent\EsentStorage.ProjectDocumentTable.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioErrorReportingService.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptions.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioNavigationOptionsProvider.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="RoslynPackage.cs" />
@@ -118,6 +127,7 @@
       <DependentUpon>ServicesVSResources.resx</DependentUpon>
     </Compile>
     <Compile Include="SolutionEventMonitor.cs" />
+    <Compile Include="Utilities\IVsTextViewExtensions.cs" />
     <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
@@ -487,7 +497,6 @@
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractDescriptionBuilder.LinkFlags.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_Description.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_NavInfo.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\AbstractObjectBrowserLibraryManager_Search.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Helpers.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\FolderListItem.cs" />
@@ -498,10 +507,6 @@
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\ReferenceListItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\SymbolListItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\Lists\TypeListItem.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\EnumNavInfoNodes.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\NavInfo.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\NavInfoList.cs" />
-    <Compile Include="Implementation\Library\ObjectBrowser\NavInfos\NavInfoNode.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectList.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectListItem.cs" />
     <Compile Include="Implementation\Library\ObjectBrowser\ObjectListKind.cs" />
@@ -596,7 +601,7 @@
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.cs" />
     <Compile Include="Implementation\ProjectSystem\WorkspaceBackgroundWork.cs" />
     <Compile Include="Implementation\ProvideAutomationPropertiesAttribute.cs" />
-    <Compile Include="Implementation\SuggestionSupport\VisualStudioDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Implementation\VisualStudioDocumentSupportsSuggestionService.cs" />
     <Compile Include="Implementation\RQName\Nodes\ResolvedRQNode.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQArrayOrPointerType.cs" />
     <Compile Include="Implementation\RQName\Nodes\RQArrayType.cs" />

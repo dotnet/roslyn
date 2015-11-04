@@ -101,30 +101,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         End Function
 
         Protected Sub TestAutoImplementedPropertyExtender_IsAutoImplemented(code As XElement, expected As Boolean)
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeProperty2)()
-                Assert.NotNull(codeElement)
-
-                Assert.Equal(expected, AutoImplementedPropertyExtender_GetIsAutoImplemented(codeElement))
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    Assert.Equal(expected, AutoImplementedPropertyExtender_GetIsAutoImplemented(codeElement))
+                End Sub)
         End Sub
 
         Protected Sub TestGetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeProperty2)()
-                Assert.NotNull(codeElement)
-
-                verifier(codeElement.Getter)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    verifier(codeElement.Getter)
+                End Sub)
         End Sub
 
         Protected Sub TestSetter(code As XElement, verifier As Action(Of EnvDTE.CodeFunction))
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
-                Dim codeElement = state.GetCodeElementAtCursor(Of EnvDTE80.CodeProperty2)()
-                Assert.NotNull(codeElement)
-
-                verifier(codeElement.Setter)
-            End Using
+            TestElement(code,
+                Sub(codeElement)
+                    verifier(codeElement.Setter)
+                End Sub)
         End Sub
 
     End Class

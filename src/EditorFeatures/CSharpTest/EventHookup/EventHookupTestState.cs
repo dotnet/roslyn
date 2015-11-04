@@ -43,13 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
             return new EventHookupTestState(XElement.Parse(workspaceXml));
         }
 
-        public void WaitForAsyncOperations()
-        {
-            var waiters = this.Workspace.ExportProvider.GetExportedValues<IAsynchronousOperationWaiter>();
-            var tasks = waiters.Select(w => w.CreateWaitTask()).ToList();
-            tasks.PumpingWaitAll();
-        }
-
         internal void AssertShowing(string expectedText)
         {
             Assert.NotNull(_commandHandler.EventHookupSessionManager.QuickInfoSession);

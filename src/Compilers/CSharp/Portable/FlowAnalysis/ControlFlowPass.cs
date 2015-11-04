@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Perform control flow analysis, reporting all necessary diagnostics.  Returns true if the end of
-        /// the body might be reachable..
+        /// the body might be reachable...
         /// </summary>
-        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundNode node, DiagnosticBag diagnostics)
+        public static bool Analyze(CSharpCompilation compilation, Symbol member, BoundBlock block, DiagnosticBag diagnostics)
         {
-            var walker = new ControlFlowPass(compilation, member, node);
+            var walker = new ControlFlowPass(compilation, member, block);
 
             if (diagnostics != null)
             {

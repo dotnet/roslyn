@@ -3704,11 +3704,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_OverloadRefOutCtor" xml:space="preserve">
     <value>Cannot define overloaded constructor '{0}' because it differs from another constructor only on ref and out</value>
   </data>
-  <data name="ERR_ReturnNotAllowedInScript" xml:space="preserve">
-    <value>You cannot use 'return' in top-level script code</value>
+  <data name="ERR_YieldNotAllowedInScript" xml:space="preserve">
+    <value>Cannot use 'yield' in top-level script code</value>
   </data>
   <data name="ERR_NamespaceNotAllowedInScript" xml:space="preserve">
-    <value>You cannot declare namespace in script code</value>
+    <value>Cannot declare namespace in script code</value>
   </data>
   <data name="ERR_GlobalAttributesNotAllowed" xml:space="preserve">
     <value>Assembly and module attributes are not allowed in this context</value>
@@ -4207,13 +4207,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>items: must be non-empty</value>
   </data>
   <data name="UseVerbatimIdentifier" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Identifier or Roslyn.Compilers.CSharp.Syntax.VerbatimIdentifier to create identifier tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.</value>
   </data>
   <data name="UseLiteralForTokens" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Literal to create character literal tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.</value>
   </data>
   <data name="UseLiteralForNumeric" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Literal to create numeric literal tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.</value>
   </data>
   <data name="ThisMethodCanOnlyBeUsedToCreateTokens" xml:space="preserve">
     <value>This method can only be used to create tokens - {0} is not a token kind.</value>
@@ -4396,10 +4396,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly}         Specify debugging type ('full' is default, and 
+ /debug:{full|pdbonly|portable}
+                               Specify debugging type ('full' is default, and 
                                enables attaching a debugger to a running 
-                               program)
+                               program. 'portable' is a cross-platform format)
  /optimize[+|-]                Enable optimizations (Short form: /o)
+ /deterministic                Produce a deterministic assembly
+                               (including module version GUID and timestamp)
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4671,6 +4674,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
     <value>Source file references are not supported.</value>
+  </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
   </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>

@@ -467,6 +467,13 @@ NewLines("Class AwesomeClass \n Sub M() \n Dim foo = New AwesomeClass() \n End S
 index:=0)
         End Sub
 
+        <WorkItem(6338, "https://github.com/dotnet/roslyn/issues/6338")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        Public Sub TestMissingName()
+            TestMissing(
+NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
+        End Sub
+
         Public Class AddImportTestsWithAddImportDiagnosticProvider
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

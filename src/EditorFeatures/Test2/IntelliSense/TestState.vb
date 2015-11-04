@@ -237,12 +237,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                        Function(i) i.DisplayText = v))
         End Function
 
-        Public Sub AssertSelectedCompletionItem(Optional displayText As String = Nothing,
+        Public Async Function AssertSelectedCompletionItem(Optional displayText As String = Nothing,
                                Optional description As String = Nothing,
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
-                               Optional shouldFormatOnCommit As Boolean? = Nothing)
-            WaitForAsynchronousOperations()
+                               Optional shouldFormatOnCommit As Boolean? = Nothing) As Task
+            Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
             If isSoftSelected.HasValue Then
                 Assert.Equal(isSoftSelected.Value, Me.CurrentCompletionPresenterSession.IsSoftSelected)
             End If
@@ -268,7 +268,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If description IsNot Nothing Then
                 Assert.Equal(description, Me.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync().Result.GetFullText())
             End If
-        End Sub
+        End Function
 
 #End Region
 
@@ -310,11 +310,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendInvokeSignatureHelp(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Sub SendSelectSignatureHelpItemThroughPresenterSession(item As SignatureHelpItem)
-            WaitForAsynchronousOperations()
-            CurrentSignatureHelpPresenterSession.SetSelectedItem(item)
-        End Sub
-
         Public Async Function AssertNoSignatureHelpSession(Optional block As Boolean = True) As Task
             If block Then
                 Await WaitForAsynchronousOperationsAsync().ConfigureAwait(True)
@@ -347,13 +342,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Function SignatureHelpItemsContainsAll(displayText As String()) As Boolean
-            WaitForAsynchronousOperations()
+            AssertNoAsynchronousOperationsRunning()
             Return displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
                                        Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
         End Function
 
         Public Function SignatureHelpItemsContainsAny(displayText As String()) As Boolean
-            WaitForAsynchronousOperations()
+            AssertNoAsynchronousOperationsRunning()
             Return displayText.Any(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
                                        Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
         End Function

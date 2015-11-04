@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 // Only bother with identifiers that are at least 3 characters long.
                 // We don't want to be too noisy as you're just starting to type something.
                 var nameText = name.GetFirstToken().ValueText;
-                if (nameText.Length >= 3)
+                if (nameText?.Length >= 3)
                 {
                     semanticModel = semanticModel ?? await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);

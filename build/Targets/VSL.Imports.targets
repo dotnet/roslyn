@@ -278,11 +278,14 @@
   </PropertyGroup>
 
   <Target Name="FakeSign"
-          Condition="'$(DelaySign)' == 'true' AND '$(ShouldSignBuild)' != 'true' AND ('$(Language)' == 'C#' OR '$(Language)' == 'VB')"
+          Condition="'$(DelaySign)' == 'true' AND
+                     '$(ShouldSignBuild)' != 'true' AND
+                     ('$(Language)' == 'C#' OR '$(Language)' == 'VB') AND
+                     '$(BuildingProject)' == 'true'"
           Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
+          Outputs="@(IntermediateAssembly);&quot;$(PostCompileBinaryModificationSentinelFile)&quot;">
 
-    <Exec Command="$(FakeSignToolPath) &quot;@(IntermediateAssembly)&quot;" />
+    <Exec Command="&quot;$(FakeSignToolPath)&quot; -f &quot;@(IntermediateAssembly)&quot;" />
 
   </Target>
 

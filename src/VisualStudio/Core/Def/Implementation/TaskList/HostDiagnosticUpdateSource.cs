@@ -37,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             }
         }
 
-        private void RaiseDiagnosticsUpdatedForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
+        private void RaiseDiagnosticsCreatedForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
         {
-            var args = new DiagnosticsUpdatedArgs(
-                id: Tuple.Create(this, projectId, key),
-                workspace: _workspace,
+            var args = DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                CreateId(projectId, key),
+                _workspace,
                 solution: null,
                 projectId: projectId,
                 documentId: null,
@@ -49,6 +49,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             RaiseDiagnosticsUpdated(args);
         }
+
+        private void RaiseDiagnosticsRemovedForProject(ProjectId projectId, object key)
+        {
+            var args = DiagnosticsUpdatedArgs.DiagnosticsRemoved(
+                CreateId(projectId, key),
+                _workspace,
+                solution: null,
+                projectId: projectId,
+                documentId: null);
+
+            RaiseDiagnosticsUpdated(args);
+        }
+
+        private object CreateId(ProjectId projectId, object key) => Tuple.Create(this, projectId, key);
 
         public void UpdateDiagnosticsForProject(ProjectId projectId, object key, IEnumerable<DiagnosticData> items)
         {
@@ -61,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 _diagnosticMap.GetOrAdd(projectId, id => new HashSet<object>()).Add(key);
             }
 
-            RaiseDiagnosticsUpdatedForProject(projectId, key, items);
+            RaiseDiagnosticsCreatedForProject(projectId, key, items);
         }
 
         public void ClearAllDiagnosticsForProject(ProjectId projectId)
@@ -81,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             {
                 foreach (var key in projectDiagnosticKeys)
                 {
-                    RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
+                    RaiseDiagnosticsRemovedForProject(projectId, key);
                 }
             }
         }
@@ -103,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             if (raiseEvent)
             {
-                RaiseDiagnosticsUpdatedForProject(projectId, key, SpecializedCollections.EmptyEnumerable<DiagnosticData>());
+                RaiseDiagnosticsRemovedForProject(projectId, key);
             }
         }
     }

@@ -209,23 +209,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool isLast)
         {
-            BoundStatement boundStatement = binder.BindStatement(statementNode, diagnostics);
-
-            // the result of the last global expression is assigned to the result storage for submission result:
-            if (binder.Compilation.IsSubmission && isLast && !boundStatement.HasAnyErrors)
+            var statement = binder.BindStatement(statementNode, diagnostics);
+            if (isLast && !statement.HasAnyErrors)
             {
-                // insert an implicit conversion for the submission return type (if needed):
-                var expression = InitializerRewriter.GetTrailingScriptExpression(boundStatement);
-                if (expression != null &&
-                    ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void))
+                // the result of the last global expression is assigned to the result storage for submission result:
+                if (binder.Compilation.IsSubmission)
                 {
-                    var submissionResultType = scriptInitializer.ResultType;
-                    expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
-                    boundStatement = new BoundExpressionStatement(boundStatement.Syntax, expression, expression.HasErrors);
+                    // insert an implicit conversion for the submission return type (if needed):
+                    var expression = InitializerRewriter.GetTrailingScriptExpression(statement);
+                    if (expression != null &&
+                        ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void))
+                    {
+                        var submissionResultType = scriptInitializer.ResultType;
+                        expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
+                        statement = new BoundExpressionStatement(statement.Syntax, expression, expression.HasErrors);
+                    }
+                }
+
+                // don't allow trailing expressions after labels (as in regular C#, labels must be followed by a statement):
+                if (statement.Kind == BoundKind.LabeledStatement)
+                {
+                    var labeledStatementBody = ((BoundLabeledStatement)statement).Body;
+                    while (labeledStatementBody.Kind == BoundKind.LabeledStatement)
+                    {
+                        labeledStatementBody = ((BoundLabeledStatement)labeledStatementBody).Body;
+                    }
+
+                    if (InitializerRewriter.GetTrailingScriptExpression(labeledStatementBody) != null)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_SemicolonExpected, ((ExpressionStatementSyntax)labeledStatementBody.Syntax).SemicolonToken);
+                    }
                 }
             }
 
-            return new BoundGlobalStatementInitializer(statementNode, boundStatement);
+            return new BoundGlobalStatementInitializer(statementNode, statement);
         }
 
         private static BoundFieldInitializer BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,

@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -64,11 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Any generated methods that don't suppress debug info will use this
         /// list of debug imports.
         /// </summary>
-        public ImportChain CurrentImportChain { get; set; }
+        public ImportChain CurrentImportChain;
 
         public readonly CSharpCompilation Compilation;
 
-        public LambdaFrame staticLambdaFrame;
+        public LambdaFrame StaticLambdaFrame;
 
         /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.
@@ -118,19 +115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return ModuleBuilderOpt != null; }
         }
 
-        /// <summary> 
-        /// Add a 'regular' synthesized method.
-        /// </summary>
-        public bool HasSynthesizedMethods
-        {
-            get { return _synthesizedMethods != null; }
-        }
-
         public ArrayBuilder<MethodWithBody> SynthesizedMethods
         {
             get { return _synthesizedMethods; }
         }
 
+        /// <summary> 
+        /// Add a 'regular' synthesized method.
+        /// </summary>
         public void AddSynthesizedMethod(MethodSymbol method, BoundStatement body)
         {
             if (_synthesizedMethods == null)
@@ -138,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _synthesizedMethods = ArrayBuilder<MethodWithBody>.GetInstance();
             }
 
-            _synthesizedMethods.Add(new MethodWithBody(method, body, method.GenerateDebugInfo ? CurrentImportChain : null));
+            _synthesizedMethods.Add(new MethodWithBody(method, body, CurrentImportChain));
         }
 
         /// <summary> 

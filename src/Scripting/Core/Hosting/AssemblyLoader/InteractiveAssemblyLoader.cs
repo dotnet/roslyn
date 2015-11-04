@@ -5,7 +5,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
@@ -23,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private class LoadedAssembly
         {
-            public bool LoadedExplicitly { get; set; }
-
             /// <summary>
             /// The original path of the assembly before it was shadow-copied.
             /// For GAC'd assemblies, this is equal to Assembly.Location no matter what path was used to load them.
@@ -48,12 +49,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         private readonly Dictionary<string, AssemblyAndLocation> _assembliesLoadedFromLocationByFullPath;
 
         // simple name -> loaded assemblies
-        private readonly Dictionary<string, List<Assembly>> _loadedAssembliesBySimpleName;
+        private readonly Dictionary<string, List<LoadedAssemblyInfo>> _loadedAssembliesBySimpleName;
 
         // simple name -> identity and location of a known dependency
         private readonly Dictionary<string, List<AssemblyIdentityAndLocation>> _dependenciesWithLocationBySimpleName;
 
-        [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
         private struct AssemblyIdentityAndLocation
         {
             public readonly AssemblyIdentity Identity;
@@ -63,24 +64,31 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 Debug.Assert(identity != null && location != null);
 
-                this.Identity = identity;
-                this.Location = location;
+                Identity = identity;
+                Location = location;
             }
 
-            public override int GetHashCode()
+            private string GetDebuggerDisplay() => Identity + " @ " + Location;
+        }
+
+        [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+        private struct LoadedAssemblyInfo
+        {
+            public readonly Assembly Assembly;
+            public readonly AssemblyIdentity Identity;
+            public readonly string LocationOpt;
+
+            public LoadedAssemblyInfo(Assembly assembly, AssemblyIdentity identity, string locationOpt)
             {
-                throw ExceptionUtilities.Unreachable;
+                Debug.Assert(assembly != null && identity != null);
+
+                Assembly = assembly;
+                Identity = identity;
+                LocationOpt = locationOpt;
             }
 
-            public override bool Equals(object obj)
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            public override string ToString()
-            {
-                return Identity + " @ " + Location;
-            }
+            public bool IsDefault => Assembly == null;
+            private string GetDebuggerDisplay() => IsDefault ? "uninitialized" : Identity.GetDisplayName() + (LocationOpt != null ? " @ " + LocationOpt : "");
         }
 
         public InteractiveAssemblyLoader(MetadataShadowCopyProvider shadowCopyProvider = null)
@@ -89,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             _assembliesLoadedFromLocationByFullPath = new Dictionary<string, AssemblyAndLocation>();
             _assembliesLoadedFromLocation = new Dictionary<Assembly, LoadedAssembly>();
-            _loadedAssembliesBySimpleName = new Dictionary<string, List<Assembly>>(AssemblyIdentityComparer.SimpleNameComparer);
+            _loadedAssembliesBySimpleName = new Dictionary<string, List<LoadedAssemblyInfo>>(AssemblyIdentityComparer.SimpleNameComparer);
             _dependenciesWithLocationBySimpleName = new Dictionary<string, List<AssemblyIdentityAndLocation>>();
 
             _runtimeAssemblyLoader = AssemblyLoaderImpl.Create(this);
@@ -143,40 +151,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         /// <summary>
-        /// Loads an assembly from path.
-        /// </summary>
-        /// <param name="path">Absolute assembly file path.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing path.</exception>
-        /// <exception cref="ArgumentException"><paramref name="path"/> is not an existing assembly file path.</exception>
-        /// <exception cref="TargetInvocationException">The assembly resolver threw an exception.</exception>
-        internal AssemblyLoadResult LoadFromPath(string path)
-        {
-            if (path == null)
-            {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            if (!PathUtilities.IsAbsolute(path))
-            {
-                throw new ArgumentException(ScriptingResources.AbsolutePathExpected, nameof(path));
-            }
-
-            try
-            {
-                return LoadFromPathInternal(FileUtilities.NormalizeAbsolutePath(path));
-            }
-            catch (TargetInvocationException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new ArgumentException(e.Message, nameof(path), e);
-            }
-        }
-
-        /// <summary>
         /// Notifies the assembly loader about a dependency that might be loaded in future.
         /// </summary>
         /// <param name="dependency">Assembly identity.</param>
@@ -223,51 +197,23 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             lock (_referencesLock)
             {
-                RegisterLoadedAssemblySimpleNameNoLock(dependency);
+                RegisterLoadedAssemblySimpleNameNoLock(dependency, locationOpt: null);
             }
         }
 
-        private AssemblyLoadResult LoadFromPathInternal(string fullPath)
+        private void RegisterLoadedAssemblySimpleNameNoLock(Assembly assembly, string locationOpt)
         {
-            AssemblyAndLocation assembly;
-            lock (_referencesLock)
-            {
-                if (_assembliesLoadedFromLocationByFullPath.TryGetValue(fullPath, out assembly))
-                {
-                    LoadedAssembly loadedAssembly = _assembliesLoadedFromLocation[assembly.Assembly];
-                    if (loadedAssembly.LoadedExplicitly)
-                    {
-                        return AssemblyLoadResult.CreateAlreadyLoaded(assembly.Location, loadedAssembly.OriginalPath);
-                    }
-                    else
-                    {
-                        loadedAssembly.LoadedExplicitly = true;
-                        return AssemblyLoadResult.CreateSuccessful(assembly.Location, loadedAssembly.OriginalPath);
-                    }
-                }
-            }
+            var identity = AssemblyIdentity.FromAssemblyDefinition(assembly);
+            var info = new LoadedAssemblyInfo(assembly, identity, locationOpt);
 
-            AssemblyLoadResult result;
-            assembly = ShadowCopyAndLoadAssembly(fullPath, out result);
-            if (assembly.IsDefault)
+            List<LoadedAssemblyInfo> existingInfos;
+            if (_loadedAssembliesBySimpleName.TryGetValue(identity.Name, out existingInfos))
             {
-                throw new FileNotFoundException(message: null, fileName: fullPath);
-            }
-
-            return result;
-        }
-
-        private void RegisterLoadedAssemblySimpleNameNoLock(Assembly assembly)
-        {
-            List<Assembly> sameSimpleNameAssemblies;
-            string simpleName = assembly.GetName().Name;
-            if (_loadedAssembliesBySimpleName.TryGetValue(simpleName, out sameSimpleNameAssemblies))
-            {
-                sameSimpleNameAssemblies.Add(assembly);
+                existingInfos.Add(info);
             }
             else
             {
-                _loadedAssembliesBySimpleName.Add(simpleName, new List<Assembly> { assembly });
+                _loadedAssembliesBySimpleName.Add(identity.Name, new List<LoadedAssemblyInfo> { info });
             }
         }
 
@@ -316,41 +262,129 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             // if the referring assembly is already loaded by our loader, load from its directory:
             if (loadDirectoryOpt != null)
             {
-                string pathWithoutExtension = Path.Combine(loadDirectoryOpt, identity.Name);
-                string originalDllPath = pathWithoutExtension + ".dll";
-                string originalExePath = pathWithoutExtension + ".exe";
+                Assembly assembly;
+                var conflictingLoadedAssemblyOpt = default(LoadedAssemblyInfo);
+                var loadedAssemblyWithEqualNameAndVersionOpt = default(LoadedAssemblyInfo);
 
                 lock (_referencesLock)
                 {
-                    AssemblyAndLocation assembly;
-                    if (_assembliesLoadedFromLocationByFullPath.TryGetValue(originalDllPath, out assembly) ||
-                        _assembliesLoadedFromLocationByFullPath.TryGetValue(originalExePath, out assembly))
+                    // Has the file already been loaded?
+                    assembly = TryGetAssemblyLoadedFromPath(identity, loadDirectoryOpt);
+                    if (assembly != null)
                     {
-                        return assembly.Assembly;
+                        return assembly;
+                    }
+
+                    // Has an assembly with the same name and version been loaded (possibly from a different directory)?
+                    List<LoadedAssemblyInfo> loadedInfos;
+                    if (_loadedAssembliesBySimpleName.TryGetValue(identity.Name, out loadedInfos))
+                    {
+                        // Desktop FX: A weak-named assembly conflicts with another weak-named assembly of the same simple name,
+                        // unless we find an assembly whose identity matches exactly and whose content is exactly the same.
+                        // TODO: We shouldn't block this on CoreCLR.
+
+                        if (!identity.IsStrongName)
+                        {
+                            conflictingLoadedAssemblyOpt = loadedInfos.FirstOrDefault(info => !info.Identity.IsStrongName);
+                        }
+
+                        loadedAssemblyWithEqualNameAndVersionOpt = loadedInfos.FirstOrDefault(info => 
+                            AssemblyIdentityComparer.SimpleNameComparer.Equals(info.Identity.Name, identity.Name) &&
+                            info.Identity.Version == identity.Version);
                     }
                 }
 
-                // Copy & load both .dll and .exe, this is not a common scenario we would need to optimize for.
-                // Remember both loaded assemblies for the next time, even though their versions might not match the current request
-                // they might match the next one and we don't want to load them again.
-                Assembly dll = ShadowCopyAndLoadDependency(originalDllPath).Assembly;
-                Assembly exe = ShadowCopyAndLoadDependency(originalExePath).Assembly;
-
-                if (dll == null ^ exe == null)
+                string assemblyFilePathOpt = FindExistingAssemblyFile(identity.Name, loadDirectoryOpt);
+                if (assemblyFilePathOpt != null)
                 {
-                    return dll ?? exe;
-                }
+                    // TODO: Stop using reflection once ModuleVersionId property once is available in Core contract.
+                    if (!loadedAssemblyWithEqualNameAndVersionOpt.IsDefault)
+                    {
+                        Guid mvid;
+                        if (TryReadMvid(assemblyFilePathOpt, out mvid) &&
+                            CorLightup.Desktop.GetModuleVersionId(loadedAssemblyWithEqualNameAndVersionOpt.Assembly.ManifestModule) == mvid)
+                        {
+                            return loadedAssemblyWithEqualNameAndVersionOpt.Assembly;
+                        }
 
-                if (dll != null && exe != null)
-                {
-                    // .dll and an .exe of the same name might have different versions, 
-                    // one of which might match the requested version.
-                    // Prefer .dll if they are both the same. 
-                    return FindHighestVersionOrFirstMatchingIdentity(identity, new[] { dll, exe });
+                        // TODO: localize
+                        // error: attempt to load an assembly with the same identity as already loaded assembly but different content
+                        throw new InteractiveAssemblyLoaderException(
+                            $"Assembly '{identity.Name}, Version={identity.Version}' has already been loaded from '{loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt}'. " +
+                            $"A different assembly with the same name and version can't be loaded: '{assemblyFilePathOpt}'.");
+                    }
+
+                    // TODO: Desktop FX only
+                    if (!conflictingLoadedAssemblyOpt.IsDefault)
+                    {
+                        // TODO: localize
+                        // error: attempt to load an assembly with the same identity as already loaded assembly but different content
+                        throw new InteractiveAssemblyLoaderException(
+                            $"Assembly '{identity.Name}' has already been loaded from '{conflictingLoadedAssemblyOpt.LocationOpt}'. " +
+                            $"A different assembly with the same name can't be loaded unless it's signed: '{assemblyFilePathOpt}'.");
+                    }
+
+                    assembly = ShadowCopyAndLoadDependency(assemblyFilePathOpt).Assembly;
+                    if (assembly != null)
+                    {
+                        return assembly;
+                    }
                 }
             }
 
             return GetOrLoadKnownAssembly(identity);
+        }
+
+        private static string FindExistingAssemblyFile(string simpleName, string directory)
+        {
+            string pathWithoutExtension = Path.Combine(directory, simpleName);
+            foreach (var extension in RuntimeMetadataReferenceResolver.AssemblyExtensions)
+            {
+                string path = pathWithoutExtension + extension;
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+            }
+
+            return null;
+        }
+
+        private Assembly TryGetAssemblyLoadedFromPath(AssemblyIdentity identity, string directory)
+        {
+            string pathWithoutExtension = Path.Combine(directory, identity.Name);
+
+            foreach (var extension in RuntimeMetadataReferenceResolver.AssemblyExtensions)
+            {
+                AssemblyAndLocation assemblyAndLocation;
+                if (_assembliesLoadedFromLocationByFullPath.TryGetValue(pathWithoutExtension + extension, out assemblyAndLocation) &&
+                    identity.Equals(AssemblyIdentity.FromAssemblyDefinition(assemblyAndLocation.Assembly)))
+                {
+                    return assemblyAndLocation.Assembly;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool TryReadMvid(string filePath, out Guid mvid)
+        {
+            try
+            {
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                {
+                    using (var peReader = new PEReader(stream))
+                    {
+                        var metadataReader = peReader.GetMetadataReader();
+                        mvid = metadataReader.GetGuid(metadataReader.GetModuleDefinition().Mvid);
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private Assembly GetOrLoadKnownAssembly(AssemblyIdentity identity)
@@ -362,10 +396,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             lock (_referencesLock)
             {
                 // already loaded assemblies:
-                List<Assembly> sameSimpleNameAssemblies;
-                if (_loadedAssembliesBySimpleName.TryGetValue(identity.Name, out sameSimpleNameAssemblies))
+                List<LoadedAssemblyInfo> infos;
+                if (_loadedAssembliesBySimpleName.TryGetValue(identity.Name, out infos))
                 {
-                    assembly = FindHighestVersionOrFirstMatchingIdentity(identity, sameSimpleNameAssemblies);
+                    assembly = FindHighestVersionOrFirstMatchingIdentity(identity, infos);
                     if (assembly != null)
                     {
                         return assembly;
@@ -397,23 +431,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return assembly;
         }
 
-        private AssemblyAndLocation ShadowCopyAndLoadAssembly(string originalPath, out AssemblyLoadResult result)
-        {
-            return ShadowCopyAndLoadAndAddEntry(originalPath, out result, explicitLoad: true);
-        }
-
         private AssemblyAndLocation ShadowCopyAndLoadDependency(string originalPath)
-        {
-            AssemblyLoadResult result;
-            return ShadowCopyAndLoadAndAddEntry(originalPath, out result, explicitLoad: false);
-        }
-
-        private AssemblyAndLocation ShadowCopyAndLoadAndAddEntry(string originalPath, out AssemblyLoadResult result, bool explicitLoad)
         {
             AssemblyAndLocation assemblyAndLocation = Load(originalPath);
             if (assemblyAndLocation.IsDefault)
             {
-                result = default(AssemblyLoadResult);
                 return default(AssemblyAndLocation);
             }
 
@@ -425,51 +447,31 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 LoadedAssembly loadedAssembly;
                 if (_assembliesLoadedFromLocation.TryGetValue(assemblyAndLocation.Assembly, out loadedAssembly))
                 {
-                    // The same assembly may have been loaded from a different path already,
-                    // or the assembly has been loaded while we were copying the file and loading the copy;
-                    // Use the existing assembly record.
-                    if (loadedAssembly.LoadedExplicitly)
-                    {
-                        result = AssemblyLoadResult.CreateAlreadyLoaded(assemblyAndLocation.Location, loadedAssembly.OriginalPath);
-                    }
-                    else
-                    {
-                        loadedAssembly.LoadedExplicitly = explicitLoad;
-                        result = AssemblyLoadResult.CreateSuccessful(assemblyAndLocation.Location, loadedAssembly.OriginalPath);
-                    }
-
                     return assemblyAndLocation;
                 }
-                else
-                {
-                    result = AssemblyLoadResult.CreateSuccessful(
-                        assemblyAndLocation.Location,
-                        assemblyAndLocation.GlobalAssemblyCache ? assemblyAndLocation.Location : originalPath);
 
-                    _assembliesLoadedFromLocation.Add(
-                        assemblyAndLocation.Assembly,
-                        new LoadedAssembly { LoadedExplicitly = explicitLoad, OriginalPath = result.OriginalPath });
-                }
+                _assembliesLoadedFromLocation.Add(
+                    assemblyAndLocation.Assembly,
+                    new LoadedAssembly { OriginalPath = assemblyAndLocation.GlobalAssemblyCache ? assemblyAndLocation.Location : originalPath });
 
-                RegisterLoadedAssemblySimpleNameNoLock(assemblyAndLocation.Assembly);
+                RegisterLoadedAssemblySimpleNameNoLock(assemblyAndLocation.Assembly, assemblyAndLocation.Location);
             }
 
             return assemblyAndLocation;
         }
 
-        private static Assembly FindHighestVersionOrFirstMatchingIdentity(AssemblyIdentity identity, IEnumerable<Assembly> assemblies)
+        private static Assembly FindHighestVersionOrFirstMatchingIdentity(AssemblyIdentity identity, IEnumerable<LoadedAssemblyInfo> infos)
         {
             Assembly candidate = null;
             Version candidateVersion = null;
-            foreach (var assembly in assemblies)
+            foreach (var info in infos)
             {
-                var assemblyIdentity = AssemblyIdentity.FromAssemblyDefinition(assembly);
-                if (DesktopAssemblyIdentityComparer.Default.ReferenceMatchesDefinition(identity, assemblyIdentity))
+                if (DesktopAssemblyIdentityComparer.Default.ReferenceMatchesDefinition(identity, info.Identity))
                 {
-                    if (candidate == null || candidateVersion < assemblyIdentity.Version)
+                    if (candidate == null || candidateVersion < info.Identity.Version)
                     {
-                        candidate = assembly;
-                        candidateVersion = assemblyIdentity.Version;
+                        candidate = info.Assembly;
+                        candidateVersion = info.Identity.Version;
                     }
                 }
             }

@@ -13,8 +13,6 @@
     <AssemblyName>Roslyn.Services.VisualBasic.UnitTests</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -96,6 +94,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="VisualBasicCommandLineArgumentsFactoryServiceTests.vb" />
+    <Compile Include="VisualBasicSyntaxFactsServiceTests.vb" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

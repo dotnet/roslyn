@@ -311,5 +311,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         NonFatalWatson,
         GlobalOperationRegistration,
+        CommandHandler_FindAllReference,
+
+        CodefixInfobar_Enable,
+        CodefixInfobar_EnableAndIgnoreFutureErrors,
+        CodefixInfobar_LeaveDisabled,
+        CodefixInfobar_ErrorIgnored,
     }
 }

@@ -61,7 +61,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CommandLineRunnerTests.cs" />
-    <Compile Include="TestCompilationFactory.cs" />
     <Compile Include="InteractiveSessionFixtures.cs" />
     <Compile Include="InteractiveSessionTests.cs" />
     <Compile Include="ObjectFormatterTests.cs" />

@@ -41,7 +41,17 @@
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
+  </PropertyGroup>  
+  <ItemGroup>
+    <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Helpers\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
@@ -58,6 +68,7 @@
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="RealParser.cs" />
+    <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="UnicodeCharacterUtilities.cs" />
     <Compile Include="CodeAnalysisResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -153,7 +164,7 @@
     <Compile Include="DiagnosticAnalyzer\AnalysisState.StateKind.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisState.SyntaxReferenceAnalyzerStateData.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerTelemetry.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalyzerTelemetry.ActionCounts.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerActionCounts.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerExecutor.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.AnalyzerAndOptions.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalyzerManager.cs" />
@@ -748,16 +759,6 @@
     </None>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.x86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\Microsoft.DiaSymReader.Native\$(MicrosoftDiaSymReaderNativeVersion)\runtimes\win\native\Microsoft.DiaSymReader.Native.amd64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />

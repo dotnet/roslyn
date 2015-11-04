@@ -341,33 +341,7 @@ namespace Microsoft.CodeAnalysis
             return !(info.IsValueType || info.IsPointer || info.IsByRef || info.ContainsGenericParameters);
         }
 
-        /// <summary>
-        /// Returns the type of the submission return value.
-        /// </summary>
-        /// <param name="hasValue">
-        /// True if the submission has a return value, i.e. if the submission
-        /// ends with an expression statement.
-        /// </param>
-        /// <exception cref="InvalidOperationException">
-        /// The compilation doesn't represent a submission
-        /// (<see cref="IsSubmission"/> return false).
-        /// </exception>
-        /// <returns>
-        /// Null if the type of the last expression is unknown, 
-        /// <see cref="void"/> if the type of the last expression statement is
-        /// void or if the submission is not an expression statement, or
-        /// otherwise the type of the last expression.
-        /// </returns>
-        /// <remarks>
-        /// Note that the return type is <see cref="void"/> if the last
-        /// statement is a non-expression statement e.g.,
-        /// <code>System.Console.WriteLine();</code>
-        /// and if the statement is an expression statement of type void e.g,
-        /// <code>System.Console.WriteLine()</code>. However,
-        /// <paramref name="hasValue"/> is false in the former case and true
-        /// in the latter.
-        /// </remarks>
-        internal abstract ITypeSymbol GetSubmissionResultType(out bool hasValue);
+        internal abstract bool HasSubmissionResult();
 
         public Compilation WithScriptCompilationInfo(ScriptCompilationInfo info) => CommonWithScriptCompilationInfo(info);
         protected abstract Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info);
@@ -521,7 +495,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<string, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation

@@ -579,15 +579,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
             Debug.Assert(compilationState.ModuleBuilderOpt == _moduleBeingBuiltOpt);
 
-            if (!compilationState.HasSynthesizedMethods)
+            var synthesizedMethods = compilationState.SynthesizedMethods;
+            if (synthesizedMethods == null)
             {
                 return;
             }
 
-            foreach (var methodWithBody in compilationState.SynthesizedMethods)
+            var oldImportChain = compilationState.CurrentImportChain;
+            try
             {
-                var method = methodWithBody.Method;
+                foreach (var methodWithBody in synthesizedMethods)
+                {
+                    var importChain = methodWithBody.ImportChainOpt;
+                    compilationState.CurrentImportChain = importChain;
 
+                    var method = methodWithBody.Method;
                 var lambda = method as SynthesizedLambdaMethod;
                 var variableSlotAllocatorOpt = ((object)lambda != null) ?
                     _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
@@ -620,22 +626,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stateMachine = stateMachine ?? asyncStateMachine;
                     }
 
-                if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
-                {
-                    emittedBody = GenerateMethodBody(
-                        _moduleBeingBuiltOpt,
-                        method,
-                        methodOrdinal,
+                    if (!diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
+                    {
+                        emittedBody = GenerateMethodBody(
+                            _moduleBeingBuiltOpt,
+                            method,
+                            methodOrdinal,
                             loweredBody,
-                        ImmutableArray<LambdaDebugInfo>.Empty,
-                        ImmutableArray<ClosureDebugInfo>.Empty,
+                            ImmutableArray<LambdaDebugInfo>.Empty,
+                            ImmutableArray<ClosureDebugInfo>.Empty,
                             stateMachine,
-                        variableSlotAllocatorOpt,
-                        diagnosticsThisMethod,
-                        _debugDocumentProvider,
-                        methodWithBody.ImportChainOpt,
-                        emittingPdb: _emittingPdb);
-                }
+                            variableSlotAllocatorOpt,
+                            diagnosticsThisMethod,
+                            _debugDocumentProvider,
+                                method.GenerateDebugInfo ? importChain : null,
+                            emittingPdb: _emittingPdb);
+                    }
                 }
                 catch (BoundTreeVisitor.CancelledByStackGuardException ex)
                 {
@@ -652,6 +658,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody);
+            }
+        }
+            finally
+            {
+                compilationState.CurrentImportChain = oldImportChain;
             }
         }
 
@@ -835,6 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatementList analyzedInitializers = null;
 
                 ImportChain importChain;
+                var hasTrailingExpression = false;
 
                 if (methodSymbol.IsScriptConstructor)
                 {
@@ -845,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (methodSymbol.IsScriptInitializer)
                 {
                     // rewrite top-level statements and script variable declarations to a list of statements and assignments, respectively:
-                    var initializerStatements = InitializerRewriter.RewriteScriptInitializer(processedInitializers.BoundInitializers, (SynthesizedInteractiveInitializerMethod)methodSymbol);
+                    var initializerStatements = InitializerRewriter.RewriteScriptInitializer(processedInitializers.BoundInitializers, (SynthesizedInteractiveInitializerMethod)methodSymbol, out hasTrailingExpression);
 
                     // the lowered script initializers should not be treated as initializers anymore but as a method body:
                     body = BoundBlock.SynthesizedNoLocals(initializerStatements.Syntax, initializerStatements.Statements);
@@ -919,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundBlock flowAnalyzedBody = null;
                 if (body != null)
                 {
-                    flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod);
+                    flowAnalyzedBody = FlowAnalysisPass.Rewrite(methodSymbol, body, diagsForCurrentMethod, hasTrailingExpression);
                 }
 
                 bool hasErrors = _hasDeclarationErrors || diagsForCurrentMethod.HasAnyErrors() || processedInitializers.HasErrors;

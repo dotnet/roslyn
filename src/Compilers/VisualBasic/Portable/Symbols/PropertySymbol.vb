@@ -233,7 +233,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public ReadOnly Property OverriddenProperty As PropertySymbol
             Get
                 If Me.IsOverrides Then
-                    Return OverriddenMembers.OverriddenMember
+                    If IsDefinition Then
+                        Return OverriddenMembers.OverriddenMember
+                    End If
+
+                    Return OverriddenMembersResult(Of PropertySymbol).GetOverriddenMember(Me, Me.OriginalDefinition.OverriddenProperty)
                 End If
 
                 Return Nothing
