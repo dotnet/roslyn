@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (value != null) &&
                 !value.IsBad &&
                 (value != Microsoft.CodeAnalysis.ConstantValue.Unset) &&
-                diagnostics.IsEmptyWithoutResolution)
+                !diagnostics.HasAnyResolvedErrors())
             {
                 this.SetLazyConstantValue(
                     value,
