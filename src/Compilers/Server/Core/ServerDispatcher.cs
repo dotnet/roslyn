@@ -30,56 +30,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal partial class ServerDispatcher
     {
         /// <summary>
-        /// Default time the server will stay alive after the last request disconnects.
-        /// </summary>
-        private static readonly TimeSpan s_defaultServerKeepAlive = TimeSpan.FromMinutes(10);
-
-        /// <summary>
         /// Time to delay after the last connection before initiating a garbage collection
         /// in the server. 
         /// </summary>
         private static readonly TimeSpan s_GCTimeout = TimeSpan.FromSeconds(30);
-
-        private static int Run(TimeSpan? keepAliveTimeout, string compilerExeDirectory, string pipeName)
-        {
-            try
-            {
-                int keepAliveValue;
-                string keepAliveStr = ConfigurationManager.AppSettings["keepalive"];
-                if (int.TryParse(keepAliveStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out keepAliveValue) &&
-                    keepAliveValue >= 0)
-                {
-                    if (keepAliveValue == 0)
-                    {
-                        // This is a one time server entry.
-                        keepAliveTimeout = null;
-                    }
-                    else
-                    {
-                        keepAliveTimeout = TimeSpan.FromSeconds(keepAliveValue);
-                    }
-                }
-                else
-                {
-                    keepAliveTimeout = s_defaultServerKeepAlive;
-                }
-            }
-            catch (ConfigurationErrorsException e)
-            {
-                keepAliveTimeout = s_defaultServerKeepAlive;
-                CompilerServerLogger.LogException(e, "Could not read AppSettings");
-            }
-
-            CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
-            FatalError.Handler = FailFast.OnFatalException;
-
-            var dispatcher = new ServerDispatcher(new CompilerRequestHandler(compilerExeDirectory), new EmptyDiagnosticListener());
-
-            dispatcher.ListenAndDispatchConnections(
-                pipeName,
-                keepAliveTimeout);
-            return CommonCompiler.Succeeded;
-        }
 
         private readonly ICompilerServerHost _compilerServerHost;
         private readonly IRequestHandler _handler;
@@ -104,13 +58,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// accepting new connections and wait for existing connections to complete before
         /// returning.
         /// </summary>
-        public void ListenAndDispatchConnections(string pipeName, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
+        public void ListenAndDispatchConnections( /* BTODO: delete pipeName */ string pipeName, TimeSpan? keepAlive, CancellationToken cancellationToken = default(CancellationToken))
         {
             var isKeepAliveDefault = true;
             var connectionList = new List<Task<ConnectionData>>();
             Task gcTask = null;
             Task timeoutTask = null;
-            Task<NamedPipeServerStream> listenTask = null;
+            Task<IClientConnection> listenTask = null;
             CancellationTokenSource listenCancellationTokenSource = null;
 
             do
@@ -122,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     Debug.Assert(listenCancellationTokenSource == null);
                     Debug.Assert(timeoutTask == null);
                     listenCancellationTokenSource = new CancellationTokenSource();
-                    listenTask = CreateListenTask(pipeName, listenCancellationTokenSource.Token);
+                    listenTask = _compilerServerHost.CreateListenTask(listenCancellationTokenSource.Token);
                 }
 
                 // If there are no active clients running then the server needs to be in a timeout mode.
@@ -260,99 +214,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Creates a Task that waits for a client connection to occur and returns the connected 
-        /// <see cref="NamedPipeServerStream"/> object.  Throws on any connection error.
-        /// </summary>
-        /// <param name="pipeName">Name of the pipe on which the instance will listen for requests.</param>
-        /// <param name="cancellationToken">Used to cancel the connection sequence.</param>
-        private async Task<NamedPipeServerStream> CreateListenTask(string pipeName, CancellationToken cancellationToken)
-        {
-            // Create the pipe and begin waiting for a connection. This 
-            // doesn't block, but could fail in certain circumstances, such
-            // as Windows refusing to create the pipe for some reason 
-            // (out of handles?), or the pipe was disconnected before we 
-            // starting listening.
-            NamedPipeServerStream pipeStream = ConstructPipe(pipeName);
-
-            // Unfortunately the version of .Net we are using doesn't support the WaitForConnectionAsync
-            // method.  When it is available it should absolutely be used here.  In the meantime we
-            // have to deal with the idea that this WaitForConnection call will block a thread
-            // for a significant period of time.  It is unadvisable to do this to a thread pool thread 
-            // hence we will use an explicit thread here.
-            var listenSource = new TaskCompletionSource<NamedPipeServerStream>();
-            var listenTask = listenSource.Task;
-            var listenThread = new Thread(() =>
-            {
-                try
-                {
-                    CompilerServerLogger.Log("Waiting for new connection");
-                    pipeStream.WaitForConnection();
-                    CompilerServerLogger.Log("Pipe connection detected.");
-
-                    if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
-                    {
-                        CompilerServerLogger.Log("Memory available - accepting connection");
-                        listenSource.SetResult(pipeStream);
-                        return;
-                    }
-
-                    try
-                    {
-                        pipeStream.Close();
-                    }
-                    catch
-                    {
-                        // Okay for Close failure here.  
-                    }
-
-                    listenSource.SetException(new Exception("Insufficient resources to process new connection."));
-                }
-                catch (Exception ex)
-                {
-                    listenSource.SetException(ex);
-                }
-            });
-            listenThread.Start();
-
-            // Create a tasks that waits indefinitely (-1) and completes only when cancelled.
-            var waitCancellationTokenSource = new CancellationTokenSource();
-            var waitTask = Task.Delay(
-                Timeout.Infinite,
-                CancellationTokenSource.CreateLinkedTokenSource(waitCancellationTokenSource.Token, cancellationToken).Token);
-            await Task.WhenAny(listenTask, waitTask).ConfigureAwait(false);
-            if (listenTask.IsCompleted)
-            {
-                waitCancellationTokenSource.Cancel();
-                return await listenTask.ConfigureAwait(false);
-            }
-
-            // The listen operation was cancelled.  Close the pipe stream throw a cancellation exception to
-            // simulate the cancel operation.
-            waitCancellationTokenSource.Cancel();
-            try
-            {
-                pipeStream.Close();
-            }
-            catch
-            {
-                // Okay for Close failure here.
-            }
-
-            throw new OperationCanceledException();
-        }
-
-        /// <summary>
         /// Creates a Task representing the processing of the new connection.  This will return a task that
         /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
         /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
-        internal static async Task<ConnectionData> CreateHandleConnectionTask(Task<NamedPipeServerStream> pipeStreamTask, IRequestHandler handler, CancellationToken cancellationToken)
+        internal static async Task<ConnectionData> CreateHandleConnectionTask(Task<IClientConnection> connectionTask, IRequestHandler handler, CancellationToken cancellationToken)
         {
             Connection connection;
             try
             {
-                var pipeStream = await pipeStreamTask.ConfigureAwait(false);
-                var clientConnection = new NamedPipeClientConnection(pipeStream);
+                var clientConnection = await connectionTask.ConfigureAwait(true);
                 connection = new Connection(clientConnection, handler);
             }
             catch (Exception ex)
@@ -364,39 +235,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             return await connection.ServeConnection(cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Create an instance of the pipe. This might be the first instance, or a subsequent instance.
-        /// There always needs to be an instance of the pipe created to listen for a new client connection.
-        /// </summary>
-        /// <returns>The pipe instance or throws an exception.</returns>
-        private NamedPipeServerStream ConstructPipe(string pipeName)
-        {
-            CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
-
-            SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
-            PipeSecurity security = new PipeSecurity();
-
-            // Restrict access to just this account.  
-            PipeAccessRule rule = new PipeAccessRule(identifier, PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance, AccessControlType.Allow);
-            security.AddAccessRule(rule);
-            security.SetOwner(identifier);
-
-            NamedPipeServerStream pipeStream = new NamedPipeServerStream(
-                pipeName,
-                PipeDirection.InOut,
-                NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
-                PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
-                PipeBufferSize, // Default input buffer
-                PipeBufferSize, // Default output buffer
-                security,
-                HandleInheritability.None);
-
-            CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);
-
-            return pipeStream;
         }
     }
 }

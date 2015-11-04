@@ -92,20 +92,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private FileKey? GetUniqueFileKey(string filePath)
         {
-            FileInfo fileInfo;
-
             try
             {
-                fileInfo = new FileInfo(filePath);
-
-                if (!fileInfo.Exists)
-                {
-                    return null;
-                }
-                else
-                {
-                    return new FileKey(fileInfo.FullName, fileInfo.LastWriteTimeUtc);
-                }
+                return FileKey.Create(filePath);
             }
             catch (Exception)
             {

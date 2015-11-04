@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -20,27 +21,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public static readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider =
             (path, properties) => new CachingMetadataReference(path, properties);
 
-        public static readonly IAnalyzerAssemblyLoader AnalyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
-
-        private static void LogAbnormalExit(string msg)
-        {
-            string roslynTempDir = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "RoslynCompilerServerCrash");
-            if (!Directory.Exists(roslynTempDir))
-            {
-                Directory.CreateDirectory(roslynTempDir);
-            }
-            string path = Path.Combine(roslynTempDir, DateTime.Now.ToString());
-
-            using (var writer = File.AppendText(path))
-            {
-                writer.WriteLine(msg);
-            }
-        }
-
+        private readonly ICompilerServerHost _compilerServerHost;
         private readonly string _responseFileDirectory;
 
-        internal CompilerRequestHandler(string responseFileDirectory)
+        internal CompilerRequestHandler(ICompilerServerHost compilerServerHost, string responseFileDirectory)
         {
+            _compilerServerHost = compilerServerHost;
             _responseFileDirectory = responseFileDirectory;
         }
 
@@ -151,12 +137,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             return CSharpCompilerServer.RunCompiler(
+                _compilerServerHost,
                 responseFileDirectory,
                 commandLineArguments,
                 currentDirectory,
-                RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
-                AnalyzerLoader,
                 cancellationToken);
         }
 
@@ -205,12 +190,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             return VisualBasicCompilerServer.RunCompiler(
+                _compilerServerHost,
                 responseFileDirectory,
                 commandLineArguments,
                 currentDirectory,
-                RuntimeEnvironment.GetRuntimeDirectory(),
                 libDirectory,
-                AnalyzerLoader,
                 cancellationToken);
         }
     }

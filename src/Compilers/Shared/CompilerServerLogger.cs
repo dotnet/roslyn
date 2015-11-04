@@ -31,6 +31,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         static CompilerServerLogger()
         {
+            s_loggingStream = null;
+
+            /* BTODO: Need to abstract this out to an interface
             try
             {
                 // Check if the environment
@@ -54,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 LogException(e, "Failed to create logging stream");
             }
+            */
         }
 
         /// <summary>
@@ -123,7 +127,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static string GetLoggingPrefix()
         {
+            return string.Empty;
+            /* BTODO: FIX
             return string.Format("{0} PID={1} TID={2} Ticks={3}: ", s_prefix, Process.GetCurrentProcess().Id, Thread.CurrentThread.ManagedThreadId, Environment.TickCount);
+            */
         }
     }
 }

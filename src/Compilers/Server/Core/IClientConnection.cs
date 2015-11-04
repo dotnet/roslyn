@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// Abstraction over the connection to the client process.   This hides underlying connection
     /// to facilitate better testing. 
     /// </summary>
-    internal interface IClientConnection
+    public interface IClientConnection
     {
         /// <summary>
         /// A value which can be used to identify this connection for logging purposes only.  It has 

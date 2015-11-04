@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         public static BuildResponse RunCompiler(
+            ICompilerServerHost compilerServerHost,
             string clientDirectory,
             string[] args,
             string baseDirectory,
-            string sdkDirectory,
             string libDirectory,
-            IAnalyzerAssemblyLoader analyzerLoader,
             CancellationToken cancellationToken)
         {
-            var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
+            var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, compilerServerHost.GetSdkDirectory(), libDirectory, compilerServerHost.AnalyzerAssemblyLoader);
             bool utf8output = compiler.Arguments.Utf8Output;
 
-            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
+            BuildResponse analyzerResponse;
+            if (!compilerServerHost.CheckAnalyzers(baseDirectory, compiler.Arguments.AnalyzerReferences, out analyzerResponse))
             {
-                return new AnalyzerInconsistencyBuildResponse();
+                return analyzerResponse;
             }
 
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);

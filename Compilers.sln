@@ -103,7 +103,7 @@ Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "BasicCompilerPerformanceTes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{E35DA3D1-16C0-4318-9187-6B664F12A870}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerCore", "src\Compilers\Server\ServerCore\ServerCore.csproj", "{9929E5AE-85CA-46A8-A500-3BE7BC634D87}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerCore", "src\Compilers\Server\Core\ServerCore.csproj", "{9929E5AE-85CA-46A8-A500-3BE7BC634D87}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution

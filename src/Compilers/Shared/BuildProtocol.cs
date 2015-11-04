@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// Argument.
     /// 
     /// </summary>
-    internal class BuildRequest
+    public class BuildRequest
     {
         public readonly uint ProtocolVersion;
         public readonly BuildProtocolConstants.RequestLanguage Language;
@@ -263,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// responseType     enum ResponseType   4
     /// responseBody     Response subclass   variable
     /// </summary>
-    internal abstract class BuildResponse
+    public abstract class BuildResponse
     {
         public enum ResponseType
         {
@@ -366,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// 32-bit integer, followed by an array of characters.
     /// 
     /// </summary>
-    internal class CompletedBuildResponse : BuildResponse
+    public sealed class CompletedBuildResponse : BuildResponse
     {
         public readonly int ReturnCode;
         public readonly bool Utf8Output;
@@ -405,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    internal class MismatchedVersionBuildResponse : BuildResponse
+    public sealed class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.MismatchedVersion; } }
 
@@ -415,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
-    internal class AnalyzerInconsistencyBuildResponse : BuildResponse
+    public sealed class AnalyzerInconsistencyBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.AnalyzerInconsistency; } }
 
@@ -429,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// <summary>
     /// Constants about the protocol.
     /// </summary>
-    internal static class BuildProtocolConstants
+    public static class BuildProtocolConstants
     {
         /// <summary>
         /// The version number for this protocol.
@@ -464,6 +463,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static string GetBasePipeName(string compilerExeDirectory)
         {
+            return string.Empty;
+            /* BTODO; Need to abstract this 
             string basePipeName;
             using (var sha = SHA256.Create())
             {
@@ -504,6 +505,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 .GetValue(null);
 
             return $"{userName}.{isAdmin}.{basePipeName}";
+            */
         }
 
         internal static object GetCurrentIdentity(Assembly assembly)
