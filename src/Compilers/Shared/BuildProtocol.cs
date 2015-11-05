@@ -457,58 +457,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Given the full path to the directory containing the compiler exes,
-        /// retrieves the name of the pipe for client/server communication on
-        /// that instance of the compiler.
-        /// </summary>
-        internal static string GetBasePipeName(string compilerExeDirectory)
-        {
-            return string.Empty;
-            /* BTODO; Need to abstract this 
-            string basePipeName;
-            using (var sha = SHA256.Create())
-            {
-                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
-                basePipeName = Convert.ToBase64String(bytes)
-                    .Replace("/", "_")
-                    .Replace("=", string.Empty);
-            }
-
-            var assembly = typeof(object).GetTypeInfo().Assembly;
-
-            // Prefix with username and elevation
-            var identity = GetCurrentIdentity(assembly);
-
-            var principalType = assembly
-                .GetType("System.Security.Principal.WindowsPrincipal");
-
-            var principal = principalType
-                .GetTypeInfo()
-                .GetDeclaredConstructor(assembly.GetType("System.Security.Principal.WindowsIdentity"))
-                .Invoke(new[] { identity });
-
-            var windowsBuiltInRole = assembly
-                .GetType("System.Security.Principal.WindowsBuiltInRole");
-
-            const int builtInRole_Administrator = 0x220;
-            var admin = Enum.ToObject(windowsBuiltInRole,
-                builtInRole_Administrator);
-
-            var isAdmin = Convert.ToInt32(principalType
-                .GetTypeInfo()
-                .GetDeclaredMethod("IsInRole", new[] { windowsBuiltInRole })
-                .Invoke(principal, new[] { admin }));
-
-            var userName = typeof(Environment)
-                .GetTypeInfo()
-                .GetDeclaredProperty("UserName")
-                .GetValue(null);
-
-            return $"{userName}.{isAdmin}.{basePipeName}";
-            */
-        }
-
-        /// <summary>
         /// Read a string from the Reader where the string is encoded
         /// as a length prefix (signed 32-bit integer) followed by
         /// a sequence of characters.

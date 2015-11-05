@@ -11,7 +11,6 @@ using System.Globalization;
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     /// <summary>
-    /// BTODO: separate file
     /// The interface used by <see cref="ServerDispatcher"/> to dispatch requests.
     /// </summary>
     internal interface IRequestHandler

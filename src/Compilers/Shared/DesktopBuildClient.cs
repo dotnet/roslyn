@@ -9,6 +9,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
@@ -338,6 +339,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 Log("Exception checking pipe connection: {0}", ex.Message);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Given the full path to the directory containing the compiler exes,
+        /// retrieves the name of the pipe for client/server communication on
+        /// that instance of the compiler.
+        /// </summary>
+        internal static string GetBasePipeName(string compilerExeDirectory)
+        {
+            string basePipeName;
+            using (var sha = SHA256.Create())
+            {
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
+                basePipeName = Convert.ToBase64String(bytes)
+                    .Replace("/", "_")
+                    .Replace("=", string.Empty);
+            }
+
+            // Prefix with username and elevation
+            var identity = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(identity);
+            var isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
+            var userName = Environment.UserName;
+            return $"{userName}.{isAdmin}.{basePipeName}";
         }
     }
 }
