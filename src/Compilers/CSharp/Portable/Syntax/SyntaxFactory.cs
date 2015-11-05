@@ -2459,34 +2459,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(EqualsValueClauseSyntax));
         }
 
-        public static MethodDeclarationSyntax MethodDeclaration(
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            SyntaxToken refKeyword,
-            TypeSyntax returnType,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
-            SyntaxToken identifier,
-            TypeParameterListSyntax typeParameterList,
-            ParameterListSyntax parameterList,
-            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
-            BlockSyntax body,
-            SyntaxToken semicolonToken)
-        {
-            return SyntaxFactory.MethodDeclaration(
-                attributeLists,
-                modifiers,
-                refKeyword,
-                returnType,
-                explicitInterfaceSpecifier,
-                identifier,
-                typeParameterList,
-                parameterList,
-                constraintClauses,
-                body,
-                default(ArrowExpressionClauseSyntax),
-                semicolonToken);
-        }
-
         public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2529,24 +2501,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body: body,
                 expressionBody: default(ArrowExpressionClauseSyntax),
                 semicolonToken: semicolonToken);
-        }
-
-        public static IndexerDeclarationSyntax IndexerDeclaration(
-            SyntaxList<AttributeListSyntax> attributeLists,
-            SyntaxTokenList modifiers,
-            TypeSyntax type,
-            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier, 
-            BracketedParameterListSyntax parameterList,
-            AccessorListSyntax accessorList)
-        {
-            return SyntaxFactory.IndexerDeclaration(
-                attributeLists: attributeLists,
-                modifiers: modifiers,
-                type: type,
-                explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                parameterList: parameterList,
-                accessorList: accessorList,
-                expressionBody: default(ArrowExpressionClauseSyntax));
         }
 
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>

@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal BoundExpression BindVariableOrAutoPropInitializer(
-            EqualsClauseSyntax initializerOpt,
+            EqualsValueClauseSyntax initializerOpt,
             RefKind refKind,
             TypeSymbol varType,
             DiagnosticBag diagnostics)
@@ -603,9 +603,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.InterpolatedStringExpression:
                     return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
-
-                case SyntaxKind.ReferenceAssignmentExpression:
-                    return BindReferenceAssignment((ReferenceAssignmentExpressionSyntax)node, diagnostics);
 
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable

@@ -527,102 +527,52 @@
       <summary>Creates an BinaryExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
-  <AbstractNode Name="AssignmentExpressionSyntax" Base="ExpressionSyntax">
-    <Field Name="Left" Type="ExpressionSyntax">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="OperatorToken" Type="SyntaxToken">
-      <PropertyComment>
-        <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Right" Type="ExpressionSyntax">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Base class for assignment expressions.</summary>
-    </TypeComment>
-  </AbstractNode>
-  <Node Name="ValueAssignmentExpressionSyntax" Base="AssignmentExpressionSyntax">
-    <Kind Name="SimpleAssignmentExpression"/>
-    <Kind Name="AddAssignmentExpression"/>
-    <Kind Name="SubtractAssignmentExpression"/>
-    <Kind Name="MultiplyAssignmentExpression"/>
-    <Kind Name="DivideAssignmentExpression"/>
-    <Kind Name="ModuloAssignmentExpression"/>
-    <Kind Name="AndAssignmentExpression"/>
-    <Kind Name="ExclusiveOrAssignmentExpression"/>
-    <Kind Name="OrAssignmentExpression"/>
-    <Kind Name="LeftShiftAssignmentExpression"/>
-    <Kind Name="RightShiftAssignmentExpression"/>
-    <Field Name="Left" Type="ExpressionSyntax" Override="true">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="OperatorToken" Type="SyntaxToken" Override="true">
-      <Kind Name="EqualsToken"/>
-      <Kind Name="PlusEqualsToken"/>
-      <Kind Name="MinusEqualsToken"/>
-      <Kind Name="AsteriskEqualsToken"/>
-      <Kind Name="SlashEqualsToken"/>
-      <Kind Name="PercentEqualsToken"/>
-      <Kind Name="AmpersandEqualsToken"/>
-      <Kind Name="CaretEqualsToken"/>
-      <Kind Name="BarEqualsToken"/>
-      <Kind Name="LessThanLessThanEqualsToken"/>
-      <Kind Name="GreaterThanGreaterThanEqualsToken"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Right" Type="ExpressionSyntax" Override="true">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents an expression that assigns a new value to a location.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates a ValueAssignmentExpressionSyntax node.</summary>
-    </FactoryComment>
-  </Node>
-  <Node Name="ReferenceAssignmentExpressionSyntax" Base="AssignmentExpressionSyntax">
-    <Kind Name="ReferenceAssignmentExpression"/>
-    <Field Name="Left" Type="ExpressionSyntax" Override="true">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="OperatorToken" Type="SyntaxToken" Override="true">
-      <Kind Name="EqualsToken"/>
-      <PropertyComment>
-        <summary>SyntaxToken representing the operator of the assignment expression.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken">
-      <PropertyComment>
-        <summary>SyntaxToken representing the ref keyword of the assignment expression.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="Right" Type="ExpressionSyntax" Override="true">
-      <PropertyComment>
-        <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
-      </PropertyComment>
-    </Field>
-    <TypeComment>
-      <summary>Class which represents an expression that assigns a new reference to a by-reference local variable.</summary>
-    </TypeComment>
-    <FactoryComment>
-      <summary>Creates a ReferenceAssignmentExpressionSyntax node.</summary>
-    </FactoryComment>
-  </Node>
-  <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
+  <Node Name="AssignmentExpressionSyntax" Base="ExpressionSyntax">
+      <Kind Name="SimpleAssignmentExpression"/>
+      <Kind Name="AddAssignmentExpression"/>
+      <Kind Name="SubtractAssignmentExpression"/>
+      <Kind Name="MultiplyAssignmentExpression"/>
+      <Kind Name="DivideAssignmentExpression"/>
+      <Kind Name="ModuloAssignmentExpression"/>
+      <Kind Name="AndAssignmentExpression"/>
+      <Kind Name="ExclusiveOrAssignmentExpression"/>
+      <Kind Name="OrAssignmentExpression"/>
+      <Kind Name="LeftShiftAssignmentExpression"/>
+      <Kind Name="RightShiftAssignmentExpression"/>
+      <Field Name="Left" Type="ExpressionSyntax">
+        <PropertyComment>
+          <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
+        </PropertyComment>
+      </Field>
+      <Field Name="OperatorToken" Type="SyntaxToken">
+        <Kind Name="EqualsToken"/>
+        <Kind Name="PlusEqualsToken"/>
+        <Kind Name="MinusEqualsToken"/>
+        <Kind Name="AsteriskEqualsToken"/>
+        <Kind Name="SlashEqualsToken"/>
+        <Kind Name="PercentEqualsToken"/>
+        <Kind Name="AmpersandEqualsToken"/>
+        <Kind Name="CaretEqualsToken"/>
+        <Kind Name="BarEqualsToken"/>
+        <Kind Name="LessThanLessThanEqualsToken"/>
+        <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+        <PropertyComment>
+          <summary>SyntaxToken representing the operator of the assignment expression.</summary>
+        </PropertyComment>
+      </Field>
+      <Field Name="Right" Type="ExpressionSyntax">
+        <PropertyComment>
+          <summary>ExpressionSyntax node representing the expression on the right of the assignment operator.</summary>
+        </PropertyComment>
+      </Field>
+      <TypeComment>
+        <summary>Class which represents an expression that has an assignment operator.</summary>
+      </TypeComment>
+      <FactoryComment>
+        <summary>Creates an AssignmentExpressionSyntax node.</summary>
+      </FactoryComment>
+    </Node>
+    <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ConditionalExpression"/>
     <Field Name="Condition" Type="ExpressionSyntax">
       <PropertyComment>
@@ -1745,30 +1695,17 @@
       <Kind Name="IdentifierToken"/>
     </Field>
     <Field Name="ArgumentList" Type="BracketedArgumentListSyntax" Optional="true"/>
-    <Field Name="Initializer" Type="EqualsClauseSyntax" Optional="true"/>
+    <Field Name="Initializer" Type="EqualsValueClauseSyntax" Optional="true"/>
   </Node>
-  <AbstractNode Name="EqualsClauseSyntax" Base="CSharpSyntaxNode">
+  <Node Name="EqualsValueClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="EqualsValueClause"/>
     <Field Name="EqualsToken" Type="SyntaxToken">
       <Kind Name="EqualsToken"/>
     </Field>
-    <Field Name="Value" Type="ExpressionSyntax"/>   
-  </AbstractNode>
-  <Node Name="EqualsValueClauseSyntax" Base="EqualsClauseSyntax">
-    <Kind Name="EqualsValueClause"/>
-    <Field Name="EqualsToken" Type="SyntaxToken" Override="true">
-      <Kind Name="EqualsToken"/>
-    </Field>
-    <Field Name="Value" Type="ExpressionSyntax" Override="true"/>
-  </Node>
-  <Node Name="EqualsReferenceClauseSyntax" Base="EqualsClauseSyntax">
-    <Kind Name="EqualsReferenceClause"/>
-    <Field Name="EqualsToken" Type="SyntaxToken" Override="true">
-      <Kind Name="EqualsToken"/>
-    </Field>
-    <Field Name="RefKeyword" Type="SyntaxToken">
+    <Field Name="RefKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
     </Field>
-    <Field Name="Value" Type="ExpressionSyntax" Override="true"/>
+    <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>

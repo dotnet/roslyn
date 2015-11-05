@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);
             Assert.Equal("a", ds.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(ds.Declaration.Variables[0].ArgumentList);
-            var initializer = ds.Declaration.Variables[0].Initializer as EqualsReferenceClauseSyntax;
+            var initializer = ds.Declaration.Variables[0].Initializer as EqualsValueClauseSyntax;
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.False(initializer.EqualsToken.IsMissing);
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);
             Assert.Equal("a", ds.Declaration.Variables[0].Identifier.ToString());
             Assert.Null(ds.Declaration.Variables[0].ArgumentList);
-            var initializer = ds.Declaration.Variables[0].Initializer as EqualsReferenceClauseSyntax;
+            var initializer = ds.Declaration.Variables[0].Initializer as EqualsValueClauseSyntax;
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.False(initializer.EqualsToken.IsMissing);
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ds.Declaration.Variables[1].Identifier);
             Assert.Equal("c", ds.Declaration.Variables[1].Identifier.ToString());
             Assert.Null(ds.Declaration.Variables[1].ArgumentList);
-            initializer = ds.Declaration.Variables[1].Initializer as EqualsReferenceClauseSyntax;
+            initializer = ds.Declaration.Variables[1].Initializer as EqualsValueClauseSyntax;
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.False(initializer.EqualsToken.IsMissing);
@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(fs.Declaration.Variables[0].Identifier);
             Assert.Equal("a", fs.Declaration.Variables[0].Identifier.ToString());
-            var initializer = fs.Declaration.Variables[0].Initializer as EqualsReferenceClauseSyntax;
+            var initializer = fs.Declaration.Variables[0].Initializer as EqualsValueClauseSyntax;
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.NotNull(initializer.RefKeyword);
@@ -1588,7 +1588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(fs.Declaration.Variables[1].Identifier);
             Assert.Equal("c", fs.Declaration.Variables[1].Identifier.ToString());
-            initializer = fs.Declaration.Variables[1].Initializer as EqualsReferenceClauseSyntax;
+            initializer = fs.Declaration.Variables[1].Initializer as EqualsValueClauseSyntax;
             Assert.NotNull(initializer);
             Assert.NotNull(initializer.EqualsToken);
             Assert.NotNull(initializer.RefKeyword);

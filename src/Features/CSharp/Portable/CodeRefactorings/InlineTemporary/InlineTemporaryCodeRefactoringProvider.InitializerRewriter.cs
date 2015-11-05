@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                     && symbol.Equals(_localSymbol);
             }
 
-            public override SyntaxNode VisitValueAssignmentExpression(ValueAssignmentExpressionSyntax node)
+            public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
                 // Note - leave this as SyntaxNode for now, we might have already re-written it
-                var newNode = base.VisitValueAssignmentExpression(node);
+                var newNode = base.VisitAssignmentExpression(node);
 
                 if (newNode.Kind() == SyntaxKind.SimpleAssignmentExpression)
                 {

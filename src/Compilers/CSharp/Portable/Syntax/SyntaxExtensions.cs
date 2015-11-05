@@ -251,6 +251,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default(SyntaxToken));
         }
 
+        public static IndexerDeclarationSyntax Update(
+            this IndexerDeclarationSyntax syntax,
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax type,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken thisKeyword,
+            BracketedParameterListSyntax parameterList,
+            AccessorListSyntax accessorList)
+        {
+            return syntax.Update(
+                attributeLists,
+                modifiers,
+                default(SyntaxToken),
+                type,
+                explicitInterfaceSpecifier,
+                thisKeyword,
+                parameterList,
+                accessorList,
+                default(ArrowExpressionClauseSyntax),
+                default(SyntaxToken));
+        }
+
         public static OperatorDeclarationSyntax Update(
             this OperatorDeclarationSyntax syntax,
             SyntaxList<AttributeListSyntax> attributeLists,
@@ -303,17 +326,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken);
         }
 
-        public static EqualsClauseSyntax WithValue(
-            this EqualsClauseSyntax syntax,
-            ExpressionSyntax valueSyntax)
+        public static MethodDeclarationSyntax Update(
+            this MethodDeclarationSyntax syntax,
+            SyntaxList<AttributeListSyntax> attributeLists,
+            SyntaxTokenList modifiers,
+            TypeSyntax returnType,
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier,
+            SyntaxToken identifier,
+            TypeParameterListSyntax typeParameterList,
+            ParameterListSyntax parameterList,
+            SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
+            BlockSyntax block,
+            SyntaxToken semicolonToken)
         {
-            var equalsValueClauseSyntax = syntax as EqualsValueClauseSyntax;
-            if (equalsValueClauseSyntax != null)
-            {
-                return equalsValueClauseSyntax.WithValue(valueSyntax);
-            }
-
-            return ((EqualsReferenceClauseSyntax)syntax).WithValue(valueSyntax);
+            return syntax.Update(
+                attributeLists,
+                modifiers,
+                default(SyntaxToken),
+                returnType,
+                explicitInterfaceSpecifier,
+                identifier,
+                typeParameterList,
+                parameterList,
+                constraintClauses,
+                block,
+                default(ArrowExpressionClauseSyntax),
+                semicolonToken);
         }
     }
 }
