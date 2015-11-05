@@ -15,5 +15,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return this.TypeParameterList == null ? 0 : this.TypeParameterList.Parameters.Count;
             }
         }
+
+        public DelegateDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
+        {
+            return Update(attributeLists, modifiers, delegateKeyword, this.RefKeyword, returnType, identifier, typeParameterList, parameterList, constraintClauses, semicolonToken);
+        }
+    }
+}
+
+namespace Microsoft.CodeAnalysis.CSharp
+{
+    public partial class SyntaxFactory
+    {
+        public static DelegateDeclarationSyntax DelegateDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken delegateKeyword, TypeSyntax returnType, SyntaxToken identifier, TypeParameterListSyntax typeParameterList, ParameterListSyntax parameterList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken semicolonToken)
+        {
+            return DelegateDeclaration(
+                attributeLists,
+                modifiers, 
+                delegateKeyword, 
+                refKeyword: default(SyntaxToken), 
+                returnType: returnType, 
+                identifier: identifier, 
+                typeParameterList: typeParameterList, 
+                parameterList: parameterList, 
+                constraintClauses: constraintClauses, 
+                semicolonToken: semicolonToken);
+        }
     }
 }

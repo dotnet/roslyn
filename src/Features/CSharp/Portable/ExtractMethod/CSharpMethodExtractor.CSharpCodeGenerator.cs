@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             private ExpressionSyntax CreateAssignmentExpression(SyntaxToken identifier, ExpressionSyntax rvalue)
             {
-                return SyntaxFactory.ValueAssignmentExpression(
+                return SyntaxFactory.AssignmentExpression(
                     SyntaxKind.SimpleAssignmentExpression,
                     SyntaxFactory.IdentifierName(identifier),
                     rvalue);

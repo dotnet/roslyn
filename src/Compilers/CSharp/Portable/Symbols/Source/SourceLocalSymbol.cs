@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
-            EqualsClauseSyntax initializer = null)
+            EqualsValueClauseSyntax initializer = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             return (initializer == null) ?
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class LocalWithInitializer : SourceLocalSymbol
         {
-            private readonly EqualsClauseSyntax _initializer;
+            private readonly EqualsValueClauseSyntax _initializer;
 
             /// <summary>
             /// Store the constant value and the corresponding diagnostics together
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
-                EqualsClauseSyntax initializer,
+                EqualsValueClauseSyntax initializer,
                 LocalDeclarationKind declarationKind) :
                     base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
             {

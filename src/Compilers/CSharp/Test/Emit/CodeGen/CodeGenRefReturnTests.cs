@@ -95,8 +95,7 @@ class Program
 {
     static ref int M(ref int i)
     {
-        ref int local;
-        local = ref i;
+        ref int local = ref i;
         local = 0;
         return ref local;
     }

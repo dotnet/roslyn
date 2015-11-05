@@ -3328,7 +3328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var equals = this.EatToken(SyntaxKind.EqualsToken);
                 var value = this.ParseVariableInitializer(allowStackAlloc: false);
-                initializer = _syntaxFactory.EqualsValueClause(equals, value);
+                initializer = _syntaxFactory.EqualsValueClause(equals, refKeyword: null, value: value);
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureAutoPropertyInitializer);
             }
 
@@ -4149,8 +4149,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
             {
                 var equals = this.EatToken(SyntaxKind.EqualsToken);
-                var expr = this.ParseExpressionCore();
-                def = _syntaxFactory.EqualsValueClause(equals, expr);
+                var value = this.ParseExpressionCore();
+                def = _syntaxFactory.EqualsValueClause(equals, refKeyword: null, value: value);
 
                 if (!allowDefaults)
                 {
@@ -4760,7 +4760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // keyword.
             var name = this.ParseIdentifierToken();
             BracketedArgumentListSyntax argumentList = null;
-            EqualsClauseSyntax initializer = null;
+            EqualsValueClauseSyntax initializer = null;
             TerminatorState saveTerm = _termState;
             bool isFixed = (flags & VariableFlags.Fixed) != 0;
             bool isConst = (flags & VariableFlags.Const) != 0;
@@ -4794,7 +4794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     var init = this.ParseVariableInitializer(isLocal && !isConst);
-                    initializer = refKeyword == null ? (EqualsClauseSyntax)_syntaxFactory.EqualsValueClause(equals, init) : (EqualsClauseSyntax)_syntaxFactory.EqualsReferenceClause(equals, refKeyword, init);
+                    initializer = _syntaxFactory.EqualsValueClause(equals, refKeyword, init);
                     break;
 
                 case SyntaxKind.OpenParenToken:
@@ -5140,7 +5140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         value = this.ParseExpressionCore();
                     }
 
-                    equalsValue = _syntaxFactory.EqualsValueClause(equals, value);
+                    equalsValue = _syntaxFactory.EqualsValueClause(equals, refKeyword: null, value: value);
                 }
 
                 return _syntaxFactory.EnumMemberDeclaration(memberAttrs, memberName, equalsValue);
@@ -8489,12 +8489,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         if (opKind == SyntaxKind.SimpleAssignmentExpression && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                         {
-                            leftOperand = _syntaxFactory.ReferenceAssignmentExpression(leftOperand, opToken, this.EatToken(), this.ParseSubExpression(newPrecedence));
+                            var refToken = this.EatToken();
+                            refToken = this.AddError(refToken, ErrorCode.ERR_UnexpectedToken, refToken.Text);
+                            opToken = AddTrailingSkippedSyntax(opToken, refToken);
                         }
-                        else
-                        {
-                            leftOperand = _syntaxFactory.ValueAssignmentExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
-                        }
+
+                        leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
                     }
                     else
                     {
@@ -9704,7 +9704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 expression = this.ParseExpressionCore();
             }
 
-            return _syntaxFactory.ValueAssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
+            return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, identifier, equal, expression);
         }
 
         private ExpressionSyntax ParseDictionaryInitializer()
@@ -9722,7 +9722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var elementAccess = _syntaxFactory.ImplicitElementAccess(arguments);
-            return _syntaxFactory.ValueAssignmentExpression(SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
+            return _syntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, elementAccess, equal, expression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()

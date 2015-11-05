@@ -315,25 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestAssignment(SyntaxKind.CaretEqualsToken);
         }
 
-        [Fact]
-        private void TestRefAssignment()
-        {
-            var text = "a = ref b";
-            var expr = this.ParseExpression(text);
-
-            Assert.NotNull(expr);
-            Assert.Equal(SyntaxKind.ReferenceAssignmentExpression, expr.Kind());
-            Assert.Equal(text, expr.ToString());
-            Assert.Equal(0, expr.Errors().Length);
-            var a = (ReferenceAssignmentExpressionSyntax)expr;
-            Assert.NotNull(a.OperatorToken);
-            Assert.NotNull(a.Left);
-            Assert.NotNull(a.RefKeyword);
-            Assert.NotNull(a.Right);
-            Assert.Equal("a", a.Left.ToString());
-            Assert.Equal("b", a.Right.ToString());
-        }
-
         private void TestMemberAccess(SyntaxKind kind)
         {
             var text = "(a)" + SyntaxFacts.GetText(kind) + " b";

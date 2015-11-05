@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
 
             private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(IFieldSymbol symbol)
             {
-                EqualsClauseSyntax initializer = null;
+                EqualsValueClauseSyntax initializer = null;
 
                 var variableDeclarator = await this.GetFirstDeclaration<VariableDeclaratorSyntax>(symbol).ConfigureAwait(false);
                 if (variableDeclarator != null)
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
                 return null;
             }
 
-            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(EqualsClauseSyntax equalsValue)
+            private async Task<IEnumerable<SymbolDisplayPart>> GetInitializerSourcePartsAsync(EqualsValueClauseSyntax equalsValue)
             {
                 if (equalsValue != null && equalsValue.Value != null)
                 {

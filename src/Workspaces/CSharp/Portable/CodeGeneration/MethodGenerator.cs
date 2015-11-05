@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
                 constraintClauses: GenerateConstraintClauses(method),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+                expressionBody: default(ArrowExpressionClauseSyntax),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken()));
         }
 
