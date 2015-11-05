@@ -7,13 +7,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-    <ProjectGuid>06b26dcb-7a12-48ef-ae50-708593abd05f</ProjectGuid>
+    <ProjectGuid>{06B26DCB-7A12-48EF-AE50-708593ABD05F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <AssemblyName>VBCSCompilerPortable</AssemblyName>
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
-    <StartupObject>Microsoft.CodeAnalysis.CSharp.CommandLine.Program</StartupObject>
+    <StartupObject>Microsoft.CodeAnalysis.CompilerServer.Program</StartupObject>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <OutDir>$(OutDir)core-clr\</OutDir>
     <RestorePackages>true</RestorePackages>
