@@ -1,4 +1,5 @@
-﻿using Roslyn.Utilities;
+﻿using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using Xunit;
@@ -10,8 +11,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IncorrectPathmaps()
         {
-            string isABaseDirectory = "";
-            if (PortableShim.Path.DirectorySeparatorChar == '/') {
+            string isABaseDirectory;
+            if (PortableShim.Path.DirectorySeparatorChar == '/')
+            {
                 isABaseDirectory = "/";
             }
             else
@@ -19,21 +21,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 isABaseDirectory = "C://";
             }
 
-            Assert.Throws<ArgumentNullException>(() =>
+            try {
                 new SourceFileResolver(
-                    ImmutableArray.Create(""), 
-                    isABaseDirectory, 
-                    ImmutableArray.Create(KeyValuePair.Create<string, string>("key", null))));
+                    ImmutableArray.Create(""),
+                    isABaseDirectory,
+                    ImmutableArray.Create(KeyValuePair.Create<string, string>("key", null)));
+                AssertEx.Fail("Didn't throw");
+            }
+            catch (ArgumentException argException)
+            {
+                Assert.Equal(CodeAnalysisResources.NullValueInPathMap + "\r\nParameter name: pathMap", argException.Message);
+            }
+
+            // Empty pathmap value doesn't throw
+            new SourceFileResolver(
+                ImmutableArray.Create(""), 
+                isABaseDirectory, 
+                ImmutableArray.Create(KeyValuePair.Create<string, string>("key", "")));
         }
 
         [Fact]
-        public void badBaseDirectory()
+        public void BadBaseDirectory()
         {
-            Assert.Throws<ArgumentException>(() => 
+            try {
                 new SourceFileResolver(
-                    ImmutableArray.Create(""), 
-                    "not_a_root directory", 
-                    ImmutableArray.Create(KeyValuePair.Create<string, string>("key", "value"))));
+                    ImmutableArray.Create(""),
+                    "not_a_root directory",
+                    ImmutableArray.Create(KeyValuePair.Create<string, string>("key", "value")));
+                AssertEx.Fail("Didn't throw");
+            }
+            catch (ArgumentException argExeption)
+            {
+                Assert.Equal(CodeAnalysisResources.AbsolutePathExpected + "\r\nParameter name: baseDirectory", argExeption.Message);
+            }
         }
     }
 }
