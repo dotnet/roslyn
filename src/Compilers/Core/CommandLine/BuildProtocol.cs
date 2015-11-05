@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// Argument.
     /// 
     /// </summary>
-    public class BuildRequest
+    internal class BuildRequest
     {
         public readonly uint ProtocolVersion;
         public readonly BuildProtocolConstants.RequestLanguage Language;
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// responseType     enum ResponseType   4
     /// responseBody     Response subclass   variable
     /// </summary>
-    public abstract class BuildResponse
+    internal abstract class BuildResponse
     {
         public enum ResponseType
         {
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// 32-bit integer, followed by an array of characters.
     /// 
     /// </summary>
-    public sealed class CompletedBuildResponse : BuildResponse
+    internal sealed class CompletedBuildResponse : BuildResponse
     {
         public readonly int ReturnCode;
         public readonly bool Utf8Output;
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    public sealed class MismatchedVersionBuildResponse : BuildResponse
+    internal sealed class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.MismatchedVersion; } }
 
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
-    public sealed class AnalyzerInconsistencyBuildResponse : BuildResponse
+    internal sealed class AnalyzerInconsistencyBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.AnalyzerInconsistency; } }
 
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// <summary>
     /// Constants about the protocol.
     /// </summary>
-    public static class BuildProtocolConstants
+    internal static class BuildProtocolConstants
     {
         /// <summary>
         /// The version number for this protocol.

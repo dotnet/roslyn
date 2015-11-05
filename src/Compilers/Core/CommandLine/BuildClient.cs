@@ -119,7 +119,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             BuildResponse response,
             List<string> parsedArgs)
         {
-            /* BTODO: fix when this is moved to the final command line
             switch (response.Type)
             {
                 case BuildResponse.ResponseType.MismatchedVersion:
@@ -143,9 +142,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 default:
                     throw new InvalidOperationException("Encountered unknown response type");
             }
-            */
-
-            return 0;
         }
     }
 }

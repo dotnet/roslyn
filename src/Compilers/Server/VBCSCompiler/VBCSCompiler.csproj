@@ -31,10 +31,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\ServerCore.csproj">
-      <Project>{9929e5ae-85ca-46a8-a500-3be7bc634d87}</Project>
-      <Name>ServerCore</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <UseVSHostingProcess>false</UseVSHostingProcess>
@@ -63,10 +59,16 @@
     </Compile>
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
-    <Compile Include="DesktopCompilerServerHost.cs" />
+    <Compile Include="CompilerRequestHandler.cs" />
+    <Compile Include="CSharpCompilerServer.cs" />
+    <Compile Include="DiagnosticListener.cs" />
+    <Compile Include="IClientConnection.cs" />
+    <Compile Include="MetadataCache.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />
-    <Compile Include="MemoryHelper.cs" />
-    <Compile Include="VBCSCompiler.cs" />
+    <Compile Include="ServerDispatcher.Connection.cs" />
+    <Compile Include="ServerDispatcher.cs" />
+    <Compile Include="ServerDispatcher.MemoryHelper.cs" />
+    <Compile Include="VisualBasicCompilerServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -79,6 +81,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
   </ItemGroup>
+  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

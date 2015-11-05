@@ -147,14 +147,6 @@ class Hello
             return requestHandler;
         }
 
-        private static Mock<ICompilerServerHost> CreateNopCompilerServerHost()
-        {
-            var host = new Mock<ICompilerServerHost>();
-            var listenSource = new TaskCompletionSource<IClientConnection>();
-            host.Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>())).Returns(listenSource.Task);
-            return host;
-        }
-
         [Fact]
         public void NotifyCallBackOnRequestHandlerException()
         {
@@ -259,10 +251,9 @@ class Hello
             var keepAlive = TimeSpan.FromSeconds(3);
             var pipeName = Guid.NewGuid().ToString();
             var requestHandler = new Mock<IRequestHandler>(MockBehavior.Strict);
-            var compilerServerHost = new Mock<ICompilerServerHost>(MockBehavior.Strict);
-            var dispatcher = new ServerDispatcher(compilerServerHost.Object, requestHandler.Object, new EmptyDiagnosticListener());
+            var dispatcher = new ServerDispatcher(requestHandler.Object, new EmptyDiagnosticListener());
             var startTime = DateTime.Now;
-            dispatcher.ListenAndDispatchConnections(keepAlive);
+            dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
 
             Assert.True((DateTime.Now - startTime) > keepAlive);
         }
@@ -270,7 +261,7 @@ class Hello
         [Fact]
         public async Task FailedConnectionShouldCreateFailedConnectionData()
         {
-            var tcs = new TaskCompletionSource<IClientConnection>();
+            var tcs = new TaskCompletionSource<NamedPipeServerStream>();
             var handler = new Mock<IRequestHandler>(MockBehavior.Strict);
             var connectionDataTask = ServerDispatcher.CreateHandleConnectionTask(tcs.Task, handler.Object, CancellationToken.None);
 
@@ -289,11 +280,10 @@ class Hello
             var keepAlive = TimeSpan.FromSeconds(1);
             var listener = new TestableDiagnosticListener();
             var pipeName = Guid.NewGuid().ToString();
-            var compilerServerHost = new Mock<ICompilerServerHost>(MockBehavior.Strict);
             var dispatcherTask = Task.Run(() =>
             {
-                var dispatcher = new ServerDispatcher(CreateNopCompilerServerHost().Object, CreateNopRequestHandler().Object, listener);
-                dispatcher.ListenAndDispatchConnections(keepAlive);
+                var dispatcher = new ServerDispatcher(CreateNopRequestHandler().Object, listener);
+                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
             });
 
             await RunCSharpCompile(pipeName, HelloWorldSourceText).ConfigureAwait(false);
@@ -313,14 +303,10 @@ class Hello
             var keepAlive = TimeSpan.FromSeconds(1);
             var listener = new TestableDiagnosticListener();
             var pipeName = Guid.NewGuid().ToString();
-            var responseFileDirectory = Temp.CreateDirectory().Path;
             var dispatcherTask = Task.Run(() =>
             {
-                var dispatcher = new ServerDispatcher(
-                    new DesktopCompilerServerHost(pipeName),
-                    responseFileDirectory,
-                    listener);
-                dispatcher.ListenAndDispatchConnections(keepAlive);
+                var dispatcher = new ServerDispatcher(new CompilerRequestHandler(Temp.CreateDirectory().Path), listener);
+                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
             });
 
             for (int i = 0; i < 5; i++)
@@ -345,11 +331,8 @@ class Hello
             var pipeName = Guid.NewGuid().ToString();
             var dispatcherTask = Task.Run(() =>
             {
-                var dispatcher = new ServerDispatcher(
-                    new DesktopCompilerServerHost(pipeName),
-                    Temp.CreateDirectory().Path, 
-                    listener);
-                dispatcher.ListenAndDispatchConnections(keepAlive);
+                var dispatcher = new ServerDispatcher(new CompilerRequestHandler(Temp.CreateDirectory().Path), listener);
+                dispatcher.ListenAndDispatchConnections(pipeName, keepAlive);
             });
 
             var list = new List<Task>();
@@ -388,8 +371,8 @@ class Hello
             var pipeName = Guid.NewGuid().ToString();
             var dispatcherTask = Task.Run(() =>
             {
-                var dispatcher = new ServerDispatcher(CreateNopCompilerServerHost().Object, CreateNopRequestHandler().Object, diagnosticListener.Object);
-                dispatcher.ListenAndDispatchConnections(TimeSpan.FromSeconds(1), cancellationToken: cts.Token);
+                var dispatcher = new ServerDispatcher(CreateNopRequestHandler().Object, diagnosticListener.Object);
+                dispatcher.ListenAndDispatchConnections(pipeName, TimeSpan.FromSeconds(1), cancellationToken: cts.Token);
             });
 
             var seconds = 10;

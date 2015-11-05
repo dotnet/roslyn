@@ -17,10 +17,6 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Server\Core\ServerCore.csproj">
-      <Project>{9929e5ae-85ca-46a8-a500-3be7bc634d87}</Project>
-      <Name>ServerCore</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\csc\csc.csproj">
       <Project>{4B45CA0C-03A0-400F-B454-3D4BCB16AF38}</Project>
       <Name>csc</Name>

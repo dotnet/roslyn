@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    public interface IDiagnosticListener
+    internal interface IDiagnosticListener
     {
         /// <summary>
         /// Called when the server updates the keep alive value.
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         void ConnectionProcessed(int count);
     }
 
-    public sealed class EmptyDiagnosticListener : IDiagnosticListener
+    internal sealed class EmptyDiagnosticListener : IDiagnosticListener
     {
         public void UpdateKeepAlive(TimeSpan timeSpan)
         {

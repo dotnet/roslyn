@@ -4,6 +4,7 @@ using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Security.Principal;
 using System.Threading;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    public partial class ServerDispatcher
+    internal partial class ServerDispatcher
     {
         internal struct ConnectionData
         {
