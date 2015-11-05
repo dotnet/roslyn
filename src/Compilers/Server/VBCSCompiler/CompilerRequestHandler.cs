@@ -16,30 +16,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// </summary>
     internal class CompilerRequestHandler : IRequestHandler
     {
-        public static readonly IAnalyzerAssemblyLoader AnalyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+        private readonly DesktopCompilerServerHost _desktopCompilerServerHost;
+        private readonly CompilerRunHandler _compilerRunHandler;
 
-        private readonly DesktopCompilerServerHost _desktopCompilerServerHost = new DesktopCompilerServerHost();
-
-        private static void LogAbnormalExit(string msg)
+        internal CompilerRequestHandler(string clientDirectory)
         {
-            string roslynTempDir = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "RoslynCompilerServerCrash");
-            if (!Directory.Exists(roslynTempDir))
-            {
-                Directory.CreateDirectory(roslynTempDir);
-            }
-            string path = Path.Combine(roslynTempDir, DateTime.Now.ToString());
-
-            using (var writer = File.AppendText(path))
-            {
-                writer.WriteLine(msg);
-            }
-        }
-
-        private readonly string _responseFileDirectory;
-
-        internal CompilerRequestHandler(string responseFileDirectory)
-        {
-            _responseFileDirectory = responseFileDirectory;
+            _desktopCompilerServerHost = new DesktopCompilerServerHost();
+            _compilerRunHandler = new CompilerRunHandler(_desktopCompilerServerHost, clientDirectory);
         }
 
         /// <summary>
@@ -48,29 +31,39 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken)
         {
+            var request = GetRunRequest(req);
+            var result = _compilerRunHandler.HandleRequest(request, cancellationToken);
+            switch (result.Kind)
+            {
+                case RunResultKind.BadAnalyzer:
+                    return new AnalyzerInconsistencyBuildResponse();
+                case RunResultKind.BadLanguage:
+                    return new CompletedBuildResponse(-1, utf8output: false, output: "", errorOutput: "");
+                case RunResultKind.Run:
+                    return new CompletedBuildResponse(result.ReturnCode, result.Utf8Output, result.Output, errorOutput: "");
+                default:
+                    Debug.Assert(false);
+                    throw new Exception($"Bad enum value {result.Kind}");
+            }
+        }
+
+        private static RunRequest GetRunRequest(BuildRequest req)
+        {
+            string currentDirectory;
+            string libDirectory;
+            string[] arguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory);
+            string language = "";
             switch (req.Language)
             {
                 case BuildProtocolConstants.RequestLanguage.CSharpCompile:
-                    CompilerServerLogger.Log("Request to compile C#");
-                    return CSharpCompile(req, cancellationToken);
-
+                    language = LanguageNames.CSharp;
+                    break;
                 case BuildProtocolConstants.RequestLanguage.VisualBasicCompile:
-                    CompilerServerLogger.Log("Request to compile VB");
-                    return BasicCompile(req, cancellationToken);
-
-                default:
-                    CompilerServerLogger.Log("Got request with id '{0}'", req.Language);
-                    for (int i = 0; i < req.Arguments.Length; ++i)
-                    {
-                        CompilerServerLogger.Log("Request argument '{0}[{1}]' = '{2}'", req.Arguments[i].ArgumentId, req.Arguments[i].ArgumentIndex, req.Arguments[i].Value);
-                    }
-
-                    // We can't do anything with a request we don't know about. 
-                    return new CompletedBuildResponse(-1,
-                        utf8output: false,
-                        output: "",
-                        errorOutput: "");
+                    language = LanguageNames.VisualBasic;
+                    break;
             }
+
+            return new RunRequest(language, currentDirectory, libDirectory, arguments);
         }
 
         private static string[] GetCommandLineArguments(BuildRequest req, out string currentDirectory, out string libDirectory)
@@ -100,168 +93,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return commandLineArguments.ToArray();
         }
-
-        /// <summary>
-        /// A request to compile C# files. Unpack the arguments and current directory and invoke
-        /// the compiler, then create a response with the result of compilation.
-        /// </summary>
-        private BuildResponse CSharpCompile(BuildRequest req, CancellationToken cancellationToken)
-        {
-            string currentDirectory;
-            string libDirectory;
-            var commandLineArguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory);
-
-            if (currentDirectory == null)
-            {
-                // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
-                // because our clients always send the current directory.
-                Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1,
-                    utf8output: false,
-                    output: "",
-                    errorOutput: "");
-            }
-
-            return CSharpCompile(
-                currentDirectory,
-                libDirectory,
-                _responseFileDirectory,
-                commandLineArguments,
-                cancellationToken);
-        }
-
-        /// <summary>
-        /// Invoke the C# compiler with the given arguments and current directory, and send output and error
-        /// to the given TextWriters.
-        /// </summary>
-        private BuildResponse CSharpCompile(
-            string currentDirectory,
-            string libDirectory,
-            string responseFileDirectory,
-            string[] commandLineArguments,
-            CancellationToken cancellationToken)
-        {
-            CompilerServerLogger.Log("CurrentDirectory = '{0}'", currentDirectory);
-            CompilerServerLogger.Log("LIB = '{0}'", libDirectory);
-            for (int i = 0; i < commandLineArguments.Length; ++i)
-            {
-                CompilerServerLogger.Log("Argument[{0}] = '{1}'", i, commandLineArguments[i]);
-            }
-
-
-            return CSharpCompileCore(
-                responseFileDirectory,
-                commandLineArguments,
-                currentDirectory,
-                RuntimeEnvironment.GetRuntimeDirectory(),
-                libDirectory,
-                AnalyzerLoader,
-                cancellationToken);
-        }
-
-        private BuildResponse CSharpCompileCore(
-            string clientDirectory,
-            string[] args,
-            string baseDirectory,
-            string sdkDirectory,
-            string libDirectory,
-            IAnalyzerAssemblyLoader analyzerLoader,
-            CancellationToken cancellationToken)
-        {
-            var compiler = new CSharpCompilerServer(_desktopCompilerServerHost, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
-            bool utf8output = compiler.Arguments.Utf8Output;
-
-            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
-            {
-                return new AnalyzerInconsistencyBuildResponse();
-            }
-
-            CompilerServerLogger.Log("****Running C# compiler...");
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-            CompilerServerLogger.Log("****C# Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", returnCode, output.ToString());
-
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
-        }
-
-        /// <summary>
-        /// A request to compile VB files. Unpack the arguments and current directory and invoke
-        /// the compiler, then create a response with the result of compilation.
-        /// </summary>
-        private BuildResponse BasicCompile(BuildRequest req, CancellationToken cancellationToken)
-        {
-            string currentDirectory;
-            string libDirectory;
-            var commandLineArguments = GetCommandLineArguments(req, out currentDirectory, out libDirectory);
-
-            if (currentDirectory == null)
-            {
-                // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
-                // because our clients always send the current directory.
-                Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1, utf8output: false, output: "", errorOutput: "");
-            }
-
-            return BasicCompile(
-                _responseFileDirectory,
-                currentDirectory,
-                libDirectory,
-                commandLineArguments,
-                cancellationToken);
-        }
-
-        /// <summary>
-        /// Invoke the VB compiler with the given arguments and current directory, and send output and error
-        /// to the given TextWriters.
-        /// </summary>
-        private BuildResponse BasicCompile(
-            string responseFileDirectory,
-            string currentDirectory,
-            string libDirectory,
-            string[] commandLineArguments,
-            CancellationToken cancellationToken)
-        {
-            CompilerServerLogger.Log("CurrentDirectory = '{0}'", currentDirectory);
-            CompilerServerLogger.Log("LIB = '{0}'", libDirectory);
-            for (int i = 0; i < commandLineArguments.Length; ++i)
-            {
-                CompilerServerLogger.Log("Argument[{0}] = '{1}'", i, commandLineArguments[i]);
-            }
-
-            return BasicCompileCore(
-                responseFileDirectory,
-                commandLineArguments,
-                currentDirectory,
-                RuntimeEnvironment.GetRuntimeDirectory(),
-                libDirectory,
-                AnalyzerLoader,
-                cancellationToken);
-        }
-
-        private BuildResponse BasicCompileCore(
-            string clientDirectory,
-            string[] args,
-            string baseDirectory,
-            string sdkDirectory,
-            string libDirectory,
-            IAnalyzerAssemblyLoader analyzerLoader,
-            CancellationToken cancellationToken)
-        {
-            var compiler = new VisualBasicCompilerServer(_desktopCompilerServerHost, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
-            bool utf8output = compiler.Arguments.Utf8Output;
-
-            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
-            {
-                return new AnalyzerInconsistencyBuildResponse();
-            }
-
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            CompilerServerLogger.Log("****Running VB compiler...");
-            int returnCode = compiler.Run(output, cancellationToken);
-            CompilerServerLogger.Log("****VB Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", returnCode, output.ToString());
-
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
-        }
-
     }
 }

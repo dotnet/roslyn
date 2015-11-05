@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,11 +19,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private static readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> s_assemblyReferenceProvider =
             (path, properties) => new CachingMetadataReference(path, properties);
 
+        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => s_analyzerLoader;
+
         public Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => s_assemblyReferenceProvider;
 
         public bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
         {
             return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, s_analyzerLoader);
+        }
+
+        public string GetSdkDirectory()
+        {
+            return RuntimeEnvironment.GetRuntimeDirectory();
         }
 
         public void Log(string message)

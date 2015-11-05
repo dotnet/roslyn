@@ -64,7 +64,6 @@
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
     <Compile Include="CompilerRequestHandler.cs" />
-    <Compile Include="CSharpCompilerServer.cs" />
     <Compile Include="DesktopCompilerServerHost.cs" />
     <Compile Include="DiagnosticListener.cs" />
     <Compile Include="IClientConnection.cs" />
@@ -72,7 +71,6 @@
     <Compile Include="ServerDispatcher.Connection.cs" />
     <Compile Include="ServerDispatcher.cs" />
     <Compile Include="ServerDispatcher.MemoryHelper.cs" />
-    <Compile Include="VisualBasicCompilerServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

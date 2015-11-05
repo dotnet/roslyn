@@ -52,8 +52,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompilerRunHandler.cs" />
+    <Compile Include="CSharpCompilerServer.cs" />
     <Compile Include="ICompilerServerHost.cs" />
     <Compile Include="MetadataCache.cs" />
+    <Compile Include="VisualBasicCompilerServer.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

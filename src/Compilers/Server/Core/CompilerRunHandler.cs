@@ -61,12 +61,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     public sealed class CompilerRunHandler
     {
         private readonly ICompilerServerHost _compilerServerHost;
-        private readonly string _responseFileDirectory;
 
-        public CompilerRunHandler(ICompilerServerHost compilerServerHost, string responseFileDirectory)
+        /// <summary>
+        /// Directory holding the command line executable.  It will be the same directory as the
+        /// response file.
+        /// </summary>
+        private readonly string _clientDirectory;
+
+        public CompilerRunHandler(ICompilerServerHost compilerServerHost, string clientDirectory)
         {
             _compilerServerHost = compilerServerHost;
-            _responseFileDirectory = responseFileDirectory;
+            _clientDirectory = clientDirectory;
         }
 
         /// <summary>
@@ -121,12 +126,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private CommonCompiler CreateCSharpCompiler(RunRequest request)
         {
-            throw new Exception();
+            return new CSharpCompilerServer(
+                _compilerServerHost,
+                request.Arguments,
+                _clientDirectory,
+                request.CurrentDirectory,
+                _compilerServerHost.GetSdkDirectory(),
+                request.LibDirectory,
+                _compilerServerHost.AnalyzerAssemblyLoader);
         }
 
         private CommonCompiler CreateBasicCompiler(RunRequest request)
         {
-            throw new Exception();
+            return new VisualBasicCompilerServer(
+                _compilerServerHost,
+                request.Arguments,
+                _clientDirectory,
+                request.CurrentDirectory,
+                _compilerServerHost.GetSdkDirectory(),
+                request.LibDirectory,
+                _compilerServerHost.AnalyzerAssemblyLoader);
         }
     }
 }

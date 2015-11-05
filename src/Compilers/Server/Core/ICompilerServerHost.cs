@@ -11,8 +11,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     public interface ICompilerServerHost
     {
+        IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
         Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
 
+        string GetSdkDirectory();
         bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
         void Log(string message);
     }
