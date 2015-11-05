@@ -146,40 +146,6 @@ namespace Microsoft.CodeAnalysis
                 get { return _properties; }
             }
 
-            public override bool Equals(Diagnostic obj)
-            {
-                var other = obj as SimpleDiagnostic;
-                if (other == null)
-                {
-                    return false;
-                }
-
-                if (AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(this))
-                {
-                    // We have custom Equals logic for diagnostics generated for analyzer exceptions.
-                    return AnalyzerExecutor.AreEquivalentAnalyzerExceptionDiagnostics(this, other);
-                }
-
-                return _descriptor.Equals(other._descriptor)
-                    && _messageArgs.SequenceEqual(other._messageArgs, (a, b) => a == b)
-                    && _location == other._location
-                    && _severity == other._severity
-                    && _warningLevel == other._warningLevel;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return this.Equals(obj as Diagnostic);
-            }
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine(_descriptor,
-                    Hash.CombineValues(_messageArgs,
-                    Hash.Combine(_warningLevel,
-                    Hash.Combine(_location, (int)_severity))));
-            }
-
             internal override Diagnostic WithLocation(Location location)
             {
                 if (location == null)

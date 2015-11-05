@@ -1108,7 +1108,7 @@ End Class
         [Fact]
         public void SuppressDuplicateAnalyzerExceptionDiagnostics()
         {
-            var exceptionDiagnostics = new HashSet<Diagnostic>();
+            var exceptionDiagnostics = new HashSet<Diagnostic>(CommonDiagnosticComparer.CompareAll);
 
             VerifyCSharp(@"
 public class C

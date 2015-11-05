@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // return in cases where one was missing should never produce different Diagnostics.
                     var flowAnalysisDiagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics));
-                    Debug.Assert(flowAnalysisDiagnostics.ToReadOnly().SequenceEqual(diagnostics.ToReadOnly().Skip(initialDiagnosticCount)));
+                    Debug.Assert(flowAnalysisDiagnostics.AsEnumerable().SequenceEqual(
+                        diagnostics.AsEnumerable().Skip(initialDiagnosticCount),
+                        CommonDiagnosticComparer.CompareAll));
                     flowAnalysisDiagnostics.Free();
 #endif
                 }

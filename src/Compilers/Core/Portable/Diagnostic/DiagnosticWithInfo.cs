@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -132,36 +130,6 @@ namespace Microsoft.CodeAnalysis
                 return _info.Severity == InternalDiagnosticSeverity.Unknown ||
                     _info.Severity == InternalDiagnosticSeverity.Void;
             }
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(this.Location.GetHashCode(), this.Info.GetHashCode());
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as Diagnostic);
-        }
-
-        public override bool Equals(Diagnostic obj)
-        {
-            if (this == obj)
-            {
-                return true;
-            }
-
-            var other = obj as DiagnosticWithInfo;
-
-            if (other == null || this.GetType() != other.GetType())
-            {
-                return false;
-            }
-
-            return
-                this.Location.Equals(other._location) &&
-                this.Info.Equals(other.Info) &&
-                this.AdditionalLocations.SequenceEqual(other.AdditionalLocations);
         }
 
         private string GetDebuggerDisplay()

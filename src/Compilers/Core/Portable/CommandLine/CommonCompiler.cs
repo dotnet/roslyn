@@ -8,13 +8,12 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -32,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         public CommandLineArguments Arguments { get; }
         public IAnalyzerAssemblyLoader AnalyzerLoader { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
-        private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
+        private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>(CommonDiagnosticComparer.CompareAll);
 
         public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLogger);
         public abstract void PrintLogo(TextWriter consoleOutput);

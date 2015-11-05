@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a diagnostic, such as a compiler error or a warning, along with the location where it occurred.
     /// </summary>
+    /// <remarks>
+    /// Implements <see cref="IEquatable{Diagnostic}"/> for compatibility with earlier version of this class
+    /// although <see cref="Equals(Diagnostic)"/> uses <see cref="object.ReferenceEquals(object, object)"/>
+    /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract partial class Diagnostic : IEquatable<Diagnostic>, IFormattable
     {
@@ -356,11 +360,20 @@ namespace Microsoft.CodeAnalysis
             return DiagnosticFormatter.Instance.Format(this, CultureInfo.CurrentUICulture);
         }
 
-        public abstract override bool Equals(object obj);
+        public sealed override bool Equals(object obj)
+        {
+            return this.Equals(obj as Diagnostic);
+        }
 
-        public abstract override int GetHashCode();
+        public sealed override int GetHashCode()
+        {
+            return System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(this);
+        }
 
-        public abstract bool Equals(Diagnostic obj);
+        public bool Equals(Diagnostic obj)
+        {
+            return ReferenceEquals(this, obj);
+        }
 
         private string GetDebuggerDisplay()
         {
