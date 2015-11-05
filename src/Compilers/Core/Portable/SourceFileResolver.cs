@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var value = kv.Value;
-                    if (value == null || value.Length == 0)
+                    if (value == null)
                     {
-                        throw new ArgumentException(CodeAnalysisResources.EmptyValueInPathMap, nameof(pathMap));
+                        throw new ArgumentNullException(nameof(PathMap));
                     }
 
                     if (IsPathSeparator(key[key.Length - 1]))
