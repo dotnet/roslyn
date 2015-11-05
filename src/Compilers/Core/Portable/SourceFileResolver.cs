@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis
                     var value = kv.Value;
                     if (value == null)
                     {
-                        throw new ArgumentNullException(nameof(PathMap));
+                        throw new ArgumentNullException(nameof(pathMap));
                     }
 
                     if (IsPathSeparator(key[key.Length - 1]))
