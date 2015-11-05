@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var declarationAnalysisData = GetOrComputeDeclarationAnalysisData(
                 decl,
-                () => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, shouldExecuteSyntaxNodeActions || shouldExecuteOperationActions, analysisScope, cancellationToken),
+                () => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, shouldExecuteSyntaxNodeActions, analysisScope, cancellationToken),
                 symbolEvent.Compilation,
                 cacheAnalysisData);
 
