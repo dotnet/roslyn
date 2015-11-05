@@ -59,8 +59,8 @@
     <Compile Include="..\..\..\Compilers\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\AnalyzerAssemblyLoadUtils.cs">
-      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
+    <Compile Include="..\..\..\Compilers\Shared\AssemblyIdentityUtils.cs">
+      <Link>AssemblyIdentityUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>

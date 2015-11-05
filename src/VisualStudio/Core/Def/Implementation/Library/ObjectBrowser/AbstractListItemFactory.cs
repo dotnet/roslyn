@@ -626,28 +626,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                         assemblyIdentitySet = new HashSet<AssemblyIdentity>();
                     }
 
-                    var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    foreach (var reference in compilation.References)
+                    foreach (var reference in project.MetadataReferences)
                     {
-                        if (reference is CompilationReference)
+                        var portableExecutableReference = reference as PortableExecutableReference;
+                        if (portableExecutableReference != null)
                         {
-                            continue;
-                        }
+                            var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
+                            if (assemblyIdentity != null && !assemblyIdentitySet.Contains(assemblyIdentity))
+                            {
+                                assemblyIdentitySet.Add(assemblyIdentity);
 
-                        var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                        if (assemblySymbol == null)
-                        {
-                            continue;
+                                var referenceListItem = new ReferenceListItem(projectId, assemblyIdentity.Name, reference);
+                                referenceListItemBuilder.Add(referenceListItem);
+                            }
                         }
-
-                        if (assemblyIdentitySet.Contains(assemblySymbol.Identity))
-                        {
-                            continue;
-                        }
-
-                        assemblyIdentitySet.Add(assemblySymbol.Identity);
-                        referenceListItemBuilder.Add(new ReferenceListItem(projectId, assemblySymbol.Name, reference));
                     }
                 }
             }
