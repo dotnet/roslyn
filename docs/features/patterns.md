@@ -311,7 +311,7 @@ Semantically, it is an error unless precisely one of the following is true
 
 If an `else` clause is present, it is an error if the endpoint of its *embedded-statement* is reachable.
 
-Any pattern variables in the *pattern* are in scope throughout the enclosing block and are definitely assigned (only) after the execution of the *let-statement* completes. It is an error to use these variables before their point of definition.
+Any pattern variables in the *pattern* are in scope throughout the enclosing block. They are not definitely assigned before the `else` clause, and are definitely assigned after the *let-statement*. It is an error to use these variables before their point of definition.
 
 A *let-statement* is a *block-statement* and not an *embedded-statement* because its primary purpose is to introduce names into the enclosing scope. It therefore does not introduce a dangling-else ambiguity.
 
