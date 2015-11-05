@@ -7,9 +7,12 @@ Pattern matching extensions for C# enable many of the benefits of algebraic data
 
 The `is` operator is extended to test an expression against a *pattern*.
 
->*relational-expression*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*relational-expression* `is` *complex-pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*relational-expression* `is` *type*
+```antlr
+relational-expression
+    : relational-expression 'is' complex-pattern
+    | relational-expression 'is' type
+    ;
+```
 
 It is a compile-time error if *e* does not designate a value or does not have a type.
 
@@ -19,51 +22,66 @@ Every *identifier* of the pattern introduces a new local variable that is *defin
 
 Patterns are used in the `is` operator and in a *switch-statement* to express the shape of data against which incoming data is to be compared. Patterns may be recursive so that subparts of the data may be matched against subpatterns.
 
->*complex-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*type* *identifier*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*recursive-pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*recursive-pattern* *identifier*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*property-pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*property-pattern* *identifier*
+```antlr
+complex-pattern
+    : type identifier
+    | recursive-pattern
+    | recursive-pattern identifier
+    | property-pattern
+    | property-pattern identifier
+    ;
 
->*recursive-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*type* `(` *subpattern-list*<sub>opt</sub> `)`
+recursive-pattern
+    :  type '(' subpattern-list? ')'
+    ;
 
->*property-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*type* `{` *property-pattern-list* `}`
+property-pattern
+    :  type '{' property-pattern-list '}'
+    ;
 
->*property-pattern-list*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*identifier* `is` *pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*identifier* `is` *pattern* `,` *property-pattern-list*
+property-pattern-list
+    : identifier 'is' pattern
+    | identifier 'is' pattern ',' property-pattern-list
+    ;
 
->*subpattern-list*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*subpattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*subpattern-list* `,` *subpattern*
+subpattern-list
+    : subpattern
+    | subpattern-list ',' subpattern
+    ;
 
->*subpattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*argument-name*<sub>opt</sub> *pattern*
+subpattern
+    : argument-name? pattern
+    ;
 
->*pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*simple-pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*complex-pattern*
+pattern
+    : simple-pattern
+    | complex-pattern
+    ;
 
->*simple-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*constant-pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*wildcard-pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`var` *identifier*
+simple-pattern
+    : constant-pattern
+    | wildcard-pattern
+    | 'var' identifier
+    ;
 
->*wildcard-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`*`
+wildcard-pattern
+    : '*'
+    ;
 
->*constant-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*shift-expression*
+constant-pattern
+    : shift-expression
+    ;
+```
 
 ### Type Pattern
 
 The type pattern both tests that an expression is of a given type and casts it to that type if the test succeeds. This introduces a local variable of the given type named by the given identifier. That local variable is *definitely assigned* when the is operator is true.
 
->*complex-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*type* *identifier*
+```antlr
+complex-pattern
+    : type identifier
+    ;
+```
 
 The runtime semantic of this expression is that it tests the runtime type of the left-hand *relational-expression* operand against the *type* in the pattern. If it is of that runtime type (or some subtype), the result of the `is operator` is `true` and the local variable is assigned the value of the left-hand operand.
 
@@ -71,14 +89,14 @@ Certain combinations of static type of the left-hand-side and the given type are
 
 The type pattern is useful for performing runtime type tests of reference types, and replaces the idiom
 
-```
+```cs
 var v = expr as Type;
 if (v != null) { // code using v }
 ```
 
 With the slightly more concise
 
-```
+```cs
 if (expr is Type v) { // code using v }
 ```
 
@@ -86,7 +104,7 @@ It is an error if *type* is a nullable value type.
 
 The type pattern can be used to test values of nullable types: a value of type `Nullable<T>` (or a boxed `T`) matches a type pattern `T2 id` if the value is non-null and the type is `T2` is `T`, or some base type or interface of `T`. For example, in the code fragment
 
-```
+```cs
 int? x = 3;
 if (x is int v) { // code using v }
 ```
@@ -99,8 +117,11 @@ A constant pattern tests the runtime value of an expression against a constant v
 
 An expression *e* matches a constant pattern *c* if `object.Equals(e, c)` returns `true`.
 
->*constant-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*constant-expression*
+```antlr
+constant-pattern
+    : constant-expression
+    ;
+```
 
 It is a compile-time error if the static type of *e* is not *pattern compatible* with the type of the constant.
 
@@ -120,8 +141,11 @@ An expression *e* matches the pattern `*` always. In other words, every expressi
 
 A recursive pattern enables the program to invoke an appropriate `operator is`, and (if the operator returns `true`) perform further pattern matching on the values that are returned from it. In the absence of an `operator is`, if the named type was defined with a *parameter list*, then the properties declared in the type's parameters are read to match subpatterns.
 
->*recursive-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*type* `(` *subpattern-list*<sub>opt</sub> `)`
+```antlr
+recursive-pattern
+    : type '(' subpattern-list? ')'
+    ;
+```
 
 Given a match of an expression *e* to the pattern *type* `(` *subpattern-list*<sub>opt</sub> `)`, a method is selected by searching in *type* for accessible declarations of `operator is` and selecting one among them using *match operator overload resolution*. It is a compile-time error if the expression *e* is not *pattern compatible* with the type of the first argument of the selected operator.
 
@@ -135,11 +159,16 @@ If a *subpattern* has an *argument-name*, then every subsequent *subpattern* mus
 
 A property pattern enables the program to recursively match values extracted by the use of properties.
 
->*property-pattern*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*type* `{` *property-pattern-list* `}`
->*property-pattern-list*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*identifier* `is` *pattern*
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*identifier* `is` *pattern* `,` *property-pattern-list*
+```antlr
+property-pattern
+    : type '{' property-pattern-list '}'
+    ;
+
+property-pattern-list
+    : identifier 'is' pattern
+    | identifier 'is' pattern ',' property-pattern-list
+    ;
+```
 
 Given a match of an expression *e* to the pattern *type* `{` *property-pattern-list* `}`, it is a compile-time error if the expression *e* is not *pattern compatible* with the type *T* designated by *type*.
 
@@ -171,7 +200,7 @@ An explicit `operator is` may be declared to extend the pattern matching capabil
 
 For example, suppose we have a type representing a Cartesian point in 2-space:
 
-```
+```cs
 public class Cartesian
 {
 	public int X { get; }
@@ -181,7 +210,7 @@ public class Cartesian
 
 We may sometimes think of them in polar coordinates:
 
-```
+```cs
 public static class Polar
 {
 	public static bool operator is(Cartesian c, out double R, out double Theta)
@@ -195,7 +224,7 @@ public static class Polar
 
 And now we can operate on `Cartesian` values using polar coordinates
 
-```
+```cs
 var c = Cartesian(3, 4);
 if (c is Polar(var R, *)) Console.WriteLine(R);
 ```
@@ -206,12 +235,16 @@ Which prints `5`.
 
 The `switch` statement is extended to select for execution the first block having an associated pattern that matches the *switch expression*.
 
->*switch-label*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`case`  *complex-pattern* *case-guard*<sub>opt</sub> `:`
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`default :`
+```antlr
+switch-label
+    : 'case' complex-pattern case-guard? ':'
+    | 'default' ':'
+    ;
 
-> *case-guard*:
-> &nbsp;&nbsp;&nbsp;&nbsp;`when` *expression*
+case-guard
+    : 'when' expression
+    ;
+```
 
 [TODO: we need to explain the interaction with definite assignment here.]
 
@@ -227,28 +260,40 @@ A *match-expression* is added to support `switch`-like semantics for an expressi
 
 The C# language syntax is augmented with the following syntactic productions:
 
-> *relational-expression*:
-> &nbsp;&nbsp;&nbsp;&nbsp;*match-expression*
+```antlr
+relational-expression
+    : match-expression
+    ;
+```
 
 We add the *match-expression* as a new kind of *relational-expression*.
 
-> *match-expression*:
-> &nbsp;&nbsp;&nbsp;&nbsp;*relational-expression* `switch` *match-block*
+```antlr
+match-expression
+    : relational-expression 'switch' match-block
+    ;
 
-> *match-block*:
-> &nbsp;&nbsp;&nbsp;&nbsp;`(` *match-sections* `)`
+match-block
+    : '(' match-sections ')'
+    ;
+```
 
 At least one *match-section* is required.
 
-> *match-sections*:
-> &nbsp;&nbsp;&nbsp;&nbsp;*match-section*
-> &nbsp;&nbsp;&nbsp;&nbsp;*match-sections* *match-section*
->
-> *match-section*:
-> &nbsp;&nbsp;&nbsp;&nbsp;`case` *pattern* *case-guard*<sub>opt</sub> `:` *expression*
->
-> *case-guard*:
-> &nbsp;&nbsp;&nbsp;&nbsp;`when` *expression*
+```antlr
+match-sections
+    : match-section
+    | match-sections match-section
+    ;
+
+match-section
+    : 'case' pattern case-guard? ':' expression
+    ;
+
+case-guard
+    : 'when' expression
+    ;
+```
 
 It is not proposed that *match-expression* be added to the set of syntax forms allowed as an *expression-statement*.
 
@@ -262,10 +307,15 @@ At runtime, the result of the *match-expression* is the value of the *expression
 
 We extend the set of expression forms to include
 
->*throw-expression*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;`throw` *null-coalescing-expression*
-*null-coalescing-expression*:
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;*throw-expression*
+```antlr
+throw-expression
+    : 'throw' null-coalescing-expression
+    ;
+
+null-coalescing-expression
+    : throw-expression
+    ;
+```
 
 The type rules are as follows:
 
@@ -287,12 +337,17 @@ A *throw expression* is allowed in only the following contexts:
 
 Inspired by an [F# feature](https://msdn.microsoft.com/en-us/library/dd233238.aspx) and a [conversation on github](https://github.com/dotnet/roslyn/issues/5154#issuecomment-151974994), we could support decomposition like this:
 
-> *block-statement:*
-&nbsp;&nbsp;&nbsp;&nbsp;*let-statement*
-*let-statement:*
-&nbsp;&nbsp;&nbsp;&nbsp;`let` *identifier* `=` *expression* `;`
-&nbsp;&nbsp;&nbsp;&nbsp;`let` *complex-pattern* `=` *expression* `;`
-&nbsp;&nbsp;&nbsp;&nbsp;`let` *complex-pattern* `=` *expression* `;` `else` *embedded-statement*
+```antlr
+block-statement
+    : let-statement
+    ;
+
+let-statement
+    : 'let' identifier '=' expression ';'
+    | 'let' complex-pattern '=' expression ';'
+    | 'let' complex-pattern '=' expression 'else' embedded-statement
+    ;
+```
 
 `let` is an existing contextual keyword.
 
