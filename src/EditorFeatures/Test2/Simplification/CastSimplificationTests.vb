@@ -4782,6 +4782,46 @@ class C
             Test(input, expected)
         End Sub
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(6490, "https://github.com/dotnet/roslyn/issues/6490")>
+        Public Sub CSharp_DontRemove_NecessaryCastOfLambdaToDelegateWithDynamic()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Dynamic;
+class C
+{
+    void M() 
+    {
+        dynamic d = new ExpandoObject();
+        d.MyFunc = {|Simplify:(Func<int>)(() => 0)|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Dynamic;
+class C
+{
+    void M() 
+    {
+        dynamic d = new ExpandoObject();
+        d.MyFunc = (Func<int>)(() => 0);
+    }
+}
+]]>
+</code>
+
+            Test(input, expected)
+        End Sub
+
 #End Region
 
 #Region "Visual Basic tests"
