@@ -75,8 +75,7 @@
     <MicrosoftCodeAnalysisAnalyzersVersionNext Condition="'$(MicrosoftCodeAnalysisAnalyzersVersionNext)' == ''">1.2.0</MicrosoftCodeAnalysisAnalyzersVersionNext>
 
     <!-- If we're on Visual Studio 2015 RTM and  we still have Roslyn installed, our VSIX-producing packages are not going to install, so let's not even try.
-         Update 1 supports this, so we'll use csi.exe's existence as a simple proxy for whether we have Update 1 installed or not.
-         OpenSourceDebug overrides this by simple virtue that it's property setting is after the include of this file. -->
+         Update 1 supports this, so we'll use csi.exe's existence as a simple proxy for whether we have Update 1 installed or not. -->
     <DeployExtension Condition="Exists('$(DevEnvDir)\CommonExtensions\Microsoft\Roslyn\Language Services\extension.vsixmanifest') and !Exists('$(MSBuildBinPath)\csi.exe')">false</DeployExtension>
   </PropertyGroup>
 

@@ -1,33 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.ComponentModel.Design;
-using Microsoft.Win32;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using System.Reflection;
 using System.IO;
 
-[assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1017:MarkAssembliesWithComVisible")]
-
-namespace Microsoft.OpenSourceDebug
+namespace Roslyn.Compilers.Extension
 {
-    /// <summary>
-    /// This is the class that implements the package exposed by this assembly.
-    ///
-    /// The minimum requirement for a class to be considered a valid package for Visual Studio
-    /// is to implement the IVsPackage interface and register itself with the shell.
-    /// This package uses the helper classes defined inside the Managed Package Framework (MPF)
-    /// to do it: it derives from the Package class that provides the implementation of the 
-    /// IVsPackage interface and uses the registration attributes defined in the framework to 
-    /// register itself and its components with the shell.
-    /// </summary>
-    public sealed class OpenSourceDebugPackage : Package
+    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
+    public sealed class CompilerPackage : Package
     {
         private const string VisualStudioVersion = "14.0";
         private const string VisualStudioHive = "VisualStudio";
@@ -52,13 +34,13 @@ namespace Microsoft.OpenSourceDebug
 </Project>
 ";
 
-        private const string WriteFileExceptionTitle = "OpenSourceDebugPackage";
         private const string WriteFileExceptionMessage =
 @"Unable to write {0}
 
 {1}
 
 To reload the Roslyn compiler package, close Visual Studio and any MSBuild processes, then restart Visual Studio.";
+
         protected override void Initialize()
         {
             // Generate targets file
@@ -134,7 +116,7 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             VsShellUtilities.ShowMessageBox(
                 this,
                 string.Format(WriteFileExceptionMessage, path, e.Message),
-                WriteFileExceptionTitle,
+                null,
                 OLEMSGICON.OLEMSGICON_WARNING,
                 OLEMSGBUTTON.OLEMSGBUTTON_OK,
                 OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
