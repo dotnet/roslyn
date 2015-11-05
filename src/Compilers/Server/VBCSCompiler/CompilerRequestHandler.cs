@@ -16,11 +16,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// </summary>
     internal class CompilerRequestHandler : IRequestHandler
     {
-        // Caches are used by C# and VB compilers, and shared here.
-        public static readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider =
-            (path, properties) => new CachingMetadataReference(path, properties);
-
         public static readonly IAnalyzerAssemblyLoader AnalyzerLoader = new ShadowCopyAnalyzerAssemblyLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
+
+        private readonly DesktopCompilerServerHost _desktopCompilerServerHost = new DesktopCompilerServerHost();
 
         private static void LogAbnormalExit(string msg)
         {
@@ -150,7 +148,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.Log("Argument[{0}] = '{1}'", i, commandLineArguments[i]);
             }
 
-            return CSharpCompilerServer.RunCompiler(
+
+            return CSharpCompileCore(
                 responseFileDirectory,
                 commandLineArguments,
                 currentDirectory,
@@ -158,6 +157,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 libDirectory,
                 AnalyzerLoader,
                 cancellationToken);
+        }
+
+        private BuildResponse CSharpCompileCore(
+            string clientDirectory,
+            string[] args,
+            string baseDirectory,
+            string sdkDirectory,
+            string libDirectory,
+            IAnalyzerAssemblyLoader analyzerLoader,
+            CancellationToken cancellationToken)
+        {
+            var compiler = new CSharpCompilerServer(_desktopCompilerServerHost, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
+            bool utf8output = compiler.Arguments.Utf8Output;
+
+            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            CompilerServerLogger.Log("****Running C# compiler...");
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            int returnCode = compiler.Run(output, cancellationToken);
+            CompilerServerLogger.Log("****C# Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", returnCode, output.ToString());
+
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
         }
 
         /// <summary>
@@ -204,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 CompilerServerLogger.Log("Argument[{0}] = '{1}'", i, commandLineArguments[i]);
             }
 
-            return VisualBasicCompilerServer.RunCompiler(
+            return BasicCompileCore(
                 responseFileDirectory,
                 commandLineArguments,
                 currentDirectory,
@@ -213,5 +237,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 AnalyzerLoader,
                 cancellationToken);
         }
+
+        private BuildResponse BasicCompileCore(
+            string clientDirectory,
+            string[] args,
+            string baseDirectory,
+            string sdkDirectory,
+            string libDirectory,
+            IAnalyzerAssemblyLoader analyzerLoader,
+            CancellationToken cancellationToken)
+        {
+            var compiler = new VisualBasicCompilerServer(_desktopCompilerServerHost, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
+            bool utf8output = compiler.Arguments.Utf8Output;
+
+            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
+            {
+                return new AnalyzerInconsistencyBuildResponse();
+            }
+
+            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
+            CompilerServerLogger.Log("****Running VB compiler...");
+            int returnCode = compiler.Run(output, cancellationToken);
+            CompilerServerLogger.Log("****VB Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", returnCode, output.ToString());
+
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
+        }
+
     }
 }

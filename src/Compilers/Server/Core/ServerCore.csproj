@@ -50,6 +50,10 @@
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ICompilerServerHost.cs" />
+    <Compile Include="MetadataCache.cs" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

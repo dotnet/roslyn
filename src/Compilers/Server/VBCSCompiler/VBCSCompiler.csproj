@@ -65,9 +65,9 @@
     <Compile Include="Assembly.cs" />
     <Compile Include="CompilerRequestHandler.cs" />
     <Compile Include="CSharpCompilerServer.cs" />
+    <Compile Include="DesktopCompilerServerHost.cs" />
     <Compile Include="DiagnosticListener.cs" />
     <Compile Include="IClientConnection.cs" />
-    <Compile Include="MetadataCache.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />
     <Compile Include="ServerDispatcher.Connection.cs" />
     <Compile Include="ServerDispatcher.cs" />

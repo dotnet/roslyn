@@ -22,6 +22,10 @@
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
       <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Server\Core\ServerCore.csproj">
+      <Project>{9929e5ae-85ca-46a8-a500-3be7bc634d87}</Project>
+      <Name>ServerCore</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
       <Name>VBCSCompiler</Name>
