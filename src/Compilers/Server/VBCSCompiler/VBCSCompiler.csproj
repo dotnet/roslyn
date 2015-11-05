@@ -31,10 +31,6 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\ServerCore.csproj">
-      <Project>{9929e5ae-85ca-46a8-a500-3be7bc634d87}</Project>
-      <Name>ServerCore</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <UseVSHostingProcess>false</UseVSHostingProcess>
@@ -61,9 +57,6 @@
     <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\Shared\BuildProtocolUtil.cs">
-      <Link>BuildProtocolUtil.cs</Link>
-    </Compile>
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
     <Compile Include="CompilerRequestHandler.cs" />
@@ -87,6 +80,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
+  <Import Project="..\ServerShared\ServerShared.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
