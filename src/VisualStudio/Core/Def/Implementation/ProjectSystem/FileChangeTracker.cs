@@ -115,11 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsFileChangeEvents.FilesChanged(uint changeCount, string[] files, uint[] changes)
         {
-            var handler = UpdatedOnDisk;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
 
             return VSConstants.S_OK;
         }

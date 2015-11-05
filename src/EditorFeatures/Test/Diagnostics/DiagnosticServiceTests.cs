@@ -134,11 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public void RaiseUpdateEvent(DiagnosticsUpdatedArgs args)
             {
-                var handler = DiagnosticsUpdated;
-                if (handler != null)
-                {
-                    handler(this, args);
-                }
+                DiagnosticsUpdated?.Invoke(this, args);
             }
         }
     }

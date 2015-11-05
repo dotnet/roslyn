@@ -97,12 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             private void OnEditorSessionDismissed()
             {
                 AssertIsForeground();
-
-                var dismissed = this.Dismissed;
-                if (dismissed != null)
-                {
-                    dismissed(this, new EventArgs());
-                }
+                this.Dismissed?.Invoke(this, new EventArgs());
             }
 
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)

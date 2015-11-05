@@ -35,19 +35,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             thumb.DragDelta += dragHandler;
             thumb.DragStarted += (s, e) =>
             {
-                var handler = ResizeStarted;
-                if (handler != null)
-                {
-                    handler(this, e);
-                }
+                ResizeStarted?.Invoke(this, e);
             };
             thumb.DragCompleted += (s, e) =>
             {
-                var handler = ResizeCompleted;
-                if (handler != null)
-                {
-                    handler(this, e);
-                }
+                ResizeCompleted?.Invoke(this, e);
             };
             _visualChildren.Add(thumb);
             return thumb;

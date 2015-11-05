@@ -111,23 +111,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private void OnEditorSessionDismissed()
         {
             AssertIsForeground();
-
-            var dismissed = this.Dismissed;
-            if (dismissed != null)
-            {
-                dismissed(this, new EventArgs());
-            }
+            this.Dismissed?.Invoke(this, new EventArgs());
         }
 
         internal void OnCompletionItemCommitted(CompletionItem completionItem)
         {
             AssertIsForeground();
-
-            var completionItemCommitted = this.ItemCommitted;
-            if (completionItemCommitted != null)
-            {
-                completionItemCommitted(this, new CompletionItemEventArgs(completionItem));
-            }
+            this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
         }
 
         private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)

@@ -71,11 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnUpdatedOnDisk(object sender, EventArgs e)
         {
-            var handler = UpdatedOnDisk;
-            if (handler != null)
-            {
-                handler(this, EventArgs.Empty);
-            }
+            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
         }
 
         public void Dispose()

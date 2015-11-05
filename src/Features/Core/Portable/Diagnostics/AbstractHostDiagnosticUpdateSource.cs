@@ -37,11 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
-            var updated = this.DiagnosticsUpdated;
-            if (updated != null)
-            {
-                updated(this, args);
-            }
+            this.DiagnosticsUpdated?.Invoke(this, args);
         }
 
         internal void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Workspace workspace, ProjectId projectIdOpt)
