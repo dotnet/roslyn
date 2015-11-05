@@ -38,28 +38,28 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\Core\MSBuildTask\BuildClient.cs">
+    <Compile Include="..\..\Shared\BuildClient.cs">
       <Link>BuildClient.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\MSBuildTask\NativeMethods.cs">
+    <Compile Include="..\..\Shared\NativeMethods.cs">
       <Link>NativeMethods.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\VBCSCompiler\BuildProtocol.cs">
+    <Compile Include="..\..\Shared\BuildProtocol.cs">
       <Link>BuildProtocol.cs</Link>
     </Compile>
-    <Compile Include="..\..\Core\VBCSCompiler\CompilerServerLogger.cs">
+    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\AnalyzerAssemblyLoadUtils.cs">
+    <Compile Include="..\..\Shared\AnalyzerAssemblyLoadUtils.cs">
       <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\ConsoleUtil.cs">
+    <Compile Include="..\..\Shared\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="Csc.cs" />

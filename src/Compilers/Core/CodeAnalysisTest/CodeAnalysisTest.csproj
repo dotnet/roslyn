@@ -18,7 +18,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+    <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
     <Compile Include="AnalyzerFileReferenceTests.cs" />

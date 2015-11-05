@@ -87,13 +87,13 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Helpers\AbstractAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\..\Compilers\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\AnalyzerAssemblyLoadUtils.cs">
+    <Compile Include="..\..\..\Compilers\Shared\AnalyzerAssemblyLoadUtils.cs">
       <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Helpers\SimpleAnalyzerAssemblyLoader.cs">
+    <Compile Include="..\..\..\Compilers\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="AppDomainUtils.cs" />

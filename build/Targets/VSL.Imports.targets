@@ -283,9 +283,9 @@
                      ('$(Language)' == 'C#' OR '$(Language)' == 'VB') AND
                      '$(BuildingProject)' == 'true'"
           Inputs="@(IntermediateAssembly)"
-          Outputs="@(IntermediateAssembly);&quot;$(PostCompileBinaryModificationSentinelFile)&quot;">
+          Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
-    <Exec Command="&quot;$(FakeSignToolPath)&quot; -f &quot;@(IntermediateAssembly)&quot;" />
+    <Exec Command="&quot;$(FakeSignToolPath)&quot; &quot;@(IntermediateAssembly)&quot;" />
 
   </Target>
 
