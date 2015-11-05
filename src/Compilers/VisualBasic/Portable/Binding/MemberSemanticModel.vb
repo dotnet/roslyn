@@ -370,7 +370,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.IncompleteMember,
                      SyntaxKind.InheritsStatement,
                      SyntaxKind.ImplementsStatement,
-                     SyntaxKind.ImportsStatement
+                     SyntaxKind.ImportsStatement,
+                     SyntaxKind.EnumMemberDeclaration
                     Return False
 
                 Case Else
@@ -799,6 +800,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case result.Kind
                     Case BoundKind.FieldOrPropertyInitializer
                         result = DirectCast(result, BoundFieldOrPropertyInitializer).InitialValue
+                    Case BoundKind.EqualsValue
+                        result = DirectCast(result, BoundEqualsValue).Value
                 End Select
             End If
 

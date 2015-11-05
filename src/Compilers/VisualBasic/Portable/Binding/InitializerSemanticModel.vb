@@ -98,11 +98,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If initializer.Kind = SyntaxKind.EqualsValue Then
                             Dim enumSymbol = DirectCast(Me.MemberSymbol, SourceEnumConstantSymbol)
                             boundInitializer = binder.BindFieldAndEnumConstantInitializer(enumSymbol, DirectCast(initializer, EqualsValueSyntax), isEnum:=True, diagnostics:=diagnostics, constValue:=Nothing)
+                            Dim initializerValue = TryCast(boundInitializer, BoundExpression)
+                            If initializerValue IsNot Nothing Then
+                                boundInitializer = New BoundEqualsValue(initializer, initializerValue)
+                            End If
                         End If
                     Else
                         '  get field symbol
                         Dim fieldSymbol = DirectCast(Me.MemberSymbol, SourceFieldSymbol)
-                        Dim boundInitializers = ArrayBuilder(Of boundInitializer).GetInstance
+                        Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                         If initializer IsNot Nothing Then
                             ' bind const and non const field initializers the same to get a bound expression back and not a constant value.
                             binder.BindFieldInitializer(ImmutableArray.Create(Of Symbol)(fieldSymbol), initializer, boundInitializers, diagnostics, bindingForSemanticModel:=True)
@@ -117,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SymbolKind.Property
                     '  get property symbol
                     Dim propertySymbol = DirectCast(Me.MemberSymbol, SourcePropertySymbol)
-                    Dim boundInitializers = ArrayBuilder(Of boundInitializer).GetInstance
+                    Dim boundInitializers = ArrayBuilder(Of BoundInitializer).GetInstance
                     binder.BindPropertyInitializer(ImmutableArray.Create(Of Symbol)(propertySymbol), initializer, boundInitializers, diagnostics)
                     boundInitializer = boundInitializers.First
                     boundInitializers.Free()
@@ -127,6 +131,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If initializer.Kind = SyntaxKind.EqualsValue Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
                         boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
+                        Dim initializerValue = TryCast(boundInitializer, BoundExpression)
+                        If initializerValue IsNot Nothing Then
+                            boundInitializer = New BoundEqualsValue(initializer, initializerValue)
+                        End If
                     End If
 
                 Case Else

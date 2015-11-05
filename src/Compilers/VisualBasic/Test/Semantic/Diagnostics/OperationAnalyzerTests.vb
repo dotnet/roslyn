@@ -608,5 +608,45 @@ End Interface
                                             Diagnostic(SymbolCouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fik").WithArguments("Private fik As IMiddle", "IDerived").WithLocation(79, 13),
                                             Diagnostic(SymbolCouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fim").WithArguments("Private fim As IBase2", "IDerived").WithLocation(83, 13))
         End Sub
+
+        <Fact>
+        Public Sub ValueContextsVisualBasic()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Public Sub M0(Optional a As Integer = 16, Optional b As Integer = 17, Optional c As Integer = 18)
+    End Sub
+
+    Public F1 As Integer = 16
+    Public F2 As Integer = 17
+    Public F3 As Integer = 18
+
+    Public Sub M1()
+        M0(16, 17, 18)
+        M0(f1, f2, f3)
+        M0()
+    End Sub
+End Class
+
+Enum E
+    A = 16
+    B
+    C = 17
+    D = 18
+End Enum
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            comp.VerifyDiagnostics()
+            comp.VerifyAnalyzerDiagnostics({New SeventeenTestAnalyzer}, Nothing, Nothing, False,
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(2, 71),
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(6, 28),
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(10, 16),
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(19, 9),
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "M0").WithLocation(12, 9)) ' The M0 diagnostic is an artifact of the VB compiler filling in default values in the high-level bound tree, and is questionable.
+        End Sub
     End Class
 End Namespace

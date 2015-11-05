@@ -805,11 +805,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (result.Kind)
                 {
-                    case BoundKind.FieldInitializer:
-                        result = ((BoundFieldInitializer)result).InitialValue;
-                        break;
-                    case BoundKind.PropertyInitializer:
-                        result = ((BoundPropertyInitializer)result).InitialValue;
+                    case BoundKind.EqualsValue:
+                        result = ((BoundEqualsValue)result).Value;
                         break;
                 }
             }

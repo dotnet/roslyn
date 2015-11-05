@@ -617,5 +617,45 @@ interface IDerived : IMiddle, IBase2
                 Diagnostic(SymbolCouldHaveMoreSpecificTypeAnalyzer.FieldCouldHaveMoreSpecificTypeDescriptor.Id, "fim").WithArguments("C.fim", "IDerived").WithLocation(86, 12)
                 );
         }
+
+        [Fact]
+        public void ValueContextsCSharp()
+        {
+            const string source = @"
+class C
+{
+    public void M0(int a = 16, int b = 17, int c = 18)
+    {
+    }
+
+    public int f1 = 16;
+    public int f2 = 17;
+    public int f3 = 18;
+
+    public void M1()
+    {
+        M0(16, 17, 18);
+        M0(f1, f2, f3);
+        M0();
+    }
+}
+
+enum E
+{
+    A = 16,
+    B,
+    C = 17,
+    D = 18
+}
+";
+            CreateCompilationWithMscorlib45(source)
+            .VerifyDiagnostics()
+            .VerifyAnalyzerDiagnostics(new DiagnosticAnalyzer[] { new SeventeenTestAnalyzer() }, null, null, false,
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(4, 40),
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(9, 21),
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(14, 16),
+                Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(24, 9)
+                );
+        }
     }
 }
