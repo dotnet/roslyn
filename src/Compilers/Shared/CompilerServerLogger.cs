@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,31 +34,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             s_loggingStream = null;
 
-            /* BTODO: Need to abstract this out to an interface
             try
             {
                 // Check if the environment
-                string loggingFileName = Environment.GetEnvironmentVariable(environmentVariable);
+                string loggingFileName = PortableShim.Environment.GetEnvironmentVariable(environmentVariable);
 
                 if (loggingFileName != null)
                 {
                     // If the environment variable contains the path of a currently existing directory,
                     // then use a process-specific name for the log file and put it in that directory.
                     // Otherwise, assume that the environment variable specifies the name of the log file.
-                    if (Directory.Exists(loggingFileName))
+                    if (PortableShim.Directory.Exists(loggingFileName))
                     {
-                        loggingFileName = Path.Combine(loggingFileName, string.Format("server.{1}.{2}.log", loggingFileName, Process.GetCurrentProcess().Id, Environment.TickCount));
+                        loggingFileName = Path.Combine(loggingFileName, string.Format("server.{1}.{2}.log", loggingFileName, GetCurrentProcessId(), Environment.TickCount));
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
-                    s_loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+                    s_loggingStream = PortableShim.FileStream.Create_String_FileMode_FileAccess_FileShare(loggingFileName, PortableShim.FileMode.OpenOrCreate, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWrite);
                 }
             }
             catch (Exception e)
             {
                 LogException(e, "Failed to create logging stream");
             }
-            */
         }
 
         /// <summary>
@@ -122,15 +121,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
+        private static int GetCurrentProcessId()
+        {
+            var process = PortableShim.Process.GetCurrentProcess();
+            return (int)PortableShim.Process.Id.GetMethod.Invoke(process, null);
+        }
+
+        private static int GetCurrentThreadId()
+        {
+            var thread = PortableShim.Thread.CurrentThread;
+            return (int)PortableShim.Thread.ManagedThreadId.GetMethod.Invoke(thread, null);
+        }
+
         /// <summary>
         /// Get the string that prefixes all log entries. Shows the process, thread, and time.
         /// </summary>
         private static string GetLoggingPrefix()
         {
-            return string.Empty;
-            /* BTODO: FIX
-            return string.Format("{0} PID={1} TID={2} Ticks={3}: ", s_prefix, Process.GetCurrentProcess().Id, Thread.CurrentThread.ManagedThreadId, Environment.TickCount);
-            */
+            return string.Format("{0} PID={1} TID={2} Ticks={3}: ", s_prefix, GetCurrentProcessId(), GetCurrentThreadId(), Environment.TickCount);
         }
     }
 }
