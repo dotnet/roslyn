@@ -105,6 +105,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{E35DA3
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "CommandLine", "src\Compilers\Core\CommandLine\CommandLine.shproj", "{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortableServer", "src\Compilers\Server\PortableServer\PortableServer.csproj", "{06B26DCB-7A12-48EF-AE50-708593ABD05F}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Test\Utilities\Shared\TestUtilities.projitems*{76c6f005-c89d-4348-bb4a-391898dbeb52}*SharedItemsImports = 4
@@ -112,6 +114,7 @@ Global
 		src\Test\Utilities\Shared\TestUtilities.projitems*{6ff42825-5464-4151-ac55-ed828168c192}*SharedItemsImports = 13
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{ad6f474e-e6d4-4217-91f3-b7af1be31ccc}*SharedItemsImports = 13
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{d0bc9be7-24f6-40ca-8dc6-fcb93bd44b34}*SharedItemsImports = 13
+		src\Compilers\Core\CommandLine\CommandLine.projitems*{06b26dcb-7a12-48ef-ae50-708593abd05f}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{9508f118-f62e-4c16-a6f4-7c3b56e166ad}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{afde6bea-5038-4a4a-a88e-dbd2e4088eed}*SharedItemsImports = 4
@@ -880,6 +883,20 @@ Global
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x64.Build.0 = Release|Any CPU
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x86.ActiveCfg = Release|Any CPU
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21}.Release|x86.Build.0 = Release|Any CPU
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|ARM.ActiveCfg = Debug|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|x64.ActiveCfg = Debug|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|x64.Build.0 = Debug|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Debug|x86.ActiveCfg = Debug|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|Any CPU.ActiveCfg = Release|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|ARM.ActiveCfg = Release|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|Mixed Platforms.Build.0 = Release|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|x64.ActiveCfg = Release|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|x64.Build.0 = Release|x64
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -927,5 +944,6 @@ Global
 		{1DFEA9C5-973C-4179-9B1B-0F32288E1EF2} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{0835A7FB-C472-4F7D-A500-F9FD072CFF21} = {C65C6143-BED3-46E6-869E-9F0BE6E84C37}
 		{AD6F474E-E6D4-4217-91F3-B7AF1BE31CCC} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
+		{06B26DCB-7A12-48EF-AE50-708593ABD05F} = {E35DA3D1-16C0-4318-9187-6B664F12A870}
 	EndGlobalSection
 EndGlobal
