@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
-    class EndToEndDeterminismTest: TestBase
+    public class EndToEndDeterminismTest: TestBase
     {
         private string _flags = "/shared /deterministic+ /nologo /t:library /pdb:none";
 
