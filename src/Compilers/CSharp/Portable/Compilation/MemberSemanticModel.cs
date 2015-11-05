@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = boundParent;
                     break;
                 case GetOperationOptions.Highest:
-                    result= highestBoundNode;
+                    result = highestBoundNode;
                     break;
                 case GetOperationOptions.Lowest:
                 default:

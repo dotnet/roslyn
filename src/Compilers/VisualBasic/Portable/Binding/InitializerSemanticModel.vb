@@ -97,11 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(initializer IsNot Nothing)
                         If initializer.Kind = SyntaxKind.EqualsValue Then
                             Dim enumSymbol = DirectCast(Me.MemberSymbol, SourceEnumConstantSymbol)
-                            boundInitializer = binder.BindFieldAndEnumConstantInitializer(enumSymbol, DirectCast(initializer, EqualsValueSyntax), isEnum:=True, diagnostics:=diagnostics, constValue:=Nothing)
-                            Dim initializerValue = TryCast(boundInitializer, BoundExpression)
-                            If initializerValue IsNot Nothing Then
-                                boundInitializer = New BoundEqualsValue(initializer, initializerValue)
-                            End If
+                            boundInitializer = WrapWithEqualsValue(binder.BindFieldAndEnumConstantInitializer(enumSymbol, DirectCast(initializer, EqualsValueSyntax), isEnum:=True, diagnostics:=diagnostics, constValue:=Nothing), initializer)
                         End If
                     Else
                         '  get field symbol
@@ -130,11 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(initializer IsNot Nothing)
                     If initializer.Kind = SyntaxKind.EqualsValue Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
-                        boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
-                        Dim initializerValue = TryCast(boundInitializer, BoundExpression)
-                        If initializerValue IsNot Nothing Then
-                            boundInitializer = New BoundEqualsValue(initializer, initializerValue)
-                        End If
+                        boundInitializer = WrapWithEqualsValue(binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing), initializer)
                     End If
 
                 Case Else
@@ -142,6 +134,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             Return boundInitializer
+        End Function
+
+        Private Function WrapWithEqualsValue(boundValue As BoundExpression, value As VisualBasicSyntaxNode) As BoundEqualsValue
+            If value IsNot Nothing Then
+                Return New BoundEqualsValue(value, boundValue)
+            End If
+
+            Return Nothing
         End Function
 
         Friend Overrides Function GetBoundRoot() As BoundNode
