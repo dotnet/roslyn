@@ -5,7 +5,6 @@ using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -120,6 +119,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             BuildResponse response,
             List<string> parsedArgs)
         {
+            /* BTODO: fix when this is moved to the final command line
             switch (response.Type)
             {
                 case BuildResponse.ResponseType.MismatchedVersion:
@@ -143,6 +143,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 default:
                     throw new InvalidOperationException("Encountered unknown response type");
             }
+            */
+
+            return 0;
         }
     }
 }

@@ -56,23 +56,8 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\BuildClient.cs">
-      <Link>BuildClient.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\CoreClrBuildHost.cs">
       <Link>CoreClrBuildHost.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\NativeMethods.cs">
-      <Link>NativeMethods.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\BuildProtocol.cs">
-      <Link>BuildProtocol.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
-      <Link>CompilerServerLogger.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\ConsoleUtil.cs">
-      <Link>ConsoleUtil.cs</Link>
     </Compile>
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
@@ -101,6 +86,7 @@
     </None>
     <None Include="project.json" />
   </ItemGroup>
+  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

@@ -29,13 +29,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
-      <Link>CompilerServerLogger.cs</Link>
-    </Compile>
-    <Compile Include="Assembly.cs" />
-    <Compile Include="..\..\Shared\BuildProtocol.cs">
-      <Link>BuildProtocol.cs</Link>
-    </Compile>
     <Compile Include="CompilerRequestHandler.cs" />
     <Compile Include="CSharpCompilerServer.cs" />
     <Compile Include="DiagnosticListener.cs" />
@@ -68,6 +61,7 @@
       <Name>BasicCodeAnalysis</Name>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
