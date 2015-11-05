@@ -136,12 +136,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundInitializer
         End Function
 
-        Private Function WrapWithEqualsValue(boundValue As BoundExpression, value As VisualBasicSyntaxNode) As BoundEqualsValue
-            If value IsNot Nothing Then
+        Private Function WrapWithEqualsValue(boundValue As BoundExpression, value As VisualBasicSyntaxNode) As BoundNode
+            If boundValue IsNot Nothing AndAlso boundValue.Kind <> BoundKind.BadExpression Then
                 Return New BoundEqualsValue(value, boundValue)
             End If
 
-            Return Nothing
+            Return boundValue
         End Function
 
         Friend Overrides Function GetBoundRoot() As BoundNode
