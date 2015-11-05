@@ -535,8 +535,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ShebangDirectiveTrivia = 8922,
         LoadDirectiveTrivia = 8923,
-
-        ReferenceAssignmentExpression = 8950,
-        EqualsReferenceClause = 8951,
     }
 }

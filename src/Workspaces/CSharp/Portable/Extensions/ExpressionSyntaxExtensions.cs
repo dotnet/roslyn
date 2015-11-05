@@ -2080,12 +2080,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool EqualsValueClauseNotSuitableForVar(
             SyntaxToken identifier,
             TypeSyntax simpleName,
-            EqualsClauseSyntax equalsClause,
+            EqualsValueClauseSyntax equalsValueClause,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             // var cannot be assigned null
-            if (equalsClause.IsKind(SyntaxKind.NullLiteralExpression))
+            if (equalsValueClause.IsKind(SyntaxKind.NullLiteralExpression))
             {
                 return true;
             }
@@ -2099,7 +2099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            var initializerType = semanticModel.GetTypeInfo(equalsClause.Value, cancellationToken).Type;
+            var initializerType = semanticModel.GetTypeInfo(equalsValueClause.Value, cancellationToken).Type;
 
             if (!type.Equals(initializerType))
             {
@@ -2107,7 +2107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // The assign expression in the initializer cannot be the same symbol as the i
-            var possibleSameLocals = equalsClause.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)n).Identifier.ValueText.Equals(identifier.ValueText));
+            var possibleSameLocals = equalsValueClause.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)n).Identifier.ValueText.Equals(identifier.ValueText));
             var anyUse = possibleSameLocals.Any(n =>
             {
                 var symbol = semanticModel.GetSymbolInfo(n, cancellationToken).Symbol;

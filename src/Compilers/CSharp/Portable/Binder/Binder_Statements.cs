@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return declType;
         }
 
-        internal BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, RefKind refKind, EqualsClauseSyntax initializer,
+        internal BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, RefKind refKind, EqualsValueClauseSyntax initializer,
             CSharpSyntaxNode errorSyntax)
         {
             BindValueKind valueKind;
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // The location where the error is reported might not be the initializer.
-        protected BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, EqualsClauseSyntax initializer, BindValueKind valueKind,
+        protected BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, EqualsValueClauseSyntax initializer, BindValueKind valueKind,
             CSharpSyntaxNode errorSyntax)
         {
             if (initializer == null)
@@ -707,26 +707,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        protected bool IsInitializerRefKindValid(EqualsClauseSyntax initializer, CSharpSyntaxNode node, RefKind variableRefKind, DiagnosticBag diagnostics, out BindValueKind valueKind)
+        protected bool IsInitializerRefKindValid(
+            EqualsValueClauseSyntax initializer, 
+            CSharpSyntaxNode node, 
+            RefKind variableRefKind, 
+            DiagnosticBag diagnostics, 
+            out BindValueKind valueKind)
         {
-            var isEqualsRef = initializer is EqualsReferenceClauseSyntax;
-            Debug.Assert(!isEqualsRef || ((EqualsReferenceClauseSyntax)initializer).RefKeyword.Kind().GetRefKind() != RefKind.None);
-            valueKind = isEqualsRef ? BindValueKind.RefReturnOrAssign : BindValueKind.RValue;
-
-            if (initializer == null || (variableRefKind != RefKind.None) == isEqualsRef)
+            if (variableRefKind == RefKind.None)
             {
-                return true;
-            }
-
-            if (isEqualsRef)
-            {
-                Error(diagnostics, ErrorCode.ERR_InitializeByValueVariableWithReference, node);
+                valueKind = BindValueKind.RValue;
+                if (initializer != null && initializer.RefKeyword.Kind() != SyntaxKind.None)
+                {
+                    Error(diagnostics, ErrorCode.ERR_InitializeByValueVariableWithReference, node);
+                    return false;
+                }
             }
             else
             {
-                Error(diagnostics, ErrorCode.ERR_InitializeByReferenceVariableWithValue, node);
+                // TODO: VS should be more relaxed than Return
+                valueKind = BindValueKind.RefReturnOrAssign;
+
+                if (initializer == null)
+                {
+                    // TODO: VS special error for missing ref initializer
+                    Error(diagnostics, ErrorCode.ERR_InitializeByReferenceVariableWithValue, node);
+                    return false;
+                }
+                else if (initializer.RefKeyword.Kind() == SyntaxKind.None)
+                {
+                    Error(diagnostics, ErrorCode.ERR_InitializeByReferenceVariableWithValue, node);
+                    return false;
+                }
             }
-            return false;
+
+            return true;
         }
 
         protected BoundLocalDeclaration BindVariableDeclaration(
@@ -780,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, declarator);
             }
 
-            EqualsClauseSyntax equalsClauseSyntax = declarator.Initializer;
+            EqualsValueClauseSyntax equalsClauseSyntax = declarator.Initializer;
 
             BindValueKind valueKind;
             if (!IsInitializerRefKindValid(equalsClauseSyntax, declarator, localSymbol.RefKind, diagnostics, out valueKind))
@@ -1755,27 +1770,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
-        }
-
-        private BoundAssignmentOperator BindReferenceAssignment(ReferenceAssignmentExpressionSyntax node, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(node != null);
-            Debug.Assert(node.Left != null);
-            Debug.Assert(node.Right != null);
-
-            var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment);
-            var op2 = BindValue(node.Right, diagnostics, BindValueKind.RefReturnOrAssign);
-
-            bool isRefAssignable = CheckIsRefAssignable(node.Left, op1, diagnostics);
-            bool hasErrors = !isRefAssignable || op2.HasAnyErrors;
-
-            if (!hasErrors)
-            {
-                op2 = GenerateConversionForAssignment(op1.Type, op2, diagnostics, refKind: RefKind.Ref);
-                hasErrors = op2.HasAnyErrors;
-            } 
-
-            return new BoundAssignmentOperator(node, op1, op2, op1.Type, refKind: RefKind.Ref, hasErrors: hasErrors);
         }
 
         private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out CSharpSyntaxNode propertySyntax)
