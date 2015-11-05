@@ -3,15 +3,13 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.BuildTasks;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     public class Program
     {
         public static int Main(string[] args)
-            => Vbc.Run(args: args,
-                       clientDirectory: AppContext.BaseDirectory,
-                       sdkDirectory: @"C:\Windows\Microsoft.NET\Framework\v4.0.30319",
-                       analyzerLoader: CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
+            => BuildClient.RunWithConsoleOutput(new CoreClrBuildHost(args, Vbc.Run));
     }
 }

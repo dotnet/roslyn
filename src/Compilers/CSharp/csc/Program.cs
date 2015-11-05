@@ -18,12 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         public static int Main(string[] args, string[] extraArgs)
             => BuildClient.RunWithConsoleOutput(
-                BuildClient.GetCommandLineArgs(args).Concat(extraArgs),
-                clientDir: AppDomain.CurrentDomain.BaseDirectory,
-                workingDir: Directory.GetCurrentDirectory(),
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                analyzerLoader: new SimpleAnalyzerAssemblyLoader(),
-                language: RequestLanguage.CSharpCompile,
-                fallbackCompiler: Csc.Run);
+                new DesktopBuildHost(
+                    args,
+                    extraArgs,
+                    RequestLanguage.CSharpCompile,
+                    Csc.Run));
     }
 }

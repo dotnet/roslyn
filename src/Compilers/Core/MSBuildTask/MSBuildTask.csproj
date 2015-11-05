@@ -49,6 +49,9 @@
     <Compile Include="..\..\Shared\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
+    <Compile Include="..\..\Shared\DesktopBuildClient.cs">
+      <Link>DesktopBuildClient.cs</Link>
+    </Compile>
     <Compile Include="..\..\Shared\NativeMethods.cs">
       <Link>NativeMethods.cs</Link>
     </Compile>

@@ -4,15 +4,13 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.BuildTasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
     public class Program
     {
         public static int Main(string[] args)
-            => Csc.Run(args: args,
-                       clientDirectory: AppContext.BaseDirectory,
-                       sdkDirectory: null,
-                       analyzerLoader: CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault());
+            => BuildClient.RunWithConsoleOutput(new CoreClrBuildHost(args, Csc.Run)); 
     }
 }

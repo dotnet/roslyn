@@ -508,16 +508,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             */
         }
 
-        internal static object GetCurrentIdentity(Assembly assembly)
-        {
-            return assembly
-                    .GetType("System.Security.Principal.WindowsIdentity")
-                    .GetTypeInfo()
-                    .GetDeclaredMethods("GetCurrent")
-                    .Single(x => x.GetParameters().Length == 0)
-                    .Invoke(null, null);
-        }
-
         /// <summary>
         /// Read a string from the Reader where the string is encoded
         /// as a length prefix (signed 32-bit integer) followed by

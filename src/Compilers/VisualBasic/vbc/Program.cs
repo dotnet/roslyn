@@ -17,13 +17,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
             => Main(args, SpecializedCollections.EmptyArray<string>());
 
         public static int Main(string[] args, string[] extraArgs)
-            => BuildClient.RunWithConsoleOutput(
-                BuildClient.GetCommandLineArgs(args).Concat(extraArgs),
-                clientDir: AppDomain.CurrentDomain.BaseDirectory,
-                workingDir: Directory.GetCurrentDirectory(),
-                sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
-                analyzerLoader: new SimpleAnalyzerAssemblyLoader(),
-                language: RequestLanguage.VisualBasicCompile,
-                fallbackCompiler: Vbc.Run);
+            => BuildClient.RunWithConsoleOutput(new DesktopBuildHost(args, extraArgs, RequestLanguage.VisualBasicCompile, Vbc.Run));
     }
 }

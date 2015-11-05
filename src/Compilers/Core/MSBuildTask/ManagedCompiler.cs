@@ -13,6 +13,7 @@ using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CompilerServer;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -366,13 +367,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                    var responseTask = BuildClient.TryRunServerCompilation(
+                    var responseTask = DesktopBuildClient.TryRunServerCompilation(
                         Language,
                         TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
                         CurrentDirectoryToUse(),
-                        GetArguments(commandLineCommands, responseFileCommands),
-                        _sharedCompileCts.Token,
-                        libEnvVariable: LibDirectoryToUse());
+                        GetArguments(commandLineCommands, responseFileCommands).ToList(),
+                        keepAlive: null,
+                        libEnvVariable: LibDirectoryToUse(),
+                        cancellationToken: _sharedCompileCts.Token);
 
                     responseTask.Wait(_sharedCompileCts.Token);
 
