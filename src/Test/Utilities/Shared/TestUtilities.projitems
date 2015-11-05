@@ -53,6 +53,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Metadata\PEModuleTestHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestDocumentationCommentProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestMissingMetadataReferenceResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestSourceReferenceResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Mocks\VirtualizedRelativePathResolver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\MockSymWriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Pdb\PdbTestUtilities.cs" />

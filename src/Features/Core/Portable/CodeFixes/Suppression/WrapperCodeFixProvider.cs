@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             var documentDiagnostics = diagnostics.Where(d => d.Location.IsInSource).ToImmutableArray();
             if (!documentDiagnostics.IsEmpty)
             {
-                var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Document, context.Span, diagnostics, context.CancellationToken).ConfigureAwait(false);
+                var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
                 RegisterSuppressionFixes(context, suppressionFixes);
             }
 
             var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
             if (!projectDiagnostics.IsEmpty)
             {
-                var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Project, diagnostics, context.CancellationToken).ConfigureAwait(false);
+                var suppressionFixes = await _suppressionFixProvider.GetSuppressionsAsync(context.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
                 RegisterSuppressionFixes(context, suppressionFixes);
             }
         }

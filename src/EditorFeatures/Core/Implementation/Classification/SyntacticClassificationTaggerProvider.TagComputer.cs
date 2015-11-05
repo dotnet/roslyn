@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -9,12 +10,14 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
@@ -56,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private ITextSnapshot _lastParsedSnapshot;
             private Document _lastParsedDocument;
 
+            private bool _isClassificationOnlyWorkspace;
             private Workspace _workspace;
             private CancellationTokenSource _reportChangeCancellationSource;
 
@@ -63,6 +67,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly IForegroundNotificationService _notificationService;
             private readonly ClassificationTypeMap _typeMap;
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
+            private readonly IEditorClassificationService _editorClassificationService;
+            private readonly IViewSupportsClassificationService _viewSupportsClassificationServiceOpt;
+            private readonly ITextBufferAssociatedViewService _associatedViewService;
+
+            private readonly string _languageName;
+
+            // Not all buffers with a matching content type should be tagged, but determining this
+            // can be expensive.
+            private bool? _cachedTaggableStatus;
 
             private int _taggerReferenceCount;
 
@@ -71,13 +84,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 IForegroundNotificationService notificationService,
                 IAsynchronousOperationListener asyncListener,
                 ClassificationTypeMap typeMap,
-                SyntacticClassificationTaggerProvider taggerProvider)
+                SyntacticClassificationTaggerProvider taggerProvider,
+                IViewSupportsClassificationService viewSupportsClassificationServiceOpt,
+                ITextBufferAssociatedViewService associatedViewService,
+                IEditorClassificationService editorClassificationService,
+                string languageName)
             {
                 _subjectBuffer = subjectBuffer;
                 _notificationService = notificationService;
                 _listener = asyncListener;
                 _typeMap = typeMap;
                 _taggerProvider = taggerProvider;
+                _viewSupportsClassificationServiceOpt = viewSupportsClassificationServiceOpt;
+                _associatedViewService = associatedViewService;
+                _editorClassificationService = editorClassificationService;
+                _languageName = languageName;
 
                 _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
                 _reportChangeCancellationSource = new CancellationTokenSource();
@@ -87,10 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _workspaceRegistration = Workspace.GetWorkspaceRegistration(subjectBuffer.AsTextContainer());
                 _workspaceRegistration.WorkspaceChanged += OnWorkspaceRegistrationChanged;
 
-                if (_workspaceRegistration.Workspace != null)
-                {
-                    ConnectToWorkspace(_workspaceRegistration.Workspace);
-                }
+                ConnectToWorkspace(_workspaceRegistration.Workspace);
             }
 
             private void OnWorkspaceRegistrationChanged(object sender, EventArgs e)
@@ -135,47 +153,92 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 ResetLastParsedDocument();
 
                 _workspace = workspace;
-                _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
-                _workspace.DocumentOpened += this.OnDocumentOpened;
-                _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
 
-                var textContainer = _subjectBuffer.AsTextContainer();
-
-                var documentId = _workspace.GetDocumentIdInCurrentContext(textContainer);
-                if (documentId != null)
+                if (_workspace != null)
                 {
-                    var document = workspace.CurrentSolution.GetDocument(documentId);
-                    if (document != null)
+                    _isClassificationOnlyWorkspace = false;
+                    _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
+                    _workspace.DocumentOpened += this.OnDocumentOpened;
+                    _workspace.DocumentActiveContextChanged += this.OnDocumentActiveContextChanged;
+
+                    var textContainer = _subjectBuffer.AsTextContainer();
+
+                    var documentId = _workspace.GetDocumentIdInCurrentContext(textContainer);
+                    if (documentId != null)
                     {
-                        EnqueueParseSnapshotTask(document);
+                        var document = workspace.CurrentSolution.GetDocument(documentId);
+                        if (document != null)
+                        {
+                            EnqueueParseSnapshotTask(document);
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    // This buffer isn't being tracked by any workspace. In Visual Studio, this
+                    // can happen if it is not in the Running Document Table. We'll try to do
+                    // basic syntax classification based on the initial state of the snapshot.
+                    // Changes to the buffer are not observed, but initial tags will track forward.
+
+                    _isClassificationOnlyWorkspace = true;
+                    if (_languageName != null)
+                    {
+                        _workspace = new AdhocWorkspace();
+                        var solution = _workspace.CreateSolution(SolutionId.CreateNewId());
+                        var project = solution.AddProject(name: string.Empty, assemblyName: string.Empty, language: _languageName);
+
+                        var parsedSnapshot = _subjectBuffer.CurrentSnapshot;
+                        var document = project.AddDocument(name: string.Empty, text: _subjectBuffer.CurrentSnapshot.AsText());
+
+                        EnqueueParseSnapshotTask(document, parsedSnapshot);
+                        return;
                     }
                 }
             }
 
             public void DisconnectFromWorkspace()
             {
-                if (_workspace != null)
+                if (_isClassificationOnlyWorkspace)
+                {
+                    _workspace.Dispose();
+                    _workspace = null;
+                    _isClassificationOnlyWorkspace = false;
+                }
+                else if (_workspace != null)
                 {
                     _workspace.WorkspaceChanged -= this.OnWorkspaceChanged;
                     _workspace.DocumentOpened -= this.OnDocumentOpened;
                     _workspace.DocumentActiveContextChanged -= this.OnDocumentActiveContextChanged;
 
                     _workspace = null;
-
-                    ResetLastParsedDocument();
                 }
+
+                ResetLastParsedDocument();
             }
 
             private void EnqueueParseSnapshotTask(Document newDocument)
             {
-                if (newDocument != null)
-                {
-                    _workQueue.EnqueueBackgroundTask(c => this.EnqueueParseSnapshotWorkerAsync(newDocument, c), GetType() + ".EnqueueParseSnapshotTask.1", CancellationToken.None);
-                }
+                Contract.Assert(!_isClassificationOnlyWorkspace, "classification-only workspaces must provide the corresponding snapshot");
+
+                _workQueue.EnqueueBackgroundTask(
+                    c => this.EnqueueParseSnapshotWorkerAsync(newDocument, c),
+                    GetType() + ".EnqueueParseSnapshotTask.1",
+                    CancellationToken.None);
+            }
+
+            private void EnqueueParseSnapshotTask(Document newDocument, ITextSnapshot snapshot)
+            {
+                _workQueue.EnqueueBackgroundTask(
+                    c => this.EnqueueParseSnapshotWorkerAsync(newDocument, snapshot, c),
+                    GetType() + ".EnqueueParseSnapshotTask.1",
+                    CancellationToken.None);
             }
 
             private async Task EnqueueParseSnapshotWorkerAsync(Document document, CancellationToken cancellationToken)
             {
+                Contract.Assert(!_isClassificationOnlyWorkspace, "classification-only workspaces must provide the corresponding snapshot");
+
                 // we will enqueue new one soon, cancel pending refresh right away
                 _reportChangeCancellationSource.Cancel();
 
@@ -189,8 +252,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     return;
                 }
 
+                await EnqueueParseSnapshotWorkerAsync(document, snapshot, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task EnqueueParseSnapshotWorkerAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
+            {
                 // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
                 lock (_gate)
                 {
                     _lastParsedSnapshot = snapshot;
@@ -233,26 +302,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 using (Logger.LogBlock(FunctionId.Tagger_SyntacticClassification_TagComputer_GetTags, CancellationToken.None))
                 {
-                    if (spans.Count > 0 && _workspace != null)
+                    if (!_cachedTaggableStatus.HasValue)
                     {
-                        var firstSpan = spans[0];
-                        var languageServices = _workspace.Services.GetLanguageServices(firstSpan.Snapshot.ContentType);
-                        if (languageServices != null)
+                        if (!_isClassificationOnlyWorkspace)
                         {
-                            var classificationService = languageServices.GetService<IEditorClassificationService>();
-
-                            if (classificationService != null)
+                            _cachedTaggableStatus = true;
+                        }
+                        else
+                        {
+                            var wpfTextViews = _associatedViewService.GetAssociatedTextViews(_subjectBuffer);
+                            if (wpfTextViews.Any())
                             {
-                                var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
-
-                                foreach (var span in spans)
-                                {
-                                    AddClassifiedSpans(classificationService, span, classifiedSpans);
-                                }
-
-                                return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
+                                _cachedTaggableStatus = _viewSupportsClassificationServiceOpt?.CanClassifyViews(wpfTextViews.Cast<ITextView>()) ?? true;
                             }
                         }
+                    }
+
+                    if (_cachedTaggableStatus == false)
+                    {
+                        return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();
+                    }
+
+                    if (spans.Count > 0)
+                    {
+                        var classifiedSpans = ClassificationUtilities.GetOrCreateClassifiedSpanList();
+
+                        foreach (var span in spans)
+                        {
+                            AddClassifiedSpans(_editorClassificationService, span, classifiedSpans);
+                        }
+
+                        return ClassificationUtilities.ConvertAndReturnList(_typeMap, spans[0].Snapshot, classifiedSpans);
                     }
 
                     return SpecializedCollections.EmptyEnumerable<ITagSpan<IClassificationTag>>();

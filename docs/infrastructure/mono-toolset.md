@@ -13,8 +13,10 @@ The value of *version number* will simply be the one number higher than the curr
 To build the toolset execute the following:
 
 - Set `$PREFIX` to `/tmp/<toolset name>`
-- Follow the remainder of the [Compiling Mono](http://www.mono-project.com/docs/compiling-mono/) instructions.  
-- Install the PCL references: `<roslyn dir>/build/linux/setup-pcl.sh /tmp/<toolset name>`
+- Follow the remainder of the [Compiling Mono](http://www.mono-project.com/docs/compiling-mono/) instructions.
+- From the previous drop, copy the following things from the old drop to the new, in the same locations:
+  - lib/mono/xbuild-frameworks/.NETPortable/*
+  - lib/mono/xbuild/Microsoft/*
 - Bzip the resulting directory.  `tar -jcvf <toolset name>.tar.bz2 /tmp/<toolset name>`
 - Upload the file to the Azure in the dotnetci storage account in the roslyn container.  
 - Send a PR to change [cibuild.sh](https://github.com/dotnet/roslyn/blob/master/cibuild.sh) to use the new toolset.  

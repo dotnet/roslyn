@@ -197,11 +197,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CurrentSolution.GetProject(projects[0].Id);
         }
 
-        private Dictionary<string, ProjectId> GetCurrentProjectMap()
+        private ImmutableDictionary<string, ProjectId> GetCurrentProjectMap()
         {
             return this.CurrentSolution.Projects
                 .Where(p => !string.IsNullOrEmpty(p.FilePath))
-                .ToDictionary(p => p.FilePath, p => p.Id);
+                .ToImmutableDictionary(p => p.FilePath, p => p.Id);
         }
 
         #endregion

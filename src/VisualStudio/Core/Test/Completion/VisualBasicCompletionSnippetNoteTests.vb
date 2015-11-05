@@ -22,9 +22,9 @@ End Class]]></document>
             Using state = Await CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interface").ConfigureAwait(True)
                 state.SendTypeChars("Interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
                     VBFeaturesResources.InterfaceKeywordToolTip & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface"))
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface")).ConfigureAwait(True)
             End Using
         End Function
 
@@ -33,9 +33,9 @@ End Class]]></document>
             Using state = Await CreateVisualBasicSnippetExpansionNoteTestState(_markup, "intErfaCE").ConfigureAwait(True)
                 state.SendTypeChars("Interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
                     VBFeaturesResources.InterfaceKeywordToolTip & vbCrLf &
-                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface"))
+                    String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "Interface")).ConfigureAwait(True)
             End Using
         End Function
 
@@ -44,8 +44,8 @@ End Class]]></document>
             Using state = Await CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfac").ConfigureAwait(True)
                 state.SendTypeChars("Interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
-                    VBFeaturesResources.InterfaceKeywordToolTip)
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.InterfaceKeywordToolTip).ConfigureAwait(True)
             End Using
         End Function
 
@@ -54,8 +54,8 @@ End Class]]></document>
             Using state = Await CreateVisualBasicSnippetExpansionNoteTestState(_markup, "Interfaces").ConfigureAwait(True)
                 state.SendTypeChars("Interfac")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
-                    VBFeaturesResources.InterfaceKeywordToolTip)
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.Keyword, "Interface") & vbCrLf &
+                    VBFeaturesResources.InterfaceKeywordToolTip).ConfigureAwait(True)
             End Using
         End Function
 
@@ -65,7 +65,7 @@ End Class]]></document>
 
                 state.SendTypeChars("DisplayTex")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:="")
+                Await state.AssertSelectedCompletionItem(description:="").ConfigureAwait(True)
             End Using
         End Function
 
@@ -75,7 +75,7 @@ End Class]]></document>
 
                 state.SendTypeChars("DisplayTex")
                 Await state.AssertCompletionSession().ConfigureAwait(True)
-                state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText"))
+                Await state.AssertSelectedCompletionItem(description:=String.Format(FeaturesResources.NoteTabTwiceToInsertTheSnippet, "InsertionText")).ConfigureAwait(True)
             End Using
         End Function
 

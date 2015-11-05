@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    public abstract class InteractiveCommandHandler :
+    internal abstract class InteractiveCommandHandler :
         ICommandHandler<ExecuteInInteractiveCommandArgs>,
         ICommandHandler<CopyToInteractiveCommandArgs>
     {

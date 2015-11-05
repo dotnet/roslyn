@@ -5309,6 +5309,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted.
+        /// </summary>
+        internal static string ERR_InvalidPathMap {
+            get {
+                return ResourceManager.GetString("ERR_InvalidPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid preprocessor expression.
         /// </summary>
         internal static string ERR_InvalidPreprocExpr {
@@ -5993,7 +6002,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot declare namespace in script code.
+        ///   Looks up a localized string similar to Cannot declare namespace in script code.
         /// </summary>
         internal static string ERR_NamespaceNotAllowedInScript {
             get {
@@ -7640,15 +7649,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot use &apos;return&apos; in top-level script code.
-        /// </summary>
-        internal static string ERR_ReturnNotAllowedInScript {
-            get {
-                return ResourceManager.GetString("ERR_ReturnNotAllowedInScript", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot modify the return value of &apos;{0}&apos; because it is not a variable.
         /// </summary>
         internal static string ERR_ReturnNotLValue {
@@ -8716,6 +8716,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_YieldInAnonMeth {
             get {
                 return ResourceManager.GetString("ERR_YieldInAnonMeth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot use &apos;yield&apos; in top-level script code.
+        /// </summary>
+        internal static string ERR_YieldNotAllowedInScript {
+            get {
+                return ResourceManager.GetString("ERR_YieldNotAllowedInScript", resourceCulture);
             }
         }
         

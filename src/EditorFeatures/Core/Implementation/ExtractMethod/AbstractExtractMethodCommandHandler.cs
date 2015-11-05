@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.SuggestionSupport;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return nextHandler();
             }
 
-            var supportSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (!supportSuggestionService.SupportsRefactorings(document))
+            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(document))
             {
                 return nextHandler();
             }
@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return;
             }
 
-            var supportSuggestionService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsSuggestionService>();
-            if (!supportSuggestionService.SupportsRefactorings(document))
+            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(document))
             {
                 nextHandler();
                 return;

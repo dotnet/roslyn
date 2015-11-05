@@ -10,13 +10,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -67,6 +65,7 @@
     <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
     <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoaderException.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineHelpers.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
     <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />
@@ -101,6 +100,7 @@
     <Compile Include="ScriptSourceResolver.cs" />
     <Compile Include="ScriptState.cs" />
     <Compile Include="ScriptVariable.cs" />
+    <Compile Include="Utilities\ConsoleShims.cs" />
     <Compile Include="Utilities\IListExtensions.cs" />
     <Compile Include="Utilities\ParameterValidationHelpers.cs" />
     <Compile Include="Utilities\TaskExtensions.cs" />

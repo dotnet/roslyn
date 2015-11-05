@@ -440,6 +440,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                         // successful if compiled
                         success = true;
 
+                        // remove references and imports from the options, they have been applied and will be inherited from now on:
+                        state = state.WithOptions(state.ScriptOptions.RemoveImportsAndReferences());
+
                         var newScriptState = await ExecuteOnUIThread(script, state.ScriptStateOpt).ConfigureAwait(false);
                         if (newScriptState != null)
                         {
@@ -645,7 +648,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                                 var newScriptState = await ExecuteFileAsync(rspState, scriptPathOpt).ConfigureAwait(false);
                                 if (newScriptState != null)
                                 {
-                                    rspState = rspState.WithScriptState(newScriptState);
+                                    // remove references and imports from the options, they have been applied and will be inherited from now on:
+                                    rspState = rspState.
+                                        WithScriptState(newScriptState).
+                                        WithOptions(rspState.ScriptOptions.RemoveImportsAndReferences());
                                 }
                             }
 
@@ -700,37 +706,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return fullPath;
             }
 
-            private void LoadReference(PortableExecutableReference resolvedReference, bool suppressWarnings)
-            {
-                AssemblyLoadResult result;
-                try
-                {
-                    result = _assemblyLoader.LoadFromPath(resolvedReference.FilePath);
-                }
-                catch (FileNotFoundException e)
-                {
-                    Console.Error.WriteLine(e.Message);
-                    return;
-                }
-                catch (ArgumentException e)
-                {
-                    Console.Error.WriteLine((e.InnerException ?? e).Message);
-                    return;
-                }
-                catch (TargetInvocationException e)
-                {
-                    // The user might have hooked AssemblyResolve event, which might have thrown an exception.
-                    // Display stack trace in this case.
-                    Console.Error.WriteLine(e.InnerException.ToString());
-                    return;
-                }
-
-                if (!result.IsSuccessful && !suppressWarnings)
-                {
-                    Console.Out.WriteLine(string.Format(CultureInfo.CurrentCulture, FeaturesResources.RequestedAssemblyAlreadyLoaded, result.OriginalPath));
-                }
-            }
-
             private Script<object> TryCompile(Script previousScript, string code, string path, ScriptOptions options)
             {
                 Script script;
@@ -746,20 +721,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                     script = _replServiceProvider.CreateScript<object>(code, scriptOptions, _globals.GetType(), _assemblyLoader);
                 }
 
-                var diagnostics = script.Build();
+                var diagnostics = script.Compile();
                 if (diagnostics.HasAnyErrors())
                 {
                     DisplayInteractiveErrors(diagnostics, Console.Error);
                     return null;
                 }
-
-                // TODO: Do we want to do this? 
-                // Pros: immediate feedback for assemblies that can't be loaded.
-                // Cons: maybe we won't need them  
-                //foreach (PortableExecutableReference reference in script.GetCompilation().DirectiveReferences)
-                //{
-                //    LoadReference(reference, suppressWarnings: false);
-                //}
 
                 return (Script<object>)script;
             }
@@ -857,6 +824,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                             script.ContinueAsync(stateOpt, CancellationToken.None);
 
                         return await task.ConfigureAwait(false);
+                    }
+                    catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
+                    {
+                        Console.Error.WriteLine(e.InnerException.Message);
+                        return null;
                     }
                     catch (Exception e)
                     {

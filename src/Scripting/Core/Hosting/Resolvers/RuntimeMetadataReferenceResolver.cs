@@ -18,13 +18,19 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </remarks>
     internal sealed class RuntimeMetadataReferenceResolver : MetadataReferenceResolver, IEquatable<RuntimeMetadataReferenceResolver>
     {
+        // Ideally we'd use properties with no aliases, but currently that's not possible since empty aliases mean {global}.
+        private static readonly MetadataReferenceProperties ResolvedMissingAssemblyReferenceProperties = MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("<implicit>"));
+
         public static readonly RuntimeMetadataReferenceResolver Default = new RuntimeMetadataReferenceResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
         internal readonly RelativePathResolver PathResolver;
         internal readonly NuGetPackageResolver PackageResolver;
         internal readonly GacFileResolver GacFileResolver;
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _fileReferenceProvider;
-        private static ImmutableArray<string> s_assemblyExtensions = ImmutableArray.Create(".dll", ".exe", ".winmd");
+
+        // TODO: Look for .winmd, but only if the identity has content WindowsRuntime (https://github.com/dotnet/roslyn/issues/6483)
+        // The extensions are in order in which the CLR loader looks for assembly files.
+        internal static ImmutableArray<string> AssemblyExtensions = ImmutableArray.Create(".dll", ".exe");
 
         internal RuntimeMetadataReferenceResolver(
             ImmutableArray<string> searchPaths,
@@ -56,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 var path = GacFileResolver.Resolve(referenceIdentity.GetDisplayName());
                 if (path != null)
                 {
-                    return _fileReferenceProvider(path, MetadataReferenceProperties.Assembly);
+                    return CreateResolvedMissingReference(path);
                 }
             }
 
@@ -65,17 +71,22 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             if (definitionPath != null)
             {
                 var pathWithoutExtension = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(definitionPath), referenceIdentity.Name);
-                foreach (var extension in s_assemblyExtensions)
+                foreach (var extension in AssemblyExtensions)
                 {
                     var fullPath = pathWithoutExtension + extension;
                     if (File.Exists(fullPath))
                     {
-                        return _fileReferenceProvider(fullPath, MetadataReferenceProperties.Assembly);
+                        return CreateResolvedMissingReference(fullPath);
                     }
                 }
             }
 
             return null;
+        }
+
+        private PortableExecutableReference CreateResolvedMissingReference(string fullPath)
+        {
+            return _fileReferenceProvider(fullPath, ResolvedMissingAssemblyReferenceProperties);
         }
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
@@ -110,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return ImmutableArray.Create(_fileReferenceProvider(path, properties));
                 }
             }
+
             return ImmutableArray<PortableExecutableReference>.Empty;
         }
 
@@ -128,5 +140,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         public override bool Equals(object other) => Equals(other as RuntimeMetadataReferenceResolver);
+
+        internal RuntimeMetadataReferenceResolver WithRelativePathResolver(RelativePathResolver resolver)
+        {
+            return Equals(resolver, PathResolver) ? this :
+                new RuntimeMetadataReferenceResolver(resolver, PackageResolver, GacFileResolver, _fileReferenceProvider);
+        }
     }
 }

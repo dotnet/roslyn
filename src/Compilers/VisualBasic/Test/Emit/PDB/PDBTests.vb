@@ -4236,6 +4236,99 @@ End Class
     </methods>
 </symbols>)
         End Sub
+
+        <Fact>
+        Public Sub ImportsInAsync()
+            Dim source =
+"Imports System.Linq
+Imports System.Threading.Tasks
+Class C
+    Shared Async Function F() As Task
+        Dim c = {1, 2, 3}
+        c.Select(Function(i) i)
+    End Function
+End Class"
+            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            c.VerifyPdb("C+VB$StateMachine_1_F.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+VB$StateMachine_1_F" name="MoveNext">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="4" startColumn="5" endLine="4" endColumn="38"/>
+                <entry offset="0x8" startLine="5" startColumn="13" endLine="5" endColumn="26"/>
+                <entry offset="0x1f" startLine="6" startColumn="9" endLine="6" endColumn="32"/>
+                <entry offset="0x4f" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x51" hidden="true"/>
+                <entry offset="0x58" hidden="true"/>
+                <entry offset="0x74" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x7e" hidden="true"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x8b">
+                <importsforward declaringType="C+_Closure$__" methodName="_Lambda$__1-0" parameterNames="i"/>
+                <local name="$VB$ResumableLocal_c$0" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
+            </scope>
+            <asyncInfo>
+                <kickoffMethod declaringType="C" methodName="F"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub ImportsInAsyncLambda()
+            Dim source =
+"Imports System.Linq
+Class C
+    Shared Sub M()
+        Dim f As System.Action =
+            Async Sub()
+                Dim c = {1, 2, 3}
+                c.Select(Function(i) i)
+            End Sub
+    End Sub
+End Class"
+            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            c.VerifyPdb("C+_Closure$__+VB$StateMachine___Lambda$__1-0.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+_Closure$__+VB$StateMachine___Lambda$__1-0" name="MoveNext">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="27" offset="38"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="5" startColumn="13" endLine="5" endColumn="24"/>
+                <entry offset="0x8" startLine="6" startColumn="21" endLine="6" endColumn="34"/>
+                <entry offset="0x1f" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
+                <entry offset="0x4f" startLine="8" startColumn="13" endLine="8" endColumn="20"/>
+                <entry offset="0x51" hidden="true"/>
+                <entry offset="0x58" hidden="true"/>
+                <entry offset="0x74" hidden="true"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x8b">
+                <importsforward declaringType="C" methodName="M"/>
+                <local name="$VB$ResumableLocal_c$0" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
+            </scope>
+            <asyncInfo>
+                <catchHandler offset="0x51"/>
+                <kickoffMethod declaringType="C+_Closure$__" methodName="_Lambda$__1-0"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
     End Class
 
 End Namespace

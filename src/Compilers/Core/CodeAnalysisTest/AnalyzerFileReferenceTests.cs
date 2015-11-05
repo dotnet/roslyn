@@ -190,39 +190,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestAnalyzerLoading()
         {
-            var analyzerSource = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class TestAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
-    public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
-}";
-
             var dir = Temp.CreateDirectory();
-
-            var metadata = dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
-            var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
-            var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
             var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-
-            var analyzerCompilation = CSharp.CSharpCompilation.Create(
-                "MyAnalyzer",
-                new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
-                new MetadataReference[]
-                {
-                    SystemRuntimePP7Ref,
-                    MetadataReference.CreateFromFile(immutable.Path),
-                    MetadataReference.CreateFromFile(analyzer.Path)
-                },
-                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-            var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
-
+            var analyzerFile = TestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
             var loadDomain = AppDomain.CreateDomain("AnalyzerTestDomain", null, dir.Path, dir.Path, false);
             var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
             remoteTest.SetAssert(RemoteAssert.Instance);
@@ -275,11 +245,23 @@ public class TestAnalyzer : DiagnosticAnalyzer
 
             var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
 
-            var loadDomain = AppDomain.CreateDomain("AnalyzerTestDomain", null, dir.Path, dir.Path, false);
-            var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-            remoteTest.SetAssert(RemoteAssert.Instance);
-            remoteTest.TestTypeLoadException(analyzerFile.Path);
-            AppDomain.Unload(loadDomain);
+            var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
+            try
+            {
+                var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
+                remoteTest.SetAssert(RemoteAssert.Instance);
+                remoteTest.TestTypeLoadException(analyzerFile.Path);
+            }
+            finally
+            {
+                AppDomain.Unload(loadDomain);
+            }
+        }
+
+        private static Assembly OnResolve(object sender, ResolveEventArgs e)
+        {
+            Console.WriteLine($"Resolve in {AppDomain.CurrentDomain.Id} for {e.Name}");
+            return null; 
         }
 
         [Fact]

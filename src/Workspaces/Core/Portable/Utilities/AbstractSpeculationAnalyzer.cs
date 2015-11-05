@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        protected bool ReplacementBreaksCompoundAssignExpression(
+        protected bool ReplacementBreaksCompoundAssignment(
             TExpressionSyntax originalLeft,
             TExpressionSyntax originalRight,
             TExpressionSyntax newLeft,

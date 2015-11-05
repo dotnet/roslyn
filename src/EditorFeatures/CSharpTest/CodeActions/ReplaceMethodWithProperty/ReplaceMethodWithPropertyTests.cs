@@ -31,11 +31,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(6034, "https://github.com/dotnet/roslyn/issues/6034")]
         public void TestMethodWithArrowBody()
         {
             Test(
 @"class C { int [||]GetFoo() => 0; }",
-@"class C { int Foo { get; } => 0; }");
+@"class C { int Foo => 0; }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]

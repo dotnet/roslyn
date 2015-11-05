@@ -53,7 +53,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Private Shared ReadOnly s_fullNameFormat As SymbolDisplayFormat =
+        Private Shared ReadOnly s_externalNameFormat As SymbolDisplayFormat =
+            New SymbolDisplayFormat(
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.ExpandNullable)
+
+        Private Shared ReadOnly s_externalfullNameFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -430,15 +435,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 For Each member In DirectCast(container, CompilationUnitSyntax).Members
                     Yield member
                 Next
-            ElseIf TypeOf container Is NamespaceBlockSyntax
+            ElseIf TypeOf container Is NamespaceBlockSyntax Then
+
                 For Each member In DirectCast(container, NamespaceBlockSyntax).Members
                     Yield member
                 Next
-            ElseIf TypeOf container Is TypeBlockSyntax
+            ElseIf TypeOf container Is TypeBlockSyntax Then
+
                 For Each member In DirectCast(container, TypeBlockSyntax).Members
                     Yield member
                 Next
-            ElseIf TypeOf container Is EnumBlockSyntax
+            ElseIf TypeOf container Is EnumBlockSyntax Then
+
                 For Each member In DirectCast(container, EnumBlockSyntax).Members
                     Yield member
                 Next
@@ -491,12 +499,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             Next
                         Next
 
-                    ElseIf Not onlySupportedNodes
+                    ElseIf Not onlySupportedNodes Then
                         ' Only return fields if the supported flag Is false.
                         Yield member
                     End If
 
-                ElseIf NodeIsSupported(onlySupportedNodes, member)
+                ElseIf NodeIsSupported(onlySupportedNodes, member) Then
                     Yield member
                 End If
 
@@ -1023,15 +1031,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                             semanticModel.GetTypeInfo(node).Type,
                             semanticModel.GetDeclaredSymbol(node))
 
-            Return GetFullName(symbol)
-        End Function
-
-        Public Overrides Function GetFullName(symbol As ISymbol) As String
-            If symbol Is Nothing Then
-                Throw Exceptions.ThrowEFail()
-            End If
-
-            Return symbol.ToDisplayString(s_fullNameFormat)
+            Return GetExternalSymbolFullName(symbol)
         End Function
 
         Public Overrides Function IsAccessorNode(node As SyntaxNode) As Boolean
@@ -1341,20 +1341,62 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                            .WaitAndGetResult(CancellationToken.None)
         End Function
 
+        Public Overrides Function IsValidExternalSymbol(symbol As ISymbol) As Boolean
+            Dim methodSymbol = TryCast(symbol, IMethodSymbol)
+            If methodSymbol IsNot Nothing Then
+                If methodSymbol.MethodKind = MethodKind.PropertyGet OrElse
+                   methodSymbol.MethodKind = MethodKind.PropertySet OrElse
+                   methodSymbol.MethodKind = MethodKind.EventAdd OrElse
+                   methodSymbol.MethodKind = MethodKind.EventRemove OrElse
+                   methodSymbol.MethodKind = MethodKind.EventRaise Then
+
+                    Return False
+                End If
+            End If
+
+            Dim fieldSymbol = TryCast(symbol, IFieldSymbol)
+            If fieldSymbol IsNot Nothing Then
+                Dim propertySymbol = TryCast(fieldSymbol.AssociatedSymbol, IPropertySymbol)
+                If propertySymbol?.IsWithEvents Then
+                    Return True
+                End If
+            End If
+
+            Return symbol.DeclaredAccessibility = Accessibility.Public OrElse
+                   symbol.DeclaredAccessibility = Accessibility.Protected OrElse
+                   symbol.DeclaredAccessibility = Accessibility.ProtectedOrFriend OrElse
+                   symbol.DeclaredAccessibility = Accessibility.Friend
+        End Function
+
+        Public Overrides Function GetExternalSymbolName(symbol As ISymbol) As String
+            If symbol Is Nothing Then
+                Throw Exceptions.ThrowEFail()
+            End If
+
+            Return symbol.ToDisplayString(s_externalNameFormat)
+        End Function
+
+        Public Overrides Function GetExternalSymbolFullName(symbol As ISymbol) As String
+            If symbol Is Nothing Then
+                Throw Exceptions.ThrowEFail()
+            End If
+
+            Return symbol.ToDisplayString(s_externalfullNameFormat)
+        End Function
+
         Public Overrides Function GetAccess(symbol As ISymbol) As EnvDTE.vsCMAccess
             Debug.Assert(symbol IsNot Nothing)
 
             Dim access As EnvDTE.vsCMAccess = 0
 
-            ' TODO: Add vsCMAccessWithEvents for fields symbols defined as WithEvents
             Select Case symbol.DeclaredAccessibility
                 Case Accessibility.Private
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessPrivate
                 Case Accessibility.Protected
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessProtected
-                Case Accessibility.Internal
+                Case Accessibility.Internal, Accessibility.Friend
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessProject
-                Case Accessibility.ProtectedOrInternal
+                Case Accessibility.ProtectedOrInternal, Accessibility.ProtectedOrFriend
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessProjectOrProtected
                 Case Accessibility.Public
                     access = access Or EnvDTE.vsCMAccess.vsCMAccessPublic
@@ -1362,8 +1404,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     Throw Exceptions.ThrowEFail()
             End Select
 
-            If symbol.IsKind(SymbolKind.Property) AndAlso
-               DirectCast(symbol, IPropertySymbol).IsWithEvents Then
+            If TryCast(symbol, IPropertySymbol)?.IsWithEvents Then
                 access = access Or EnvDTE.vsCMAccess.vsCMAccessWithEvents
             End If
 
@@ -2853,7 +2894,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             If propertyStatement IsNot Nothing Then
                 If propertyStatement.Modifiers.Any(SyntaxKind.WriteOnlyKeyword) Then
                     Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindWriteOnly
-                ElseIf propertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)
+                ElseIf propertyStatement.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
                     Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadOnly
                 Else
                     Return EnvDTE80.vsCMPropertyKind.vsCMPropertyKindReadWrite
@@ -3778,7 +3819,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim enumMember = DirectCast(container, EnumMemberDeclarationSyntax)
                 Dim attributeLists = enumMember.AttributeLists.Insert(index, attributeList)
                 Return enumMember.WithAttributeLists(attributeLists)
-            ElseIf TypeOf container Is DelegateStatementSyntax
+            ElseIf TypeOf container Is DelegateStatementSyntax Then
                 Dim delegateStatement = DirectCast(container, DelegateStatementSyntax)
                 Dim attributeLists = delegateStatement.AttributeLists.Insert(index, attributeList)
                 Return delegateStatement.WithAttributeLists(attributeLists)
@@ -3817,7 +3858,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim eventStatement = DirectCast(container, EventStatementSyntax)
                 Dim attributeLists = eventStatement.AttributeLists.Insert(index, attributeList)
                 Return eventStatement.WithAttributeLists(attributeLists)
-            ElseIf TypeOf container Is EventBlockSyntax
+            ElseIf TypeOf container Is EventBlockSyntax Then
                 Dim eventBlock = DirectCast(container, EventBlockSyntax)
                 Dim attributeLists = eventBlock.EventStatement.AttributeLists.Insert(index, attributeList)
                 Return eventBlock.WithEventStatement(eventBlock.EventStatement.WithAttributeLists(attributeLists))

@@ -1,0 +1,37 @@
+# references
+/r:System.Collections.dll
+/r:System.Console.dll
+/r:System.Core.dll
+/r:System.Diagnostics.Process.dll
+/r:System.Dynamic.Runtime.dll
+/r:System.Globalization.dll
+/r:System.IO.dll
+/r:System.IO.FileSystem.dll
+/r:System.IO.FileSystem.Primitives.dll
+/r:System.Linq.dll
+/r:System.Linq.Expressions.dll
+/r:System.Reflection.dll
+/r:System.Reflection.Primitives.dll
+/r:System.Runtime.dll
+/r:System.Runtime.Numerics.dll
+/r:System.Runtime.Serialization.dll
+/r:System.Runtime.Serialization.Json.dll
+/r:System.Runtime.Serialization.Primitives.dll
+/r:System.Text.Encoding.CodePages.dll
+/r:System.Text.Encoding.dll
+/r:System.Text.Encoding.Extensions.dll
+/r:System.Text.RegularExpressions.dll
+/r:System.Threading.dll
+/r:System.Threading.Tasks.dll
+/r:System.Threading.Tasks.Parallel.dll
+/r:System.Threading.Thread.dll
+# imports
+/u:System
+/u:System.IO
+/u:System.Collections.Generic
+/u:System.Diagnostics
+/u:System.Dynamic
+/u:System.Linq
+/u:System.Linq.Expressions
+/u:System.Text
+/u:System.Threading.Tasks

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// <summary>
     /// Represents a shadow copy of a single file.
     /// </summary>
-    public sealed class ShadowCopy
+    public sealed class FileShadowCopy
     {
         public string OriginalPath { get; }
         public string FullPath { get; }
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         // If we only held on the handle the stream could be GC'd and its finalizer could close the handle.
         private readonly IDisposable _stream;
 
-        internal ShadowCopy(IDisposable stream, string originalPath, string fullPath)
+        internal FileShadowCopy(IDisposable stream, string originalPath, string fullPath)
         {
             Debug.Assert(stream != null);
             Debug.Assert(originalPath != null);

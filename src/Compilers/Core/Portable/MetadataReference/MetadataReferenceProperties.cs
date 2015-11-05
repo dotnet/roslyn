@@ -68,6 +68,13 @@ namespace Microsoft.CodeAnalysis
             _kind = kind;
             _aliases = aliases;
             _embedInteropTypes = embedInteropTypes;
+            HasRecursiveAliases = false;
+        }
+
+        internal MetadataReferenceProperties(MetadataImageKind kind, ImmutableArray<string> aliases, bool embedInteropTypes, bool hasRecursiveAliases)
+            : this(kind, aliases, embedInteropTypes)
+        {
+            HasRecursiveAliases = hasRecursiveAliases;
         }
 
         /// <summary>
@@ -89,7 +96,7 @@ namespace Microsoft.CodeAnalysis
         /// </exception>
         public MetadataReferenceProperties WithAliases(ImmutableArray<string> aliases)
         {
-            return new MetadataReferenceProperties(_kind, aliases, this.EmbedInteropTypes);
+            return new MetadataReferenceProperties(_kind, aliases, _embedInteropTypes, HasRecursiveAliases);
         }
 
         /// <summary>
@@ -98,7 +105,15 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException"><see cref="Kind"/> is <see cref="MetadataImageKind.Module"/>, as interop types can't be embedded from modules.</exception>
         public MetadataReferenceProperties WithEmbedInteropTypes(bool embedInteropTypes)
         {
-            return new MetadataReferenceProperties(_kind, _aliases, embedInteropTypes);
+            return new MetadataReferenceProperties(_kind, _aliases, embedInteropTypes, HasRecursiveAliases);
+        }
+
+        /// <summary>
+        /// Returns <see cref="MetadataReferenceProperties"/> with <see cref="HasRecursiveAliases"/> set to specified value.
+        /// </summary>
+        internal MetadataReferenceProperties WithRecursiveAliases(bool value)
+        {
+            return new MetadataReferenceProperties(_kind, _aliases, _embedInteropTypes, value);
         }
 
         /// <summary>
@@ -134,6 +149,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool EmbedInteropTypes => _embedInteropTypes;
 
+        /// <summary>
+        /// True to apply <see cref="Aliases"/> recursively on the target assembly and on all its transitive dependencies.
+        /// False to apply <see cref="Aliases"/> only on the target assembly.
+        /// </summary>
+        internal bool HasRecursiveAliases { get; private set; }
+
         public override bool Equals(object obj)
         {
             return obj is MetadataReferenceProperties && Equals((MetadataReferenceProperties)obj);
@@ -143,12 +164,13 @@ namespace Microsoft.CodeAnalysis
         {
             return Aliases.SequenceEqual(other.Aliases)
                 && _embedInteropTypes == other._embedInteropTypes
-                && _kind == other._kind;
+                && _kind == other._kind
+                && HasRecursiveAliases == other.HasRecursiveAliases;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(Hash.CombineValues(Aliases), Hash.Combine(_embedInteropTypes, _kind.GetHashCode()));
+            return Hash.Combine(Hash.CombineValues(Aliases), Hash.Combine(_embedInteropTypes, Hash.Combine(HasRecursiveAliases, _kind.GetHashCode())));
         }
 
         public static bool operator ==(MetadataReferenceProperties left, MetadataReferenceProperties right)
