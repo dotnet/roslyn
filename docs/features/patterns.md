@@ -32,25 +32,19 @@ complex-pattern
     ;
 
 recursive-pattern
-    :  type '(' subpattern-list? ')'
-    ;
-
-property-pattern
-    :  type '{' property-pattern-list '}'
-    ;
-
-property-pattern-list
-    : identifier 'is' pattern
-    | identifier 'is' pattern ',' property-pattern-list
-    ;
-
-subpattern-list
-    : subpattern
-    | subpattern-list ',' subpattern
+    :  type '(' subpattern+ ')'
     ;
 
 subpattern
     : argument-name? pattern
+    ;
+
+property-pattern
+    :  type '{' property-subpattern+ '}'
+    ;
+
+property-subpattern
+    : identifier 'is' pattern
     ;
 
 pattern
@@ -161,12 +155,11 @@ A property pattern enables the program to recursively match values extracted by 
 
 ```antlr
 property-pattern
-    : type '{' property-pattern-list '}'
+    : type '{' property-subpattern+ '}'
     ;
 
-property-pattern-list
+property-subpattern
     : identifier 'is' pattern
-    | identifier 'is' pattern ',' property-pattern-list
     ;
 ```
 
@@ -274,18 +267,13 @@ match-expression
     ;
 
 match-block
-    : '(' match-sections ')'
+    : '(' match-section+ ')'
     ;
 ```
 
 At least one *match-section* is required.
 
 ```antlr
-match-sections
-    : match-section
-    | match-sections match-section
-    ;
-
 match-section
     : 'case' pattern case-guard? ':' expression
     ;
