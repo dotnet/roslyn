@@ -51,6 +51,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompilerRunHandler.cs" />
     <Compile Include="ICompilerServerHost.cs" />
     <Compile Include="MetadataCache.cs" />
   </ItemGroup>
