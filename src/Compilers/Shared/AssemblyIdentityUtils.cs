@@ -9,7 +9,7 @@ using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal static class AnalyzerAssemblyLoadUtils
+    internal static class AssemblyIdentityUtils
     {
         public static AssemblyIdentity TryGetAssemblyIdentity(string filePath)
         {
@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<byte> publicKeyOrToken = !publicKeyHandle.IsNil
                         ? metadataReader.GetBlobBytes(publicKeyHandle).AsImmutableOrNull()
                         : default(ImmutableArray<byte>);
+
                     return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey);
                 }
             }

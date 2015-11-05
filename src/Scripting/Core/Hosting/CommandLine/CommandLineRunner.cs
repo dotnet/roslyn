@@ -282,16 +282,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
             {
-                var oldColor = _console.ForegroundColor;
-                try
-                {
-                    _console.ForegroundColor = ConsoleColor.Red;
-                    _console.Out.WriteLine(e.InnerException.Message);
-                }
-                finally
-                {
-                    _console.ForegroundColor = oldColor;
-                }
+                _console.ForegroundColor = ConsoleColor.Red;
+                _console.Out.WriteLine(e.InnerException.Message);
+                _console.ResetColor();
 
                 return false;
             }
@@ -330,7 +323,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private void DisplayException(Exception e)
         {
-            var oldColor = _console.ForegroundColor;
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
@@ -375,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
         }
 
@@ -421,7 +413,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return (delta != 0) ? delta : d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start;
             });
 
-            var oldColor = _console.ForegroundColor;
             try
             {
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
@@ -439,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             finally
             {
-                _console.ForegroundColor = oldColor;
+                _console.ResetColor();
             }
         }
     }
