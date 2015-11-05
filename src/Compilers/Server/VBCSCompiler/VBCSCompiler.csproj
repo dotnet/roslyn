@@ -61,6 +61,9 @@
     <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="..\Shared\BuildProtocolUtil.cs">
+      <Link>BuildProtocolUtil.cs</Link>
+    </Compile>
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
     <Compile Include="CompilerRequestHandler.cs" />

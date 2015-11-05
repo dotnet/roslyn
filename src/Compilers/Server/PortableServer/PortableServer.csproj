@@ -65,6 +65,9 @@
     <Compile Include="..\..\Shared\AnalyzerAssemblyLoadUtils.cs">
       <Link>AnalyzerAssemblyLoadUtils.cs</Link>
     </Compile>
+    <Compile Include="..\Shared\BuildProtocolUtil.cs">
+      <Link>BuildProtocolUtil.cs</Link>
+    </Compile>
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
