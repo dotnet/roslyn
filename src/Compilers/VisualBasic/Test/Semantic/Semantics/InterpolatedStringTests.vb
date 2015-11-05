@@ -582,8 +582,7 @@ End Module
     </file>
 </compilation>, expectedOutput:="1,51,51,51.5")
 
-            Debug.Assert(Threading.Thread.CurrentThread.CurrentCulture Is previousCulture)
-
+            Assert.Equal(previousCulture, Threading.Thread.CurrentThread.CurrentCulture)
         End Sub
 
         <Fact>

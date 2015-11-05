@@ -60,12 +60,12 @@ done
 
 restore_nuget()
 {
-    local package_name="nuget.30.zip"
+    local package_name="nuget.31.zip"
     local target="/tmp/$package_name"
     echo "Installing NuGet Packages $target"
     if [ -f $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Nuget already installed"
             return
         fi
     fi
@@ -172,7 +172,7 @@ install_mono_toolset()
 
     if [ -d $target ]; then
         if [ "$USE_CACHE" = "true" ]; then
-            echo "Already installed"
+            echo "Mono already installed"
             return
         fi
     fi
@@ -207,7 +207,7 @@ set_mono_path()
     fi
 
     if [ "$OS_NAME" = "Darwin" ]; then
-        MONO_TOOLSET_NAME=mono.mac.4
+        MONO_TOOLSET_NAME=mono.mac.5
     elif [ "$OS_NAME" = "Linux" ]; then
         MONO_TOOLSET_NAME=mono.linux.4
     else
@@ -217,6 +217,12 @@ set_mono_path()
 
     install_mono_toolset $MONO_TOOLSET_NAME
     PATH=/tmp/$MONO_TOOLSET_NAME/bin:$PATH
+}
+
+check_mono()
+{
+    local mono_path=$(which mono)
+    echo "Mono path $mono_path"
 }
 
 test_roslyn()
@@ -254,7 +260,7 @@ git clean -dxf .
 
 restore_nuget
 set_mono_path
-which mono
+check_mono
 compile_toolset
 save_toolset
 clean_roslyn
