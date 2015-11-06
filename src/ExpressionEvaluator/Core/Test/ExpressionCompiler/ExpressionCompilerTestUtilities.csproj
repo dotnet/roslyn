@@ -15,7 +15,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />

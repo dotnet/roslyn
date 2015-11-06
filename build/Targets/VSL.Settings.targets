@@ -11,6 +11,12 @@
                                  '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
+    
+    <!-- 
+        Because we build into a common directory, prevent projects by default from copying their NuGet implementations and hence,
+        prevent timing issues. Project's that want to opt into this, need to explicitly opt in.
+    -->
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->

@@ -12,7 +12,6 @@
     <AssemblyName>Roslyn.Hosting.Diagnostics</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
