@@ -9,7 +9,7 @@
     <Import_RootNamespace>CommandLine</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerAssemblyLoadUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AssemblyIdentityUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BuildProtocol.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BuildClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ConsoleUtil.cs" />

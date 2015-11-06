@@ -9,8 +9,7 @@ using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
-    // BTODO: move to CommandLine project
-    internal static class AnalyzerAssemblyLoadUtils
+    internal static class AssemblyIdentityUtils
     {
         public static AssemblyIdentity TryGetAssemblyIdentity(string filePath)
         {

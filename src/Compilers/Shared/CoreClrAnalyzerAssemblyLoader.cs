@@ -13,7 +13,6 @@ using static Microsoft.CodeAnalysis.CommandLine.AssemblyIdentityUtils;
 
 namespace Microsoft.CodeAnalysis
 {
-    // BTODO: Move into CoreClrBuildClient
     /// Core CLR compatible wrapper for loading analyzers.
     internal sealed class CoreClrAnalyzerAssemblyLoader : AssemblyLoadContext, IAnalyzerAssemblyLoader
     {
