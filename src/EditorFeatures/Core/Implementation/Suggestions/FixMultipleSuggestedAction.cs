@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 else
                 {
                     Func<Document> getDocument = () => _triggerDocumentOpt;
-                    base.InvokeCore(getDocument, cancellationToken);
+                    InvokeCore(getDocument, cancellationToken);
                 }
             }
         }

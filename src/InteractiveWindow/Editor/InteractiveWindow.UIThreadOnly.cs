@@ -759,12 +759,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // move to the end (it might have been in virtual space):
                     TextView.Caret.MoveTo(GetLastLine(TextView.TextBuffer.CurrentSnapshot).End);
                     TextView.Caret.EnsureVisible();
-
-                    var ready = _window.ReadyForInput;
-                    if (ready != null)
-                    {
-                        ready();
-                    }
+                    _window.ReadyForInput?.Invoke();
 
                     return;
                 }
@@ -1407,11 +1402,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 buffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
 
                 CurrentLanguageBuffer = buffer;
-                var bufferAdded = _window.SubmissionBufferAdded;
-                if (bufferAdded != null)
-                {
-                    bufferAdded(_window, new SubmissionBufferAddedEventArgs(buffer));
-                }
+                _window.SubmissionBufferAdded?.Invoke(_window, new SubmissionBufferAddedEventArgs(buffer));
 
                 _window.LanguageBufferCounter++;
 

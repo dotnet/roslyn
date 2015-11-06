@@ -303,12 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 {
                     return;
                 }
-
-                var tagsChanged = this.TagsChanged;
-                if (tagsChanged != null)
-                {
-                    tagsChanged(sender, args);
-                }
+                this.TagsChanged?.Invoke(sender, args);
             }
 
             public IEnumerable<ITagSpan<TTag>> GetAllTags(NormalizedSnapshotSpanCollection spans, CancellationToken cancel)
