@@ -12,8 +12,8 @@ using System.Threading;
 using Roslyn.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Microsoft.CodeAnalysis.CompilerServer;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #endregion
 
-        internal abstract BuildProtocolConstants.RequestLanguage Language { get; }
+        internal abstract RequestLanguage Language { get; }
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
@@ -367,11 +367,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
                     CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
 
-                    var responseTask = DesktopBuildClient.TryRunServerCompilation(
+                    var buildPaths = new BuildPaths(
+                        clientDir: TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
+                        sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
+                        workingDir: CurrentDirectoryToUse());
+
+                    var responseTask = DesktopBuildClient.RunServerCompilation(
                         Language,
-                        TryGetClientDir() ?? Path.GetDirectoryName(pathToTool),
-                        CurrentDirectoryToUse(),
                         GetArguments(commandLineCommands, responseFileCommands).ToList(),
+                        buildPaths,
                         keepAlive: null,
                         libEnvVariable: LibDirectoryToUse(),
                         cancellationToken: _sharedCompileCts.Token);

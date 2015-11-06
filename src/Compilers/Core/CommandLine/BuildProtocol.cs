@@ -10,8 +10,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
-using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
+using static Microsoft.CodeAnalysis.CommandLine.BuildProtocolConstants;
+using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 // This file describes data structures about the protocol from client program to server that is 
 // used. The basic protocol is this.
@@ -34,7 +34,7 @@ using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
 // NOTE: Changes to the protocol information in this file must also be reflected in protocol.h in the
 // unmanaged csc project, as well as the code in protocol.cpp.
 
-namespace Microsoft.CodeAnalysis.CompilerServer
+namespace Microsoft.CodeAnalysis.CommandLine
 {
     /// <summary>
     /// Represents a request from the client. A request is as follows.
@@ -53,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal class BuildRequest
     {
         public readonly uint ProtocolVersion;
-        public readonly BuildProtocolConstants.RequestLanguage Language;
+        public readonly RequestLanguage Language;
         public readonly ImmutableArray<Argument> Arguments;
 
         public BuildRequest(uint protocolVersion,
-                            BuildProtocolConstants.RequestLanguage language,
+                            RequestLanguage language,
                             ImmutableArray<Argument> arguments)
         {
             ProtocolVersion = protocolVersion;
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
             {
                 var protocolVersion = reader.ReadUInt32();
-                var language = (BuildProtocolConstants.RequestLanguage)reader.ReadUInt32();
+                var language = (RequestLanguage)reader.ReadUInt32();
                 uint argumentCount = reader.ReadUInt32();
 
                 var argumentsBuilder = ImmutableArray.CreateBuilder<Argument>((int)argumentCount);
@@ -425,6 +425,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
+    // The id numbers below are just random. It's useful to use id numbers
+    // that won't occur accidentally for debugging.
+    internal enum RequestLanguage
+    {
+        CSharpCompile = 0x44532521,
+        VisualBasicCompile = 0x44532522,
+    }
+
     /// <summary>
     /// Constants about the protocol.
     /// </summary>
@@ -434,15 +442,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// The version number for this protocol.
         /// </summary>
         public const uint ProtocolVersion = 2;
-
-        // BTODO: Get this into a top level item
-        // The id numbers below are just random. It's useful to use id numbers
-        // that won't occur accidentally for debugging.
-        public enum RequestLanguage
-        {
-            CSharpCompile = 0x44532521,
-            VisualBasicCompile = 0x44532522,
-        }
 
         // Arguments for CSharp and VB Compiler
         public enum ArgumentId

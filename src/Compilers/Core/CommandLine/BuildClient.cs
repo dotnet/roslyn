@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CompilerServer;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,36 +9,53 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
-using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
-using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
+using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
-namespace Microsoft.CodeAnalysis.BuildTasks
+namespace Microsoft.CodeAnalysis.CommandLine
 {
-    internal interface IBuildHost
+    internal delegate int CompileFunc(string clientDir, string sdkDir, string[] arguments, IAnalyzerAssemblyLoader analyzerAssemblyLoader);
+
+    internal struct BuildPaths
     {
-        IEnumerable<string> OriginalArguments { get; }
+        /// <summary>
+        /// The path which containts the compiler binaries and response files.
+        /// </summary>
+        internal string ClientDirectory { get; }
 
-        int RunCompilation(List<string> arguments);
+        /// <summary>
+        /// The path in which the compilation takes place.
+        /// </summary>
+        internal string WorkingDirectory { get; }
 
-        Task<BuildResponse> TryRunServerCompilation(List<string> arguments, string keepAlive, string libEnvVariable, CancellationToken cancellationToken);
+        /// <summary>
+        /// The path which contains mscorlib.  This can be null when specified by the user or running in a 
+        /// CoreClr environment.
+        /// </summary>
+        internal string SdkDirectory { get; }
+
+        internal BuildPaths(string clientDir, string workingDir, string sdkDir)
+        {
+            ClientDirectory = clientDir;
+            WorkingDirectory = workingDir;
+            SdkDirectory = sdkDir;
+        }
     }
 
     /// <summary>
     /// Client class that handles communication to the server.
     /// </summary>
-    internal static class BuildClient
+    internal abstract class BuildClient
     {
-        private static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
+        protected static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
 
         /// <summary>
         /// Run a compilation through the compiler server and print the output
         /// to the console. If the compiler server fails, run the fallback
         /// compiler.
         /// </summary>
-        public static int RunWithConsoleOutput(IBuildHost buildHost)
+        protected int RunCompilation(IEnumerable<string> originalArguments, BuildPaths buildPaths)
         {
-            var args = buildHost.OriginalArguments.Select(arg => arg.Trim()).ToArray();
+            var args = originalArguments.Select(arg => arg.Trim()).ToArray();
 
             bool hasShared;
             string keepAlive;
@@ -59,23 +74,63 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (hasShared)
             {
-                var responseTask = buildHost.TryRunServerCompilation(
-                    parsedArgs,
-                    keepAlive: keepAlive,
-                    libEnvVariable: Environment.GetEnvironmentVariable("LIB"),
-                    cancellationToken: default(CancellationToken));
-
-                var response = responseTask.Result;
-                if (response != null)
+                var libDirectory = Environment.GetEnvironmentVariable("LIB");
+                try
                 {
-                    return HandleResponse(buildHost, response, parsedArgs);
+                    var buildResponseTask = RunServerCompilation(
+                        parsedArgs,
+                        buildPaths,
+                        keepAlive,
+                        libDirectory,
+                        CancellationToken.None);
+                    var buildResponse = buildResponseTask.Result;
+                    if (buildResponse != null)
+                    {
+                        return HandleResponse(buildResponse, parsedArgs, buildPaths);
+                    }
+                }
+                catch
+                {
+                    // It's okay, and expected, for the server compilation to fail.  In that case just fall 
+                    // back to normal compilation. 
                 }
             }
 
-            return buildHost.RunCompilation(parsedArgs);
+            return RunLocalCompilation(parsedArgs, buildPaths.ClientDirectory, buildPaths.SdkDirectory);
         }
 
-        public static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
+        protected abstract int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir);
+
+        protected abstract Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string keepAlive, string libDirectory, CancellationToken cancellationToken);
+
+        private int HandleResponse(BuildResponse response, List<string> arguments, BuildPaths buildPaths)
+        {
+            switch (response.Type)
+            {
+                case BuildResponse.ResponseType.MismatchedVersion:
+                    Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
+                    return CommonCompiler.Failed;
+
+                case BuildResponse.ResponseType.Completed:
+                    var completedResponse = (CompletedBuildResponse)response;
+                    return ConsoleUtil.RunWithOutput(
+                        completedResponse.Utf8Output,
+                        (outWriter, errorWriter) =>
+                        {
+                            outWriter.Write(completedResponse.Output);
+                            errorWriter.Write(completedResponse.ErrorOutput);
+                            return completedResponse.ReturnCode;
+                        });
+
+                case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    return RunLocalCompilation(arguments, buildPaths.ClientDirectory, buildPaths.SdkDirectory);
+
+                default:
+                    throw new InvalidOperationException("Encountered unknown response type");
+            }
+        }
+
+        protected static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
         {
             if (IsRunningOnWindows)
             {
@@ -114,34 +169,5 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments: false).Skip(1);
         }
 
-        private static int HandleResponse(
-            IBuildHost buildHost,
-            BuildResponse response,
-            List<string> parsedArgs)
-        {
-            switch (response.Type)
-            {
-                case BuildResponse.ResponseType.MismatchedVersion:
-                    Console.Error.WriteLine(CommandLineParser.MismatchedVersionErrorText);
-                    return CommonCompiler.Failed;
-
-                case BuildResponse.ResponseType.Completed:
-                    var completedResponse = (CompletedBuildResponse)response;
-                    return ConsoleUtil.RunWithOutput(
-                        completedResponse.Utf8Output,
-                        (outWriter, errorWriter) =>
-                        {
-                            outWriter.Write(completedResponse.Output);
-                            errorWriter.Write(completedResponse.ErrorOutput);
-                            return completedResponse.ReturnCode;
-                        });
-
-                case BuildResponse.ResponseType.AnalyzerInconsistency:
-                    return buildHost.RunCompilation(parsedArgs);
-
-                default:
-                    throw new InvalidOperationException("Encountered unknown response type");
-            }
-        }
     }
 }

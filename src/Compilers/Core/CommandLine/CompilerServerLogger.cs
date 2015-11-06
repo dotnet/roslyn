@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CompilerServer
+namespace Microsoft.CodeAnalysis.CommandLine
 {
     /// <summary>
     /// Class for logging information about what happens in the server and client parts of the 

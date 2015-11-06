@@ -3,12 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.IO.Pipes;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
             1,
-            BuildProtocolConstants.RequestLanguage.CSharpCompile,
+            RequestLanguage.CSharpCompile,
             ImmutableArray<BuildRequest.Argument>.Empty);
 
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
@@ -116,7 +117,7 @@ class Hello
 
             return new BuildRequest(
                 BuildProtocolConstants.ProtocolVersion,
-                BuildProtocolConstants.RequestLanguage.CSharpCompile,
+                RequestLanguage.CSharpCompile,
                 builder.ToImmutable());
         }
 

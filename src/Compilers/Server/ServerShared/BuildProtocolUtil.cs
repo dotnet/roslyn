@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -20,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string language = "";
             switch (req.Language)
             {
-                case BuildProtocolConstants.RequestLanguage.CSharpCompile:
+                case RequestLanguage.CSharpCompile:
                     language = LanguageNames.CSharp;
                     break;
-                case BuildProtocolConstants.RequestLanguage.VisualBasicCompile:
+                case RequestLanguage.VisualBasicCompile:
                     language = LanguageNames.VisualBasic;
                     break;
             }

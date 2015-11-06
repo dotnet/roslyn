@@ -1,116 +1,141 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CompilerServer;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
-using System.Reflection;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.BuildTasks.NativeMethods;
-using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
-using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
+using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
+using static Microsoft.CodeAnalysis.CommandLine.NativeMethods;
 
-namespace Microsoft.CodeAnalysis.BuildTasks
+namespace Microsoft.CodeAnalysis.CommandLine
 {
-    internal static class DesktopBuildClient
+    internal sealed class DesktopBuildClient : BuildClient
     {
-        private const string s_serverName = "VBCSCompiler.exe";
+        private const string ServerName = "VBCSCompiler.exe";
+
         // Spend up to 1s connecting to existing process (existing processes should be always responsive).
         private const int TimeOutMsExistingProcess = 1000;
+
         // Spend up to 20s connecting to a new process, to allow time for it to start.
         private const int TimeOutMsNewProcess = 20000;
 
-        public static Task<BuildResponse> TryRunServerCompilation(
+        private readonly RequestLanguage _language;
+        private readonly CompileFunc _compileFunc;
+        private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
+
+        private DesktopBuildClient(RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        {
+            _language = language;
+            _compileFunc = compileFunc;
+            _analyzerAssemblyLoader = analyzerAssemblyLoader;
+        }
+
+        internal static int Run(IEnumerable<string> arguments, IEnumerable<string> extraArguments, RequestLanguage language, CompileFunc compileFunc, IAnalyzerAssemblyLoader analyzerAssemblyLoader)
+        {
+            var client = new DesktopBuildClient(language, compileFunc, analyzerAssemblyLoader);
+            var clientDir = AppDomain.CurrentDomain.BaseDirectory;
+            var sdkDir = RuntimeEnvironment.GetRuntimeDirectory();
+            var workingDir = Directory.GetCurrentDirectory();
+            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
+            var originalArguments = BuildClient.GetCommandLineArgs(arguments).Concat(extraArguments).ToArray();
+            return client.RunCompilation(originalArguments, buildPaths);
+        }
+
+        protected override int RunLocalCompilation(List<string> arguments, string clientDir, string sdkDir)
+        {
+            return _compileFunc(clientDir, sdkDir, arguments.ToArray(), _analyzerAssemblyLoader);
+        }
+
+        protected override Task<BuildResponse> RunServerCompilation(
+            List<string> arguments, 
+            BuildPaths buildPaths, 
+            string keepAlive, 
+            string libDirectory, 
+            CancellationToken cancellationToken)
+        {
+            return RunServerCompilation(_language, arguments, buildPaths, keepAlive, libDirectory, cancellationToken);
+        }
+
+        public static async Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
-            string clientDir,
-            string workingDir,
             List<string> arguments,
+            BuildPaths buildPaths,
             string keepAlive,
             string libEnvVariable,
             CancellationToken cancellationToken)
         {
-            try
+            var clientDir = buildPaths.ClientDirectory;
+            var pipeName = GetBasePipeName(clientDir);
+
+            var clientMutexName = $"{pipeName}.client";
+            bool holdsMutex;
+            using (var clientMutex = new Mutex(initiallyOwned: true,
+                                               name: clientMutexName,
+                                               createdNew: out holdsMutex))
             {
-                if (clientDir == null)
+                try
                 {
-                    return Task.FromResult<BuildResponse>(null);
-                }
-
-                var pipeName = GetBasePipeName(clientDir);
-
-                var clientMutexName = $"{pipeName}.client";
-                bool holdsMutex;
-                using (var clientMutex = new Mutex(initiallyOwned: true,
-                                                   name: clientMutexName,
-                                                   createdNew: out holdsMutex))
-                {
-                    try
+                    if (!holdsMutex)
                     {
-                        if (!holdsMutex)
+                        try
                         {
-                            try
-                            {
-                                holdsMutex = clientMutex.WaitOne(TimeOutMsNewProcess);
+                            holdsMutex = clientMutex.WaitOne(TimeOutMsNewProcess);
 
-                                if (!holdsMutex)
-                                    return Task.FromResult<BuildResponse>(null);
-                            }
-                            catch (AbandonedMutexException)
+                            if (!holdsMutex)
                             {
-                                holdsMutex = true;
+                                return null;
                             }
                         }
-
-                        // Check for an already running server
-                        var serverMutexName = $"{pipeName}.server";
-                        Mutex mutexIgnore;
-                        bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
-                        var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
-
-                        NamedPipeClientStream pipe = null;
-
-                        if (wasServerRunning || TryCreateServerProcess(clientDir, pipeName))
+                        catch (AbandonedMutexException)
                         {
-                            pipe = TryConnectToProcess(pipeName,
-                                                       timeout,
-                                                       cancellationToken);
-                        }
-
-                        if (pipe != null)
-                        {
-                            var request = BuildRequest.Create(language,
-                                                              workingDir,
-                                                              arguments,
-                                                              keepAlive,
-                                                              libEnvVariable);
-
-                            return TryCompile(pipe, request, cancellationToken);
+                            holdsMutex = true;
                         }
                     }
-                    finally
+
+                    // Check for an already running server
+                    var serverMutexName = $"{pipeName}.server";
+                    Mutex mutexIgnore;
+                    bool wasServerRunning = Mutex.TryOpenExisting(serverMutexName, out mutexIgnore);
+                    var timeout = wasServerRunning ? TimeOutMsExistingProcess : TimeOutMsNewProcess;
+
+                    NamedPipeClientStream pipe = null;
+
+                    if (wasServerRunning || TryCreateServerProcess(clientDir, pipeName))
                     {
-                        if (holdsMutex)
-                        {
-                            clientMutex.ReleaseMutex();
-                        }
+                        pipe = TryConnectToProcess(pipeName,
+                                                   timeout,
+                                                   cancellationToken);
+                    }
+
+                    if (pipe != null)
+                    {
+                        var request = BuildRequest.Create(language,
+                                                          buildPaths.WorkingDirectory,
+                                                          arguments,
+                                                          keepAlive,
+                                                          libEnvVariable);
+
+                        return await TryCompile(pipe, request, cancellationToken).ConfigureAwait(true);
+                    }
+                }
+                finally
+                {
+                    if (holdsMutex)
+                    {
+                        clientMutex.ReleaseMutex();
                     }
                 }
             }
-            // Swallow all unhandled exceptions from server compilation. If
-            // they are show-stoppers then they will crash the in-proc
-            // compilation as well
-            // TODO: Put in non-fatal Watson code so we still get info
-            // when things unexpectedly fail
-            catch { }
-            return Task.FromResult<BuildResponse>(null);
+
+            return null;
         }
 
         /// <summary>
@@ -266,7 +291,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         private static bool TryCreateServerProcess(string clientDir, string pipeName)
         {
             // The server should be in the same directory as the client
-            string expectedPath = Path.Combine(clientDir, s_serverName);
+            string expectedPath = Path.Combine(clientDir, ServerName);
 
             if (!File.Exists(expectedPath))
                 return false;

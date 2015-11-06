@@ -56,14 +56,14 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Shared\CoreClrBuildHost.cs">
-      <Link>CoreClrBuildHost.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\Shared\AssemblyIdentityUtils.cs">
       <Link>AssemblyIdentityUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\CoreClrBuildClient.cs">
+      <Link>CoreClrBuildClient.cs</Link>
     </Compile>
     <Compile Include="Vbc.cs" />
     <Compile Include="Program.cs" />

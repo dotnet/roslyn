@@ -2,14 +2,13 @@
 
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.BuildTasks;
+using Microsoft.CodeAnalysis.CommandLine;
 
 namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
 {
     public class Program
     {
         public static int Main(string[] args)
-            => BuildClient.RunWithConsoleOutput(new CoreClrBuildHost(args, CompilerServer.BuildProtocolConstants.RequestLanguage.VisualBasicCompile, Vbc.Run));
+            => CoreClrBuildClient.Run(args, RequestLanguage.VisualBasicCompile, Vbc.Run);
     }
 }

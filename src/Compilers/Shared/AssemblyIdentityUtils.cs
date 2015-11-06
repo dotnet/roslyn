@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal static class AssemblyIdentityUtils
     {
