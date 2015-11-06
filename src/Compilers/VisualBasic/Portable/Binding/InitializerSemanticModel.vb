@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(initializer IsNot Nothing)
                         If initializer.Kind = SyntaxKind.EqualsValue Then
                             Dim enumSymbol = DirectCast(Me.MemberSymbol, SourceEnumConstantSymbol)
-                            boundInitializer = WrapWithEqualsValue(binder.BindFieldAndEnumConstantInitializer(enumSymbol, DirectCast(initializer, EqualsValueSyntax), isEnum:=True, diagnostics:=diagnostics, constValue:=Nothing), initializer)
+                            boundInitializer = binder.BindFieldAndEnumConstantInitializer(enumSymbol, DirectCast(initializer, EqualsValueSyntax), isEnum:=True, diagnostics:=diagnostics, constValue:=Nothing)
                         End If
                     Else
                         '  get field symbol
@@ -126,22 +126,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(initializer IsNot Nothing)
                     If initializer.Kind = SyntaxKind.EqualsValue Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
-                        boundInitializer = WrapWithEqualsValue(binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing), initializer)
+                        boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
                     End If
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(Me.MemberSymbol.Kind)
             End Select
 
-            Return boundInitializer
-        End Function
-
-        Private Function WrapWithEqualsValue(boundValue As BoundExpression, value As VisualBasicSyntaxNode) As BoundNode
-            If boundValue IsNot Nothing AndAlso boundValue.Kind <> BoundKind.BadExpression Then
-                Return New BoundEqualsValue(value, boundValue)
-            End If
-
-            Return boundValue
+            Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
+            Return If(expressionInitializer IsNot Nothing AndAlso expressionInitializer.Kind <> BoundKind.BadExpression, New BoundEqualsValue(initializer, expressionInitializer), boundInitializer)
         End Function
 
         Friend Overrides Function GetBoundRoot() As BoundNode

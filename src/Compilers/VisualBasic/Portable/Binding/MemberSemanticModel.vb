@@ -797,12 +797,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Screen out bound nodes that aren't appropriate as IOperations.
             If result IsNot Nothing Then
-                Select Case result.Kind
-                    Case BoundKind.FieldOrPropertyInitializer
-                        result = DirectCast(result, BoundFieldOrPropertyInitializer).InitialValue
-                    Case BoundKind.EqualsValue
-                        result = DirectCast(result, BoundEqualsValue).Value
-                End Select
+                If result.Kind = BoundKind.EqualsValue Then
+                    result = DirectCast(result, BoundEqualsValue).Value
+                End If
+
+                If result.Kind = BoundKind.FieldOrPropertyInitializer Then
+                    result = DirectCast(result, BoundFieldOrPropertyInitializer).InitialValue
+                End If
             End If
 
             Return TryCast(result, IOperation)

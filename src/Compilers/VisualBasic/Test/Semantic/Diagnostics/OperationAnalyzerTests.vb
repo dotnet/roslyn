@@ -635,6 +635,19 @@ Enum E
     C = 17
     D = 18
 End Enum
+
+Class C1
+    Public Sub New (a As Integer, b As Integer, c As Integer)
+    End Sub
+
+    Public F1 As C1 = New C1(c:=16, a:=17, b:=18)
+    Public F2 As New C1(16, 17, 18)
+    Public F3(16) As Integer
+    Public F4(17) As Integer                          ' The upper bound specification is not presently treated as a code block. This is suspect.
+    Public F5(18) As Integer
+    Public F6 As Integer() = New Integer(16) {}
+    Public F7 As Integer() = New Integer(17) {}
+End Class
 ]]>
                              </file>
                          </compilation>
@@ -646,6 +659,9 @@ End Enum
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(6, 28),
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(10, 16),
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(19, 9),
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(27, 40),
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(28, 29),
+                                           Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "17").WithLocation(33, 42),
                                            Diagnostic(SeventeenTestAnalyzer.SeventeenDescriptor.Id, "M0").WithLocation(12, 9)) ' The M0 diagnostic is an artifact of the VB compiler filling in default values in the high-level bound tree, and is questionable.
         End Sub
     End Class

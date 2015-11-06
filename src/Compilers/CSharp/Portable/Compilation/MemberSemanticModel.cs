@@ -801,14 +801,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Screen out bound nodes that aren't appropriate as IOperations.
-            if (result != null)
+            if (result != null && result.Kind == BoundKind.EqualsValue)
             {
-                switch (result.Kind)
-                {
-                    case BoundKind.EqualsValue:
-                        result = ((BoundEqualsValue)result).Value;
-                        break;
-                }
+                result = ((BoundEqualsValue)result).Value;
             }
 
             return result as IOperation;
