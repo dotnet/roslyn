@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -6,6 +7,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
+    internal static class Constants
+    {
+        public const string Kind = nameof(Kind);
+        public const string VariableAndIfStatementForm = nameof(VariableAndIfStatementForm);
+        public const string SingleIfStatementForm = nameof(SingleIfStatementForm);
+    }
+
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class InvokeDelegateWithConditionalAccessAnalyzer : DiagnosticAnalyzer
     {
@@ -39,59 +47,118 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return;
             }
 
-            if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
-            {
-                return;
-            }
-
-            var binaryExpression = (BinaryExpressionSyntax)ifStatement.Condition;
-            if (!IsNotEqualsExpression(binaryExpression.Left, binaryExpression.Right) &&
-                !IsNotEqualsExpression(binaryExpression.Right, binaryExpression.Left))
-            {
-                return;
-            }
-
             // Check for both:  "if (...) { a(); }" and "if (...) a();"
-            var statement = ifStatement.Statement;
-            if (statement.IsKind(SyntaxKind.Block))
+            var innerStatement = ifStatement.Statement;
+            if (innerStatement.IsKind(SyntaxKind.Block))
             {
-                var block = (BlockSyntax)statement;
+                var block = (BlockSyntax)innerStatement;
                 if (block.Statements.Count != 1)
                 {
                     return;
                 }
 
-                statement = block.Statements[0];
+                innerStatement = block.Statements[0];
             }
 
-            if (!statement.IsKind(SyntaxKind.ExpressionStatement))
+            if (!innerStatement.IsKind(SyntaxKind.ExpressionStatement))
             {
                 return;
             }
 
-            var expressionStatement = (ExpressionStatementSyntax)statement;
+            var expressionStatement = (ExpressionStatementSyntax)innerStatement;
 
             // Check that it's of the form: "if (a != null) { a(); }
-            var invocationExpression = ((ExpressionStatementSyntax)statement).Expression;
-            if (!invocationExpression.IsKind(SyntaxKind.InvocationExpression))
+            var invocationExpression = ((ExpressionStatementSyntax)innerStatement).Expression as InvocationExpressionSyntax;
+            if (invocationExpression == null)
             {
                 return;
             }
 
-            var expression = ((InvocationExpressionSyntax)invocationExpression).Expression;
+            var condition = (BinaryExpressionSyntax)ifStatement.Condition;
+            if (TryCheckVariableAndIfStatementForm(syntaxContext, ifStatement, condition, expressionStatement, invocationExpression))
+            {
+                return;
+            }
+
+            TryCheckSingleIfStatementForm(syntaxContext, ifStatement, condition, expressionStatement, invocationExpression);
+        }
+
+        private bool TryCheckSingleIfStatementForm(
+            SyntaxNodeAnalysisContext syntaxContext,
+            IfStatementSyntax ifStatement,
+            BinaryExpressionSyntax condition,
+            ExpressionStatementSyntax expressionStatement,
+            InvocationExpressionSyntax invocationExpression)
+        {
+            // Look for the form:  "if (someExpr != null) someExpr()"
+            if (condition.Left.IsKind(SyntaxKind.NullLiteralExpression) ||
+                condition.Right.IsKind(SyntaxKind.NullLiteralExpression))
+            {
+                var expr = condition.Left.IsKind(SyntaxKind.NullLiteralExpression)
+                    ? condition.Right
+                    : condition.Left;
+
+                if (SyntaxFactory.AreEquivalent(expr, invocationExpression.Expression, topLevel: false))
+                {
+                    // Looks good!
+                    var tree = syntaxContext.SemanticModel.SyntaxTree;
+                    var additionalLocations = new List<Location>
+                    {
+                        Location.Create(tree, ifStatement.Span),
+                        Location.Create(tree, expressionStatement.Span)
+                    };
+
+                    var properties = ImmutableDictionary<string, string>.Empty.Add(Constants.Kind, Constants.SingleIfStatementForm);
+
+                    syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                        Location.Create(tree, TextSpan.FromBounds(ifStatement.SpanStart, expressionStatement.SpanStart)),
+                        additionalLocations, properties));
+
+                    if (expressionStatement.Span.End != ifStatement.Span.End)
+                    {
+                        syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
+                            Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
+                            additionalLocations, properties));
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryCheckVariableAndIfStatementForm(
+            SyntaxNodeAnalysisContext syntaxContext,
+            IfStatementSyntax ifStatement,
+            BinaryExpressionSyntax condition,
+            ExpressionStatementSyntax expressionStatement,
+            InvocationExpressionSyntax invocationExpression)
+        { 
+            // look for the form "if (a != null)" or "if (null != a)"
+            if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
+            {
+                return false;
+            }
+
+            if (!IsNotEqualsExpression(condition.Left, condition.Right) &&
+                !IsNotEqualsExpression(condition.Right, condition.Left))
+            {
+                return false;
+            }
+
+            var expression = invocationExpression.Expression;
             if (!expression.IsKind(SyntaxKind.IdentifierName))
             {
-                return;
+                return false;
             }
 
-            var conditionName = binaryExpression.Left is IdentifierNameSyntax
-                ? (IdentifierNameSyntax)binaryExpression.Left
-                : (IdentifierNameSyntax)binaryExpression.Right;
+            var conditionName = condition.Left is IdentifierNameSyntax
+                ? (IdentifierNameSyntax)condition.Left
+                : (IdentifierNameSyntax)condition.Right;
 
             var invocationName = (IdentifierNameSyntax)expression;
             if (!Equals(conditionName.Identifier.ValueText, invocationName.Identifier.ValueText))
             {
-                return;
+                return false;
             }
 
             // Now make sure the previous statement is "var a = ..."
@@ -99,13 +166,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var ifIndex = parentBlock.Statements.IndexOf(ifStatement);
             if (ifIndex == 0)
             {
-                return;
+                return false;
             }
 
             var previousStatement = parentBlock.Statements[ifIndex - 1];
             if (!previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement))
             {
-                return;
+                return false;
             }
 
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)previousStatement;
@@ -113,27 +180,23 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             if (variableDeclaration.Variables.Count != 1)
             {
-                return;
+                return false;
             }
 
             var declarator = variableDeclaration.Variables[0];
             if (declarator.Initializer == null)
             {
-                return;
+                return false;
             }
 
             if (!Equals(declarator.Identifier.ValueText, conditionName.Identifier.ValueText))
             {
-                return;
+                return false;
             }
 
             // Syntactically this looks good.  Now make sure that the local is a delegate type.
             var semanticModel = syntaxContext.SemanticModel;
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
-            if (localSymbol.Type.TypeKind != TypeKind.Delegate)
-            {
-                return;
-            }
 
             // Ok, we made a local just to check it for null and invoke it.  Looks like something
             // we can suggest an improvement for!
@@ -141,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var analysis = semanticModel.AnalyzeDataFlow(localDeclarationStatement, ifStatement);
             if (analysis.ReadOutside.Contains(localSymbol) || analysis.WrittenOutside.Contains(localSymbol))
             {
-                return;
+                return false;
             }
 
             // Looks good!
@@ -153,16 +216,20 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Location.Create(tree, expressionStatement.Span)
             };
 
+            var properties = ImmutableDictionary<string,string>.Empty.Add(Constants.Kind, Constants.VariableAndIfStatementForm);
+
             syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
-                Location.Create(tree, TextSpan.FromBounds(localDeclarationStatement.SpanStart, invocationExpression.SpanStart)),
-                additionalLocations));
+                Location.Create(tree, TextSpan.FromBounds(localDeclarationStatement.SpanStart, expressionStatement.SpanStart)),
+                additionalLocations, properties));
 
             if (expressionStatement.Span.End != ifStatement.Span.End)
             {
                 syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
                     Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
-                    additionalLocations));
+                    additionalLocations, properties));
             }
+
+            return true;
         }
 
         private bool IsNotEqualsExpression(ExpressionSyntax left, ExpressionSyntax right) =>

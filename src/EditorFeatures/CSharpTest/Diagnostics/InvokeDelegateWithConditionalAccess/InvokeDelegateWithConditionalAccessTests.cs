@@ -185,5 +185,36 @@ class C
     }
 }");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestSimpleForm1()
+        {
+            Test(
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        [||]if (this.E != null)
+        {
+            this.E(this, EventArgs.Empty);
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        this.E?.Invoke(this, EventArgs.Empty);
+    }
+}");
+        }
     }
 }

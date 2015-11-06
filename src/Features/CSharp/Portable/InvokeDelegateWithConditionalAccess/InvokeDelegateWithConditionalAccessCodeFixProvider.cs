@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,13 +40,46 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             var diagnostic = context.Diagnostics.First();
 
+            if (diagnostic.Properties[Constants.Kind] == Constants.VariableAndIfStatementForm)
+            {
+                return HandVariableAndIfStatementFormAsync(document, root, diagnostic);
+            }
+            else
+            {
+                Debug.Assert(diagnostic.Properties[Constants.Kind] == Constants.SingleIfStatementForm);
+                return HandleSingleIfStatementForm(document, root, diagnostic);
+            }
+        }
+
+        private Document HandleSingleIfStatementForm(Document document, SyntaxNode root, Diagnostic diagnostic)
+        {
+            var ifStatementLocation = diagnostic.AdditionalLocations[0];
+            var expressionStatementLocation = diagnostic.AdditionalLocations[1];
+
+            var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
+            var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
+            var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
+
+            var newStatement = expressionStatement.WithExpression(
+                SyntaxFactory.ConditionalAccessExpression(
+                    invocationExpression.Expression,
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
+            newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
+
+            var newRoot = root.ReplaceNode(ifStatement, newStatement);
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        private static Document HandVariableAndIfStatementFormAsync(Document document, SyntaxNode root, Diagnostic diagnostic)
+        {
             var localDeclarationLocation = diagnostic.AdditionalLocations[0];
             var ifStatementLocation = diagnostic.AdditionalLocations[1];
             var expressionStatementLocation = diagnostic.AdditionalLocations[2];
 
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)root.FindNode(localDeclarationLocation.SourceSpan);
-            var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
             var ifStatement = (IfStatementSyntax)root.FindNode(ifStatementLocation.SourceSpan);
+            var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
 
             var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
             var parentBlock = (BlockSyntax)localDeclarationStatement.Parent;
@@ -54,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 SyntaxFactory.ConditionalAccessExpression(
                     localDeclarationStatement.Declaration.Variables[0].Initializer.Value.Parenthesize(),
                     SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName("Invoke")), invocationExpression.ArgumentList)));
+                        SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
             var newStatements = parentBlock.Statements.TakeWhile(s => s != localDeclarationStatement)
