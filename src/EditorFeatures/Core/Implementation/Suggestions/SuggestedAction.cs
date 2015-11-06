@@ -108,7 +108,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.WaitIndicator.Wait(CodeAction.Title, CodeAction.Message, allowCancel: true, action: context =>
                 {
-                    InvokeWorker(getFromDocument, cancellationToken);
+                    using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, context.CancellationToken))
+                    {
+                        InvokeWorker(getFromDocument, linkedSource.Token);
+                    }
                 });
             });
         }

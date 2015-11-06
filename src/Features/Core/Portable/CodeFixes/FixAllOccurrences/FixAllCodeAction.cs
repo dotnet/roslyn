@@ -47,12 +47,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal override string Message => FeaturesResources.ComputingFixAllOccurrences;
 
-        //public override string Title => FeaturesResources.FixAllOccurrences;
-
-        //protected virtual string FixAllWaitDialogAndPreviewChangesTitle => FeaturesResources.FixAllOccurrences;
-        //protected virtual string ComputingFixAllWaitDialogMessage => FeaturesResources.ComputingFixAllOccurrences;
-
-
         public FixAllContext FixAllContext => _fixAllContext;
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
