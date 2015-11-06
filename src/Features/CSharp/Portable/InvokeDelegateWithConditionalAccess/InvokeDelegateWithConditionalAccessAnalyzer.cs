@@ -39,9 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 return;
             }
 
+            if (!ifStatement.Parent.IsKind(SyntaxKind.Block))
+            {
+                return;
+            }
+
             var binaryExpression = (BinaryExpressionSyntax)ifStatement.Condition;
-            if (!IsNotEqualsTest(binaryExpression.Left, binaryExpression.Right) &&
-                !IsNotEqualsTest(binaryExpression.Right, binaryExpression.Left))
+            if (!IsNotEqualsExpression(binaryExpression.Left, binaryExpression.Right) &&
+                !IsNotEqualsExpression(binaryExpression.Right, binaryExpression.Left))
             {
                 return;
             }
@@ -59,11 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 statement = block.Statements[0];
             }
 
-            if (!statement.Parent.IsKind(SyntaxKind.Block))
-            {
-                return;
-            }
-
             if (!statement.IsKind(SyntaxKind.ExpressionStatement))
             {
                 return;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             var expressionStatement = (ExpressionStatementSyntax)statement;
 
-            // Check that it's of the form: "if (a != null) { a(); }}
+            // Check that it's of the form: "if (a != null) { a(); }
             var invocationExpression = ((ExpressionStatementSyntax)statement).Expression;
             if (!invocationExpression.IsKind(SyntaxKind.InvocationExpression))
             {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                 Location.Create(tree, TextSpan.FromBounds(localDeclarationStatement.SpanStart, invocationExpression.SpanStart)),
                 additionalLocations));
 
-            if (localDeclarationStatement.Span.End != ifStatement.Span.End)
+            if (expressionStatement.Span.End != ifStatement.Span.End)
             {
                 syntaxContext.ReportDiagnostic(Diagnostic.Create(descriptor,
                     Location.Create(tree, TextSpan.FromBounds(expressionStatement.Span.End, ifStatement.Span.End)),
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
         }
 
-        private bool IsNotEqualsTest(ExpressionSyntax left, ExpressionSyntax right) =>
+        private bool IsNotEqualsExpression(ExpressionSyntax left, ExpressionSyntax right) =>
             left.IsKind(SyntaxKind.IdentifierName) && right.IsKind(SyntaxKind.NullLiteralExpression);
     }
 }
