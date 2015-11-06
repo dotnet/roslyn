@@ -44,22 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return suggestedAction.GetChangedSolution(cancellationToken);
         }
 
-        public void ComputeAndApplyFix(
-            ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
-            Workspace workspace,
-            CodeFixProvider fixProvider,
-            FixAllProvider fixAllProvider,
-            string equivalenceKey,
-            string title,
-            string waitDialogMessage,
-            bool showPreviewChangesDialog,
-            CancellationToken cancellationToken)
-        {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
-            var suggestedAction = GetSuggestedAction(fixMultipleContext, workspace, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog, cancellationToken);
-            suggestedAction.Invoke(cancellationToken);
-        }
-
         public Solution GetFix(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsToFix,
             Workspace workspace,
