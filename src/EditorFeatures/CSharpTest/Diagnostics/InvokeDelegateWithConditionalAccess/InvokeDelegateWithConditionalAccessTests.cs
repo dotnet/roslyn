@@ -216,5 +216,80 @@ class C
     }
 }");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestInElseClause1()
+        {
+            Test(
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        if (true != true)
+        {
+        }
+        else [||]if (this.E != null)
+        {
+            this.E(this, EventArgs.Empty);
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        if (true != true)
+        {
+        }
+        else
+        {
+            this.E?.Invoke(this, EventArgs.Empty);
+        }
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestInElseClause2()
+        {
+            Test(
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        if (true != true)
+        {
+        }
+        else [||]if (this.E != null)
+            this.E(this, EventArgs.Empty);
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public event EventHandler E;
+    void M()
+    {
+        if (true != true)
+        {
+        }
+        else this.E?.Invoke(this, EventArgs.Empty);
+    }
+}");
+        }
     }
 }

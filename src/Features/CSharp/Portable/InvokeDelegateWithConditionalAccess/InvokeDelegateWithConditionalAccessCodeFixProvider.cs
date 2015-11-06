@@ -60,11 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             var expressionStatement = (ExpressionStatementSyntax)root.FindNode(expressionStatementLocation.SourceSpan);
             var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
 
-            var newStatement = expressionStatement.WithExpression(
+            StatementSyntax newStatement = expressionStatement.WithExpression(
                 SyntaxFactory.ConditionalAccessExpression(
                     invocationExpression.Expression,
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
+
+            if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) && ifStatement.Statement.IsKind(SyntaxKind.Block))
+            {
+                newStatement = ((BlockSyntax)ifStatement.Statement).WithStatements(SyntaxFactory.SingletonList(newStatement));
+            }
+
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
             var newRoot = root.ReplaceNode(ifStatement, newStatement);
@@ -89,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     localDeclarationStatement.Declaration.Variables[0].Initializer.Value.Parenthesize(),
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
+
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
             var newStatements = parentBlock.Statements.TakeWhile(s => s != localDeclarationStatement)
