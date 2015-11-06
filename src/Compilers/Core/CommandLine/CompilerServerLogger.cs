@@ -37,20 +37,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 // Check if the environment
-                string loggingFileName = PortableShim.Environment.GetEnvironmentVariable(environmentVariable);
+                string loggingFileName = Environment.GetEnvironmentVariable(environmentVariable);
 
                 if (loggingFileName != null)
                 {
                     // If the environment variable contains the path of a currently existing directory,
                     // then use a process-specific name for the log file and put it in that directory.
                     // Otherwise, assume that the environment variable specifies the name of the log file.
-                    if (PortableShim.Directory.Exists(loggingFileName))
+                    if (Directory.Exists(loggingFileName))
                     {
                         loggingFileName = Path.Combine(loggingFileName, string.Format("server.{1}.{2}.log", loggingFileName, GetCurrentProcessId(), Environment.TickCount));
                     }
 
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
-                    s_loggingStream = PortableShim.FileStream.Create_String_FileMode_FileAccess_FileShare(loggingFileName, PortableShim.FileMode.OpenOrCreate, PortableShim.FileAccess.Write, PortableShim.FileShare.ReadWrite);
+                    s_loggingStream = new FileStream(loggingFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
                 }
             }
             catch (Exception e)
@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private static int GetCurrentProcessId()
         {
-            var process = PortableShim.Process.GetCurrentProcess();
-            return (int)PortableShim.Process.Id.GetMethod.Invoke(process, null);
+            var process = Process.GetCurrentProcess();
+            return process.Id;
         }
 
         private static int GetCurrentThreadId()
         {
-            var thread = PortableShim.Thread.CurrentThread;
-            return (int)PortableShim.Thread.ManagedThreadId.GetMethod.Invoke(thread, null);
+            var thread = Thread.CurrentThread;
+            return thread.ManagedThreadId;
         }
 
         /// <summary>
