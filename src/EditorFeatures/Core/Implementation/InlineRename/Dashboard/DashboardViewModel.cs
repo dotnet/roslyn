@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
