@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -24,10 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal FixMultipleSuggestedAction(
             Workspace workspace,
             ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator,
             FixMultipleCodeAction codeAction,
             FixAllProvider provider,
             ITextBuffer subjectBufferOpt = null)
-            : base(workspace, subjectBufferOpt, editHandler, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic())
+            : base(workspace, subjectBufferOpt, editHandler, waitIndicator, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic())
         {
             _triggerDocumentOpt = codeAction.FixAllContext.Document;
 
