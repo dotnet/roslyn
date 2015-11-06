@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    public sealed class CachingMetadataReference : PortableExecutableReference
+    internal sealed class CachingMetadataReference : PortableExecutableReference
     {
         private static readonly MetadataAndSymbolCache s_mdCache = new MetadataAndSymbolCache();
 

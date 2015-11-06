@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    public struct RunRequest
+    internal struct RunRequest
     {
         public string Language { get; }
         public string CurrentDirectory { get; }
@@ -26,39 +26,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    public enum RunResultKind
-    {
-        BadLanguage,
-        BadAnalyzer,
-        Run
-    }
-
-    public struct RunResult
-    {
-        public RunResultKind Kind { get; }
-        public int ReturnCode { get; }
-        public bool Utf8Output { get; }
-        public string Output { get; }
-
-        public RunResult(RunResultKind kind)
-        {
-            Debug.Assert(kind != RunResultKind.Run);
-            Kind = kind;
-            ReturnCode = 0;
-            Utf8Output = false;
-            Output = string.Empty;
-        }
-
-        public RunResult(int returnCode, bool utf8Output, string output)
-        {
-            Kind = RunResultKind.Run;
-            ReturnCode = returnCode;
-            Utf8Output = utf8Output;
-            Output = output;
-        }
-    }
-
-    public sealed class CompilerRunHandler
+    internal sealed class CompilerRunHandler
     {
         private readonly ICompilerServerHost _compilerServerHost;
 
@@ -78,8 +46,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// An incoming request as occurred. This is called on a new thread to handle
         /// the request.
         /// </summary>
-        public RunResult HandleRequest(RunRequest req, CancellationToken cancellationToken)
+        public BuildResponse HandleRequest(BuildRequest request, CancellationToken cancellationToken)
         {
+            var req = BuildProtocolUtil.GetRunRequest(request);
             switch (req.Language)
             {
                 case LanguageNames.CSharp:
@@ -93,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 default:
                     // We can't do anything with a request we don't know about. 
                     _compilerServerHost.Log($"Got request with id '{req.Language}'");
-                    return new RunResult(RunResultKind.BadLanguage);
+                    return new CompletedBuildResponse(-1, false, "", "");
             }
         }
 
@@ -101,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// A request to compile C# files. Unpack the arguments and current directory and invoke
         /// the compiler, then create a response with the result of compilation.
         /// </summary>
-        private RunResult RunCompile(RunRequest request, Func<RunRequest, CommonCompiler> func,  CancellationToken cancellationToken)
+        private BuildResponse RunCompile(RunRequest request, Func<RunRequest, CommonCompiler> func,  CancellationToken cancellationToken)
         {
             _compilerServerHost.Log($"CurrentDirectory = '{request.CurrentDirectory}'");
             _compilerServerHost.Log($"LIB = '{request.LibDirectory}'");
@@ -114,14 +83,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             bool utf8output = compiler.Arguments.Utf8Output;
             if (!_compilerServerHost.CheckAnalyzers(request.CurrentDirectory, compiler.Arguments.AnalyzerReferences))
             {
-                return new RunResult(RunResultKind.BadAnalyzer);
+                return new AnalyzerInconsistencyBuildResponse();
             }
 
             _compilerServerHost.Log($"****Running {request.Language} compiler...");
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             int returnCode = compiler.Run(output, cancellationToken);
             _compilerServerHost.Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
-            return new RunResult(returnCode, utf8output, output.ToString());
+            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
         }
 
         private CommonCompiler CreateCSharpCompiler(RunRequest request)

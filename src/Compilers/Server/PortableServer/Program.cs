@@ -16,27 +16,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public static void Main(string[] args)
         {
-            Go().GetAwaiter().GetResult();
-        }
-
-        private static async Task Go()
-        {
-            var ipAddress = (await Dns.GetHostAddressesAsync("localhost").ConfigureAwait(true))[0];
-            var listener = new TcpListener(ipAddress, port: 12000);
-            while (true)
-            {
-                var client = await listener.AcceptTcpClientAsync().ConfigureAwait(true);
-                await RunCompilation(client, CancellationToken.None).ConfigureAwait(true);
-            }
-        }
-
-        private static Task RunCompilation(TcpClient client, CancellationToken cancellationToken)
-        {
-            throw new Exception();
-            /*
-            var stream = client.GetStream();
-            var buildRequest = await BuildRequest.ReadAsync(stream, cancellationToken).ConfigureAwait(true);
-            */
+            var clientDirectory = AppContext.BaseDirectory;
+            var server = new PortableServer(clientDirectory);
+            server.Go().GetAwaiter().GetResult();
         }
     }
 }

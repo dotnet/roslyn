@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken)
         {
-            var request = BuildProtocolUtil.GetRunRequest(req);
-            var result = _compilerRunHandler.HandleRequest(request, cancellationToken);
-            return BuildProtocolUtil.GetBuildResponse(result);
+            return _compilerRunHandler.HandleRequest(req, cancellationToken);
         }
     }
 }

@@ -58,21 +58,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return commandLineArguments.ToArray();
         }
-
-        internal static BuildResponse GetBuildResponse(RunResult result)
-        {
-            switch (result.Kind)
-            {
-                case RunResultKind.BadAnalyzer:
-                    return new AnalyzerInconsistencyBuildResponse();
-                case RunResultKind.BadLanguage:
-                    return new CompletedBuildResponse(-1, utf8output: false, output: "", errorOutput: "");
-                case RunResultKind.Run:
-                    return new CompletedBuildResponse(result.ReturnCode, result.Utf8Output, result.Output, errorOutput: "");
-                default:
-                    Debug.Assert(false);
-                    throw new Exception($"Bad enum value {result.Kind}");
-            }
-        }
     }
 }
