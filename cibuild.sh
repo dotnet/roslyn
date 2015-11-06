@@ -138,8 +138,10 @@ compile_toolset()
 # Save the toolset binaries from Binaries/BUILD_CONFIGURATION to Binaries/Bootstrap
 save_toolset()
 {
-    mkdir Binaries/Bootstrap
-    cp Binaries/$BUILD_CONFIGURATION/core-clr/* Binaries/Bootstrap
+    mkdir -p Binaries/Bootstrap/csccore
+    mkdir -p Binaries/Bootstrap/vbccore
+    cp Binaries/$BUILD_CONFIGURATION/csccore/* Binaries/Bootstrap/csccore
+    cp Binaries/$BUILD_CONFIGURATION/vbccore/* Binaries/Bootstrap/vbccore
 }
 
 # Clean out all existing binaries.  This ensures the bootstrap phase forces
@@ -156,8 +158,8 @@ build_roslyn()
     local bootstrapArg=""
 
     if [ "$OS_NAME" == "Linux" ]; then
-        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap /p:CscToolExe=csc \
-/p:VbcToolPath=$(pwd)/Binaries/Bootstrap /p:VbcToolExe=vbc"
+        bootstrapArg="/p:CscToolPath=$(pwd)/Binaries/Bootstrap/csccore /p:CscToolExe=csc \
+/p:VbcToolPath=$(pwd)/Binaries/Bootstrap/vbccore /p:VbcToolExe=vbc"
     fi
 
     echo Building CrossPlatform.sln
