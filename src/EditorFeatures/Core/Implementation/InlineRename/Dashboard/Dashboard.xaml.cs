@@ -2,16 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename

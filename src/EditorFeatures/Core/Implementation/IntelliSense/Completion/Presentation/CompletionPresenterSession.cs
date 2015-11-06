@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Windows.Input;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
