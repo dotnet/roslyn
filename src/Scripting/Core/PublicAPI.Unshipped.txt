@@ -43,10 +43,12 @@ Microsoft.CodeAnalysis.Scripting.Script.GlobalsType.get -> System.Type
 Microsoft.CodeAnalysis.Scripting.Script.Options.get -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
 Microsoft.CodeAnalysis.Scripting.Script.Previous.get -> Microsoft.CodeAnalysis.Scripting.Script
 Microsoft.CodeAnalysis.Scripting.Script.RunAsync(object globals = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState>
+Microsoft.CodeAnalysis.Scripting.Script.RunFromAsync(Microsoft.CodeAnalysis.Scripting.Script.ScriptState previousState, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState>
 Microsoft.CodeAnalysis.Scripting.Script.WithOptions(Microsoft.CodeAnalysis.Scripting.ScriptOptions options) -> Microsoft.CodeAnalysis.Scripting.Script
 Microsoft.CodeAnalysis.Scripting.Script<T>
 Microsoft.CodeAnalysis.Scripting.Script<T>.CreateDelegate(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Scripting.ScriptRunner<T>
 Microsoft.CodeAnalysis.Scripting.Script<T>.RunAsync(object globals = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
+Microsoft.CodeAnalysis.Scripting.Script<T>.RunFromAsync(Microsoft.CodeAnalysis.Scripting.Script.ScriptState previousState, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Scripting.ScriptState<T>>
 Microsoft.CodeAnalysis.Scripting.Script<T>.WithOptions(Microsoft.CodeAnalysis.Scripting.ScriptOptions options) -> Microsoft.CodeAnalysis.Scripting.Script<T>
 Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver
 Microsoft.CodeAnalysis.Scripting.ScriptMetadataResolver.BaseDirectory.get -> string
