@@ -51,9 +51,6 @@
     <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AnalyzerAssemblyLoadUtils.cs">
-      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>

@@ -63,9 +63,6 @@
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AnalyzerAssemblyLoadUtils.cs">
-      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
-    </Compile>
     <Compile Include="CoreClrCompilerServerHost.cs" />
     <Compile Include="PortableServer.cs" />
     <Compile Include="Program.cs" />

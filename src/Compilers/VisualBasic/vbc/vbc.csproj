@@ -63,9 +63,6 @@
     <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AssemblyIdentityUtils.cs">
-      <Link>AssemblyIdentityUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>

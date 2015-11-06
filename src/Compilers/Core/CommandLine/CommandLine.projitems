@@ -9,9 +9,10 @@
     <Import_RootNamespace>CommandLine</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)ConsoleUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AnalyzerAssemblyLoadUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BuildProtocol.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BuildClient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ConsoleUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NativeMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CompilerServerLogger.cs" />
   </ItemGroup>

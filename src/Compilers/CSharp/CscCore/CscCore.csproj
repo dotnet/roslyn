@@ -59,9 +59,6 @@
     <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs">
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AssemblyIdentityUtils.cs">
-      <Link>AssemblyIdentityUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\CoreClrBuildClient.cs">
       <Link>CoreClrBuildClient.cs</Link>
     </Compile>
