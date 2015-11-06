@@ -415,11 +415,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This represents what the user claimed in source through the AssemblyFlagsAttribute.
         /// It may be modified as emitted due to presence or absence of the public key.
         /// </summary>
-        internal AssemblyNameFlags Flags
+        internal AssemblyFlags Flags
         {
             get
             {
-                var defaultValue = default(AssemblyNameFlags);
+                var defaultValue = default(AssemblyFlags);
                 var fieldValue = defaultValue;
 
                 var data = GetSourceDecodedWellKnownAttributeData();
@@ -2182,15 +2182,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((signature = attribute.GetTargetAttributeSignatureIndex(this, AttributeDescription.AssemblyFlagsAttribute)) != -1)
             {
                 object value = attribute.CommonConstructorArguments[0].Value;
-                System.Reflection.AssemblyNameFlags nameFlags;
+                AssemblyFlags nameFlags;
 
                 if (signature == 0 || signature == 1)
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)value;
+                    nameFlags = (AssemblyFlags)(AssemblyNameFlags)value;
                 }
                 else
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)(uint)value;
+                    nameFlags = (AssemblyFlags)(uint)value;
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyFlagsAttributeSetting = nameFlags;
