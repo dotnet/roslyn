@@ -18,12 +18,7 @@ namespace Microsoft.CodeAnalysis
         internal void SetWorkspaceAndRaiseEvents(Workspace workspace)
         {
             _registeredWorkspace = workspace;
-
-            var workspaceChanged = WorkspaceChanged;
-            if (workspaceChanged != null)
-            {
-                workspaceChanged(this, EventArgs.Empty);
-            }
+            WorkspaceChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

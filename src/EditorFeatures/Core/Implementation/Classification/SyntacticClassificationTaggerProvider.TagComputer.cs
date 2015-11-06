@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -288,12 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         return;
                     }
                 }
-
-                var tagsChanged = this.TagsChanged;
-                if (tagsChanged != null)
-                {
-                    tagsChanged(this, new SnapshotSpanEventArgs(changeSpan));
-                }
+                this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(changeSpan));
             }
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged;

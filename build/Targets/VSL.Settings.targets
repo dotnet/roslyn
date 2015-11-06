@@ -11,6 +11,9 @@
                                  '$(OS)' != 'Windows_NT'">$([System.Environment]::GetFolderPath(SpecialFolder.Personal))\.nuget\packages</NuGetPackageRoot>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
     <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
+
+    <!-- Turn on hard-linking on Windows to reduce copy time and disk space -->
+    <CreateHardLinksForCopyLocalIfPossible Condition="'$(OS)' == 'Windows_NT'">true</CreateHardLinksForCopyLocalIfPossible>
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->

@@ -90,8 +90,8 @@
     <Compile Include="..\..\..\Compilers\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\AnalyzerAssemblyLoadUtils.cs">
-      <Link>AnalyzerAssemblyLoadUtils.cs</Link>
+    <Compile Include="..\..\..\Compilers\Shared\AssemblyIdentityUtils.cs">
+      <Link>AssemblyIdentityUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>SimpleAnalyzerAssemblyLoader.cs</Link>

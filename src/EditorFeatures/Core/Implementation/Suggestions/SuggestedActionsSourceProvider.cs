@@ -684,14 +684,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     return;
                 }
-
-                // make sure we only raise event once for same solution version.
-                // light bulb controller will call us back to find out new information
-                var changed = this.SuggestedActionsChanged;
-                if (changed != null)
-                {
-                    changed(this, EventArgs.Empty);
-                }
+                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
 
                 Volatile.Write(ref _lastSolutionVersionReported, solutionVersion);
             }

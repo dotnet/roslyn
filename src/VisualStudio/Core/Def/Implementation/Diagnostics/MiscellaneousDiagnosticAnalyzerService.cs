@@ -59,11 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         internal void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs state)
         {
-            var handler = this.DiagnosticsUpdated;
-            if (handler != null)
-            {
-                handler(this, state);
-            }
+            this.DiagnosticsUpdated?.Invoke(this, state);
         }
 
         private class SyntaxOnlyDiagnosticAnalyzer : IIncrementalAnalyzer
