@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -16,12 +17,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     internal class FixMultipleOccurrencesService : IFixMultipleOccurrencesService, IWorkspaceServiceFactory
     {
         private readonly ICodeActionEditHandlerService _editHandler;
+        private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public FixMultipleOccurrencesService(
-            ICodeActionEditHandlerService editHandler)
+            ICodeActionEditHandlerService editHandler,
+            IWaitIndicator waitIndicator)
         {
             _editHandler = editHandler;
+            _waitIndicator = waitIndicator;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CancellationToken cancellationToken)
         {
             var fixMultipleCodeAction = new FixMultipleCodeAction(fixMultipleContext, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog);
-            return new FixMultipleSuggestedAction(workspace, _editHandler, fixMultipleCodeAction, fixAllProvider);
+            return new FixMultipleSuggestedAction(workspace, _editHandler, _waitIndicator, fixMultipleCodeAction, fixAllProvider);
         }
     }
 }
