@@ -4116,7 +4116,7 @@ namespace Microsoft.Cci
             writer.WriteUInt16((ushort)identity.Version.Minor);
             writer.WriteUInt16((ushort)identity.Version.Build);
             writer.WriteUInt16((ushort)identity.Version.Revision);
-            writer.WriteUInt32(assembly.Flags);
+            writer.WriteUInt32((uint)assembly.Flags);
             writer.WriteReference((uint)heaps.ResolveBlobIndex(_assemblyKey), metadataSizes.BlobIndexSize);
 
             writer.WriteReference((uint)heaps.ResolveStringIndex(_assemblyName), metadataSizes.StringIndexSize);
