@@ -27,7 +27,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    internal sealed class CompilerRunHandler
+    internal interface IRequestHandler
+    {
+        BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken);
+    }
+
+    internal sealed class CompilerRequestHandler : IRequestHandler
     {
         private readonly ICompilerServerHost _compilerServerHost;
 
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private readonly string _clientDirectory;
 
-        public CompilerRunHandler(ICompilerServerHost compilerServerHost, string clientDirectory)
+        internal CompilerRequestHandler(ICompilerServerHost compilerServerHost, string clientDirectory)
         {
             _compilerServerHost = compilerServerHost;
             _clientDirectory = clientDirectory;

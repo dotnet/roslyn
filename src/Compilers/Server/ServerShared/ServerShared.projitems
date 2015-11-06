@@ -10,10 +10,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)BuildProtocolUtil.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CompilerRunHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CompilerRequestHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CSharpCompilerServer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IClientConnection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ICompilerServerHost.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetadataCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Connection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServerDispatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)VisualBasicCompilerServer.cs" />
   </ItemGroup>
 </Project>

@@ -56,14 +56,10 @@
     </Compile>
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
-    <Compile Include="CompilerRequestHandler.cs" />
     <Compile Include="DesktopCompilerServerHost.cs" />
-    <Compile Include="DiagnosticListener.cs" />
-    <Compile Include="IClientConnection.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />
-    <Compile Include="ServerDispatcher.Connection.cs" />
-    <Compile Include="ServerDispatcher.cs" />
-    <Compile Include="ServerDispatcher.MemoryHelper.cs" />
+    <Compile Include="VBCSCompiler.cs" />
+    <Compile Include="MemoryHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

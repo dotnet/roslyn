@@ -64,7 +64,6 @@
       <Link>CoreClrAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="CoreClrCompilerServerHost.cs" />
-    <Compile Include="PortableServer.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
