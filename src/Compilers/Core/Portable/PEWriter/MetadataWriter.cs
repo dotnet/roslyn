@@ -3097,7 +3097,7 @@ namespace Microsoft.Cci
 
                 uint fieldDefIndex = (uint)this.GetFieldDefIndex(fieldDef);
                 FieldLayoutRow r = new FieldLayoutRow();
-                r.Offset = fieldDef.Offset;
+                r.Offset = (uint)fieldDef.Offset;
                 r.Field = fieldDefIndex;
                 _fieldLayoutTable.Add(r);
             }
