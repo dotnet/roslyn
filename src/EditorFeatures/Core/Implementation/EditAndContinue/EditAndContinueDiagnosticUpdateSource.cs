@@ -114,11 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
         private void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {
-            var updated = this.DiagnosticsUpdated;
-            if (updated != null)
-            {
-                updated(this, args);
-            }
+            this.DiagnosticsUpdated?.Invoke(this, args);
         }
 
         private class EnCId : BuildToolId.Base<DebuggingSession, object>

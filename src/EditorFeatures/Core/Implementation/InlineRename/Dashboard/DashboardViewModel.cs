@@ -105,11 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void NotifyPropertyChanged([CallerMemberName] string name = null)
         {
-            var handler = this.PropertyChanged;
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(name));
-            }
+            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
 
         private void AllPropertiesChanged()

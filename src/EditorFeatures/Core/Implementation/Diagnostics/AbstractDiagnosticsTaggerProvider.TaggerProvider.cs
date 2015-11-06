@@ -137,12 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     _latestSourceText = sourceText;
                     _latestEditorSnapshot = editorSnapshot;
                 }
-
-                var changed = this.Changed;
-                if (changed != null)
-                {
-                    changed(this, new TaggerEventArgs(TaggerDelay.Medium));
-                }
+                this.Changed?.Invoke(this, new TaggerEventArgs(TaggerDelay.Medium));
             }
         }
     }

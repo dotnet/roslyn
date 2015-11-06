@@ -75,11 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void RaiseTagsChangedForEntireBuffer()
         {
-            var tagsChanged = TagsChanged;
-            if (tagsChanged != null)
-            {
-                tagsChanged(this, new SnapshotSpanEventArgs(_buffer.CurrentSnapshot.GetFullSpan()));
-            }
+            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_buffer.CurrentSnapshot.GetFullSpan()));
         }
 
         public void Dispose()
