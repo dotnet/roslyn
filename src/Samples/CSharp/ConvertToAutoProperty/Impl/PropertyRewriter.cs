@@ -60,7 +60,7 @@ namespace ConvertToAutoPropertyCS
             // Retrieve the symbol for the field
             if (field.Declaration.Variables.Count == 1)
             {
-                if (object.Equals(semanticModel.GetDeclaredSymbol(field), backingField))
+                if (object.Equals(semanticModel.GetDeclaredSymbol(field.Declaration.Variables.FirstOrDefault()), backingField))
                 {
                     return null;
                 }
