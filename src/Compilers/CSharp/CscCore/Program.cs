@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
     public class Program
     {
         public static int Main(string[] args)
-            => BuildClient.RunWithConsoleOutput(new CoreClrBuildHost(args, Csc.Run)); 
+            => BuildClient.RunWithConsoleOutput(new CoreClrBuildHost(args, CompilerServer.BuildProtocolConstants.RequestLanguage.CSharpCompile, Csc.Run)); 
     }
 }

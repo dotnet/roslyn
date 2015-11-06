@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
     public class Program
     {
         public static int Main(string[] args)
-            => BuildClient.RunWithConsoleOutput(new CoreClrBuildHost(args, Vbc.Run));
+            => BuildClient.RunWithConsoleOutput(new CoreClrBuildHost(args, CompilerServer.BuildProtocolConstants.RequestLanguage.VisualBasicCompile, Vbc.Run));
     }
 }

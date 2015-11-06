@@ -435,6 +435,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public const uint ProtocolVersion = 2;
 
+        // BTODO: Get this into a top level item
         // The id numbers below are just random. It's useful to use id numbers
         // that won't occur accidentally for debugging.
         public enum RequestLanguage

@@ -24,8 +24,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal async Task Go()
         {
-            var ipAddress = (await Dns.GetHostAddressesAsync("localhost").ConfigureAwait(true))[0];
+            var ipAddress = IPAddress.Parse("127.0.0.1");
             var listener = new TcpListener(ipAddress, port: 12000);
+            listener.Start();
+
             var list = new List<Task>();
             while (true)
             {
@@ -42,6 +44,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var buildResponse = _compilerRunHandler.HandleRequest(buildRequest, cancellationToken);
             await buildResponse.WriteAsync(stream, cancellationToken).ConfigureAwait(true);
         }
-
     }
 }
