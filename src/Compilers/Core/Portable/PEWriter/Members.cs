@@ -184,7 +184,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Offset of the field.
         /// </summary>
-        uint Offset
+        int Offset
         {
             get;
             // ^ requires this.ContainingTypeDefinition.Layout == LayoutKind.Explicit;
