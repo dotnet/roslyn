@@ -20,9 +20,170 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.InvokeDeleg
                 new InvokeDelegateWithConditionalAccessCodeFixProvider());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public void TestMethod()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void Test1()
         {
+            Test(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestInvertedIf()
+        {
+            Test(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        if (null != v)
+        {
+            v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestIfWithNoBraces()
+        {
+            Test(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        if (null != v)
+            v();
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        a?.Invoke();
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestWithComplexExpression()
+        {
+            Test(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        bool b = true;
+        [||]var v = b ? a : null;
+        if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        bool b = true;
+        (b ? a : null)?.Invoke();
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestMissingWithElseClause()
+        {
+            TestMissing(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        if (v != null)
+        {
+            v();
+        }
+        else {}
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestMissingWithMultipleVariables()
+        {
+            TestMissing(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a, x = a;
+        if (v != null)
+        {
+            v();
+        }
+        else {}
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestMissingIfUsedOutside()
+        {
+            TestMissing(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        [||]var v = a;
+        if (v != null)
+        {
+            v();
+        }
+
+        v = null;
+    }
+}");
         }
     }
 }
