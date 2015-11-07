@@ -50,11 +50,6 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return new MefWorkspaceServices(this, workspace);
         }
 
-        IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-        {
-            return _compositionContext.GetExports<TExtension>().Select(e => new Lazy<TExtension>(() => e));
-        }
-
         IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
         {
             var importer = new WithMetadataImporter<TExtension, TMetadata>();
