@@ -382,7 +382,7 @@ namespace Roslyn.Utilities
                     // completed and can bail immediately.  If we were to do this after we 
                     // kicked off the async work, then we'd have the chance that both would
                     // run concurrently and we'd have a higher change of hitting the race condition
-                    // of calling TaskCompletionSource.SetResult simultaneously (and thus having 
+                    // of calling AsyncMethodBuilder.SetResult simultaneously (and thus having 
                     // the InvalidOperationException that we have to ignore).
                     if (requestToCompleteSynchronously != null && task.IsCompleted)
                     {
