@@ -1208,6 +1208,8 @@ namespace CSharpSyntaxGenerator
                     nCompared++;
                 }
             }
+
+            var writeOperatorTokenToNodeKindHelper = false;
             if (nCompared > 0)
             {
                 WriteLine(")");
@@ -1215,7 +1217,16 @@ namespace CSharpSyntaxGenerator
                 Write("            var newNode = SyntaxFactory.{0}(", StripPost(node.Name, "Syntax"));
                 if (node.Kinds.Count > 1)
                 {
-                    Write("this.Kind(), ");
+                    if (node.Fields.Any(n => n.Name == "OperatorToken") &&
+                        node.Kinds.Count == node.Fields.First(n => n.Name == "OperatorToken").Kinds.Count)
+                    {
+                        Write("Get{0}OperatorTokenNodeKind(this.Kind()), ", node.Name);
+                        writeOperatorTokenToNodeKindHelper = true;
+                    }
+                    else
+                    {
+                        Write("this.Kind(), ");
+                    }
                 }
                 for (int f = 0; f < node.Fields.Count; f++)
                 {
@@ -1234,6 +1245,33 @@ namespace CSharpSyntaxGenerator
 
             WriteLine();
             WriteLine("        return this;");
+            WriteLine("    }");
+
+            if (writeOperatorTokenToNodeKindHelper)
+            {
+                WriteOperatorTokenToNodeKind(node);
+            }
+        }
+
+        private void WriteOperatorTokenToNodeKind(Node node)
+        {
+            WriteLine();
+            WriteLine("    private SyntaxKind Get{0}OperatorTokenNodeKind(SyntaxKind operatorTokenKind)", node.Name);
+            WriteLine("    {");
+            WriteLine("        switch (operatorTokenKind)");
+            WriteLine("        {");
+
+            var operatorTokenField = node.Fields.First(n => n.Name == "OperatorToken");
+
+            for (var index = 0; index < operatorTokenField.Kinds.Count; index++)
+            {
+                WriteLine("            case SyntaxKind.{0}:", operatorTokenField.Kinds[index].Name);
+                WriteLine("                return SyntaxKind.{0};", node.Kinds[index].Name);
+            }
+
+            WriteLine("            default:");
+            WriteLine("                throw new ArgumentException(\"OperatorToken\");");
+            WriteLine("        }");
             WriteLine("    }");
         }
 

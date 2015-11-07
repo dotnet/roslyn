@@ -23,6 +23,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("A.C", text);
         }
 
+        [Fact]
+        public void TestSyntaxWithOperatorToken()
+        {
+            var expression = SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression,
+                                                            SyntaxFactory.ParseExpression("5"),
+                                                            SyntaxFactory.ParseExpression("3"));
+
+            var newOperatorToken = SyntaxFactory.Token(SyntaxKind.MinusToken);
+
+            var newExpression = expression.WithOperatorToken(newOperatorToken);
+
+            Assert.Equal(newExpression.Kind(), SyntaxKind.SubtractExpression);
+            Assert.Equal(newExpression.OperatorToken.Kind(), SyntaxKind.MinusToken);
+        }
+
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
         [Fact]
         public void TestAddBaseListTypes()

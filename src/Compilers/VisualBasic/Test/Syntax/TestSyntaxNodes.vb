@@ -49,6 +49,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         <Fact>
+        Public Sub SyntaxTree_WithOperatorTokenUpdatesOperatorToken()
+
+            Dim expression = SyntaxFactory.AddExpression(CreateIntegerLiteral(1),
+                                                         SyntaxFactory.Token(SyntaxKind.PlusToken, trailing:=_spaceTrivia),
+                                                         CreateIntegerLiteral(3))
+
+            Dim newOperatorToken = SyntaxFactory.Token(SyntaxKind.MinusToken, trailing:=_spaceTrivia)
+            
+            Dim newExpression = expression.WithOperatorToken(newOperatorToken)
+
+            Assert.Equal(newExpression.Kind, SyntaxKind.SubtractExpression)
+            Assert.Equal(newExpression.OperatorToken.Kind, SyntaxKind.MinusToken)
+        End Sub
+
+        <Fact>
         Public Sub TestParents()
             Dim simpleTree = CreateSimpleTree()
 

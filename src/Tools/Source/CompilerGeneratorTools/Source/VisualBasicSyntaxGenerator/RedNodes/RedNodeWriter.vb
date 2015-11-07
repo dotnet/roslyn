@@ -655,50 +655,78 @@ Friend Class RedNodeWriter
         'Dim isOverride As Boolean = withChild.ContainingStructure IsNot nodeStructure
         Dim hasPrevious As Boolean
 
-        If True Then ' withChild.GenerateWith Then
+        Dim isAbstract As Boolean = _parseTree.IsAbstract(nodeStructure)
 
-            Dim isAbstract As Boolean = _parseTree.IsAbstract(nodeStructure)
+        If Not isAbstract Then
 
-            If Not isAbstract Then
-                ' XML comment
-                GenerateWithXmlComment(_writer, withChild, 8)
-                _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
-                _writer.Write("            return Update(")
+            ' XML comment
+            GenerateWithXmlComment(_writer, withChild, 8)
+            _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
+            _writer.Write("            return Update(")
 
-                If nodeStructure.NodeKinds.Count >= 2 Then
-                    _writer.Write("Me.Kind")
-                    hasPrevious = True
+            If nodeStructure.NodeKinds.Count >= 2 Then
+                If withChild.KindForNodeKind IsNot Nothing AndAlso withChild.KindForNodeKind.Count > 1 AndAlso withChild.Name = "OperatorToken" Then
+                        _writer.Write("Get{0}{1}NodeKind({2}.Kind)", FactoryName(nodeStructure), withChild.Name, ChildParamName(withChild))
+                    Else
+                        _writer.Write("Me.Kind")
                 End If
 
-                Dim allFields = GetAllFieldsOfStructure(nodeStructure)
-                If allFields.Count > 0 Then
-                    For i = 0 To allFields.Count - 1
-                        If hasPrevious Then
-                            _writer.Write(", ")
-                        End If
-                        _writer.Write("{0}", FieldParamName(allFields(i)))
-                        hasPrevious = True
-                    Next
-                End If
+                hasPrevious = True
+            End If
 
-                For Each child In GetAllChildrenOfStructure(nodeStructure)
+            Dim allFields = GetAllFieldsOfStructure(nodeStructure)
+            If allFields.Count > 0 Then
+                For i = 0 To allFields.Count - 1
                     If hasPrevious Then
                         _writer.Write(", ")
                     End If
-                    If child Is withChild Then
-                        _writer.Write("{0}", ChildParamName(child))
-                    Else
-                        _writer.Write("Me.{0}", UpperFirstCharacter(child.Name))
-                    End If
+                    _writer.Write("{0}", FieldParamName(allFields(i)))
                     hasPrevious = True
                 Next
-
-                _writer.WriteLine(")")
-                _writer.WriteLine("        End Function")
             End If
 
-            _writer.WriteLine("")
+            For Each child In GetAllChildrenOfStructure(nodeStructure)
+                If hasPrevious Then
+                    _writer.Write(", ")
+                End If
+                If child Is withChild Then
+                    _writer.Write("{0}", ChildParamName(child))
+                Else
+                    _writer.Write("Me.{0}", UpperFirstCharacter(child.Name))
+                End If
+                hasPrevious = True
+            Next
+
+            _writer.WriteLine(")")
+            _writer.WriteLine("        End Function")
         End If
+
+        _writer.WriteLine("")
+
+        If nodeStructure.NodeKinds.Count >= 2 AndAlso withChild.KindForNodeKind IsNot Nothing AndAlso withChild.KindForNodeKind.Count > 1 AndAlso withChild.Name = "OperatorToken" Then
+            GenerateNodeKindsForChildToken(nodeStructure, withChild)
+        End If
+    End Sub
+
+    Private Sub GenerateNodeKindsForChildToken(nodeStructure As ParseNodeStructure, child As ParseNodeChild)
+
+        Dim name = "Get" + FactoryName(nodeStructure) + child.Name + "NodeKind"
+        _writer.WriteLine("        Private Shared Function {0}(operatorTokenKind As SyntaxKind) As SyntaxKind", name)
+        _writer.WriteLine("            Select Case operatorTokenKind")
+
+        For Each nodeKind In nodeStructure.NodeKinds
+            Dim childNodeKind As ParseNodeKind = Nothing
+            If child.KindForNodeKind.TryGetValue(nodeKind.Name, childNodeKind) Then
+                _writer.WriteLine("                Case SyntaxKind.{0}", childNodeKind.Name)
+                _writer.WriteLine("                    Return SyntaxKind.{0}", nodeKind.Name)
+            End If
+        Next
+        _writer.WriteLine("                Case Else")
+        _writer.WriteLine("                    Throw New ArgumentException(""{0}"")", child.Name)
+
+        _writer.WriteLine("            End Select")
+        _writer.WriteLine("        End Function")
+        _writer.WriteLine()
     End Sub
 
     ' Generate two public properties for a child that is a separated list
