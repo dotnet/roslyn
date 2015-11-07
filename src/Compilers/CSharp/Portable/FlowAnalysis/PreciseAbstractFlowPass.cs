@@ -161,6 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool trackExceptions = false)
         {
             Debug.Assert(node != null);
+            var equalsValue = node as BoundEqualsValue;
+            if (equalsValue != null)
+            {
+                node = equalsValue.Value;
+            }
 
             if (firstInRegion != null && lastInRegion != null)
             {
@@ -287,16 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode VisitWithStackGuard(BoundNode node)
         {
-            var expression = node as BoundExpression;
-            if (expression == null)
-            {
-                var equalsValue = node as BoundEqualsValue;
-                if (equalsValue != null)
-                {
-                    expression = equalsValue.Value;
-                }
-            }
-
+            var expression = node as BoundExpression; 
             if (expression != null)
             {
                 return VisitExpressionWithStackGuard(ref _recursionDepth, expression);

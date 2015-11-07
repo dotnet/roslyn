@@ -120,7 +120,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.compilation = _info.Compilation
             Me.symbol = _info.Symbol
             Me.MeParameter = Me.symbol.GetMeParameter()
-            Me._methodOrInitializerMainNode = _info.Node
+            Dim mainNode = _info.Node
+            Dim equalsValue = TryCast(mainNode, BoundEqualsValue)
+            If equalsValue IsNot Nothing Then
+                mainNode = equalsValue.Value
+            End If
+
+            Me._methodOrInitializerMainNode = mainNode
 
             Me._firstInRegion = _region.FirstInRegion
             Me._lastInRegion = _region.LastInRegion
@@ -692,14 +698,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shadows Function VisitWithStackGuard(node As BoundNode) As BoundNode
             Dim expression = TryCast(node, BoundExpression)
-
-            If expression Is Nothing Then
-                Dim equalsValue = TryCast(node, BoundEqualsValue)
-
-                If equalsValue IsNot Nothing Then
-                    expression = equalsValue.Value
-                End If
-            End If
 
             If expression IsNot Nothing Then
                 Return VisitExpressionWithStackGuard(_recursionDepth, expression)
