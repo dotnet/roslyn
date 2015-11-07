@@ -497,7 +497,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.Param] = _paramTable.Count;
             rowCounts[(int)TableIndex.PropertyMap] = _propertyMapTable.Count;
             rowCounts[(int)TableIndex.Property] = _propertyTable.Count;
-            rowCounts[(int)TableIndex.StandAloneSig] = GetStandAloneSignatures().Count;
+            rowCounts[(int)TableIndex.StandAloneSig] = _standAloneSigTable.Count;
             rowCounts[(int)TableIndex.TypeDef] = _typeDefTable.Count;
             rowCounts[(int)TableIndex.TypeRef] = _typeRefTable.Count;
             rowCounts[(int)TableIndex.TypeSpec] = _typeSpecTable.Count;
@@ -2538,6 +2538,7 @@ namespace Microsoft.Cci
             this.PopulateTypeDefTableRows();
             this.PopulateTypeRefTableRows();
             this.PopulateTypeSpecTableRows();
+            this.PopulateStandaloneSignatures();
 
             // This table is populated after the others because it depends on the order of the entries of the generic parameter table.
             this.PopulateCustomAttributeTableRows();
@@ -2556,17 +2557,19 @@ namespace Microsoft.Cci
 
             foreach (var assemblyRef in assemblyRefs)
             {
+                Debug.Assert(assemblyRef.Version != null);
+                Debug.Assert(!string.IsNullOrEmpty(assemblyRef.Name));
+
                 AssemblyRefTableRow r = new AssemblyRefTableRow();
                 r.Version = assemblyRef.Version;
                 r.PublicKeyToken = heaps.GetBlobIndex(assemblyRef.PublicKeyToken);
-
-                Debug.Assert(!string.IsNullOrEmpty(assemblyRef.Name));
                 r.Name = this.GetStringIndexForPathAndCheckLength(assemblyRef.Name, assemblyRef);
-
                 r.Culture = heaps.GetStringIndex(assemblyRef.Culture);
 
-                r.IsRetargetable = assemblyRef.IsRetargetable;
-                r.ContentType = assemblyRef.ContentType;
+                // reference has token, not full public key
+                r.Flags = ((uint)assemblyRef.ContentType << 9) | (assemblyRef.IsRetargetable ? (uint)AssemblyFlags.Retargetable : 0U);
+                r.HashValue = default(BlobIdx);
+
                 _assemblyRefTable.Add(r);
             }
         }
@@ -2612,9 +2615,16 @@ namespace Microsoft.Cci
             }
 
             IAssembly assembly = this.module.AsAssembly;
-            _assemblyKey = heaps.GetBlobIndex(assembly.PublicKey);
-            _assemblyName = this.GetStringIndexForPathAndCheckLength(assembly.Name, assembly);
-            _assemblyCulture = heaps.GetStringIndex(assembly.Culture);
+
+            _assemblyTable.Add(new AssemblyRow
+            {
+                Flags = (ushort)assembly.Flags,
+                HashAlgorithm = (uint)assembly.HashAlgorithm,
+                Version = assembly.Version,
+                AssemblyKey = heaps.GetBlobIndex(assembly.PublicKey),
+                AssemblyName = GetStringIndexForPathAndCheckLength(assembly.Name, assembly),
+                AssemblyCulture = heaps.GetStringIndex(assembly.Culture)
+            });
         }
 
         private void PopulateClassLayoutTableRows()
@@ -3440,8 +3450,6 @@ namespace Microsoft.Cci
                 i++;
             }
         }
-        
-        private MethodRow[] _methodTable;
 
         private void PopulateModuleRefTableRows()
         {
@@ -3616,6 +3624,16 @@ namespace Microsoft.Cci
                 TypeSpecRow r = new TypeSpecRow();
                 r.Signature = this.GetTypeSpecSignatureIndex(typeSpec);
                 _typeSpecTable.Add(r);
+            }
+        }
+
+        private void PopulateStandaloneSignatures()
+        {
+            var signatures = GetStandAloneSignatures();
+
+            foreach (BlobIdx blob in signatures)
+            {
+                _standAloneSigTable.Add(new StandaloneSigRow { Signature = blob });
             }
         }
 
@@ -3864,9 +3882,9 @@ namespace Microsoft.Cci
 
         private void SerializeStandAloneSigTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (BlobIdx blobIndex in this.GetStandAloneSignatures())
+            foreach (StandaloneSigRow row in _standAloneSigTable)
             {
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(blobIndex), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -3966,48 +3984,33 @@ namespace Microsoft.Cci
 
         private void SerializeAssemblyTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            if (!EmitAssemblyDefinition)
+            foreach (AssemblyRow row in _assemblyTable)
             {
-                return;
+                writer.WriteUInt32(row.HashAlgorithm);
+                writer.WriteUInt16((ushort)row.Version.Major);
+                writer.WriteUInt16((ushort)row.Version.Minor);
+                writer.WriteUInt16((ushort)row.Version.Build);
+                writer.WriteUInt16((ushort)row.Version.Revision);
+                writer.WriteUInt32(row.Flags);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.AssemblyKey), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.AssemblyName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.AssemblyCulture), metadataSizes.StringIndexSize);
             }
-
-            IAssembly assembly = this.module.AsAssembly;
-            writer.WriteUInt32((uint)assembly.HashAlgorithm);
-            writer.WriteUInt16((ushort)assembly.Version.Major);
-            writer.WriteUInt16((ushort)assembly.Version.Minor);
-            writer.WriteUInt16((ushort)assembly.Version.Build);
-            writer.WriteUInt16((ushort)assembly.Version.Revision);
-            writer.WriteUInt32((uint)assembly.Flags);
-            writer.WriteReference((uint)heaps.ResolveBlobIndex(_assemblyKey), metadataSizes.BlobIndexSize);
-
-            writer.WriteReference((uint)heaps.ResolveStringIndex(_assemblyName), metadataSizes.StringIndexSize);
-            writer.WriteReference((uint)heaps.ResolveStringIndex(_assemblyCulture), metadataSizes.StringIndexSize);
         }
 
         private void SerializeAssemblyRefTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (AssemblyRefTableRow assemblyRef in _assemblyRefTable)
+            foreach (AssemblyRefTableRow row in _assemblyRefTable)
             {
-                writer.WriteUInt16((ushort)assemblyRef.Version.Major);
-                writer.WriteUInt16((ushort)assemblyRef.Version.Minor);
-                writer.WriteUInt16((ushort)assemblyRef.Version.Build);
-                writer.WriteUInt16((ushort)assemblyRef.Version.Revision);
-
-                // flags: reference has token, not full public key
-                uint flags = 0;
-                if (assemblyRef.IsRetargetable)
-                {
-                    flags |= (uint)AssemblyFlags.Retargetable;
-                }
-
-                flags |= (uint)assemblyRef.ContentType << 9;
-
-                writer.WriteUInt32(flags);
-
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(assemblyRef.PublicKeyToken), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(assemblyRef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(assemblyRef.Culture), metadataSizes.StringIndexSize);
-                writer.WriteReference(0, metadataSizes.BlobIndexSize); // hash of referenced assembly. Omitted.
+                writer.WriteUInt16((ushort)row.Version.Major);
+                writer.WriteUInt16((ushort)row.Version.Minor);
+                writer.WriteUInt16((ushort)row.Version.Build);
+                writer.WriteUInt16((ushort)row.Version.Revision);
+                writer.WriteUInt32(row.Flags);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.PublicKeyToken), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.Culture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.HashValue), metadataSizes.BlobIndexSize);
             }
         }
 
