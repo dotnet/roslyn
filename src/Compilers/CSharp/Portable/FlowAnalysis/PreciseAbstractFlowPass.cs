@@ -288,6 +288,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode VisitWithStackGuard(BoundNode node)
         {
             var expression = node as BoundExpression;
+            if (expression == null)
+            {
+                var equalsValue = node as BoundEqualsValue;
+                if (equalsValue != null)
+                {
+                    expression = equalsValue.Value;
+                }
+            }
+
             if (expression != null)
             {
                 return VisitExpressionWithStackGuard(ref _recursionDepth, expression);

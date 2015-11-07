@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
-            Return If(expressionInitializer IsNot Nothing AndAlso expressionInitializer.Kind <> BoundKind.BadExpression, New BoundEqualsValue(initializer, expressionInitializer), boundInitializer)
+            Return If(expressionInitializer IsNot Nothing, New BoundEqualsValue(initializer, expressionInitializer), boundInitializer)
         End Function
 
         Friend Overrides Function GetBoundRoot() As BoundNode
