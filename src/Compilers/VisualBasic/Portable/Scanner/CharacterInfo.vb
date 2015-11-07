@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsHalfWidth(c As Char) As Boolean
-            Return c >= ChrW(&H21S) AndAlso c <= ChrW(&H7ES)
+            Return c >= ChrW(&H21S) And c <= ChrW(&H7ES)
         End Function
 
         '// MakeHalfWidth - Converts a full-width character to half-width
@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '// IsFullWidth - Returns if the character is full width
         Friend Shared Function IsFullWidth(c As Char) As Boolean
             ' Do not use "AndAlso" or it will not inline.
-            Return (c > ChrW(&HFF00US)) AndAlso (c < ChrW(&HFF5FUS))
+            Return (c > ChrW(&HFF00US)) And (c < ChrW(&HFF5FUS))
         End Function
 
         ''' <summary>
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="c">The Unicode character.</param>
         ''' <returns>A boolean value set to True if character represents whitespace.</returns>
         Public Shared Function IsWhitespace(c As Char) As Boolean
-            Return (SPACE = c) OrElse (CHARACTER_TABULATION = c) OrElse (c > ChrW(128) AndAlso IsWhitespaceNotAscii(c))
+            Return (SPACE = c) Or (CHARACTER_TABULATION = c) Or (c > ChrW(128) And IsWhitespaceNotAscii(c))
         End Function
 
         ''' <summary>
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const CHARACTER_TABULATION As Char = ChrW(&H0009)
         Friend Const LINE_FEED As Char = ChrW(&H000A)
         Friend Const CARRIAGE_RETURN As Char = ChrW(&H000D)
-        Friend Const SPACE As Char = ChrW(&H0020)
+        Friend Const SPACE As Char = " "c ' ChrW(&H0020)
         Friend Const NO_BREAK_SPACE As Char = ChrW(&H00A0)
         Friend Const IDEOGRAPHIC_SPACE As Char = ChrW(&H3000)
         Friend Const LINE_SEPARATOR As Char = ChrW(&H2028)
@@ -81,11 +81,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const NEXT_LINE As Char = ChrW(&H0085)
 
 
-        Friend Const LEFT_SINGLE_QUOTATION_MARK As Char = ChrW(&H2018)                       REM ‘
-        Friend Const RIGHT_SINGLE_QUOTATION_MARK As Char = ChrW(&H2019)                      REM ’
+        Friend Const LEFT_SINGLE_QUOTATION_MARK As Char = "‘"c                                REM   ChrW(&H2018) / ‘
+        Friend Const RIGHT_SINGLE_QUOTATION_MARK As Char = "’"c                               REM   ChrW(&H2019) / ’
 
-        Friend Const LEFT_DOUBLE_QUOTATION_MARK As Char = ChrW(&H201C)                       REM “
-        Friend Const RIGHT_DOUBLE_QUOTATION_MARK As Char = ChrW(&H201D)                      REM ”
+        Friend Const LEFT_DOUBLE_QUOTATION_MARK As Char = "““"c                               REM   ChrW(&H201C) / “
+        Friend Const RIGHT_DOUBLE_QUOTATION_MARK As Char = "””"c                              REM   ChrW(&H201D) / ”
 
         Friend Const FULLWIDTH_APOSTROPHE As Char = ChrW(s_fullwidth + AscW("'"c))             REM ＇
         Friend Const FULLWIDTH_QUOTATION_MARK As Char = ChrW(s_fullwidth + AscW(""""c))        REM ＂
@@ -327,22 +327,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="name">The identifier name.</param>
         ''' <returns>A boolean value set to True if name is valid identifier.</returns>
         Public Shared Function IsValidIdentifier(name As String) As Boolean
-            If String.IsNullOrEmpty(name) Then
-                Return False
-            End If
+            If String.IsNullOrEmpty(name) OrElse Not IsIdentifierStartCharacter(name(0)) Then Return False
 
-            If Not IsIdentifierStartCharacter(name(0)) Then
-                Return False
-            End If
+            Return name.All(AddressOf IsIdentifierPartCharacter)
+            'Dim nameLength As Integer = name.Length
+            'For i As Integer = 1 To nameLength - 1 ' NB: start at 1
+            '    If Not IsIdentifierPartCharacter(name(i)) Then
+            '        Return False
+            '    End If
+            'Next
 
-            Dim nameLength As Integer = name.Length
-            For i As Integer = 1 To nameLength - 1 ' NB: start at 1
-                If Not IsIdentifierPartCharacter(name(i)) Then
-                    Return False
-                End If
-            Next
-
-            Return True
+            'Return True
         End Function
 
         ''' <summary>
