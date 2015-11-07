@@ -5298,7 +5298,7 @@ End Module
         End Sub
 
         <WorkItem(530221, "DevDiv")>
-        <Fact()>
+        <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
             Dim folder = Temp.CreateDirectory()
             Dim source As String = folder.CreateFile("src.vb").WriteAllText("").Path

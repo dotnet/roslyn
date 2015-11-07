@@ -5865,7 +5865,7 @@ class C
         }
 
         [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void ConditionalBoolExpr01b()
         {
             var source = @"

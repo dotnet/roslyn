@@ -2372,7 +2372,7 @@ class C1
             }
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestOpenProject_MetadataReferenceHasDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());

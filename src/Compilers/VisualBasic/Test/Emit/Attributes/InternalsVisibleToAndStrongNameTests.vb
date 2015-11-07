@@ -397,7 +397,7 @@ End Class
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(IsEnglishLocal))>
     Public Sub PubKeyContainerBogusOptions()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -540,7 +540,7 @@ End Class
         c2.VerifyDiagnostics()
     End Sub
 
-    <Fact>
+    <ConditionalFact(GetType(IsEnglishLocal))>
     Public Sub SignModuleKeyContainerBogus()
         Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="WantsIVTAccess">

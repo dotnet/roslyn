@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void NoMembers()
         {
             var expression = "o";
