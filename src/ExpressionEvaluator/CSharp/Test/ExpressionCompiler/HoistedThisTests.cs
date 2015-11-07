@@ -636,7 +636,7 @@ class C : I<int>
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: ilBytes.ToArray(),
-                symReader: new SymReader(ilPdbBytes.ToArray(), ilBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(ilPdbBytes));
 
             var context = CreateMethodContext(runtime, "C.<I<System.Int32>.F>d__0.MoveNext");
             VerifyHasThis(context, "C", @"
@@ -791,7 +791,7 @@ static class C
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: ilBytes.ToArray(),
-                symReader: new SymReader(ilPdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(ilPdbBytes.ToArray()));
 
             var context = CreateMethodContext(runtime, "C.<M>b__0");
             VerifyNoThis(context);
