@@ -2573,16 +2573,6 @@ namespace Microsoft.Cci
             this.PopulateEncMapTableRows(_encMapTable, rowCounts);
         }
 
-        private struct AssemblyRefTableRow
-        {
-            public Version Version;
-            public BlobIdx PublicKeyToken;
-            public StringIdx Name;
-            public StringIdx Culture;
-            public AssemblyContentType ContentType;
-            public bool IsRetargetable;
-        }
-
         private void PopulateAssemblyRefTableRows()
         {
             var assemblyRefs = this.GetAssemblyRefs();
@@ -2606,8 +2596,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private readonly List<AssemblyRefTableRow> _assemblyRefTable = new List<AssemblyRefTableRow>();
-
         private void PopulateAssemblyTableRows()
         {
             if (!EmitAssemblyDefinition)
@@ -2620,10 +2608,6 @@ namespace Microsoft.Cci
             _assemblyName = this.GetStringIndexForPathAndCheckLength(assembly.Name, assembly);
             _assemblyCulture = heaps.GetStringIndex(assembly.Identity.CultureName);
         }
-
-        private BlobIdx _assemblyKey;
-        private StringIdx _assemblyName;
-        private StringIdx _assemblyCulture;
 
         private void PopulateClassLayoutTableRows()
         {
@@ -2642,10 +2626,6 @@ namespace Microsoft.Cci
                 _classLayoutTable.Add(r);
             }
         }
-
-        private struct ClassLayoutRow { public ushort PackingSize; public uint ClassSize; public uint Parent; }
-
-        private readonly List<ClassLayoutRow> _classLayoutTable = new List<ClassLayoutRow>();
 
         private void PopulateConstantTableRows()
         {
@@ -2699,8 +2679,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
-
         private ConstantRow CreateConstantRow(object value, uint parent)
         {
             return new ConstantRow
@@ -2710,8 +2688,6 @@ namespace Microsoft.Cci
                 Value = heaps.GetConstantBlobIndex(value)
             };
         }
-
-        private readonly List<ConstantRow> _constantTable = new List<ConstantRow>();
 
         private void PopulateCustomAttributeTableRows()
         {
@@ -2889,10 +2865,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; public int OriginalPosition; }
-
-        private readonly List<CustomAttributeRow> _customAttributeTable = new List<CustomAttributeRow>();
-
         private void PopulateDeclSecurityTableRows()
         {
             IAssembly assembly = this.module.AsAssembly;
@@ -2969,26 +2941,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobIdx PermissionSet; public int OriginalIndex; }
-
-        private readonly List<DeclSecurityRow> _declSecurityTable = new List<DeclSecurityRow>();
-
-        protected struct EncLogRow { public uint Token; public EncFuncCode FuncCode; }
-
-        private readonly List<EncLogRow> _encLogTable = new List<EncLogRow>();
-
-        protected struct EncMapRow { public uint Token; }
-
-        private readonly List<EncMapRow> _encMapTable = new List<EncMapRow>();
-
         private void PopulateEventMapTableRows()
         {
             this.PopulateEventMapTableRows(_eventMapTable);
         }
-
-        protected struct EventMapRow { public uint Parent; public uint EventList; }
-
-        private readonly List<EventMapRow> _eventMapTable = new List<EventMapRow>();
 
         private void PopulateEventTableRows()
         {
@@ -3004,10 +2960,6 @@ namespace Microsoft.Cci
                 _eventTable.Add(r);
             }
         }
-
-        private struct EventRow { public ushort EventFlags; public StringIdx Name; public uint EventType; }
-
-        private readonly List<EventRow> _eventTable = new List<EventRow>();
 
         private void PopulateExportedTypeTableRows()
         {
@@ -3074,10 +3026,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct ExportedTypeRow { public TypeFlags Flags; public uint TypeDefId; public StringIdx TypeName; public StringIdx TypeNamespace; public uint Implementation; }
-
-        private readonly List<ExportedTypeRow> _exportedTypeTable = new List<ExportedTypeRow>();
-
         private void PopulateFieldLayoutTableRows()
         {
             foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
@@ -3094,10 +3042,6 @@ namespace Microsoft.Cci
                 _fieldLayoutTable.Add(r);
             }
         }
-
-        private struct FieldLayoutRow { public uint Offset; public uint Field; }
-
-        private readonly List<FieldLayoutRow> _fieldLayoutTable = new List<FieldLayoutRow>();
 
         private void PopulateFieldMarshalTableRows()
         {
@@ -3156,10 +3100,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct FieldMarshalRow { public uint Parent; public BlobIdx NativeType; }
-
-        private readonly List<FieldMarshalRow> _fieldMarshalTable = new List<FieldMarshalRow>();
-
         private void PopulateFieldRvaTableRows(BlobBuilder mappedFieldDataWriter)
         {
             foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
@@ -3180,10 +3120,6 @@ namespace Microsoft.Cci
                 _fieldRvaTable.Add(r);
             }
         }
-
-        private struct FieldRvaRow { public uint Offset; public uint Field; }
-
-        private readonly List<FieldRvaRow> _fieldRvaTable = new List<FieldRvaRow>();
 
         private void PopulateFieldTableRows()
         {
@@ -3206,10 +3142,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct FieldDefRow { public ushort Flags; public StringIdx Name; public BlobIdx Signature; }
-
-        private readonly List<FieldDefRow> _fieldDefTable = new List<FieldDefRow>();
-
         private void PopulateFileTableRows()
         {
             IAssembly assembly = this.module.AsAssembly;
@@ -3231,10 +3163,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct FileTableRow { public uint Flags; public StringIdx FileName; public BlobIdx HashValue; }
-
-        private readonly List<FileTableRow> _fileTable = new List<FileTableRow>();
-
         private void PopulateGenericParamConstraintTableRows()
         {
             uint genericParamIndex = 0;
@@ -3250,11 +3178,7 @@ namespace Microsoft.Cci
                 }
             }
         }
-
-        private struct GenericParamConstraintRow { public uint Owner; public uint Constraint; }
-
-        private readonly List<GenericParamConstraintRow> _genericParamConstraintTable = new List<GenericParamConstraintRow>();
-
+        
         private void PopulateGenericParamTableRows()
         {
             var genericParameters = this.GetGenericParameters();
@@ -3293,10 +3217,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct GenericParamRow { public ushort Number; public ushort Flags; public uint Owner; public StringIdx Name; public IGenericParameter GenericParameter; }
-
-        private readonly List<GenericParamRow> _genericParamTable = new List<GenericParamRow>();
-
         private void PopulateImplMapTableRows()
         {
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
@@ -3322,10 +3242,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct ImplMapRow { public ushort MappingFlags; public uint MemberForwarded; public StringIdx ImportName; public uint ImportScope; }
-
-        private readonly List<ImplMapRow> _implMapTable = new List<ImplMapRow>();
-
         private void PopulateInterfaceImplTableRows()
         {
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())
@@ -3340,11 +3256,7 @@ namespace Microsoft.Cci
                 }
             }
         }
-
-        private struct InterfaceImplRow { public uint Class; public uint Interface; }
-
-        private readonly List<InterfaceImplRow> _interfaceImplTable = new List<InterfaceImplRow>();
-
+        
         private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter)
         {
             foreach (var resource in this.module.GetResources(Context))
@@ -3373,10 +3285,6 @@ namespace Microsoft.Cci
             Debug.Assert((resourceDataWriter.Count % ManagedResourcesDataAlignment) == 0);
         }
 
-        private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
-
-        private readonly List<ManifestResourceRow> _manifestResourceTable = new List<ManifestResourceRow>();
-
         private void PopulateMemberRefTableRows()
         {
             var memberRefs = this.GetMemberRefs();
@@ -3391,11 +3299,7 @@ namespace Microsoft.Cci
                 _memberRefTable.Add(r);
             }
         }
-
-        private struct MemberRefRow { public uint Class; public StringIdx Name; public BlobIdx Signature; }
-
-        private readonly List<MemberRefRow> _memberRefTable = new List<MemberRefRow>();
-
+        
         private void PopulateMethodImplTableRows()
         {
             _methodImplTable.Capacity = this.methodImplList.Count;
@@ -3409,10 +3313,6 @@ namespace Microsoft.Cci
                 _methodImplTable.Add(r);
             }
         }
-
-        private struct MethodImplRow { public uint Class; public uint MethodBody; public uint MethodDecl; }
-
-        private readonly List<MethodImplRow> _methodImplTable = new List<MethodImplRow>();
 
         private void PopulateMethodSemanticsTableRows()
         {
@@ -3496,11 +3396,7 @@ namespace Microsoft.Cci
                 return result;
             }
         }
-
-        private struct MethodSemanticsRow { public ushort Semantic; public uint Method; public uint Association; public uint OriginalIndex; }
-
-        private readonly List<MethodSemanticsRow> _methodSemanticsTable = new List<MethodSemanticsRow>();
-
+        
         private void PopulateMethodSpecTableRows()
         {
             var methodSpecs = this.GetMethodSpecs();
@@ -3514,11 +3410,7 @@ namespace Microsoft.Cci
                 _methodSpecTable.Add(r);
             }
         }
-
-        private struct MethodSpecRow { public uint Method; public BlobIdx Instantiation; }
-
-        private readonly List<MethodSpecRow> _methodSpecTable = new List<MethodSpecRow>();
-
+        
         private void PopulateMethodTableRows(int[] methodBodyRvas)
         {
             var methodDefs = this.GetMethodDefs();
@@ -3540,9 +3432,7 @@ namespace Microsoft.Cci
                 i++;
             }
         }
-
-        private struct MethodRow { public int Rva; public ushort ImplFlags; public ushort Flags; public StringIdx Name; public BlobIdx Signature; public uint ParamList; }
-
+        
         private MethodRow[] _methodTable;
 
         private void PopulateModuleRefTableRows()
@@ -3557,11 +3447,7 @@ namespace Microsoft.Cci
                 _moduleRefTable.Add(r);
             }
         }
-
-        private struct ModuleRefRow { public StringIdx Name; }
-
-        private readonly List<ModuleRefRow> _moduleRefTable = new List<ModuleRefRow>();
-
+        
         private void PopulateModuleTableRow()
         {
             CheckPathLength(this.module.ModuleName);
@@ -3590,8 +3476,6 @@ namespace Microsoft.Cci
             };
         }
 
-        private struct ModuleRow { public ushort Generation; public StringIdx Name; public int ModuleVersionId; public int EncId; public int EncBaseId; }
-
         private ModuleRow _moduleRow;
 
         private void PopulateNestedClassTableRows()
@@ -3611,11 +3495,7 @@ namespace Microsoft.Cci
                 _nestedClassTable.Add(r);
             }
         }
-
-        private struct NestedClassRow { public uint NestedClass; public uint EnclosingClass; }
-
-        private readonly List<NestedClassRow> _nestedClassTable = new List<NestedClassRow>();
-
+        
         private void PopulateParamTableRows()
         {
             var parameterDefs = this.GetParameterDefs();
@@ -3631,18 +3511,10 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct ParamRow { public ushort Flags; public ushort Sequence; public StringIdx Name; }
-
-        private readonly List<ParamRow> _paramTable = new List<ParamRow>();
-
         private void PopulatePropertyMapTableRows()
         {
             this.PopulatePropertyMapTableRows(_propertyMapTable);
         }
-
-        protected struct PropertyMapRow { public uint Parent; public uint PropertyList; }
-
-        private readonly List<PropertyMapRow> _propertyMapTable = new List<PropertyMapRow>();
 
         private void PopulatePropertyTableRows()
         {
@@ -3658,12 +3530,7 @@ namespace Microsoft.Cci
                 _propertyTable.Add(r);
             }
         }
-
-        [StructLayout(LayoutKind.Auto)]
-        private struct PropertyRow { public ushort PropFlags; public StringIdx Name; public BlobIdx Type; }
-
-        private readonly List<PropertyRow> _propertyTable = new List<PropertyRow>();
-
+        
         private void PopulateTypeDefTableRows()
         {
             var typeDefs = this.GetTypeDefs();
@@ -3688,10 +3555,6 @@ namespace Microsoft.Cci
                 _typeDefTable.Add(r);
             }
         }
-
-        private struct TypeDefRow { public uint Flags; public StringIdx Name; public StringIdx Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
-
-        private readonly List<TypeDefRow> _typeDefTable = new List<TypeDefRow>();
 
         private void PopulateTypeRefTableRows()
         {
@@ -3735,10 +3598,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private struct TypeRefRow { public uint ResolutionScope; public StringIdx Name; public StringIdx Namespace; }
-
-        private readonly List<TypeRefRow> _typeRefTable = new List<TypeRefRow>();
-
         private void PopulateTypeSpecTableRows()
         {
             var typeSpecs = this.GetTypeSpecs();
@@ -3751,10 +3610,6 @@ namespace Microsoft.Cci
                 _typeSpecTable.Add(r);
             }
         }
-
-        private struct TypeSpecRow { public BlobIdx Signature; }
-
-        private readonly List<TypeSpecRow> _typeSpecTable = new List<TypeSpecRow>();
 
         private void SerializeTablesHeader(BlobBuilder writer, MetadataSizes metadataSizes)
         {
