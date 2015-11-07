@@ -59,7 +59,7 @@
     <Compile Include="..\..\..\Compilers\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\AssemblyIdentityUtils.cs">
+    <Compile Include="..\..\..\Compilers\Core\CommandLine\AssemblyIdentityUtils.cs">
       <Link>AssemblyIdentityUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
