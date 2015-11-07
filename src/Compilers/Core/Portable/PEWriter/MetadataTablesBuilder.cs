@@ -17,8 +17,9 @@ namespace Microsoft.Cci
         private const byte MetadataFormatMinorVersion = 0;
 
         // type system table rows:
-        private struct AssemblyRefTableRow { public Version Version; public BlobIdx PublicKeyToken; public StringIdx Name; public StringIdx Culture; public AssemblyContentType ContentType; public bool IsRetargetable; }
+        private struct AssemblyRefTableRow { public Version Version; public BlobIdx PublicKeyToken; public StringIdx Name; public StringIdx Culture; public uint Flags; public BlobIdx HashValue; }
         private struct ModuleRow { public ushort Generation; public StringIdx Name; public int ModuleVersionId; public int EncId; public int EncBaseId; }
+        private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobIdx AssemblyKey; public StringIdx AssemblyName; public StringIdx AssemblyCulture; }
         private struct ClassLayoutRow { public ushort PackingSize; public uint ClassSize; public uint Parent; }
         private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
         private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; public int OriginalPosition; }
@@ -51,6 +52,7 @@ namespace Microsoft.Cci
         private struct TypeDefRow { public uint Flags; public StringIdx Name; public StringIdx Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
         private struct TypeRefRow { public uint ResolutionScope; public StringIdx Name; public StringIdx Namespace; }
         private struct TypeSpecRow { public BlobIdx Signature; }
+        private struct StandaloneSigRow { public BlobIdx Signature; }
        
         // debug table rows:
         private struct DocumentRow { public BlobIdx Name; public uint HashAlgorithm; public BlobIdx Hash; public uint Language; }
@@ -63,19 +65,15 @@ namespace Microsoft.Cci
         private struct CustomDebugInformationRow { public uint Parent; public uint Kind; public BlobIdx Value; }
 
         // type system tables:
-        private BlobIdx _assemblyKey;
-        private StringIdx _assemblyName;
-        private StringIdx _assemblyCulture;
-
-        private readonly List<AssemblyRefTableRow> _assemblyRefTable = new List<AssemblyRefTableRow>();
+        private readonly List<AssemblyRow> _assemblyTable = new List<AssemblyRow>(1);
         private readonly List<ClassLayoutRow> _classLayoutTable = new List<ClassLayoutRow>();
         private readonly List<ConstantRow> _constantTable = new List<ConstantRow>();
         private readonly List<CustomAttributeRow> _customAttributeTable = new List<CustomAttributeRow>();
         private readonly List<DeclSecurityRow> _declSecurityTable = new List<DeclSecurityRow>();
         private readonly List<EncLogRow> _encLogTable = new List<EncLogRow>();
         private readonly List<EncMapRow> _encMapTable = new List<EncMapRow>();
-        private readonly List<EventMapRow> _eventMapTable = new List<EventMapRow>();
         private readonly List<EventRow> _eventTable = new List<EventRow>();
+        private readonly List<EventMapRow> _eventMapTable = new List<EventMapRow>();        
         private readonly List<ExportedTypeRow> _exportedTypeTable = new List<ExportedTypeRow>();
         private readonly List<FieldLayoutRow> _fieldLayoutTable = new List<FieldLayoutRow>();
         private readonly List<FieldMarshalRow> _fieldMarshalTable = new List<FieldMarshalRow>();
@@ -91,6 +89,7 @@ namespace Microsoft.Cci
         private readonly List<MethodImplRow> _methodImplTable = new List<MethodImplRow>();
         private readonly List<MethodSemanticsRow> _methodSemanticsTable = new List<MethodSemanticsRow>();
         private readonly List<MethodSpecRow> _methodSpecTable = new List<MethodSpecRow>();
+        private MethodRow[] _methodTable;
         private readonly List<ModuleRefRow> _moduleRefTable = new List<ModuleRefRow>();
         private readonly List<NestedClassRow> _nestedClassTable = new List<NestedClassRow>();
         private readonly List<ParamRow> _paramTable = new List<ParamRow>();
@@ -99,6 +98,8 @@ namespace Microsoft.Cci
         private readonly List<TypeDefRow> _typeDefTable = new List<TypeDefRow>();
         private readonly List<TypeRefRow> _typeRefTable = new List<TypeRefRow>();
         private readonly List<TypeSpecRow> _typeSpecTable = new List<TypeSpecRow>();
+        private readonly List<AssemblyRefTableRow> _assemblyRefTable = new List<AssemblyRefTableRow>();
+        private readonly List<StandaloneSigRow> _standAloneSigTable = new List<StandaloneSigRow>();
 
         // debug tables:
         private readonly List<DocumentRow> _documentTable = new List<DocumentRow>();
