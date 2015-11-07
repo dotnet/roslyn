@@ -691,7 +691,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shadows Function VisitWithStackGuard(node As BoundNode) As BoundNode
-
             Dim expression = TryCast(node, BoundExpression)
 
             If expression Is Nothing Then
