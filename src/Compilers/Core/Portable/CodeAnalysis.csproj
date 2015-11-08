@@ -72,6 +72,7 @@
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
+    <Compile Include="PEWriter\MetadataBuilder.cs" />
     <Compile Include="PEWriter\MetadataTablesBuilder.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />

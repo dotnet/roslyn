@@ -110,5 +110,825 @@ namespace Microsoft.Cci
         private readonly List<ImportScopeRow> _importScopeTable = new List<ImportScopeRow>();
         private readonly List<StateMachineMethodRow> _stateMachineMethodTable = new List<StateMachineMethodRow>();
         private readonly List<CustomDebugInformationRow> _customDebugInformationTable = new List<CustomDebugInformationRow>();
+
+        private ImmutableArray<int> GetRowCounts()
+        {
+            var rowCounts = new int[MetadataTokens.TableCount];
+
+            rowCounts[(int)TableIndex.Assembly] = _assemblyTable.Count;
+            rowCounts[(int)TableIndex.AssemblyRef] = _assemblyRefTable.Count;
+            rowCounts[(int)TableIndex.ClassLayout] = _classLayoutTable.Count;
+            rowCounts[(int)TableIndex.Constant] = _constantTable.Count;
+            rowCounts[(int)TableIndex.CustomAttribute] = _customAttributeTable.Count;
+            rowCounts[(int)TableIndex.DeclSecurity] = _declSecurityTable.Count;
+            rowCounts[(int)TableIndex.EncLog] = _encLogTable.Count;
+            rowCounts[(int)TableIndex.EncMap] = _encMapTable.Count;
+            rowCounts[(int)TableIndex.EventMap] = _eventMapTable.Count;
+            rowCounts[(int)TableIndex.Event] = _eventTable.Count;
+            rowCounts[(int)TableIndex.ExportedType] = _exportedTypeTable.Count;
+            rowCounts[(int)TableIndex.FieldLayout] = _fieldLayoutTable.Count;
+            rowCounts[(int)TableIndex.FieldMarshal] = _fieldMarshalTable.Count;
+            rowCounts[(int)TableIndex.FieldRva] = _fieldRvaTable.Count;
+            rowCounts[(int)TableIndex.Field] = _fieldDefTable.Count;
+            rowCounts[(int)TableIndex.File] = _fileTable.Count;
+            rowCounts[(int)TableIndex.GenericParamConstraint] = _genericParamConstraintTable.Count;
+            rowCounts[(int)TableIndex.GenericParam] = _genericParamTable.Count;
+            rowCounts[(int)TableIndex.ImplMap] = _implMapTable.Count;
+            rowCounts[(int)TableIndex.InterfaceImpl] = _interfaceImplTable.Count;
+            rowCounts[(int)TableIndex.ManifestResource] = _manifestResourceTable.Count;
+            rowCounts[(int)TableIndex.MemberRef] = _memberRefTable.Count;
+            rowCounts[(int)TableIndex.MethodImpl] = _methodImplTable.Count;
+            rowCounts[(int)TableIndex.MethodSemantics] = _methodSemanticsTable.Count;
+            rowCounts[(int)TableIndex.MethodSpec] = _methodSpecTable.Count;
+            rowCounts[(int)TableIndex.MethodDef] = _methodTable.Length;
+            rowCounts[(int)TableIndex.ModuleRef] = _moduleRefTable.Count;
+            rowCounts[(int)TableIndex.Module] = 1;
+            rowCounts[(int)TableIndex.NestedClass] = _nestedClassTable.Count;
+            rowCounts[(int)TableIndex.Param] = _paramTable.Count;
+            rowCounts[(int)TableIndex.PropertyMap] = _propertyMapTable.Count;
+            rowCounts[(int)TableIndex.Property] = _propertyTable.Count;
+            rowCounts[(int)TableIndex.StandAloneSig] = _standAloneSigTable.Count;
+            rowCounts[(int)TableIndex.TypeDef] = _typeDefTable.Count;
+            rowCounts[(int)TableIndex.TypeRef] = _typeRefTable.Count;
+            rowCounts[(int)TableIndex.TypeSpec] = _typeSpecTable.Count;
+
+            rowCounts[(int)TableIndex.Document] = _documentTable.Count;
+            rowCounts[(int)TableIndex.MethodDebugInformation] = _methodDebugInformationTable.Count;
+            rowCounts[(int)TableIndex.LocalScope] = _localScopeTable.Count;
+            rowCounts[(int)TableIndex.LocalVariable] = _localVariableTable.Count;
+            rowCounts[(int)TableIndex.LocalConstant] = _localConstantTable.Count;
+            rowCounts[(int)TableIndex.StateMachineMethod] = _stateMachineMethodTable.Count;
+            rowCounts[(int)TableIndex.ImportScope] = _importScopeTable.Count;
+            rowCounts[(int)TableIndex.CustomDebugInformation] = _customDebugInformationTable.Count;
+
+            return ImmutableArray.CreateRange(rowCounts);
+        }
+
+        #region Serialization
+
+        private void SerializeMetadataTables(
+            BlobBuilder writer,
+            MetadataSizes metadataSizes,
+            int methodBodyStreamRva,
+            int mappedFieldDataStreamRva)
+        {
+            int startPosition = writer.Position;
+
+            this.SerializeTablesHeader(writer, metadataSizes);
+
+            if (metadataSizes.IsPresent(TableIndex.Module))
+            {
+                SerializeModuleTable(writer, metadataSizes, heaps);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.TypeRef))
+            {
+                this.SerializeTypeRefTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.TypeDef))
+            {
+                this.SerializeTypeDefTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.Field))
+            {
+                this.SerializeFieldTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.MethodDef))
+            {
+                this.SerializeMethodDefTable(writer, metadataSizes, methodBodyStreamRva);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.Param))
+            {
+                this.SerializeParamTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.InterfaceImpl))
+            {
+                this.SerializeInterfaceImplTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.MemberRef))
+            {
+                this.SerializeMemberRefTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.Constant))
+            {
+                this.SerializeConstantTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.CustomAttribute))
+            {
+                this.SerializeCustomAttributeTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.FieldMarshal))
+            {
+                this.SerializeFieldMarshalTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.DeclSecurity))
+            {
+                this.SerializeDeclSecurityTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.ClassLayout))
+            {
+                this.SerializeClassLayoutTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.FieldLayout))
+            {
+                this.SerializeFieldLayoutTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.StandAloneSig))
+            {
+                this.SerializeStandAloneSigTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.EventMap))
+            {
+                this.SerializeEventMapTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.Event))
+            {
+                this.SerializeEventTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.PropertyMap))
+            {
+                this.SerializePropertyMapTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.Property))
+            {
+                this.SerializePropertyTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.MethodSemantics))
+            {
+                this.SerializeMethodSemanticsTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.MethodImpl))
+            {
+                this.SerializeMethodImplTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.ModuleRef))
+            {
+                this.SerializeModuleRefTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.TypeSpec))
+            {
+                this.SerializeTypeSpecTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.ImplMap))
+            {
+                this.SerializeImplMapTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.FieldRva))
+            {
+                this.SerializeFieldRvaTable(writer, metadataSizes, mappedFieldDataStreamRva);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.EncLog))
+            {
+                this.SerializeEncLogTable(writer);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.EncMap))
+            {
+                this.SerializeEncMapTable(writer);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.Assembly))
+            {
+                this.SerializeAssemblyTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.AssemblyRef))
+            {
+                this.SerializeAssemblyRefTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.File))
+            {
+                this.SerializeFileTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.ExportedType))
+            {
+                this.SerializeExportedTypeTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.ManifestResource))
+            {
+                this.SerializeManifestResourceTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.NestedClass))
+            {
+                this.SerializeNestedClassTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.GenericParam))
+            {
+                this.SerializeGenericParamTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.MethodSpec))
+            {
+                this.SerializeMethodSpecTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.GenericParamConstraint))
+            {
+                this.SerializeGenericParamConstraintTable(writer, metadataSizes);
+            }
+
+            // debug tables
+            if (metadataSizes.IsPresent(TableIndex.Document))
+            {
+                this.SerializeDocumentTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.MethodDebugInformation))
+            {
+                this.SerializeMethodDebugInformationTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.LocalScope))
+            {
+                this.SerializeLocalScopeTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.LocalVariable))
+            {
+                this.SerializeLocalVariableTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.LocalConstant))
+            {
+                this.SerializeLocalConstantTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.ImportScope))
+            {
+                this.SerializeImportScopeTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.StateMachineMethod))
+            {
+                this.SerializeStateMachineMethodTable(writer, metadataSizes);
+            }
+
+            if (metadataSizes.IsPresent(TableIndex.CustomDebugInformation))
+            {
+                this.SerializeCustomDebugInformationTable(writer, metadataSizes);
+            }
+
+            writer.WriteByte(0);
+            writer.Align(4);
+
+            int endPosition = writer.Position;
+            Debug.Assert(metadataSizes.MetadataTableStreamSize == endPosition - startPosition);
+        }
+
+        private void SerializeTablesHeader(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            int startPosition = writer.Position;
+
+            HeapSizeFlag heapSizes = 0;
+            if (metadataSizes.StringIndexSize > 2)
+            {
+                heapSizes |= HeapSizeFlag.StringHeapLarge;
+            }
+
+            if (metadataSizes.GuidIndexSize > 2)
+            {
+                heapSizes |= HeapSizeFlag.GuidHeapLarge;
+            }
+
+            if (metadataSizes.BlobIndexSize > 2)
+            {
+                heapSizes |= HeapSizeFlag.BlobHeapLarge;
+            }
+
+            if (!this.IsFullMetadata)
+            {
+                heapSizes |= (HeapSizeFlag.EnCDeltas | HeapSizeFlag.DeletedMarks);
+            }
+
+            ulong sortedDebugTables = metadataSizes.PresentTablesMask & MetadataSizes.SortedDebugTables;
+
+            // Consider filtering out type system tables that are not present:
+            ulong sortedTables = sortedDebugTables | (metadataSizes.IsStandaloneDebugMetadata ? 0UL : 0x16003301fa00);
+
+            writer.WriteUInt32(0); // reserved
+            writer.WriteByte(module.Properties.MetadataFormatMajorVersion);
+            writer.WriteByte(module.Properties.MetadataFormatMinorVersion);
+            writer.WriteByte((byte)heapSizes);
+            writer.WriteByte(1); // reserved
+            writer.WriteUInt64(metadataSizes.PresentTablesMask);
+            writer.WriteUInt64(sortedTables);
+            SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.PresentTablesMask);
+
+            int endPosition = writer.Position;
+            Debug.Assert(metadataSizes.CalculateTableStreamHeaderSize() == endPosition - startPosition);
+        }
+
+        private static void SerializeRowCounts(BlobBuilder writer, ImmutableArray<int> rowCounts, ulong includeTables)
+        {
+            for (int i = 0; i < rowCounts.Length; i++)
+            {
+                if (((1UL << i) & includeTables) != 0)
+                {
+                    int rowCount = rowCounts[i];
+                    if (rowCount > 0)
+                    {
+                        writer.WriteInt32(rowCount);
+                    }
+                }
+            }
+        }
+
+        private void SerializeModuleTable(BlobBuilder writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps)
+        {
+            writer.WriteUInt16(_moduleRow.Generation);
+            writer.WriteReference((uint)heaps.ResolveStringIndex(_moduleRow.Name), metadataSizes.StringIndexSize);
+            writer.WriteReference((uint)_moduleRow.ModuleVersionId, metadataSizes.GuidIndexSize);
+            writer.WriteReference((uint)_moduleRow.EncId, metadataSizes.GuidIndexSize);
+            writer.WriteReference((uint)_moduleRow.EncBaseId, metadataSizes.GuidIndexSize);
+        }
+
+        private void SerializeEncLogTable(BlobBuilder writer)
+        {
+            foreach (EncLogRow encLog in _encLogTable)
+            {
+                writer.WriteUInt32(encLog.Token);
+                writer.WriteUInt32((uint)encLog.FuncCode);
+            }
+        }
+
+        private void SerializeEncMapTable(BlobBuilder writer)
+        {
+            foreach (EncMapRow encMap in _encMapTable)
+            {
+                writer.WriteUInt32(encMap.Token);
+            }
+        }
+
+        private void SerializeTypeRefTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (TypeRefRow typeRef in _typeRefTable)
+            {
+                writer.WriteReference(typeRef.ResolutionScope, metadataSizes.ResolutionScopeCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(typeRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(typeRef.Namespace), metadataSizes.StringIndexSize);
+            }
+        }
+
+        private void SerializeTypeDefTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (TypeDefRow typeDef in _typeDefTable)
+            {
+                writer.WriteUInt32(typeDef.Flags);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(typeDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(typeDef.Namespace), metadataSizes.StringIndexSize);
+                writer.WriteReference(typeDef.Extends, metadataSizes.TypeDefOrRefCodedIndexSize);
+                writer.WriteReference(typeDef.FieldList, metadataSizes.FieldDefIndexSize);
+                writer.WriteReference(typeDef.MethodList, metadataSizes.MethodDefIndexSize);
+            }
+        }
+
+        private void SerializeFieldTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (FieldDefRow fieldDef in _fieldDefTable)
+            {
+                writer.WriteUInt16(fieldDef.Flags);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(fieldDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(fieldDef.Signature), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeMethodDefTable(BlobBuilder writer, MetadataSizes metadataSizes, int methodBodyStreamRva)
+        {
+            foreach (MethodRow method in _methodTable)
+            {
+                if (method.Rva == -1)
+                {
+                    writer.WriteUInt32(0);
+                }
+                else
+                {
+                    writer.WriteUInt32((uint)(methodBodyStreamRva + method.Rva));
+                }
+
+                writer.WriteUInt16(method.ImplFlags);
+                writer.WriteUInt16(method.Flags);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(method.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(method.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference(method.ParamList, metadataSizes.ParameterIndexSize);
+            }
+        }
+
+        private void SerializeParamTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (ParamRow param in _paramTable)
+            {
+                writer.WriteUInt16(param.Flags);
+                writer.WriteUInt16(param.Sequence);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(param.Name), metadataSizes.StringIndexSize);
+            }
+        }
+
+        private void SerializeInterfaceImplTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (InterfaceImplRow interfaceImpl in _interfaceImplTable)
+            {
+                writer.WriteReference(interfaceImpl.Class, metadataSizes.TypeDefIndexSize);
+                writer.WriteReference(interfaceImpl.Interface, metadataSizes.TypeDefOrRefCodedIndexSize);
+            }
+        }
+
+        private void SerializeMemberRefTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (MemberRefRow memberRef in _memberRefTable)
+            {
+                writer.WriteReference(memberRef.Class, metadataSizes.MemberRefParentCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(memberRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(memberRef.Signature), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeConstantTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (ConstantRow constant in _constantTable)
+            {
+                writer.WriteByte(constant.Type);
+                writer.WriteByte(0);
+                writer.WriteReference(constant.Parent, metadataSizes.HasConstantCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(constant.Value), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeCustomAttributeTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (CustomAttributeRow customAttribute in _customAttributeTable)
+            {
+                writer.WriteReference(customAttribute.Parent, metadataSizes.HasCustomAttributeCodedIndexSize);
+                writer.WriteReference(customAttribute.Type, metadataSizes.CustomAttributeTypeCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(customAttribute.Value), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeFieldMarshalTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (FieldMarshalRow fieldMarshal in _fieldMarshalTable)
+            {
+                writer.WriteReference(fieldMarshal.Parent, metadataSizes.HasFieldMarshalCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeDeclSecurityTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (DeclSecurityRow declSecurity in _declSecurityTable)
+            {
+                writer.WriteUInt16(declSecurity.Action);
+                writer.WriteReference(declSecurity.Parent, metadataSizes.DeclSecurityCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(declSecurity.PermissionSet), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeClassLayoutTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (ClassLayoutRow classLayout in _classLayoutTable)
+            {
+                writer.WriteUInt16(classLayout.PackingSize);
+                writer.WriteUInt32(classLayout.ClassSize);
+                writer.WriteReference(classLayout.Parent, metadataSizes.TypeDefIndexSize);
+            }
+        }
+
+        private void SerializeFieldLayoutTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (FieldLayoutRow fieldLayout in _fieldLayoutTable)
+            {
+                writer.WriteUInt32(fieldLayout.Offset);
+                writer.WriteReference(fieldLayout.Field, metadataSizes.FieldDefIndexSize);
+            }
+        }
+
+        private void SerializeStandAloneSigTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (StandaloneSigRow row in _standAloneSigTable)
+            {
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeEventMapTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (EventMapRow eventMap in _eventMapTable)
+            {
+                writer.WriteReference(eventMap.Parent, metadataSizes.TypeDefIndexSize);
+                writer.WriteReference(eventMap.EventList, metadataSizes.EventDefIndexSize);
+            }
+        }
+
+        private void SerializeEventTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (EventRow eventRow in _eventTable)
+            {
+                writer.WriteUInt16(eventRow.EventFlags);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(eventRow.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference(eventRow.EventType, metadataSizes.TypeDefOrRefCodedIndexSize);
+            }
+        }
+
+        private void SerializePropertyMapTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (PropertyMapRow propertyMap in _propertyMapTable)
+            {
+                writer.WriteReference(propertyMap.Parent, metadataSizes.TypeDefIndexSize);
+                writer.WriteReference(propertyMap.PropertyList, metadataSizes.PropertyDefIndexSize);
+            }
+        }
+
+        private void SerializePropertyTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (PropertyRow property in _propertyTable)
+            {
+                writer.WriteUInt16(property.PropFlags);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(property.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(property.Type), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeMethodSemanticsTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (MethodSemanticsRow methodSemantic in _methodSemanticsTable)
+            {
+                writer.WriteUInt16(methodSemantic.Semantic);
+                writer.WriteReference(methodSemantic.Method, metadataSizes.MethodDefIndexSize);
+                writer.WriteReference(methodSemantic.Association, metadataSizes.HasSemanticsCodedIndexSize);
+            }
+        }
+
+        private void SerializeMethodImplTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (MethodImplRow methodImpl in _methodImplTable)
+            {
+                writer.WriteReference(methodImpl.Class, metadataSizes.TypeDefIndexSize);
+                writer.WriteReference(methodImpl.MethodBody, metadataSizes.MethodDefOrRefCodedIndexSize);
+                writer.WriteReference(methodImpl.MethodDecl, metadataSizes.MethodDefOrRefCodedIndexSize);
+            }
+        }
+
+        private void SerializeModuleRefTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (ModuleRefRow moduleRef in _moduleRefTable)
+            {
+                writer.WriteReference((uint)heaps.ResolveStringIndex(moduleRef.Name), metadataSizes.StringIndexSize);
+            }
+        }
+
+        private void SerializeTypeSpecTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (TypeSpecRow typeSpec in _typeSpecTable)
+            {
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(typeSpec.Signature), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeImplMapTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (ImplMapRow implMap in _implMapTable)
+            {
+                writer.WriteUInt16(implMap.MappingFlags);
+                writer.WriteReference(implMap.MemberForwarded, metadataSizes.MemberForwardedCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(implMap.ImportName), metadataSizes.StringIndexSize);
+                writer.WriteReference(implMap.ImportScope, metadataSizes.ModuleRefIndexSize);
+            }
+        }
+
+        private void SerializeFieldRvaTable(BlobBuilder writer, MetadataSizes metadataSizes, int mappedFieldDataStreamRva)
+        {
+            foreach (FieldRvaRow fieldRva in _fieldRvaTable)
+            {
+                writer.WriteUInt32((uint)mappedFieldDataStreamRva + fieldRva.Offset);
+                writer.WriteReference(fieldRva.Field, metadataSizes.FieldDefIndexSize);
+            }
+        }
+
+        private void SerializeAssemblyTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (AssemblyRow row in _assemblyTable)
+            {
+                writer.WriteUInt32(row.HashAlgorithm);
+                writer.WriteUInt16((ushort)row.Version.Major);
+                writer.WriteUInt16((ushort)row.Version.Minor);
+                writer.WriteUInt16((ushort)row.Version.Build);
+                writer.WriteUInt16((ushort)row.Version.Revision);
+                writer.WriteUInt32(row.Flags);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.AssemblyKey), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.AssemblyName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.AssemblyCulture), metadataSizes.StringIndexSize);
+            }
+        }
+
+        private void SerializeAssemblyRefTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (AssemblyRefTableRow row in _assemblyRefTable)
+            {
+                writer.WriteUInt16((ushort)row.Version.Major);
+                writer.WriteUInt16((ushort)row.Version.Minor);
+                writer.WriteUInt16((ushort)row.Version.Build);
+                writer.WriteUInt16((ushort)row.Version.Revision);
+                writer.WriteUInt32(row.Flags);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.PublicKeyToken), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(row.Culture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.HashValue), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeFileTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (FileTableRow fileReference in _fileTable)
+            {
+                writer.WriteUInt32(fileReference.Flags);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(fileReference.FileName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(fileReference.HashValue), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeExportedTypeTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (ExportedTypeRow exportedType in _exportedTypeTable)
+            {
+                writer.WriteUInt32((uint)exportedType.Flags);
+                writer.WriteUInt32(exportedType.TypeDefId);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(exportedType.TypeName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(exportedType.TypeNamespace), metadataSizes.StringIndexSize);
+                writer.WriteReference(exportedType.Implementation, metadataSizes.ImplementationCodedIndexSize);
+            }
+        }
+
+        private void SerializeManifestResourceTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (ManifestResourceRow manifestResource in _manifestResourceTable)
+            {
+                writer.WriteUInt32(manifestResource.Offset);
+                writer.WriteUInt32(manifestResource.Flags);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(manifestResource.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference(manifestResource.Implementation, metadataSizes.ImplementationCodedIndexSize);
+            }
+        }
+
+        private void SerializeNestedClassTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (NestedClassRow nestedClass in _nestedClassTable)
+            {
+                writer.WriteReference(nestedClass.NestedClass, metadataSizes.TypeDefIndexSize);
+                writer.WriteReference(nestedClass.EnclosingClass, metadataSizes.TypeDefIndexSize);
+            }
+        }
+
+        private void SerializeGenericParamTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (GenericParamRow genericParam in _genericParamTable)
+            {
+                writer.WriteUInt16(genericParam.Number);
+                writer.WriteUInt16(genericParam.Flags);
+                writer.WriteReference(genericParam.Owner, metadataSizes.TypeOrMethodDefCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveStringIndex(genericParam.Name), metadataSizes.StringIndexSize);
+            }
+        }
+
+        private void SerializeMethodSpecTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (MethodSpecRow methodSpec in _methodSpecTable)
+            {
+                writer.WriteReference(methodSpec.Method, metadataSizes.MethodDefOrRefCodedIndexSize);
+                writer.WriteReference((uint)heaps.ResolveBlobIndex(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeGenericParamConstraintTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (GenericParamConstraintRow genericParamConstraint in _genericParamConstraintTable)
+            {
+                writer.WriteReference(genericParamConstraint.Owner, metadataSizes.GenericParamIndexSize);
+                writer.WriteReference(genericParamConstraint.Constraint, metadataSizes.TypeDefOrRefCodedIndexSize);
+            }
+        }
+
+        private void SerializeDocumentTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (var row in _documentTable)
+            {
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Name), metadataSizes.BlobIndexSize);
+                writer.WriteReference(row.HashAlgorithm, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Hash), metadataSizes.BlobIndexSize);
+                writer.WriteReference(row.Language, metadataSizes.GuidIndexSize);
+            }
+        }
+
+        private void SerializeMethodDebugInformationTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (var row in _methodDebugInformationTable)
+            {
+                writer.WriteReference(row.Document, metadataSizes.DocumentIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.SequencePoints), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeLocalScopeTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (var row in _localScopeTable)
+            {
+                writer.WriteReference(row.Method, metadataSizes.MethodDefIndexSize);
+                writer.WriteReference(row.ImportScope, metadataSizes.ImportScopeIndexSize);
+                writer.WriteReference(row.VariableList, metadataSizes.LocalVariableIndexSize);
+                writer.WriteReference(row.ConstantList, metadataSizes.LocalConstantIndexSize);
+                writer.WriteUInt32(row.StartOffset);
+                writer.WriteUInt32(row.Length);
+            }
+        }
+
+        private void SerializeLocalVariableTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (var row in _localVariableTable)
+            {
+                writer.WriteUInt16(row.Attributes);
+                writer.WriteUInt16(row.Index);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+            }
+        }
+
+        private void SerializeLocalConstantTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (var row in _localConstantTable)
+            {
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeImportScopeTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (var row in _importScopeTable)
+            {
+                writer.WriteReference(row.Parent, metadataSizes.ImportScopeIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Imports), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private void SerializeStateMachineMethodTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            foreach (var row in _stateMachineMethodTable)
+            {
+                writer.WriteReference(row.MoveNextMethod, metadataSizes.MethodDefIndexSize);
+                writer.WriteReference(row.KickoffMethod, metadataSizes.MethodDefIndexSize);
+            }
+        }
+
+        private void SerializeCustomDebugInformationTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+            // sort by Parent, Kind
+            _customDebugInformationTable.Sort(CustomDebugInformationRowComparer.Instance);
+
+            foreach (var row in _customDebugInformationTable)
+            {
+                writer.WriteReference(row.Parent, metadataSizes.HasCustomDebugInformationSize);
+                writer.WriteReference(row.Kind, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Value), metadataSizes.BlobIndexSize);
+            }
+        }
+
+        private class CustomDebugInformationRowComparer : Comparer<CustomDebugInformationRow>
+        {
+            public static readonly CustomDebugInformationRowComparer Instance = new CustomDebugInformationRowComparer();
+
+            public override int Compare(CustomDebugInformationRow x, CustomDebugInformationRow y)
+            {
+                int result = (int)x.Parent - (int)y.Parent;
+                return (result != 0) ? result : (int)x.Kind - (int)y.Kind;
+            }
+        }
+
+        #endregion
     }
 }
