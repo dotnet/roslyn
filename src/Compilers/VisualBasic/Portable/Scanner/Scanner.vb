@@ -1764,12 +1764,12 @@ FullWidthRepeat2:
                 If IntegerLiteralStart = IntegerLiteralEnd Then
                     Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_Syntax)
                 Else
-                    IntegralValue = CULng(IntegralLiteralCharacterValue(Peek(IntegerLiteralStart)))
+                    IntegralValue = IntegralLiteralCharacterValue(Peek(IntegerLiteralStart))
 
                     If Base = LiteralBase.Decimal Then
                         ' Init For loop
                         For LiteralCharacter As Integer = IntegerLiteralStart + 1 To IntegerLiteralEnd - 1
-                            Dim NextCharacterValue As ULong = CULng(IntegralLiteralCharacterValue(Peek(LiteralCharacter)))
+                            Dim NextCharacterValue As UInteger = IntegralLiteralCharacterValue(Peek(LiteralCharacter))
 
                             If IntegralValue < 1844674407370955161UL OrElse
                               (IntegralValue = 1844674407370955161UL AndAlso NextCharacterValue <= 5UI) Then
@@ -1794,7 +1794,7 @@ FullWidthRepeat2:
                                 Overflows = True
                             End If
 
-                            IntegralValue = CULng((IntegralValue << Shift) + IntegralLiteralCharacterValue(Peek(LiteralCharacter)))
+                            IntegralValue = (IntegralValue << Shift) + IntegralLiteralCharacterValue(Peek(LiteralCharacter))
                         Next
                     End If
 

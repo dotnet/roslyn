@@ -242,32 +242,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Const ascw_UA As Integer = 10 - AscW("A"c)
         Private Const ascw_LA As Integer = 10 - AscW("a"c)
 
-        '' TODO: replace CByte with something faster.
-        'Friend Shared Function IntegralLiteralCharacterValue(Digit As Char) As Byte
-        '    If IsFullWidth(Digit) Then Digit = MakeHalfWidth(Digit)
-        '    Dim u As Integer = AscW(Digit)
-        '    If IsDecimalDigit(Digit) Then
-        '        Return CByte(u - ascw_0)
-        '    ElseIf Digit >= "A"c And Digit <= "F"c Then
-        '        Return CByte(u + ascw_UA)
-        '    Else
-        '        Debug.Assert(Digit >= "a"c And Digit <= "f"c, "Surprising digit.")
-        '        Return CByte(u + ascw_LA)
-        '    End If
-        'End Function
         ' TODO: replace CByte with something faster.
-        Friend Shared Function IntegralLiteralCharacterValue(Digit As Char) As Integer
+        Friend Shared Function IntegralLiteralCharacterValue(Digit As Char) As Byte
             If IsFullWidth(Digit) Then Digit = MakeHalfWidth(Digit)
             Dim u As Integer = AscW(Digit)
             If IsDecimalDigit(Digit) Then
-                Return u - ascw_0
+                Return CByte(u - ascw_0)
             ElseIf Digit >= "A"c And Digit <= "F"c Then
-                Return u + ascw_UA
+                Return CByte(u + ascw_UA)
             Else
                 Debug.Assert(Digit >= "a"c And Digit <= "f"c, "Surprising digit.")
-                Return u + ascw_LA
+                Return CByte(u + ascw_LA)
             End If
         End Function
+
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
             Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) Or
                     (IsFullWidth(c) And
