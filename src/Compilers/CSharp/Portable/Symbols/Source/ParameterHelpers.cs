@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 hasErrors = true;
             }
-            else if (conversion.IsNullable && defaultExpression.Kind == BoundKind.DefaultOperator && !defaultExpression.Type.IsNullableType() &&
+            else if (conversion.IsNullable && !defaultExpression.Type.IsNullableType() &&
                 !(parameterType.GetNullableUnderlyingType().IsEnumType() || parameterType.GetNullableUnderlyingType().IsIntrinsicType()))
             {
                 // We can do:

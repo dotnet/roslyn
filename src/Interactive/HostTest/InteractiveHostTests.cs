@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
 using Microsoft.CodeAnalysis.Interactive;
@@ -876,22 +877,62 @@ typeof(C).Assembly.GetName()");
 
             Execute(@"
 dynamic d = new ExpandoObject();
+");
+            Execute(@"
 Process p = new Process();
+");
+            Execute(@"
 Expression<Func<int>> e = () => 1;
+");
+            Execute(@"
 var squares = from x in new[] { 1, 2, 3 } select x * x;
+");
+            Execute(@"
 var sb = new StringBuilder();
+");
+            Execute(@"
 var list = new List<int>();
+");
+            Execute(@"
 var stream = new MemoryStream();
 await Task.Delay(10);
+p = new Process();
 
 Console.Write(""OK"")
 ");
 
-            Assert.Equal("", ReadErrorOutputToEnd());
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("", ReadErrorOutputToEnd());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"Loading context from '{Path.GetFileName(rspFile.Path)}'.
 OK
+", ReadOutputToEnd());
+        }
+
+        [Fact]
+        public void InitialScript_Error()
+        {
+            var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
+
+            var rspFile = Temp.CreateFile();
+
+            rspFile.WriteAllText($@"
+/r:System
+/u:System.Diagnostics
+{initFile.Path}
+");
+
+            Host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
+
+            Execute("new Process()");
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+{initFile.Path}(1,3): error CS1002: ; expected
+", ReadErrorOutputToEnd());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+Loading context from '{Path.GetFileName(rspFile.Path)}'.
+[System.Diagnostics.Process]
 ", ReadOutputToEnd());
         }
 
@@ -1051,6 +1092,35 @@ new object[] { new Class1(), new Class2(), new Class3() }
 
             output = ReadOutputToEnd();
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
+        }
+
+        [Fact, WorkItem(6457, "https://github.com/dotnet/roslyn/issues/6457")]
+        public void MissingReferencesReuse()
+        {
+            var source = @"
+public class C
+{
+    public System.Diagnostics.Process P;
+}
+";
+
+            var lib = CSharpCompilation.Create(
+"Lib",
+new[] { SyntaxFactory.ParseSyntaxTree(source) },
+new[] { TestReferences.NetFx.v4_0_30319.mscorlib, TestReferences.NetFx.v4_0_30319.System },
+new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());
+
+            Execute($@"#r ""{libFile.Path}""");
+            Execute("C c;");
+            Execute("c = new C()");
+
+            var error = ReadErrorOutputToEnd();
+            Assert.Equal("", error);
+
+            var output = ReadOutputToEnd();
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
         #region Submission result printing - null/void/value.

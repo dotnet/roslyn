@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -31,86 +30,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return this;
         }
 
-        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage)
+        public async Task<Solution> GetFixAllChangedSolutionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext)
         {
-            // Compute fix all occurrences code fix for the given fix all context.
-            // Bring up a cancellable wait dialog.
-            bool userCancelled;
-            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage, out userCancelled);
+            var codeAction = await GetFixAllCodeActionAsync(fixAllProvider, fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
             {
-                return userCancelled ? null : fixAllContext.Solution;
+                return fixAllContext.Solution;
             }
 
             fixAllContext.CancellationToken.ThrowIfCancellationRequested();
             return await codeAction.GetChangedSolutionInternalAsync(cancellationToken: fixAllContext.CancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage, bool showPreviewChangesDialog)
+        public async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext, bool showPreviewChangesDialog)
         {
-            // Compute fix all occurrences code fix for the given fix all context.
-            // Bring up a cancellable wait dialog.
-            bool userCancelled;
-            var codeAction = GetFixAllCodeAction(fixAllProvider, fixAllContext, fixAllTitle, waitDialogMessage, out userCancelled);
+            var codeAction = await GetFixAllCodeActionAsync(fixAllProvider, fixAllContext).ConfigureAwait(false);
             if (codeAction == null)
             {
                 return null;
             }
 
-            return await GetFixAllOperationsAsync(codeAction, fixAllContext, fixAllTitle, showPreviewChangesDialog).ConfigureAwait(false);
+            return await GetFixAllOperationsAsync(codeAction, fixAllContext, showPreviewChangesDialog).ConfigureAwait(false);
         }
 
-        private CodeAction GetFixAllCodeAction(FixAllProvider fixAllProvider, FixAllContext fixAllContext, string fixAllTitle, string waitDialogMessage, out bool userCancelled)
+        private async Task<CodeAction> GetFixAllCodeActionAsync(FixAllProvider fixAllProvider, FixAllContext fixAllContext)
         {
-            userCancelled = false;
-
-            // Compute fix all occurrences code fix for the given fix all context.
-            // Bring up a cancellable wait dialog.
-            CodeAction codeAction = null;
-
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation, fixAllContext.CancellationToken))
             {
-                var result = _waitIndicator.Wait(
-                    fixAllTitle,
-                    waitDialogMessage,
-                    allowCancel: true,
-                    action: waitContext =>
-                    {
-                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-                        using (var linkedCts =
-                            CancellationTokenSource.CreateLinkedTokenSource(waitContext.CancellationToken, fixAllContext.CancellationToken))
-                        {
-                            try
-                            {
-                                var fixAllContextWithCancellation = fixAllContext.WithCancellationToken(linkedCts.Token);
-                                var fixTask = fixAllProvider.GetFixAsync(fixAllContextWithCancellation);
-                                if (fixTask != null)
-                                {
-                                    codeAction = fixTask.WaitAndGetResult(linkedCts.Token);
-                                }
-                            }
-                            catch (OperationCanceledException)
-                            {
-                                fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-                            }
-                        }
-                    });
-
-                userCancelled = result == WaitIndicatorResult.Canceled;
-                var cancelled = userCancelled || codeAction == null;
-
-                if (cancelled)
+                CodeAction action = null;
+                try
                 {
-                    FixAllLogger.LogComputationResult(completed: false, timedOut: result != WaitIndicatorResult.Canceled);
-                    return null;
+                    action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 }
-            }
+                catch (OperationCanceledException)
+                {
+                    FixAllLogger.LogComputationResult(completed: false);
+                }
+                finally
+                {
+                    if (action != null)
+                    {
+                        FixAllLogger.LogComputationResult(completed: true);
+                    }
+                    else
+                    {
+                        FixAllLogger.LogComputationResult(completed: false, timedOut: true);
+                    }
+                }
 
-            FixAllLogger.LogComputationResult(completed: true);
-            return codeAction;
+                return action;
+            }
         }
 
-        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, FixAllContext fixAllContext, string fixAllPreviewChangesTitle, bool showPreviewChangesDialog)
+        private async Task<IEnumerable<CodeActionOperation>> GetFixAllOperationsAsync(CodeAction codeAction, FixAllContext fixAllContext, bool showPreviewChangesDialog)
         {
             // We have computed the fix all occurrences code fix.
             // Now fetch the new solution with applied fix and bring up the Preview changes dialog.
@@ -133,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 newSolution = PreviewChanges(
                     fixAllContext.Project.Solution,
                     newSolution,
-                    fixAllPreviewChangesTitle,
+                    FeaturesResources.FixAllOccurrences,
                     codeAction.Title,
                     fixAllContext.Project.Language,
                     workspace,

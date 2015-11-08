@@ -138,7 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // (5,22): error CS1503: Argument 1: cannot convert from '<anonymous type: int A>' to 'string'
                 //     static int y = F(new { A = 1 });
                 Diagnostic(1503, "new { A = 1 }").WithArguments("1", "<anonymous type: int A>", "string").WithLocation(5, 22));
-            Assert.NotEqual(diagnostics1, diagnostics2);
+            Assert.NotSame(diagnostics1[0], diagnostics2[0]);
+            Assert.NotSame(diagnostics1[1], diagnostics2[1]);
+            Assert.Equal(diagnostics1, diagnostics2);
             Assert.True(DiagnosticIncrementalAnalyzer.AreEquivalent(diagnostics1, diagnostics2));
             // Verify that not all collections are treated as equivalent.
             diagnostics1 = new[] { diagnostics1[0] };

@@ -112,7 +112,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Compilers\Core\VBCSCompiler\VBCSCompiler.csproj">
+    <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508f118-f62e-4c16-a6f4-7c3b56e166ad}</Project>
       <Name>VBCSCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>

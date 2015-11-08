@@ -8,6 +8,7 @@
   },
   "runtimes": {
     "win7-anycpu": { },
+    "win7": { },
     "ubuntu.14.04-anycpu": { }
   }
 }

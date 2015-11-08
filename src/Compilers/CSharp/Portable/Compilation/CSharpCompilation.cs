@@ -539,56 +539,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpCompilation PreviousSubmission => ScriptCompilationInfo?.PreviousScriptCompilation;
 
-        // TODO (tomat): consider moving this method to SemanticModel
-
-        /// <summary>
-        /// Returns the type of the submission return value. 
-        /// </summary>
-        /// <returns>
-        /// The type of the last expression of the submission. 
-        /// Null if the type of the last expression is unknown (null).
-        /// Void type if the type of the last expression statement is void or 
-        /// the submission ends with a declaration or statement that is not an expression statement.
-        /// </returns>
-        /// <remarks>
-        /// Note that the return type is System.Void for both compilations "System.Console.WriteLine();" and "System.Console.WriteLine()", 
-        /// and <paramref name="hasValue"/> is <c>False</c> for the former and <c>True</c> for the latter.
-        /// </remarks>
-        /// <param name="hasValue">True if the submission has value, i.e. if it ends with a statement that is an expression statement.</param>
-        /// <exception cref="InvalidOperationException">The compilation doesn't represent a submission (<see cref="Compilation.IsSubmission"/> return false).</exception>
-        internal override ITypeSymbol GetSubmissionResultType(out bool hasValue)
+        internal override bool HasSubmissionResult()
         {
             Debug.Assert(IsSubmission);
-
-            hasValue = false;
 
             // A submission may be empty or comprised of a single script file.
             var tree = _syntaxAndDeclarations.ExternalSyntaxTrees.SingleOrDefault();
             if (tree == null)
             {
-                return GetSpecialType(SpecialType.System_Void);
+                return false;
             }
 
-            // TODO: look for return statements
-            // https://github.com/dotnet/roslyn/issues/5773
-
-            var lastStatement = (GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members.LastOrDefault(decl => decl.IsKind(SyntaxKind.GlobalStatement));
-            if (lastStatement == null || !lastStatement.Statement.IsKind(SyntaxKind.ExpressionStatement))
+            var root = tree.GetCompilationUnitRoot();
+            if (root.HasErrors)
             {
-                return GetSpecialType(SpecialType.System_Void);
+                return false;
             }
 
-            var expressionStatement = (ExpressionStatementSyntax)lastStatement.Statement;
-            if (!expressionStatement.SemicolonToken.IsMissing)
+            // Are there any top-level return statments?
+            if (root.DescendantNodes(n => n is GlobalStatementSyntax || n is StatementSyntax || n is CompilationUnitSyntax).Any(n => n.IsKind(SyntaxKind.ReturnStatement)))
             {
-                return GetSpecialType(SpecialType.System_Void);
+                return true;
             }
 
-            var model = GetSemanticModel(tree);
-            hasValue = true;
-            var expression = expressionStatement.Expression;
-            var info = model.GetTypeInfo(expression);
-            return (TypeSymbol)info.ConvertedType;
+            // Is there a trailing expression?
+            var lastGlobalStatement = (GlobalStatementSyntax)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
+            if (lastGlobalStatement != null)
+            {
+                var statement = lastGlobalStatement.Statement;
+                if (statement.IsKind(SyntaxKind.ExpressionStatement))
+                {
+                    var expressionStatement = (ExpressionStatementSyntax)statement;
+                    if (expressionStatement.SemicolonToken.IsMissing)
+                    {
+                        var model = GetSemanticModel(tree);
+                        var expression = expressionStatement.Expression;
+                        var info = model.GetTypeInfo(expression);
+                        return info.ConvertedType?.SpecialType != SpecialType.System_Void;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion
@@ -856,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<string, MetadataReference> ReferenceDirectiveMap
+        internal override IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap
         {
             get
             {
@@ -919,10 +911,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a metadata reference that a given #r resolves to.
         /// </summary>
         /// <param name="directive">#r directive.</param>
-        /// <returns>Metadata reference the specified directive resolves to.</returns>
+        /// <returns>Metadata reference the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
         public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
-            return ReferenceDirectiveMap[directive.File.ValueText];
+            MetadataReference reference;
+            return ReferenceDirectiveMap.TryGetValue(ValueTuple.Create(directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
         /// <summary>

@@ -7,9 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Com
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysis", "src\Compilers\Core\Portable\CodeAnalysis.csproj", "{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "src\Compilers\Core\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompiler", "src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj", "{9508F118-F62E-4C16-A6F4-7C3B56E166AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompilerTests", "src\Compilers\Core\VBCSCompilerTests\VBCSCompilerTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VBCSCompilerTests", "src\Compilers\Server\VBCSCompilerTests\VBCSCompilerTests.csproj", "{F5CE416E-B906-41D2-80B9-0078E887A3F6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D874349C-8BB3-4BDC-8535-2D52CCCA1198} = {D874349C-8BB3-4BDC-8535-2D52CCCA1198}
 	EndProjectSection

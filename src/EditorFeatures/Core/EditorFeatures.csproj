@@ -16,9 +16,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
     <!-- Disable the architecture mismatch warning -->
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-    <!-- Needed for the _CompileTemporaryAssembly target which runs due to having .xaml files that reference types from this project -->
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -40,6 +39,11 @@
     <ProjectReference Include="..\Text\TextEditorFeatures.csproj">
       <Project>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</Project>
       <Name>TextEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+      <Project>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</Project>
+      <Name>InteractiveWindow</Name>
+      <Aliases>InteractiveWindow</Aliases>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -86,6 +90,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -136,11 +141,14 @@
     <Compile Include="CommandHandlers\AbstractCompletionCommandHandler.cs" />
     <Compile Include="CommandHandlers\AbstractIntelliSenseCommandHandler.cs" />
     <Compile Include="CommandHandlers\CompletionCommandHandler.cs" />
+    <Compile Include="CommandHandlers\GoToAdjacentMemberCommandHandler.cs" />
     <Compile Include="CommandHandlers\IntelliSenseCommandHandler.cs" />
+    <Compile Include="CommandHandlers\InteractivePasteCommandHandler.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.cs" />
     <Compile Include="CommandHandlers\QuickInfoCommandHandlerAndSourceProvider.QuickInfoSource.cs" />
     <Compile Include="CommandHandlers\SignatureHelpCommandHandler.cs" />
     <Compile Include="Commands\GoToImplementationCommandArgs.cs" />
+    <Compile Include="Commands\GoToAdjacentMemberCommandArgs.cs" />
     <Compile Include="Commands\MoveSelectedLinesDownCommandArgs.cs" />
     <Compile Include="Commands\MoveSelectedLinesUpCommandArgs.cs" />
     <Compile Include="Commands\AutomaticLineEnderCommandArgs.cs" />
@@ -333,6 +341,7 @@
     <Compile Include="Implementation\Classification\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />
+    <Compile Include="Implementation\Classification\IViewSupportsClassificationService.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationViewTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SyntacticClassificationTaggerProvider.TagComputer.cs" />
@@ -677,7 +686,7 @@
     <Compile Include="Options\ExtensionManagerOptions.cs" />
     <Compile Include="Options\NavigationBarOptions.cs" />
     <Compile Include="Options\SignatureHelpOptions.cs" />
-    <Compile Include="Shared\SuggestionSupport\DefaultDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Shared\DefaultDocumentSupportsSuggestionService.cs" />
     <Compile Include="Shared\Extensions\DependencyObjectExtensions.cs" />
     <Compile Include="Shared\Extensions\GlyphExtensions.cs" />
     <Compile Include="Shared\Extensions\IBraceMatchingServiceExtensions.cs" />
@@ -717,7 +726,7 @@
     <Compile Include="Shared\Preview\PreviewSolutionCrawlerRegistrationService.cs" />
     <Compile Include="Shared\Preview\PredefinedPreviewTaggerKeys.cs" />
     <Compile Include="Shared\Preview\PreviewWorkspace.cs" />
-    <Compile Include="Shared\SuggestionSupport\IDocumentSupportsSuggestionService.cs" />
+    <Compile Include="Shared\IDocumentSupportsSuggestionService.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\AbstractWorkspaceTrackingTaggerEventSource.cs" />
     <Compile Include="Shared\Tagging\EventSources\TaggerEventSources.WorkspaceRegistrationChangedEventSource.cs" />

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -1345,6 +1346,41 @@ public class A
             var a2 = c2.SourceAssembly;
         }
 
+        // TODO: make x-plat (https://github.com/dotnet/roslyn/issues/6465)
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void ReferenceResolution_RelativePaths()
+        {
+            var t1 = Parse(@"
+#r ""lib.dll"" 
+", filename: @"C:\A\a.csx", options: TestOptions.Script);
+
+            var rd1 = (ReferenceDirectiveTriviaSyntax)t1.GetRoot().GetDirectives().Single();
+
+            var t2 = Parse(@"
+#r ""lib.dll""
+", filename: @"C:\B\b.csx", options: TestOptions.Script);
+
+            var rd2 = (ReferenceDirectiveTriviaSyntax)t2.GetRoot().GetDirectives().Single();
+
+            var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+                new TestMetadataReferenceResolver(
+                    pathResolver: new VirtualizedRelativePathResolver(new[] 
+                    {
+                        @"C:\A\lib.dll",
+                        @"C:\B\lib.dll"
+                    }), 
+                    files: new Dictionary<string, PortableExecutableReference>()
+                    {
+                        { @"C:\A\lib.dll", TestReferences.NetFx.v4_0_30319.Microsoft_CSharp },
+                        { @"C:\B\lib.dll", TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic },
+                    })));
+
+            c.VerifyDiagnostics();
+
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2));
+        }
+
         [Fact]
         public void CyclesInReferences()
         {
@@ -2176,6 +2212,110 @@ public class Source
         }
 
         [Fact]
+        public void ReferenceSupersession_FxUnification1()
+        {
+            var c = CreateSubmission("System.Diagnostics.Process.GetCurrentProcess()", new[]
+            {
+                TestReferences.NetFx.v2_0_50727.mscorlib,
+                TestReferences.NetFx.v2_0_50727.System,
+                TestReferences.NetFx.v4_0_30319.mscorlib,
+                TestReferences.NetFx.v4_0_30319.System,
+            });
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=2.0.0.0: <superseded>",
+                "System, Version=2.0.0.0: <superseded>",
+                "mscorlib, Version=4.0.0.0",
+                "System, Version=4.0.0.0");
+        }
+
+        [Fact]
+        public void ReferenceSupersession_StrongNames1()
+        {
+            var c = CreateSubmission("new C()", new[]
+            {
+                TestReferences.SymbolsTests.Versioning.C2,
+                TestReferences.SymbolsTests.Versioning.C1,
+            });
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "C, Version=2.0.0.0",
+                "C, Version=1.0.0.0: <superseded>");
+        }
+
+        [Fact]
+        public void ReferenceSupersession_WeakNames1()
+        {
+            var c = CreateSubmission("new C()", new[]
+            {
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").EmitToImageReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+            });
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "C, Version=1.0.0.0: <superseded>",
+                "C, Version=2.0.0.0");
+        }
+
+        [Fact]
+        public void ReferenceSupersession_AliasesErased()
+        {
+            var c = CreateSubmission("new C()", new[]
+            {
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""0.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.1"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.1.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference().
+                    WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Z")).WithRecursiveAliases(true)),
+            });
+
+            c.VerifyDiagnostics();
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0: global,Z",
+                "C, Version=0.0.0.0: <superseded>",
+                "C, Version=2.0.0.1",
+                "C, Version=1.0.0.0: <superseded>",
+                "C, Version=2.0.0.0: <superseded>",
+                "C, Version=1.1.0.0: <superseded>");
+        }
+
+        [Fact]
+        public void ReferenceSupersession_NoUnaliasedAssembly()
+        {
+            var c = CreateSubmission("new C()", new[]
+            {
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""0.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.1"")] public class C {}", assemblyName: "C").ToMetadataReference(aliases: ImmutableArray.Create("X", "Y")),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference(),
+                CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.1.0.0"")] public class C {}", assemblyName: "C").ToMetadataReference().
+                    WithProperties(MetadataReferenceProperties.Assembly.WithAliases(ImmutableArray.Create("Z")).WithRecursiveAliases(true)),
+            });
+
+            c.VerifyDiagnostics(
+                // (1,5): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C"));
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0: global,Z",
+                "C, Version=0.0.0.0: <superseded>",
+                "C, Version=2.0.0.1: X,Y",
+                "C, Version=1.0.0.0: <superseded>",
+                "C, Version=2.0.0.0: <superseded>",
+                "C, Version=1.1.0.0: <superseded>");
+        }
+
+        [Fact]
         public void ReferenceDirective_RecursiveReferenceWithNoAliases()
         {
             // c - b (alias X) 
@@ -2478,6 +2618,12 @@ public class C : A
             resolver.VerifyResolutionAttempts(
                 "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=0.0.0.0",
+                "D, Version=0.0.0.0",
+                "B, Version=3.0.0.0: Y,X");
         }
 
         [Fact]
@@ -2499,16 +2645,21 @@ public class C : A
                 { "B, 2.0.0.0", b2Ref },
             });
 
-            var c = CreateCompilationWithMscorlib(@"public interface C : A, D {  }", new[] { aRef, dRef },
+            var c = CreateSubmission(@"public interface C : A, D {  }", new[] { aRef, dRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
 
-            c.VerifyEmitDiagnostics(
-                // error CS1704: An assembly with the same simple name 'B' has already been imported. Try removing one of the references (e.g. 'B') or sign them to enable side-by-side.
-                Diagnostic(ErrorCode.ERR_DuplicateImportSimple).WithArguments("B", "B"));
+            c.VerifyEmitDiagnostics();
 
             resolver.VerifyResolutionAttempts(
                 "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=0.0.0.0",
+                "D, Version=0.0.0.0",
+                "B, Version=2.0.0.0",
+                "B, Version=1.0.0.0: <superseded>");
         }
 
         [Fact]
@@ -2530,16 +2681,21 @@ public class C : A
                 { "B, 2.0.0.0", b4Ref },
             });
 
-            var c = CreateCompilationWithMscorlib(@"public interface C : A, D {  }", new[] { aRef, dRef },
+            var c = CreateSubmission(@"public interface C : A, D {  }", new[] { aRef, dRef },
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver));
 
-            c.VerifyEmitDiagnostics(
-                // error CS1704: An assembly with the same simple name 'B' has already been imported. Try removing one of the references (e.g. 'B') or sign them to enable side-by-side.
-                Diagnostic(ErrorCode.ERR_DuplicateImportSimple).WithArguments("B", "B"));
+            c.VerifyEmitDiagnostics();
 
             resolver.VerifyResolutionAttempts(
                 "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=0.0.0.0",
+                "D, Version=0.0.0.0",
+                "B, Version=4.0.0.0",
+                "B, Version=3.0.0.0: <superseded>");
         }
 
         [Fact]
@@ -2765,6 +2921,13 @@ public class C : A
             resolverC.VerifyResolutionAttempts(
                 "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=1.0.0.0",
+                "B, Version=1.0.0.0",
+                "D, Version=1.0.0.0",
+                "E, Version=1.0.0.0");
         }
 
         /// <summary>
@@ -2820,6 +2983,13 @@ public class C : A
             resolverC.VerifyResolutionAttempts(
                 "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=1.0.0.0",
+                "B, Version=2.0.0.0",
+                "D, Version=1.0.0.0",
+                "E, Version=1.0.0.0");
         }
 
         [Fact]
@@ -2846,26 +3016,24 @@ public class C : A
                 { "B, 2.0.0.0", b2Ref },
             });
 
-            var c = CreateCompilationWithMscorlib("public class C : A { }", new[] { aRef },
-                s_signedDll.WithMetadataReferenceResolver(resolverC));
+            var c = CreateSubmission("public class C : A { }", new[] { aRef },
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolverC));
 
             c.VerifyEmitDiagnostics();
-
-            Assert.Equal(4, resolverC.ResolutionAttempts.Count);
-
-            Assert.Equal(
-               "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-               ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b1Ref)).Identity.GetDisplayName());
-
-            Assert.Equal(
-               "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-               ((AssemblySymbol)c.GetAssemblyOrModuleSymbol(b2Ref)).Identity.GetDisplayName());
 
             resolverC.VerifyResolutionAttempts(
                 "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=1.0.0.0",
+                "D, Version=1.0.0.0",
+                "B, Version=2.0.0.0",
+                "E, Version=1.0.0.0",
+                "B, Version=1.0.0.0: <superseded>");
         }
 
         [Fact]
@@ -2902,38 +3070,181 @@ public class C : A
                 // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 
                 // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
-                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A", 
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
                     "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"),
 
                 // (1,14): warning CS1701: Assuming assembly reference 
                 // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'D' matches identity
                 // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
-                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "D", 
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "D",
                     "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"),
 
                 // (1,14): warning CS1701: Assuming assembly reference 
                 // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'E' matches identity 
                 // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
                 Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
-                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "E", 
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "E",
                     "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
 
-            AssertEx.Equal(new[]
-            {
-                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
-                "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-                "D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-                "B, Version=4.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-                "E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
-                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"
-            }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(a => a.Identity.GetDisplayName()));
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=1.0.0.0",
+                "D, Version=1.0.0.0",
+                "B, Version=4.0.0.0",
+                "E, Version=1.0.0.0",
+                "B, Version=3.0.0.0");
 
             resolverC.VerifyResolutionAttempts(
                 "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
                 "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_BindingToImplicitReference3()
+        {
+            // c - a -> d -> "b,v2"
+            //          e -> "b,v1"
+            //          "b,v1"
+            //          "b,v2"
+            var b1Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b2Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public interface B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b3Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")] public interface B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+            var b4Ref = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")] public interface B { }", options: s_signedDll, assemblyName: "B").EmitToImageReference();
+
+            var dRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface D : B { }", new[] { b2Ref }, options: s_signedDll, assemblyName: "D").EmitToImageReference();
+            var eRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface E : B { }", new[] { b1Ref }, options: s_signedDll, assemblyName: "E").EmitToImageReference();
+
+            var aRef = CreateCompilationWithMscorlib(@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public interface A : D, E { }", new[] { dRef, eRef, b1Ref, b2Ref },
+                s_signedDll, assemblyName: "A").EmitToImageReference();
+
+            var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+            {
+                { "D, 1.0.0.0", dRef },
+                { "E, 1.0.0.0", eRef },
+                { "B, 1.0.0.0", b3Ref },
+                { "B, 2.0.0.0", b4Ref },
+            });
+
+            var c = CreateSubmission("public class C : A { }", new[] { aRef },
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolverC));
+
+            c.VerifyEmitDiagnostics(
+                // (1,14): warning CS1701: Assuming assembly reference 
+                // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'A' matches identity 
+                // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "A",
+                    "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"),
+
+                // (1,14): warning CS1701: Assuming assembly reference 
+                // 'B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'D' matches identity
+                // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
+                    "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "D",
+                    "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"),
+
+                // (1,14): warning CS1701: Assuming assembly reference 
+                // 'B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'E' matches identity 
+                // 'B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'B', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin, "C").WithArguments(
+                    "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "E",
+                    "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "B"));
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=1.0.0.0",
+                "D, Version=1.0.0.0",
+                "B, Version=4.0.0.0",
+                "E, Version=1.0.0.0",
+                "B, Version=3.0.0.0: <superseded>");
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2");
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_Supersession_FxUnification()
+        {
+            var options = TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
+
+            // c - "mscorlib, v4"
+            //     a -> "mscorlib, v2"
+            //          "System, v2"
+            //     b -> "mscorlib, v4"
+            //          "System, v4"
+            var aRef = CreateCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v2_0_50727.System }, 
+                options: options, assemblyName: "A").EmitToImageReference();
+
+            var bRef = CreateCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, TestReferences.NetFx.v4_0_30319.System },
+                options: options, assemblyName: "B").EmitToImageReference();
+
+            var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+            {
+                { "System, 2.0.0.0", TestReferences.NetFx.v2_0_50727.System },
+                { "System, 4.0.0.0", TestReferences.NetFx.v4_0_30319.System },
+            });
+
+            var c = CreateSubmissionWithExactReferences("public interface C : A, B { System.Diagnostics.Process PC { get; } }", new[] { MscorlibRef_v4_0_30316_17626, aRef, bRef },
+                options.WithMetadataReferenceResolver(resolverC));
+
+            c.VerifyEmitDiagnostics();
+
+            resolverC.VerifyResolutionAttempts(
+                "B -> System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.dll -> System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.dll -> System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "A -> System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System.dll -> System.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System.dll -> System.Xml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=0.0.0.0",
+                "B, Version=0.0.0.0",
+                "System, Version=4.0.0.0",
+                "System, Version=2.0.0.0: <superseded>");
+        }
+
+        [Fact]
+        public void MissingAssemblyResolution_Supersession_StrongNames()
+        {
+            var options = TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
+
+            // c - a -> "C, v2"
+            //     b -> "C, v1"
+            var aRef = CreateCompilationWithMscorlib(@"public interface A { C CA { get; } }", new[] { TestReferences.SymbolsTests.Versioning.C2 },
+                options: options, assemblyName: "A").EmitToImageReference();
+
+            var bRef = CreateCompilationWithMscorlib(@"public interface B { C CB { get; } }", new[] { TestReferences.SymbolsTests.Versioning.C1 },
+                options: options, assemblyName: "B").EmitToImageReference();
+
+            var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
+            {
+                { "C, 1.0.0.0", TestReferences.SymbolsTests.Versioning.C1 },
+                { "C, 2.0.0.0", TestReferences.SymbolsTests.Versioning.C2 },
+            });
+
+            var c = CreateSubmission("public interface D : A, B { C CC { get; } }", new[] { aRef, bRef },
+                options.WithMetadataReferenceResolver(resolverC));
+
+            c.VerifyEmitDiagnostics();
+
+            resolverC.VerifyResolutionAttempts(
+                "B -> C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9",
+                "A -> C, Version=2.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9");
+
+            c.VerifyAssemblyVersionsAndAliases(
+                "mscorlib, Version=4.0.0.0",
+                "A, Version=0.0.0.0",
+                "B, Version=0.0.0.0",
+                "C, Version=1.0.0.0: <superseded>",
+                "C, Version=2.0.0.0");
         }
     }
 }

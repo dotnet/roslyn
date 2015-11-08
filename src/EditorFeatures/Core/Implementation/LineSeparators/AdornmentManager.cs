@@ -4,14 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
@@ -263,11 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 }
             }
 
-            // We don't want to draw line separators if they would intersect a collapsed outlining
-            // region.  So we test if we can map the start of the line separator up to our visual 
-            // snapshot. If we can't, then we just skip it.
-            var projectionSnapshot = _textView.VisualSnapshot as IProjectionSnapshot;
-
             foreach (var changedSpan in changedSpanCollection)
             {
                 // is there any effect on the view?
@@ -279,14 +270,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 var tagSpans = _tagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (projectionSnapshot != null)
+                    // We don't want to draw line separators if they would intersect a collapsed outlining
+                    // region.  So we test if we can map the start of the line separator up to our visual 
+                    // snapshot. If we can't, then we just skip it.
+                    var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
+                    if (point == null)
                     {
-                        var point = tagMappingSpan.Span.Start.GetPoint(changedSpan.Snapshot, PositionAffinity.Predecessor);
-                        if (point == null ||
-                            projectionSnapshot.MapFromSourceSnapshot(point.Value, PositionAffinity.Predecessor) == null)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
+
+                    var mappedPoint = _textView.BufferGraph.MapUpToSnapshot(
+                        point.Value, PointTrackingMode.Negative, PositionAffinity.Predecessor, _textView.VisualSnapshot);
+                    if (mappedPoint == null)
+                    {
+                        continue;
                     }
 
                     SnapshotSpan span;

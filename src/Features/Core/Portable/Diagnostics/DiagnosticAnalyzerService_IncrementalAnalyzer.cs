@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private void OnDocumentActiveContextChanged(object sender, DocumentEventArgs e)
         {
-            Reanalyze(e.Document.Project.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.Document.Id));
+            Reanalyze(e.Document.Project.Solution.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(e.Document.Id), highPriority: true);
         }
 
         // internal for testing

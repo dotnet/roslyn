@@ -989,7 +989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                            pathMap = pathMap.Concat(ParsePathMap(value))
+                            pathMap = pathMap.Concat(ParsePathMap(value, diagnostics))
                             Continue For
 
                         Case "reportanalyzer"

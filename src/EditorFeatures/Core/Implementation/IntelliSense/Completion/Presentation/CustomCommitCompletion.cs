@@ -2,7 +2,6 @@
 
 using System;
 using System.Threading;
-using System.Windows.Media;
 using System.Windows.Media.TextFormatting;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;

@@ -12,8 +12,6 @@
     <RootNamespace>Roslyn.InteractiveWindow.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.InteractiveWindow.UnitTests</AssemblyName>
     <PlatformTarget>x86</PlatformTarget>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -81,6 +79,7 @@
     <Compile Include="HistoryTests.cs" />
     <Compile Include="InteractiveWindowHistoryTests.cs" />
     <Compile Include="InteractiveWindowTests.cs" />
+    <Compile Include="SortedSpansTests.cs" />
     <Compile Include="TestClipboard.cs" />
     <Compile Include="TestContentTypeDefinition.cs" />
     <Compile Include="TestInteractiveEngine.cs" />

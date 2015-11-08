@@ -18,11 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs state)
         {
-            var handler = this.DiagnosticsUpdated;
-            if (handler != null)
-            {
-                handler(sender, state);
-            }
+            this.DiagnosticsUpdated?.Invoke(sender, state);
         }
 
         bool IDiagnosticUpdateSource.SupportGetDiagnostics { get { return true; } }

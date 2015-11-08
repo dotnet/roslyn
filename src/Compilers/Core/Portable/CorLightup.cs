@@ -86,6 +86,16 @@ namespace Roslyn.Utilities
                     .CreateDelegate<Func<Assembly, bool>>();
             }
 
+            private static class _Module
+            {
+                internal static readonly Type Type = typeof(Module);
+
+                internal static readonly Func<Module, Guid> get_ModuleVersionId = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("get_ModuleVersionId")
+                    .CreateDelegate<Func<Module, Guid>>();
+            }
+
             private static class _ResolveEventArgs
             {
                 internal static readonly Type Type = ReflectionUtilities.TryGetType("System.ResolveEventArgs");
@@ -145,6 +155,11 @@ namespace Roslyn.Utilities
                 }
 
                 return _Assembly.get_Location(assembly);
+            }
+
+            internal static Guid GetModuleVersionId(Module module)
+            {
+                return _Module.get_ModuleVersionId(module);
             }
 
             internal static bool IsAssemblyFromGlobalAssemblyCache(Assembly assembly)

@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             if (assignmentExpression.IsCompoundAssignExpression() &&
                 assignmentExpression.Kind() != SyntaxKind.LeftShiftAssignmentExpression &&
                 assignmentExpression.Kind() != SyntaxKind.RightShiftAssignmentExpression &&
-                ReplacementBreaksCompoundAssignExpression(assignmentExpression.Left, assignmentExpression.Right, newAssignmentExpression.Left, newAssignmentExpression.Right))
+                ReplacementBreaksCompoundAssignment(assignmentExpression.Left, assignmentExpression.Right, newAssignmentExpression.Left, newAssignmentExpression.Right))
             {
                 return true;
             }

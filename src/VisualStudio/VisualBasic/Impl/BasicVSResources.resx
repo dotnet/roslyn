@@ -198,4 +198,10 @@
   <data name="Option_RenameTrackingPreview" xml:space="preserve">
     <value>Show preview for _rename tracking</value>
   </data>
+  <data name="Option_NavigateToObjectBrowser" xml:space="preserve">
+    <value>_Navigate to Object Browser for symbols defined in metadata</value>
+  </data>
+  <data name="Option_GoToDefinition" xml:space="preserve">
+    <value>Go to Definition</value>
+  </data>
 </root>

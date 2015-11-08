@@ -1077,7 +1077,7 @@ interface I
         public void OrganizingCommandsDisabledInSubmission()
         {
             var exportProvider = MinimalTestExportProvider.CreateExportProvider(
-                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsCodeFixService)));
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveDocumentSupportsFeatureService)));
 
             using (var workspace = TestWorkspaceFactory.CreateWorkspace(XElement.Parse(@"
                 <Workspace>

@@ -5,6 +5,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
@@ -24,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Public TryNavigateToSymbolProvidedSymbol As ISymbol
             Public TryNavigateToSymbolProvidedProject As Project
-            Public TryNavigateToSymbolProvidedUsePreviewTab As Boolean
+            Public TryNavigateToSymbolProvidedOptions As OptionSet
 
             Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
             Public TrySymbolNavigationNotifyProvidedSolution As Solution
@@ -37,10 +38,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public NavigationLineNumberReturnValue As Integer = 0
             Public NavigationCharOffsetReturnValue As Integer = 0
 
-            Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, cancellationToken As CancellationToken, Optional usePreviewTab As Boolean = False) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
+            Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
                 Me.TryNavigateToSymbolProvidedSymbol = symbol
                 Me.TryNavigateToSymbolProvidedProject = project
-                Me.TryNavigateToSymbolProvidedUsePreviewTab = usePreviewTab
+                Me.TryNavigateToSymbolProvidedOptions = options
                 Return True
             End Function
 

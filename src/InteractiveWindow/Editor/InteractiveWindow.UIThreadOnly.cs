@@ -39,6 +39,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly IInteractiveWindowEditorFactoryService _factory;
 
+            private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
+            private ITextBufferUndoManager _undoManager;
+            // this is exposed only for test purpose
+            public ITextUndoHistory UndoHistory_TestOnly
+            {
+                get
+                {
+                    return _undoManager.TextBufferUndoHistory;
+                }
+            }
+
             private readonly History _history = new History();
             private string _historySearch;
 
@@ -133,6 +144,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 ITextBufferFactoryService bufferFactory,
                 IProjectionBufferFactoryService projectionBufferFactory,
                 IEditorOperationsFactoryService editorOperationsFactory,
+                ITextBufferUndoManagerProvider textBufferUndoManagerProvider,
                 ITextEditorFactoryService editorFactory,
                 IRtfBuilderService rtfBuilderService,
                 IIntellisenseSessionStackMapService intellisenseSessionStackMap,
@@ -142,6 +154,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _factory = factory;
+                _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
                 _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
                 _smartIndenterService = smartIndenterService;
@@ -194,9 +207,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 OutputClassifierProvider.AttachToBuffer(OutputBuffer, errorSpans);
             }
 
-            private bool ReadingStandardInput => 
-                State == State.ExecutingInputAndReadingStandardInput || 
-                State == State.WaitingForInputAndReadingStandardInput || 
+            private bool ReadingStandardInput =>
+                State == State.ExecutingInputAndReadingStandardInput ||
+                State == State.WaitingForInputAndReadingStandardInput ||
                 State == State.ResettingAndReadingStandardInput;
 
             /// <summary>Implements <see cref="IInteractiveWindowOperations.ResetAsync"/>.</summary>
@@ -582,57 +595,66 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             /// </summary>
             public bool Paste()
             {
-                if (!TextView.Selection.IsEmpty)
+                // Get text from clipboard
+                string code = Evaluator.FormatClipboard();
+                if (code == null)
                 {
-                    if (CutOrDeleteSelection(isCut: false))
+                    if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
                     {
-                        MoveCaretToClosestEditableBuffer();
+                        var sb = new StringBuilder();
+                        var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
+
+                        foreach (var block in blocks)
+                        {
+                            switch (block.Kind)
+                            {
+                                case ReplSpanKind.Input:
+                                case ReplSpanKind.Output:
+                                case ReplSpanKind.StandardInput:
+                                    sb.Append(block.Content);
+                                    break;
+                            }
+                        }
+                        code = sb.ToString();
+                    }
+                    else if (_window.InteractiveWindowClipboard.ContainsText())
+                    {
+                        code = _window.InteractiveWindowClipboard.GetText();
                     }
                     else
                     {
                         return false;
                     }
                 }
-                else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
-                {
-                    MoveCaretToClosestEditableBuffer();
-                }
-                else if (MapToEditableBuffer(TextView.Caret.Position.BufferPosition) == null)
-                {
-                    return false;
-                } 
 
-                string format = Evaluator.FormatClipboard();
-                if (format != null)
+                using (var transaction = UndoHistory_TestOnly.CreateTransaction(InteractiveWindowResources.Paste))
                 {
-                    InsertCode(format);
-                }
-                else if (_window.InteractiveWindowClipboard.ContainsData(ClipboardFormat))
-                {
-                    var blocks = BufferBlock.Deserialize((string)_window.InteractiveWindowClipboard.GetData(ClipboardFormat));
-                    // Paste each block separately.
-                    foreach (var block in blocks)
+                    // Delete selected text if there's any and adjust caret position
+                    if (!TextView.Selection.IsEmpty)
                     {
-                        switch (block.Kind)
+                        if (CutOrDeleteSelection(isCut: false))
                         {
-                            case ReplSpanKind.Input:
-                            case ReplSpanKind.Output:
-                            case ReplSpanKind.StandardInput:
-                                InsertCode(block.Content);
-                                break;
+                            MoveCaretToClosestEditableBuffer();
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
-                }
-                else if (_window.InteractiveWindowClipboard.ContainsText())
-                {
-                    InsertCode(_window.InteractiveWindowClipboard.GetText());
-                }
-                else
-                {
-                    return false;
-                }
+                    else if (IsInActivePrompt(TextView.Caret.Position.BufferPosition))
+                    {
+                        MoveCaretToClosestEditableBuffer();
+                    }
+                    else if (MapToEditableBuffer(TextView.Caret.Position.BufferPosition) == null)
+                    {
+                        return false;
+                    }
+                    // do the paste and complete the transaction
+                    InsertCode(code);
+                    transaction.Complete();
 
-                return true;
+                    return true;
+                }
             }
 
             private void MoveCaretToClosestEditableBuffer()
@@ -737,12 +759,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // move to the end (it might have been in virtual space):
                     TextView.Caret.MoveTo(GetLastLine(TextView.TextBuffer.CurrentSnapshot).End);
                     TextView.Caret.EnsureVisible();
-
-                    var ready = _window.ReadyForInput;
-                    if (ready != null)
-                    {
-                        ready();
-                    }
+                    _window.ReadyForInput?.Invoke();
 
                     return;
                 }
@@ -832,14 +849,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         // If reset button is clicked during a long running submission -> it could be Resetting because 
                         // oldService is disposed first as part of resetting, which leads to await call above returning, and new service is 
                         // created after that as part of completing the resetting process. 
-                        Debug.Assert(State == State.ExecutingInput || 
-                            State == State.WaitingForInput || 
+                        Debug.Assert(State == State.ExecutingInput ||
+                            State == State.WaitingForInput ||
                             State == State.Resetting, $"Unexpected state {State}");
 
                         if (State == State.ExecutingInput)
                         {
                             FinishExecute(executionResult.IsSuccessful);
-                        }                              
+                        }
                     }
                 }
                 catch (Exception e) when (_window.ReportAndPropagateException(e))
@@ -1190,7 +1207,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
                 return index;
             }
-            
+
             private bool IsInActivePrompt(SnapshotPoint point)
             {
                 var editableBuffer = ReadingStandardInput ? StandardInputBuffer : CurrentLanguageBuffer;
@@ -1198,7 +1215,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     return false;
                 }
-                                                                           
+
                 var sourceSpans = GetSourceSpans(point.Snapshot);
                 var index = GetSourceSpanIndex(sourceSpans, point);
                 if (index == sourceSpans.Count)
@@ -1208,7 +1225,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 if (!IsPrompt(sourceSpans[index]))
                 {
-                    return false;   
+                    return false;
                 }
 
                 Debug.Assert(index + 1 < sourceSpans.Count);
@@ -1379,15 +1396,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 ITextBuffer buffer = _factory.CreateAndActivateBuffer(_window);
 
+                _undoManager = _textBufferUndoManagerProvider.GetTextBufferUndoManager(buffer);
+
                 buffer.Properties.AddProperty(typeof(IInteractiveEvaluator), Evaluator);
                 buffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
 
                 CurrentLanguageBuffer = buffer;
-                var bufferAdded = _window.SubmissionBufferAdded;
-                if (bufferAdded != null)
-                {
-                    bufferAdded(_window, new SubmissionBufferAddedEventArgs(buffer));
-                }
+                _window.SubmissionBufferAdded?.Invoke(_window, new SubmissionBufferAddedEventArgs(buffer));
 
                 _window.LanguageBufferCounter++;
 
@@ -2167,8 +2182,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             }
 
             private bool OverlapsWithEditableBuffer(NormalizedSnapshotSpanCollection spans)
-            {                                                              
-                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer; 
+            {
+                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
 
                 foreach (var span in spans)
                 {
@@ -2253,7 +2268,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     if (selectionLeftColumn > maxPromptLength || maxPromptLength == minPromptLength)
                     {
                         selectionTopLine = editableLine;
-                        selectionLeftColumn = Math.Max(selectionLeftColumn, maxPromptLength); 
+                        selectionLeftColumn = Math.Max(selectionLeftColumn, maxPromptLength);
                     }
                 }
                 else
@@ -2375,17 +2390,17 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     if (MapToEditableBuffer(position) != null ||
                         IsInActivePrompt(position))
                     {
-                        CutOrDeleteCurrentLine(isCut); 
-                        Home(extendSelection: false);                
+                        CutOrDeleteCurrentLine(isCut);
+                        Home(extendSelection: false);
                     }
                 }
                 else
                 {
-                    var selection = TextView.Selection;       
+                    var selection = TextView.Selection;
                     var projectionSpans = TextView.BufferGraph.MapUpToSnapshot(new SnapshotSpan(selection.Start.Position.GetContainingLine().Start,
-                                                                                                selection.End.Position.GetContainingLine().EndIncludingLineBreak), 
-                                                                               SpanTrackingMode.EdgeInclusive, 
-                                                                               _projectionBuffer.CurrentSnapshot);                                                                                                                             
+                                                                                                selection.End.Position.GetContainingLine().EndIncludingLineBreak),
+                                                                               SpanTrackingMode.EdgeInclusive,
+                                                                               _projectionBuffer.CurrentSnapshot);
                     if (OverlapsWithEditableBuffer(projectionSpans))
                     {
                         CutOrDelete(projectionSpans, isCut);
@@ -2419,11 +2434,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     // Even though `OverlapsWithEditableBuffer` and `CutOrDelete` is sufficient to 
                     // delete editable selection,  we still need to handle box selection 
                     // differently to move caret to appropiate location after deletion.
-                    bool isEditable = selection.Mode == TextSelectionMode.Stream 
-                                                            ? OverlapsWithEditableBuffer(selection.SelectedSpans) 
+                    bool isEditable = selection.Mode == TextSelectionMode.Stream
+                                                            ? OverlapsWithEditableBuffer(selection.SelectedSpans)
                                                             : ReduceBoxSelectionToEditableBox();
                     if (isEditable)
-                    {                               
+                    {
                         CutOrDelete(selection.SelectedSpans, isCut);
                         // if the selection spans over prompts the prompts remain selected, so clear manually:
                         selection.Clear();
@@ -2431,7 +2446,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
                 }
                 return false;
-            } 
+            }
 
             private void CutOrDelete(IEnumerable<SnapshotSpan> projectionSpans, bool isCut)
             {
@@ -2457,11 +2472,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                                 deletedText.Append(span.GetText());
                             }
-
                             edit.Delete(span);
                         }
                     }
-
                     edit.Apply();
                 }
 
@@ -2542,9 +2555,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // Don't generate RTF for large spans (since it is expensive and probably not wanted).
                 int length = spans.Sum((span) => span.Length);
                 if (length < 1000000)
-                {                                           
+                {
                     using (var dialog = _waitIndicator.StartWait(InteractiveWindowResources.WaitTitle, InteractiveWindowResources.WaitMessage, allowCancel: true))
-                    {                           
+                    {
                         return _rtfBuilderService.GenerateRtf(spans, dialog.CancellationToken);
                     }
                 }
