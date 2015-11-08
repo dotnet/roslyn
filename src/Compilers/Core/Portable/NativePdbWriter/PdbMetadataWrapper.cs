@@ -221,7 +221,7 @@ namespace Microsoft.Cci
 
             *(pointerTypeDef + pchTypeDef) = (char)0;
             uint* pointerFlags = (uint*)pdwTypeDefFlags.ToPointer();
-            *pointerFlags = _writer.GetTypeDefFlags(t.GetResolvedType(_writer.Context));
+            *pointerFlags = (uint)_writer.GetTypeDefFlags(t.GetResolvedType(_writer.Context));
             return 0;
         }
 

@@ -162,7 +162,7 @@ namespace Microsoft.Cci
             else if (value != null)
             {
                 // TypeCode
-                writer.WriteByte((byte)MetadataUtilities.GetConstantTypeCode(value));
+                writer.WriteByte((byte)MetadataWriterUtilities.GetConstantTypeCode(value));
 
                 // Value
                 writer.WriteConstant(value);
