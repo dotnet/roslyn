@@ -1928,6 +1928,7 @@ namespace Microsoft.Cci
             int pdbIdOffsetInMetadataStream;
             int entryPointToken;
 
+            PESizes peSizes; 
             SerializeMetadataAndIL(
                 metadataWriter,
                 default(BlobBuilder),
@@ -1939,6 +1940,7 @@ namespace Microsoft.Cci
                 calculateMappedFieldDataStreamRva: _ => 0,
                 moduleVersionIdOffsetInMetadataStream: out moduleVersionIdOffsetInMetadataStream,
                 pdbIdOffsetInPortablePdbStream: out pdbIdOffsetInMetadataStream,
+                peSizes: out peSizes,
                 metadataSizes: out metadataSizes,
                 entryPointToken: out entryPointToken);
 
@@ -1959,10 +1961,11 @@ namespace Microsoft.Cci
             BlobBuilder mappedFieldDataWriter,
             BlobBuilder managedResourceDataWriter,
             int methodBodyStreamRva,
-            Func<MetadataSizes, int> calculateMappedFieldDataStreamRva,
+            Func<PESizes, int> calculateMappedFieldDataStreamRva,
             out int moduleVersionIdOffsetInMetadataStream,
             out int pdbIdOffsetInPortablePdbStream,
             out int entryPointToken,
+            out PESizes peSizes,
             out MetadataSizes metadataSizes)
         {
             // Extract information from object model into tables, indices and streams
@@ -2023,15 +2026,18 @@ namespace Microsoft.Cci
             metadataSizes = new MetadataSizes(
                 rowCounts: tableRowCounts,
                 heapSizes: heaps.GetHeapSizes(),
-                ilStreamSize: ilWriter.Count,
-                mappedFieldDataSize: mappedFieldDataWriter.Count,
-                resourceDataSize: managedResourceDataWriter.Count,
-                strongNameSignatureSize: CalculateStrongNameSignatureSize(module),
                 isMinimalDelta: IsMinimalDelta,
                 emitStandaloneDebugMetadata: EmitStandaloneDebugMetadata,
                 isStandaloneDebugMetadata: false);
 
-            int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(metadataSizes);
+            peSizes = new PESizes(
+                metadataSizes.MetadataSize,
+                ilStreamSize: ilWriter.Count,
+                mappedFieldDataSize: mappedFieldDataWriter.Count,
+                resourceDataSize: managedResourceDataWriter.Count,
+                strongNameSignatureSize: CalculateStrongNameSignatureSize(module));
+
+            int mappedFieldDataStreamRva = calculateMappedFieldDataStreamRva(peSizes);
 
             int guidHeapStartOffset;
             SerializeMetadata(metadataWriter, metadataSizes, methodBodyStreamRva, mappedFieldDataStreamRva, debugEntryPointToken, out guidHeapStartOffset, out pdbIdOffsetInPortablePdbStream);
@@ -2051,10 +2057,6 @@ namespace Microsoft.Cci
             var debugMetadataSizes = new MetadataSizes(
                 rowCounts: tableRowCounts,
                 heapSizes: _debugHeapsOpt.GetHeapSizes(),
-                ilStreamSize: 0,
-                mappedFieldDataSize: 0,
-                resourceDataSize: 0,
-                strongNameSignatureSize: 0,
                 isMinimalDelta: IsMinimalDelta,
                 emitStandaloneDebugMetadata: true,
                 isStandaloneDebugMetadata: true);

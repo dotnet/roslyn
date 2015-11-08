@@ -40,16 +40,6 @@ namespace Microsoft.Cci
         public readonly bool Prefers32Bit;
 
         /// <summary>
-        /// The first part of a two part version number indicating the version of the format used to persist this module. For example, the 1 in 1.0.
-        /// </summary>
-        public readonly byte MetadataFormatMajorVersion = 2;
-
-        /// <summary>
-        /// The second part of a two part version number indicating the version of the format used to persist this module. For example, the 0 in 1.0.
-        /// </summary>
-        public readonly byte MetadataFormatMinorVersion;
-
-        /// <summary>
         /// A globally unique persistent identifier for this module.
         /// </summary>
         public readonly Guid PersistentIdentifier;
