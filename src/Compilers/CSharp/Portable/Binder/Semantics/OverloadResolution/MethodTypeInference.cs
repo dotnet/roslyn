@@ -85,10 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ConversionsBase _conversions;
         private readonly ImmutableArray<TypeParameterSymbol> _methodTypeParameters;
         private readonly NamedTypeSymbol _constructedContainingTypeOfMethod;
-        private readonly ImmutableArray<TypeSymbol> _formalParameterTypes;
-        private readonly ImmutableArray<RefKind> _formalParameterRefKinds;
-        private readonly ImmutableArray<TypeSymbol> _argumentTypes;
-        private readonly ImmutableArray<BoundExpression> _arguments;
+        private ImmutableArray<TypeSymbol> _formalParameterTypes;
+        private ImmutableArray<RefKind> _formalParameterRefKinds;
+        private ImmutableArray<TypeSymbol> _argumentTypes;
+        private ImmutableArray<BoundExpression> _arguments;
 
         private readonly TypeSymbol[] _fixedResults;
         private readonly HashSet<TypeSymbol>[] _exactBounds;
@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<TypeSymbol>[] _lowerBounds;
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
+        private bool[] _promotedConstraints;
 
         public static MethodTypeInferenceResult Infer(
             Binder binder,
@@ -704,6 +705,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return res;
             }
+
+            res = PromoteGenericConstraintsToFakeArguments(binder, ref useSiteDiagnostics);
+            if (res != InferenceResult.NoProgress)
+            {
+                return res;
+            }
+
             // SPEC: * Otherwise, we are unable to make progress and there are
             // SPEC:   unfixed parameters. Type inference fails.
             return InferenceResult.InferenceFailed;
@@ -803,6 +811,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return result;
+        }
+
+        private InferenceResult PromoteGenericConstraintsToFakeArguments(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            int oldArgLength = _arguments.Length;
+            DiagnosticBag diagnosticBag = DiagnosticBag.GetInstance();
+
+            for (int index = 0; index < _methodTypeParameters.Length; index++)
+            {
+                // We can only promote the constraints of parameters that have been fixed.
+                // We also must not promote the constraints of a parameter more than once.
+                if (IsUnfixed(index) || _promotedConstraints?[index] == true)
+                    continue;
+
+                // We add a fake argument for every constraint type of a type parameter.
+                BoundExpression fakeArgument = null;
+                foreach (TypeSymbol constraintType in _methodTypeParameters[index].ConstraintTypes)
+                {
+                    // Consider the following example:
+                    // 1. "where TCollection : IEnumerable<TItem>" constraint;
+                    // 2. It's inferred that TCollection is List<int>.
+                    // We're going to add a fake "IEnumerable<TItem>" argument and pass "default( List<int> )" to it.
+                    fakeArgument = fakeArgument ?? BindFakeArgument(_fixedResults[index], binder, diagnosticBag);
+                    _arguments = _arguments.Add(fakeArgument);
+                    _argumentTypes = _argumentTypes.Add(_fixedResults[index]);
+                    _formalParameterTypes = _formalParameterTypes.Add(constraintType);
+
+                    if (!_formalParameterRefKinds.IsDefault)
+                        _formalParameterRefKinds = _formalParameterRefKinds.Add(RefKind.None);
+                }
+
+                _promotedConstraints = _promotedConstraints ?? new bool[_methodTypeParameters.Length];
+                _promotedConstraints[index] = true;
+            }
+
+            diagnosticBag.Free();
+
+            // If we've successfully promoted any constraints, we have to invoke phase 1 for them.
+            if (_arguments.Length > oldArgLength)
+            {
+                InferTypeArgsFirstPhase(oldArgLength, ref useSiteDiagnostics);
+                return InferenceResult.MadeProgress;
+            }
+
+            return InferenceResult.NoProgress;
+        }
+
+        private static BoundExpression BindFakeArgument(TypeSymbol fixedType, Binder binder, DiagnosticBag diagnosticBag)
+        {
+            return binder.BindExpression
+            (
+                SyntaxFactory.DefaultExpression(SyntaxFactory.ParseTypeName(fixedType.ToDisplayString())),
+                diagnosticBag
+            );
         }
 
         ////////////////////////////////////////////////////////////////////////////////
