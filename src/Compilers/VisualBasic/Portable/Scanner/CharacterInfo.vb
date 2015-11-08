@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsHalfWidth(c As Char) As Boolean
-            Return c >= ChrW(&H21S) AndAlso c <= ChrW(&H7ES)
+            Return c >= ChrW(&H21S) And c <= ChrW(&H7ES)
         End Function
 
         '// MakeHalfWidth - Converts a full-width character to half-width
@@ -233,8 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             'TODO: make easy cases fast (or check if they already are)
             Dim CharacterProperties As UnicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c)
 
-            Return IsPropAlpha(CharacterProperties) OrElse
-            IsPropLetterDigit(CharacterProperties) OrElse
+            Return IsPropAlpha(CharacterProperties) Or IsPropLetterDigit(CharacterProperties) Or
             IsPropConnectorPunctuation(CharacterProperties)
         End Function
 
@@ -257,8 +256,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function BeginsBaseLiteral(c As Char) As Boolean
-            Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) Or
-                    (IsFullWidth(c) And
+            Return (c = "H"c Or c = "O"c Or c = "h"c Or c = "o"c) OrElse
+                    (IsFullWidth(c) AndAlso
                      (c = FULLWIDTH_LATIN_CAPITAL_LETTER_H Or c = FULLWIDTH_LATIN_CAPITAL_LETTER_O Or
                       c = FULLWIDTH_LATIN_SMALL_LETTER_H Or c = FULLWIDTH_LATIN_SMALL_LETTER_O))
         End Function

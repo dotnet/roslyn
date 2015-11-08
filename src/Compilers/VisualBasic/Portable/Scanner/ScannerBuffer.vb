@@ -196,6 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return GetTextSlow(start, length, suppressInterning:=True)
         End Function
 
+        Const sb_size As Integer = 1024
         Private Function GetTextSlow(start As Integer, length As Integer, Optional suppressInterning As Boolean = False) As String
             Dim textOffset = start And s_PAGE_MASK
 
@@ -210,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' make a string builder that is big enough, but not too big
             If _builder Is Nothing Then
-                _builder = New StringBuilder(Math.Min(length, 1024))
+                _builder = New StringBuilder(Math.Min(length, sb_size))
             End If
 
             Dim cnt = Math.Min(length, s_PAGE_SIZE - textOffset)
@@ -235,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 result = _stringTable.Add(_builder)
             End If
-            If result.Length < 1024 Then
+            If result.Length < sb_size Then
                 _builder.Clear()
             Else
                 _builder = Nothing
