@@ -525,7 +525,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The first phase
         //
 
-        private void InferTypeArgsFirstPhase(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private void InferTypeArgsFirstPhase(ref HashSet<DiagnosticInfo> useSiteDiagnostics) => InferTypeArgsFirstPhase(0, ref useSiteDiagnostics);
+
+        private void InferTypeArgsFirstPhase(int firstArgIndex, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
             Debug.Assert(!_arguments.IsDefault);
@@ -536,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // optional parameters have already been dealt with.
 
             // SPEC: For each of the method arguments Ei:
-            for (int arg = 0; arg < _arguments.Length; arg++)
+            for (int arg = firstArgIndex; arg < _arguments.Length; arg++)
             {
                 var argument = _arguments[arg];
 
