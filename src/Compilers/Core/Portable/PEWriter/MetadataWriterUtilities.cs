@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    internal static class MetadataUtilities
+    internal static class MetadataWriterUtilities
     {
         public static SignatureTypeCode GetConstantTypeCode(object val)
         {

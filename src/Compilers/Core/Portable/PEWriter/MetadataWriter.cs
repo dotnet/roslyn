@@ -744,17 +744,17 @@ namespace Microsoft.Cci
                 : GetMemberRefIndex(methodReference).ToCodedIndex(CustomAttributeTypeTag.MemberRef);
         }
 
-        public static ushort GetEventFlags(IEventDefinition eventDef)
+        public static EventAttributes GetEventFlags(IEventDefinition eventDef)
         {
-            ushort result = 0;
+            EventAttributes result = 0;
             if (eventDef.IsSpecialName)
             {
-                result |= 0x0200;
+                result |= EventAttributes.SpecialName;
             }
 
             if (eventDef.IsRuntimeSpecial)
             {
-                result |= 0x0400;
+                result |= EventAttributes.RTSpecialName;
             }
 
             return result;
@@ -891,32 +891,32 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private static ushort GetGenericParamFlags(IGenericParameter genPar)
+        private static GenericParameterAttributes GetGenericParamFlags(IGenericParameter genPar)
         {
-            ushort result = 0;
+            GenericParameterAttributes result = 0;
             switch (genPar.Variance)
             {
                 case TypeParameterVariance.Covariant:
-                    result |= 0x0001;
+                    result |= GenericParameterAttributes.Covariant;
                     break;
                 case TypeParameterVariance.Contravariant:
-                    result |= 0x0002;
+                    result |= GenericParameterAttributes.Contravariant;
                     break;
             }
 
             if (genPar.MustBeReferenceType)
             {
-                result |= 0x0004;
+                result |= GenericParameterAttributes.ReferenceTypeConstraint;
             }
 
             if (genPar.MustBeValueType)
             {
-                result |= 0x0008;
+                result |= GenericParameterAttributes.NotNullableValueTypeConstraint;
             }
 
             if (genPar.MustHaveDefaultConstructor)
             {
-                result |= 0x0010;
+                result |= GenericParameterAttributes.DefaultConstructorConstraint;
             }
 
             return result;
@@ -1225,32 +1225,32 @@ namespace Microsoft.Cci
                 : 0x0A000000 | this.GetMemberRefIndex(methodReference);
         }
 
-        public static ushort GetParameterFlags(IParameterDefinition parDef)
+        public static ParameterAttributes GetParameterFlags(IParameterDefinition parDef)
         {
-            ushort result = 0;
+            ParameterAttributes result = 0;
             if (parDef.IsIn)
             {
-                result |= 0x0001;
+                result |= ParameterAttributes.In;
             }
 
             if (parDef.IsOut)
             {
-                result |= 0x0002;
+                result |= ParameterAttributes.Out;
             }
 
             if (parDef.IsOptional)
             {
-                result |= 0x0010;
+                result |= ParameterAttributes.Optional;
             }
 
             if (parDef.HasDefaultValue)
             {
-                result |= 0x1000;
+                result |= ParameterAttributes.HasDefault;
             }
 
             if (parDef.IsMarshalledExplicitly)
             {
-                result |= 0x2000;
+                result |= ParameterAttributes.HasFieldMarshal;
             }
 
             return result;
@@ -1280,22 +1280,22 @@ namespace Microsoft.Cci
             return result;
         }
 
-        public static ushort GetPropertyFlags(IPropertyDefinition propertyDef)
+        public static PropertyAttributes GetPropertyFlags(IPropertyDefinition propertyDef)
         {
-            ushort result = 0;
+            PropertyAttributes result = 0;
             if (propertyDef.IsSpecialName)
             {
-                result |= 0x0200;
+                result |= PropertyAttributes.SpecialName;
             }
 
             if (propertyDef.IsRuntimeSpecial)
             {
-                result |= 0x0400;
+                result |= PropertyAttributes.RTSpecialName;
             }
 
             if (propertyDef.HasDefaultValue)
             {
-                result |= 0x1000;
+                result |= PropertyAttributes.HasDefault;
             }
 
             return result;
@@ -1479,12 +1479,12 @@ namespace Microsoft.Cci
             return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
         }
 
-        internal uint GetTypeDefFlags(ITypeDefinition typeDef)
+        internal TypeAttributes GetTypeDefFlags(ITypeDefinition typeDef)
         {
             return GetTypeDefFlags(typeDef, Context);
         }
 
-        public static uint GetTypeDefFlags(ITypeDefinition typeDef, EmitContext context)
+        public static TypeAttributes GetTypeDefFlags(ITypeDefinition typeDef, EmitContext context)
         {
             TypeAttributes result = default(TypeAttributes);
 
@@ -1585,7 +1585,7 @@ namespace Microsoft.Cci
                         break;
                 }
 
-                return (uint)result;
+                return result;
             }
 
             INamespaceTypeDefinition namespaceTypeDef = typeDef.AsNamespaceTypeDefinition(context);
@@ -1594,7 +1594,7 @@ namespace Microsoft.Cci
                 result |= TypeAttributes.Public;
             }
 
-            return (uint)result;
+            return result;
         }
 
         private uint GetTypeDefOrRefCodedIndex(ITypeReference typeReference, bool treatRefAsPotentialTypeSpec)
@@ -1603,7 +1603,7 @@ namespace Microsoft.Cci
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {
-                return typeDefIndex.ToCodedIndex(TypeDefOrRefTag.TypeDef);
+                return typeDefIndex.ToCodedIndex(TypeDefOrRefTag.TypeDef); 
             }
 
             return treatRefAsPotentialTypeSpec && typeReference.IsTypeSpecification()
@@ -1651,8 +1651,8 @@ namespace Microsoft.Cci
             if (genMethPar != null)
             {
                 return GetMethodDefIndex(genMethPar.DefiningMethod).ToCodedIndex(TypeOrMethodDefTag.MethodDef);
-            }
-
+            }  
+            
             // TODO: error
             return 0;
         }
@@ -2020,7 +2020,7 @@ namespace Microsoft.Cci
             this.PopulateClassLayoutTableRows();
             this.PopulateConstantTableRows();
             this.PopulateDeclSecurityTableRows();
-            this.PopulateEventMapTableRows();
+            this.PopulateEventMapTableRows(_eventMapTable);
             this.PopulateEventTableRows();
             this.PopulateExportedTypeTableRows();
             this.PopulateFieldLayoutTableRows();
@@ -2042,7 +2042,7 @@ namespace Microsoft.Cci
             this.PopulateModuleTableRow();
             this.PopulateNestedClassTableRows();
             this.PopulateParamTableRows();
-            this.PopulatePropertyMapTableRows();
+            this.PopulatePropertyMapTableRows(_propertyMapTable);
             this.PopulatePropertyTableRows();
             this.PopulateTypeDefTableRows();
             this.PopulateTypeRefTableRows();
@@ -2135,86 +2135,7 @@ namespace Microsoft.Cci
                 AssemblyCulture = heaps.GetStringIndex(assembly.Culture)
             });
         }
-
-        private void PopulateClassLayoutTableRows()
-        {
-            foreach (ITypeDefinition typeDef in this.GetTypeDefs())
-            {
-                if (typeDef.Alignment == 0 && typeDef.SizeOf == 0)
-                {
-                    continue;
-                }
-
-                ClassLayoutRow r = new ClassLayoutRow();
-                r.PackingSize = typeDef.Alignment;
-                r.ClassSize = typeDef.SizeOf;
-                r.Parent = (uint)this.GetTypeDefIndex(typeDef);
-                _classLayoutTable.Add(r);
-            }
-        }
-
-        private void PopulateConstantTableRows()
-        {
-            foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
-            {
-                var constant = fieldDef.GetCompileTimeValue(Context);
-                if (constant == null)
-                {
-                    continue;
-                }
-
-                int fieldDefIndex = GetFieldDefIndex(fieldDef);
-                _constantTable.Add(CreateConstantRow(constant.Value, parent: fieldDefIndex.ToCodedIndex(HasConstantTag.Field)));
-            }
-
-            int sizeWithOnlyFields = _constantTable.Count;
-            foreach (IParameterDefinition parDef in this.GetParameterDefs())
-            {
-                var defaultValue = parDef.GetDefaultValue(Context);
-                if (defaultValue == null)
-                {
-                    continue;
-                }
-
-                int parameterDefIndex = GetParameterDefIndex(parDef);
-                _constantTable.Add(CreateConstantRow(defaultValue.Value, parent: parameterDefIndex.ToCodedIndex(HasConstantTag.Param)));
-            }
-
-            foreach (IPropertyDefinition propDef in this.GetPropertyDefs())
-            {
-                if (!propDef.HasDefaultValue)
-                {
-                    continue;
-                }
-
-                int propertyDefIndex = GetPropertyDefIndex(propDef);
-                _constantTable.Add(CreateConstantRow(propDef.DefaultValue.Value, parent: propertyDefIndex.ToCodedIndex(HasConstantTag.Property)));
-            }
-
-            if (sizeWithOnlyFields > 0 && sizeWithOnlyFields < _constantTable.Count)
-            {
-                _constantTable.Sort(new ConstantRowComparer());
-            }
-        }
-
-        private class ConstantRowComparer : Comparer<ConstantRow>
-        {
-            public override int Compare(ConstantRow x, ConstantRow y)
-            {
-                return ((int)x.Parent) - (int)y.Parent;
-            }
-        }
-
-        private ConstantRow CreateConstantRow(object value, uint parent)
-        {
-            return new ConstantRow
-            {
-                Type = (byte)MetadataUtilities.GetConstantTypeCode(value),
-                Parent = parent,
-                Value = heaps.GetConstantBlobIndex(value)
-            };
-        }
-
+        
         private void PopulateCustomAttributeTableRows()
         {
             if (this.IsFullMetadata)
@@ -2464,11 +2385,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private void PopulateEventMapTableRows()
-        {
-            this.PopulateEventMapTableRows(_eventMapTable);
-        }
-
         private void PopulateEventTableRows()
         {
             var eventDefs = this.GetEventDefs();
@@ -2477,7 +2393,7 @@ namespace Microsoft.Cci
             foreach (IEventDefinition eventDef in eventDefs)
             {
                 EventRow r = new EventRow();
-                r.EventFlags = GetEventFlags(eventDef);
+                r.EventFlags = (ushort)GetEventFlags(eventDef);
                 r.Name = this.GetStringIndexForNameAndCheckLength(eventDef.Name, eventDef);
                 r.EventType = this.GetTypeDefOrRefCodedIndex(eventDef.GetType(Context), true);
                 _eventTable.Add(r);
@@ -2663,6 +2579,68 @@ namespace Microsoft.Cci
             }
         }
 
+        private void PopulateConstantTableRows()
+        {
+            foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
+            {
+                var constant = fieldDef.GetCompileTimeValue(Context);
+                if (constant == null)
+                {
+                    continue;
+                }
+
+                int fieldDefIndex = GetFieldDefIndex(fieldDef);
+                _constantTable.Add(CreateConstantRow(constant.Value, parent: fieldDefIndex.ToCodedIndex(HasConstantTag.Field)));
+            }
+
+            int sizeWithOnlyFields = _constantTable.Count;
+            foreach (IParameterDefinition parDef in this.GetParameterDefs())
+            {
+                var defaultValue = parDef.GetDefaultValue(Context);
+                if (defaultValue == null)
+                {
+                    continue;
+                }
+
+                int parameterDefIndex = GetParameterDefIndex(parDef);
+                _constantTable.Add(CreateConstantRow(defaultValue.Value, parent: parameterDefIndex.ToCodedIndex(HasConstantTag.Param)));
+            }
+
+            foreach (IPropertyDefinition propDef in this.GetPropertyDefs())
+            {
+                if (!propDef.HasDefaultValue)
+                {
+                    continue;
+                }
+
+                int propertyDefIndex = GetPropertyDefIndex(propDef);
+                _constantTable.Add(CreateConstantRow(propDef.DefaultValue.Value, parent: propertyDefIndex.ToCodedIndex(HasConstantTag.Property)));
+            }
+
+            if (sizeWithOnlyFields > 0 && sizeWithOnlyFields < _constantTable.Count)
+            {
+                _constantTable.Sort(new ConstantRowComparer());
+            }
+        }
+
+        private class ConstantRowComparer : Comparer<ConstantRow>
+        {
+            public override int Compare(ConstantRow x, ConstantRow y)
+            {
+                return ((int)x.Parent) - (int)y.Parent;
+            }
+        }
+
+        private ConstantRow CreateConstantRow(object value, uint parent)
+        {
+            return new ConstantRow
+            {
+                Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
+                Parent = parent,
+                Value = heaps.GetConstantBlobIndex(value)
+            };
+        }
+
         private void PopulateFileTableRows()
         {
             IAssembly assembly = this.module.AsAssembly;
@@ -2683,6 +2661,30 @@ namespace Microsoft.Cci
                 _fileTable.Add(r);
             }
         }
+        
+        private void PopulateGenericParamTableRows()
+        {
+            var genericParameters = this.GetGenericParameters();
+            _genericParamTable.Capacity = genericParameters.Count;
+
+            foreach (IGenericParameter genPar in genericParameters)
+            {
+                GenericParamRow r = new GenericParamRow();
+                r.Number = genPar.Index;
+                r.Flags = (ushort)GetGenericParamFlags(genPar);
+                r.Owner = this.GetTypeOrMethodDefCodedIndex(genPar);
+
+                // CONSIDER: The CLI spec doesn't mention a restriction on the Name column of the GenericParam table,
+                // but they go in the same string heap as all the other declaration names, so it stands to reason that
+                // they should be restricted in the same way.
+                r.Name = this.GetStringIndexForNameAndCheckLength(genPar.Name, genPar);
+
+                r.GenericParameter = genPar;
+                _genericParamTable.Add(r);
+            }
+
+            _genericParamTable.Sort(new GenericParamRowComparer());
+        }
 
         private void PopulateGenericParamConstraintTableRows()
         {
@@ -2698,30 +2700,6 @@ namespace Microsoft.Cci
                     _genericParamConstraintTable.Add(r);
                 }
             }
-        }
-        
-        private void PopulateGenericParamTableRows()
-        {
-            var genericParameters = this.GetGenericParameters();
-            _genericParamTable.Capacity = genericParameters.Count;
-
-            foreach (IGenericParameter genPar in genericParameters)
-            {
-                GenericParamRow r = new GenericParamRow();
-                r.Number = genPar.Index;
-                r.Flags = GetGenericParamFlags(genPar);
-                r.Owner = this.GetTypeOrMethodDefCodedIndex(genPar);
-
-                // CONSIDER: The CLI spec doesn't mention a restriction on the Name column of the GenericParam table,
-                // but they go in the same string heap as all the other declaration names, so it stands to reason that
-                // they should be restricted in the same way.
-                r.Name = this.GetStringIndexForNameAndCheckLength(genPar.Name, genPar);
-
-                r.GenericParameter = genPar;
-                _genericParamTable.Add(r);
-            }
-
-            _genericParamTable.Sort(new GenericParamRowComparer());
         }
 
         private class GenericParamRowComparer : Comparer<GenericParamRow>
@@ -2833,6 +2811,42 @@ namespace Microsoft.Cci
                 _methodImplTable.Add(r);
             }
         }
+        
+        private void PopulateMethodSpecTableRows()
+        {
+            var methodSpecs = this.GetMethodSpecs();
+            _methodSpecTable.Capacity = methodSpecs.Count;
+
+            foreach (IGenericMethodInstanceReference genericMethodInstanceReference in methodSpecs)
+            {
+                MethodSpecRow r = new MethodSpecRow();
+                r.Method = this.GetMethodDefOrRefCodedIndex(genericMethodInstanceReference.GetGenericMethod(Context));
+                r.Instantiation = this.GetGenericMethodInstanceIndex(genericMethodInstanceReference);
+                _methodSpecTable.Add(r);
+            }
+        }
+
+        private void PopulateMethodTableRows(int[] methodBodyRvas)
+        {
+            var methodDefs = this.GetMethodDefs();
+            _methodTable = new MethodRow[methodDefs.Count];
+
+            int i = 0;
+            foreach (IMethodDefinition methodDef in methodDefs)
+            {
+                _methodTable[i] = new MethodRow
+                {
+                    Rva = methodBodyRvas[i],
+                    ImplFlags = (ushort)methodDef.GetImplementationAttributes(Context),
+                    Flags = GetMethodFlags(methodDef),
+                    Name = this.GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
+                    Signature = this.GetMethodSignatureIndex(methodDef),
+                    ParamList = (uint)this.GetParameterDefIndex(methodDef),
+                };
+
+                i++;
+            }
+        }
 
         private void PopulateMethodSemanticsTableRows()
         {
@@ -2914,42 +2928,6 @@ namespace Microsoft.Cci
                 return result;
             }
         }
-        
-        private void PopulateMethodSpecTableRows()
-        {
-            var methodSpecs = this.GetMethodSpecs();
-            _methodSpecTable.Capacity = methodSpecs.Count;
-
-            foreach (IGenericMethodInstanceReference genericMethodInstanceReference in methodSpecs)
-            {
-                MethodSpecRow r = new MethodSpecRow();
-                r.Method = this.GetMethodDefOrRefCodedIndex(genericMethodInstanceReference.GetGenericMethod(Context));
-                r.Instantiation = this.GetGenericMethodInstanceIndex(genericMethodInstanceReference);
-                _methodSpecTable.Add(r);
-            }
-        }
-        
-        private void PopulateMethodTableRows(int[] methodBodyRvas)
-        {
-            var methodDefs = this.GetMethodDefs();
-            _methodTable = new MethodRow[methodDefs.Count];
-
-            int i = 0;
-            foreach (IMethodDefinition methodDef in methodDefs)
-            {
-                _methodTable[i] = new MethodRow
-                {
-                    Rva = methodBodyRvas[i],
-                    ImplFlags = (ushort)methodDef.GetImplementationAttributes(Context),
-                    Flags = GetMethodFlags(methodDef),
-                    Name = this.GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
-                    Signature = this.GetMethodSignatureIndex(methodDef),
-                    ParamList = (uint)this.GetParameterDefIndex(methodDef),
-                };
-
-                i++;
-            }
-        }
 
         private void PopulateModuleRefTableRows()
         {
@@ -2993,6 +2971,61 @@ namespace Microsoft.Cci
         }
 
         private ModuleRow _moduleRow;
+        
+        private void PopulateParamTableRows()
+        {
+            var parameterDefs = this.GetParameterDefs();
+            _paramTable.Capacity = parameterDefs.Count;
+
+            foreach (IParameterDefinition parDef in parameterDefs)
+            {
+                ParamRow r = new ParamRow();
+                r.Flags = (ushort)GetParameterFlags(parDef);
+                r.Sequence = (ushort)(parDef is ReturnValueParameter ? 0 : parDef.Index + 1);
+                r.Name = this.GetStringIndexForNameAndCheckLength(parDef.Name, parDef);
+                _paramTable.Add(r);
+            }
+        }
+
+        private void PopulatePropertyTableRows()
+        {
+            var propertyDefs = this.GetPropertyDefs();
+            _propertyTable.Capacity = propertyDefs.Count;
+
+            foreach (IPropertyDefinition propertyDef in propertyDefs)
+            {
+                var r = new PropertyRow();
+                r.PropFlags = (ushort)GetPropertyFlags(propertyDef);
+                r.Name = this.GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef);
+                r.Type = this.GetPropertySignatureIndex(propertyDef);
+                _propertyTable.Add(r);
+            }
+        }
+        
+        private void PopulateTypeDefTableRows()
+        {
+            var typeDefs = this.GetTypeDefs();
+            _typeDefTable.Capacity = typeDefs.Count;
+
+            foreach (INamedTypeDefinition typeDef in typeDefs)
+            {
+                var r = new TypeDefRow();
+                INamespaceTypeDefinition namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
+                r.Flags = (uint)GetTypeDefFlags(typeDef);
+                string mangledTypeName = GetMangledName(typeDef);
+                r.Name = this.GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef);
+                r.Namespace = namespaceType == null
+                    ? default(StringIdx)
+                    : this.GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName);
+                ITypeReference baseType = typeDef.GetBaseClass(Context);
+                r.Extends = (baseType != null) ? this.GetTypeDefOrRefCodedIndex(baseType, true) : 0;
+
+                r.FieldList = (uint)this.GetFieldDefIndex(typeDef);
+                r.MethodList = (uint)this.GetMethodDefIndex(typeDef);
+
+                _typeDefTable.Add(r);
+            }
+        }
 
         private void PopulateNestedClassTableRows()
         {
@@ -3011,64 +3044,21 @@ namespace Microsoft.Cci
                 _nestedClassTable.Add(r);
             }
         }
-        
-        private void PopulateParamTableRows()
-        {
-            var parameterDefs = this.GetParameterDefs();
-            _paramTable.Capacity = parameterDefs.Count;
 
-            foreach (IParameterDefinition parDef in parameterDefs)
+        private void PopulateClassLayoutTableRows()
+        {
+            foreach (ITypeDefinition typeDef in this.GetTypeDefs())
             {
-                ParamRow r = new ParamRow();
-                r.Flags = GetParameterFlags(parDef);
-                r.Sequence = (ushort)(parDef is ReturnValueParameter ? 0 : parDef.Index + 1);
-                r.Name = this.GetStringIndexForNameAndCheckLength(parDef.Name, parDef);
-                _paramTable.Add(r);
-            }
-        }
+                if (typeDef.Alignment == 0 && typeDef.SizeOf == 0)
+                {
+                    continue;
+                }
 
-        private void PopulatePropertyMapTableRows()
-        {
-            this.PopulatePropertyMapTableRows(_propertyMapTable);
-        }
-
-        private void PopulatePropertyTableRows()
-        {
-            var propertyDefs = this.GetPropertyDefs();
-            _propertyTable.Capacity = propertyDefs.Count;
-
-            foreach (IPropertyDefinition propertyDef in propertyDefs)
-            {
-                var r = new PropertyRow();
-                r.PropFlags = GetPropertyFlags(propertyDef);
-                r.Name = this.GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef);
-                r.Type = this.GetPropertySignatureIndex(propertyDef);
-                _propertyTable.Add(r);
-            }
-        }
-        
-        private void PopulateTypeDefTableRows()
-        {
-            var typeDefs = this.GetTypeDefs();
-            _typeDefTable.Capacity = typeDefs.Count;
-
-            foreach (INamedTypeDefinition typeDef in typeDefs)
-            {
-                var r = new TypeDefRow();
-                INamespaceTypeDefinition namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
-                r.Flags = GetTypeDefFlags(typeDef);
-                string mangledTypeName = GetMangledName(typeDef);
-                r.Name = this.GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef);
-                r.Namespace = namespaceType == null
-                    ? default(StringIdx)
-                    : this.GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName);
-                ITypeReference baseType = typeDef.GetBaseClass(Context);
-                r.Extends = (baseType != null) ? this.GetTypeDefOrRefCodedIndex(baseType, true) : 0;
-
-                r.FieldList = (uint)this.GetFieldDefIndex(typeDef);
-                r.MethodList = (uint)this.GetMethodDefIndex(typeDef);
-
-                _typeDefTable.Add(r);
+                ClassLayoutRow r = new ClassLayoutRow();
+                r.PackingSize = typeDef.Alignment;
+                r.ClassSize = typeDef.SizeOf;
+                r.Parent = (uint)this.GetTypeDefIndex(typeDef);
+                _classLayoutTable.Add(r);
             }
         }
 
