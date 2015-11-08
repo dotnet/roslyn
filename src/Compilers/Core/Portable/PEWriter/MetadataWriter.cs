@@ -740,8 +740,8 @@ namespace Microsoft.Cci
             }
 
             return methodDef != null
-                ? ((uint)this.GetMethodDefIndex(methodDef) << 3) | 2
-                : ((uint)this.GetMemberRefIndex(methodReference) << 3) | 3;
+                ? GetMethodDefIndex(methodDef).ToCodedIndex(CustomAttributeTypeTag.MethodDef)
+                : GetMemberRefIndex(methodReference).ToCodedIndex(CustomAttributeTypeTag.MemberRef);
         }
 
         public static ushort GetEventFlags(IEventDefinition eventDef)
@@ -928,7 +928,7 @@ namespace Microsoft.Cci
             IAssemblyReference aref = uref as IAssemblyReference;
             if (aref != null)
             {
-                return ((uint)this.GetAssemblyRefIndex(aref) << 2) | 1;
+                return GetAssemblyRefIndex(aref).ToCodedIndex(ImplementationTag.AssemblyRef);
             }
 
             IModuleReference mref = uref as IModuleReference;
@@ -936,8 +936,8 @@ namespace Microsoft.Cci
             {
                 aref = mref.GetContainingAssembly(Context);
                 return aref == null || ReferenceEquals(aref, this.module.GetContainingAssembly(Context))
-                    ? ((uint)this.GetFileRefIndex(mref) << 2) | 0
-                    : ((uint)this.GetAssemblyRefIndex(aref) << 2) | 1;
+                    ? GetFileRefIndex(mref).ToCodedIndex(ImplementationTag.File)
+                    : GetAssemblyRefIndex(aref).ToCodedIndex(ImplementationTag.AssemblyRef);
             }
 
             Debug.Assert(false);
@@ -981,10 +981,9 @@ namespace Microsoft.Cci
                 this.TryGetTypeDefIndex(parentTypeDef, out parentTypeDefIndex);
                 if (parentTypeDefIndex > 0)
                 {
-                    IFieldReference fieldRef = memberRef as IFieldReference;
-                    if (fieldRef != null)
+                    if (memberRef is IFieldReference)
                     {
-                        return (uint)parentTypeDefIndex << 3;
+                        return parentTypeDefIndex.ToCodedIndex(MemberRefParentTag.TypeDef);
                     }
 
                     IMethodReference methodRef = memberRef as IMethodReference;
@@ -995,11 +994,11 @@ namespace Microsoft.Cci
                             int methodIndex;
                             if (this.TryGetMethodDefIndex(methodRef.GetResolvedMethod(Context), out methodIndex))
                             {
-                                return ((uint)methodIndex << 3) | 3;
+                                return methodIndex.ToCodedIndex(MemberRefParentTag.MethodDef);
                             }
                         }
 
-                        return (uint)parentTypeDefIndex << 3;
+                        return parentTypeDefIndex.ToCodedIndex(MemberRefParentTag.TypeDef);
                     }
                     // TODO: error
                 }
@@ -1007,8 +1006,8 @@ namespace Microsoft.Cci
 
             // TODO: special treatment for global fields and methods. Object model support would be nice.
             return memberRef.GetContainingType(Context).IsTypeSpecification()
-                ? ((uint)this.GetTypeSpecIndex(memberRef.GetContainingType(Context)) << 3) | 4
-                : ((uint)this.GetTypeRefIndex(memberRef.GetContainingType(Context)) << 3) | 1;
+                ? GetTypeSpecIndex(memberRef.GetContainingType(Context)).ToCodedIndex(MemberRefParentTag.TypeSpec)
+                : GetTypeRefIndex(memberRef.GetContainingType(Context)).ToCodedIndex(MemberRefParentTag.TypeRef);
         }
 
         internal uint GetMethodDefOrRefCodedIndex(IMethodReference methodReference)
@@ -1021,8 +1020,8 @@ namespace Microsoft.Cci
             }
 
             return methodDef != null
-                ? (uint)this.GetMethodDefIndex(methodDef) << 1
-                : ((uint)this.GetMemberRefIndex(methodReference) << 1) | 1;
+                ? GetMethodDefIndex(methodDef).ToCodedIndex(MethodDefOrRefTag.MethodDef)
+                : GetMemberRefIndex(methodReference).ToCodedIndex(MethodDefOrRefTag.MemberRef);
         }
 
         public static ushort GetMethodFlags(IMethodDefinition methodDef)
@@ -1319,17 +1318,12 @@ namespace Microsoft.Cci
             return result;
         }
 
-        private uint GetResolutionScopeCodedIndex(ITypeReference typeReference)
-        {
-            return ((uint)this.GetTypeRefIndex(typeReference) << 2) | 3;
-        }
-
         private uint GetResolutionScopeCodedIndex(IUnitReference unitReference)
         {
             IAssemblyReference aref = unitReference as IAssemblyReference;
             if (aref != null)
             {
-                return ((uint)this.GetAssemblyRefIndex(aref) << 2) | 2;
+                return GetAssemblyRefIndex(aref).ToCodedIndex(ResolutionScopeTag.AssemblyRef);
             }
 
             IModuleReference mref = unitReference as IModuleReference;
@@ -1341,10 +1335,10 @@ namespace Microsoft.Cci
 
                 if (aref != null && aref != module.AsAssembly)
                 {
-                    return ((uint)this.GetAssemblyRefIndex(aref) << 2) | 2;
+                    return GetAssemblyRefIndex(aref).ToCodedIndex(ResolutionScopeTag.AssemblyRef);
                 }
 
-                return ((uint)this.GetModuleRefIndex(mref.Name) << 2) | 1;
+                return GetModuleRefIndex(mref.Name).ToCodedIndex(ResolutionScopeTag.ModuleRef);
             }
 
             // TODO: error
@@ -1485,87 +1479,6 @@ namespace Microsoft.Cci
             return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
         }
 
-        private static SignatureTypeCode GetConstantTypeCode(object val)
-        {
-            if (val == null)
-            {
-                // The encoding of Type for the nullref value for FieldInit is ELEMENT_TYPE_CLASS with a Value of a zero.
-                return Constants.SignatureTypeCode_Class;
-            }
-
-            Debug.Assert(!val.GetType().GetTypeInfo().IsEnum);
-
-            // Perf: Note that JIT optimizes each expression val.GetType() == typeof(T) to a single register comparison.
-            // Also the checks are sorted by commonality of the checked types.
-
-            if (val.GetType() == typeof(int))
-            {
-                return SignatureTypeCode.Int32;
-            }
-
-            if (val.GetType() == typeof(string))
-            {
-                return SignatureTypeCode.String;
-            }
-
-            if (val.GetType() == typeof(bool))
-            {
-                return SignatureTypeCode.Boolean;
-            }
-
-            if (val.GetType() == typeof(char))
-            {
-                return SignatureTypeCode.Char;
-            }
-
-            if (val.GetType() == typeof(byte))
-            {
-                return SignatureTypeCode.Byte;
-            }
-
-            if (val.GetType() == typeof(long))
-            {
-                return SignatureTypeCode.Int64;
-            }
-
-            if (val.GetType() == typeof(double))
-            {
-                return SignatureTypeCode.Double;
-            }
-
-            if (val.GetType() == typeof(short))
-            {
-                return SignatureTypeCode.Int16;
-            }
-
-            if (val.GetType() == typeof(ushort))
-            {
-                return SignatureTypeCode.UInt16;
-            }
-
-            if (val.GetType() == typeof(uint))
-            {
-                return SignatureTypeCode.UInt32;
-            }
-
-            if (val.GetType() == typeof(sbyte))
-            {
-                return SignatureTypeCode.SByte;
-            }
-
-            if (val.GetType() == typeof(ulong))
-            {
-                return SignatureTypeCode.UInt64;
-            }
-
-            if (val.GetType() == typeof(float))
-            {
-                return SignatureTypeCode.Single;
-            }
-
-            throw ExceptionUtilities.UnexpectedValue(val);
-        }
-
         internal uint GetTypeDefFlags(ITypeDefinition typeDef)
         {
             return GetTypeDefFlags(typeDef, Context);
@@ -1690,12 +1603,12 @@ namespace Microsoft.Cci
             var typeDefinition = typeReference.AsTypeDefinition(this.Context);
             if ((typeDefinition != null) && this.TryGetTypeDefIndex(typeDefinition, out typeDefIndex))
             {
-                return (uint)((typeDefIndex << 2) | 0);
+                return typeDefIndex.ToCodedIndex(TypeDefOrRefTag.TypeDef);
             }
 
             return treatRefAsPotentialTypeSpec && typeReference.IsTypeSpecification()
-                ? ((uint)this.GetTypeSpecIndex(typeReference) << 2) | 2
-                : ((uint)this.GetTypeRefIndex(typeReference) << 2) | 1;
+                ? GetTypeSpecIndex(typeReference).ToCodedIndex(TypeDefOrRefTag.TypeSpec)
+                : GetTypeRefIndex(typeReference).ToCodedIndex(TypeDefOrRefTag.TypeRef);
         }
 
         private static ushort GetTypeMemberVisibilityFlags(ITypeDefinitionMember member)
@@ -1731,15 +1644,16 @@ namespace Microsoft.Cci
             IGenericTypeParameter genTypePar = genPar.AsGenericTypeParameter;
             if (genTypePar != null)
             {
-                return (uint)this.GetTypeDefIndex(genTypePar.DefiningType) << 1;
+                return GetTypeDefIndex(genTypePar.DefiningType).ToCodedIndex(TypeOrMethodDefTag.TypeDef);
             }
 
             IGenericMethodParameter genMethPar = genPar.AsGenericMethodParameter;
             if (genMethPar != null)
             {
-                return ((uint)this.GetMethodDefIndex(genMethPar.DefiningMethod) << 1) | 1;
-            }            // TODO: error
+                return GetMethodDefIndex(genMethPar.DefiningMethod).ToCodedIndex(TypeOrMethodDefTag.MethodDef);
+            }
 
+            // TODO: error
             return 0;
         }
 
@@ -2231,11 +2145,10 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint typeDefIndex = (uint)this.GetTypeDefIndex(typeDef);
                 ClassLayoutRow r = new ClassLayoutRow();
                 r.PackingSize = typeDef.Alignment;
                 r.ClassSize = typeDef.SizeOf;
-                r.Parent = typeDefIndex;
+                r.Parent = (uint)this.GetTypeDefIndex(typeDef);
                 _classLayoutTable.Add(r);
             }
         }
@@ -2250,8 +2163,8 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint fieldDefIndex = (uint)this.GetFieldDefIndex(fieldDef);
-                _constantTable.Add(CreateConstantRow(constant.Value, parent: fieldDefIndex << 2));
+                int fieldDefIndex = GetFieldDefIndex(fieldDef);
+                _constantTable.Add(CreateConstantRow(constant.Value, parent: fieldDefIndex.ToCodedIndex(HasConstantTag.Field)));
             }
 
             int sizeWithOnlyFields = _constantTable.Count;
@@ -2263,8 +2176,8 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint parameterDefIndex = (uint)this.GetParameterDefIndex(parDef);
-                _constantTable.Add(CreateConstantRow(defaultValue.Value, parent: (parameterDefIndex << 2) | 1));
+                int parameterDefIndex = GetParameterDefIndex(parDef);
+                _constantTable.Add(CreateConstantRow(defaultValue.Value, parent: parameterDefIndex.ToCodedIndex(HasConstantTag.Param)));
             }
 
             foreach (IPropertyDefinition propDef in this.GetPropertyDefs())
@@ -2274,8 +2187,8 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint propertyDefIndex = (uint)this.GetPropertyDefIndex(propDef);
-                _constantTable.Add(CreateConstantRow(propDef.DefaultValue.Value, parent: (propertyDefIndex << 2) | 2));
+                int propertyDefIndex = GetPropertyDefIndex(propDef);
+                _constantTable.Add(CreateConstantRow(propDef.DefaultValue.Value, parent: propertyDefIndex.ToCodedIndex(HasConstantTag.Property)));
             }
 
             if (sizeWithOnlyFields > 0 && sizeWithOnlyFields < _constantTable.Count)
@@ -2296,7 +2209,7 @@ namespace Microsoft.Cci
         {
             return new ConstantRow
             {
-                Type = (byte)GetConstantTypeCode(value),
+                Type = (byte)MetadataUtilities.GetConstantTypeCode(value),
                 Parent = parent,
                 Value = heaps.GetConstantBlobIndex(value)
             };
@@ -2309,28 +2222,28 @@ namespace Microsoft.Cci
                 this.AddAssemblyAttributesToTable();
             }
 
-            this.AddCustomAttributesToTable(this.GetMethodDefs(), 0, this.GetMethodDefIndex);
-            this.AddCustomAttributesToTable(this.GetFieldDefs(), 1, this.GetFieldDefIndex);
+            this.AddCustomAttributesToTable(this.GetMethodDefs(), HasCustomAttributeTag.MethodDef, this.GetMethodDefIndex);
+            this.AddCustomAttributesToTable(this.GetFieldDefs(), HasCustomAttributeTag.Field, this.GetFieldDefIndex);
 
             // this.AddCustomAttributesToTable(this.typeRefList, 2);
-            this.AddCustomAttributesToTable(this.GetTypeDefs(), 3, this.GetTypeDefIndex);
-            this.AddCustomAttributesToTable(this.GetParameterDefs(), 4, this.GetParameterDefIndex);
+            this.AddCustomAttributesToTable(this.GetTypeDefs(), HasCustomAttributeTag.TypeDef, this.GetTypeDefIndex);
+            this.AddCustomAttributesToTable(this.GetParameterDefs(), HasCustomAttributeTag.Param, this.GetParameterDefIndex);
 
             // TODO: attributes on interface implementation entries 5
             // TODO: attributes on member reference entries 6
             if (this.IsFullMetadata)
             {
-                this.AddModuleAttributesToTable(this.module, 7);
+                this.AddModuleAttributesToTable(this.module, HasCustomAttributeTag.Module);
             }
 
             // TODO: declarative security entries 8
-            this.AddCustomAttributesToTable(this.GetPropertyDefs(), 9, this.GetPropertyDefIndex);
-            this.AddCustomAttributesToTable(this.GetEventDefs(), 10, this.GetEventDefIndex);
+            this.AddCustomAttributesToTable(this.GetPropertyDefs(), HasCustomAttributeTag.Property, this.GetPropertyDefIndex);
+            this.AddCustomAttributesToTable(this.GetEventDefs(), HasCustomAttributeTag.Event, this.GetEventDefIndex);
 
             // TODO: standalone signature entries 11
             if (this.IsFullMetadata)
             {
-                this.AddCustomAttributesToTable(this.module.ModuleReferences, 12);
+                this.AddCustomAttributesToTable(this.module.ModuleReferences, HasCustomAttributeTag.ModuleRef);
             }
 
             // TODO: type spec entries 13
@@ -2349,7 +2262,7 @@ namespace Microsoft.Cci
                 sortedGenericParameterList.Add(genericParamRow.GenericParameter);
             }
 
-            this.AddCustomAttributesToTable(sortedGenericParameterList, 19);
+            this.AddCustomAttributesToTable(sortedGenericParameterList, HasCustomAttributeTag.GenericParam);
 
             _customAttributeTable.Sort(new CustomAttributeRowComparer());
         }
@@ -2379,7 +2292,7 @@ namespace Microsoft.Cci
         private void AddAssemblyAttributesToTable(IEnumerable<ICustomAttribute> assemblyAttributes, bool needsDummyParent, bool isSecurity)
         {
             Debug.Assert(this.IsFullMetadata); // parentToken is not relative
-            uint parentToken = (1 << 5) | 14;
+            uint parentToken = 1.ToCodedIndex(HasCustomAttributeTag.Assembly);
             foreach (ICustomAttribute customAttribute in assemblyAttributes)
             {
                 if (needsDummyParent)
@@ -2409,29 +2322,29 @@ namespace Microsoft.Cci
                 r.Name = heaps.GetStringIndex(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]);
                 r.Namespace = heaps.GetStringIndex(dummyAssemblyAttributeParentNamespace);
                 _typeRefTable.Add(r);
-                _dummyAssemblyAttributeParent[iS, iM] = ((uint)_typeRefTable.Count << 5) | 2;
+                _dummyAssemblyAttributeParent[iS, iM] = _typeRefTable.Count.ToCodedIndex(HasCustomAttributeTag.TypeRef);
             }
             return _dummyAssemblyAttributeParent[iS, iM];
         }
 
-        private void AddModuleAttributesToTable(IModule module, uint tag)
+        private void AddModuleAttributesToTable(IModule module, HasCustomAttributeTag tag)
         {
             Debug.Assert(this.IsFullMetadata); // parentToken is not relative
-            uint parentToken = (1 << 5) | tag;
+            uint parentToken = 1.ToCodedIndex(tag);
             foreach (ICustomAttribute customAttribute in module.ModuleAttributes)
             {
                 AddCustomAttributeToTable(parentToken, customAttribute);
             }
         }
 
-        private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, uint tag)
+        private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, HasCustomAttributeTag tag)
             where T : IReference
         {
-            uint parentIndex = 0;
+            int parentIndex = 0;
             foreach (var parent in parentList)
             {
                 parentIndex++;
-                uint parentToken = (parentIndex << 5) | tag;
+                uint parentToken = parentIndex.ToCodedIndex(tag);
                 foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
                 {
                     AddCustomAttributeToTable(parentToken, customAttribute);
@@ -2439,13 +2352,12 @@ namespace Microsoft.Cci
             }
         }
 
-        private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, uint tag, Func<T, int> getDefIndex)
+        private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, HasCustomAttributeTag tag, Func<T, int> getDefIndex)
             where T : IReference
         {
             foreach (var parent in parentList)
             {
-                uint parentIndex = (uint)getDefIndex(parent);
-                uint parentToken = (parentIndex << 5) | tag;
+                uint parentToken = getDefIndex(parent).ToCodedIndex(tag);
                 foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
                 {
                     AddCustomAttributeToTable(parentToken, customAttribute);
@@ -2483,7 +2395,7 @@ namespace Microsoft.Cci
             IAssembly assembly = this.module.AsAssembly;
             if (assembly != null)
             {
-                this.PopulateDeclSecurityTableRowsFor((1 << 2) | 2, assembly.AssemblySecurityAttributes);
+                this.PopulateDeclSecurityTableRowsFor(1, HasDeclSecurityTag.Assembly, assembly.AssemblySecurityAttributes);
             }
 
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())
@@ -2493,8 +2405,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint typeDefIndex = (uint)this.GetTypeDefIndex(typeDef);
-                this.PopulateDeclSecurityTableRowsFor(typeDefIndex << 2, typeDef.SecurityAttributes);
+                this.PopulateDeclSecurityTableRowsFor(GetTypeDefIndex(typeDef), HasDeclSecurityTag.TypeDef, typeDef.SecurityAttributes);
             }
 
             foreach (IMethodDefinition methodDef in this.GetMethodDefs())
@@ -2504,14 +2415,13 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint methodDefIndex = (uint)this.GetMethodDefIndex(methodDef);
-                this.PopulateDeclSecurityTableRowsFor((methodDefIndex << 2) | 1, methodDef.SecurityAttributes);
+                this.PopulateDeclSecurityTableRowsFor(GetMethodDefIndex(methodDef), HasDeclSecurityTag.MethodDef, methodDef.SecurityAttributes);
             }
 
             _declSecurityTable.Sort(new DeclSecurityRowComparer());
         }
 
-        private void PopulateDeclSecurityTableRowsFor(uint parent, IEnumerable<SecurityAttribute> attributes)
+        private void PopulateDeclSecurityTableRowsFor(int parentIndex, HasDeclSecurityTag tag, IEnumerable<SecurityAttribute> attributes)
         {
             OrderPreservingMultiDictionary<DeclarativeSecurityAction, ICustomAttribute> groupedSecurityAttributes = null;
 
@@ -2527,7 +2437,7 @@ namespace Microsoft.Cci
             }
 
             DeclSecurityRow r = new DeclSecurityRow();
-            r.Parent = parent;
+            r.Parent = parentIndex.ToCodedIndex(tag);
 
             foreach (DeclarativeSecurityAction securityAction in groupedSecurityAttributes.Keys)
             {
@@ -2606,10 +2516,10 @@ namespace Microsoft.Cci
                         r.TypeNamespace = default(StringIdx);
 
                         var containingType = nestedRef.GetContainingType(Context);
-                        uint ci = (uint)this.GetExportedTypeIndex(containingType);
-                        r.Implementation = (ci << 2) | 2;
+                        int ci = GetExportedTypeIndex(containingType);
+                        r.Implementation = ci.ToCodedIndex(ImplementationTag.ExportedType);
 
-                        var parentFlags = _exportedTypeTable[((int)ci) - 1].Flags;
+                        var parentFlags = _exportedTypeTable[ci - 1].Flags;
                         if (parentFlags == TypeFlags.PrivateAccess)
                         {
                             r.Flags = TypeFlags.PrivateAccess;
@@ -2670,11 +2580,10 @@ namespace Microsoft.Cci
                 var marshallingInformation = fieldDef.MarshallingInformation;
 
                 r.NativeType = (marshallingInformation != null)
-                    ? this.GetMarshallingDescriptorIndex(marshallingInformation)
-                    : this.GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
+                    ? GetMarshallingDescriptorIndex(marshallingInformation)
+                    : GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
 
-                uint fieldDefIndex = (uint)this.GetFieldDefIndex(fieldDef);
-                r.Parent = fieldDefIndex << 1;
+                r.Parent = GetFieldDefIndex(fieldDef).ToCodedIndex(HasFieldMarshalTag.Field);
                 _fieldMarshalTable.Add(r);
             }
 
@@ -2691,11 +2600,10 @@ namespace Microsoft.Cci
                 var marshallingInformation = parDef.MarshallingInformation;
 
                 r.NativeType = (marshallingInformation != null)
-                    ? this.GetMarshallingDescriptorIndex(marshallingInformation)
-                    : this.GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
+                    ? GetMarshallingDescriptorIndex(marshallingInformation)
+                    : GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
 
-                uint parameterDefIndex = (uint)this.GetParameterDefIndex(parDef);
-                r.Parent = (parameterDefIndex << 1) | 1;
+                r.Parent = GetParameterDefIndex(parDef).ToCodedIndex(HasFieldMarshalTag.Param);
                 _fieldMarshalTable.Add(r);
             }
 
@@ -2840,10 +2748,9 @@ namespace Microsoft.Cci
                 }
 
                 var data = methodDef.PlatformInvokeData;
-                uint methodDefIndex = (uint)this.GetMethodDefIndex(methodDef);
                 var r = new ImplMapRow();
                 r.MappingFlags = (ushort)data.Flags;
-                r.MemberForwarded = (methodDefIndex << 1) | 1;
+                r.MemberForwarded = GetMethodDefIndex(methodDef).ToCodedIndex(MemberForwardedTag.MethodDef);
 
                 string entryPointName = data.EntryPointName;
                 r.ImportName = entryPointName != null
@@ -2883,7 +2790,7 @@ namespace Microsoft.Cci
                 {
                     IFileReference externalFile = resource.ExternalFile;
                     // Length checked on insertion into the file table.
-                    r.Implementation = (uint)this.GetFileRefIndex(externalFile) << 2;
+                    r.Implementation = GetFileRefIndex(externalFile).ToCodedIndex(ImplementationTag.File);
                 }
                 else
                 {
@@ -2938,9 +2845,8 @@ namespace Microsoft.Cci
             uint i = 0;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
-                uint propertyIndex = (uint)this.GetPropertyDefIndex(propertyDef);
                 var r = new MethodSemanticsRow();
-                r.Association = (propertyIndex << 1) | 1;
+                r.Association = GetPropertyDefIndex(propertyDef).ToCodedIndex(HasSemanticsTag.Property);
                 foreach (IMethodReference accessorMethod in propertyDef.Accessors)
                 {
                     if (accessorMethod == propertyDef.Setter)
@@ -2965,9 +2871,8 @@ namespace Microsoft.Cci
             int propertiesOnlyTableCount = _methodSemanticsTable.Count;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
-                uint eventIndex = (uint)this.GetEventDefIndex(eventDef);
                 var r = new MethodSemanticsRow();
-                r.Association = eventIndex << 1;
+                r.Association = GetEventDefIndex(eventDef).ToCodedIndex(HasSemanticsTag.Event);
                 foreach (IMethodReference accessorMethod in eventDef.Accessors)
                 {
                     r.Semantic = 0x0004;
@@ -3178,16 +3083,19 @@ namespace Microsoft.Cci
                 INestedTypeReference nestedTypeRef = typeRef.AsNestedTypeReference;
                 if (nestedTypeRef != null)
                 {
+                    ITypeReference scopeTypeRef;
+
                     ISpecializedNestedTypeReference sneTypeRef = nestedTypeRef.AsSpecializedNestedTypeReference;
                     if (sneTypeRef != null)
                     {
-                        r.ResolutionScope = this.GetResolutionScopeCodedIndex(sneTypeRef.UnspecializedVersion.GetContainingType(Context));
+                        scopeTypeRef = sneTypeRef.UnspecializedVersion.GetContainingType(Context);
                     }
                     else
                     {
-                        r.ResolutionScope = this.GetResolutionScopeCodedIndex(nestedTypeRef.GetContainingType(Context));
+                        scopeTypeRef = nestedTypeRef.GetContainingType(Context);
                     }
 
+                    r.ResolutionScope = GetTypeRefIndex(scopeTypeRef).ToCodedIndex(ResolutionScopeTag.TypeRef);
                     r.Name = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedTypeRef), nestedTypeRef);
                     r.Namespace = default(StringIdx);
                 }
