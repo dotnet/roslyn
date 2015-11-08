@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return RunServerCompilation(_language, arguments, buildPaths, keepAlive, libDirectory, cancellationToken);
         }
 
-        public static async Task<BuildResponse> RunServerCompilation(
+        public static Task<BuildResponse> RunServerCompilation(
             RequestLanguage language,
             List<string> arguments,
             BuildPaths buildPaths,
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                             if (!holdsMutex)
                             {
-                                return null;
+                                return Task.FromResult<BuildResponse>(null);
                             }
                         }
                         catch (AbandonedMutexException)
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                                           keepAlive,
                                                           libEnvVariable);
 
-                        return await TryCompile(pipe, request, cancellationToken).ConfigureAwait(true);
+                        return TryCompile(pipe, request, cancellationToken);
                     }
                 }
                 finally

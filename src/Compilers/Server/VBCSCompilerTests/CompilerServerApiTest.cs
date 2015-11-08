@@ -151,6 +151,9 @@ class Hello
         private static Mock<ICompilerServerHost> CreateNopCompilerServerHost()
         {
             var host = new Mock<ICompilerServerHost>();
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns(new TaskCompletionSource<IClientConnection>().Task);
             return host;
         }
 
