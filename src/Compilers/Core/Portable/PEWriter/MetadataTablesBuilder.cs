@@ -435,8 +435,8 @@ namespace Microsoft.Cci
             ulong sortedTables = sortedDebugTables | (metadataSizes.IsStandaloneDebugMetadata ? 0UL : 0x16003301fa00);
 
             writer.WriteUInt32(0); // reserved
-            writer.WriteByte(module.Properties.MetadataFormatMajorVersion);
-            writer.WriteByte(module.Properties.MetadataFormatMinorVersion);
+            writer.WriteByte(MetadataFormatMajorVersion);
+            writer.WriteByte(MetadataFormatMinorVersion);
             writer.WriteByte((byte)heapSizes);
             writer.WriteByte(1); // reserved
             writer.WriteUInt64(metadataSizes.PresentTablesMask);

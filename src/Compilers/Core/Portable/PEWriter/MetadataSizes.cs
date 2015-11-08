@@ -99,35 +99,9 @@ namespace Microsoft.Cci
         /// </summary>
         public readonly int StandalonePdbStreamSize;
 
-        /// <summary>
-        /// The size of IL stream.
-        /// </summary>
-        public readonly int ILStreamSize;
-
-        /// <summary>
-        /// The size of mapped field data stream.
-        /// Aligned to <see cref="MetadataWriter.MappedFieldDataAlignment"/>.
-        /// </summary>
-        public readonly int MappedFieldDataSize;
-
-        /// <summary>
-        /// The size of managed resource data stream.
-        /// Aligned to <see cref="MetadataWriter.ManagedResourcesDataAlignment"/>.
-        /// </summary>
-        public readonly int ResourceDataSize;
-
-        /// <summary>
-        /// Size of strong name hash.
-        /// </summary>
-        public readonly int StrongNameSignatureSize;
-
         public MetadataSizes(
             ImmutableArray<int> rowCounts,
             ImmutableArray<int> heapSizes,
-            int ilStreamSize,
-            int mappedFieldDataSize,
-            int resourceDataSize,
-            int strongNameSignatureSize,
             bool isMinimalDelta,
             bool emitStandaloneDebugMetadata,
             bool isStandaloneDebugMetadata)
@@ -141,10 +115,6 @@ namespace Microsoft.Cci
 
             this.RowCounts = rowCounts;
             this.HeapSizes = heapSizes;
-            this.ResourceDataSize = resourceDataSize;
-            this.ILStreamSize = ilStreamSize;
-            this.MappedFieldDataSize = mappedFieldDataSize;
-            this.StrongNameSignatureSize = strongNameSignatureSize;
             this.IsMinimalDelta = isMinimalDelta;
 
             this.BlobIndexSize = (isMinimalDelta || heapSizes[(int)HeapIndex.Blob] > ushort.MaxValue) ? large : small;
