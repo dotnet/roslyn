@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Threading;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
 
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 get
                 {
-                    return _searchResult.NavigableItem.DisplayName;
+                    return _searchResult.NavigableItem.DisplayString;
                 }
             }
 

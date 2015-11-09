@@ -1,10 +1,15 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
+Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Public Class EncapsulateFieldCommandHandlerTests
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub PrivateField()
             Dim text = <File>
 Class C
@@ -38,7 +43,7 @@ End Class</File>.ConvertTestSourceTag()
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub NonPrivateField()
             Dim text = <File>
 Class C
@@ -73,7 +78,7 @@ End Class</File>.ConvertTestSourceTag()
         End Sub
 
         <WorkItem(1086632)>
-        <Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         Public Sub EncapsulateTwoFields()
             Dim text = "
 Class Program
@@ -118,6 +123,43 @@ End Class
 
             Using state = New EncapsulateFieldTestState(text)
                 state.AssertEncapsulateAs(expected)
+            End Using
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
+        <Trait(Traits.Feature, Traits.Features.Interactive)>
+        Public Sub EncapsulateFieldCommandDisabledInSubmission()
+            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(
+                <Workspace>
+                    <Submission Language="Visual Basic" CommonReferences="true">  
+                        Class C
+                            Private $foo As Object
+                        End Class
+                    </Submission>
+                </Workspace>,
+                workspaceKind:=WorkspaceKind.Interactive,
+                exportProvider:=exportProvider)
+
+                ' Force initialization.
+                workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
+
+                Dim textView = workspace.Documents.Single().GetTextView()
+
+                Dim handler = New EncapsulateFieldCommandHandler(workspace.GetService(Of Host.IWaitIndicator), workspace.GetService(Of ITextBufferUndoManagerProvider))
+                Dim delegatedToNext = False
+                Dim nextHandler =
+                    Function()
+                        delegatedToNext = True
+                        Return CommandState.Unavailable
+                    End Function
+
+                Dim state = handler.GetCommandState(New Commands.EncapsulateFieldCommandArgs(textView, textView.TextBuffer), nextHandler)
+                Assert.True(delegatedToNext)
+                Assert.False(state.IsAvailable)
             End Using
         End Sub
     End Class

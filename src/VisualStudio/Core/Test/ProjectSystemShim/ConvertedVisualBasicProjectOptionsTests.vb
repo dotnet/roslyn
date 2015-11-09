@@ -18,7 +18,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
     Public Class ConvertedVisualBasicProjectOptionsTests
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralCommandLineOptionOverridesGeneralRuleSetOption()
             Dim convertedOptions = GetConvertedOptions(ruleSetGeneralOption:=ReportDiagnostic.Warn, commandLineGeneralOption:=WarningLevel.WARN_AsError)
 
@@ -26,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Assert.Equal(expected:=0, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions.Count)
         End Sub
 
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralWarnAsErrorPromotesWarningFromRuleSet()
             Dim ruleSetSpecificOptions = New Dictionary(Of String, ReportDiagnostic) From
                 {
@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralWarnAsErrorDoesNotPromoteInfoFromRuleSet()
             Dim ruleSetSpecificOptions = New Dictionary(Of String, ReportDiagnostic) From
                 {
@@ -54,7 +54,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Assert.Equal(expected:=ReportDiagnostic.Info, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificWarnAsErrorPromotesInfoFromRuleSet()
             Dim ruleSetSpecificOptions = New Dictionary(Of String, ReportDiagnostic) From
                 {
@@ -71,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Assert.Equal(expected:=ReportDiagnostic.Error, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificWarnAsErrorMinusResetsRules()
             Dim ruleSetSpecificOptions = New Dictionary(Of String, ReportDiagnostic) From
                 {
@@ -88,7 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Assert.Equal(expected:=ReportDiagnostic.Warn, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test001"))
         End Sub
 
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificWarnAsErrorMinusDefaultsRuleNotInRuleSet()
             Dim ruleSetSpecificOptions = New Dictionary(Of String, ReportDiagnostic) From
                 {
@@ -106,7 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Assert.Equal(expected:=ReportDiagnostic.Default, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test002"))
         End Sub
 
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_GeneralNoWarnTurnsOffAllButErrors()
             Dim ruleSetSpecificOptions = New Dictionary(Of String, ReportDiagnostic) From
                {
@@ -126,7 +126,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Assert.Equal(expected:=ReportDiagnostic.Suppress, actual:=convertedOptions.CompilationOptions.SpecificDiagnosticOptions("Test003"))
         End Sub
 
-        <Fact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
+        <WpfFact, WorkItem(468, "https://github.com/dotnet/roslyn/issues/468")>
         Public Sub RuleSet_SpecificNoWarnAlwaysWins()
             Dim ruleSetSpecificOptions = New Dictionary(Of String, ReportDiagnostic) From
                 {

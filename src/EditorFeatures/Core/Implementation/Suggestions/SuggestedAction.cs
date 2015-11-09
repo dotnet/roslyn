@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -28,14 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         protected readonly ICodeActionEditHandlerService EditHandler;
 
         protected readonly object Provider;
-        protected readonly CodeAction CodeAction;
+        internal readonly CodeAction CodeAction;
+        private readonly ImmutableArray<SuggestedActionSet> _actionSets;
 
-        protected SuggestedAction(
+        internal SuggestedAction(
             Workspace workspace,
             ITextBuffer subjectBuffer,
             ICodeActionEditHandlerService editHandler,
             CodeAction codeAction,
-            object provider)
+            object provider,
+            IEnumerable<SuggestedActionSet> actionSets = null)
         {
             Contract.ThrowIfTrue(provider == null);
 
@@ -44,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             this.CodeAction = codeAction;
             this.EditHandler = editHandler;
             this.Provider = provider;
+            _actionSets = actionSets.AsImmutableOrEmpty();
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)
@@ -85,35 +89,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             using (new CaretPositionRestorer(this.SubjectBuffer, this.EditHandler.AssociatedViewService))
             {
-                var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
-                extensionManager.PerformAction(Provider, () =>
-                {
-                    IEnumerable<CodeActionOperation> operations = null;
-
-                    // NOTE: As mentoned above, we want to avoid computing the operations on the UI thread.
-                    // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
-                    // to compute the options and must be done on the UI thread.
-                    var actionWithOptions = this.CodeAction as CodeActionWithOptions;
-                    if (actionWithOptions != null)
-                    {
-                        var options = actionWithOptions.GetOptions(cancellationToken);
-                        if (options != null)
-                        {
-                            operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
-                        }
-                    }
-                    else
-                    {
-                        operations = GetOperationsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                    }
-
-                    if (operations != null)
-                    {
-                        var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                        EditHandler.Apply(Workspace, document, operations, CodeAction.Title, cancellationToken);
-                    }
-                });
+                Func<Document> getFromDocument = () => this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                InvokeCore(getFromDocument, cancellationToken);
             }
+        }
+
+        public void InvokeCore(Func<Document> getFromDocument, CancellationToken cancellationToken)
+        {
+            var extensionManager = this.Workspace.Services.GetService<IExtensionManager>();
+            extensionManager.PerformAction(Provider, () =>
+            {
+                IEnumerable<CodeActionOperation> operations = null;
+
+                // NOTE: As mentioned above, we want to avoid computing the operations on the UI thread.
+                // However, for CodeActionWithOptions, GetOptions() might involve spinning up a dialog
+                // to compute the options and must be done on the UI thread.
+                var actionWithOptions = this.CodeAction as CodeActionWithOptions;
+                if (actionWithOptions != null)
+                {
+                    var options = actionWithOptions.GetOptions(cancellationToken);
+                    if (options != null)
+                    {
+                        operations = GetOperationsAsync(actionWithOptions, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    }
+                }
+                else
+                {
+                    operations = GetOperationsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                }
+
+                if (operations != null)
+                {
+                    EditHandler.Apply(Workspace, getFromDocument(), operations, CodeAction.Title, cancellationToken);
+                }
+            });
         }
 
         public string DisplayText
@@ -205,38 +214,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContent);
         }
 
-        protected virtual Diagnostic GetDiagnostic()
+        protected virtual DiagnosticData GetDiagnostic()
         {
             return null;
         }
 
+        public virtual bool HasActionSets => _actionSets.Length > 0;
+
+        public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<SuggestedActionSet>>(GetActionSets());
+        }
+
+        internal ImmutableArray<SuggestedActionSet> GetActionSets()
+        {
+            return _actionSets;
+        }
+
         #region not supported
+
         void IDisposable.Dispose()
         {
             // do nothing
         }
 
-        public virtual bool HasActionSets
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public virtual Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
-        }
-
-        string ISuggestedAction.IconAutomationText
-        {
-            get
-            {
-                // same as display text
-                return DisplayText;
-            }
-        }
+        // same as display text
+        string ISuggestedAction.IconAutomationText => DisplayText;
 
         ImageMoniker ISuggestedAction.IconMoniker
         {
@@ -255,9 +258,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return null;
             }
         }
+
         #endregion
 
         #region IEquatable<ISuggestedAction>
+
         public bool Equals(ISuggestedAction other)
         {
             return Equals(other as SuggestedAction);
@@ -268,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return Equals(obj as SuggestedAction);
         }
 
-        public bool Equals(SuggestedAction otherSuggestedAction)
+        internal bool Equals(SuggestedAction otherSuggestedAction)
         {
             if (otherSuggestedAction == null)
             {
@@ -303,6 +308,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             return Hash.Combine(Provider.GetHashCode(), CodeAction.EquivalenceKey.GetHashCode());
         }
+
         #endregion
     }
 }

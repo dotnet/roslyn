@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits StateMachineRewriter(Of CapturedSymbolOrExpression)
 
         ''' <summary>
-        ''' Spill field allocator controls allocation and reusage of the set of fields 
+        ''' Spill field allocator controls allocation and reuse of the set of fields 
         ''' used to spilling expressions; current implementation allows reuse of fields 
         ''' of the same type on high-level statement level
         ''' </summary>

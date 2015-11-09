@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow.Commands
     /// 
     /// This interface is a MEF contract and can be implemented and exported to add commands to the REPL window.
     /// </summary>
-    [ContentType("code")]
+    [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
     internal abstract class InteractiveWindowCommand : IInteractiveWindowCommand
     {
         public abstract Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments);

@@ -5252,7 +5252,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithReferences(source, LatestReferences, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithReferences(source, LatestVbReferences, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>

@@ -161,48 +161,48 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         /// <summary>
         /// return SuppressOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<SuppressOperation>();
-            chainedFormattingRules.AddSuppressOperations(list, node);
+            chainedFormattingRules.AddSuppressOperations(list, node, lastToken);
             return list;
         }
 
         /// <summary>
         /// return AnchorIndentationOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<AnchorIndentationOperation>();
-            chainedFormattingRules.AddAnchorIndentationOperations(list, node);
+            chainedFormattingRules.AddAnchorIndentationOperations(list, node, lastToken);
             return list;
         }
 
         /// <summary>
         /// return IndentBlockOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<IndentBlockOperation> GetIndentBlockOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<IndentBlockOperation>();
-            chainedFormattingRules.AddIndentBlockOperations(list, node);
+            chainedFormattingRules.AddIndentBlockOperations(list, node, lastToken);
             return list;
         }
 
         /// <summary>
         /// return AlignTokensOperation for the node provided by the given formatting rules
         /// </summary>
-        internal static IEnumerable<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, OptionSet optionSet)
+        internal static IEnumerable<AlignTokensOperation> GetAlignTokensOperations(IEnumerable<IFormattingRule> formattingRules, SyntaxNode node, SyntaxToken lastToken, OptionSet optionSet)
         {
             var chainedFormattingRules = new ChainedFormattingRules(formattingRules, optionSet);
 
             var list = new List<AlignTokensOperation>();
-            chainedFormattingRules.AddAlignTokensOperations(list, node);
+            chainedFormattingRules.AddAlignTokensOperations(list, node, lastToken);
             return list;
         }
 

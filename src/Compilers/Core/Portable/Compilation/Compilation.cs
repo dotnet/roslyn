@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -31,9 +32,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract partial class Compilation
     {
-        // Inverse of syntaxTrees array (i.e. maps tree to index)
-        internal readonly ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap;
-
         /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
@@ -54,37 +52,28 @@ namespace Microsoft.CodeAnalysis
 
         private readonly IReadOnlyDictionary<string, string> _features;
 
+        public ScriptCompilationInfo ScriptCompilationInfo => CommonScriptCompilationInfo;
+        internal abstract ScriptCompilationInfo CommonScriptCompilationInfo { get; }
+
         internal Compilation(
             string name,
             ImmutableArray<MetadataReference> references,
-            Type submissionReturnType,
-            Type hostObjectType,
+            IReadOnlyDictionary<string, string> features,
             bool isSubmission,
-            ImmutableDictionary<SyntaxTree, int> syntaxTreeOrdinalMap,
             AsyncQueue<CompilationEvent> eventQueue)
         {
             Debug.Assert(!references.IsDefault);
+            Debug.Assert(features != null);
 
             this.AssemblyName = name;
             this.ExternalReferences = references;
-            this.syntaxTreeOrdinalMap = syntaxTreeOrdinalMap;
             this.EventQueue = eventQueue;
 
-            if (isSubmission)
-            {
-                _lazySubmissionSlotIndex = SubmissionSlotIndexToBeAllocated;
-                this.SubmissionReturnType = submissionReturnType ?? typeof(object);
-                this.HostObjectType = hostObjectType;
-            }
-            else
-            {
-                _lazySubmissionSlotIndex = SubmissionSlotIndexNotApplicable;
-            }
-
-            _features = SyntaxTreeCommonFeatures(syntaxTreeOrdinalMap.Keys);
+            _lazySubmissionSlotIndex = isSubmission ? SubmissionSlotIndexToBeAllocated : SubmissionSlotIndexNotApplicable;
+            _features = features;
         }
 
-        private IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
+        protected static IReadOnlyDictionary<string, string> SyntaxTreeCommonFeatures(IEnumerable<SyntaxTree> trees)
         {
             IReadOnlyDictionary<string, string> set = null;
 
@@ -113,18 +102,18 @@ namespace Microsoft.CodeAnalysis
             return set;
         }
 
-        internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, CancellationToken cancellationToken);
+        internal abstract AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager);
 
         /// <summary>
         /// Gets the source language ("C#" or "Visual Basic").
         /// </summary>
         public abstract string Language { get; }
 
-        internal static void ValidateSubmissionParameters(Compilation previousSubmission, Type returnType, ref Type hostObjectType)
+        internal static void ValidateScriptCompilationParameters(Compilation previousScriptCompilation, Type returnType, ref Type globalsType)
         {
-            if (hostObjectType != null && !IsValidHostObjectType(hostObjectType))
+            if (globalsType != null && !IsValidHostObjectType(globalsType))
             {
-                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, nameof(hostObjectType));
+                throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeValuePointerbyRefOrOpen, nameof(globalsType));
             }
 
             if (returnType != null && !IsValidSubmissionReturnType(returnType))
@@ -132,19 +121,19 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.ReturnTypeCannotBeVoidByRefOrOpen, nameof(returnType));
             }
 
-            if (previousSubmission != null)
+            if (previousScriptCompilation != null)
             {
-                if (hostObjectType == null)
+                if (globalsType == null)
                 {
-                    hostObjectType = previousSubmission.HostObjectType;
+                    globalsType = previousScriptCompilation.HostObjectType;
                 }
-                else if (hostObjectType != previousSubmission.HostObjectType)
+                else if (globalsType != previousScriptCompilation.HostObjectType)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, nameof(hostObjectType));
+                    throw new ArgumentException(CodeAnalysisResources.TypeMustBeSameAsHostObjectTypeOfPreviousSubmission, nameof(globalsType));
                 }
 
                 // Force the previous submission to be analyzed. This is required for anonymous types unification.
-                if (previousSubmission.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (previousScriptCompilation.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
                 {
                     throw new InvalidOperationException(CodeAnalysisResources.PreviousSubmissionHasErrors);
                 }
@@ -316,7 +305,7 @@ namespace Microsoft.CodeAnalysis
             if (_lazySubmissionSlotIndex == SubmissionSlotIndexToBeAllocated)
             {
                 // TODO (tomat): remove recursion
-                int lastSlotIndex = PreviousSubmission?.GetSubmissionSlotIndex() ?? 0;
+                int lastSlotIndex = ScriptCompilationInfo.PreviousScriptCompilation?.GetSubmissionSlotIndex() ?? 0;
                 _lazySubmissionSlotIndex = HasCodeToEmit() ? lastSlotIndex + 1 : lastSlotIndex;
             }
 
@@ -334,7 +323,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type object that represents the type of submission result the host requested.
         /// </summary>
-        internal Type SubmissionReturnType { get; }
+        internal Type SubmissionReturnType => ScriptCompilationInfo?.ReturnType;
 
         internal static bool IsValidSubmissionReturnType(Type type)
         {
@@ -342,9 +331,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The type of the host object or null if not specified for this compilation.
+        /// The type of the globals object or null if not specified for this compilation.
         /// </summary>
-        internal Type HostObjectType { get; }
+        internal Type HostObjectType => ScriptCompilationInfo?.GlobalsType;
 
         internal static bool IsValidHostObjectType(Type type)
         {
@@ -352,58 +341,10 @@ namespace Microsoft.CodeAnalysis
             return !(info.IsValueType || info.IsPointer || info.IsByRef || info.ContainsGenericParameters);
         }
 
-        /// <summary>
-        /// Returns the type of the submission return value.
-        /// </summary>
-        /// <param name="hasValue">
-        /// True if the submission has a return value, i.e. if the submission
-        /// ends with an expression statement.
-        /// </param>
-        /// <exception cref="InvalidOperationException">
-        /// The compilation doesn't represent a submission
-        /// (<see cref="IsSubmission"/> return false).
-        /// </exception>
-        /// <returns>
-        /// Null if the type of the last expression is unknown, 
-        /// <see cref="void"/> if the type of the last expression statement is
-        /// void or if the submission is not an expression statement, or
-        /// otherwise the type of the last expression.
-        /// </returns>
-        /// <remarks>
-        /// Note that the return type is <see cref="void"/> if the last
-        /// statement is a non-expression statement e.g.,
-        /// <code>System.Console.WriteLine();</code>
-        /// and if the statement is an expression statement of type void e.g,
-        /// <code>System.Console.WriteLine()</code>. However,
-        /// <paramref name="hasValue"/> is false in the former case and true
-        /// in the latter.
-        /// </remarks>
-        public ITypeSymbol GetSubmissionResultType(out bool hasValue)
-        {
-            return CommonGetSubmissionResultType(out hasValue);
-        }
+        internal abstract bool HasSubmissionResult();
 
-        protected abstract ITypeSymbol CommonGetSubmissionResultType(out bool hasValue);
-
-        /// <summary>
-        /// The previous submission compilation, or null if either this
-        /// compilation doesn't represent a submission or the submission is the
-        /// first submission in a submission chain.
-        /// </summary>
-        public Compilation PreviousSubmission { get { return CommonPreviousSubmission; } }
-
-        protected abstract Compilation CommonPreviousSubmission { get; }
-
-        /// <summary>
-        /// Returns a new compilation with the given compilation set as the
-        /// previous submission.
-        /// </summary>
-        public Compilation WithPreviousSubmission(Compilation newPreviousSubmission)
-        {
-            return CommonWithPreviousSubmission(newPreviousSubmission);
-        }
-
-        protected abstract Compilation CommonWithPreviousSubmission(Compilation newPreviousSubmission);
+        public Compilation WithScriptCompilationInfo(ScriptCompilationInfo info) => CommonWithScriptCompilationInfo(info);
+        protected abstract Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info);
 
         #endregion
 
@@ -554,7 +495,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Maps values of #r references to resolved metadata references.
         /// </summary>
-        internal abstract IDictionary<string, MetadataReference> ReferenceDirectiveMap { get; }
+        internal abstract IDictionary<ValueTuple<string, string>, MetadataReference> ReferenceDirectiveMap { get; }
 
         /// <summary>
         /// All metadata references -- references passed to the compilation
@@ -739,10 +680,8 @@ namespace Microsoft.CodeAnalysis
         /// <param name="assemblySymbol">The target symbol.</param>
         public MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            return CommonGetMetadataReference(assemblySymbol);
+            return GetBoundReferenceManager().GetMetadataReference(assemblySymbol);
         }
-
-        protected abstract MetadataReference CommonGetMetadataReference(IAssemblySymbol assemblySymbol);
 
         /// <summary>
         /// Assembly identities of all assemblies directly referenced by this compilation.
@@ -1376,6 +1315,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract CommonPEModuleBuilder CreateModuleBuilder(
             EmitOptions emitOptions,
+            IMethodSymbol debugEntryPoint,
             IEnumerable<ResourceDescription> manifestResources,
             CompilationTestData testData,
             DiagnosticBag diagnostics,
@@ -1419,6 +1359,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void EnsureAnonymousTypeTemplates(CancellationToken cancellationToken)
         {
+            Debug.Assert(IsSubmission);
+
             if (this.GetSubmissionSlotIndex() >= 0 && HasCodeToEmit())
             {
                 if (!this.CommonAnonymousTypeManager.AreTemplatesSealed)
@@ -1427,6 +1369,7 @@ namespace Microsoft.CodeAnalysis
 
                     var moduleBeingBuilt = this.CreateModuleBuilder(
                         emitOptions: EmitOptions.Default,
+                        debugEntryPoint: null,
                         manifestResources: null,
                         testData: null,
                         diagnostics: discardedDiagnostics,
@@ -1451,7 +1394,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                this.PreviousSubmission?.EnsureAnonymousTypeTemplates(cancellationToken);
+                this.ScriptCompilationInfo.PreviousScriptCompilation?.EnsureAnonymousTypeTemplates(cancellationToken);
             }
         }
 
@@ -1466,6 +1409,53 @@ namespace Microsoft.CodeAnalysis
         /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
         /// <param name="options">Emit options.</param>
         /// <param name="cancellationToken">To cancel the emit process.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public EmitResult Emit(
+            Stream peStream,
+            Stream pdbStream,
+            Stream xmlDocumentationStream,
+            Stream win32Resources,
+            IEnumerable<ResourceDescription> manifestResources,
+            EmitOptions options,
+            CancellationToken cancellationToken)
+        {
+            return Emit(
+                peStream,
+                pdbStream,
+                xmlDocumentationStream,
+                win32Resources,
+                manifestResources,
+                options,
+                null,
+                cancellationToken);
+        }
+
+        /// <summary>
+        /// Emit the IL for the compiled source code into the specified stream.
+        /// </summary>
+        /// <param name="peStream">Stream to which the compilation will be written.</param>
+        /// <param name="pdbStream">Stream to which the compilation's debug info will be written.  Null to forego PDB generation.</param>
+        /// <param name="xmlDocumentationStream">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
+        /// <param name="win32Resources">Stream from which the compilation's Win32 resources will be read (in RES format).  
+        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
+        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
+        /// <param name="options">Emit options.</param>
+        /// <param name="debugEntryPoint">
+        /// Debug entry-point of the assembly. The method token is stored in the generated PDB stream.
+        /// 
+        /// When a program launches with a debugger attached the debugger places the first breakpoint to the start of the debug entry-point method.
+        /// The CLR starts executing the static Main method of <see cref="CompilationOptions.MainTypeName"/> type. When the first breakpoint is hit
+        /// the debugger steps thru the code statement by statement until user code is reached, skipping methods marked by <see cref="DebuggerHiddenAttribute"/>, 
+        /// and taking other debugging attributes into consideration.
+        /// 
+        /// By default both entry points in an executable program (<see cref="OutputKind.ConsoleApplication"/>, <see cref="OutputKind.WindowsApplication"/>, <see cref="OutputKind.WindowsRuntimeApplication"/>)
+        /// are the same method (Main). A non-executable program has no entry point. Runtimes that implement a custom loader may specify debug entry-point
+        /// to force the debugger to skip over complex custom loader logic executing at the beginning of the .exe and thus improve debugging experience.
+        /// 
+        /// Unlike ordinary entry-point which is limited to a non-generic static method of specific signature, there are no restrictions on the <paramref name="debugEntryPoint"/> 
+        /// method other than having a method body (extern, interface, or abstract methods are not allowed).
+        /// </param>
+        /// <param name="cancellationToken">To cancel the emit process.</param>
         public EmitResult Emit(
             Stream peStream,
             Stream pdbStream = null,
@@ -1473,6 +1463,7 @@ namespace Microsoft.CodeAnalysis
             Stream win32Resources = null,
             IEnumerable<ResourceDescription> manifestResources = null,
             EmitOptions options = null,
+            IMethodSymbol debugEntryPoint = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             if (peStream == null)
@@ -1497,23 +1488,12 @@ namespace Microsoft.CodeAnalysis
                 win32Resources,
                 manifestResources,
                 options,
+                debugEntryPoint,
                 testData: null,
                 getHostDiagnostics: null,
                 cancellationToken: cancellationToken);
         }
 
-        /// <summary>
-        /// Emit the IL for the compiled source code into the specified stream.
-        /// </summary>
-        /// <param name="peStreamProvider">Provides the PE stream the compiler will write to.</param>
-        /// <param name="pdbStreamProvider">Provides the PDB stream the compiler will write to.</param>
-        /// <param name="xmlDocumentationStreamProvider">Stream to which the compilation's XML documentation will be written.  Null to forego XML generation.</param>
-        /// <param name="win32ResourcesProvider">Stream from which the compilation's Win32 resources will be read (in RES format).  
-        /// Null to indicate that there are none. The RES format begins with a null resource entry.</param>
-        /// <param name="manifestResources">List of the compilation's managed resources.  Null to indicate that there are none.</param>
-        /// <param name="options">Emit options.</param>
-        /// <param name="getHostDiagnostics">Returns any extra diagnostics produced by the host of the compiler.</param>
-        /// <param name="cancellationToken">To cancel the emit process.</param>
         internal EmitResult Emit(
             EmitStreamProvider peStreamProvider,
             EmitStreamProvider pdbStreamProvider,
@@ -1521,6 +1501,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider win32ResourcesProvider,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
+            IMethodSymbol debugEntryPoint,
             Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
         {
@@ -1531,6 +1512,7 @@ namespace Microsoft.CodeAnalysis
                 win32ResourcesProvider,
                 manifestResources,
                 options,
+                debugEntryPoint,
                 testData: null,
                 getHostDiagnostics: getHostDiagnostics,
                 cancellationToken: cancellationToken);
@@ -1548,6 +1530,7 @@ namespace Microsoft.CodeAnalysis
             Stream win32Resources,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
+            IMethodSymbol debugEntryPoint,
             CompilationTestData testData,
             Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
@@ -1559,6 +1542,7 @@ namespace Microsoft.CodeAnalysis
                 (win32Resources != null) ? new SimpleEmitStreamProvider(win32Resources) : null,
                 manifestResources,
                 options,
+                debugEntryPoint,
                 testData,
                 getHostDiagnostics,
                 cancellationToken);
@@ -1659,6 +1643,7 @@ namespace Microsoft.CodeAnalysis
             EmitStreamProvider win32ResourcesStreamProvider,
             IEnumerable<ResourceDescription> manifestResources,
             EmitOptions options,
+            IMethodSymbol debugEntryPoint,
             CompilationTestData testData,
             Func<ImmutableArray<Diagnostic>> getHostDiagnostics,
             CancellationToken cancellationToken)
@@ -1675,6 +1660,11 @@ namespace Microsoft.CodeAnalysis
                 options = EmitOptions.Default;
             }
 
+            if (debugEntryPoint != null)
+            {
+                ValidateDebugEntryPoint(debugEntryPoint, diagnostics);
+            }
+
             if (Options.OutputKind == OutputKind.NetModule && manifestResources != null)
             {
                 foreach (ResourceDescription res in manifestResources)
@@ -1689,7 +1679,7 @@ namespace Microsoft.CodeAnalysis
 
             if (diagnostics.HasAnyErrors())
             {
-                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
+                return ToEmitResultAndFree(diagnostics, success: false);
             }
 
             // Do not waste a slot in the submission chain for submissions that contain no executable code
@@ -1698,11 +1688,12 @@ namespace Microsoft.CodeAnalysis
             {
                 // Still report diagnostics since downstream submissions will assume there are no errors.
                 diagnostics.AddRange(this.GetDiagnostics());
-                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
+                return ToEmitResultAndFree(diagnostics, success: false);
             }
 
             var moduleBeingBuilt = this.CreateModuleBuilder(
                 options,
+                debugEntryPoint,
                 manifestResources,
                 testData,
                 diagnostics,
@@ -1710,7 +1701,7 @@ namespace Microsoft.CodeAnalysis
 
             if (moduleBeingBuilt == null)
             {
-                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
+                return ToEmitResultAndFree(diagnostics, success: false);
             }
 
             var win32Resources = win32ResourcesStreamProvider?.GetOrCreateStream(diagnostics);
@@ -1724,7 +1715,7 @@ namespace Microsoft.CodeAnalysis
                 filterOpt: null,
                 cancellationToken: cancellationToken))
             {
-                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
+                return ToEmitResultAndFree(diagnostics, success: false);
             }
 
             var hostDiagnostics = getHostDiagnostics?.Invoke() ?? ImmutableArray<Diagnostic>.Empty;
@@ -1732,7 +1723,7 @@ namespace Microsoft.CodeAnalysis
             diagnostics.AddRange(hostDiagnostics);
             if (hostDiagnostics.Any(x => x.Severity == DiagnosticSeverity.Error))
             {
-                return ToEmitResultAndFree(diagnostics, success: false, entryPointOpt: null);
+                return ToEmitResultAndFree(diagnostics, success: false);
             }
 
             bool success = SerializeToPeStream(
@@ -1744,13 +1735,17 @@ namespace Microsoft.CodeAnalysis
                 metadataOnly: options.EmitMetadataOnly,
                 cancellationToken: cancellationToken);
 
-            return ToEmitResultAndFree(diagnostics, success, (IMethodSymbol)moduleBeingBuilt.EntryPoint);
+            return ToEmitResultAndFree(diagnostics, success);
         }
 
-        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success, IMethodSymbol entryPointOpt)
+        internal abstract void ValidateDebugEntryPoint(IMethodSymbol debugEntryPoint, DiagnosticBag diagnostics);
+
+        private static EmitResult ToEmitResultAndFree(DiagnosticBag diagnostics, bool success)
         {
-            return new EmitResult(success, diagnostics.ToReadOnlyAndFree(), entryPointOpt);
+            return new EmitResult(success, diagnostics.ToReadOnlyAndFree());
         }
+
+        internal bool IsEmitDeterministic => this.Options.Deterministic;
 
         internal bool SerializeToPeStream(
             CommonPEModuleBuilder moduleBeingBuilt,
@@ -1772,7 +1767,7 @@ namespace Microsoft.CodeAnalysis
             Stream portablePdbTempStream = null;
             Stream peTempStream = null;
 
-            bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
+            bool deterministic = IsEmitDeterministic;
             bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
@@ -2045,7 +2040,8 @@ namespace Microsoft.CodeAnalysis
 
         internal void MarkImportDirectiveAsUsed(SyntaxTree syntaxTree, int position)
         {
-            if (syntaxTree != null)
+            // Optimization: Don't initialize TreeToUsedImportDirectivesMap in submissions.
+            if (!IsSubmission && syntaxTree != null)
             {
                 var set = TreeToUsedImportDirectivesMap.GetOrAdd(syntaxTree, s_createSetCallback);
                 set.Add(position);
@@ -2054,8 +2050,13 @@ namespace Microsoft.CodeAnalysis
 
         internal bool IsImportDirectiveUsed(SyntaxTree syntaxTree, int position)
         {
-            SmallConcurrentSetOfInts usedImports;
+            if (IsSubmission)
+            {
+                // Since usings apply to subsequent submissions, we have to assume they are used.
+                return true;
+            }
 
+            SmallConcurrentSetOfInts usedImports;
             return syntaxTree != null &&
                 TreeToUsedImportDirectivesMap.TryGetValue(syntaxTree, out usedImports) &&
                 usedImports.Contains(position);
@@ -2076,14 +2077,10 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(this.ContainsSyntaxTree(tree1));
             Debug.Assert(this.ContainsSyntaxTree(tree2));
 
-            return this.syntaxTreeOrdinalMap[tree1] - this.syntaxTreeOrdinalMap[tree2];
+            return this.GetSyntaxTreeOrdinal(tree1) - this.GetSyntaxTreeOrdinal(tree2);
         }
 
-        internal int GetSyntaxTreeOrdinal(SyntaxTree tree)
-        {
-            Debug.Assert(this.ContainsSyntaxTree(tree));
-            return this.syntaxTreeOrdinalMap[tree];
-        }
+        internal abstract int GetSyntaxTreeOrdinal(SyntaxTree tree);
 
         /// <summary>
         /// Compare two source locations, using their containing trees, and then by Span.First within a tree. 

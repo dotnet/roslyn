@@ -24,10 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// The IDocumentProvider that created us.
             /// </summary>
             private readonly DocumentProvider _documentProvider;
-
-            private readonly ITextBufferFactoryService _textBufferFactoryService;
+            private readonly string _itemMoniker;
             private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
-
             private readonly FileChangeTracker _fileChangeTracker;
             private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
             private readonly TextLoader _doNotAccessDirectlyLoader;
@@ -36,7 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// The text buffer that is open in the editor. When the file is closed, this is null.
             /// </summary>
             private ITextBuffer _openTextBuffer;
-            private readonly string _itemMoniker;
 
             public DocumentId Id { get; }
             public IReadOnlyList<string> Folders { get; }
@@ -54,14 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 DocumentKey documentKey,
                 uint itemId,
                 SourceCodeKind sourceCodeKind,
-                ITextBufferFactoryService textBufferFactoryService,
                 ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
                 DocumentId id)
             {
                 Contract.ThrowIfNull(documentProvider);
-                Contract.ThrowIfNull(textBufferFactoryService);
 
                 this.Project = project;
                 this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
@@ -72,7 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
                 _itemMoniker = documentKey.Moniker;
-                _textBufferFactoryService = textBufferFactoryService;
                 _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
                 _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
@@ -181,11 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void OnUpdatedOnDisk(object sender, EventArgs e)
             {
-                var handler = UpdatedOnDisk;
-                if (handler != null)
-                {
-                    handler(this, EventArgs.Empty);
-                }
+                UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
             }
 
             public void Dispose()

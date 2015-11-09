@@ -9,31 +9,31 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class CaseKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CaseAfterSelect()
             VerifyRecommendationsContain(<MethodBody>Select |</MethodBody>, "Case")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoCaseAfterQuerySelect()
             VerifyRecommendationsMissing(<MethodBody>Dim q = From x in "abc" Select |</MethodBody>, "Case")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoCaseElseAfterQuerySelect()
             VerifyRecommendationsMissing(<MethodBody>Dim q = From x in "abc" Select |</MethodBody>, "Case Else")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CaseNotByItself()
             VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "Case")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CaseInSelectBlock()
             VerifyRecommendationsContain(<MethodBody>
@@ -42,7 +42,7 @@ Select Case foo
 End Select</MethodBody>, "Case")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CaseElseInSelectBlock()
             VerifyRecommendationsContain(<MethodBody>
@@ -51,7 +51,7 @@ Select Case foo
 End Select</MethodBody>, "Case Else")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CaseElseNotInSelectBlockThatAlreadyHasCaseElse()
             VerifyRecommendationsMissing(<MethodBody>
@@ -61,7 +61,7 @@ Case Else
 End Select</MethodBody>, "Case Else")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CaseElseNotInSelectBlockIfBeforeCase()
             VerifyRecommendationsMissing(<MethodBody>
@@ -71,7 +71,7 @@ Case
 End Select</MethodBody>, "Case Else")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(543384)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoCaseInSelectBlockIfAfterCaseElse()
@@ -83,7 +83,7 @@ Select Case foo
 End Select</MethodBody>, "Case")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <WorkItem(543384)>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub CaseInSelectBlockBeforeCaseElse()
@@ -95,7 +95,7 @@ Select Case foo
 End Select</MethodBody>, "Case")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NoCaseIsInSelectBlock()
             VerifyRecommendationsMissing(<MethodBody>

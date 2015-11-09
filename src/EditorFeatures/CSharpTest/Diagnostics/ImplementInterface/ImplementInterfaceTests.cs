@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new ImplementInterfaceCodeFixProvider());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMethod()
         {
             Test(
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMethodWhenClassBracesAreMissing()
         {
             Test(
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestInheritance1()
         {
             Test(
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestInheritance2()
         {
             Test(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { } interface IInterface2 : IInterface1 { void Method1 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestInheritance3()
         {
             Test(
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { void Method2 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } public void Method2 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestInheritanceMatchingMethod()
         {
             Test(
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } interface IInterface2 : IInterface1 { void Method1 ( ) ; } class Class : IInterface2 { public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestExistingConflictingMethodReturnType()
         {
             Test(
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( ) ; } class Class : IInterface1 { public int Method1 ( ) { return 0 ; } void IInterface1 . Method1 ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestExistingConflictingMethodParameters()
         {
             Test(
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 { void Method1 ( int i ) ; } class Class : IInterface1 { public void Method1 ( int i ) { throw new NotImplementedException ( ) ; } public void Method1 ( string i ) { } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementGenericType()
         {
             Test(
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 ( T t ) ; } class Class : IInterface1 < int > { public void Method1 ( int t ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementGenericTypeWithGenericMethod()
         {
             Test(
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) ; } class Class : IInterface1 < int > { public void Method1 < U > ( int t , U u ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementGenericTypeWithGenericMethodWithNaturalConstraint()
         {
             Test(
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) where U : IList < T > ; } class Class : IInterface1 < int > { public void Method1 < U > ( int t , U u ) where U : IList<int> { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementGenericTypeWithGenericMethodWithUnexpressibleConstraint()
         {
             Test(
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface IInterface1 < T > { void Method1 < U > ( T t , U u ) where U : T ; } class Class : IInterface1 < int > { void IInterface1 < int > . Method1 < U > ( int t , U u ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestArrayType()
         {
             Test(
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 @"using System; interface I { string [ ] M ( ) ; } class C : I { public string [ ] M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementThroughFieldMember()
         {
             Test(
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.ImplementIn
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementThroughFieldMemberInterfaceWithIndexer()
         {
             Test(
@@ -142,7 +142,7 @@ index: 1);
         }
 
         [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementThroughFieldMemberRemoveUnnecessaryCast()
         {
             Test(
@@ -152,7 +152,7 @@ index: 1);
         }
 
         [WorkItem(472, "https://github.com/dotnet/roslyn/issues/472")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementThroughFieldMemberRemoveUnnecessaryCastAndThis()
         {
             Test(
@@ -161,7 +161,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementAbstract()
         {
             Test(
@@ -170,7 +170,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceWithRefOutParameters()
         {
             Test(
@@ -179,7 +179,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestConflictingMethods1()
         {
             Test(
@@ -187,7 +187,7 @@ index: 1);
 @"using System; class B { public int Method1 ( ) { } } class C : B , I { void I.Method1 ( ) { throw new NotImplementedException ( ) ; } } interface I { void Method1 ( ) ; } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestConflictingProperties()
         {
             Test(
@@ -196,7 +196,7 @@ index: 1);
         }
 
         [WorkItem(539043)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestExplicitProperties()
         {
             TestMissing(
@@ -204,7 +204,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEscapedMethodName()
         {
             Test(
@@ -213,7 +213,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEscapedMethodKeyword()
         {
             Test(
@@ -222,7 +222,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEscapedInterfaceName1()
         {
             Test(
@@ -231,7 +231,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEscapedInterfaceName2()
         {
             Test(
@@ -240,7 +240,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEscapedInterfaceKeyword1()
         {
             Test(
@@ -249,7 +249,7 @@ index: 1);
         }
 
         [WorkItem(539489)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEscapedInterfaceKeyword2()
         {
             Test(
@@ -258,7 +258,7 @@ index: 1);
         }
 
         [WorkItem(539522)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestPropertyFormatting()
         {
             Test(
@@ -293,7 +293,7 @@ public class A : DD
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCommentPlacement()
         {
             Test(
@@ -323,7 +323,7 @@ compareTokens: false);
         }
 
         [WorkItem(539991)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestBracePlacement()
         {
             Test(
@@ -342,7 +342,7 @@ compareTokens: false);
         }
 
         [WorkItem(540318)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMissingWithIncompleteMember()
         {
             TestMissing(
@@ -350,7 +350,7 @@ compareTokens: false);
         }
 
         [WorkItem(541380)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestExplicitProperty()
         {
             Test(
@@ -360,7 +360,7 @@ index: 1);
         }
 
         [WorkItem(541981)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoDelegateThroughField1()
         {
             TestActionCount(
@@ -381,7 +381,7 @@ index: 2);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIReadOnlyListThroughField()
         {
             Test(
@@ -396,7 +396,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIReadOnlyListThroughProperty()
         {
             Test(
@@ -411,7 +411,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceThroughField()
         {
             Test(
@@ -421,7 +421,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceThroughField_FieldImplementsMultipleInterfaces()
         {
             TestActionCount(
@@ -441,7 +441,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceThroughField_MultipleFieldsCanImplementInterface()
         {
             TestActionCount(
@@ -458,7 +458,7 @@ index: 2);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceThroughField_MultipleFieldsForMultipleInterfaces()
         {
             TestActionCount(
@@ -478,7 +478,7 @@ index: 1);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoImplementThroughIndexer()
         {
             TestActionCount(
@@ -487,7 +487,7 @@ count: 2);
         }
 
         [WorkItem(768799)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoImplementThroughWriteOnlyProperty()
         {
             TestActionCount(
@@ -495,7 +495,7 @@ count: 2);
 count: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementEvent()
         {
             Test(
@@ -504,7 +504,7 @@ count: 2);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementEventAbstractly()
         {
             Test(
@@ -513,7 +513,7 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementEventExplicitly()
         {
             Test(
@@ -522,7 +522,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestFaultToleranceInStaticMembers()
         {
             Test(
@@ -530,7 +530,7 @@ index: 2);
 @"using System ; interface IFoo { static string Name { set ; get ; } static int Foo ( string s ) ; } class Program : IFoo { public string Name { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } public int Foo ( string s ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestIndexers()
         {
             Test(
@@ -538,7 +538,7 @@ index: 2);
 @"using System ; public interface ISomeInterface { int this [ int index ] { get ; set ; } } class IndexerClass : ISomeInterface { public int this [ int index ] { get { throw new NotImplementedException ( ) ; } set { throw new NotImplementedException ( ) ; } } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestIndexersExplicit()
         {
             Test(
@@ -547,7 +547,7 @@ index: 2);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestIndexersWithASingleAccessor()
         {
             Test(
@@ -556,7 +556,7 @@ index: 1);
         }
 
         [WorkItem(542357)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestConstraints1()
         {
             Test(
@@ -565,7 +565,7 @@ index: 1);
         }
 
         [WorkItem(542357)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestConstraintsExplicit()
         {
             Test(
@@ -575,7 +575,7 @@ index: 1);
         }
 
         [WorkItem(542357)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUsingAddedForConstraint()
         {
             Test(
@@ -584,7 +584,7 @@ index: 1);
         }
 
         [WorkItem(542379)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestIndexer()
         {
             Test(
@@ -593,7 +593,7 @@ index: 1);
         }
 
         [WorkItem(542588)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestRecursiveConstraint1()
         {
             Test(
@@ -602,7 +602,7 @@ index: 1);
         }
 
         [WorkItem(542588)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestRecursiveConstraint2()
         {
             Test(
@@ -612,7 +612,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint1()
         {
             Test(
@@ -621,7 +621,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint2()
         {
             Test(
@@ -630,7 +630,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint3()
         {
             Test(
@@ -640,7 +640,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint4()
         {
             Test(
@@ -649,7 +649,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint5()
         {
             Test(
@@ -658,7 +658,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint6()
         {
             Test(
@@ -667,7 +667,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint7()
         {
             Test(
@@ -676,7 +676,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint8()
         {
             Test(
@@ -685,7 +685,7 @@ index: 1);
         }
 
         [WorkItem(542587)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint9()
         {
             Test(
@@ -694,7 +694,7 @@ index: 1);
         }
 
         [WorkItem(542621)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnexpressibleConstraint10()
         {
             Test(
@@ -703,7 +703,7 @@ index: 1);
         }
 
         [WorkItem(542669)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestArrayConstraint()
         {
             Test(
@@ -712,7 +712,7 @@ index: 1);
         }
 
         [WorkItem(542743)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMultipleClassConstraints()
         {
             Test(
@@ -721,7 +721,7 @@ index: 1);
         }
 
         [WorkItem(542751)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestClassConstraintAndRefConstraint()
         {
             Test(
@@ -730,7 +730,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestRenameConflictingTypeParameters1()
         {
             Test(
@@ -739,7 +739,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestRenameConflictingTypeParameters2()
         {
             Test(
@@ -749,7 +749,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestRenameConflictingTypeParameters3()
         {
             Test(
@@ -758,7 +758,7 @@ index: 1);
         }
 
         [WorkItem(542505)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestRenameConflictingTypeParameters4()
         {
             Test(
@@ -768,7 +768,7 @@ index: 1);
         }
 
         [WorkItem(542506)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNameSimplification()
         {
             Test(
@@ -777,7 +777,7 @@ index: 1);
         }
 
         [WorkItem(542506)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNameSimplification2()
         {
             Test(
@@ -786,7 +786,7 @@ index: 1);
         }
 
         [WorkItem(542506)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNameSimplification3()
         {
             Test(
@@ -795,7 +795,7 @@ index: 1);
         }
 
         [WorkItem(544166)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementAbstractProperty()
         {
             Test(
@@ -805,7 +805,7 @@ index: 1);
         }
 
         [WorkItem(544210)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMissingOnWrongArity()
         {
             TestMissing(
@@ -813,7 +813,7 @@ index: 1);
         }
 
         [WorkItem(544281)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplicitDefaultValue()
         {
             Test(
@@ -822,7 +822,7 @@ index: 1);
         }
 
         [WorkItem(544281)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestExplicitDefaultValue()
         {
             Test(
@@ -831,7 +831,7 @@ index: 1);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMissingInHiddenType()
         {
             TestMissing(
@@ -844,7 +844,7 @@ class Program : [|IComparable|]
 #line default");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestGenerateIntoVisiblePart()
         {
             Test(
@@ -878,7 +878,7 @@ partial class Program : IComparable
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestGenerateIfAvailableRegionExists()
         {
             Test(
@@ -912,7 +912,7 @@ compareTokens: false);
         }
 
         [WorkItem(545334)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoGenerateInVenusCase1()
         {
             TestMissing(
@@ -925,7 +925,7 @@ class Foo : [|IComparable|]
         }
 
         [WorkItem(545476)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestOptionalDateTime1()
         {
             Test(
@@ -934,7 +934,7 @@ class Foo : [|IComparable|]
         }
 
         [WorkItem(545476)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestOptionalDateTime2()
         {
             Test(
@@ -944,7 +944,7 @@ index: 1);
         }
 
         [WorkItem(545477)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestIUnknownIDispatchAttributes1()
         {
             Test(
@@ -953,7 +953,7 @@ index: 1);
         }
 
         [WorkItem(545477)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestIUnknownIDispatchAttributes2()
         {
             Test(
@@ -963,7 +963,7 @@ index: 1);
         }
 
         [WorkItem(545464)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestTypeNameConflict()
         {
             Test(
@@ -971,7 +971,7 @@ index: 1);
 @"using System ; interface IFoo { void Foo ( ) ; } public class Foo : IFoo { void IFoo . Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestStringLiteral()
         {
             Test(
@@ -980,7 +980,7 @@ index: 1);
         }
 
         [WorkItem(916114)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestOptionalNullableStructParameter1()
         {
             Test(
@@ -989,7 +989,7 @@ index: 1);
         }
 
         [WorkItem(916114)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestOptionalNullableStructParameter2()
         {
             Test(
@@ -998,7 +998,7 @@ index: 1);
         }
 
         [WorkItem(916114)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestOptionalNullableIntParameter()
         {
             Test(
@@ -1007,7 +1007,7 @@ index: 1);
         }
 
         [WorkItem(545613)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestOptionalWithNoDefaultValue()
         {
             Test(
@@ -1015,7 +1015,7 @@ index: 1);
 @"using System ; using System . Runtime . InteropServices ; interface I { void Foo ( [ Optional ] I o ) ; } class C : I { public void Foo ( [ Optional ] I o ) { throw new NotImplementedException ( ) ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestIntegralAndFloatLiterals()
         {
             Test(
@@ -1205,7 +1205,7 @@ class C : I
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEnumLiterals()
         {
             Test(
@@ -1269,7 +1269,7 @@ class C : I
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCharLiterals()
         {
             Test(
@@ -1371,7 +1371,7 @@ compareTokens: false);
         }
 
         [WorkItem(545695)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestRemoveParenthesesAroundTypeReference1()
         {
             Test(
@@ -1380,7 +1380,7 @@ compareTokens: false);
         }
 
         [WorkItem(545696)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDecimalConstants1()
         {
             Test(
@@ -1389,7 +1389,7 @@ compareTokens: false);
         }
 
         [WorkItem(545711)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNullablePrimitiveLiteral()
         {
             Test(
@@ -1398,7 +1398,7 @@ compareTokens: false);
         }
 
         [WorkItem(545715)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNullableEnumType()
         {
             Test(
@@ -1407,7 +1407,7 @@ compareTokens: false);
         }
 
         [WorkItem(545752)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestByteLiterals()
         {
             Test(
@@ -1416,7 +1416,7 @@ compareTokens: false);
         }
 
         [WorkItem(545736)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCastedOptionalParameter1()
         {
             const string code = @"
@@ -1449,7 +1449,7 @@ class C : I
         }
 
         [WorkItem(545737)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCastedEnumValue()
         {
             Test(
@@ -1458,7 +1458,7 @@ class C : I
         }
 
         [WorkItem(545785)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoCastFromZeroToEnum()
         {
             Test(
@@ -1467,7 +1467,7 @@ class C : I
         }
 
         [WorkItem(545793)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMultiDimArray()
         {
             Test(
@@ -1476,7 +1476,7 @@ class C : I
         }
 
         [WorkItem(545794)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestParametersAfterOptionalParameter()
         {
             Test(
@@ -1485,7 +1485,7 @@ class C : I
         }
 
         [WorkItem(545605)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestAttributeInParameter()
         {
             Test(
@@ -1521,7 +1521,7 @@ compareTokens: false);
         }
 
         [WorkItem(545897)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNameConflictBetweenMethodAndTypeParameter()
         {
             Test(
@@ -1530,7 +1530,7 @@ compareTokens: false);
         }
 
         [WorkItem(545895)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestTypeParameterReplacementWithOuterType()
         {
             Test(
@@ -1539,7 +1539,7 @@ compareTokens: false);
         }
 
         [WorkItem(545864)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestFloatConstant()
         {
             Test(
@@ -1548,7 +1548,7 @@ compareTokens: false);
         }
 
         [WorkItem(544640)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestKeywordForTypeParameterName()
         {
             Test(
@@ -1557,7 +1557,7 @@ compareTokens: false);
         }
 
         [WorkItem(545922)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestExtremeDecimals()
         {
             Test(
@@ -1566,7 +1566,7 @@ compareTokens: false);
         }
 
         [WorkItem(544659)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNonZeroScaleDecimals()
         {
             Test(
@@ -1575,7 +1575,7 @@ compareTokens: false);
         }
 
         [WorkItem(544639)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnterminatedComment()
         {
             Test(
@@ -1599,7 +1599,7 @@ class C : IServiceProvider /*
         }
 
         [WorkItem(529920)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNewLineBeforeDirective()
         {
             Test(
@@ -1624,7 +1624,7 @@ class C : IServiceProvider
         }
 
         [WorkItem(529947)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCommentAfterInterfaceList1()
         {
             Test(
@@ -1645,7 +1645,7 @@ class C : IServiceProvider // Implement interface
         }
 
         [WorkItem(529947)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestCommentAfterInterfaceList2()
         {
             Test(
@@ -1669,7 +1669,7 @@ class C : IServiceProvider
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposable_NoDisposePattern()
         {
             Test(
@@ -1688,7 +1688,7 @@ class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposable_DisposePattern()
         {
             Test(
@@ -1704,7 +1704,7 @@ class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableExplicitly_NoDisposePattern()
         {
             Test(
@@ -1723,7 +1723,7 @@ class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(941469)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableExplicitly_DisposePattern()
         {
             Test(
@@ -1747,7 +1747,7 @@ class C : System.IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableAbstractly_NoDisposePattern()
         {
             Test(
@@ -1763,7 +1763,7 @@ abstract class C : IDisposable
 
         [WorkItem(994456)]
         [WorkItem(958699)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableThroughMember_NoDisposePattern()
         {
             Test(
@@ -1785,7 +1785,7 @@ class C : IDisposable
         }
 
         [WorkItem(941469)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableExplicitly_NoNamespaceImportForSystem()
         {
             Test(
@@ -1798,7 +1798,7 @@ $@"class C : System.IDisposable
         }
 
         [WorkItem(951968)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableViaBaseInterface_NoDisposePattern()
         {
             Test(
@@ -1830,7 +1830,7 @@ class C : I
         }
 
         [WorkItem(951968)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableViaBaseInterface()
         {
             Test(
@@ -1859,7 +1859,7 @@ class C : I
         }
 
         [WorkItem(951968)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementIDisposableExplicitlyViaBaseInterface()
         {
             Test(
@@ -1888,7 +1888,7 @@ class C : I
         }
 
         [WorkItem(941469)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDontImplementDisposePatternForLocallyDefinedIDisposable()
         {
             Test(
@@ -1918,7 +1918,7 @@ class C : I
 }", index: 1, compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDontImplementDisposePatternForStructures1()
         {
             Test(
@@ -1935,7 +1935,7 @@ struct S : IDisposable
 ", compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDontImplementDisposePatternForStructures2()
         {
             Test(
@@ -1953,7 +1953,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545924)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestEnumNestedInGeneric()
         {
             Test(
@@ -1962,7 +1962,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnterminatedString1()
         {
             Test(
@@ -1971,7 +1971,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnterminatedString2()
         {
             Test(
@@ -1980,7 +1980,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnterminatedString3()
         {
             Test(
@@ -1989,7 +1989,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545939)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnterminatedString4()
         {
             Test(
@@ -1998,7 +1998,7 @@ struct S : IDisposable
         }
 
         [WorkItem(545940)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDecimalENotation()
         {
             Test(
@@ -2048,7 +2048,7 @@ class C : I
         }
 
         [WorkItem(545938)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestGenericEnumWithRenamedTypeParameters()
         {
             Test(
@@ -2057,7 +2057,7 @@ class C : I
         }
 
         [WorkItem(545919)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDoNotRenameTypeParameterToParameterName()
         {
             Test(
@@ -2066,7 +2066,7 @@ class C : I
         }
 
         [WorkItem(530265)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestAttributes()
         {
             Test(
@@ -2075,7 +2075,7 @@ class C : I
         }
 
         [WorkItem(530265)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestAttributesExplicit()
         {
             Test(
@@ -2085,7 +2085,7 @@ index: 1);
         }
 
         [WorkItem(546443)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestParameterNameWithTypeName()
         {
             Test(
@@ -2094,7 +2094,7 @@ index: 1);
         }
 
         [WorkItem(530521)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestUnboundGeneric()
         {
             Test(
@@ -2103,7 +2103,7 @@ index: 1);
         }
 
         [WorkItem(752436)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestQualifiedNameImplicitInterface()
         {
             Test(
@@ -2112,7 +2112,7 @@ index: 1);
         }
 
         [WorkItem(752436)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestQualifiedNameExplicitInterface()
         {
             Test(
@@ -2121,7 +2121,7 @@ index: 1);
         }
 
         [WorkItem(847464)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForPartialType()
         {
             Test(
@@ -2145,7 +2145,7 @@ partial class C : I
         }
 
         [WorkItem(847464)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForPartialType2()
         {
             Test(
@@ -2169,7 +2169,7 @@ partial class C { }
         }
 
         [WorkItem(847464)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForPartialType3()
         {
             Test(
@@ -2195,7 +2195,7 @@ partial class C : I2 { }
         }
 
         [WorkItem(752447)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestExplicitImplOfIndexedProperty()
         {
             var initial = @"
@@ -2234,15 +2234,11 @@ public class Test : IFoo
 }
 ";
 
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(initial))
-            {
-                var diagnosticAndFixes = GetDiagnosticAndFix(workspace);
-                TestActions(workspace, expected, 1, diagnosticAndFixes.Item2.Fixes.Select(f => f.Action).ToList());
-            }
+            Test(initial, expected, index: 1);
         }
 
         [WorkItem(602475)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplicitImplOfIndexedProperty()
         {
             var initial = @"
@@ -2283,16 +2279,12 @@ class C : I
 }
 ";
 
-            using (var workspace = TestWorkspaceFactory.CreateWorkspace(initial))
-            {
-                var diagnosticAndFixes = GetDiagnosticAndFix(workspace);
-                TestActions(workspace, expected, 0, diagnosticAndFixes.Item2.Fixes.Select(f => f.Action).ToList());
-            }
+            Test(initial, expected, index: 0);
         }
 
 #if false
         [WorkItem(13677)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoGenerateInVenusCase2()
         {
             TestMissing(
@@ -2304,7 +2296,7 @@ class Foo : [|IComparable|]
         }
 #endif
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForImplicitIDisposable()
         {
             Test(
@@ -2325,7 +2317,7 @@ class Program : IDisposable
 ", index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForExplicitIDisposable()
         {
             Test(
@@ -2348,7 +2340,7 @@ class Program : IDisposable
 ", index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForIDisposableNonApplicable1()
         {
             Test(
@@ -2375,7 +2367,7 @@ class Program : IDisposable
 ", index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForIDisposableNonApplicable2()
         {
             Test(
@@ -2406,7 +2398,7 @@ class Program : IDisposable
 ", index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestImplementInterfaceForExplicitIDisposableWithSealedClass()
         {
             Test(
@@ -2428,7 +2420,7 @@ sealed class Program : IDisposable
         }
 
         [WorkItem(939123)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoComAliasNameAttributeOnMethodParameters()
         {
             Test(
@@ -2440,7 +2432,7 @@ class C : I { public void M(int p) { throw new NotImplementedException(); } }");
         }
 
         [WorkItem(939123)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoComAliasNameAttributeOnMethodReturnType()
         {
             Test(
@@ -2454,7 +2446,7 @@ class C : I { public long M(int p) { throw new NotImplementedException(); } }");
         }
 
         [WorkItem(939123)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestNoComAliasNameAttributeOnIndexerParameters()
         {
             Test(
@@ -2466,7 +2458,7 @@ class C : I { public long this[int p] { get { throw new NotImplementedException(
         }
 
         [WorkItem(947819)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestMissingOpenBrace()
         {
             Test(
@@ -2500,7 +2492,7 @@ namespace Scenarios
         }
 
         [WorkItem(994328)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDisposePatternWhenAdditionalUsingsAreIntroduced1()
         {
             //CSharpFeaturesResources.DisposePattern
@@ -2553,7 +2545,7 @@ partial class C : I<System.Exception, System.AggregateException>, System.IDispos
         }
 
         [WorkItem(994328)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestDisposePatternWhenAdditionalUsingsAreIntroduced2()
         {
             Test(
@@ -2643,7 +2635,7 @@ partial class C
         }
 
         [WorkItem(1132014)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public void TestInaccessibleAttributes()
         {
             Test(
@@ -2685,6 +2677,16 @@ public class Holder
     {
     }
 }");
+        }
+
+        [WorkItem(2785, "https://github.com/dotnet/roslyn/issues/2785")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public void TestImplementInterfaceThroughStaticMemberInGenericClass()
+        {
+            Test(
+@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Issue2785 < T > : [|IList < object >|] { private static List < object > innerList = new List < object > ( ) ; } ",
+@"using System ; using System . Collections ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Issue2785 < T > : IList < object > { private static List < object > innerList = new List < object > ( ) ; public object this [ int index ] { get { return ( ( IList < object > ) innerList ) [ index ] ; } set { ( ( IList < object > ) innerList ) [ index ] = value ; } } public int Count { get { return ( ( IList < object > ) innerList ) . Count ; } } public bool IsReadOnly { get { return ( ( IList < object > ) innerList ) . IsReadOnly ; } } public void Add ( object item ) { ( ( IList < object > ) innerList ) . Add ( item ) ; } public void Clear ( ) { ( ( IList < object > ) innerList ) . Clear ( ) ; } public bool Contains ( object item ) { return ( ( IList < object > ) innerList ) . Contains ( item ) ; } public void CopyTo ( object [ ] array , int arrayIndex ) { ( ( IList < object > ) innerList ) . CopyTo ( array , arrayIndex ) ; } public IEnumerator < object > GetEnumerator ( ) { return ( ( IList < object > ) innerList ) . GetEnumerator ( ) ; } public int IndexOf ( object item ) { return ( ( IList < object > ) innerList ) . IndexOf ( item ) ; } public void Insert ( int index , object item ) { ( ( IList < object > ) innerList ) . Insert ( index , item ) ; } public bool Remove ( object item ) { return ( ( IList < object > ) innerList ) . Remove ( item ) ; } public void RemoveAt ( int index ) { ( ( IList < object > ) innerList ) . RemoveAt ( index ) ; } IEnumerator IEnumerable . GetEnumerator ( ) { return ( ( IList < object > ) innerList ) . GetEnumerator ( ) ; } } ",
+index: 1);
         }
     }
 }

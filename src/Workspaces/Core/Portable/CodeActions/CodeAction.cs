@@ -41,6 +41,15 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         public virtual string EquivalenceKey { get { return null; } }
 
+        internal virtual bool HasCodeActions => false;
+
+        internal virtual bool IsInvokable => true;
+
+        internal virtual ImmutableArray<CodeAction> GetCodeActions()
+        {
+            return ImmutableArray<CodeAction>.Empty;
+        }
+
         /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
@@ -129,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution> GetChangedSolutionInternalAsync(CancellationToken cancellationToken)
+        internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default(CancellationToken))
         {
             var solution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-            if (solution == null)
+            if (solution == null || !postProcessChanges)
             {
-                return null;
+                return solution;
             }
 
             return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
@@ -284,28 +293,77 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
         }
 
-        internal class DocumentChangeAction : CodeAction
+        internal class SimpleCodeAction : CodeAction
         {
             private readonly string _title;
-            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
             private readonly string _equivalenceKey;
+            private readonly ImmutableArray<CodeAction> _nestedActions;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
+            public SimpleCodeAction(string title, ImmutableArray<CodeAction> nestedActions)
             {
                 _title = title;
-                _createChangedDocument = createChangedDocument;
+                _nestedActions = nestedActions;
+                _equivalenceKey = ComputeEquivalenceKey(nestedActions);
+            }
+
+            public SimpleCodeAction(string title, string equivalenceKey)
+            {
+                _title = title;
                 _equivalenceKey = equivalenceKey;
+                _nestedActions = ImmutableArray<CodeAction>.Empty;
             }
 
-            public override string Title
+            public sealed override string Title => _title;
+            public sealed override string EquivalenceKey => _equivalenceKey;
+
+            internal override bool IsInvokable => false;
+            internal override bool HasCodeActions => _nestedActions.Length > 0;
+
+            internal override ImmutableArray<CodeAction> GetCodeActions()
             {
-                get { return _title; }
+                return _nestedActions;
             }
 
-            public override string EquivalenceKey
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                get { return _equivalenceKey; }
+                return Task.FromResult<Document>(null);
             }
+
+            private static string ComputeEquivalenceKey(IEnumerable<CodeAction> nestedActions)
+            {
+                if (nestedActions == null)
+                {
+                    return null;
+                }
+
+                var equivalenceKey = StringBuilderPool.Allocate();
+                try
+                {
+                    foreach (var action in nestedActions)
+                    {
+                        equivalenceKey.Append(action.EquivalenceKey ?? action.GetHashCode().ToString() + ";");
+                    }
+
+                    return equivalenceKey.Length > 0 ? equivalenceKey.ToString() : null;
+                }
+                finally
+                {
+                    StringBuilderPool.ReturnAndFree(equivalenceKey);
+                }
+            }
+        }
+
+        internal class DocumentChangeAction : SimpleCodeAction
+        {
+            private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
+
+            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
+                : base(title, equivalenceKey)
+            {
+                _createChangedDocument = createChangedDocument;
+            }
+
+            internal override bool IsInvokable => true;
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
@@ -313,28 +371,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
             }
         }
 
-        internal class SolutionChangeAction : CodeAction
+        internal class SolutionChangeAction : SimpleCodeAction
         {
-            private readonly string _title;
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
-            private readonly string _equivalenceKey;
 
             public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
+                : base(title, equivalenceKey)
             {
-                _title = title;
                 _createChangedSolution = createChangedSolution;
-                _equivalenceKey = equivalenceKey;
             }
 
-            public override string Title
-            {
-                get { return _title; }
-            }
-
-            public override string EquivalenceKey
-            {
-                get { return _equivalenceKey; }
-            }
+            internal override bool IsInvokable => true;
 
             protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

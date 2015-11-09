@@ -266,7 +266,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return DirectCast(Me.AssociatedSymbol, PropertySymbol).GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
                 Else
                     If Me.IsOverrides AndAlso Me.ConstructedFrom Is Me Then
-                        Return OverriddenMembers.OverriddenMember
+                        If IsDefinition Then
+                            Return OverriddenMembers.OverriddenMember
+                        End If
+
+                        Return OverriddenMembersResult(Of MethodSymbol).GetOverriddenMember(Me, Me.OriginalDefinition.OverriddenMethod)
                     End If
                 End If
 
@@ -477,7 +481,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim array = DirectCast(firstType, ArrayTypeSymbol)
-            Return array.Rank = 1 AndAlso array.ElementType.SpecialType = SpecialType.System_String
+            Return array.IsSZArray AndAlso array.ElementType.SpecialType = SpecialType.System_String
         End Function
 
         Friend Overrides Function Accept(Of TArgument, TResult)(visitor As VisualBasicSymbolVisitor(Of TArgument, TResult), arg As TArgument) As TResult

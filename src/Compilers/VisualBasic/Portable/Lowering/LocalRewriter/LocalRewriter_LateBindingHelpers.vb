@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(booleanArrayType, ArrayTypeSymbol)
             Dim booleanType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(booleanType.IsBooleanType)
 
             If flags.IsDefaultOrEmpty Then
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(objectArrayType, ArrayTypeSymbol)
             Dim objectType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
             Debug.Assert(Not rewrittenArguments.IsDefaultOrEmpty)
 
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(objectArrayType, ArrayTypeSymbol)
             Dim objectType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim objectType = arrayType.ElementType
             Dim intType = Me.GetSpecialType(SpecialType.System_Int32)
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(objectType.IsObjectType)
 
             If rewrittenArguments.IsDefaultOrEmpty Then
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arrayType = DirectCast(stringArrayType, ArrayTypeSymbol)
             Dim stringType = arrayType.ElementType
 
-            Debug.Assert(arrayType.Rank = 1)
+            Debug.Assert(arrayType.IsSZArray)
             Debug.Assert(stringType.IsStringType)
 
             If argumentNames.IsDefaultOrEmpty Then
@@ -641,7 +641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert((assignmentArguments.IsDefaultOrEmpty AndAlso argExpressions.IsDefaultOrEmpty) OrElse
               (assignmentArguments.Length = argExpressions.Length),
-              "number of readable and writeable arguments must match")
+              "number of readable and writable arguments must match")
 
             Debug.Assert(argNames.IsDefaultOrEmpty OrElse argNames.Length = argExpressions.Length,
                          "should not have argument names or should have name for every argument")
@@ -818,8 +818,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' same as LateCaptureReceiverAndArgsComplex, but without a receiver
         ' and does not produce reReadable arguments - just 
-        ' argument (that includes initialization of captures if needed) and a no-side-effect writeable.
-        ' NOTE: writeables are not rewritten. They will be rewritten when they are combined with values into assignments.
+        ' argument (that includes initialization of captures if needed) and a no-side-effect writable.
+        ' NOTE: writables are not rewritten. They will be rewritten when they are combined with values into assignments.
         Private Sub LateCaptureArgsComplex(ByRef temps As ArrayBuilder(Of SynthesizedLocal),
                            ByRef arguments As ImmutableArray(Of BoundExpression),
                            <Out> ByRef writeTargets As ImmutableArray(Of BoundExpression))

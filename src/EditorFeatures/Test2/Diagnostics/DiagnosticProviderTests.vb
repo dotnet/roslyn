@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_originalFileAttributeName As String = "OriginalFile"
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestNoErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, Nothing)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleDeclarationError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestLineDirective()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSingleBindingError()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestMultipleErrorsAndWarnings()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestBindingAndDeclarationErrors()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         ' Diagnostics are ordered by project-id
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromMultipleProjects()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -192,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticsFromTurnedOff()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics, ordered:=False, enabled:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub WarningsAsErrors()
             Dim test =
                 <Workspace>
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             VerifyAllAvailableDiagnostics(test, diagnostics)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub DiagnosticsInNoCompilationProjects()
             Dim test =
                 <Workspace>
@@ -288,20 +288,19 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 registrationService.Register(workspace)
 
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace).Result _
-                                                          .Select(Function(d) New [Shared].Diagnostics.DiagnosticTaskItem(d))
+                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace).Result
 
                 registrationService.Unregister(workspace)
 
                 If diagnostics Is Nothing Then
-                    Assert.Equal(0, actualDiagnostics.Count)
+                    Assert.Equal(0, actualDiagnostics.Length)
                 Else
                     Dim expectedDiagnostics = GetExpectedDiagnostics(workspace, diagnostics)
 
                     If ordered Then
-                        AssertEx.Equal(expectedDiagnostics, actualDiagnostics, EqualityComparer(Of IErrorTaskItem).Default)
+                        AssertEx.Equal(expectedDiagnostics, actualDiagnostics, New Comparer())
                     Else
-                        AssertEx.SetEqual(expectedDiagnostics, actualDiagnostics, EqualityComparer(Of IErrorTaskItem).Default)
+                        AssertEx.SetEqual(expectedDiagnostics, actualDiagnostics, New Comparer())
                     End If
                 End If
             End Using
@@ -324,8 +323,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Return analyzerService
         End Function
 
-        Private Function GetExpectedDiagnostics(workspace As TestWorkspace, diagnostics As XElement) As List(Of IErrorTaskItem)
-            Dim result As New List(Of IErrorTaskItem)
+        Private Function GetExpectedDiagnostics(workspace As TestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
+            Dim result As New List(Of DiagnosticData)
             Dim mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
             Dim Id As String, message As String, originalFile As String, mappedFile As String
             Dim documentId As DocumentId
@@ -364,64 +363,45 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Function
 
         Private Function SourceError(id As String, message As String, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticTaskItem
-            Return New DiagnosticTaskItem(id, DiagnosticSeverity.Error, message, workspace, docId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
+                                      mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return CreateDiagnostic(id, message, DiagnosticSeverity.Error, workspace, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
         Private Function SourceWarning(id As String, message As String, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
-                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticTaskItem
-            Return New DiagnosticTaskItem(id, DiagnosticSeverity.Warning, message, workspace, docId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
+                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return CreateDiagnostic(id, message, DiagnosticSeverity.Warning, workspace, docId, projId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
         End Function
 
-        Private Class DiagnosticTaskItem
-            Inherits TaskItem
-            Implements IErrorTaskItem
+        Private Function CreateDiagnostic(id As String, message As String, severity As DiagnosticSeverity, workspace As Workspace, docId As DocumentId, projId As ProjectId, mappedLine As Integer, originalLine As Integer,
+                                       mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String) As DiagnosticData
+            Return New DiagnosticData(id, "test", message, message, severity, severity, True, 0,
+                                      ImmutableArray(Of String).Empty, ImmutableDictionary(Of String, String).Empty,
+                                      workspace, projId, New DiagnosticDataLocation(docId, Nothing,
+                                        originalFile, originalLine, originalColumn, originalLine, originalColumn,
+                                        mappedFile, mappedLine, mappedColumn, mappedLine, mappedColumn),
+                                      Nothing, Nothing, Nothing)
+        End Function
 
-            Private ReadOnly _id As String
-            Private ReadOnly _projectId As ProjectId
-            Private ReadOnly _severity As DiagnosticSeverity
+        Private Class Comparer
+            Implements IEqualityComparer(Of DiagnosticData)
 
-            Public Sub New(id As String, severity As DiagnosticSeverity, message As String, workspace As Workspace, docId As DocumentId,
-                           mappedLine As Integer, originalLine As Integer, mappedColumn As Integer, originalColumn As Integer, mappedFile As String, originalFile As String)
-                MyBase.New(message, workspace, docId, mappedLine, originalLine, mappedColumn, originalColumn, mappedFile, originalFile)
-                Me._id = id
-                Me._projectId = docId.ProjectId
-                Me._severity = severity
-            End Sub
-
-            Public ReadOnly Property Id As String Implements IErrorTaskItem.Id
-                Get
-                    Return Me._id
-                End Get
-            End Property
-
-            Public ReadOnly Property ProjectId As ProjectId Implements IErrorTaskItem.ProjectId
-                Get
-                    Return Me._projectId
-                End Get
-            End Property
-
-            Public ReadOnly Property Severity As DiagnosticSeverity Implements IErrorTaskItem.Severity
-                Get
-                    Return Me._severity
-                End Get
-            End Property
-
-            Public Overrides Function Equals(obj As Object) As Boolean
-                Dim other As IErrorTaskItem = TryCast(obj, IErrorTaskItem)
-                If other Is Nothing Then
-                    Return False
-                End If
-
-                If Not AbstractTaskItem.Equals(Me, other) Then
-                    Return False
-                End If
-
-                Return Id = other.Id AndAlso ProjectId = other.ProjectId AndAlso Severity = other.Severity
+            Public Overloads Function Equals(x As DiagnosticData, y As DiagnosticData) As Boolean Implements IEqualityComparer(Of DiagnosticData).Equals
+                Return x.Id = y.Id AndAlso
+                       x.Message = y.Message AndAlso
+                       x.Severity = y.Severity AndAlso
+                       x.ProjectId = y.ProjectId AndAlso
+                       x.DocumentId = y.DocumentId AndAlso
+                       Equals(x.DataLocation?.OriginalStartLine, y.DataLocation?.OriginalStartLine) AndAlso
+                       Equals(x.DataLocation?.OriginalStartColumn, y.DataLocation?.OriginalStartColumn)
             End Function
 
-            Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(AbstractTaskItem.GetHashCode(Me), Hash.Combine(Id.GetHashCode(), CType(Severity, Integer)))
+            Public Overloads Function GetHashCode(obj As DiagnosticData) As Integer Implements IEqualityComparer(Of DiagnosticData).GetHashCode
+                Return Hash.Combine(obj.Id,
+                       Hash.Combine(obj.Message,
+                       Hash.Combine(obj.ProjectId,
+                       Hash.Combine(obj.DocumentId,
+                       Hash.Combine(If(obj.DataLocation?.OriginalStartLine, 0),
+                       Hash.Combine(If(obj.DataLocation?.OriginalStartColumn, 0), obj.Severity))))))
             End Function
         End Class
     End Class

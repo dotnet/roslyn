@@ -12,9 +12,9 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -83,6 +83,7 @@
     <EmbeddedResource Include="DiagnosticTests\ErrTestMod01.netmodule" />
     <Content Include="DiagnosticTests\ErrTestMod02.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestMod02.netmodule" />
+    <EmbeddedResource Include="Encoding\sjis.cs" />
     <Content Include="MetadataTests\InterfaceAndClass\CSClasses01.cs" />
     <EmbeddedResource Include="MetadataTests\InterfaceAndClass\CSClasses01.dll" />
     <Content Include="MetadataTests\InterfaceAndClass\CSInterfaces01.cs" />
@@ -402,7 +403,7 @@
     <Content Include="WinRt\WinMDPrefixing.cs" />
     <EmbeddedResource Include="WinRt\WinMDPrefixing.ildump" />
     <EmbeddedResource Include="WinRt\WinMDPrefixing.winmd" />
-    <Content Include="packages.config" />
+    <Content Include="project.json" />
     <Content Include="SymbolsTests\netModule\hash_module.cs" />
     <EmbeddedResource Include="SymbolsTests\NoPia\MissingPIAAttributes.dll" />
     <Content Include="WinRt\WImpl.il" />
@@ -411,6 +412,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ResourceLoader.cs" />
+    <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -418,6 +420,5 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

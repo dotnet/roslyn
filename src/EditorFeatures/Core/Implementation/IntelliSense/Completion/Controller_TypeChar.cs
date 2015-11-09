@@ -113,8 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, args.TypedChar, options);
             var isPotentialFilterCharacter = IsPotentialFilterCharacter(args);
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo(args.TypedChar)
-                .WithIsDebugger(_isDebugger).WithIsImmediateWindow(_isImmediateWindow);
+            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo(args.TypedChar);
 
             if (sessionOpt == null)
             {
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // we have computed one, or it can trigger a new list.  Ask the computation
                         // to compute again. If nothing has been computed, then it will try to
                         // compute again, otherwise it will just ignore this request.
-                        sessionOpt.ComputeModel(completionService, triggerInfo, GetCompletionProviders(), _isDebugger);
+                        sessionOpt.ComputeModel(completionService, triggerInfo, options, GetCompletionProviders());
                     }
 
                     // Now filter whatever result we have.
@@ -263,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
-                    _allCompletionProviders, this.SubjectBuffer);
+                    _allCompletionProviders, this.SubjectBuffer.ContentType, this.TextView.Roles);
 
                 return defaultProviders.Concat(extensionProviders.Where(p => !(p is SnippetCompletionProvider)));
             }
@@ -277,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
             {
                 var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
-                    _allCompletionProviders, this.SubjectBuffer);
+                    _allCompletionProviders, this.SubjectBuffer.ContentType);
 
                 return extensionProviders.OfType<SnippetCompletionProvider>();
             }

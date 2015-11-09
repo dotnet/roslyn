@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly int _ordinal;
         private readonly string _name;
         private readonly ImmutableArray<CustomModifier> _customModifiers;
+        private readonly ushort _countOfCustomModifiersPrecedingByRef;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbol(
@@ -27,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             RefKind refKind,
             string name = "",
-            ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>))
+            ImmutableArray<CustomModifier> customModifiers = default(ImmutableArray<CustomModifier>),
+            ushort countOfCustomModifiersPrecedingByRef = 0)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(name != null);
@@ -39,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _refKind = refKind;
             _name = name;
             _customModifiers = customModifiers.NullToEmpty();
+            _countOfCustomModifiersPrecedingByRef = countOfCustomModifiersPrecedingByRef;
         }
 
         public override TypeSymbol Type
@@ -126,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal sealed override bool HasByRefBeforeCustomModifiers
+        internal sealed override ushort CountOfCustomModifiersPrecedingByRef
         {
-            get { return false; }
+            get { return _countOfCustomModifiersPrecedingByRef; }
         }
 
         public override Symbol ContainingSymbol
@@ -149,6 +152,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            // Emit [Dynamic] on synthesized parameter symbols when the original parameter was dynamic 
+            // in order to facilitate debugging.  In the case the necessary attributes are missing 
+            // this is a no-op.  Emitting an error here, or when the original parameter was bound, would
+            // adversely effect the compilation or potentially change overload resolution.  
+            var compilation = this.DeclaringCompilation;
+            if (Type.ContainsDynamic() && 
+                compilation.HasDynamicEmitAttributes() &&
+                compilation.GetSpecialType(SpecialType.System_Boolean).SpecialType == SpecialType.System_Boolean)
+            {
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.CustomModifiers.Length, this.RefKind));
+            }
+        }
+
         /// <summary>
         /// For each parameter of a source method, construct a corresponding synthesized parameter
         /// for a destination method.
@@ -164,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 //same properties as the old one, just change the owner
                 builder.Add(new SynthesizedParameterSymbol(destinationMethod, oldParam.Type, oldParam.Ordinal,
-                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers));
+                    oldParam.RefKind, oldParam.Name, oldParam.CustomModifiers, oldParam.CountOfCustomModifiersPrecedingByRef));
             }
 
             return builder.ToImmutableAndFree();

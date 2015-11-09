@@ -1086,9 +1086,10 @@ End Interface
 
         End Sub
 
+        <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
         <WorkItem(545182, "DevDiv")>
         <WorkItem(545184, "DevDiv")>
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6214")>
         Public Sub TestHandlesForWithEventsFromBaseFromADifferentAssembly()
             Dim assembly1Compilation = CreateVisualBasicCompilation("TestHandlesForWithEventsFromBaseFromADifferentAssembly_Assembly1",
             <![CDATA[Public Class c1
@@ -1134,8 +1135,9 @@ End Module]]>,
             CompileAndVerify(assembly2Compilation, <![CDATA[True]]>).VerifyDiagnostics()
         End Sub
 
+        <WorkItem(6214, "https://github.com/dotnet/roslyn/issues/6214")>
         <WorkItem(545185, "DevDiv")>
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6214")>
         Public Sub TestNameOfWithEventsSetterParameter()
             Dim comp = CreateVisualBasicCompilation("TestNameOfWithEventsSetterParameter",
             <![CDATA[Public Class c1
@@ -1998,5 +2000,126 @@ End Class
 
             CompileAndVerify(source)
         End Sub
+
+        <Fact, WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
+        Public Sub MultipleInitializationsWithAsNew_01()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C1
+    Shared WithEvents a1, b1, c1 As New C2()
+    WithEvents a2, b2, c2 As New C2()
+    Shared a3, b3, c3 As New C2()
+    Dim a4, b4, c4 As New C2()
+
+    Shared Sub Main()
+        Check(a1, b1, c1)
+        Check(a3, b3, c3)
+        
+        Dim c as New C1()
+        Check(c.a2, c.b2, c.c2)
+        Check(c.a4, c.b4, c.c4)
+    End Sub
+
+    Private Shared Sub Check(a As Object, b As Object, c As Object)
+        System.Console.WriteLine(a Is Nothing)
+        System.Console.WriteLine(b Is Nothing)
+        System.Console.WriteLine(c Is Nothing)
+        System.Console.WriteLine(a Is b)
+        System.Console.WriteLine(a Is c)
+        System.Console.WriteLine(b Is c)
+    End Sub
+End Class
+
+Class C2
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:=
+            <![CDATA[
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+]]>)
+        End Sub
+
+        <Fact, WorkItem(4544, "https://github.com/dotnet/roslyn/issues/4544")>
+        Public Sub MultipleInitializationsWithAsNew_02()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Class C1
+    Shared WithEvents a, b, c As New C1() With {.P1 = 2}
+
+    Shared Sub Main()
+        System.Console.WriteLine(a.P1)
+        System.Console.WriteLine(b.P1)
+        System.Console.WriteLine(c.P1)
+        System.Console.WriteLine(a Is b)
+        System.Console.WriteLine(a Is c)
+        System.Console.WriteLine(b Is c)
+    End Sub
+
+    Public P1 As Integer
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:=
+            <![CDATA[
+2
+2
+2
+False
+False
+False
+]]>).
+            VerifyIL("C1..cctor",
+            <![CDATA[
+{
+  // Code size       52 (0x34)
+  .maxstack  3
+  IL_0000:  newobj     "Sub C1..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.2
+  IL_0007:  stfld      "C1.P1 As Integer"
+  IL_000c:  call       "Sub C1.set_a(C1)"
+  IL_0011:  newobj     "Sub C1..ctor()"
+  IL_0016:  dup
+  IL_0017:  ldc.i4.2
+  IL_0018:  stfld      "C1.P1 As Integer"
+  IL_001d:  call       "Sub C1.set_b(C1)"
+  IL_0022:  newobj     "Sub C1..ctor()"
+  IL_0027:  dup
+  IL_0028:  ldc.i4.2
+  IL_0029:  stfld      "C1.P1 As Integer"
+  IL_002e:  call       "Sub C1.set_c(C1)"
+  IL_0033:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

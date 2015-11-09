@@ -30,6 +30,14 @@
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
 
+      <Group guid="guidRoslynGrpId" id="grpErrorListContextMenu" priority="0x0A01">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ERRORLIST"/>
+      </Group>
+
+      <Group guid="guidRoslynGrpId" id="grpAddSuppressions" priority="0x0001">
+        <Parent guid="guidRoslynGrpId" id="cmdidAddSuppressionsContextMenu"/>
+      </Group>
+      
       <Group guid="guidSHLMainMenu" id="IDG_VS_CTXT_PROJWIN_SCOPE" priority="0x001">
         <Parent guid="guidRoslynGrpId" id="cmdidAnalyzerFolderContextMenu"/>
       </Group>
@@ -282,6 +290,55 @@
           <CommandName>SetAsActiveRuleSet</CommandName>
         </Strings>
       </Button>
+
+      <!-- Commands in the error list context menu to add/remove suppressions -->
+      <Button guid="guidRoslynGrpId" id="cmdidRemoveSuppressions" priority="0xf002" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListContextMenu"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>Remove&amp; Suppression(s)</ButtonText>
+          <CanonicalName>RemoveSuppressions</CanonicalName>
+          <LocCanonicalName>RemoveSuppressions</LocCanonicalName>
+          <CommandName>RemoveSuppressions</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidAddSuppressionsInSource" priority="0x0100" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAddSuppressions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>In &amp;Source</ButtonText>
+          <CanonicalName>AddSuppressionsInSource</CanonicalName>
+          <LocCanonicalName>AddSuppressionsInSource</LocCanonicalName>
+          <CommandName>AddSuppressionsInSource</CommandName>
+        </Strings>
+      </Button>
+      <Button guid="guidRoslynGrpId" id="cmdidAddSuppressionsInSuppressionFile" priority="0x0101" type="Button">
+        <Parent guid="guidRoslynGrpId" id="grpAddSuppressions"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <Strings>
+          <ButtonText>In&amp; Suppression File</ButtonText>
+          <CanonicalName>AddSuppressionsInSuppressionFile</CanonicalName>
+          <LocCanonicalName>AddSuppressionsInSuppressionFile</LocCanonicalName>
+          <CommandName>AddSuppressionsInSuppressionFile</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_EDIT_GOTO"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Go To Implementation</ButtonText>
+          <CanonicalName>GoToImplementation</CanonicalName>
+          <LocCanonicalName>GoToImplementation</LocCanonicalName>
+          <CommandName>GoToImplementation</CommandName>
+        </Strings>
+      </Button>
     </Buttons>
 
     <Menus>
@@ -339,6 +396,20 @@
           <LocCanonicalName>Set Rule Set Severity</LocCanonicalName>
         </Strings>
       </Menu>
+      
+      <!-- Error list context menu items for Suppressions. -->
+      <Menu guid="guidRoslynGrpId" id="cmdidAddSuppressionsContextMenu" priority="0xf002" type="Menu">
+        <Parent guid="guidRoslynGrpId" id="grpErrorListContextMenu"/>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <CommandFlag>TextChanges</CommandFlag>
+        <Strings>
+          <ButtonText>S&amp;uppress</ButtonText>
+          <CanonicalName>S&amp;uppress</CanonicalName>
+          <LocCanonicalName>S&amp;uppress</LocCanonicalName>
+          <CommandName>S&amp;uppress</CommandName>
+        </Strings>
+      </Menu>
     </Menus>
   </Commands>
 
@@ -369,6 +440,10 @@
 
     <CommandPlacement guid="guidRoslynGrpId" id="grpSetActiveRuleSet" priority="0x0200">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_WEBITEMNODE"/>
+    </CommandPlacement>
+
+    <CommandPlacement guid="guidRoslynGrpId" id="cmdidGoToImplementation" priority="0x0200">
+      <Parent guid="guidSHLMainMenu" id="IDG_VS_CODEWIN_NAVIGATETOLOCATION"/>
     </CommandPlacement>
   </CommandPlacements>
 
@@ -424,6 +499,14 @@
       <IDSymbol name="cmdidSetSeveritySubMenu"        value="0x0119" />
       <IDSymbol name="grpDiagnosticSeverityItems"     value="0x011a" />
       <IDSymbol name="cmdidSetSeverityDefault"        value="0x011b" />
+      <IDSymbol name="grpErrorListContextMenu"        value="0x011c" />
+      <IDSymbol name="cmdidAddSuppressionsContextMenu"        value="0x011d" />
+      <IDSymbol name="grpAddSuppressions"             value="0x011e" />
+      <IDSymbol name="cmdidAddSuppressionsInSource"   value="0x011f" />
+      <IDSymbol name="cmdidAddSuppressionsInSuppressionFile"  value="0x0120" />
+      <IDSymbol name="cmdidRemoveSuppressions"        value="0x0121" />
+
+      <IDSymbol name="cmdidGoToImplementation"        value="0x0200" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

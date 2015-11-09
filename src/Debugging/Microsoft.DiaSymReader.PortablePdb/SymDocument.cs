@@ -18,22 +18,61 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private static Guid VendorMicrosoftGuid = new Guid("994b45c4-e6e9-11d2-903f-00c04fa302a1");
         private static Guid DocumentTypeGuid = new Guid("5a869d0b-6611-11d3-bd2a-0000f80849bd");
 
-        private readonly DocumentHandle _handle;
-        private readonly SymReader _symReader;
+        internal DocumentHandle Handle { get; }
+        internal SymReader SymReader { get; }
 
         internal SymDocument(SymReader symReader, DocumentHandle documentHandle)
         {
             Debug.Assert(symReader != null);
-            _symReader = symReader;
-            _handle = documentHandle;
+            SymReader = symReader;
+            Handle = documentHandle;
         }
-
-        internal DocumentHandle Handle => _handle;
 
         public int FindClosestLine(int line, out int closestLine)
         {
-            // TODO:
-            throw new NotImplementedException();
+            // Find a minimal sequence point start line in this document 
+            // that is greater than or equal to the given line.
+
+            int result = int.MaxValue;
+            var map = SymReader.GetMethodMap();
+            var mdReader = SymReader.MetadataReader;
+
+            // Note DiaSymReader searches across all documents with the same file name in CDiaWrapper::FindClosestLineAcrossFileIDs. We don't.
+            foreach (var extent in map.EnumerateContainingOrClosestFollowingMethodExtents(Handle, line))
+            {
+                Debug.Assert(extent.MaxLine >= line);
+
+                // extent is further than a sequence point we already found:
+                if (extent.MinLine >= result)
+                {
+                    continue;
+                }
+
+                // enumerate method sequence points:
+                var body = mdReader.GetMethodDebugInformation(extent.Method);
+                foreach (var sequencePoint in body.GetSequencePoints())
+                {
+                    if (sequencePoint.IsHidden || sequencePoint.Document != Handle)
+                    {
+                        continue;
+                    }
+
+                    int startLine = sequencePoint.StartLine;
+                    if (startLine >= line && startLine < result)
+                    {
+                        result = startLine;
+                    }
+                }
+            }
+
+            if (result < int.MaxValue)
+            {
+                closestLine = result;
+                return HResult.S_OK;
+            }
+
+            closestLine = 0;
+            return HResult.E_FAIL;
         }
 
         public int GetChecksum(
@@ -41,21 +80,21 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]byte[] checksum)
         {
-            var document = _symReader.MetadataReader.GetDocument(_handle);
+            var document = SymReader.MetadataReader.GetDocument(Handle);
             if (document.Hash.IsNil)
             {
                 count = 0;
                 return HResult.S_FALSE;
             }
 
-            var hash = _symReader.MetadataReader.GetBlobBytes(document.Hash);
+            var hash = SymReader.MetadataReader.GetBlobBytes(document.Hash);
             return InteropUtilities.BytesToBuffer(hash, bufferLength, out count, checksum);
         }
 
         public int GetChecksumAlgorithmId(ref Guid algorithm)
         {
-            var document = _symReader.MetadataReader.GetDocument(_handle);
-            algorithm = _symReader.MetadataReader.GetGuid(document.HashAlgorithm);
+            var document = SymReader.MetadataReader.GetDocument(Handle);
+            algorithm = SymReader.MetadataReader.GetGuid(document.HashAlgorithm);
             return HResult.S_OK;
         }
 
@@ -67,15 +106,15 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         public int GetLanguage(ref Guid language)
         {
-            var document = _symReader.MetadataReader.GetDocument(_handle);
-            language = _symReader.MetadataReader.GetGuid(document.Language);
+            var document = SymReader.MetadataReader.GetDocument(Handle);
+            language = SymReader.MetadataReader.GetGuid(document.Language);
             return HResult.S_OK;
         }
 
         public int GetLanguageVendor(ref Guid vendor)
         {
-            var document = _symReader.MetadataReader.GetDocument(_handle);
-            Guid languageId = _symReader.MetadataReader.GetGuid(document.Language);
+            var document = SymReader.MetadataReader.GetDocument(Handle);
+            Guid languageId = SymReader.MetadataReader.GetGuid(document.Language);
             vendor = VendorMicrosoftGuid;
             return HResult.S_OK;
         }
@@ -106,7 +145,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
             out int count,
             [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0), Out]char[] url)
         {
-            string name = _symReader.MetadataReader.GetString(_symReader.MetadataReader.GetDocument(_handle).Name);
+            string name = SymReader.MetadataReader.GetString(SymReader.MetadataReader.GetDocument(Handle).Name);
             return InteropUtilities.StringToBuffer(name, bufferLength, out count, url);
         }
 

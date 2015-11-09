@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     public abstract class VisualStudioWorkspace : Workspace
     {
-        private readonly BackgroundCompiler _backgroundCompiler;
+        private BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
 
         internal VisualStudioWorkspace(HostServices hostServices, WorkspaceBackgroundWork backgroundWork)
@@ -25,12 +26,34 @@ namespace Microsoft.VisualStudio.LanguageServices
             if ((backgroundWork & WorkspaceBackgroundWork.Compile) != 0)
             {
                 _backgroundCompiler = new BackgroundCompiler(this);
+
+                var cacheService = Services.GetService<IWorkspaceCacheService>();
+                if (cacheService != null)
+                {
+                    cacheService.CacheFlushRequested += OnCacheFlushRequested;
+                }
             }
 
             if ((backgroundWork & WorkspaceBackgroundWork.Parse) != 0)
             {
                 _backgroundParser = new BackgroundParser(this);
                 _backgroundParser.Start();
+            }
+        }
+
+        private void OnCacheFlushRequested(object sender, EventArgs e)
+        {
+            if (_backgroundCompiler != null)
+            {
+                _backgroundCompiler.Dispose();
+                _backgroundCompiler = null; // PartialSemanticsEnabled will now return false
+            }
+
+            // No longer need cache notifications
+            var cacheService = Services.GetService<IWorkspaceCacheService>();
+            if (cacheService != null)
+            {
+                cacheService.CacheFlushRequested -= OnCacheFlushRequested;
             }
         }
 

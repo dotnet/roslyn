@@ -364,7 +364,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (this.IsOverride && ReferenceEquals(this.ConstructedFrom, this))
                 {
-                    return (MethodSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    if (IsDefinition)
+                    {
+                        return (MethodSymbol)OverriddenOrHiddenMembers.GetOverriddenMember();
+                    }
+
+                    return (MethodSymbol)OverriddenOrHiddenMembersResult.GetOverriddenMember(this, OriginalDefinition.OverriddenMethod);
                 }
 
                 return null;
@@ -470,6 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.DelegateInvoke:
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
+                case MethodKind.LocalFunction:
                 case MethodKind.UserDefinedOperator:
                 case MethodKind.Ordinary:
                 case MethodKind.PropertyGet:
@@ -608,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var array = (ArrayTypeSymbol)firstType;
-            return array.Rank == 1 && array.ElementType.SpecialType == SpecialType.System_String;
+            return array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String;
         }
 
         internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
@@ -728,6 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.Construct(ImmutableArray.Create(typeArguments));
         }
 
+        internal static readonly Func<TypeSymbol, bool> TypeSymbolIsNullFunction = type => (object)type == null;
+
         /// <summary>
         /// Apply type substitution to a generic method to create an method symbol with the given type parameters supplied.
         /// </summary>
@@ -745,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(typeArguments));
             }
 
-            if (typeArguments.Any(NamedTypeSymbol.TypeSymbolIsNullFunction))
+            if (typeArguments.Any(TypeSymbolIsNullFunction))
             {
                 throw new ArgumentException(CSharpResources.TypeArgumentCannotBeNull, "typeArguments");
             }
@@ -755,12 +763,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentException(CSharpResources.WrongNumberOfTypeArguments, "typeArguments");
             }
 
-            if (ConstructedNamedTypeSymbol.TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))
+            if (TypeParametersMatchTypeArguments(this.TypeParameters, typeArguments))
             {
                 return this;
             }
 
             return new ConstructedMethodSymbol(this, typeArguments);
+        }
+
+        internal static bool TypeParametersMatchTypeArguments(ImmutableArray<TypeParameterSymbol> typeParameters, ImmutableArray<TypeSymbol> typeArguments)
+        {
+            int n = typeParameters.Length;
+            Debug.Assert(typeArguments.Length == n);
+            Debug.Assert(typeArguments.Length > 0);
+
+            for (int i = 0; i < n; i++)
+            {
+                if (!ReferenceEquals(typeArguments[i], typeParameters[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         internal MethodSymbol AsMember(NamedTypeSymbol newOwner)
@@ -972,6 +997,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return MethodKind.ReducedExtension;
                     case MethodKind.StaticConstructor:
                         return MethodKind.StaticConstructor;
+                    case MethodKind.LocalFunction:
+                        return MethodKind.LocalFunction;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.MethodKind);
                 }

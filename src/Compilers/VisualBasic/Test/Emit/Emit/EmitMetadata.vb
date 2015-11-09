@@ -425,8 +425,10 @@ End Class
                         Dim method3Ret = DirectCast(m3.ReturnType, ArrayTypeSymbol)
 
                         Assert.Equal(1, method1Ret.Rank)
+                        Assert.True(method1Ret.IsSZArray)
                         Assert.Same(classA, method1Ret.ElementType)
                         Assert.Equal(2, method2Ret.Rank)
+                        Assert.False(method2Ret.IsSZArray)
                         Assert.Same(classA, method2Ret.ElementType)
                         Assert.Equal(3, method3Ret.Rank)
                         Assert.Same(classA, method3Ret.ElementType)
@@ -902,7 +904,7 @@ End Class
 
         End Sub
 
-        <Fact, WorkItem(90)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190"), WorkItem(90)>
         Public Sub EmitWithNoResourcesAllPlatforms()
             Dim comp = CreateCompilationWithMscorlib(
                 <compilation>

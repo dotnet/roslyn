@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' Mixed case where there are some initializers that are constants and
             ' there is enough of them so that it makes sense to use block initialization
-            ' followed by individual initialization of nonconstant elements
+            ' followed by individual initialization of non-constant elements
             Mixed
         End Enum
 
@@ -59,13 +59,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                                             includeConstants As Boolean)
 
             If Not IsMultidimensionalInitializer(inits) Then
-                EmitVectorElementInitializers(arrayType, inits, includeConstants)
+                EmitOnedimensionalElementInitializers(arrayType, inits, includeConstants)
             Else
                 EmitMultidimensionalElementInitializers(arrayType, inits, includeConstants)
             End If
         End Sub
 
-        Private Sub EmitVectorElementInitializers(arrayType As ArrayTypeSymbol,
+        Private Sub EmitOnedimensionalElementInitializers(arrayType As ArrayTypeSymbol,
                                     inits As ImmutableArray(Of BoundExpression),
                                     includeConstants As Boolean)
 
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     _builder.EmitOpCode(ILOpCode.Dup)
                     _builder.EmitIntConstant(i)
                     EmitExpression(init, True)
-                    EmitVectorElementStore(arrayType, init.Syntax)
+                    EmitArrayElementStore(arrayType, init.Syntax)
                 End If
             Next i
         End Sub
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         ''' <summary>
         ''' Produces a serialized blob of all constant initializers.
-        ''' Nonconstant initializers are matched with a zero of corresponding size.
+        ''' Non-constant initializers are matched with a zero of corresponding size.
         ''' </summary>
         Private Function GetRawData(initializers As ImmutableArray(Of BoundExpression)) As ImmutableArray(Of Byte)
             ' the initial size is a guess.

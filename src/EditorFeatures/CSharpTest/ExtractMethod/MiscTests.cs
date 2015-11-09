@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             return service;
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest1()
         {
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);
 
-            var rootWithAnnotation = (SyntaxNode)result.Root;
+            var rootWithAnnotation = result.Root;
 
             // find token to replace
             var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.Equal(expected, rootWithTriviaRestored.ToFullString());
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ServiceTest2()
         {
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var root = SyntaxFactory.ParseCompilationUnit(code);
             var result = service.SaveTriviaAroundSelection(root, span);
 
-            var rootWithAnnotation = (SyntaxNode)result.Root;
+            var rootWithAnnotation = result.Root;
 
             // find token to replace
             var publicToken = rootWithAnnotation.DescendantTokens().First(t => t.Kind() == SyntaxKind.PublicKeyword);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             Assert.Equal(expected, rootWithTriviaRestored.ToFullString());
         }
 
-        [Fact]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void TestExtractMethodCommandHandlerErrorMessage()
         {

@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
             Test(markup, expectedText + "_CSharpKeyword");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestVoid()
         {
             Test_Keyword(@"
@@ -39,7 +39,7 @@ class C
 }", "void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestReturn()
         {
             Test_Keyword(@"
@@ -52,7 +52,7 @@ class C
 }", "return");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestPartialType()
         {
             Test_Keyword(@"
@@ -62,7 +62,7 @@ part[||]ial class C
 }", "partialtype");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestPartialMethod()
         {
             Test_Keyword(@"
@@ -72,7 +72,7 @@ partial class C
 }", "partialmethod");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestWhereClause()
         {
             Test_Keyword(@"
@@ -85,7 +85,7 @@ class Program<T> where T : class {
 }", "whereclause");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestWhereConstraint()
         {
             Test_Keyword(@"
@@ -98,7 +98,7 @@ class Program<T> wh[||]ere T : class {
 }", "whereconstraint");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestPreprocessor()
         {
             Test(@"
@@ -106,7 +106,7 @@ class Program<T> wh[||]ere T : class {
 #endregion", "#region");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestConstructor()
         {
             Test(@"
@@ -122,7 +122,7 @@ class C
 }", "N.C.#ctor");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestGenericClass()
         {
             Test(@"
@@ -138,7 +138,7 @@ class C<T>
 }", "N.C`1");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestGenericMethod()
         {
             Test(@"
@@ -155,7 +155,7 @@ class C<T>
 }", "N.C`1.foo``3");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestOperator()
         {
             Test(@"
@@ -170,7 +170,7 @@ class C
 }", "+_CSharpKeyword");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestVar()
         {
             Test(@"using System;
@@ -187,7 +187,7 @@ class Program
 }", "var_CSharpKeyword");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestEquals()
         {
             Test(@"using System;
@@ -204,7 +204,7 @@ class Program
 }", "=_CSharpKeyword");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestFromIn()
         {
             Test(@"using System;
@@ -221,7 +221,7 @@ class Program
 }", "from_CSharpKeyword");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestProperty()
         {
             Test(@"using System;
@@ -238,7 +238,7 @@ class Program
 }", "System.UriBuilder.Fragment");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestForeachIn()
         {
             Test(@"using System;
@@ -258,7 +258,7 @@ class Program
 }", "in_CSharpKeyword");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestRegionDescription()
         {
             Test(@"
@@ -272,7 +272,7 @@ class Program
 }", "#region");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestGenericAngle()
         {
             Test(@"class Program
@@ -284,7 +284,7 @@ class Program
 }", "Program.generic``1");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestLocalReferenceIsType()
         {
             Test(@"using System;
@@ -303,7 +303,7 @@ class Program
         }
 
         [WorkItem(864266)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestConstantField()
         {
             Test(@"class Program
@@ -316,7 +316,7 @@ class Program
         }
 
         [WorkItem(862420)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestParameter()
         {
             Test(@"class Class2
@@ -334,7 +334,7 @@ class Program
         }
 
         [WorkItem(862420)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestArgumentType()
         {
             Test(@"class Class2
@@ -352,7 +352,7 @@ class Program
         }
 
         [WorkItem(862396)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestNoToken()
         {
             Test(@"class Program
@@ -365,7 +365,7 @@ class Program
         }
 
         [WorkItem(862328)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestLiteral()
         {
             Test(@"class Program
@@ -378,7 +378,7 @@ class Program
         }
 
         [WorkItem(862478)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestColonColon()
         {
             Test(@"using System;
@@ -396,7 +396,7 @@ class Program
         }
 
         [WorkItem(864658)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestNullable()
         {
             Test(@"using System;
@@ -416,7 +416,7 @@ a.Value.GetHashCode();
         }
 
         [WorkItem(863517)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestAfterLastToken()
         {
             Test(@"using System;
@@ -435,7 +435,7 @@ class Program
 }", "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestConditional()
         {
             Test(@"class Program
@@ -447,7 +447,7 @@ class Program
 }", "?_CSharpKeyword");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestLocalVar()
         {
             Test(@"class C
@@ -461,7 +461,7 @@ class Program
         }
 
         [WorkItem(867574)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestFatArrow()
         {
             Test(@"class C
@@ -474,7 +474,7 @@ class Program
         }
 
         [WorkItem(867572)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestSubscription()
         {
             Test(@"class CCC
@@ -488,14 +488,14 @@ class Program
         }
 
         [WorkItem(867554)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestComment()
         {
             Test(@"// some comm[||]ents here", "comments");
         }
 
         [WorkItem(867529)]
-        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
         public void TestDynamic()
         {
             Test(@"class C
@@ -505,6 +505,23 @@ class Program
         dyna[||]mic d = 0;
     }
 }", "dynamic_CSharpKeyword");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public void TestRangeVariable()
+        {
+            Test(@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var zzz = from y in args select [||]y;
+    }
+}", "System.String");
         }
     }
 }

@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _factory.Block(
                     localBuilder.ToImmutableAndFree(),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     new BoundTryStatement(
                         _factory.Syntax,
                         _factory.Block(statementBuilder.ToImmutableAndFree()),
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 statementBuilder.AddRange(cleanup);
-                return _factory.Block(localBuilder.ToImmutableAndFree(), statementBuilder.ToImmutableAndFree());
+                return _factory.Block(localBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementBuilder.ToImmutableAndFree());
             }
         }
 
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _lazyUnmatchedLabelCache = new Dictionary<BoundNode, HashSet<LabelSymbol>>();
             }
 
-            HashSet<LabelSymbol> unmatched = UnmatchedGotoFinder.Find(node, _lazyUnmatchedLabelCache);
+            HashSet<LabelSymbol> unmatched = UnmatchedGotoFinder.Find(node, _lazyUnmatchedLabelCache, RecursionDepth);
 
             _lazyUnmatchedLabelCache.Add(node, unmatched);
 
@@ -289,7 +290,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             arrayTemp = factory.SynthesizedLocal(initializerType);
             ArrayTypeSymbol arrayType = (ArrayTypeSymbol)arrayTemp.Type;
             TypeSymbol arrayElementType = arrayType.ElementType;
-            int arrayRank = arrayType.Rank;
 
             // NOTE: we pin the pointer, not the array.
             Debug.Assert(!arrayTemp.IsPinned);
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression lengthCall;
 
-            if (arrayRank == 1)
+            if (arrayType.IsSZArray)
             {
                 lengthCall = factory.ArrayLength(factory.Local(arrayTemp));
             }

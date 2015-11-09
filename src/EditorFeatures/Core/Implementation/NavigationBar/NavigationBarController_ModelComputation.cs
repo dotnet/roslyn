@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -146,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                     t => PushSelectedItemsToPresenter(t.Result),
                     cancellationToken,
                     TaskContinuationOptions.OnlyOnRanToCompletion,
-                    ForegroundThreadAffinitizedObject.ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData.TaskScheduler).CompletesAsyncOperation(asyncToken);
             }
         }
 

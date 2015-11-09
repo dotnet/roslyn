@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.AdditionalFiles
             Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(New AdditionalFileAnalyzer(), New AdditionalFileFixer())
         End Function
 
-        <Fact>
+        <WpfFact>
         Public Sub TestAdditionalFiles()
             Dim input =
                 <Workspace>

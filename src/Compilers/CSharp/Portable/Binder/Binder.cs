@@ -152,9 +152,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Get locals declared immediately in scope represented by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope()
         {
-            return this.Next.GetDeclaredLocalsForScope(node);
+            return this.Next.GetDeclaredLocalsForScope();
+        }
+
+        /// <summary>
+        /// Get local functions declared immediately in scope represented by the node.
+        /// </summary>
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope()
+        {
+            return this.Next.GetDeclaredLocalFunctionsForScope();
         }
 
         /// <summary>
@@ -268,6 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return _next.ImportChain;
             }
+        }
+
+        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        {
+            return _next.GetImports(basesBeingResolved);
         }
 
         /// <summary>

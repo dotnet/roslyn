@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,12 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ObjectCreationCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        public ObjectCreationCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        {
+        }
+
         internal override CompletionListProvider CreateCompletionProvider()
         {
             return new ObjectCreationCompletionProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InObjectCreation()
         {
             var markup = @"
@@ -28,7 +33,7 @@ void foo()
             VerifyItemExists(markup, "MyGeneric<string>");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotInAnonymousTypeObjectCreation1()
         {
             var markup = @"
@@ -44,7 +49,7 @@ class C
         }
 
         [WorkItem(854497)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void NotVoid()
         {
             var markup = @"
@@ -60,7 +65,7 @@ class C
         }
 
         [WorkItem(827897)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InYieldReturn()
         {
             var markup =
@@ -78,7 +83,7 @@ class Program
         }
 
         [WorkItem(827897)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void InAsyncMethodReturnStatement()
         {
             var markup =
@@ -96,7 +101,7 @@ class Program
             VerifyItemExists(markup, "FieldAccessException");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsCommitCharacterTest()
         {
             const string markup = @"
@@ -114,7 +119,7 @@ class Program
                 invalidChars: new[] { 'x', ',', '#' });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsTextualTriggerCharacterTest()
         {
             VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true);
@@ -124,7 +129,7 @@ class Program
             VerifyTextualTriggerCharacter("Abc$$.", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SendEnterThroughToEditorTest()
         {
             const string markup = @"
@@ -142,7 +147,7 @@ class Program
         }
 
         [WorkItem(828196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestAlias()
         {
             var markup = @"
@@ -158,7 +163,7 @@ class Program
         }
 
         [WorkItem(828196)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SuggestAlias2()
         {
             var markup = @"
@@ -179,7 +184,7 @@ class Program
         }
 
         [WorkItem(1075275)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitAlias()
         {
             var markup = @"
@@ -205,7 +210,7 @@ class Program
         }
 
         [WorkItem(1090377)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterNewFollowedByAssignment()
         {
             var markup = @"
@@ -231,7 +236,7 @@ class Foo
         }
 
         [WorkItem(1090377)]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void AfterNewFollowedByAssignment_GrandParentIsSimpleAssignment()
         {
             var markup = @"
@@ -247,8 +252,8 @@ class Program
         }
 
         [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public void AfterNewFollowedByAssignment_GrandParentIsEqualsValueClause()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedBySimpleAssignment_GrandParentIsEqualsValueClause()
         {
             var markup = @"
 class Program
@@ -263,8 +268,42 @@ class Program
             VerifyItemExists(markup, "Program");
         }
 
+        [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int i;
+        Program p = new $$
+        i += 5;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
+
+        [WorkItem(2836, "https://github.com/dotnet/roslyn/issues/2836")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void AfterNewFollowedByCompoundAssignment_GrandParentIsEqualsValueClause2()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        int i = 1000;
+        Program p = new $$
+        i <<= 4;
+    }
+}";
+            VerifyItemExists(markup, "Program");
+        }
+
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitObjectWithParenthesis1()
         {
             var markup = @"
@@ -289,7 +328,7 @@ class C
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CommitObjectWithParenthesis2()
         {
             var markup = @"
@@ -318,7 +357,7 @@ class C
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DontCommitObjectWithOpenBrace1()
         {
             var markup = @"
@@ -343,7 +382,7 @@ class C
         }
 
         [WorkItem(4115, "https://github.com/dotnet/roslyn/issues/4115")]
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void DontCommitObjectWithOpenBrace2()
         {
             var markup = @"
@@ -369,6 +408,32 @@ class C
 }";
 
             VerifyProviderCommit(markup, "object", expected, '{', "");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedProperty()
+        {
+            var markup =
+@"class C
+{
+    object Object => new $$
+}
+";
+            VerifyItemExists(markup, "object");
+        }
+
+        [WorkItem(4310, "https://github.com/dotnet/roslyn/issues/4310")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void InExpressionBodiedMethod()
+        {
+            var markup =
+@"class C
+{
+    object GetObject() => new $$
+}
+";
+            VerifyItemExists(markup, "object");
         }
     }
 }

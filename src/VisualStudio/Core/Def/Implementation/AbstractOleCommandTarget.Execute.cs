@@ -70,6 +70,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     return ExecuteVisualStudio2013(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
                 }
+                else if (pguidCmdGroup == Guids.RoslynGroupId)
+                {
+                    return ExecuteRoslyn(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
+                }
                 else
                 {
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
@@ -167,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             switch ((VSConstants.VSStd97CmdID)commandId)
             {
                 case VSConstants.VSStd97CmdID.GotoDefn:
-                    ExecuteGotoDefinition(subjectBuffer, contentType, executeNextCommandTarget);
+                    ExecuteGoToDefinition(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 case VSConstants.VSStd97CmdID.FindReferences:
@@ -271,6 +275,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 case ID.CSharpCommands.OrganizeRemoveAndSort:
                 case ID.CSharpCommands.ContextOrganizeRemoveAndSort:
                     ExecuteSortAndRemoveUnusedUsings(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
+                default:
+                    return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+            }
+
+            return result;
+        }
+
+        private int ExecuteRoslyn(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
+        {
+            int result = VSConstants.S_OK;
+            var guidCmdGroup = pguidCmdGroup;
+            Action executeNextCommandTarget = () =>
+            {
+                result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+            };
+
+            switch (commandId)
+            {
+                case ID.RoslynCommands.GoToImplementation:
+                    ExecuteGoToImplementation(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
                 default:
@@ -497,6 +523,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     ExecuteReorderParameters(subjectBuffer, contentType, executeNextCommandTarget);
                     break;
 
+                case VSConstants.VSStd2KCmdID.ECMD_NEXTMETHOD:
+                    ExecuteGoToNextMethod(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
+                case VSConstants.VSStd2KCmdID.ECMD_PREVMETHOD:
+                    ExecuteGoToPreviousMethod(subjectBuffer, contentType, executeNextCommandTarget);
+                    break;
+
                 default:
                     return NextCommandTarget.Exec(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
             }
@@ -522,6 +556,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new ReorderParametersCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteGoToNextMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Down),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteGoToPreviousMethod(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new GoToAdjacentMemberCommandArgs(ConvertTextView(), subjectBuffer, NavigateDirection.Up),
                 lastHandler: executeNextCommandTarget);
         }
 
@@ -868,10 +916,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 lastHandler: executeNextCommandTarget);
         }
 
-        private void ExecuteGotoDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        private void ExecuteGoToDefinition(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
         {
             CurrentHandlers.Execute<GoToDefinitionCommandArgs>(contentType,
                 args: new GoToDefinitionCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteGoToImplementation(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute<GoToImplementationCommandArgs>(contentType,
+                args: new GoToImplementationCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 

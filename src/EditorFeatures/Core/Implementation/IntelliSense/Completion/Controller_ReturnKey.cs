@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // to the editor.  In single-line debugger windows (Watch, etc), however, we don't
             // want to send the enter though, because those windows don't support displaying
             // more than one line of text.
-            sendThrough = !model.TriggerInfo.IsDebugger || model.TriggerInfo.IsImmediateWindow;
+            sendThrough = !_isDebugger || _isImmediateWindow;
 
             if (model.IsSoftSelection)
             {

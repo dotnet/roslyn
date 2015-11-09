@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_LibNotFound = 2017
         'ERR_MaximumErrors = 2020       unused in Roslyn.
         ERR_IconFileAndWin32ResFile = 2023
-        'WRN_ReservedReference = 2024       'unissued by native compiler due to bug. 
+        'WRN_ReservedReference = 2024       ' unused by native compiler due to bug. 
         WRN_NoConfigInResponseFile = 2025
         ' WRN_InvalidWarningId = 2026       ' unused in Roslyn.
         'ERR_WatsonSendNotOptedIn = 2027
@@ -668,7 +668,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_RequiredNonObsoleteNewCall4 = 30920
         ERR_InheritsTypeArgAccessMismatch7 = 30921
         ERR_InheritsTypeArgAccessMismatchOutside5 = 30922
-        'ERR_AccessMismatchTypeArgImplEvent7 = 30923    unsued in Roslyn
+        'ERR_AccessMismatchTypeArgImplEvent7 = 30923    unused in Roslyn
         'ERR_AccessMismatchTypeArgImplEvent5 = 30924    unused in Roslyn
         ERR_PartialTypeAccessMismatch3 = 30925
         ERR_PartialTypeBadMustInherit1 = 30926
@@ -944,7 +944,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MustOverridesInClass1 = 31411
         ERR_HandlesSyntaxInClass = 31412
         ERR_SynthMemberShadowsMustOverride5 = 31413
-        'ERR_CantImplementNonVirtual3 = 31415   unsued in Roslyn
+        'ERR_CantImplementNonVirtual3 = 31415   unused in Roslyn
         ' ERR_MemberShadowsSynthMustOverride5 = 31416   unused in Roslyn
         ERR_CannotOverrideInAccessibleMember = 31417
         ERR_HandlesSyntaxInModule = 31418
@@ -1581,7 +1581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_SignButNoPrivateKey = 36961
         ERR_InvalidVersionFormat = 36962
 
-        ERR_NoScriptsSpecified = 36963
+        ERR_ExpectedSingleScript = 36963
         ERR_ReferenceDirectiveOnlyAllowedInScripts = 36964
         ERR_NamespaceNotAllowedInScript = 36965
         ERR_KeywordNotAllowedInScript = 36966
@@ -1678,6 +1678,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InterpolationFormatWhitespace = 37249
         ERR_InterpolationAlignmentOutOfRange = 37250
         ERR_InterpolatedStringFactoryError = 37251
+        ERR_DebugEntryPointNotSourceMethodDefinition = 37252
+        ERR_InvalidPathMap = 37253
 
         ERR_LastPlusOne
 
@@ -1935,6 +1937,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_GlobalNamespace
         FEATURE_NullPropagatingOperator
         FEATURE_NameOfExpressions
+        FEATURE_ReadonlyAutoProperties
+        FEATURE_RegionsEverywhere
+        FEATURE_MultilineStringLiterals
+        FEATURE_CObjInAttributeArguments
+        FEATURE_LineContinuationComments
+        FEATURE_TypeOfIsNot
+        FEATURE_YearFirstDateLiterals
+        FEATURE_WarningDirectives
+        FEATURE_PartialModules
+        FEATURE_PartialInterfaces
+        FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         FEATURE_DigitSeparators
         FEATURE_BinaryLiterals
     End Enum

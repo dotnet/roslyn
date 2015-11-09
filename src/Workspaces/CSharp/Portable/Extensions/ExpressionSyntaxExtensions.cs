@@ -43,27 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static ExpressionSyntax Parenthesize(this ExpressionSyntax expression, bool includeElasticTrivia = true)
         {
-            var leadingTrivia = expression.GetLeadingTrivia();
-            var trailingTrivia = expression.GetTrailingTrivia();
-            expression = expression.WithoutLeadingTrivia()
-                                   .WithoutTrailingTrivia();
-
             if (includeElasticTrivia)
             {
-                return SyntaxFactory.ParenthesizedExpression(expression)
-                             .WithLeadingTrivia(leadingTrivia)
-                             .WithTrailingTrivia(trailingTrivia)
-                             .WithAdditionalAnnotations(Simplifier.Annotation);
+                return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
+                                    .WithTriviaFrom(expression)
+                                    .WithAdditionalAnnotations(Simplifier.Annotation);
             }
             else
             {
-                return SyntaxFactory.ParenthesizedExpression(
+                return SyntaxFactory.ParenthesizedExpression
+                (
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
-                    expression,
-                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty))
-                             .WithLeadingTrivia(leadingTrivia)
-                             .WithTrailingTrivia(trailingTrivia)
-                             .WithAdditionalAnnotations(Simplifier.Annotation);
+                    expression.WithoutTrivia(),
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
+                )
+                .WithTriviaFrom(expression)
+                .WithAdditionalAnnotations(Simplifier.Annotation);
             }
         }
 
@@ -1005,7 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static IAliasSymbol GetAliasForSymbol(INamespaceOrTypeSymbol symbol, SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var originalSemanticModel = (SemanticModel)semanticModel.GetOriginalSemanticModel();
+            var originalSemanticModel = semanticModel.GetOriginalSemanticModel();
             if (!originalSemanticModel.SyntaxTree.HasCompilationUnitRoot)
             {
                 return null;
@@ -1037,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return token.Parent;
             }
 
-            var originalSemanticMode = (SemanticModel)semanticModel.GetOriginalSemanticModel();
+            var originalSemanticMode = semanticModel.GetOriginalSemanticModel();
             token = originalSemanticMode.SyntaxTree.GetRoot(cancellationToken).FindToken(semanticModel.OriginalPositionForSpeculation);
 
             return token.Parent;
@@ -1381,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
                         var type = (INamedTypeSymbol)symbol;
-                        if (aliasInfo == null && CanSimplifyNullable(type, name))
+                        if (aliasInfo == null && CanSimplifyNullable(type, name, semanticModel))
                         {
                             GenericNameSyntax genericName;
                             if (name.Kind() == SyntaxKind.QualifiedName)
@@ -1456,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return name.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken);
         }
 
-        private static bool CanSimplifyNullable(INamedTypeSymbol type, NameSyntax name)
+        private static bool CanSimplifyNullable(INamedTypeSymbol type, NameSyntax name, SemanticModel semanticModel)
         {
             if (!type.IsNullable())
             {
@@ -1466,6 +1461,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (type.IsUnboundGenericType)
             {
                 // Don't simplify unbound generic type "Nullable<>".
+                return false;
+            }
+
+            if (InsideNameOfExpression(name, semanticModel))
+            {
+                // Nullable<T> can't be simplified to T? in nameof expressions.
                 return false;
             }
 
@@ -1723,7 +1724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                                 if ((namedType.GetBaseTypes().Contains(containingType) &&
                                     !optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) ||
                                     (!optionSet.GetOption(SimplificationOptions.AllowSimplificationToGenericType) &&
-                                    containingType.TypeArguments.Count() != 0))
+                                    containingType.TypeArguments.Length != 0))
                                 {
                                     return false;
                                 }
@@ -2056,7 +2057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var variable = variableDeclaration.Variables.Single();
-                var initializer = (EqualsValueClauseSyntax)variable.Initializer;
+                var initializer = variable.Initializer;
                 var identifier = variable.Identifier;
 
                 if (EqualsValueClauseNotSuitableForVar(identifier, simpleName, initializer, semanticModel, cancellationToken))
@@ -2292,7 +2293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
         }
 
-        public static NameSyntax GetRightmostName(this ExpressionSyntax node)
+        public static SimpleNameSyntax GetRightmostName(this ExpressionSyntax node)
         {
             var memberAccess = node as MemberAccessExpressionSyntax;
             if (memberAccess != null && memberAccess.Name != null)
@@ -2338,7 +2339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.UncheckedExpression:
                 case SyntaxKind.AnonymousMethodExpression:
                     // From C# spec, 7.3.1:
-                    // Primary: x.y  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
+                    // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
 
                     return OperatorPrecedence.Primary;
 
@@ -2349,8 +2350,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.PreIncrementExpression:
                 case SyntaxKind.PreDecrementExpression:
                 case SyntaxKind.CastExpression:
+                case SyntaxKind.AwaitExpression:
                     // From C# spec, 7.3.1:
-                    // Unary: +  -  !  ~  ++x  --x  (T)x
+                    // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
 
                     return OperatorPrecedence.Unary;
 

@@ -127,13 +127,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 s_wslTablePool.Free(_wslTable)
                 s_wsTablePool.Free(_wsTable)
 
-                For Each p As Page In Me._pages
+                For Each p As Page In _pages
                     If p IsNot Nothing Then
                         p.Free()
                     End If
                 Next
 
-                Array.Clear(Me._pages, 0, Me._pages.Length)
+                Array.Clear(_pages, 0, _pages.Length)
             End If
         End Sub
         Friend ReadOnly Property Options As VisualBasicParseOptions
@@ -165,8 +165,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If token IsNot Nothing Then
                     AdvanceChar(quickToken.Length)
                     If quickToken.TerminatorLength <> 0 Then
-                        Me._endOfTerminatorTrivia = Me._lineBufferOffset
-                        Me._lineBufferOffset -= quickToken.TerminatorLength
+                        _endOfTerminatorTrivia = _lineBufferOffset
+                        _lineBufferOffset -= quickToken.TerminatorLength
                     End If
 
                     Return token
@@ -643,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim ch = Peek()
                 If IsWhitespace(ch) Then
-                    ' eat until linebreak or nonwhitespace
+                    ' eat until linebreak or non-whitespace
                     Dim wslen = GetWhitespaceLength(1)
 
                     If atNewLine Then
@@ -720,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Sub ScanSingleLineTrivia(tList As SyntaxListBuilder)
-            If Me.IsScanningXmlDoc Then
+            If IsScanningXmlDoc Then
                 ScanSingleLineTriviaInXmlDoc(tList)
             Else
                 ScanWhitespaceAndLineContinuations(tList)
@@ -886,7 +886,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetWhitespaceLength(len As Integer) As Integer
-            ' eat until linebreak or nonwhitespace
+            ' eat until linebreak or non-whitespace
             While CanGet(len) AndAlso IsWhitespace(Peek(len))
                 len += 1
             End While
@@ -894,7 +894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function GetXmlWhitespaceLength(len As Integer) As Integer
-            ' eat until linebreak or nonwhitespace
+            ' eat until linebreak or non-whitespace
             While CanGet(len) AndAlso IsXmlWhitespace(Peek(len))
                 len += 1
             End While
@@ -923,7 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             AdvanceChar()
 
-            ' eat until linebreak or nonwhitespace
+            ' eat until linebreak or non-whitespace
             While CanGet() AndAlso IsWhitespace(Peek)
                 AdvanceChar()
             End While
@@ -1380,7 +1380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ch = Peek(len)
 
                 Dim code = Convert.ToUInt16(ch)
-                If code < 128 AndAlso IsNarrowIdentifierCharacter(code) OrElse
+                If code < 128US AndAlso IsNarrowIdentifierCharacter(code) OrElse
                     IsWideIdentifierCharacter(ch) Then
 
                     len += 1
@@ -1940,14 +1940,14 @@ FullWidthRepeat2:
                     If TypeCharacter = TypeCharacter.Single OrElse TypeCharacter = TypeCharacter.SingleLiteral Then
                         ' // Attempt to convert to single
                         Dim SingleValue As Single
-                        If Not Single.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, SingleValue) Then
+                        If Not RealParser.TryParseFloat(LiteralSpelling, SingleValue) Then
                             Overflows = True
                         Else
                             FloatingValue = SingleValue
                         End If
                     Else
                         ' // Attempt to convert to double.
-                        If Not Double.TryParse(LiteralSpelling, NumberStyles.Float, CultureInfo.InvariantCulture, FloatingValue) Then
+                        If Not RealParser.TryParseDouble(LiteralSpelling, FloatingValue) Then
                             Overflows = True
                         End If
                     End If
@@ -2058,6 +2058,7 @@ FullWidthRepeat2:
             Dim DateIsInvalid As Boolean = False
             Dim YearIsTwoDigits As Boolean = False
             Dim DaysToMonth As Integer() = Nothing
+            Dim yearIsFirst As Boolean = False
 
             ' // Unfortunately, we can't fall back on OLE Automation's date parsing because
             ' // they don't have the same range as the URT's DateTime class
@@ -2087,6 +2088,7 @@ FullWidthRepeat2:
                 ' Condition below uses 5 because we already skipped the separator.
                 If Here - FirstValueStart = 5 Then
                     HaveYearValue = True
+                    yearIsFirst = True
                     YearValue = FirstValue
 
                     ' // We have to have a month value
@@ -2323,7 +2325,13 @@ FullWidthRepeat2:
 
             If Not DateIsInvalid Then
                 Dim DateTimeValue As New DateTime(YearValue, MonthValue, DayValue, HourValue, MinuteValue, SecondValue)
-                Return MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
+                Dim result = MakeDateLiteralToken(precedingTrivia, DateTimeValue, Here)
+
+                If yearIsFirst Then
+                    result = Parser.CheckFeatureAvailability(Feature.YearFirstDateLiterals, result, Options.LanguageVersion)
+                End If
+
+                Return result
             Else
                 Return MakeBadToken(precedingTrivia, Here, ERRID.ERR_InvalidDate)
             End If
@@ -2385,6 +2393,8 @@ baddate:
                 Return MakeBadToken(precedingTrivia, 3, ERRID.ERR_IllegalCharConstant)
             End If
 
+            Dim haveNewLine As Boolean = False
+
             Dim scratch = GetScratch()
             While CanGet(length)
                 ch = Peek(length)
@@ -2416,10 +2426,20 @@ baddate:
                     followingTrivia = ScanSingleLineTrivia()
 
                     ' NATURAL TEXT, NO INTERNING
-                    Return SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
+                    Dim result As SyntaxToken = SyntaxFactory.StringLiteralToken(spelling, GetScratchText(scratch), precedingTrivia.Node, followingTrivia.Node)
 
-                ElseIf Me._isScanningDirective AndAlso IsNewLine(ch) Then
-                    Exit While
+                    If haveNewLine Then
+                        result = Parser.CheckFeatureAvailability(Feature.MultilineStringLiterals, result, Options.LanguageVersion)
+                    End If
+
+                    Return result
+
+                ElseIf IsNewLine(ch) Then
+                    If _isScanningDirective Then
+                        Exit While
+                    End If
+
+                    haveNewLine = True
                 End If
 
                 scratch.Append(ch)

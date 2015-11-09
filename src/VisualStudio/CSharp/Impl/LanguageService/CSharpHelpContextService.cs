@@ -8,11 +8,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Roslyn.Utilities;
@@ -57,13 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 var semanticModel = await document.GetSemanticModelForSpanAsync(span, cancellationToken).ConfigureAwait(false);
 
-                var result = TryGetText(token, semanticModel, document, syntaxFacts);
+                var result = TryGetText(token, semanticModel, document, syntaxFacts, cancellationToken);
                 if (string.IsNullOrEmpty(result))
                 {
                     var previousToken = token.GetPreviousToken();
                     if (IsValid(previousToken, span))
                     {
-                        result = TryGetText(previousToken, semanticModel, document, syntaxFacts);
+                        result = TryGetText(previousToken, semanticModel, document, syntaxFacts, cancellationToken);
                     }
                 }
 
@@ -77,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return "#region";
             }
 
-            if (trivia.MatchesKind(SyntaxKind.MultiLineDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.SingleLineCommentTrivia, SyntaxKind.MultiLineCommentTrivia))
+            if (trivia.IsRegularOrDocComment())
             {
                 // just find the first "word" that intersects with our position
                 var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -106,13 +104,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return token.Kind() == SyntaxKind.EndIfDirectiveTrivia || token.Span.IntersectsWith(span);
         }
 
-        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts)
+        private string TryGetText(SyntaxToken token, SemanticModel semanticModel, Document document, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
         {
             string text = null;
             if (TryGetTextForContextualKeyword(token, document, syntaxFacts, out text) ||
                TryGetTextForKeyword(token, document, syntaxFacts, out text) ||
                TryGetTextForPreProcessor(token, document, syntaxFacts, out text) ||
-               TryGetTextForSymbol(token, semanticModel, document, out text) ||
+               TryGetTextForSymbol(token, semanticModel, document, cancellationToken, out text) ||
                TryGetTextForOperator(token, document, out text))
             {
                 return text;
@@ -121,13 +119,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return string.Empty;
         }
 
-        private bool TryGetTextForSymbol(SyntaxToken token, SemanticModel semanticModel, Document document, out string text)
+        private bool TryGetTextForSymbol(SyntaxToken token, SemanticModel semanticModel, Document document, CancellationToken cancellationToken, out string text)
         {
             ISymbol symbol;
             if (token.Parent is TypeArgumentListSyntax)
             {
                 var genericName = token.GetAncestor<GenericNameSyntax>();
-                symbol = semanticModel.GetSymbolInfo(genericName, CancellationToken.None).Symbol ?? semanticModel.GetTypeInfo(genericName, CancellationToken.None).Type;
+                symbol = semanticModel.GetSymbolInfo(genericName, cancellationToken).Symbol ?? semanticModel.GetTypeInfo(genericName, cancellationToken).Type;
             }
             else if (token.Parent is NullableTypeSyntax && token.IsKind(SyntaxKind.QuestionToken))
             {
@@ -136,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
             else
             {
-                var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: CancellationToken.None);
+                var symbols = semanticModel.GetSymbols(token, document.Project.Solution.Workspace, bindLiteralsToUnderlyingType: true, cancellationToken: cancellationToken);
                 symbol = symbols.FirstOrDefault();
 
                 if (symbol == null)
@@ -153,6 +151,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 symbol = ((ILocalSymbol)symbol).Type;
             }
 
+            // Range variable: use the type
+            if (symbol is IRangeVariableSymbol)
+            {
+                var info = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
+                symbol = info.Type;
+            }
+
             // Just use syntaxfacts for operators
             if (symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator)
             {
@@ -160,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return false;
             }
 
-            text = symbol != null ? Format(symbol) : null;
+            text = symbol != null ? FormatSymbol(symbol) : null;
             return symbol != null;
         }
 
@@ -309,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             return false;
         }
 
-        private string FormatTypeOrNamespace(INamespaceOrTypeSymbol symbol)
+        private static string FormatNamespaceOrTypeSymbol(INamespaceOrTypeSymbol symbol)
         {
             var displayString = symbol.ToDisplayString(TypeFormat);
 
@@ -321,38 +326,38 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}`{1}", displayString, symbol.GetTypeArguments().Count());
+                return $"{displayString}`{symbol.GetTypeArguments().Length}";
             }
 
             return displayString;
         }
 
-        private string Format(ISymbol symbol)
+        public override string FormatSymbol(ISymbol symbol)
         {
             if (symbol is ITypeSymbol || symbol is INamespaceSymbol)
             {
-                return FormatTypeOrNamespace((INamespaceOrTypeSymbol)symbol);
+                return FormatNamespaceOrTypeSymbol((INamespaceOrTypeSymbol)symbol);
             }
 
             if (symbol.MatchesKind(SymbolKind.Alias, SymbolKind.Local, SymbolKind.Parameter))
             {
-                return Format(symbol.GetSymbolType());
+                return FormatSymbol(symbol.GetSymbolType());
             }
 
-            var containingType = FormatTypeOrNamespace(symbol.ContainingType);
+            var containingType = FormatNamespaceOrTypeSymbol(symbol.ContainingType);
             var name = symbol.ToDisplayString(NameFormat);
 
             if (symbol.IsConstructor())
             {
-                return string.Format("{0}.#ctor", containingType);
+                return $"{containingType}.#ctor";
             }
 
             if (symbol.GetTypeArguments().Any())
             {
-                return string.Format("{0}.{1}``{2}", containingType, name, symbol.GetTypeArguments().Count());
+                return $"{containingType}.{name}``{symbol.GetTypeArguments().Length}";
             }
 
-            return string.Format("{0}.{1}", containingType, name);
+            return $"{containingType}.{name}";
         }
     }
 }

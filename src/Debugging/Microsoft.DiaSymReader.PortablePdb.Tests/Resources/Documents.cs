@@ -30,5 +30,9 @@ class C
         Console.WriteLine(5);
 #line 110 ":6.cs"
         Console.WriteLine(6);
+#line 120 "C:\a\b\X.cs"
+        Console.WriteLine(7);
+#line 130 "C:\a\B\x.cs"
+        Console.WriteLine(8);
     }
 }

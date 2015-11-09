@@ -40,11 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return state.HasComplete(part);
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
-        {
-            state.DefaultForceComplete(this);
-        }
-
         public abstract override string Name { get; }
 
         protected abstract DeclarationModifiers Modifiers { get; }

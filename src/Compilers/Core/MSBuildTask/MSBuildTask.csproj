@@ -29,10 +29,6 @@
       <HintPath>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\MSBuild\v14.0\Microsoft.Build.Utilities.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Microsoft.CSharp.Core.targets">
@@ -41,31 +37,37 @@
     <None Include="Microsoft.VisualBasic.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\VBCSCompiler\BuildProtocol.cs">
+    <Compile Include="..\..\Shared\BuildProtocol.cs">
       <Link>BuildProtocol.cs</Link>
     </Compile>
-    <Compile Include="..\VBCSCompiler\CompilerServerLogger.cs">
+    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
       <Link>CompilerServerLogger.cs</Link>
     </Compile>
-    <Compile Include="..\..\Helpers\ConsoleUtil.cs">
+    <Compile Include="..\..\Shared\ConsoleUtil.cs">
       <Link>ConsoleUtil.cs</Link>
     </Compile>
-    <Compile Include="BuildClient.cs" />
+    <Compile Include="..\..\Shared\NativeMethods.cs">
+      <Link>NativeMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Shared\BuildClient.cs">
+      <Link>BuildClient.cs</Link>
+    </Compile>
     <Compile Include="CanonicalError.cs" />
     <Compile Include="CommandLineBuilderExtension.cs" />
     <Compile Include="Csc.cs" />
+    <Compile Include="Csi.cs" />
     <Compile Include="ErrorString.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ErrorString.resx</DependentUpon>
     </Compile>
     <Compile Include="ICscHostObject5.cs" />
+    <Compile Include="InteractiveCompiler.cs" />
     <Compile Include="IVbcHostObject6.cs" />
     <Compile Include="ManagedCompiler.cs" />
-    <Compile Include="NativeMethods.cs" />
     <Compile Include="PropertyDictionary.cs" />
     <Compile Include="RCWForCurrentContext.cs" />
     <Compile Include="Utilities.cs" />

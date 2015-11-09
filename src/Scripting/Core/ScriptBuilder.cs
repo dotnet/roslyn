@@ -1,20 +1,24 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
-    /// Represents a runtime execution context for C# scripts.
+    /// Represents a runtime execution context for scripts.
     /// </summary>
-    internal class ScriptBuilder
+    internal sealed class ScriptBuilder
     {
         /// <summary>
         /// Unique prefix for generated assemblies.
@@ -41,33 +45,80 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         static ScriptBuilder()
         {
-            s_globalAssemblyNamePrefix = "\u211B*" + Guid.NewGuid().ToString() + "-";
+            s_globalAssemblyNamePrefix = "\u211B*" + Guid.NewGuid().ToString();
         }
 
-        public ScriptBuilder()
+        public ScriptBuilder(InteractiveAssemblyLoader assemblyLoader)
         {
+            Debug.Assert(assemblyLoader != null);
+
             _assemblyNamePrefix = s_globalAssemblyNamePrefix + "#" + Interlocked.Increment(ref s_engineIdDispenser).ToString();
-            _assemblyLoader = new InteractiveAssemblyLoader();
+            _assemblyLoader = assemblyLoader;
         }
 
         public int GenerateSubmissionId(out string assemblyName, out string typeName)
         {
             int id = Interlocked.Increment(ref _submissionIdDispenser);
             string idAsString = id.ToString();
-            assemblyName = _assemblyNamePrefix + idAsString;
+            assemblyName = _assemblyNamePrefix + "-" + idAsString;
             typeName = "Submission#" + idAsString;
             return id;
+        }
+
+        /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
+        internal Func<object[], Task<T>> CreateExecutor<T>(ScriptCompiler compiler, Compilation compilation, CancellationToken cancellationToken)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            try
+            {
+                // get compilation diagnostics first.
+                diagnostics.AddRange(compilation.GetParseDiagnostics());
+                ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
+                diagnostics.Clear();
+
+                var executor = Build<T>(compilation, diagnostics, cancellationToken);
+
+                // emit can fail due to compilation errors or because there is nothing to emit:
+                ThrowIfAnyCompilationErrors(diagnostics, compiler.DiagnosticFormatter);
+
+                if (executor == null)
+                {
+                    executor = (s) => Task.FromResult(default(T));
+                }
+
+                return executor;
+            }
+            finally
+            {
+                diagnostics.Free();
+            }
+        }
+
+        private static void ThrowIfAnyCompilationErrors(DiagnosticBag diagnostics, DiagnosticFormatter formatter)
+        {
+            if (diagnostics.IsEmptyWithoutResolution)
+            {
+                return;
+            }
+            var filtered = diagnostics.AsEnumerable().Where(d => d.Severity == DiagnosticSeverity.Error).AsImmutable();
+            if (filtered.IsEmpty)
+            {
+                return;
+            }
+            throw new CompilationErrorException(
+                formatter.Format(filtered[0], CultureInfo.CurrentCulture),
+                filtered);
         }
 
         /// <summary>
         /// Builds a delegate that will execute just this scripts code.
         /// </summary>
-        public Func<object[], Task<T>> Build<T>(
-            Script script,
+        private Func<object[], Task<T>> Build<T>(
+            Compilation compilation,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            var compilation = script.GetCompilation();
+            var entryPoint = compilation.GetEntryPoint(cancellationToken);
 
             using (var peStream = new MemoryStream())
             {
@@ -101,14 +152,10 @@ namespace Microsoft.CodeAnalysis.Scripting
 
                 peStream.Position = 0;
 
-                var assembly = _assemblyLoader.Load(peStream, pdbStream: null);
+                var assembly = _assemblyLoader.LoadAssemblyFromStream(peStream, pdbStream: null);
+                var runtimeEntryPoint = GetEntryPointRuntimeMethod(entryPoint, assembly, cancellationToken);
 
-                // TODO: GetEntryPoint currently doesn't work for scripts/submissions.
-                // See https://github.com/dotnet/roslyn/issues/3719.
-                // var entryPoint = compilation.GetEntryPoint(cancellationToken);
-                var entryPointMethod = GetEntryPointRuntimeMethod(emitResult.EntryPointOpt, assembly, cancellationToken);
-
-                return entryPointMethod.CreateDelegate<Func<object[], Task<T>>>();
+                return runtimeEntryPoint.CreateDelegate<Func<object[], Task<T>>>();
             }
         }
 

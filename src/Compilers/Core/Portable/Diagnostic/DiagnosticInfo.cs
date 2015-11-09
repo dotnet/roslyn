@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// provide access to additional information about the error, such as what symbols were involved in the ambiguity.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal partial class DiagnosticInfo : IFormattable, IObjectWritable, IObjectReadable, IMessageSerializable
+    internal class DiagnosticInfo : IFormattable, IObjectWritable, IObjectReadable, IMessageSerializable
     {
         private readonly CommonMessageProvider _messageProvider;
         private readonly int _errorCode;
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis
                 this.GetMessage(formatProvider));
         }
 
-        public override int GetHashCode()
+        public sealed override int GetHashCode()
         {
             int hashCode = _errorCode;
             if (_arguments != null)
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis
             return hashCode;
         }
 
-        public override bool Equals(object obj)
+        public sealed override bool Equals(object obj)
         {
             DiagnosticInfo other = obj as DiagnosticInfo;
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis
                     result = true;
                     for (int i = 0; i < _arguments.Length; i++)
                     {
-                        if (_arguments[i] != other._arguments[i])
+                        if (!object.Equals(_arguments[i], other._arguments[i]))
                         {
                             result = false;
                             break;

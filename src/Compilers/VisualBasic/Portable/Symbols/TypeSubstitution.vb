@@ -2,6 +2,7 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
+Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Represented by an array of Key-Value pairs. Keys are type parameters of _targetGenericDefinition 
         ''' in no particular order. Identity substitutions are omitted. 
         ''' </summary>
-        Private ReadOnly _pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol))
+        Private ReadOnly _pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers))
 
         ''' <summary>
         ''' Definition of a symbol which this instance of TypeSubstitution primarily targets.
@@ -78,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Private ReadOnly _parent As TypeSubstitution
 
-        Public ReadOnly Property Pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol))
+        Public ReadOnly Property Pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers))
             Get
                 Return _pairs
             End Get
@@ -88,12 +89,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Get all the pairs of substitutions, including from the parent substitutions. The substitutions
         ''' are in order from outside-in (parent substitutions before child substitutions).
         ''' </summary>
-        Public ReadOnly Property PairsIncludingParent As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol))
+        Public ReadOnly Property PairsIncludingParent As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers))
             Get
                 If _parent Is Nothing Then
                     Return Pairs
                 Else
-                    Dim pairBuilder = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).GetInstance()
+                    Dim pairBuilder = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).GetInstance()
                     AddPairsIncludingParentToBuilder(pairBuilder)
                     Return pairBuilder.ToImmutableAndFree()
                 End If
@@ -101,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         'Add pairs (including parent pairs) to the given array builder.
-        Private Sub AddPairsIncludingParentToBuilder(pairBuilder As ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)))
+        Private Sub AddPairsIncludingParentToBuilder(pairBuilder As ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)))
             If _parent IsNot Nothing Then
                 _parent.AddPairsIncludingParentToBuilder(pairBuilder)
             End If
@@ -122,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' If this substitution contains the given type parameter, return the substituted type.
         ' Otherwise, returns the type parameter itself.
-        Public Function GetSubstitutionFor(tp As TypeSymbol) As TypeSymbol
+        Public Function GetSubstitutionFor(tp As TypeParameterSymbol) As TypeWithModifiers
             Debug.Assert(tp IsNot Nothing)
             Debug.Assert(tp.IsDefinition OrElse TargetGenericDefinition Is tp.ContainingSymbol)
 
@@ -137,14 +138,94 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Next
 
                     ' not found, return the passed in type parameters
-                    Return tp
+                    Return New TypeWithModifiers(tp, ImmutableArray(Of CustomModifier).Empty)
                 End If
 
                 current = current.Parent
             Loop While current IsNot Nothing
 
             ' not found, return the passed in type parameters
-            Return tp
+            Return New TypeWithModifiers(tp, ImmutableArray(Of CustomModifier).Empty)
+        End Function
+
+        Public Function GetTypeArgumentsFor(originalDefinition As NamedTypeSymbol, <Out> ByRef hasTypeArgumentsCustomModifiers As Boolean) As ImmutableArray(Of TypeSymbol)
+            Debug.Assert(originalDefinition IsNot Nothing)
+            Debug.Assert(originalDefinition.IsDefinition)
+            Debug.Assert(originalDefinition.Arity > 0)
+
+            Dim current As TypeSubstitution = Me
+            Dim result = ArrayBuilder(Of TypeSymbol).GetInstance(originalDefinition.Arity, Nothing)
+            hasTypeArgumentsCustomModifiers = False
+
+            Do
+                If current.TargetGenericDefinition Is originalDefinition Then
+                    For Each p In current.Pairs
+                        result(p.Key.Ordinal) = p.Value.Type
+                        If Not p.Value.CustomModifiers.IsDefaultOrEmpty Then
+                            hasTypeArgumentsCustomModifiers = True
+                        End If
+                    Next
+
+                    Exit Do
+                End If
+
+                current = current.Parent
+            Loop While current IsNot Nothing
+
+            For i As Integer = 0 To result.Count - 1
+                If result(i) Is Nothing Then
+                    result(i) = originalDefinition.TypeParameters(i)
+                End If
+            Next
+
+            Return result.ToImmutableAndFree()
+        End Function
+
+        Public Function GetTypeArgumentsCustomModifiersFor(originalDefinition As NamedTypeSymbol) As ImmutableArray(Of ImmutableArray(Of CustomModifier))
+            Debug.Assert(originalDefinition IsNot Nothing)
+            Debug.Assert(originalDefinition.IsDefinition)
+            Debug.Assert(originalDefinition.Arity > 0)
+
+            Dim current As TypeSubstitution = Me
+            Dim result = ArrayBuilder(Of ImmutableArray(Of CustomModifier)).GetInstance(originalDefinition.Arity, ImmutableArray(Of CustomModifier).Empty)
+
+            Do
+                If current.TargetGenericDefinition Is originalDefinition Then
+                    For Each p In current.Pairs
+                        result(p.Key.Ordinal) = p.Value.CustomModifiers
+                    Next
+
+                    Exit Do
+                End If
+
+                current = current.Parent
+            Loop While current IsNot Nothing
+
+            Return result.ToImmutableAndFree()
+        End Function
+
+        Public Function HasTypeArgumentsCustomModifiersFor(originalDefinition As NamedTypeSymbol) As Boolean
+            Debug.Assert(originalDefinition IsNot Nothing)
+            Debug.Assert(originalDefinition.IsDefinition)
+            Debug.Assert(originalDefinition.Arity > 0)
+
+            Dim current As TypeSubstitution = Me
+
+            Do
+                If current.TargetGenericDefinition Is originalDefinition Then
+                    For Each p In current.Pairs
+                        If Not p.Value.CustomModifiers.IsDefaultOrEmpty Then
+                            Return True
+                        End If
+                    Next
+
+                    Exit Do
+                End If
+
+                current = current.Parent
+            Loop While current IsNot Nothing
+
+            Return False
         End Function
 
         ''' <summary>
@@ -157,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Do
                 For Each pair In toCheck.Pairs
-                    Dim value As TypeSymbol = pair.Value
+                    Dim value As TypeSymbol = pair.Value.Type
 
                     If value.IsTypeParameter() AndAlso Not value.IsDefinition Then
                         Throw New ArgumentException()
@@ -255,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return sub1
                     End If
 
-                    Return Concat(sub1, targetGenericDefinition, ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).Empty)
+                    Return Concat(sub1, targetGenericDefinition, ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).Empty)
                 Else
                     Return ConcatNotNulls(sub1, sub2)
                 End If
@@ -283,6 +364,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function Create(
             targetGenericDefinition As Symbol,
             params() As TypeParameterSymbol,
+            args() As TypeWithModifiers,
+            Optional allowAlphaRenamedTypeParametersAsArguments As Boolean = False
+        ) As TypeSubstitution
+            Return Create(targetGenericDefinition, params.AsImmutableOrNull, args.AsImmutableOrNull, allowAlphaRenamedTypeParametersAsArguments)
+        End Function
+
+        Public Shared Function Create(
+            targetGenericDefinition As Symbol,
+            params() As TypeParameterSymbol,
             args() As TypeSymbol,
             Optional allowAlphaRenamedTypeParametersAsArguments As Boolean = False
         ) As TypeSubstitution
@@ -302,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function Create(
             targetGenericDefinition As Symbol,
             params As ImmutableArray(Of TypeParameterSymbol),
-            args As ImmutableArray(Of TypeSymbol),
+            args As ImmutableArray(Of TypeWithModifiers),
             Optional allowAlphaRenamedTypeParametersAsArguments As Boolean = False
         ) As TypeSubstitution
             Debug.Assert(targetGenericDefinition.IsDefinition)
@@ -317,11 +407,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim haveSubstitutionForOrdinal = BitVector.Create(params.Length)
 #End If
 
-            Dim pairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).GetInstance()
+            Dim pairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).GetInstance()
             Try
                 For i = 0 To params.Length - 1
                     Dim param As TypeParameterSymbol = params(i)
-                    Dim arg As TypeSymbol = args(i)
+                    Dim arg As TypeWithModifiers = args(i)
 
                     Debug.Assert(param.IsDefinition)
 
@@ -343,18 +433,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     haveSubstitutionForOrdinal(param.Ordinal) = True
 #End If
 
-                    If param.Equals(arg) Then
+                    If arg.Is(param) Then
                         Continue For
                     End If
 
                     If Not allowAlphaRenamedTypeParametersAsArguments Then
                         ' Can't use alpha-renamed type parameters as arguments
-                        If arg.IsTypeParameter() AndAlso Not arg.IsDefinition Then
+                        If arg.Type.IsTypeParameter() AndAlso Not arg.Type.IsDefinition Then
                             Throw New ArgumentException()
                         End If
                     End If
 
-                    pairs.Add(New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(param, arg))
+                    pairs.Add(New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(param, arg))
                 Next
 
                 ' finish the current segment
@@ -367,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Try
 
             If currentParent IsNot Nothing AndAlso currentParent.TargetGenericDefinition IsNot targetGenericDefinition Then
-                currentParent = Concat(currentParent, targetGenericDefinition, ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).Empty)
+                currentParent = Concat(currentParent, targetGenericDefinition, ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).Empty)
 #If DEBUG Then
             ElseIf currentContainer IsNot Nothing AndAlso currentContainer IsNot targetGenericDefinition Then
                 ' currentContainer must be either targetGenericDefinition or a container of targetGenericDefinition
@@ -384,6 +474,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return currentParent
         End Function
 
+
+        Private Shared ReadOnly _withoutModifiers As Func(Of TypeSymbol, TypeWithModifiers) = Function(arg) New TypeWithModifiers(arg)
+
+        Public Shared Function Create(
+            targetGenericDefinition As Symbol,
+            params As ImmutableArray(Of TypeParameterSymbol),
+            args As ImmutableArray(Of TypeSymbol),
+            Optional allowAlphaRenamedTypeParametersAsArguments As Boolean = False
+        ) As TypeSubstitution
+            Return Create(targetGenericDefinition,
+                          params,
+                          args.SelectAsArray(_withoutModifiers),
+                          allowAlphaRenamedTypeParametersAsArguments)
+        End Function
+
+        Public Shared Function Create(
+            parent As TypeSubstitution,
+            targetGenericDefinition As Symbol,
+            args As ImmutableArray(Of TypeSymbol),
+            Optional allowAlphaRenamedTypeParametersAsArguments As Boolean = False
+        ) As TypeSubstitution
+            Return Create(parent,
+                          targetGenericDefinition,
+                          args.SelectAsArray(_withoutModifiers),
+                          allowAlphaRenamedTypeParametersAsArguments)
+        End Function
+
         ''' <summary>
         ''' Private helper to make sure identity substitutions are injected for types between 
         ''' targetGenericDefinition and parent.TargetGenericDefinition.
@@ -391,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function Concat(
             parent As TypeSubstitution,
             targetGenericDefinition As Symbol,
-            pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol))
+            pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers))
         ) As TypeSubstitution
             If parent Is Nothing OrElse parent.TargetGenericDefinition Is targetGenericDefinition.ContainingType Then
                 Return New TypeSubstitution(targetGenericDefinition, pairs, parent)
@@ -404,7 +521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New TypeSubstitution(
                 targetGenericDefinition,
                 pairs,
-                Concat(parent, containingType, ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).Empty))
+                Concat(parent, containingType, ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).Empty))
 
         End Function
 
@@ -429,16 +546,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     builder.Append(", ")
                 End If
 
-                builder.AppendFormat("{0}->{1}", _pairs(i).Key.ToString(), _pairs(i).Value.ToString())
+                builder.AppendFormat("{0}->{1}", _pairs(i).Key.ToString(), _pairs(i).Value.Type.ToString())
             Next
             builder.Append("}"c)
         End Sub
 
 
-        Private Sub New(targetGenericDefinition As Symbol, pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)), parent As TypeSubstitution)
+        Private Sub New(targetGenericDefinition As Symbol, pairs As ImmutableArray(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)), parent As TypeSubstitution)
             Debug.Assert(Not pairs.IsDefault)
             Debug.Assert(pairs.All(Function(p) p.Key IsNot Nothing))
-            Debug.Assert(pairs.All(Function(p) p.Value IsNot Nothing))
+            Debug.Assert(pairs.All(Function(p) p.Value.Type IsNot Nothing))
+            Debug.Assert(pairs.All(Function(p) Not p.Value.CustomModifiers.IsDefault))
             Debug.Assert(targetGenericDefinition IsNot Nothing AndAlso
                             (targetGenericDefinition.IsDefinition OrElse
                                 (targetGenericDefinition.Kind = SymbolKind.Method AndAlso
@@ -485,12 +603,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          alphaRenamedTypeParameters.Length = typeParametersDefinitions.Length)
 
             ' Build complete map for memberDefinition's type parameters
-            Dim pairs(typeParametersDefinitions.Length - 1) As KeyValuePair(Of TypeParameterSymbol, TypeSymbol)
+            Dim pairs(typeParametersDefinitions.Length - 1) As KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)
 
             For i As Integer = 0 To typeParametersDefinitions.Length - 1 Step 1
                 Debug.Assert(Not alphaRenamedTypeParameters(i).Equals(typeParametersDefinitions(i)))
                 Debug.Assert(alphaRenamedTypeParameters(i).OriginalDefinition Is typeParametersDefinitions(i))
-                pairs(i) = New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(typeParametersDefinitions(i), alphaRenamedTypeParameters(i))
+                pairs(i) = New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(typeParametersDefinitions(i), New TypeWithModifiers(alphaRenamedTypeParameters(i)))
             Next
 
             Return Concat(parent, memberDefinition, pairs.AsImmutableOrNull())
@@ -510,25 +628,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Shared Function CreateAdditionalMethodTypeParameterSubstitution(
             targetMethod As MethodSymbol,
-            typeArguments As ImmutableArray(Of TypeSymbol)
+            typeArguments As ImmutableArray(Of TypeWithModifiers)
         ) As TypeSubstitution
             Debug.Assert(targetMethod.Arity > 0 AndAlso typeArguments.Length = targetMethod.Arity AndAlso
                          targetMethod.ConstructedFrom Is targetMethod)
 
             Dim typeParametersDefinitions As ImmutableArray(Of TypeParameterSymbol) = targetMethod.TypeParameters
 
-            Dim argument As TypeSymbol
+            Dim argument As TypeWithModifiers
             Dim countOfMeaningfulPairs As Integer = 0
 
             For i As Integer = 0 To typeArguments.Length - 1 Step 1
                 argument = typeArguments(i)
 
-                If argument.IsTypeParameter() Then
-                    Dim typeParameter = DirectCast(argument, TypeParameterSymbol)
+                If argument.Type.IsTypeParameter() Then
+                    Dim typeParameter = DirectCast(argument.Type, TypeParameterSymbol)
 
                     If typeParameter.Ordinal = i AndAlso typeParameter.ContainingSymbol Is targetMethod Then
                         Debug.Assert(typeParameter Is typeParametersDefinitions(i))
-                        Continue For
+
+                        If argument.CustomModifiers.IsDefaultOrEmpty Then
+                            Continue For
+                        End If
                     End If
 
                     Debug.Assert(typeParameter.IsDefinition) ' Can't be an alpha renamed type parameter.
@@ -543,21 +664,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Build the map
-            Dim pairs(countOfMeaningfulPairs - 1) As KeyValuePair(Of TypeParameterSymbol, TypeSymbol)
+            Dim pairs(countOfMeaningfulPairs - 1) As KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)
             countOfMeaningfulPairs = 0
 
             For i As Integer = 0 To typeArguments.Length - 1 Step 1
                 argument = typeArguments(i)
 
-                If argument.IsTypeParameter() Then
-                    Dim typeParameter = DirectCast(argument, TypeParameterSymbol)
+                If argument.Type.IsTypeParameter() Then
+                    Dim typeParameter = DirectCast(argument.Type, TypeParameterSymbol)
 
-                    If typeParameter.Ordinal = i AndAlso typeParameter.ContainingSymbol Is targetMethod Then
+                    If typeParameter.Ordinal = i AndAlso typeParameter.ContainingSymbol Is targetMethod AndAlso argument.CustomModifiers.IsDefaultOrEmpty Then
                         Continue For
                     End If
                 End If
 
-                pairs(countOfMeaningfulPairs) = New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(typeParametersDefinitions(i), argument)
+                pairs(countOfMeaningfulPairs) = New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(typeParametersDefinitions(i), argument)
                 countOfMeaningfulPairs += 1
             Next
 
@@ -588,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                  (oldConstructSubstitution.Parent Is Nothing OrElse
                                     adjustedParent.TargetGenericDefinition Is oldConstructSubstitution.Parent.TargetGenericDefinition)))
 
-            Dim pairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)).GetInstance()
+            Dim pairs = ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)).GetInstance()
             Dim pairsHaveChanged As Boolean = PrivateAdjustForConstruct(pairs, oldConstructSubstitution, additionalSubstitution)
 
             Dim result As TypeSubstitution
@@ -622,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Returns True if the set of pairs have changed, False otherwise.
         ''' </summary>
         Private Shared Function PrivateAdjustForConstruct(
-            pairs As ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeSymbol)),
+            pairs As ArrayBuilder(Of KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)),
             oldConstructSubstitution As TypeSubstitution,
             additionalSubstitution As TypeSubstitution
         ) As Boolean
@@ -646,7 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             For i = 0 To oldPairs.Length - 1 Step 1
-                Dim newValue As TypeSymbol = oldPairs(i).Value.InternalSubstituteTypeParameters(additionalSubstitution)
+                Dim newValue As TypeWithModifiers = oldPairs(i).Value.InternalSubstituteTypeParameters(additionalSubstitution)
 
                 ' Mark that we had this substitution even if it is going to disappear.
                 ' We still don't want to append substitution for this guy from additionalSubstitution.
@@ -657,8 +778,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 ' Do not add identity mapping.
-                If Not oldPairs(i).Key.Equals(newValue) Then
-                    pairs.Add(New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(oldPairs(i).Key, newValue))
+                If Not newValue.Is(oldPairs(i).Key) Then
+                    pairs.Add(New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(oldPairs(i).Key, newValue))
                 End If
             Next
 
@@ -685,7 +806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Shared Function Create(
             parent As TypeSubstitution,
             targetGenericDefinition As Symbol,
-            args As ImmutableArray(Of TypeSymbol),
+            args As ImmutableArray(Of TypeWithModifiers),
             Optional allowAlphaRenamedTypeParametersAsArguments As Boolean = False
         ) As TypeSubstitution
             Debug.Assert(parent IsNot Nothing)
@@ -710,13 +831,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For i As Integer = 0 To n - 1 Step 1
                 Dim arg = args(i)
 
-                If Not typeParametersDefinitions(i).Equals(arg) Then
+                If Not arg.Is(typeParametersDefinitions(i)) Then
                     significantMaps += 1
                 End If
 
                 If Not allowAlphaRenamedTypeParametersAsArguments Then
                     ' Can't use alpha-renamed type parameters as arguments
-                    If arg.IsTypeParameter() AndAlso Not arg.IsDefinition Then
+                    If arg.Type.IsTypeParameter() AndAlso Not arg.Type.IsDefinition Then
                         Throw New ArgumentException()
                     End If
                 End If
@@ -727,17 +848,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim pairIndex = 0
-            Dim pairs(significantMaps - 1) As KeyValuePair(Of TypeParameterSymbol, TypeSymbol)
+            Dim pairs(significantMaps - 1) As KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)
 
             For i As Integer = 0 To n - 1 Step 1
-                If Not typeParametersDefinitions(i).Equals(args(i)) Then
-                    pairs(pairIndex) = New KeyValuePair(Of TypeParameterSymbol, TypeSymbol)(typeParametersDefinitions(i), args(i))
+                If Not args(i).Is(typeParametersDefinitions(i)) Then
+                    pairs(pairIndex) = New KeyValuePair(Of TypeParameterSymbol, TypeWithModifiers)(typeParametersDefinitions(i), args(i))
                     pairIndex += 1
                 End If
             Next
 
             Debug.Assert(pairIndex = significantMaps)
             Return Concat(parent, targetGenericDefinition, pairs.AsImmutableOrNull())
+        End Function
+
+        Function SubstituteCustomModifiers(type As TypeSymbol, customModifiers As ImmutableArray(Of CustomModifier)) As ImmutableArray(Of CustomModifier)
+            If type.IsTypeParameter() Then
+                Return New TypeWithModifiers(type, customModifiers).InternalSubstituteTypeParameters(Me).CustomModifiers
+            End If
+
+            Return SubstituteCustomModifiers(customModifiers)
+        End Function
+
+        Function SubstituteCustomModifiers(customModifiers As ImmutableArray(Of CustomModifier)) As ImmutableArray(Of CustomModifier)
+
+            If customModifiers.IsDefaultOrEmpty Then
+                Return customModifiers
+            End If
+
+            For i As Integer = 0 To customModifiers.Length - 1
+                Dim modifier = DirectCast(customModifiers(i).Modifier, NamedTypeSymbol)
+                Dim substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
+
+                If modifier <> substituted Then
+                    Dim builder = ArrayBuilder(Of CustomModifier).GetInstance(customModifiers.Length)
+                    builder.AddRange(customModifiers, i)
+                    builder.Add(If(customModifiers(i).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
+
+                    For j As Integer = i + 1 To customModifiers.Length - 1
+                        modifier = DirectCast(customModifiers(j).Modifier, NamedTypeSymbol)
+                        substituted = DirectCast(modifier.InternalSubstituteTypeParameters(Me).AsTypeSymbolOnly(), NamedTypeSymbol)
+
+                        If modifier <> substituted Then
+                            builder.Add(If(customModifiers(j).IsOptional, VisualBasicCustomModifier.CreateOptional(substituted), VisualBasicCustomModifier.CreateRequired(substituted)))
+                        Else
+                            builder.Add(customModifiers(j))
+                        End If
+                    Next
+
+                    Debug.Assert(builder.Count = customModifiers.Length)
+                    Return builder.ToImmutableAndFree()
+                End If
+            Next
+
+            Return customModifiers
         End Function
 
     End Class

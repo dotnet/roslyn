@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(info, region, False)
         End Sub
 
-        Protected Overrides Sub Visit(node As BoundNode, Optional dontLeaveRegion As Boolean = False)
+        Protected Overrides Sub Visit(node As BoundNode, dontLeaveRegion As Boolean)
             ' Step into expressions as they may contain lambdas
             VisitAlways(node, dontLeaveRegion:=dontLeaveRegion)
         End Sub
@@ -41,51 +41,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Function VisitQueryLambda(node As BoundQueryLambda) As BoundNode
-            Visit(node.Expression)
+            VisitRvalue(node.Expression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQueryExpression(node As BoundQueryExpression) As BoundNode
-            Visit(node.LastOperator)
+            VisitRvalue(node.LastOperator)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQuerySource(node As BoundQuerySource) As BoundNode
-            Visit(node.Expression)
+            VisitRvalue(node.Expression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQueryableSource(node As BoundQueryableSource) As BoundNode
-            Visit(node.Source)
+            VisitRvalue(node.Source)
             Return Nothing
         End Function
 
         Public Overrides Function VisitToQueryableCollectionConversion(node As BoundToQueryableCollectionConversion) As BoundNode
-            Visit(node.ConversionCall)
+            VisitRvalue(node.ConversionCall)
             Return Nothing
         End Function
 
         Public Overrides Function VisitQueryClause(node As BoundQueryClause) As BoundNode
-            Visit(node.UnderlyingExpression)
+            VisitRvalue(node.UnderlyingExpression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitAggregateClause(node As BoundAggregateClause) As BoundNode
             If node.CapturedGroupOpt IsNot Nothing Then
-                Visit(node.CapturedGroupOpt)
+                VisitRvalue(node.CapturedGroupOpt)
             End If
 
-            Visit(node.UnderlyingExpression)
+            VisitRvalue(node.UnderlyingExpression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitOrdering(node As BoundOrdering) As BoundNode
-            Visit(node.UnderlyingExpression)
+            VisitRvalue(node.UnderlyingExpression)
             Return Nothing
         End Function
 
         Public Overrides Function VisitRangeVariableAssignment(node As BoundRangeVariableAssignment) As BoundNode
-            Visit(node.Value)
+            VisitRvalue(node.Value)
             Return Nothing
         End Function
 

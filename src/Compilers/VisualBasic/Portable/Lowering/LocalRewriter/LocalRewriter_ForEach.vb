@@ -94,6 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 replacedCollection = DirectCast(LocalVariableSubstituter.Replace(originalCollection,
                                                                                  node.DeclaredOrInferredLocalOpt,
                                                                                  tempLocal,
+                                                                                 RecursionDepth,
                                                                                  replacedControlVariable), BoundExpression)
 
                 ' if a reference to the control variable was found we add the temporary local and we need to make sure
@@ -122,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           VisitExpressionNode(replacedCollection).MakeRValue)
             End If
 
-            If collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).Rank = 1 Then
+            If collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).IsSZArray Then
                 ' Optimized rewrite for one dimensional arrays (iterate over index is faster than IEnumerable)
                 RewriteForEachArrayOrString(node, statements, locals, isArray:=True, collectionExpression:=replacedCollection)
             ElseIf collectionType.IsStringType Then
@@ -203,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim collectionType = collectionExpression.Type
 
             Debug.Assert(collectionExpression.Type.SpecialType = SpecialType.System_String OrElse
-             (collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).Rank = 1))
+             (collectionType.IsArrayType AndAlso DirectCast(collectionType, ArrayTypeSymbol).IsSZArray))
 
             ' Where do the bound expressions of the bound for each node get rewritten?
             ' The collection will be assigned to a local copy. This assignment is rewritten by using "CreateLocalAndAssignment"
@@ -777,8 +778,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Internal helper class to replace local symbols in bound locals of a given bound tree.
         ''' </summary>
-        Private Class LocalVariableSubstituter
-            Inherits BoundTreeRewriter
+        Private NotInheritable Class LocalVariableSubstituter
+            Inherits BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
             Private ReadOnly _original As LocalSymbol
             Private ReadOnly _replacement As LocalSymbol
@@ -788,9 +789,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 node As BoundNode,
                 original As LocalSymbol,
                 replacement As LocalSymbol,
+                recursionDepth As Integer,
                 ByRef replacedNode As Boolean
             ) As BoundNode
-                Dim rewriter As New LocalVariableSubstituter(original, replacement)
+                Dim rewriter As New LocalVariableSubstituter(original, replacement, recursionDepth)
 
                 Dim result = rewriter.Visit(node)
                 replacedNode = rewriter.ReplacedNode
@@ -804,7 +806,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private Sub New(original As LocalSymbol, replacement As LocalSymbol)
+            Private Sub New(original As LocalSymbol, replacement As LocalSymbol, recursionDepth As Integer)
+                MyBase.New(recursionDepth)
                 _original = original
                 _replacement = replacement
             End Sub

@@ -1617,7 +1617,13 @@ DoneWithDiagnostics:
                 Dim sourceElement = sourceArray.ElementType
                 Dim targetElement = targetArray.ElementType
 
-                If Not (sourceElement.IsErrorType() OrElse targetElement.IsErrorType()) Then
+                If sourceArray.Rank <> targetArray.Rank Then
+                    ReportDiagnostic(diagnostics, location, ERRID.ERR_ConvertArrayRankMismatch2, sourceType, targetType)
+
+                ElseIf sourceArray.IsSZArray <> targetArray.IsSZArray
+                    ReportDiagnostic(diagnostics, location, ERRID.ERR_TypeMismatch2, sourceType, targetType)
+
+                ElseIf Not (sourceElement.IsErrorType() OrElse targetElement.IsErrorType()) Then
                     Dim elemConv = Conversions.ClassifyDirectCastConversion(sourceElement, targetElement, Nothing)
 
                     If Not Conversions.IsIdentityConversion(elemConv) AndAlso
@@ -1631,13 +1637,9 @@ DoneWithDiagnostics:
                              (elemConv And (ConversionKind.Reference Or ConversionKind.Value Or ConversionKind.TypeParameter)) <> 0) Then
                         ReportDiagnostic(diagnostics, location, ERRID.ERR_ConvertArrayMismatch4, sourceType, targetType, sourceElement, targetElement)
 
-                    ElseIf sourceArray.Rank <> targetArray.Rank Then
-                        ReportDiagnostic(diagnostics, location, ERRID.ERR_ConvertArrayRankMismatch2, sourceType, targetType)
-
                     Else
                         ReportDiagnostic(diagnostics, location, ERRID.ERR_TypeMismatch2, sourceType, targetType)
                     End If
-
                 End If
 
             ElseIf sourceType.IsDateTimeType() AndAlso targetType.IsDoubleType() Then

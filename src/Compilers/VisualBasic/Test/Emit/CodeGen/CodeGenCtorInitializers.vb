@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenStructCtor
@@ -623,6 +624,70 @@ expectedOutput:=<![CDATA[42]]>
   IL_0059:  unbox.any  "Integer"
   IL_005e:  stfld      "Program.c1._p1 As Integer"
   IL_0063:  ret
+}
+]]>)
+        End Sub
+
+        <WorkItem(4383, "https://github.com/dotnet/roslyn/issues/4383")>
+        <Fact()>
+        Public Sub DecimalConstInit001()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Collections.Generic
+
+Module Module1
+    Sub Main()
+        Console.WriteLine(ClassWithStaticField.Dictionary("String3"))
+    End Sub
+End Module
+
+    Public Class ClassWithStaticField
+
+    Public Const DecimalConstant As Decimal = 375D
+
+    Private Shared ReadOnly DictionaryField As Dictionary(Of String, Single) = New Dictionary(Of String, Single) From {
+        {"String1", 1.0F},
+        {"String2", 2.0F},
+        {"String3", 3.0F}
+    }
+
+    Public Shared ReadOnly Property Dictionary As Dictionary(Of String, Single) 
+        Get
+            Return DictionaryField
+        End Get
+    End Property
+
+End Class
+
+    </file>
+</compilation>,
+expectedOutput:=<![CDATA[3]]>
+            ).VerifyIL("ClassWithStaticField..cctor()",
+            <![CDATA[
+{
+  // Code size       75 (0x4b)
+  .maxstack  4
+  IL_0000:  ldc.i4     0x177
+  IL_0005:  conv.i8
+  IL_0006:  newobj     "Sub Decimal..ctor(Long)"
+  IL_000b:  stsfld     "ClassWithStaticField.DecimalConstant As Decimal"
+  IL_0010:  newobj     "Sub System.Collections.Generic.Dictionary(Of String, Single)..ctor()"
+  IL_0015:  dup
+  IL_0016:  ldstr      "String1"
+  IL_001b:  ldc.r4     1
+  IL_0020:  callvirt   "Sub System.Collections.Generic.Dictionary(Of String, Single).Add(String, Single)"
+  IL_0025:  dup
+  IL_0026:  ldstr      "String2"
+  IL_002b:  ldc.r4     2
+  IL_0030:  callvirt   "Sub System.Collections.Generic.Dictionary(Of String, Single).Add(String, Single)"
+  IL_0035:  dup
+  IL_0036:  ldstr      "String3"
+  IL_003b:  ldc.r4     3
+  IL_0040:  callvirt   "Sub System.Collections.Generic.Dictionary(Of String, Single).Add(String, Single)"
+  IL_0045:  stsfld     "ClassWithStaticField.DictionaryField As System.Collections.Generic.Dictionary(Of String, Single)"
+  IL_004a:  ret
 }
 ]]>)
         End Sub

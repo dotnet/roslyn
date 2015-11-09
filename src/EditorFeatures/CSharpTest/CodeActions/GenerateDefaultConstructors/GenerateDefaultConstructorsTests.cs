@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
             return new GenerateDefaultConstructorsCodeRefactoringProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestProtectedBase()
         {
             Test(
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestPublicBase()
         {
             Test(
@@ -34,7 +34,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestInternalBase()
         {
             Test(
@@ -43,14 +43,14 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestPrivateBase()
         {
             TestMissing(
 @"class C : [||]B { } class B { private B(int x) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestRefOutParams()
         {
             Test(
@@ -59,7 +59,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestFix1()
         {
             Test(
@@ -68,7 +68,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestFix2()
         {
             Test(
@@ -77,7 +77,7 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestRefactoring1()
         {
             Test(
@@ -86,7 +86,7 @@ index: 1);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestFixAll1()
         {
             Test(
@@ -95,7 +95,7 @@ index: 2);
 index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestFixAll2()
         {
             Test(
@@ -104,7 +104,7 @@ index: 3);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestMissing1()
         {
             TestMissing(
@@ -112,7 +112,7 @@ index: 2);
         }
 
         [WorkItem(889349)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestDefaultConstructorGeneration_1()
         {
             Test(
@@ -121,7 +121,7 @@ index: 2);
         }
 
         [WorkItem(889349)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestDefaultConstructorGeneration_2()
         {
             Test(
@@ -129,7 +129,7 @@ index: 2);
 @"class C : B { internal C(int x) : base(x) { } private C(int y) { } } class B { internal B(int x) { } }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestFixCount1()
         {
             TestActionCount(
@@ -137,7 +137,7 @@ index: 2);
 count: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         [WorkItem(544070)]
         public void TestException1()
         {
@@ -171,7 +171,7 @@ index: 3,
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestException2()
         {
             Test(
@@ -180,7 +180,7 @@ compareTokens: false);
 index: 3);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestException3()
         {
             Test(
@@ -189,7 +189,7 @@ index: 3);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public void TestException4()
         {
             Test(

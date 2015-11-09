@@ -11,10 +11,26 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class BoundLambda
+    internal interface IBoundLambdaOrFunction
+    {
+        MethodSymbol Symbol { get; }
+        CSharpSyntaxNode Syntax { get; }
+        BoundBlock Body { get; }
+        bool WasCompilerGenerated { get; }
+    }
+
+    internal sealed partial class BoundLocalFunctionStatement : IBoundLambdaOrFunction
+    {
+        MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
+
+        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
+    }
+
+    internal sealed partial class BoundLambda : IBoundLambdaOrFunction
     {
         public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
@@ -33,6 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _inferredFromSingleType;
             }
         }
+
+        MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
+
+        CSharpSyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
         public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool inferReturnType)
             : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
@@ -120,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binder.Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T).Construct(bestResultType);
         }
 
-        private sealed class BlockReturns : BoundTreeWalker
+        internal sealed class BlockReturns : BoundTreeWalker
         {
             private readonly ArrayBuilder<TypeSymbol> _types;
             private bool _hasReturnWithoutArgument;
@@ -144,7 +164,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            public override BoundNode VisitLambda(BoundLambda node)
+            public override BoundNode Visit(BoundNode node)
+            {
+                if (!(node is BoundExpression))
+                {
+                    return base.Visit(node);
+                }
+
+                return null;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
             {
                 // Do not recurse into nested lambdas; we don't want their returns.
                 return null;
@@ -367,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    block = FlowAnalysisPass.AppendImplicitReturn(block, lambdaSymbol, _unboundLambda.Syntax);
+                    block = FlowAnalysisPass.AppendImplicitReturn(block, lambdaSymbol);
                 }
             }
 
@@ -596,19 +631,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // two errors; we can for example simply take the one that is lower in alphabetical
             // order when converted to a string.
 
-            var equalityComparer = new CommonDiagnosticComparer();
-            Func<Diagnostic, Diagnostic, int> canonicalComparer = CanonicallyCompareDiagnostics;
-
-            FirstAmongEqualsSet<Diagnostic> intersection = null;
             var convBags = from boundLambda in _bindingCache.Values select boundLambda.Diagnostics;
             var retBags = from boundLambda in _returnInferenceCache.Values select boundLambda.Diagnostics;
             var allBags = convBags.Concat(retBags);
 
+            FirstAmongEqualsSet<Diagnostic> intersection = null;
             foreach (ImmutableArray<Diagnostic> bag in allBags)
             {
                 if (intersection == null)
                 {
-                    intersection = new FirstAmongEqualsSet<Diagnostic>(bag, equalityComparer, canonicalComparer);
+                    intersection = CreateFirstAmongEqualsSet(bag);
                 }
                 else
                 {
@@ -618,13 +650,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (intersection != null)
             {
-                foreach (var diagnostic in intersection)
+                if (PreventsSuccessfulDelegateConversion(intersection))
                 {
-                    if (ErrorFacts.PreventsSuccessfulDelegateConversion((ErrorCode)diagnostic.Code))
-                    {
-                        diagnostics.AddRange(intersection);
-                        return true;
-                    }
+                    diagnostics.AddRange(intersection);
+                    return true;
                 }
             }
 
@@ -634,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (union == null)
                 {
-                    union = new FirstAmongEqualsSet<Diagnostic>(bag, equalityComparer, canonicalComparer);
+                    union = CreateFirstAmongEqualsSet(bag);
                 }
                 else
                 {
@@ -644,17 +673,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (union != null)
             {
-                foreach (var diagnostic in union)
+                if (PreventsSuccessfulDelegateConversion(union))
                 {
-                    if (ErrorFacts.PreventsSuccessfulDelegateConversion((ErrorCode)diagnostic.Code))
-                    {
-                        diagnostics.AddRange(union);
-                        return true;
-                    }
+                    diagnostics.AddRange(union);
+                    return true;
                 }
             }
 
             return false;
+        }
+
+        private static bool PreventsSuccessfulDelegateConversion(FirstAmongEqualsSet<Diagnostic> set)
+        {
+            foreach (var diagnostic in set)
+            {
+                if (ErrorFacts.PreventsSuccessfulDelegateConversion((ErrorCode)diagnostic.Code))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static FirstAmongEqualsSet<Diagnostic> CreateFirstAmongEqualsSet(ImmutableArray<Diagnostic> bag)
+        {
+            // For the purposes of lambda error reporting we wish to compare 
+            // diagnostics for equality only considering their code and location,
+            // but not other factors such as the values supplied for the 
+            // parameters of the diagnostic.
+            return new FirstAmongEqualsSet<Diagnostic>(
+                bag,
+                CommonDiagnosticComparer.Instance,
+                CanonicallyCompareDiagnostics);
         }
 
         /// <summary>

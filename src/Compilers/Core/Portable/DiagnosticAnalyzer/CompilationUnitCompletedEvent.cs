@@ -11,6 +11,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             this.CompilationUnit = compilationUnit;
         }
+        public CompilationUnitCompletedEvent(CompilationUnitCompletedEvent original, SemanticModel newSemanticModel) : this(original.Compilation, original.CompilationUnit)
+        {
+            SemanticModel = newSemanticModel;
+        }
         private WeakReference<SemanticModel> _weakModel;
         public SemanticModel SemanticModel
         {
@@ -35,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public SyntaxTree CompilationUnit { get; }
+        public CompilationUnitCompletedEvent WithSemanticModel(SemanticModel model)
+        {
+            return new CompilationUnitCompletedEvent(this, model);
+        }
         public override string ToString()
         {
             return "CompilationUnitCompletedEvent(" + CompilationUnit.FilePath + ")";

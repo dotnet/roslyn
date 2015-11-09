@@ -1,21 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
-using Microsoft.Win32;
-using HANDLE = System.IntPtr;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
 {
@@ -32,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         /// Particularly when the failing code happens to be in a loop or on multiple threads, we don't want to get
         /// the same crash over and over.
         /// </remarks>
-        private static TimeSpan s_minimumSubmissionInterval = TimeSpan.FromHours(1);
+        private static readonly TimeSpan MinimumSubmissionInterval = TimeSpan.FromHours(1);
 
         /// <summary>
         /// A record of when a given component last submitted an error report in this app domain's lifetime.  
@@ -69,17 +61,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         /// <summary>
         /// Open, Inheritable handle to the event that will be used to signal snapshotting complete
         /// </summary>
-        private HANDLE _eventHandle = IntPtr.Zero;
+        private IntPtr _eventHandle = IntPtr.Zero;
 
         /// <summary>
         /// Open, Inheritable handle to this process (this is the process that will be snapshotted)
         /// </summary>
-        private HANDLE _processHandleDupe = IntPtr.Zero;
+        private IntPtr _processHandleDupe = IntPtr.Zero;
 
         /// <summary>
         /// Open, Inheritable handle to this thread (used by watson to identify the thread where the error happened
         /// </summary>
-        private HANDLE _threadHandleDupe = IntPtr.Zero;
+        private IntPtr _threadHandleDupe = IntPtr.Zero;
 #endif
 
         /// <summary>
@@ -100,14 +92,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         ~WatsonErrorReport()
         {
             this.Dispose(false);
-        }
-
-        /// <summary>
-        /// Minimum submission interval
-        /// </summary>
-        internal static TimeSpan MinimumSubmissionInterval
-        {
-            get { return s_minimumSubmissionInterval; }
         }
 
         /// <summary>
@@ -210,7 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
         /// <returns>true on success and false on failure</returns>
         private unsafe bool InitializeHandlesForSnapshot()
         {
-            // Grab the pointer the the exception
+            // Grab the pointer to the exception
             _exceptionPointersPointer = Marshal.GetExceptionPointers();
 
             NativeWin32Stubs.SECURITY_ATTRIBUTES secAttrib = new NativeWin32Stubs.SECURITY_ATTRIBUTES();
@@ -222,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
             // pointer to the security attributes structure
             IntPtr pSecAttrib = IntPtr.Zero;
             // handle to this thread
-            HANDLE hThread = IntPtr.Zero;
+            IntPtr hThread = IntPtr.Zero;
             try
             {
                 // allocate some native to accommodate the SECURITY_ATTRIBUTES structure needed to create the event object and get its handle
@@ -252,7 +236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
                         return false;
                     }
 
-                    HANDLE hThisProc = thisProc.Handle;
+                    IntPtr hThisProc = thisProc.Handle;
 
                     // duplicate the thread handle
                     if (!NativeWin32Stubs.DuplicateHandle(hThisProc, hThread, hThisProc, out _threadHandleDupe, 0, true, (uint)NativeWin32Stubs.DESIRED_ACCESS.DUPLICATE_SAME_ACCESS) || _threadHandleDupe == IntPtr.Zero)
@@ -300,10 +284,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
                     string helperArguments;
                     if (PrepareHelperArguments(out helperArguments))
                     {
-                        p.StartInfo = new ProcessStartInfo(dbgHelperPath, helperArguments);
+                        p.StartInfo = new ProcessStartInfo(dbgHelperPath, helperArguments)
+                        {
+                            // Prevent the helper process from spawning a new window
+                            CreateNoWindow = true,
 
-                        // When UseShellExecute is off, the .NET framework will always call CreateProcess with the bInheritHandles true, which is required to trigger the event
-                        p.StartInfo.UseShellExecute = false;
+                            // When UseShellExecute is off, the .NET framework will always call CreateProcess with the bInheritHandles true, which is required to trigger the event
+                            UseShellExecute = false,
+                        };
 
                         p.Start();
 
@@ -311,7 +299,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
                         {
                             // wait for the event trigger from the helper or the helper to exit (a maximum of 10 second) 
                             // we should keep this timeout low because the IDE will be hung while waiting on this
-                            HANDLE[] handles = new HANDLE[] { _eventHandle, p.Handle };
+                            IntPtr[] handles = new IntPtr[] { _eventHandle, p.Handle };
 
                             // This should be the landing point for all non-fatal watson dumps, 
                             // navigate up the callstack to identify the source of the exception
@@ -393,7 +381,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
             }
 
             // Make sure the event type is a traditional managed exception (clr20r3)
-            if (!String.Equals(bucketParameters.EventType, "Clr20R3", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(bucketParameters.EventType, "Clr20R3", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -414,10 +402,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Watson
             string warningMessage = "Non-fatal exception being thrown.";
 
             // Don't file reports when the debugger is attached.
-            if (System.Diagnostics.Debugger.IsAttached)
+            if (Debugger.IsAttached)
             {
                 Debug.WriteLine(warningMessage);
-                System.Diagnostics.Debugger.Break();
+                Debugger.Break();
                 return false;
             }
             else

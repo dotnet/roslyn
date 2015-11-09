@@ -3,31 +3,28 @@
   DefaultTargets="BuildAndTest"
   ToolsVersion="12.0">
 
-  <UsingTask
-    AssemblyFile="packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.runner.msbuild.dll"
-    TaskName="Xunit.Runner.MSBuild.xunit" />
-
   <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
        use a 2013 compatible solution. -->
   <PropertyGroup>
-    <RoslynSolution>$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
+    <RoslynSolution Condition="'$(RoslynSolution)' == ''">$(MSBuildThisFileDirectory)Roslyn.sln</RoslynSolution>
+    <SamplesSolution>$(MSBuildThisFileDirectory)src\Samples\Samples.sln</SamplesSolution>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <RunTestArgs></RunTestArgs>
-    <RunTestArgs Condition="'$(Test64)' == 'true'">-test64</RunTestArgs>
+    <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
+    <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
     <IncludePattern Condition="'$(IncludePattern)' == ''">*.UnitTests*.dll</IncludePattern>
-
-    <!-- Emit XML in a CIBuild in order to get structured test results -->
-    <RunTestArgs Condition="'$(CIBuild)' == 'true'">$(RunTestArgs) -xml</RunTestArgs>
+    <OutputDirectory>Binaries\$(Configuration)</OutputDirectory>
+    <NuGetPackageRoot>$(UserProfile)\.nuget\packages</NuGetPackageRoot>
+    <XunitVersion>2.1.0</XunitVersion>
   </PropertyGroup>
 
-  <Target Name="RestorePackages">
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
-  </Target>
-
-  <Target Name="Build" DependsOnTargets="RestorePackages">
+  <Target Name="Build">
     <MSBuild BuildInParallel="true"
              Projects="$(RoslynSolution)"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Targets="Build"/>
+    <MSBuild BuildInParallel="true"
+             Condition="'$(ManualTest)' == ''"
+             Projects="$(SamplesSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Build"/>
   </Target>
@@ -37,6 +34,11 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
              Targets="Clean"/>
+    <MSBuild BuildInParallel="true"
+             Condition="'$(ManualTest)' == ''"
+             Projects="$(SamplesSolution)"
+             Properties="RestorePackages=false"
+             Targets="Clean"/>
   </Target>
 
   <Target Name="Rebuild">
@@ -44,40 +46,37 @@
              Projects="$(RoslynSolution)"
              Properties="RestorePackages=false;TreatWarningsAsErrors=true"
              Targets="Rebuild"/>
+    <MSBuild BuildInParallel="true"
+             Condition="'$(ManualTest)' == ''"
+             Projects="$(SamplesSolution)"
+             Properties="RestorePackages=false;TreatWarningsAsErrors=true"
+             Targets="Rebuild"/>
   </Target>
 
   <Target Name="Test">
+    <ItemGroup>
+      <AssembliesToCopyLocal Include="$(NuGetPackageRoot)\xunit\$(XunitVersion)\*.dll
+        ;$(NuGetPackageRoot)\xunit.assert\$(XunitVersion)\lib\portable-net45+netcore45+wp8+wpa81\*.dll" />
+    </ItemGroup>
+    <!-- Copy xunit stuff to output directory -->
+    <Copy SourceFiles="@(AssembliesToCopyLocal)"
+          DestinationFolder="$(OutputDirectory)"
+          SkipUnchangedFiles="true"
+          UseHardlinksIfPossible="true" />
 
-    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == ''">
-      <TestAssemblies
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
-        Exclude="Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll" />
+    <ItemGroup>
+
+      <!-- MakeConst unit tests tracked by https://github.com/dotnet/roslyn/issues/5918 -->
+      <TestAssemblies Condition="'$(Test64)' != 'true'" 
+                      Include="$(OutputDirectory)\**\$(IncludePattern)"
+                      Exclude="$(OutputDirectory)\**\MakeConst*" />
+
+      <TestAssemblies Condition="'$(Test64)' == 'true'" 
+                      Include="$(OutputDirectory)\**\$(IncludePattern)" 
+                      Exclude="$(OutputDirectory)\**\Roslyn.Interactive*;$(OutputDirectory)\**\MakeConst*" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(PublicBuild)' == '' AND '$(CIBuild)' == 'true'">
-      <TestAssemblies
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
-        Exclude="
-        Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;" />
-    </ItemGroup>
-
-    <!-- The Microsoft.CodeAnalysis.Scripting.UnitTests.dll is disabled due to https://github.com/dotnet/roslyn/issues/860 -->
-    <ItemGroup Condition="'$(PublicBuild)' == 'true' AND '$(CIBuild)' == ''">
-      <TestAssemblies
-        Include="Binaries\$(Configuration)\**\$(IncludePattern)"
-        Exclude="
-        Binaries\$(Configuration)\Roslyn.Compilers.NativeClient.UnitTests.dll;
-        Binaries\$(Configuration)\Microsoft.CodeAnalysis.Scripting.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests2.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.CSharp.ResultProvider.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.ExpressionEvaluator.VisualBasic.ResultProvider.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.VisualBasic.UnitTests.dll;
-        Binaries\$(Configuration)\Roslyn.Services.Editor.CSharp.UnitTests.dll;" />
-    </ItemGroup>
-
-    <Exec Command="Binaries\$(Configuration)\RunTests.exe packages\xunit.runners.2.0.0-alpha-build2576\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
+    <Exec Command="Binaries\$(Configuration)\RunTests.exe $(NuGetPackageRoot)\xunit.runner.console\$(XunitVersion)\tools $(RunTestArgs) @(TestAssemblies, ' ')" />
 
   </Target>
 

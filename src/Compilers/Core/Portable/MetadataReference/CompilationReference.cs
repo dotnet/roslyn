@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException">Alias is invalid for the metadata kind.</exception> 
         public new CompilationReference WithAliases(ImmutableArray<string> aliases)
         {
-            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, aliases, this.Properties.EmbedInteropTypes));
+            return WithProperties(Properties.WithAliases(aliases));
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentException">Interop types can't be embedded from modules.</exception> 
         public new CompilationReference WithEmbedInteropTypes(bool value)
         {
-            return WithProperties(new MetadataReferenceProperties(this.Properties.Kind, this.Properties.Aliases, value));
+            return WithProperties(Properties.WithEmbedInteropTypes(value));
         }
 
         /// <summary>

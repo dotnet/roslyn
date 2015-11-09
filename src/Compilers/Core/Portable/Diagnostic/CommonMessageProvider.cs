@@ -136,8 +136,9 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_FailedToCreateTempFile { get; }
 
         // command line:
-        public abstract int ERR_NoScriptsSpecified { get; }
+        public abstract int ERR_ExpectedSingleScript { get; }
         public abstract int ERR_OpenResponseFile { get; }
+        public abstract int ERR_InvalidPathMap { get; }
         public abstract int FTL_InputFileNameTooLong { get; }
         public abstract int ERR_FileNotFound { get; }
         public abstract int ERR_NoSourceFile { get; }

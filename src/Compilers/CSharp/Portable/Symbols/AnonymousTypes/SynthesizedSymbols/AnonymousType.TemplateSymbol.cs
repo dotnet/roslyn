@@ -217,6 +217,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return StaticCast<TypeSymbol>.From(this.TypeParameters); }
             }
 
+            internal override bool HasTypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return false;
+                }
+            }
+
+            internal override ImmutableArray<ImmutableArray<CustomModifier>> TypeArgumentsCustomModifiers
+            {
+                get
+                {
+                    return CreateEmptyTypeArgumentsCustomModifiers();
+                }
+            }
+
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
                 var symbols = _nameToSymbols[name];

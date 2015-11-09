@@ -48,12 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor
                     DebugRegisterView_NoLock(textView);
                 }
             }
-
-            var handlers = this.SubjectBuffersConnected;
-            if (handlers != null)
-            {
-                handlers(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
-            }
+            this.SubjectBuffersConnected?.Invoke(this, new SubjectBuffersConnectedEventArgs(textView, subjectBuffers.ToReadOnlyCollection()));
         }
 
         void IWpfTextViewConnectionListener.SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)

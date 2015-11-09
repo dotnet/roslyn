@@ -5,8 +5,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.NavInfos;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavInfo;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -560,13 +561,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             var projectListItem = listItem as ProjectListItem;
             if (projectListItem != null)
             {
-                return this.LibraryManager.GetProjectNavInfo(projectListItem.ProjectId);
+                var project = this.LibraryManager.GetProject(projectListItem.ProjectId);
+                if (project != null)
+                {
+                    return this.LibraryManager.LibraryService.NavInfoFactory.CreateForProject(project);
+                }
             }
 
             var referenceListItem = listItem as ReferenceListItem;
             if (referenceListItem != null)
             {
-                return this.LibraryManager.GetReferenceNavInfo(referenceListItem.MetadataReference);
+                return this.LibraryManager.LibraryService.NavInfoFactory.CreateForReference(referenceListItem.MetadataReference);
             }
 
             var symbolListItem = listItem as SymbolListItem;
@@ -681,6 +686,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_FULLNAME:
                     pvar = listItem.FullNameText;
                     return true;
+
+                case _VSOBJLISTELEMPROPID.VSOBJLISTELEMPROPID_HELPKEYWORD:
+                    var symbolListItem = listItem as SymbolListItem;
+                    if (symbolListItem != null)
+                    {
+                        var project = this.LibraryManager.Workspace.CurrentSolution.GetProject(symbolListItem.ProjectId);
+                        if (project != null)
+                        {
+                            var compilation = project
+                                .GetCompilationAsync(CancellationToken.None)
+                                .WaitAndGetResult(CancellationToken.None);
+
+                            var symbol = symbolListItem.ResolveSymbol(compilation);
+                            if (symbol != null)
+                            {
+                                var helpContextService = project.LanguageServices.GetService<IHelpContextService>();
+
+                                pvar = helpContextService.FormatSymbol(symbol);
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
             }
 
             return false;
@@ -921,33 +950,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     return false;
                 }
 
-                var metadataReference = referenceListItem.MetadataReference as PortableExecutableReference;
-                if (metadataReference == null)
+                var portableExecutableReference = referenceListItem.MetadataReference as PortableExecutableReference;
+                if (portableExecutableReference == null)
                 {
                     return false;
                 }
 
-                var compilation = referenceListItem.GetCompilation(this.LibraryManager.Workspace);
-                if (compilation == null)
+                var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
+                if (assemblyIdentity == null)
                 {
                     return false;
                 }
 
-                var assemblySymbol = referenceListItem.GetAssembly(compilation);
-                if (assemblySymbol == null)
-                {
-                    return false;
-                }
-
-                data.bstrFile = metadataReference.FilePath;
+                data.bstrFile = portableExecutableReference.FilePath;
                 data.type = VSCOMPONENTTYPE.VSCOMPONENTTYPE_ComPlus;
 
-                var identity = assemblySymbol.Identity;
-
-                data.wFileMajorVersion = (ushort)identity.Version.Major;
-                data.wFileMinorVersion = (ushort)identity.Version.Minor;
-                data.wFileBuildNumber = (ushort)identity.Version.Build;
-                data.wFileRevisionNumber = (ushort)identity.Version.Revision;
+                data.wFileMajorVersion = (ushort)assemblyIdentity.Version.Major;
+                data.wFileMinorVersion = (ushort)assemblyIdentity.Version.Minor;
+                data.wFileBuildNumber = (ushort)assemblyIdentity.Version.Build;
+                data.wFileRevisionNumber = (ushort)assemblyIdentity.Version.Revision;
             }
 
             return true;

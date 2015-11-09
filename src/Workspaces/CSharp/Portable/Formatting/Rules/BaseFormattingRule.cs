@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -165,6 +166,90 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         protected AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
         {
             return FormattingOperations.CreateAdjustSpacesOperation(space, option);
+        }
+
+        protected void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node, SyntaxToken lastToken)
+        {
+            var bracePair = node.GetBracePair();
+            if (!bracePair.IsValidBracePair())
+            {
+                return;
+            }
+
+            var firstTokenOfNode = node.GetFirstToken(includeZeroWidth: true);
+
+            var memberDeclNode = node as MemberDeclarationSyntax;
+            if (memberDeclNode != null)
+            {
+                var firstAndLastTokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
+                firstTokenOfNode = firstAndLastTokens.Item1;
+            }
+
+            if (node.IsLambdaBodyBlock())
+            {
+                // include lambda itself.
+                firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
+            }
+
+            // We may think we have a complete set of braces, but that may not actually be the case
+            // due incomplete code.  i.e. we have something like:
+            //
+            // class C
+            // {
+            //      int Blah {
+            //          get { return blah
+            // }
+            //
+            // In this case the parse will think that the get-accessor is actually on two lines 
+            // (because it will consume the close curly that more accurately belongs to the class.
+            //
+            // Now there are different behaviors we want depending on what the user is doing 
+            // and what we are formatting.  For example, if the user hits semicolon at the end of
+            // "blah", then we want to keep the accessor on a single line.  In this scenario we
+            // effectively want to ignore the following close curly as it may not be important to
+            // this construct in the mind of the user. 
+            //
+            // However, say the user hits semicolon, then hits enter, then types a close curly.
+            // In this scenario we would actually want the get-accessor to be formatted over multiple 
+            // lines.  The difference here is that because the user just hit close-curly here we can 
+            // consider it as being part of the closest construct and we can consider its placement
+            // when deciding if the construct is on a single line.
+
+            var endBrace = bracePair.Item2;
+            if (lastToken.Kind() != SyntaxKind.CloseBraceToken && 
+                lastToken.Kind() != SyntaxKind.EndOfFileToken &&
+                !endBrace.IsMissing)
+            {
+                // The user didn't just type the close brace.  So any close brace we have may 
+                // actually belong to a containing construct.  See if any containers are missing
+                // a close brace, and if so, act as if our own close brace is missing.
+
+                if (SomeParentHasMissingCloseBrace(node.Parent))
+                {
+                    endBrace = endBrace.GetPreviousToken();
+                }
+            }
+
+            // suppress wrapping on whole construct that owns braces and also brace pair itself if 
+            // it is on same line
+            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, endBrace);
+            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, endBrace);
+        }
+
+        private bool SomeParentHasMissingCloseBrace(SyntaxNode node)
+        {
+            while (node.Kind() != SyntaxKind.CompilationUnit)
+            {
+                var bracePair = node.GetBracePair();
+                if (bracePair.Item2.IsMissing)
+                {
+                    return true;
+                }
+
+                node = node.Parent;
+            }
+
+            return false;
         }
     }
 }

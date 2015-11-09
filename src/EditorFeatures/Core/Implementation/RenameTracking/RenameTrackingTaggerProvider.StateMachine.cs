@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private readonly ITextBuffer _buffer;
             private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
+            // Store committed sessions so they can be restored on undo/redo. The undo transactions
+            // may live beyond the lifetime of the buffer tracked by this StateMachine, so storing
+            // them here allows them to be correctly cleaned up when the buffer goes away.
+            private readonly IList<TrackingSession> _committedSessions = new List<TrackingSession>();
+
             private int _refCount;
 
             public TrackingSession TrackingSession { get; private set; }
@@ -73,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     //    continue that session.
                     // 3. Otherwise, we're starting a new tracking session. Find and track the span of
                     //    the relevant word in the foreground, and use a task to figure out whether the
-                    //    original word was a renamable identifier or not.
+                    //    original word was a renameable identifier or not.
 
                     if (e.Changes.Count != 1 || ShouldClearTrackingSession(e.Changes.Single()))
                     {
@@ -227,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                         _diagnosticAnalyzerService?.Reanalyze(
                             document.Project.Solution.Workspace,
-                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id));
+                            documentIds: SpecializedCollections.SingletonEnumerable(document.Id), highPriority: true);
                     }
 
                     // Disallow the existing TrackingSession from triggering IdentifierFound.
@@ -240,6 +245,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
 
                 return false;
+            }
+
+            internal int StoreCurrentTrackingSessionAndGenerateId()
+            {
+                AssertIsForeground();
+
+                var existingIndex = _committedSessions.IndexOf(TrackingSession);
+                if (existingIndex >= 0)
+                {
+                    return existingIndex;
+                }
+
+                var index = _committedSessions.Count;
+                _committedSessions.Insert(index, TrackingSession);
+                return index;
             }
 
             public bool CanInvokeRename(out TrackingSession trackingSession, bool isSmartTagCheck = false, bool waitForResult = false, CancellationToken cancellationToken = default(CancellationToken))
@@ -300,12 +320,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
             }
 
-            public void RestoreTrackingSession(TrackingSession trackingSession)
+            public void RestoreTrackingSession(int trackingSessionId)
             {
                 AssertIsForeground();
                 ClearTrackingSession();
 
-                this.TrackingSession = trackingSession;
+                this.TrackingSession = _committedSessions[trackingSessionId];
                 TrackingSessionUpdated();
             }
 

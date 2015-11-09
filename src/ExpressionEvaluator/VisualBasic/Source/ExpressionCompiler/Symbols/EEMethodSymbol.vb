@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 sourceParameter.IsByRef,
                 name,
                 sourceParameter.CustomModifiers,
-                sourceParameter.HasByRefBeforeCustomModifiers)
+                sourceParameter.CountOfCustomModifiersPrecedingByRef)
         End Function
 
         Public Overrides ReadOnly Property MethodKind As MethodKind
@@ -477,80 +477,86 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             ' NOTE: In C#, EE rewriting happens AFTER local rewriting.  However, that order would be difficult
             ' to accommodate in VB, so we reverse it.
 
-            ' Rewrite local declaration statement.
-            newBody = LocalDeclarationRewriter.Rewrite(_compilation, _container, newBody)
+            Try
+                ' Rewrite local declaration statement.
+                newBody = LocalDeclarationRewriter.Rewrite(_compilation, _container, newBody)
 
-            ' Rewrite pseudo-variable references to helper method calls.
-            newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics), BoundBlock)
-            If diagnostics.HasAnyErrors() Then
-                Return newBody
-            End If
+                ' Rewrite pseudo-variable references to helper method calls.
+                newBody = DirectCast(PlaceholderLocalRewriter.Rewrite(_compilation, _container, newBody, diagnostics), BoundBlock)
+                If diagnostics.HasAnyErrors() Then
+                    Return newBody
+                End If
 
-            ' Create a map from original local to target local.
-            Dim localMap = PooledDictionary(Of LocalSymbol, LocalSymbol).GetInstance()
-            Dim targetLocals = newBody.Locals
-            Debug.Assert(originalLocals.Length = targetLocals.Length)
-            For i = 0 To originalLocals.Length - 1
-                Dim originalLocal = originalLocals(i)
-                Dim targetLocal = targetLocals(i)
-                Debug.Assert(TypeOf originalLocal IsNot EELocalSymbol OrElse
+                ' Create a map from original local to target local.
+                Dim localMap = PooledDictionary(Of LocalSymbol, LocalSymbol).GetInstance()
+                Dim targetLocals = newBody.Locals
+                Debug.Assert(originalLocals.Length = targetLocals.Length)
+                For i = 0 To originalLocals.Length - 1
+                    Dim originalLocal = originalLocals(i)
+                    Dim targetLocal = targetLocals(i)
+                    Debug.Assert(TypeOf originalLocal IsNot EELocalSymbol OrElse
                         DirectCast(originalLocal, EELocalSymbol).Ordinal = DirectCast(targetLocal, EELocalSymbol).Ordinal)
-                localMap.Add(originalLocal, targetLocal)
-            Next
+                    localMap.Add(originalLocal, targetLocal)
+                Next
 
-            ' Variables may have been captured by lambdas in the original method
-            ' or in the expression, and we need to preserve the existing values of
-            ' those variables in the expression. This requires rewriting the variables
-            ' in the expression based on the closure classes from both the original
-            ' method and the expression, and generating a preamble that copies
-            ' values into the expression closure classes.
-            '
-            ' Consider the original method:
-            ' Shared Sub M()
-            '     Dim x, y, z as Integer
-            '     ...
-            '     F(Function() x + y)
-            ' End Sub
-            ' and the expression in the EE: "F(Function() x + z)".
-            '
-            ' The expression is first rewritten using the closure class and local <1>
-            ' from the original method: F(Function() <1>.x + z)
-            ' Then lambda rewriting introduces a new closure class that includes
-            ' the locals <1> and z, and a corresponding local <2>: F(Function() <2>.<1>.x + <2>.z)
-            ' And a preamble is added to initialize the fields of <2>:
-            '     <2> = New <>c__DisplayClass0()
-            '     <2>.<1> = <1>
-            '     <2>.z = z
-            '
-            ' Note: The above behavior is actually implemented in the LambdaRewriter and
-            '       is triggered by overriding PreserveOriginalLocals to return "True".
+                ' Variables may have been captured by lambdas in the original method
+                ' or in the expression, and we need to preserve the existing values of
+                ' those variables in the expression. This requires rewriting the variables
+                ' in the expression based on the closure classes from both the original
+                ' method and the expression, and generating a preamble that copies
+                ' values into the expression closure classes.
+                '
+                ' Consider the original method:
+                ' Shared Sub M()
+                '     Dim x, y, z as Integer
+                '     ...
+                '     F(Function() x + y)
+                ' End Sub
+                ' and the expression in the EE: "F(Function() x + z)".
+                '
+                ' The expression is first rewritten using the closure class and local <1>
+                ' from the original method: F(Function() <1>.x + z)
+                ' Then lambda rewriting introduces a new closure class that includes
+                ' the locals <1> and z, and a corresponding local <2>: F(Function() <2>.<1>.x + <2>.z)
+                ' And a preamble is added to initialize the fields of <2>:
+                '     <2> = New <>c__DisplayClass0()
+                '     <2>.<1> = <1>
+                '     <2>.z = z
+                '
+                ' Note: The above behavior is actually implemented in the LambdaRewriter and
+                '       is triggered by overriding PreserveOriginalLocals to return "True".
 
-            ' Create a map from variable name to display class field.
-            Dim displayClassVariables = SubstituteDisplayClassVariables(_displayClassVariables, localMap, Me, Me.TypeMap)
+                ' Create a map from variable name to display class field.
+                Dim displayClassVariables = SubstituteDisplayClassVariables(_displayClassVariables, localMap, Me, Me.TypeMap)
 
-            ' Rewrite references to "Me" to refer to this method's "Me" parameter.
-            ' Rewrite variables within body to reference existing display classes.
-            newBody = DirectCast(CapturedVariableRewriter.Rewrite(
+                ' Rewrite references to "Me" to refer to this method's "Me" parameter.
+                ' Rewrite variables within body to reference existing display classes.
+                newBody = DirectCast(CapturedVariableRewriter.Rewrite(
                 If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
                 displayClassVariables,
                 newBody,
                 diagnostics), BoundBlock)
 
-            If diagnostics.HasAnyErrors() Then
-                Return newBody
-            End If
+                If diagnostics.HasAnyErrors() Then
+                    Return newBody
+                End If
 
-            ' Insert locals from the original method, followed by any new locals.
-            Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
-            For Each originalLocal In Me.Locals
-                Dim targetLocal = localMap(originalLocal)
-                Debug.Assert(TypeOf targetLocal IsNot EELocalSymbol OrElse DirectCast(targetLocal, EELocalSymbol).Ordinal = localBuilder.Count)
-                localBuilder.Add(targetLocal)
-            Next
+                ' Insert locals from the original method, followed by any new locals.
+                Dim localBuilder = ArrayBuilder(Of LocalSymbol).GetInstance()
+                For Each originalLocal In Me.Locals
+                    Dim targetLocal = localMap(originalLocal)
+                    Debug.Assert(TypeOf targetLocal IsNot EELocalSymbol OrElse DirectCast(targetLocal, EELocalSymbol).Ordinal = localBuilder.Count)
+                    localBuilder.Add(targetLocal)
+                Next
 
-            localMap.Free()
-            newBody = newBody.Update(newBody.StatementListSyntax, localBuilder.ToImmutableAndFree(), newBody.Statements)
-            TypeParameterChecker.Check(newBody, _allTypeParameters)
+                localMap.Free()
+                newBody = newBody.Update(newBody.StatementListSyntax, localBuilder.ToImmutableAndFree(), newBody.Statements)
+                TypeParameterChecker.Check(newBody, _allTypeParameters)
+
+            Catch ex As BoundTreeVisitor.CancelledByStackGuardException
+                ex.AddAnError(diagnostics)
+            End Try
+
             Return newBody
         End Function
 

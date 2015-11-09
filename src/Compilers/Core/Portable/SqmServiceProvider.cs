@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.Shell.Interop
         {
             try
             {
+                // These DLLs are only distributed with VS, they are installed to "Program Files (x86)\MSBuild\14.0\Bin".
                 IntPtr vssqmdll = IntPtr.Zero;
                 string vssqmpath;
                 if (IntPtr.Size == 8)

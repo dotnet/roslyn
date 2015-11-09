@@ -1,41 +1,46 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class KeywordCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New KeywordCompletionProvider()
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsCommitCharacterTest()
             VerifyCommonCommitCharacters("$$", textTypedSoFar:="")
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub IsTextualTriggerCharacterTest()
             TestCommonIsTextualTriggerCharacter()
 
             VerifyTextualTriggerCharacter("foo$$(", shouldTriggerWithTriggerOnLettersEnabled:=True, shouldTriggerWithTriggerOnLettersDisabled:=True)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub SendEnterThroughToEditorTest()
             VerifySendEnterThroughToEditor("$$", "Class", expected:=True)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub InEmptyFile()
 
             Dim markup = "$$"
             VerifyAnyItemExists(markup)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInInactiveCode()
             Dim code = <Text>
 Class C
@@ -50,7 +55,7 @@ End Class
             VerifyNoItemsExist(code)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInString()
             Dim code = <Text>
 Class C
@@ -64,7 +69,7 @@ End Class
         End Sub
 
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInUnterminatedString()
             Dim code = <Text>
 Class C
@@ -77,7 +82,7 @@ End Class
             VerifyNoItemsExist(code)
         End Sub
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInSingleLineComment()
             Dim code = <Text>
 Class C
@@ -91,7 +96,7 @@ End Class
         End Sub
 
         <WorkItem(968256)>
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub UnionOfKeywordsFromBothFiles()
             Dim markup = <Workspace>
                              <Project Language="Visual Basic" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="FOO=true">
@@ -119,7 +124,7 @@ End Class]]>
         End Sub
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInInteger()
             Dim code = <Text>
 Class C
@@ -133,7 +138,7 @@ End Class
         End Sub
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInDecimal()
             Dim code = <Text>
 Class C
@@ -147,7 +152,7 @@ End Class
         End Sub
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInFloat()
             Dim code = <Text>
 Class C
@@ -161,7 +166,7 @@ End Class
         End Sub
 
         <WorkItem(1736, "https://github.com/dotnet/roslyn/issues/1736")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub NotInDate()
             Dim code = <Text>
 Class C
@@ -172,6 +177,24 @@ End Class
 </Text>.Value
 
             VerifyNoItemsExist(code)
+        End Sub
+
+        <WorkItem(4167, "https://github.com/dotnet/roslyn/issues/4167")>
+        <WpfFact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub ImplementsAfterSub()
+            Dim code = "
+Interface I
+End Interface
+
+Class C
+    Implements I
+
+    Sub M() $$
+    End Sub
+End Class
+"
+
+            VerifyItemExists(code, "Implements")
         End Sub
     End Class
 End Namespace

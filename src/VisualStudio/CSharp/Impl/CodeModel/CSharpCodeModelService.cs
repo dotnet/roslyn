@@ -56,7 +56,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        private static readonly SymbolDisplayFormat s_fullNameFormat =
+        private static readonly SymbolDisplayFormat s_externalNameFormat =
+            new SymbolDisplayFormat(
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+        private static readonly SymbolDisplayFormat s_externalFullNameFormat =
             new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
@@ -412,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         /// </summary>
         /// <param name="container">The <see cref="SyntaxNode"/> from which to retrieve members.</param>
         /// <param name="includeSelf">If true, the container is returned as well.</param>
-        /// <param name="recursive">If true, members are recursed to return descendent members as well
+        /// <param name="recursive">If true, members are recursed to return descendant members as well
         /// as immediate children. For example, a namespace would return the namespaces and types within.
         /// However, if <paramref name="recursive"/> is true, members with the namespaces and types would
         /// also be returned.</param>
@@ -483,7 +487,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         /// <summary>
-        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.CreateCodeElement{T}(SyntaxNode)"/>
+        /// Do not use this method directly! Instead, go through <see cref="FileCodeModel.GetOrCreateCodeElement{T}(SyntaxNode)"/>
         /// </summary>
         public override EnvDTE.CodeElement CreateInternalCodeElement(
             CodeModelState state,
@@ -505,7 +509,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return (EnvDTE.CodeElement)CreateInternalCodeParameter(state, fileCodeModel, (ParameterSyntax)node);
 
                 case SyntaxKind.UsingDirective:
-                    return (EnvDTE.CodeElement)CreateInternalCodeImport(state, fileCodeModel, (UsingDirectiveSyntax)node);
+                    return CreateInternalCodeImport(state, fileCodeModel, (UsingDirectiveSyntax)node);
             }
 
             if (IsAccessorNode(node))
@@ -816,15 +820,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return ((EventDeclarationSyntax)node).ExplicitInterfaceSpecifier?.ToString() +
                         ((EventDeclarationSyntax)node).Identifier.ToString();
                 case SyntaxKind.Parameter:
-                    return ((ParameterSyntax)node).Identifier.ToString();
+                    return GetParameterName(node);
                 case SyntaxKind.NamespaceDeclaration:
                     return ((NamespaceDeclarationSyntax)node).Name.ToString();
                 case SyntaxKind.OperatorDeclaration:
                     return "operator " + ((OperatorDeclarationSyntax)node).OperatorToken.ToString();
                 case SyntaxKind.ConversionOperatorDeclaration:
                     var conversionOperator = (ConversionOperatorDeclarationSyntax)node;
-                    return "operator "
-                        + (conversionOperator.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? "implicit " : "explicit ")
+                    return (conversionOperator.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? "implicit " : "explicit ")
+                        + "operator "
                         + conversionOperator.Type.ToString();
                 case SyntaxKind.EnumMemberDeclaration:
                     return ((EnumMemberDeclarationSyntax)node).Identifier.ToString();
@@ -943,17 +947,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 ? semanticModel.GetTypeInfo(node).Type
                 : semanticModel.GetDeclaredSymbol(node);
 
-            return GetFullName(symbol);
-        }
-
-        public override string GetFullName(ISymbol symbol)
-        {
-            if (symbol == null)
-            {
-                throw Exceptions.ThrowEFail();
-            }
-
-            return symbol.ToDisplayString(s_fullNameFormat);
+            return GetExternalSymbolFullName(symbol);
         }
 
         public override string GetFullyQualifiedName(string name, int position, SemanticModel semanticModel)
@@ -978,6 +972,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             return name;
+        }
+
+        public override bool IsValidExternalSymbol(ISymbol symbol)
+        {
+            var methodSymbol = symbol as IMethodSymbol;
+            if (methodSymbol != null)
+            {
+                if (methodSymbol.MethodKind == MethodKind.PropertyGet ||
+                    methodSymbol.MethodKind == MethodKind.PropertySet ||
+                    methodSymbol.MethodKind == MethodKind.EventAdd ||
+                    methodSymbol.MethodKind == MethodKind.EventRemove ||
+                    methodSymbol.MethodKind == MethodKind.EventRaise)
+                {
+                    return false;
+                }
+            }
+
+            return symbol.DeclaredAccessibility == Accessibility.Public
+                || symbol.DeclaredAccessibility == Accessibility.Protected
+                || symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
+        }
+
+        public override string GetExternalSymbolName(ISymbol symbol)
+        {
+            if (symbol == null)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            return symbol.ToDisplayString(s_externalNameFormat);
+        }
+
+        public override string GetExternalSymbolFullName(ISymbol symbol)
+        {
+            if (symbol == null)
+            {
+                throw Exceptions.ThrowEFail();
+            }
+
+            return symbol.ToDisplayString(s_externalFullNameFormat);
         }
 
         public override EnvDTE.vsCMAccess GetAccess(ISymbol symbol)
@@ -1180,8 +1214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             for (int i = triviaList.Count - 1; i >= 0; i--)
             {
                 var trivia = triviaList[i];
-                if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                    trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.IsRegularComment())
                 {
                     commentList.Add(trivia);
                 }
@@ -1210,8 +1243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             var textBuilder = new StringBuilder();
             foreach (var trivia in commentList)
             {
-                if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia ||
-                    trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.IsRegularComment())
                 {
                     textBuilder.AppendLine(trivia.GetCommentText());
                 }
@@ -3157,13 +3189,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         protected override TextSpan GetSpanToFormat(SyntaxNode root, TextSpan span)
         {
-            var startToken = (SyntaxToken)root.FindToken(span.Start).GetPreviousToken();
+            var startToken = root.FindToken(span.Start).GetPreviousToken();
             if (startToken.Kind() == SyntaxKind.OpenBraceToken)
             {
                 startToken = startToken.GetPreviousToken();
             }
 
-            var endToken = (SyntaxToken)root.FindToken(span.End).GetNextToken();
+            var endToken = root.FindToken(span.End).GetNextToken();
             if (endToken.Kind() == SyntaxKind.CloseBraceToken)
             {
                 endToken = endToken.GetPreviousToken();

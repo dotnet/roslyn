@@ -9,7 +9,7 @@
   <InitTest>
     <StartTarget DontResetOptions="true" />
     <EnableClosedFileDiagnostic Enabled="false" Language="C#"/>
-    <OpenProject ProjectFile="$(WorkingDir)\..\..\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-CSharp.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
+    <OpenProject ProjectFile="C:\Roslyn\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-CSharp.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
     <ForceGC/>
   </InitTest>
 

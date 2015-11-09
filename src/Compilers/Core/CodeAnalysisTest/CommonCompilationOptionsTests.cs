@@ -25,9 +25,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "CryptoKeyFile",
                 "CryptoPublicKey",
                 "DelaySign",
+                "Deterministic",
                 "EnableEditAndContinue",
                 "Errors",
                 "ExtendedCustomDebugInformation",
+                "DebugPlusMode",
                 "Features",
                 "GeneralDiagnosticOption",
                 "MainTypeName",
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "SourceReferenceResolver",
                 "SpecificDiagnosticOptions",
                 "StrongNameProvider",
+                "ReportSuppressedDiagnostics",
                 "WarningLevel",
                 "XmlReferenceResolver");
         }

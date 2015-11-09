@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -988,6 +989,34 @@ class D
 }", false, changingOptions);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void RemoveSpacingAroundBinaryOperatorsShouldMakeAtLeastOneSpaceForIsAndAsKeywords()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacingAroundBinaryOperator, BinaryOperatorSpacingOptions.Remove);
+            AssertFormat(@"class Class2
+{
+    public void nothing()
+    {
+        var a = 1*2+3-4/5;
+        a+=1;
+        object o = null;
+        string s = o as string;
+        bool b = o is string;
+    }
+}", @"class Class2
+    {
+    public void nothing()
+        {
+            var a = 1   *   2  +   3   -  4  /  5;
+            a    += 1;
+            object o = null;
+            string s = o        as       string;
+            bool b   = o        is       string;
+        }
+    }", false, changingOptions);
+        }
+
         [WorkItem(772298, "DevDiv")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
@@ -1222,8 +1251,7 @@ class foo{int x = 0;}", false, changingOptions);
             AssertFormat(@"class Class5
 {
     delegate void Del(int x);
-    public int Age
-    { get { int age = 0; return age; } }
+    public int Age { get { int age = 0; return age; } }
     public int Age2
     {
         get { int age2 = 0; return age2; }
@@ -1250,8 +1278,7 @@ class foo{int x = 0;}", false, changingOptions);
         Del d = delegate (int k)
         { Console.WriteLine(); Console.WriteLine(); };
     }
-    void foo()
-    { int y = 0; int z = 0; }
+    void foo() { int y = 0; int z = 0; }
 }
 class foo
 {
@@ -4791,7 +4818,7 @@ class Program
         { }
         catch (System.Exception)
         { }
-        catch (System.Exception e)
+        catch (System.Exception e) when (true)
         { }
 
         using(somevar)
@@ -4833,7 +4860,7 @@ class Program
         { }
         catch ( System.Exception )
         { }
-        catch ( System.Exception e )
+        catch ( System.Exception e ) when ( true )
         { }
 
         using ( somevar )
@@ -4880,7 +4907,7 @@ class Program
 
         try
         { }
-        catch (System.Exception e)
+        catch (System.Exception e) when (true)
         { }
 
         using (somevar)
@@ -4914,7 +4941,7 @@ class Program
 
         try
         { }
-        catch(System.Exception e)
+        catch(System.Exception e) when(true)
         { }
 
         using(somevar)
@@ -5013,45 +5040,6 @@ class C
 }
 ";
             AssertFormat(expected, code);
-        }
-
-        [Fact]
-        [WorkItem(849870, "DevDiv")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void PropertyAccessorOptionOff()
-        {
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
-
-            var code = @"
-class C
-{
-    int P 
-    {
-        get
-        {
-            return 1;
-        }
-        set
-        {
-        }
-    }
-}
-";
-
-            var expected = @"
-class C
-{
-    int P {
-        get {
-            return 1;
-        }
-        set {
-        }
-    }
-}
-";
-            AssertFormat(expected, code, false, changingOptions);
         }
 
         [Fact]
@@ -5324,21 +5312,498 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void SquareBracesEmpty_True()
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0000()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[1,2,3];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0001()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[1, 2, 3];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0010()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[1 ,2 ,3];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0011()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[1 , 2 , 3];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0100()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[, ] y;
+    int[, , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[ 1,2,3 ];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0101()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[, ] y;
+    int[, , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[ 1, 2, 3 ];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0110()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[, ] y;
+    int[, , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[ 1 ,2 ,3 ];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_0111()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[, ] y;
+    int[, , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[] x;
+    int[,] y;
+    int[,,] z = new int[ 1 , 2 , 3 ];
+    var a = new[] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1000()
         {
             var code = @"
 class Program
 {
     int[] x;
+    int[ ,] y;
+    int[ , ,] z = new int[1,2,3];
+    var a = new[] { 0 };
 }";
 
             var expected = @"
 class Program
 {
     int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
 }";
 
-            var options = new Dictionary<OptionKey, object>() { { CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, true } };
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1001()
+        {
+            var code = @"
+class Program
+{
+    int[] x;
+    int[ ,] y;
+    int[ , ,] z = new int[1,2,3];
+    var a = new[] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1, 2, 3];
+    var a = new[ ] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1010()
+        {
+            var code = @"
+class Program
+{
+    int[] x;
+    int[ ,] y;
+    int[ , ,] z = new int[1,2,3];
+    var a = new[] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1 ,2 ,3];
+    var a = new[ ] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1011()
+        {
+            var code = @"
+class Program
+{
+    int[] x;
+    int[ ,] y;
+    int[ , ,] z = new int[1,2,3];
+    var a = new[] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1 , 2 , 3];
+    var a = new[ ] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1100()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[ 1,2,3 ];
+    var a = new[ ] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1101()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[ 1, 2, 3 ];
+    var a = new[ ] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, true },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1110()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[ 1 ,2 ,3 ];
+    var a = new[ ] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, false },
+            };
+            AssertFormat(expected, code, changedOptionSet: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SpaceWithinEmptyBracketPrecedencesSpaceBeforeOrAfterComma_1111()
+        {
+            var code = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[1,2,3];
+    var a = new[ ] { 0 };
+}";
+
+            var expected = @"
+class Program
+{
+    int[ ] x;
+    int[ , ] y;
+    int[ , , ] z = new int[ 1 , 2 , 3 ];
+    var a = new[ ] { 0 };
+}";
+
+            var options = new Dictionary<OptionKey, object>()
+            {
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
             AssertFormat(expected, code, changedOptionSet: options);
         }
 
@@ -6231,6 +6696,52 @@ class Program
             AssertFormat(expected, code);
         }
 
+        [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
+        [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void VerifySpacingAfterMethodDeclarationName_Default()
+        {
+            var code = @"class Program<T>
+{
+    public static Program operator +   (Program p1, Program p2) { return null; }
+    public static implicit operator string (Program p) { return null; }
+    public static void M  () { }
+    public void F<T>    () { }
+}";
+            var expected = @"class Program<T>
+{
+    public static Program operator +(Program p1, Program p2) { return null; }
+    public static implicit operator string(Program p) { return null; }
+    public static void M() { }
+    public void F<T>() { }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(4240, "https://github.com/dotnet/roslyn/issues/4240")]
+        [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void VerifySpacingAfterMethodDeclarationName_NonDefault()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, true);
+            var code = @"class Program<T>
+{
+    public static Program operator +   (Program p1, Program p2) { return null; }
+    public static implicit operator string     (Program p) { return null; }
+    public static void M  () { }
+    public void F<T>   () { }
+}";
+            var expected = @"class Program<T>
+{
+    public static Program operator + (Program p1, Program p2) { return null; }
+    public static implicit operator string (Program p) { return null; }
+    public static void M () { }
+    public void F<T> () { }
+}";
+            AssertFormat(expected, code, changedOptionSet: changingOptions);
+        }
+
         [WorkItem(939, "https://github.com/dotnet/roslyn/issues/939")]
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void DontFormatInsideArrayInitializers()
@@ -6257,6 +6768,333 @@ class Program
     }
 }";
             AssertFormat(code, code);
+        }
+
+        [WorkItem(1184285)]
+        [WorkItem(4280, "https://github.com/dotnet/roslyn/issues/4280")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatDictionaryInitializers()
+        {
+            var code = @"class Program
+{
+    void Main()
+    {
+        var sample = new Dictionary<string, string> {[""x""] = ""d""    ,[""z""]   =  ""XX"" };
+    }
+}";
+            var expected = @"class Program
+{
+    void Main()
+    {
+        var sample = new Dictionary<string, string> { [""x""] = ""d"", [""z""] = ""XX"" };
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SwitchSectionHonorsNewLineForBracesinControlBlockOption_Default()
+        {
+            var code = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f) {
+            case 1: {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+            var expected = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f)
+        {
+            case 1:
+                {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+            AssertFormat(expected, code);
+        }
+
+        [WorkItem(3256, "https://github.com/dotnet/roslyn/issues/3256")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void SwitchSectionHonorsNewLineForBracesinControlBlockOption_NonDefault()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInControlBlocks, false);
+            var code = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f)
+        {
+            case 1:
+                {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    public void foo()
+    {
+        int f = 1;
+        switch (f) {
+            case 1: {
+                    // DO nothing
+                    break;
+                }
+        }
+    }
+}";
+            AssertFormat(expected, code, changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormattingCodeWithMissingTokensShouldRespectFormatTabsOption1()
+        {
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+
+            AssertFormat(@"class Program
+{
+	static void Main()
+	{
+		return // Note the missing semicolon
+	} // The tab here should stay a tab
+}", @"class Program
+{
+	static void Main()
+	{
+		return // Note the missing semicolon
+	} // The tab here should stay a tab
+}", changedOptionSet: optionSet);
+        }
+
+        [WorkItem(4014, "https://github.com/dotnet/roslyn/issues/4014")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormattingCodeWithMissingTokensShouldRespectFormatTabsOption2()
+        {
+            var optionSet = new Dictionary<OptionKey, object> { { new OptionKey(FormattingOptions.UseTabs, LanguageNames.CSharp), true } };
+
+            AssertFormat(@"struct Foo
+{
+	private readonly string bar;
+
+	public Foo(readonly string bar)
+	{
+	}
+}", @"struct Foo
+{
+	private readonly string bar;
+
+	public Foo(readonly string bar)
+	{
+	}
+}", changedOptionSet: optionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        [WorkItem(849870, "DevDiv")]
+        public void NewLinesForBracesInPropertiesTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+            AssertFormat(@"class Class2
+{
+    int Foo {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
+}", @"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(849870, "DevDiv")]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        public void NewLinesForBracesInAccessorsTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAccessors, false);
+            AssertFormat(@"class Class2
+{
+    int Foo
+    {
+        get {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
+}", @"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(849870, "DevDiv")]
+        [WorkItem(84, "https://github.com/dotnet/roslyn/issues/84")]
+        public void NewLinesForBracesInPropertiesAndAccessorsTest()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInProperties, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInAccessors, false);
+            AssertFormat(@"class Class2
+{
+    int Foo {
+        get {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42;
+    }
+}", @"class Class2
+{
+    int Foo
+    {
+        get
+        {
+            return 1;
+        }
+    }
+
+    int MethodFoo()
+    {
+        return 42; 
+    }
+}", false, changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(111079, "devdiv.visualstudio.com")]
+        public void TestThrowInIfOnSingleLine()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        if (true) throw new Exception(
+            ""message"");
+    }
+}
+";
+
+            AssertFormat(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(1711675, "https://connect.microsoft.com/VisualStudio/feedback/details/1711675/autoformatting-issues")]
+        public void SingleLinePropertiesPreservedWithLeaveStatementsAndMembersOnSingleLineFalse()
+        {
+            var changedOptionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.WrappingPreserveSingleLine, true },
+                { CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, false},
+            };
+
+            AssertFormat(@"
+class C
+{
+    string Name { get; set; }
+}", @"
+class C
+{
+    string  Name    {    get    ;   set     ;    }
+}", changedOptionSet: changedOptionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
+        public void KeepAccessorWithAttributeOnSingleLine()
+        {
+            AssertFormat(@"
+class Program
+{
+    public Int32 PaymentMethodID
+    {
+        [System.Diagnostics.DebuggerStepThrough]
+        get { return 10; }
+    }
+}", @"
+class Program
+{
+    public Int32 PaymentMethodID
+    {
+        [System.Diagnostics.DebuggerStepThrough]
+        get { return 10; }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(4720, "https://github.com/dotnet/roslyn/issues/4720")]
+        public void OneSpaceBetweenAccessorsAndAttributes()
+        {
+            AssertFormat(@"
+class Program
+{
+    public int SomeProperty { [SomeAttribute] get; [SomeAttribute] private set; }
+}", @"
+class Program
+{
+    public int SomeProperty {    [SomeAttribute] get;    [SomeAttribute] private set; }
+}");
         }
     }
 }

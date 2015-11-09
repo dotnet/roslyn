@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     usingSyntax,
                     node.Locals,
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(result));
             }
         }
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     constantValueOpt: rewrittenExpression.ConstantValue);
 
-                boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment);
+                boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
             }
             else
             {
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBlock(
                 syntax: usingSyntax,
                 locals: node.Locals.Add(boundTemp.LocalSymbol),
+                localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                 statements: ImmutableArray.Create<BoundStatement>(expressionStatement, tryFinally));
         }
 
@@ -183,13 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false);
 
                 BoundAssignmentOperator tempAssignment;
-                BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment);
+                BoundLocal boundTemp = _factory.StoreToTemp(tempInit, out tempAssignment, kind: SynthesizedLocalKind.Using);
 
                 BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp);
 
                 return new BoundBlock(
                     syntax: usingSyntax,
                     locals: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol), //localSymbol will be declared by an enclosing block
+                    localFunctions: ImmutableArray<LocalFunctionSymbol>.Empty,
                     statements: ImmutableArray.Create<BoundStatement>(
                         rewrittenDeclaration,
                         new BoundExpressionStatement(declarationSyntax, tempAssignment),

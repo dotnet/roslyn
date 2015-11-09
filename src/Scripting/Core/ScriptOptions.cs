@@ -1,487 +1,245 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Utilities;
+using System.Threading;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
+    using static ParameterValidationHelpers;
+
     /// <summary>
     /// Options for creating and running scripts.
     /// </summary>
-    public class ScriptOptions
+    public sealed class ScriptOptions
     {
-        private readonly ImmutableArray<MetadataReference> _references;
-        private readonly ImmutableArray<string> _namespaces;
-        private readonly AssemblyReferenceResolver _referenceResolver;
-        private readonly bool _isInteractive;
+        public static ScriptOptions Default { get; } = new ScriptOptions(
+            filePath: "",
+            references: ImmutableArray<MetadataReference>.Empty,
+            namespaces: ImmutableArray<string>.Empty,
+            metadataResolver: RuntimeMetadataReferenceResolver.Default,
+            sourceResolver: SourceFileResolver.Default);
 
-        public ScriptOptions()
-            : this(ImmutableArray<MetadataReference>.Empty,
-                  ImmutableArray<string>.Empty,
-                  new AssemblyReferenceResolver(GacFileResolver.Default, MetadataFileReferenceProvider.Default),
-                  isInteractive: true)
-        {
-        }
+        /// <summary>
+        /// An array of <see cref="MetadataReference"/>s to be added to the script.
+        /// </summary>
+        /// <remarks>
+        /// The array may contain both resolved and unresolved references (<see cref="UnresolvedMetadataReference"/>).
+        /// Unresolved references are resolved when the script is about to be executed 
+        /// (<see cref="Script.RunAsync(object, CancellationToken)"/>.
+        /// Any resolution errors are reported at that point through <see cref="CompilationErrorException"/>.
+        /// </remarks>
+        public ImmutableArray<MetadataReference> MetadataReferences { get; private set; }
 
-        public static readonly ScriptOptions Default;
+        /// <summary>
+        /// <see cref="MetadataReferenceResolver"/> to be used to resolve missing dependencies, unresolved metadata references and #r directives.
+        /// </summary>
+        public MetadataReferenceResolver MetadataResolver { get; private set; }
 
-        static ScriptOptions()
-        {
-            Default = new ScriptOptions()
-                        .WithReferences(typeof(int).GetTypeInfo().Assembly);
-        }
+        /// <summary>
+        /// <see cref="SourceReferenceResolver"/> to be used to resolve source of scripts referenced via #load directive.
+        /// </summary>
+        public SourceReferenceResolver SourceResolver { get; private set; }
 
-        private ScriptOptions(
+        /// <summary>
+        /// The namespaces, static classes and aliases imported by the script.
+        /// </summary>
+        public ImmutableArray<string> Imports { get; private set; }
+
+        /// <summary>
+        /// The path to the script source if it originated from a file, empty otherwise.
+        /// </summary>
+        public string FilePath { get; private set; }
+
+        internal ScriptOptions(
+            string filePath,
             ImmutableArray<MetadataReference> references,
             ImmutableArray<string> namespaces,
-            AssemblyReferenceResolver referenceResolver,
-            bool isInteractive)
+            MetadataReferenceResolver metadataResolver,
+            SourceReferenceResolver sourceResolver)
         {
-            _references = references;
-            _namespaces = namespaces;
-            _referenceResolver = referenceResolver;
-            _isInteractive = isInteractive;
+            Debug.Assert(filePath != null);
+            Debug.Assert(!references.IsDefault);
+            Debug.Assert(!namespaces.IsDefault);
+            Debug.Assert(metadataResolver != null);
+            Debug.Assert(sourceResolver != null);
+
+            FilePath = filePath;
+            MetadataReferences = references;
+            Imports = namespaces;
+            MetadataResolver = metadataResolver;
+            SourceResolver = sourceResolver;
         }
+
+        private ScriptOptions(ScriptOptions other) 
+            : this(filePath: other.FilePath,
+                   references: other.MetadataReferences,
+                   namespaces: other.Imports,
+                   metadataResolver: other.MetadataResolver,
+                   sourceResolver: other.SourceResolver)
+        {
+        }
+
+        // a reference to an assembly should by default be equivalent to #r, which applies recursive global alias:
+        private static readonly MetadataReferenceProperties AssemblyReferenceProperties = 
+            MetadataReferenceProperties.Assembly.WithRecursiveAliases(true);
 
         /// <summary>
-        /// The set of <see cref="MetadataReference"/>'s used by the script.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="FilePath"/> changed.
         /// </summary>
-        public ImmutableArray<MetadataReference> References
-        {
-            get { return _references; }
-        }
+        public ScriptOptions WithFilePath(string filePath) =>
+            (FilePath == filePath) ? this : new ScriptOptions(this) { FilePath = filePath ?? "" };
 
-        /// <summary>
-        /// The namespaces automatically imported by the script.
-        /// </summary>
-        public ImmutableArray<string> Namespaces
-        {
-            get { return _namespaces; }
-        }
-
-        /// <summary>
-        /// The paths used when searching for references.
-        /// </summary>
-        public ImmutableArray<string> SearchPaths
-        {
-            get { return _referenceResolver.PathResolver.SearchPaths; }
-        }
-
-        /// <summary>
-        /// The base directory used when searching for references.
-        /// </summary>
-        public string BaseDirectory
-        {
-            get { return _referenceResolver.PathResolver.BaseDirectory; }
-        }
-
-        /// <summary>
-        /// The <see cref="MetadataFileReferenceProvider"/> scripts will use to translate assembly names into metadata file paths. (#r syntax)
-        /// </summary>
-        public MetadataReferenceResolver ReferenceResolver
-        {
-            get { return _referenceResolver; }
-        }
-
-        // TODO:
-        internal AssemblyReferenceResolver AssemblyResolver
-        {
-            get { return _referenceResolver; }
-        }
-
-        internal MetadataFileReferenceResolver FileReferenceResolver
-        {
-            get { return _referenceResolver.PathResolver; }
-        }
-
-        /// <summary>
-        /// True if the script is interactive. 
-        /// Interactive scripts may contain a final expression whose value is returned when the script is run.
-        /// </summary>
-        public bool IsInteractive
-        {
-            get { return _isInteractive; }
-        }
-
-        private ScriptOptions With(
-            Optional<ImmutableArray<MetadataReference>> references = default(Optional<ImmutableArray<MetadataReference>>),
-            Optional<ImmutableArray<string>> namespaces = default(Optional<ImmutableArray<string>>),
-            Optional<AssemblyReferenceResolver> resolver = default(Optional<AssemblyReferenceResolver>),
-            Optional<bool> isInteractive = default(Optional<bool>))
-        {
-            var newReferences = references.HasValue ? references.Value : _references;
-            var newNamespaces = namespaces.HasValue ? namespaces.Value : _namespaces;
-            var newResolver = resolver.HasValue ? resolver.Value : _referenceResolver;
-            var newIsInteractive = isInteractive.HasValue ? isInteractive.Value : _isInteractive;
-
-            if (newReferences == _references &&
-                newNamespaces == _namespaces &&
-                newResolver == _referenceResolver &&
-                newIsInteractive == _isInteractive)
-            {
-                return this;
-            }
-            else
-            {
-                return new ScriptOptions(newReferences, newNamespaces, newResolver, newIsInteractive);
-            }
-        }
+        private static MetadataReference CreateUnresolvedReference(string reference) =>
+            new UnresolvedMetadataReference(reference, AssemblyReferenceProperties);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
-        public ScriptOptions WithReferences(ImmutableArray<MetadataReference> references)
-        {
-            return With(references: references.IsDefault ? ImmutableArray<MetadataReference>.Empty : references);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        private ScriptOptions WithReferences(ImmutableArray<MetadataReference> references) =>
+            MetadataReferences.Equals(references) ? this : new ScriptOptions(this) { MetadataReferences = CheckImmutableArray(references, nameof(references)) };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
-        public ScriptOptions WithReferences(IEnumerable<MetadataReference> references)
-        {
-            return WithReferences(references != null ? references.ToImmutableArray() : ImmutableArray<MetadataReference>.Empty);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithReferences(IEnumerable<MetadataReference> references) =>
+            WithReferences(ToImmutableArrayChecked(references, nameof(references))); 
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
-        public ScriptOptions WithReferences(params MetadataReference[] references)
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithReferences(params MetadataReference[] references) =>
+            WithReferences((IEnumerable<MetadataReference>)references);
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with references added.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        public ScriptOptions AddReferences(IEnumerable<MetadataReference> references) =>
+            WithReferences(ConcatChecked(MetadataReferences, references, nameof(references)));
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with references added.
+        /// </summary>
+        public ScriptOptions AddReferences(params MetadataReference[] references) => 
+            AddReferences((IEnumerable<MetadataReference>)references);
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with the references changed.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
+        public ScriptOptions WithReferences(IEnumerable<Assembly> references) => 
+            WithReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with the references changed.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
+        public ScriptOptions WithReferences(params Assembly[] references) => 
+            WithReferences((IEnumerable<Assembly>)references);
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with references added.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
+        public ScriptOptions AddReferences(IEnumerable<Assembly> references) =>
+            AddReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+
+        private static MetadataReference CreateReferenceFromAssembly(Assembly assembly)
         {
-            return WithReferences((IEnumerable<MetadataReference>)references);
+            return MetadataReference.CreateFromAssemblyInternal(assembly, AssemblyReferenceProperties);
         }
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
-        public ScriptOptions AddReferences(IEnumerable<MetadataReference> references)
-        {
-            if (_references == null)
-            {
-                return this;
-            }
-            else
-            {
-                return this.WithReferences(AddMissing(this.References, references));
-            }
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with references added.
-        /// </summary>
-        public ScriptOptions AddReferences(params MetadataReference[] references)
-        {
-            return AddReferences((IEnumerable<MetadataReference>)references);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
+        public ScriptOptions AddReferences(params Assembly[] references) => 
+            AddReferences((IEnumerable<Assembly>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
-        public ScriptOptions WithReferences(IEnumerable<System.Reflection.Assembly> assemblies)
-        {
-            if (assemblies == null)
-            {
-                return WithReferences((IEnumerable<MetadataReference>)null);
-            }
-            else
-            {
-                return WithReferences(assemblies.Select(MetadataReference.CreateFromAssemblyInternal));
-            }
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithReferences(IEnumerable<string> references) => 
+            WithReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
-        public ScriptOptions WithReferences(params System.Reflection.Assembly[] assemblies)
-        {
-            return WithReferences((IEnumerable<System.Reflection.Assembly>)assemblies);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithReferences(params string[] references) => 
+            WithReferences((IEnumerable<string>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
-        public ScriptOptions AddReferences(IEnumerable<System.Reflection.Assembly> assemblies)
-        {
-            if (assemblies == null)
-            {
-                return this;
-            }
-            else
-            {
-                return AddReferences(assemblies.Select(MetadataReference.CreateFromAssemblyInternal));
-            }
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        public ScriptOptions AddReferences(IEnumerable<string> references) => 
+            AddReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
-        public ScriptOptions AddReferences(params System.Reflection.Assembly[] assemblies)
-        {
-            return AddReferences((IEnumerable<System.Reflection.Assembly>)assemblies);
-        }
+        public ScriptOptions AddReferences(params string[] references) => 
+            AddReferences((IEnumerable<string>)references);
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the references changed.
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="MetadataResolver"/>.
         /// </summary>
-        public ScriptOptions WithReferences(IEnumerable<string> references)
-        {
-            if (references == null)
-            {
-                return WithReferences(ImmutableArray<MetadataReference>.Empty);
-            }
-            else
-            {
-                return WithReferences(references.Where(name => name != null).Select(name => ResolveReference(name)));
-            }
-        }
+        public ScriptOptions WithMetadataResolver(MetadataReferenceResolver resolver) =>
+            MetadataResolver == resolver ? this : new ScriptOptions(this) { MetadataResolver = resolver };
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the references changed.
+        /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="SourceResolver"/>.
         /// </summary>
-        public ScriptOptions WithReferences(params string[] references)
-        {
-            return WithReferences((IEnumerable<string>)references);
-        }
+        public ScriptOptions WithSourceResolver(SourceReferenceResolver resolver) =>
+            SourceResolver == resolver ? this : new ScriptOptions(this) { SourceResolver = resolver };
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with references added.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
-        public ScriptOptions AddReferences(IEnumerable<string> references)
-        {
-            if (references == null)
-            {
-                return this;
-            }
-            else
-            {
-                return AddReferences(references.Where(name => name != null).Select(name => ResolveReference(name)));
-            }
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        private ScriptOptions WithImports(ImmutableArray<string> imports) =>
+            Imports.Equals(imports) ? this : new ScriptOptions(this) { Imports = CheckImmutableArray(imports, nameof(imports)) };
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with references added.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
-        public ScriptOptions AddReferences(params string[] references)
-        {
-            return AddReferences((IEnumerable<string>)references);
-        }
-
-        private MetadataReference ResolveReference(string assemblyDisplayNameOrPath)
-        {
-            // TODO:
-            string fullPath = _referenceResolver.PathResolver.ResolveReference(assemblyDisplayNameOrPath, baseFilePath: null);
-            if (fullPath == null)
-            {
-                throw new System.IO.FileNotFoundException(ScriptingResources.AssemblyNotFound, assemblyDisplayNameOrPath);
-            }
-
-            return _referenceResolver.Provider.GetReference(fullPath, MetadataReferenceProperties.Assembly);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithImports(IEnumerable<string> imports) => 
+            WithImports(ToImmutableArrayChecked(imports, nameof(imports)));
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the namespaces changed.
+        /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
-        public ScriptOptions WithNamespaces(ImmutableArray<string> namespaces)
-        {
-            return With(namespaces: namespaces.IsDefault ? ImmutableArray<string>.Empty : namespaces);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithImports(params string[] imports) => 
+            WithImports((IEnumerable<string>)imports);
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the namespaces changed.
+        /// Creates a new <see cref="ScriptOptions"/> with <see cref="Imports"/> added.
         /// </summary>
-        public ScriptOptions WithNamespaces(IEnumerable<string> namespaces)
-        {
-            return WithNamespaces(namespaces != null ? namespaces.ToImmutableArray() : ImmutableArray<string>.Empty);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions AddImports(IEnumerable<string> imports) => 
+            WithImports(ConcatChecked(Imports, imports, nameof(imports)));
 
         /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the namespaces changed.
+        /// Creates a new <see cref="ScriptOptions"/> with <see cref="Imports"/> added.
         /// </summary>
-        public ScriptOptions WithNamespaces(params string[] namespaces)
-        {
-            return WithNamespaces((IEnumerable<string>)namespaces);
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with namespaces added.
-        /// </summary>
-        public ScriptOptions AddNamespaces(IEnumerable<string> namespaces)
-        {
-            if (namespaces == null)
-            {
-                return this;
-            }
-            else
-            {
-                return this.WithNamespaces(AddMissing(this.Namespaces, namespaces));
-            }
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with namespaces added.
-        /// </summary>
-        public ScriptOptions AddNamespaces(params string[] namespaces)
-        {
-            return AddNamespaces((IEnumerable<string>)namespaces);
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the search paths changed.
-        /// </summary>
-        public ScriptOptions WithSearchPaths(IEnumerable<string> searchPaths)
-        {
-            if (this.SearchPaths.SequenceEqual(searchPaths))
-            {
-                return this;
-            }
-            else
-            {
-                // TODO:
-                var gacResolver = _referenceResolver.PathResolver as GacFileResolver;
-                if (gacResolver != null)
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new GacFileResolver(
-                            searchPaths,
-                            gacResolver.BaseDirectory,
-                            gacResolver.Architectures,
-                            gacResolver.PreferredCulture),
-                        _referenceResolver.Provider));
-                }
-                else
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new MetadataFileReferenceResolver(
-                            searchPaths,
-                            _referenceResolver.PathResolver.BaseDirectory),
-                        _referenceResolver.Provider));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the search paths changed.
-        /// </summary>
-        public ScriptOptions WithSearchPaths(params string[] searchPaths)
-        {
-            return WithSearchPaths((IEnumerable<string>)searchPaths);
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with search paths added.
-        /// </summary>
-        public ScriptOptions AddSearchPaths(params string[] searchPaths)
-        {
-            return AddSearchPaths((IEnumerable<string>)searchPaths);
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with search paths added.
-        /// </summary>
-        public ScriptOptions AddSearchPaths(IEnumerable<string> searchPaths)
-        {
-            if (searchPaths == null)
-            {
-                return this;
-            }
-            else
-            {
-                return WithSearchPaths(AddMissing(this.SearchPaths, searchPaths));
-            }
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the base directory changed.
-        /// </summary>
-        public ScriptOptions WithBaseDirectory(string baseDirectory)
-        {
-            if (this.BaseDirectory == baseDirectory)
-            {
-                return this;
-            }
-            else
-            {
-                // TODO:
-                var gacResolver = _referenceResolver.PathResolver as GacFileResolver;
-                if (gacResolver != null)
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new GacFileResolver(
-                            _referenceResolver.PathResolver.SearchPaths,
-                            baseDirectory,
-                            gacResolver.Architectures,
-                            gacResolver.PreferredCulture),
-                        _referenceResolver.Provider));
-                }
-                else
-                {
-                    return With(resolver: new AssemblyReferenceResolver(
-                        new MetadataFileReferenceResolver(
-                            _referenceResolver.PathResolver.SearchPaths,
-                            baseDirectory),
-                        _referenceResolver.Provider));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the reference resolver specified.
-        /// </summary>
-        internal ScriptOptions WithReferenceResolver(MetadataFileReferenceResolver resolver)
-        {
-            if (resolver == _referenceResolver.PathResolver)
-            {
-                return this;
-            }
-
-            return With(resolver: new AssemblyReferenceResolver(resolver, _referenceResolver.Provider));
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the reference provider specified.
-        /// </summary>
-        internal ScriptOptions WithReferenceProvider(MetadataFileReferenceProvider provider)
-        {
-            if (provider == _referenceResolver.Provider)
-            {
-                return this;
-            }
-
-            return With(resolver: new AssemblyReferenceResolver(_referenceResolver.PathResolver, provider));
-        }
-
-        /// <summary>
-        /// Create a new <see cref="ScriptOptions"/> with the interactive state specified.
-        /// Interactive scripts may contain a final expression whose value is returned when the script is run.
-        /// </summary>
-        public ScriptOptions WithIsInteractive(bool isInteractive)
-        {
-            return With(isInteractive: isInteractive);
-        }
-
-        private static ImmutableArray<T> AddMissing<T>(ImmutableArray<T> a, IEnumerable<T> b) where T : class
-        {
-            var builder = ArrayBuilder<T>.GetInstance();
-            var set = PooledHashSet<T>.GetInstance();
-            foreach (var i in a)
-            {
-                set.Add(i);
-                builder.Add(i);
-            }
-            foreach (var i in b)
-            {
-                if ((i != null) && !set.Contains(i))
-                {
-                    builder.Add(i);
-                }
-            }
-            set.Free();
-            return builder.ToImmutableAndFree();
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
+        public ScriptOptions AddImports(params string[] imports) => 
+            AddImports((IEnumerable<string>)imports);
     }
 }

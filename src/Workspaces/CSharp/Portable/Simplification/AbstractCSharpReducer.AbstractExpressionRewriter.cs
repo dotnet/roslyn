@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public SyntaxNodeOrToken VisitNodeOrToken(SyntaxNodeOrToken nodeOrToken, SemanticModel semanticModel, bool simplifyAllDescendants)
             {
-                _semanticModel = (SemanticModel)semanticModel;
+                _semanticModel = semanticModel;
                 this.alwaysSimplify = simplifyAllDescendants;
                 this.HasMoreWork = false;
                 _processedParentNodes.Clear();

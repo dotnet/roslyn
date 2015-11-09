@@ -203,7 +203,7 @@ End Module
 } // end of class Module1]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -414,7 +414,7 @@ End Module
 ]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -610,7 +610,7 @@ End Module
 } // end of class Module1]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -805,7 +805,7 @@ End Module
 } // end of class Module1]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
 
@@ -1002,7 +1002,7 @@ End Module
 ]]>
 
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
@@ -2238,7 +2238,7 @@ BC42030: Variable 'x' is passed by reference before it has been assigned a value
 }
 ]]>
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
 
                 Dim ILRef = ModuleMetadata.CreateFromImage(File.ReadAllBytes(reference.Path)).GetReference()
 
@@ -2433,52 +2433,53 @@ End Module
 
         <Fact>
         Public Sub ScriptExtensionMethods()
-            Dim comp = CreateCompilationWithMscorlib(
-                <compilation>
-                    <file name="a.vbx"><![CDATA[
+            Dim source = <![CDATA[
 Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function F(o As Object) As Object
     Return Nothing
 End Function
 Dim o As New Object()
-o.F()]]></file>
-                </compilation>,
-                parseOptions:=TestOptions.Script,
-                references:={MscorlibRef, SystemCoreRef})
+o.F()]]>
+            Dim comp = CreateCompilationWithMscorlib45(
+                {VisualBasicSyntaxTree.ParseText(source.Value, TestOptions.Script)})
             comp.VerifyDiagnostics()
             Assert.True(comp.SourceAssembly.MightContainExtensionMethods)
         End Sub
 
         <Fact>
         Public Sub InteractiveExtensionMethods()
-            Dim parseOptions = TestOptions.Interactive
             Dim references = {MscorlibRef, SystemCoreRef}
-            Dim source0 = <![CDATA[
+            
+            Dim source0 = "
 Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function F(o As Object) As Object
     Return 0
 End Function
 Dim o As New Object()
-? o.F()]]>
-            Dim source1 = <![CDATA[
+? o.F()"
+
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
 <Extension>
 Shared Function G(o As Object) As Object
     Return 1
 End Function
 Dim o As New Object()
-? o.G().F()]]>
-            Dim s0 = VisualBasicCompilation.CreateSubmission(
+? o.G().F()"
+
+            Dim s0 = VisualBasicCompilation.CreateScriptCompilation(
                 "s0.dll",
-                syntaxTree:=Parse(source0.Value, parseOptions),
+                syntaxTree:=Parse(source0, TestOptions.Script),
                 references:=references)
             s0.VerifyDiagnostics()
             Assert.True(s0.SourceAssembly.MightContainExtensionMethods)
-            Dim s1 = VisualBasicCompilation.CreateSubmission(
+
+            Dim s1 = VisualBasicCompilation.CreateScriptCompilation(
                 "s1.dll",
-                syntaxTree:=Parse(source0.Value, parseOptions),
-                previousSubmission:=s0,
+                syntaxTree:=Parse(source1, TestOptions.Script),
+                previousScriptCompilation:=s0,
                 references:=references)
             s1.VerifyDiagnostics()
             Assert.True(s1.SourceAssembly.MightContainExtensionMethods)

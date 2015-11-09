@@ -9,13 +9,13 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class AttributeScopeKeywordRecommenderTests
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFile()
             VerifyRecommendationsContain(<File>&lt;|</File>, "Assembly", "Module")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileAfterImports()
             VerifyRecommendationsContain(<File>
@@ -23,7 +23,7 @@ Imports Foo
 &lt;|</File>, "Assembly", "Module")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileBeforeClass()
             VerifyRecommendationsContain(<File>
@@ -32,7 +32,7 @@ Class Foo
 End Class</File>, "Assembly", "Module")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileInsideClass()
             VerifyRecommendationsAreExactly(<File>
@@ -42,14 +42,14 @@ End Class</File>, {"Global"})
         End Sub
 
         <WorkItem(542207)>
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesInFileAtStartOfMalformedAttribute()
             VerifyRecommendationsContain(<File><![CDATA[<|Assembly: AssemblyDelaySignAttribute(True)&gt;]]></File>,
                                          "Assembly", "Module")
         End Sub
 
-        <Fact>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesAtEndOfFile()
             VerifyRecommendationsContain(<File>
@@ -60,7 +60,7 @@ End Class
         End Sub
 
         <WorkItem(530953)>
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub AttributeScopesAfterEol()
             VerifyRecommendationsContain(<File>
 Class foo

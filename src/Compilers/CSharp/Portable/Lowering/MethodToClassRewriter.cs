@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// a bound node rewriter that rewrites types properly (which in some cases the automatically-generated
     /// base class does not).  This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
     /// </summary>
-    internal abstract partial class MethodToClassRewriter : BoundTreeRewriter
+    internal abstract partial class MethodToClassRewriter : BoundTreeRewriterWithStackGuard
     {
         // For each captured variable, information about its replacement.  May be populated lazily (that is, not all
         // upfront) by subclasses.  Specifically, the async rewriter produces captured symbols for temps, including
@@ -131,8 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitBlock(BoundBlock node)
         {
             var newLocals = RewriteLocals(node.Locals);
+            var newLocalFunctions = node.LocalFunctions;
             var newStatements = VisitList(node.Statements);
-            return node.Update(newLocals, newStatements);
+            return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
         public override BoundNode VisitSequence(BoundSequence node)
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var newInnerLocals = RewriteLocals(node.InnerLocals);
             BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);
+            return node.Update(boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -187,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override TypeSymbol VisitType(TypeSymbol type)
         {
-            return TypeMap.SubstituteType(type);
+            return TypeMap.SubstituteType(type).Type;
         }
 
         public override BoundNode VisitMethodInfo(BoundMethodInfo node)
@@ -500,12 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 //  Method of a regular type
                 return ((MethodSymbol)method.OriginalDefinition)
-                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType))
-                    .ConstructIfGeneric(TypeMap.SubstituteTypes(method.TypeArguments));
+                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly())
+                    .ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
             }
 
             //  Method of an anonymous type
-            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType);
+            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
             if (ReferenceEquals(newType, method.ContainingType))
             {
                 //  Anonymous type symbol was not rewritten
@@ -535,11 +536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 //  Property of a regular type
                 return ((PropertySymbol)property.OriginalDefinition)
-                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType));
+                    .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly());
             }
 
             //  Method of an anonymous type
-            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType);
+            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(property.ContainingType).AsTypeSymbolOnly();
             if (ReferenceEquals(newType, property.ContainingType))
             {
                 //  Anonymous type symbol was not rewritten
@@ -562,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             //  Property of a regular type
             return ((FieldSymbol)field.OriginalDefinition)
-                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(field.ContainingType));
+                .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(field.ContainingType).AsTypeSymbolOnly());
         }
 
         public override BoundNode VisitObjectInitializerMember(BoundObjectInitializerMember node)
@@ -624,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             method = VisitMethodSymbol(method);
             operand = operand.Update(
-                TypeMap.SubstituteTypes(operand.TypeArgumentsOpt),
+                TypeMap.SubstituteTypesWithoutModifiers(operand.TypeArgumentsOpt),
                 method.Name,
                 operand.Methods,
                 operand.LookupSymbolOpt,

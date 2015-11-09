@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -77,19 +78,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void Test1()
         {
             Test(isCaseSensitive: true);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestInsensitive()
         {
             Test(isCaseSensitive: false);
         }
 
-        [Fact]
+        [WpfFact]
         public void TestEmpty()
         {
             for (var d = 0.1; d >= 0.0001; d /= 10)
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             }
         }
 
-        [Fact]
+        [WpfFact]
         public void TestSerialization()
         {
             var stream = new MemoryStream();

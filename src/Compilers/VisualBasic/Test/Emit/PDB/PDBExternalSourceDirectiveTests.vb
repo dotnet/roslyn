@@ -813,7 +813,7 @@ End Module
             </scope>
         </method>
     </methods>
-</symbols>, DebugInformationFormat.Pdb)
+</symbols>, format:=DebugInformationFormat.Pdb)
         End Sub
 
         <Fact, WorkItem(846584, "DevDiv")>

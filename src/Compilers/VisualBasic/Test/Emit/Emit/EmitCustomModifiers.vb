@@ -103,7 +103,7 @@ End Class
 
             Assert.True(parameter.IsByRef)
             Assert.False(parameter.CustomModifiers.IsEmpty)
-            Assert.True(parameter.HasByRefBeforeCustomModifiers)
+            Assert.Equal(0, parameter.CountOfCustomModifiersPrecedingByRef)
 
             CompileAndVerify(comp, expectedOutput:=<![CDATA[2]]>)
         End Sub

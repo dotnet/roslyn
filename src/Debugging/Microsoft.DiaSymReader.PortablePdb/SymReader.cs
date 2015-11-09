@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -18,6 +19,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         private readonly PortablePdbReader _pdbReader;
         private readonly Lazy<DocumentMap> _lazyDocumentMap;
         private readonly Lazy<bool> _lazyVbSemantics;
+        private readonly Lazy<MethodMap> _lazyMethodMap;
 
         private int _version;
 
@@ -31,6 +33,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             _lazyDocumentMap = new Lazy<DocumentMap>(() => new DocumentMap(MetadataReader));
             _lazyVbSemantics = new Lazy<bool>(() => IsVisualBasicAssembly());
+            _lazyMethodMap = new Lazy<MethodMap>(() => new MethodMap(MetadataReader));
         }
 
         internal MetadataReader MetadataReader => _pdbReader.MetadataReader;
@@ -63,6 +66,22 @@ namespace Microsoft.DiaSymReader.PortablePdb
             return false;
         }
 
+        internal MethodMap GetMethodMap()
+        {
+            if (_pdbReader.IsDisposed)
+            {
+                throw new ObjectDisposedException(nameof(SymReader));
+            }
+
+            return _lazyMethodMap.Value;
+        }
+
+        internal SymDocument AsSymDocument(ISymUnmanagedDocument document)
+        {
+            var symDocument = document as SymDocument;
+            return (symDocument?.SymReader == this) ? symDocument : null;
+        }
+
         public int GetDocument(
             [MarshalAs(UnmanagedType.LPWStr)]string url,
             Guid language,          
@@ -73,6 +92,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
             DocumentHandle documentHandle;
 
             // SymReader: language, vendor and type parameters are ignored.
+
+            if (_pdbReader.IsDisposed)
+            {
+                throw new ObjectDisposedException(nameof(SymReader));
+            }
 
             if (_lazyDocumentMap.Value.TryGetDocument(url, out documentHandle))
             {
@@ -151,17 +175,17 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_INVALIDARG;
             }
 
-            var methodDefHandle = (MethodDefinitionHandle)handle;
+            var methodDebugHandle = ((MethodDefinitionHandle)handle).ToDebugInformationHandle();
 
-            var methodBody = MetadataReader.GetMethodBody(methodDefHandle);
-            if (methodBody.SequencePoints.IsNil)
+            var methodBody = MetadataReader.GetMethodDebugInformation(methodDebugHandle);
+            if (methodBody.SequencePointsBlob.IsNil)
             {
                 // no debug info for the method
                 method = null;
                 return HResult.E_FAIL;
             }
 
-            method = new SymMethod(this, methodDefHandle);
+            method = new SymMethod(this, methodDebugHandle);
             return HResult.S_OK;
         }
 
@@ -171,22 +195,146 @@ namespace Microsoft.DiaSymReader.PortablePdb
             throw new NotSupportedException();
         }
 
-        public int GetMethodFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
+        public int GetMethodFromDocumentPosition(
+            ISymUnmanagedDocument document, 
+            int line, 
+            int column, 
+            [MarshalAs(UnmanagedType.Interface)]out ISymUnmanagedMethod method)
         {
-            // TODO:
-            throw new NotImplementedException();
+            var symDocument = AsSymDocument(document);
+            if (symDocument == null)
+            {
+                method = null;
+                return HResult.E_INVALIDARG;
+            }
+
+            var methodBodyHandles = GetMethodMap().GetMethodsContainingLine(symDocument.Handle, line);
+            if (methodBodyHandles == null)
+            {
+                method = null;
+                return HResult.E_FAIL;
+            }
+
+            var comparer = HandleComparer.Default;
+            var candidate = default(MethodDebugInformationHandle);
+            foreach (var methodDebugHandle in methodBodyHandles)
+            {
+                if (candidate.IsNil || comparer.Compare(methodDebugHandle, candidate) < 0)
+                {
+                    candidate = methodDebugHandle;
+                }
+            }
+
+            if (candidate.IsNil)
+            {
+                method = null;
+                return HResult.E_FAIL;
+            }
+
+            method = new SymMethod(this, candidate);
+            return HResult.S_OK;
         }
 
-        public int GetMethodsFromDocumentPosition(ISymUnmanagedDocument document, int line, int column, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]ISymUnmanagedMethod[] methods)
+        public int GetMethodsFromDocumentPosition(
+            ISymUnmanagedDocument document, 
+            int line, 
+            int column, 
+            int bufferLength,
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3), Out]ISymUnmanagedMethod[] methods)
         {
-            // TODO:
-            throw new NotImplementedException();
+            var symDocument = AsSymDocument(document);
+            if (symDocument == null)
+            {
+                count = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            var methodBodyHandles = GetMethodMap().GetMethodsContainingLine(symDocument.Handle, line);
+            if (methodBodyHandles == null)
+            {
+                count = 0;
+                return HResult.E_FAIL;
+            }
+
+            if (bufferLength > 0)
+            {
+                int i = 0;
+                foreach (var methodDebugHandle in methodBodyHandles)
+                {
+                    if (i == bufferLength)
+                    {
+                        break;
+                    }
+
+                    methods[i++] = new SymMethod(this, methodDebugHandle);
+                }
+
+                count = i;
+
+                if (i > 1)
+                {
+                    Array.Sort(methods, 0, i, SymMethod.ByHandleComparer.Default);
+                }
+            }
+            else
+            {
+                count = methodBodyHandles.Count();
+            }
+
+            return HResult.S_OK;
         }
 
-        public int GetMethodsInDocument(ISymUnmanagedDocument document, int bufferLength, out int count, [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedMethod[] methods)
+        public int GetMethodsInDocument(
+            ISymUnmanagedDocument document,
+            int bufferLength, 
+            out int count,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1), Out]ISymUnmanagedMethod[] methods)
         {
-            // TODO:
-            throw new NotImplementedException();
+            var symDocument = AsSymDocument(document);
+            if (symDocument == null)
+            {
+                count = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            var extentsByMethod = GetMethodMap().GetMethodExtents(symDocument.Handle);
+            if (bufferLength > 0)
+            {
+                int actualCount = Math.Min(extentsByMethod.Length, bufferLength);
+                for (int i = 0; i < actualCount; i++)
+                {
+                    methods[i] = new SymMethod(this, extentsByMethod[i].Method);
+                }
+
+                count = actualCount;
+            }
+            else
+            {
+                count = extentsByMethod.Length;
+            }
+
+            count = 0;
+            return HResult.S_OK;
+        }
+
+        internal int GetMethodSourceExtentInDocument(ISymUnmanagedDocument document, SymMethod method, out int startLine, out int endLine)
+        {
+            var symDocument = AsSymDocument(document);
+            if (symDocument == null)
+            {
+                startLine = endLine = 0;
+                return HResult.E_INVALIDARG;
+            }
+
+            var map = GetMethodMap();
+            if (!map.TryGetMethodSourceExtent(symDocument.Handle, method.DebugHandle, out startLine, out endLine))
+            {
+                startLine = endLine = 0;
+                return HResult.E_FAIL;
+            }
+
+            return HResult.S_OK;
         }
 
         public int GetMethodVersion(ISymUnmanagedMethod method, out int version)

@@ -66,11 +66,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         GeneratedNameKind kind;
                         int openBracketOffset, closeBracketOffset;
                         if (GeneratedNames.TryParseGeneratedName(displayString, out kind, out openBracketOffset, out closeBracketOffset) &&
-                            (kind == GeneratedNameKind.LambdaMethod))
+                            (kind == GeneratedNameKind.LambdaMethod || kind == GeneratedNameKind.LocalFunction))
                         {
                             builder.Append(displayString, openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1); // source method name
                             builder.Append('.');
-                            builder.Append(AnonymousMethodName);
+                            if (kind == GeneratedNameKind.LambdaMethod)
+                            {
+                                builder.Append(AnonymousMethodName);
+                            }
+                            // NOTE: Local functions include the local function name inside the suffix ("<Main>__Local1_1")
                             // NOTE: The old implementation only appended the first ordinal number.  Since this is not useful
                             // in uniquely identifying the lambda, we'll append the entire ordinal suffix (which may contain
                             // multiple numbers, as well as '-' or '_').
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var methodArgumentStartIndex = typeParameters.Length - methodArity;
             var typeMap = new TypeMap(
                 ImmutableArray.Create(typeParameters, 0, methodArgumentStartIndex),
-                ImmutableArray.Create(typeArguments, 0, methodArgumentStartIndex));
+                ImmutableArray.CreateRange(typeArguments, 0, methodArgumentStartIndex, TypeMap.TypeSymbolAsTypeWithModifiers));
             var substitutedType = typeMap.SubstituteNamedType(method.ContainingType);
             method = method.AsMember(substitutedType);
             if (methodArity > 0)

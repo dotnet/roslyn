@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
             return new GenerateConstructorCodeRefactoringProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestSingleField()
         {
             Test(
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestMultipleFields()
         {
             Test(
@@ -34,7 +34,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestSecondField()
         {
             Test(
@@ -43,7 +43,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestFieldAssigningConstructor()
         {
             Test(
@@ -52,7 +52,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestFieldAssigningConstructor2()
         {
             Test(
@@ -61,7 +61,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestDelegatingConstructor()
         {
             Test(
@@ -70,14 +70,14 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestMissingWithExistingConstructor()
         {
             TestMissing(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestMultipleProperties()
         {
             Test(
@@ -86,7 +86,7 @@ index: 1);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestMultiplePropertiesWithQualification()
         {
             Test(
@@ -95,7 +95,7 @@ index: 0);
 index: 0, options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestStruct()
         {
             Test(
@@ -104,7 +104,7 @@ index: 0, options: new Dictionary<OptionKey, object> { { new OptionKey(Simplific
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestStruct1()
         {
             Test(
@@ -113,7 +113,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestStruct2()
         {
             Test(
@@ -122,7 +122,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestStruct3()
         {
             Test(
@@ -131,7 +131,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestGenericType()
         {
             Test(
@@ -140,7 +140,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestSmartTagText1()
         {
             TestSmartTagText(
@@ -148,7 +148,7 @@ index: 0);
 string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestSmartTagText2()
         {
             TestSmartTagText(
@@ -156,7 +156,7 @@ string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<s
 string.Format(FeaturesResources.GenerateFieldAssigningConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestSmartTagText3()
         {
             TestSmartTagText(
@@ -165,7 +165,7 @@ string.Format(FeaturesResources.GenerateDelegatingConstructor, "Program", "bool,
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public void TestContextualKeywordName()
         {
             Test(

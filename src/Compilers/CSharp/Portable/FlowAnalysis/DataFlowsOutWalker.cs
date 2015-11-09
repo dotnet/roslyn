@@ -168,6 +168,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return null;
                         }
 
+                    case BoundKind.LocalFunctionStatement:
+                        {
+                            return ((BoundLocalFunctionStatement)node).Symbol;
+                        }
+
                     default:
                         {
                             return null;

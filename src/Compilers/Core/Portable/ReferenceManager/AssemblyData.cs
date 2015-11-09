@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Information about an assembly, used as an input for the Binder class.
         /// </summary>
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal abstract class AssemblyData
         {
             /// <summary>
@@ -63,6 +65,8 @@ namespace Microsoft.CodeAnalysis
             /// Returns null otherwise.
             /// </summary>
             public abstract Compilation SourceCompilation { get; }
+
+            private string GetDebuggerDisplay() => $"{GetType().Name}: [{Identity.GetDisplayName()}]";
         }
     }
 }

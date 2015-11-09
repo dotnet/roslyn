@@ -507,10 +507,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' Rules for stripping trivia: 
             ' 1) If there is a pp directive, then it (and all preceding trivia) *must* be stripped.
-            '    This rule supercedes all other rules.
+            '    This rule supersedes all other rules.
             ' 2) If there is a doc comment, it cannot be stripped.  Even if there is a doc comment,
             '    followed by 5 new lines, then the doc comment still must stay with the node.  This
-            '    rule does *not* supercede rule 1.
+            '    rule does *not* supersede rule 1.
             ' 3) Single line comments in a group (i.e. with no blank lines between them) belong to
             '    the node *iff* there is no blank line between it and the following trivia.
 
@@ -525,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Next
 
             If ppIndex <> -1 Then
-                ' We have a pp directive.  it (and all all previous trivia) must be stripped.
+                ' We have a pp directive.  it (and all previous trivia) must be stripped.
                 leadingTriviaToStrip = New List(Of SyntaxTrivia)(leadingTrivia.Take(ppIndex + 1))
                 leadingTriviaToKeep = New List(Of SyntaxTrivia)(leadingTrivia.Skip(ppIndex + 1))
             Else
@@ -709,7 +709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim right As Integer = childList.Count - 1
             While left <= right
                 Dim middle As Integer = left + (right - left) \ 2
-                Dim node As SyntaxNodeOrToken = childList.ElementAt(middle)
+                Dim node As SyntaxNodeOrToken = childList(middle)
                 Dim span = node.FullSpan
                 If position < span.Start Then
                     right = middle - 1

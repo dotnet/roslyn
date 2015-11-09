@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateConstructo
         End Function
 
         <WorkItem(546671)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Sub Test_CSharpToVisualBasic1()
             Dim input =
         <Workspace>

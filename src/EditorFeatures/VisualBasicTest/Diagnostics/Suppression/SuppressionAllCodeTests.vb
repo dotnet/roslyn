@@ -19,16 +19,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return New Tuple(Of Analyzer, ISuppressionFixProvider)(New Analyzer(), New VisualBasicSuppressionCodeFixProvider())
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
         Public Sub TestPragmaWarningOnEveryNodes()
             TestPragma(TestResource.AllInOneVisualBasicCode, VisualBasicParseOptions.Default, verifier:=Function(t) t.IndexOf("#Disable Warning", StringComparison.Ordinal) >= 0)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
-        Public Sub TestLocalSuppressionOnEveryNodes()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+        Public Sub TestSuppressionWithAttributeOnEveryNodes()
             Dim facts = New VisualBasicSyntaxFactsService()
 
-            TestLocalSuppression(
+            TestSuppressionWithAttribute(
                 TestResource.AllInOneVisualBasicCode,
                 VisualBasicParseOptions.Default,
                 digInto:=Function(n)

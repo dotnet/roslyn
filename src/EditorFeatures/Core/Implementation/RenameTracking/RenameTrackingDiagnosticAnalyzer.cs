@@ -40,5 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 context.ReportDiagnostic(diagnostic);
             }
         }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        {
+            return DiagnosticAnalyzerCategory.SyntaxAnalysis;
+        }
     }
 }

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         ''' needs to calculate stuff unlike other cases
         ''' </summary>
         Private Class ComplexTrivia
-            Inherits AbstractComplexTrivia(Of SyntaxToken, SyntaxTrivia)
+            Inherits AbstractComplexTrivia
 
             Public Sub New(optionSet As OptionSet, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
                 MyBase.New(optionSet, treeInfo, token1, token2)
@@ -30,14 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Protected Overrides Sub ExtractLineAndSpace(text As String, ByRef lines As Integer, ByRef spaces As Integer)
                 text.ProcessTextBetweenTokens(Me.TreeInfo, Me.Token1, Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), lines, spaces)
             End Sub
-
-            Protected Overrides Function ConvertToken(token As SyntaxToken) As SyntaxToken
-                Return token
-            End Function
-
-            Protected Overrides Function ConvertTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
-                Return trivia
-            End Function
 
             Protected Overrides Function CreateComplexTrivia(line As Integer, space As Integer) As TriviaData
                 Return New ModifiedComplexTrivia(Me.OptionSet, Me, line, space)
@@ -61,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                                                 formattingRules As ChainedFormattingRules,
                                                 lines As Integer,
                                                 spaces As Integer,
-                                                cancellationToken As CancellationToken) As TriviaDataWithList(Of SyntaxTrivia)
+                                                cancellationToken As CancellationToken) As TriviaDataWithList
                 Return New FormattedComplexTrivia(context, formattingRules, Me.Token1, Me.Token2, lines, spaces, Me.OriginalString, cancellationToken)
             End Function
 

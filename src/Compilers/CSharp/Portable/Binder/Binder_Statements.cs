@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.LocalDeclarationStatement:
                     result = BindDeclarationStatement((LocalDeclarationStatementSyntax)node, diagnostics);
                     break;
+                case SyntaxKind.LocalFunctionStatement:
+                    result = BindLocalFunctionStatement((LocalFunctionStatementSyntax)node, diagnostics);
+                    break;
                 case SyntaxKind.ExpressionStatement:
                     result = BindExpressionStatement((ExpressionStatementSyntax)node, diagnostics);
                     break;
@@ -182,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement boundBody = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             return new BoundFixedStatement(node,
-                                           GetDeclaredLocalsForScope(node),
+                                           GetDeclaredLocalsForScope(),
                                            boundMultipleDeclarations,
                                            boundBody);
         }
@@ -213,6 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInCatch, node.YieldKeyword);
             }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
 
             return new BoundYieldReturnStatement(node, argument);
         }
@@ -222,6 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Flags.Includes(BinderFlags.InFinallyBlock))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInFinally, node.YieldKeyword);
+            }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
             }
 
             GetIteratorElementType(node, diagnostics);
@@ -342,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+            var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
 
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement    
             // In this case we create new label symbol on the fly, and an error is reported by parser
@@ -357,14 +368,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // check to see if this label (illegally) hides a label from an enclosing scope
-            result.Clear();
-            this.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
-            if (result.IsMultiViable)
+            if (binder != null)
             {
-                // The label '{0}' shadows another label by the same name in a contained scope
-                Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
-                hasError = true;
+                result.Clear();
+                binder.Next.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: LookupOptions.LabelsOnly);
+                if (result.IsMultiViable)
+                {
+                    // The label '{0}' shadows another label by the same name in a contained scope
+                    Error(diagnostics, ErrorCode.ERR_LabelShadow, node.Identifier, node.Identifier.ValueText);
+                    hasError = true;
+                }
             }
+
             diagnostics.Add(node, useSiteDiagnostics);
             result.Free();
 
@@ -404,6 +419,85 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
+        }
+
+        private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, DiagnosticBag diagnostics)
+        {
+            // already defined symbol in containing block
+            var localSymbol = this.LookupLocalFunction(node.Identifier);
+
+            var hasErrors = false;
+
+            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
+            // This occurs through the semantic model.  In that case concoct a plausible result.
+            if (localSymbol == null)
+            {
+                localSymbol = new LocalFunctionSymbol(this, this.ContainingType, this.ContainingMemberOrLambda, node);
+            }
+            else
+            {
+                hasErrors |= this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            }
+
+            var binder = this.GetBinder(node);
+
+            // Binder could be null in error scenarios (as above)
+            BoundBlock block;
+            if (binder != null)
+            {
+                if (node.Body != null)
+                {
+                    block = binder.BindBlock(node.Body, diagnostics);
+                }
+                else if (node.ExpressionBody != null)
+                {
+                    block = binder.BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+                }
+                else
+                {
+                    block = null;
+                    hasErrors = true;
+                    // TODO: add a message for this?
+                    diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, localSymbol.Locations[0], localSymbol);
+                }
+
+                if (block != null)
+                {
+                    localSymbol.ComputeReturnType(block, returnNullIfUnknown: false, isIterator: false);
+
+                    // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
+                    // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
+                    // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
+                    // It's a bit of code duplication, but refactoring would make things worse.
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
+                    if (endIsReachable)
+                    {
+                        if (ImplicitReturnIsOkay(localSymbol))
+                        {
+                            block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol, node.Body);
+                        }
+                        else
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                block = null;
+                hasErrors = true;
+            }
+
+            localSymbol.GrabDiagnostics(diagnostics);
+
+            return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
+        }
+
+        private bool ImplicitReturnIsOkay(MethodSymbol method)
+        {
+            return method.ReturnsVoid || method.IsIterator ||
+                (method.IsAsync && method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType);
         }
 
         public BoundExpressionStatement BindExpressionStatement(ExpressionStatementSyntax node, DiagnosticBag diagnostics)
@@ -1559,6 +1653,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IdentifierName:
                     eventSyntax = syntax;
                     break;
+                case SyntaxKind.MemberBindingExpression:
+                    eventSyntax = ((MemberBindingExpressionSyntax)syntax).Name;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
@@ -2011,6 +2108,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Next.LookupLocal(nameToken);
         }
 
+        protected virtual LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
+        {
+            return Next.LookupLocalFunction(nameToken);
+        }
+
         public BoundBlock BindBlock(BlockSyntax node, DiagnosticBag diagnostics)
         {
             var blockBinder = this.GetBinder(node);
@@ -2034,7 +2136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (blockBinder.IsDirectlyInIterator)
             {
-                var method = blockBinder.ContainingMemberOrLambda as SourceMethodSymbol;
+                var method = blockBinder.ContainingMemberOrLambda as MethodSymbol;
                 if ((object)method != null)
                 {
                     method.IteratorElementType = blockBinder.GetIteratorElementType(null, diagnostics);
@@ -2045,7 +2147,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundBlock(node, blockBinder.GetDeclaredLocalsForScope(node), boundStatements.ToImmutableAndFree());
+            return new BoundBlock(
+                node,
+                blockBinder.GetDeclaredLocalsForScope(),
+                blockBinder.GetDeclaredLocalFunctionsForScope(),
+                boundStatements.ToImmutableAndFree());
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false)
@@ -2263,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
-                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiers: true, ignoreDynamic: true))
+                    if (!lambdaParameterType.Equals(delegateParameterType, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true))
                     {
                         SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
 
@@ -2776,6 +2882,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual TypeSymbol GetCurrentReturnType()
         {
+            // Local functions usually report an error when their return type is used recursively. (symbol.ReturnType creates an error type named "var")
+            // We actually want to return null here instead of an error type + diagnostic (for return type inference)
+            var containingLocalFunction = this.ContainingMemberOrLambda as LocalFunctionSymbol;
+            if (containingLocalFunction != null)
+            {
+                return containingLocalFunction.ReturnTypeNoForce;
+            }
+
             return (this.ContainingMemberOrLambda as MethodSymbol)?.ReturnType;
         }
 
@@ -2787,14 +2901,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 arg = BindValue(expressionSyntax, diagnostics, BindValueKind.RValue);
             }
+            else
+            {
+                // If this is a void return statement in a script, return default(T).
+                var interactiveInitializerMethod = this.ContainingMemberOrLambda as SynthesizedInteractiveInitializerMethod;
+                if (interactiveInitializerMethod != null)
+                {
+                    arg = new BoundDefaultOperator(interactiveInitializerMethod.GetNonNullSyntaxNode(), interactiveInitializerMethod.ResultType);
+                }
+            }
 
             bool hasErrors;
-            if (BindingTopLevelScriptCode)
-            {
-                diagnostics.Add(ErrorCode.ERR_ReturnNotAllowedInScript, syntax.ReturnKeyword.GetLocation());
-                hasErrors = true;
-            }
-            else if (IsDirectlyInIterator)
+            if (IsDirectlyInIterator)
             {
                 diagnostics.Add(ErrorCode.ERR_ReturnInIterator, syntax.ReturnKeyword.GetLocation());
                 hasErrors = true;
@@ -3176,7 +3294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Need to attach the tree for when we generate sequence points.
-            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
+            return new BoundBlock(node, locals, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
         }
 
         /// <summary>
@@ -3203,6 +3321,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return this.Next.Locals;
+            }
+        }
+
+        internal virtual ImmutableArray<LocalFunctionSymbol> LocalFunctions
+        {
+            get
+            {
+                return this.Next.LocalFunctions;
             }
         }
 

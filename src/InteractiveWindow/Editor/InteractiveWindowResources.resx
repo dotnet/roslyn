@@ -120,16 +120,121 @@
   <data name="AlreadyInitialized" xml:space="preserve">
     <value>The interactive window has already been initialized.</value>
   </data>
+  <data name="AltDownArrowHelp" xml:space="preserve">
+    <value>Replace the current submission with a subsequent submission (after having previously navigated backwards).</value>
+  </data>
+  <data name="AltUpArrowHelp" xml:space="preserve">
+    <value>Replace the current submission with a previous submission.</value>
+  </data>
+  <data name="ClearScreenCommandDescription" xml:space="preserve">
+    <value>Clears the contents of the editor window, leaving history and execution context intact.</value>
+  </data>
+  <data name="CommandFailed" xml:space="preserve">
+    <value>Command '{0}' failed: {1}</value>
+  </data>
+  <data name="CommandNamePlaceholder" xml:space="preserve">
+    <value>[command-name]</value>
+  </data>
+  <data name="CtrlAHelp" xml:space="preserve">
+    <value>First press, select the submission containing the cursor.  Second press, select all text in the window.</value>
+  </data>
+  <data name="CtrlAltDownArrowHelp" xml:space="preserve">
+    <value>Replace the current submission with a subsequent submission beginning with the same text (after having previously navigated backwards).</value>
+  </data>
+  <data name="CtrlAltUpArrowHelp" xml:space="preserve">
+    <value>Replace the current submission with a previous submission beginning with the same text.</value>
+  </data>
+  <data name="CtrlECtrlEnterHelp" xml:space="preserve">
+    <value>Paste and execute the selection before any pending input in the interactive buffer.</value>
+  </data>
+  <data name="CtrlEnterHelp1" xml:space="preserve">
+    <value>Within the current submission, evaluate the current submission.</value>
+  </data>
+  <data name="CtrlEnterHelp2" xml:space="preserve">
+    <value>Within a previous submission, append the previous submission to the current submission.</value>
+  </data>
+  <data name="CtrlKCtrlEnterHelp" xml:space="preserve">
+    <value>Paste the selection at the end of interactive buffer, leave caret at the end of input.</value>
+  </data>
+  <data name="DownArrowHelp1" xml:space="preserve">
+    <value>At the end of the current submission, replace the current submission with a subsequent submission (after having previously navigated backwards).</value>
+  </data>
+  <data name="DownArrowHelp2" xml:space="preserve">
+    <value>Elsewhere, move the cursor down one line.</value>
+  </data>
   <data name="DuplicateCommand" xml:space="preserve">
     <value>A command with the name '{0}' has already been registered.</value>
   </data>
+  <data name="EnterHelp" xml:space="preserve">
+    <value>If the current submission appears to be complete, evaluate it.  Otherwise, insert a new line.</value>
+  </data>
+  <data name="EscapeHelp" xml:space="preserve">
+    <value>Clear the current submission.</value>
+  </data>
+  <data name="HelpCommandDescription" xml:space="preserve">
+    <value>Display help on specified command, or all available commands and key bindings if none specified.</value>
+  </data>
+  <data name="InternalError" xml:space="preserve">
+    <value>An internal error has occurred in the Interactive window.  Please restart Visual Studio.</value>
+  </data>
+  <data name="KeyboardShortcuts" xml:space="preserve">
+    <value>Keyboard shortcuts:</value>
+  </data>
   <data name="MissingCommandName" xml:space="preserve">
     <value>The command of type '{0}' has no command names.</value>
+  </data>
+  <data name="NotInitialized" xml:space="preserve">
+    <value>The interactive window has not yet been initialized.</value>
+  </data>
+  <data name="Parameters" xml:space="preserve">
+    <value>Parameters:</value>
+  </data>
+  <data name="ReplCommands" xml:space="preserve">
+    <value>REPL commands:</value>
   </data>
   <data name="RequireNonUIThread" xml:space="preserve">
     <value>This method may not be called on the UI thread (to avoid hangs).</value>
   </data>
   <data name="RequireUIThread" xml:space="preserve">
     <value>This method may only be called on the UI thread.</value>
+  </data>
+  <data name="ResetCommandDescription" xml:space="preserve">
+    <value>Reset the execution environment to the initial state, keep history.</value>
+  </data>
+  <data name="ResetCommandParametersDescription" xml:space="preserve">
+    <value>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</value>
+  </data>
+  <data name="ShiftEnterHelp" xml:space="preserve">
+    <value>Insert a new line.</value>
+  </data>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>Unknown command '{0}'</value>
+  </data>
+  <data name="UpArrowHelp1" xml:space="preserve">
+    <value>At the end of the current submission, replace the current submission with a previous submission.</value>
+  </data>
+  <data name="UpArrowHelp2" xml:space="preserve">
+    <value>Elsewhere, move the cursor up one line.</value>
+  </data>
+  <data name="Usage" xml:space="preserve">
+    <value>Usage:</value>
+  </data>
+  <data name="WaitTitle" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="WaitMessage" xml:space="preserve">
+    <value>Generating Rich Text Format representation from selection.</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="CSVBScriptDirectives" xml:space="preserve">
+    <value>Script directives:</value>
+  </data>
+  <data name="RefHelp" xml:space="preserve">
+    <value>Add a metadata reference to specified assembly and all its dependencies, e.g. #r "myLib.dll".</value>
+  </data>
+  <data name="LoadHelp" xml:space="preserve">
+    <value>Load specified script file and execute it, e.g. #load "myScript.csx".</value>
   </data>
 </root>

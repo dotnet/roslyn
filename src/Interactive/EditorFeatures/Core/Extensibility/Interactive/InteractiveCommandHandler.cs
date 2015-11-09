@@ -6,16 +6,17 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.InteractiveWindow;
 
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
-    public abstract class InteractiveCommandHandler :
+    internal abstract class InteractiveCommandHandler :
         ICommandHandler<ExecuteInInteractiveCommandArgs>,
         ICommandHandler<CopyToInteractiveCommandArgs>
     {
@@ -39,8 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
         private static IEnumerable<SnapshotSpan> GetSelectedSpans(CommandArgs args)
         {
-            var selectionSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer).Where(ss => ss.Length > 0);
-            return new NormalizedSnapshotSpanCollection(selectionSpans);
+            return args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer).Where(ss => ss.Length > 0);
         }
 
         private string GetSelectedText(CommandArgs args)

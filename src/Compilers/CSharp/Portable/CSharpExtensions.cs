@@ -351,6 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpTree != null && csharpTree.HasReferenceDirectives;
         }
 
+        internal static bool HasReferenceOrLoadDirectives(this SyntaxTree tree)
+        {
+            var csharpTree = tree as CSharpSyntaxTree;
+            return csharpTree != null && csharpTree.HasReferenceOrLoadDirectives;
+        }
+
         internal static bool IsAnyPreprocessorSymbolDefined(this SyntaxTree tree, ImmutableArray<string> conditionalSymbols)
         {
             var csharpTree = tree as CSharpSyntaxTree;
@@ -810,14 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IAliasSymbol GetAliasInfo(this SemanticModel semanticModel, IdentifierNameSyntax nameSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetAliasInfo(nameSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetAliasInfo(nameSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -827,14 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IAliasSymbol GetSpeculativeAliasInfo(this SemanticModel semanticModel, int position, IdentifierNameSyntax nameSyntax, SpeculativeBindingOption bindingOption)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetSpeculativeAliasInfo(position, nameSyntax, bindingOption);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetSpeculativeAliasInfo(position, nameSyntax, bindingOption);
         }
 
         /// <summary>
@@ -843,14 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ControlFlowAnalysis AnalyzeControlFlow(this SemanticModel semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.AnalyzeControlFlow(firstStatement, lastStatement);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.AnalyzeControlFlow(firstStatement, lastStatement);
         }
 
         /// <summary>
@@ -859,14 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ControlFlowAnalysis AnalyzeControlFlow(this SemanticModel semanticModel, StatementSyntax statement)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.AnalyzeControlFlow(statement);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.AnalyzeControlFlow(statement);
         }
 
         /// <summary>
@@ -875,14 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, ExpressionSyntax expression)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.AnalyzeDataFlow(expression);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.AnalyzeDataFlow(expression);
         }
 
         /// <summary>
@@ -891,14 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.AnalyzeDataFlow(firstStatement, lastStatement);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.AnalyzeDataFlow(firstStatement, lastStatement);
         }
 
         /// <summary>
@@ -907,14 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static DataFlowAnalysis AnalyzeDataFlow(this SemanticModel semanticModel, StatementSyntax statement)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.AnalyzeDataFlow(statement);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.AnalyzeDataFlow(statement);
         }
 
         /// <summary>
@@ -1132,14 +1089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, MemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1149,14 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static INamespaceSymbol GetDeclaredSymbol(this SemanticModel semanticModel, NamespaceDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1165,14 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static INamedTypeSymbol GetDeclaredSymbol(this SemanticModel semanticModel, BaseTypeDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1181,14 +1117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static INamedTypeSymbol GetDeclaredSymbol(this SemanticModel semanticModel, DelegateDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1197,14 +1126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IFieldSymbol GetDeclaredSymbol(this SemanticModel semanticModel, EnumMemberDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1213,14 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IMethodSymbol GetDeclaredSymbol(this SemanticModel semanticModel, BaseMethodDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1229,14 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, BasePropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1245,14 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IPropertySymbol GetDeclaredSymbol(this SemanticModel semanticModel, PropertyDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1261,14 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IPropertySymbol GetDeclaredSymbol(this SemanticModel semanticModel, IndexerDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1277,14 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IEventSymbol GetDeclaredSymbol(this SemanticModel semanticModel, EventDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1293,14 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IPropertySymbol GetDeclaredSymbol(this SemanticModel semanticModel, AnonymousObjectMemberDeclaratorSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1309,14 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static INamedTypeSymbol GetDeclaredSymbol(this SemanticModel semanticModel, AnonymousObjectCreationExpressionSyntax declaratorSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declaratorSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1325,14 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IMethodSymbol GetDeclaredSymbol(this SemanticModel semanticModel, AccessorDeclarationSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1341,14 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1357,14 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ILabelSymbol GetDeclaredSymbol(this SemanticModel semanticModel, LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1373,14 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ILabelSymbol GetDeclaredSymbol(this SemanticModel semanticModel, SwitchLabelSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1389,14 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IAliasSymbol GetDeclaredSymbol(this SemanticModel semanticModel, UsingDirectiveSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1405,14 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IAliasSymbol GetDeclaredSymbol(this SemanticModel semanticModel, ExternAliasDirectiveSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1421,14 +1252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IParameterSymbol GetDeclaredSymbol(this SemanticModel semanticModel, ParameterSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
         }
 
         /// <summary>
@@ -1437,14 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ITypeParameterSymbol GetDeclaredSymbol(this SemanticModel semanticModel, TypeParameterSyntax typeParameter, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(typeParameter, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(typeParameter, cancellationToken);
         }
 
         /// <summary>
@@ -1453,14 +1270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ILocalSymbol GetDeclaredSymbol(this SemanticModel semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(forEachStatement, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(forEachStatement, cancellationToken);
         }
 
         /// <summary>
@@ -1469,27 +1279,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ILocalSymbol GetDeclaredSymbol(this SemanticModel semanticModel, CatchDeclarationSyntax catchDeclaration, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(catchDeclaration, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(catchDeclaration, cancellationToken);
         }
 
         public static IRangeVariableSymbol GetDeclaredSymbol(this SemanticModel semanticModel, QueryClauseSyntax queryClause, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(queryClause, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(queryClause, cancellationToken);
         }
 
         /// <summary>
@@ -1498,14 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IRangeVariableSymbol GetDeclaredSymbol(this SemanticModel semanticModel, JoinIntoClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(node, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(node, cancellationToken);
         }
 
         /// <summary>
@@ -1514,14 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static IRangeVariableSymbol GetDeclaredSymbol(this SemanticModel semanticModel, QueryContinuationSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            if (csmodel != null)
-            {
-                return csmodel.GetDeclaredSymbol(node, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
+            return csmodel?.GetDeclaredSymbol(node, cancellationToken);
         }
         #endregion
     }

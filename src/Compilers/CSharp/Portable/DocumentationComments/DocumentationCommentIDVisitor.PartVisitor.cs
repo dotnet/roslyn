@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(symbol.ElementType, builder);
 
                 // Rank-one arrays are displayed different than rectangular arrays
-                if (symbol.Rank == 1)
+                if (symbol.IsSZArray)
                 {
                     builder.Append("[]");
                 }

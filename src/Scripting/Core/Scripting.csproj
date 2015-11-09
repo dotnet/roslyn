@@ -10,14 +10,11 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <RestorePackages>true</RestorePackages>
-    <ImplicitlyExpandTargetFramework>False</ImplicitlyExpandTargetFramework>
-    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -31,176 +28,120 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|ARM'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|ARM'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.Extensions.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.Loader.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Loader.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Primitives.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.Extensions.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Extensions.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Resources.ResourceManager.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Resources.ResourceManager.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.InteropServices.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.InteropServices.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Collections.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Collections.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Linq.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Linq.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Diagnostics.Debug.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Debug.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Diagnostics.Tools.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Globalization.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Globalization.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Text.Encoding.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Text.Encoding.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Threading.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Threading.Tasks.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.Tasks.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.Emit.Lightweight.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Emit.Lightweight.dll">
+    <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-beta-23401\ref\dotnet\System.Runtime.Loader.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
-      <Link>FusionAssemblyIdentity.cs</Link>
+    <Compile Include="..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
+      <Link>Resolvers\RelativePathResolver.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
-      <Link>GacFileResolver.cs</Link>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+      <Link>Resolvers\FusionAssemblyIdentity.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
-      <Link>GlobalAssemblyCache.cs</Link>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
+      <Link>Resolvers\GacFileResolver.cs</Link>
     </Compile>
-    <Compile Include="AssemblyLoadResult.cs" />
-    <Compile Include="InteractiveAssemblyLoader.cs" />
-    <Compile Include="MetadataShadowCopy.cs" />
-    <Compile Include="MetadataShadowCopyProvider.cs" />
-    <Compile Include="ScriptCompilerUtil.cs" />
-    <Compile Include="ShadowCopy.cs" />
-    <Compile Include="ObjectFormatter.cs" />
-    <Compile Include="ObjectFormatter.Formatter.cs" />
-    <Compile Include="Script.cs" />
-    <Compile Include="ScriptBuilder.cs" />
-    <Compile Include="CompilationErrorException.cs" />
-    <Compile Include="MemberDisplayFormat.cs" />
-    <Compile Include="ObjectFormattingOptions.cs" />
-    <Compile Include="ScriptExecutionState.cs" />
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
+      <Link>Resolvers\GlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>Resolvers\GlobalAssemblyCache.Location.cs</Link>
+    </Compile>
+    <Compile Include="Hosting\AssemblyLoader\AssemblyAndLocation.cs" />
+    <Compile Include="Hosting\AssemblyLoader\AssemblyLoadResult.cs" />
+    <Compile Include="Hosting\AssemblyLoader\CoreAssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\DesktopAssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\AssemblyLoaderImpl.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoaderException.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineHelpers.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineScriptGlobals.cs" />
+    <Compile Include="Hosting\CommandLine\CommandLineRunner.cs" />
+    <Compile Include="Hosting\CommandLine\ConsoleIO.cs" />
+    <Compile Include="Hosting\CommandLine\NotImplementedAnalyzerLoader.cs" />
+    <Compile Include="Hosting\InteractiveScriptGlobals.cs" />
+    <Compile Include="Hosting\Resolvers\RuntimeMetadataReferenceResolver.cs" />
+    <Compile Include="Hosting\AssemblyLoader\InteractiveAssemblyLoader.cs" />
+    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopy.cs" />
+    <Compile Include="Hosting\AssemblyLoader\MetadataShadowCopyProvider.cs" />
+    <Compile Include="Hosting\AssemblyLoader\ShadowCopy.cs" />
+    <Compile Include="Hosting\Resolvers\NuGetPackageResolver.cs" />
+    <Compile Include="Hosting\SearchPaths.cs" />
+    <Compile Include="Hosting\SynchronizedList.cs" />
+    <Compile Include="ScriptMetadataResolver.cs" />
+    <Compile Include="ScriptCompiler.cs" />
     <Compile Include="ScriptingResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ScriptingResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ScriptVariables.cs" />
+    <Compile Include="ScriptRunner.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormatter.Formatter.cs" />
+    <Compile Include="Script.cs" />
+    <Compile Include="ScriptBuilder.cs" />
+    <Compile Include="CompilationErrorException.cs" />
+    <Compile Include="Hosting\ObjectFormatter\MemberDisplayFormat.cs" />
+    <Compile Include="Hosting\ObjectFormatter\ObjectFormattingOptions.cs" />
+    <Compile Include="ScriptExecutionState.cs" />
     <Compile Include="ScriptOptions.cs" />
+    <Compile Include="ScriptSourceResolver.cs" />
     <Compile Include="ScriptState.cs" />
     <Compile Include="ScriptVariable.cs" />
+    <Compile Include="Utilities\ConsoleShims.cs" />
+    <Compile Include="Utilities\IListExtensions.cs" />
+    <Compile Include="Utilities\ParameterValidationHelpers.cs" />
+    <Compile Include="Utilities\TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.Desktop" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Scripting" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Scripting.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="vbi" />
-    <!-- GAC helpers -->
-    <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveFeatures" />
+    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <!-- /TODO -->
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ScriptingResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>ScriptingResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

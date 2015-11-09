@@ -1,0 +1,371 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.Features</AssemblyName>
+    <TargetExt>.dll</TargetExt>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
+      <Project>{B501A547-C911-4A05-AC6E-274A50DFF30E}</Project>
+      <Name>CSharpCodeAnalysis</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
+      <Name>Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
+      <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
+      <Name>CSharpWorkspace</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\Portable\Features.csproj">
+      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
+      <Name>Features</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
+      <Link>InternalUtilities\LambdaUtilities.cs</Link>
+    </Compile>
+    <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.cs" />
+    <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.cs" />
+    <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
+    <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
+    <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Async\CSharpAddAsyncCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Async\CSharpConvertToAsyncMethodCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\FullyQualify\CSharpFullyQualifyCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\GenerateConstructor\GenerateConstructorCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\GenerateEnumMember\GenerateEnumMemberCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\GenerateMethod\GenerateConversionCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\GenerateMethod\GenerateMethodCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
+    <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\ImplementAbstractClass\ImplementAbstractClassCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\ImplementInterface\ImplementInterfaceCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.cs" />
+    <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.SimplifyTypeNamesFixAllProvider.cs" />
+    <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
+    <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructor\GenerateConstructorCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.InitializerRewriter.cs" />
+    <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.cs" />
+    <Compile Include="CodeRefactorings\IntroduceVariable\IntroduceVariableCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\InvertIf\InvertIfCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\LambdaSimplifier\LambdaSimplifierCodeRefactoringProvider.Rewriter.cs" />
+    <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.Rewriter.cs" />
+    <Compile Include="CodeRefactorings\MoveDeclarationNearReference\MoveDeclarationNearReferenceCodeRefactoringProvider.State.cs" />
+    <Compile Include="CodeStyle\CSharpCodeStyleOptions.cs" />
+    <Compile Include="CodeStyle\CSharpCodeStyleOptionsProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\CompletionUtilities.cs" />
+    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.Item.cs" />
+    <Compile Include="Completion\CompletionProviders\CrefCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\ExplicitInterfaceCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\KeywordCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\ObjectInitializerCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\SnippetCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\SpeculativeTCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.ItemRules.cs" />
+    <Compile Include="Completion\CSharpCompletionRules.cs" />
+    <Compile Include="Completion\KeywordRecommenders\LoadKeywordRecommender.cs" />
+    <Compile Include="Completion\SuggestionMode\CSharpSuggestionModeCompletionProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\SymbolCompletionProvider.cs" />
+    <Compile Include="Completion\CSharpCompletionOptions.cs" />
+    <Compile Include="Completion\CSharpCompletionOptionsProvider.cs" />
+    <Compile Include="Completion\CSharpCompletionService.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AbstractKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AbstractSyntacticSingleKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AddKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AliasKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AscendingKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AsKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AssemblyKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AsyncKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\AwaitKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\BaseKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\BoolKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\BreakKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ByKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ByteKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\CaseKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\CatchKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\CharKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\CheckedKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ChecksumKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ClassKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ConstKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ContinueKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DecimalKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DefaultKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DefineKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DelegateKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DescendingKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DisableKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DoKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DoubleKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\DynamicKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ElifKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ElseKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\EndIfKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\EndRegionKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\EnumKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\EqualsKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ErrorKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\EventKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ExplicitKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ExternKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\FalseKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\FieldKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\FinallyKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\FixedKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\FloatKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ForEachKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ForKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\FromKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\GetKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\GlobalKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\GotoKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\GroupKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\HiddenKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\IfKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ImplicitKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\InKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\InterfaceKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\InternalKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\IntKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\IntoKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\IsKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\JoinKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\LetKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\LineKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\LockKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\LongKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\MethodKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ModuleKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\NamespaceKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\NewKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\NullKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ObjectKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\OnKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\OperatorKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\OrderByKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\OutKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\OverrideKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ParamKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ParamsKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\PartialKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\PragmaKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\PrivateKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\PropertyKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ProtectedKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\PublicKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ReadOnlyKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ReferenceKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\RefKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\RegionKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\RemoveKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\RestoreKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ReturnKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\SByteKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\SealedKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\SelectKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\SetKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ShortKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\SizeOfKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\StackAllocKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\StaticKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\StringKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\StructKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\SwitchKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ThisKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ThrowKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\TrueKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\TryKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\TypeKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\NameOfKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\TypeOfKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\TypeVarKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\UIntKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\ULongKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\UncheckedKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\UndefKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\UnsafeKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\UShortKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\UsingKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\VarKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\VirtualKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\VoidKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\VolatileKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\WarningKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\WhenKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\WhereKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\WhileKeywordRecommender.cs" />
+    <Compile Include="Completion\KeywordRecommenders\YieldKeywordRecommender.cs" />
+    <Compile Include="CSharpFeaturesResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CSharpFeaturesResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Diagnostics\Analyzers\CSharpUnboundIdentifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryCastDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\Analyzers\CSharpSimplifyTypeNamesDiagnosticAnalyzer.cs" />
+    <Compile Include="Diagnostics\CSharpAnalyzerDriverService.cs" />
+    <Compile Include="DocumentationCommentFormatting\CSharpDocumentationCommentFormattingService.cs" />
+    <Compile Include="DocumentationCommentFormatting\DocumentationCommentUtilities.cs" />
+    <Compile Include="EditAndContinue\BreakpointSpans.cs" />
+    <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzer.cs" />
+    <Compile Include="EditAndContinue\StatementSyntaxComparer.cs" />
+    <Compile Include="EditAndContinue\SyntaxComparer.cs" />
+    <Compile Include="EditAndContinue\SyntaxUtilities.cs" />
+    <Compile Include="EditAndContinue\TopSyntaxComparer.cs" />
+    <Compile Include="EncapsulateField\CSharpEncapsulateFieldService.cs" />
+    <Compile Include="ExtractInterface\CSharpExtractInterfaceService.cs" />
+    <Compile Include="ExtractMethod\CSharpExtractMethodService.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.Analyzer.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.CSharpCodeGenerator.CallSiteContainerRewriter.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.CSharpCodeGenerator.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.CSharpCodeGenerator.ExpressionCodeGenerator.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.CSharpCodeGenerator.MultipleStatementsCodeGenerator.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.CSharpCodeGenerator.SingleStatementCodeGenerator.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.FormattingProvider.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.PostProcessor.cs" />
+    <Compile Include="ExtractMethod\CSharpMethodExtractor.TriviaResult.cs" />
+    <Compile Include="ExtractMethod\CSharpSelectionResult.cs" />
+    <Compile Include="ExtractMethod\CSharpSelectionResult.ExpressionResult.cs" />
+    <Compile Include="ExtractMethod\CSharpSelectionResult.StatementResult.cs" />
+    <Compile Include="ExtractMethod\CSharpSelectionValidator.cs" />
+    <Compile Include="ExtractMethod\CSharpSelectionValidator.Validator.cs" />
+    <Compile Include="ExtractMethod\CSharpSyntaxTriviaService.cs" />
+    <Compile Include="ExtractMethod\CSharpSyntaxTriviaServiceFactory.cs" />
+    <Compile Include="ExtractMethod\Extensions.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParameters\CSharpAddConstructorParametersService.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructor\CSharpGenerateConstructorService.cs" />
+    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\CSharpGenerateEqualsAndGetHashCodeService.cs" />
+    <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.cs" />
+    <Compile Include="GenerateMember\GenerateConstructor\CSharpGenerateConstructorService.cs" />
+    <Compile Include="GenerateMember\GenerateDefaultConstructors\CSharpGenerateDefaultConstructorsService.cs" />
+    <Compile Include="GenerateMember\GenerateEnumMember\CSharpGenerateEnumMemberService.cs" />
+    <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpCommonGenerationServiceMethods.cs" />
+    <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpGenerateConversionService.cs" />
+    <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpGenerateMethodService.cs" />
+    <Compile Include="GenerateMember\GenerateParameterizedMember\CSharpGenerateParameterizedMemberService.cs" />
+    <Compile Include="GenerateMember\GenerateVariable\CSharpGenerateVariableService.cs" />
+    <Compile Include="GenerateType\CSharpGenerateTypeService.cs" />
+    <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassService.cs" />
+    <Compile Include="ImplementInterface\CSharpImplementInterfaceService.cs" />
+    <Compile Include="IntroduceVariable\CSharpIntroduceVariableService.cs" />
+    <Compile Include="IntroduceVariable\CSharpIntroduceVariableService.Rewriter.cs" />
+    <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceField.cs" />
+    <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceLocal.cs" />
+    <Compile Include="IntroduceVariable\CSharpIntroduceVariableService_IntroduceQueryLocal.cs" />
+    <Compile Include="LanguageServices\CSharpAnonymousTypeDisplayService.cs" />
+    <Compile Include="LanguageServices\CSharpSymbolDisplayService.cs" />
+    <Compile Include="LanguageServices\CSharpSymbolDisplayService.SymbolDescriptionBuilder.cs" />
+    <Compile Include="LanguageServices\CSharpSymbolDisplayServiceFactory.cs" />
+    <Compile Include="MetadataAsSource\CSharpMetadataAsSourceService.cs" />
+    <Compile Include="MetadataAsSource\CSharpMetadataAsSourceServiceFactory.cs" />
+    <Compile Include="OrganizeImports\CSharpOrganizeImportsService.cs" />
+    <Compile Include="OrganizeImports\CSharpOrganizeImportsService.Rewriter.cs" />
+    <Compile Include="Organizing\CSharpOrganizingService.cs" />
+    <Compile Include="Organizing\CSharpOrganizingService.Rewriter.cs" />
+    <Compile Include="Organizing\Organizers\ClassDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\ConstructorDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\DestructorDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\EnumDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\EventDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\EventFieldDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\FieldDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\IndexerDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\InterfaceDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\MemberDeclarationsOrganizer.Comparer.cs" />
+    <Compile Include="Organizing\Organizers\MemberDeclarationsOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\MethodDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\ModifiersOrganizer.Comparer.cs" />
+    <Compile Include="Organizing\Organizers\ModifiersOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\OperatorDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\PropertyDeclarationOrganizer.cs" />
+    <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
+    <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
+    <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
+    <Compile Include="SolutionCrawler\CSharpDocumentDifferenceService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CSharpFeaturesResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>CSharpFeaturesResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

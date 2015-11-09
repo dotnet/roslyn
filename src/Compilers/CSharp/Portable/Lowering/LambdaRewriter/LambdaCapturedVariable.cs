@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -79,11 +80,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lambdaFrame = local.Type.OriginalDefinition as LambdaFrame;
                 if ((object)lambdaFrame != null)
                 {
-                    return lambdaFrame.ConstructIfGeneric(frame.TypeArgumentsNoUseSiteDiagnostics);
+                    // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)
+                    var typeArguments = frame.TypeArgumentsNoUseSiteDiagnostics;
+                    if (typeArguments.Length > lambdaFrame.Arity)
+                    {
+                        typeArguments = ImmutableArray.Create(typeArguments, 0, lambdaFrame.Arity);
+                    }
+                    return lambdaFrame.ConstructIfGeneric(typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers));
                 }
             }
 
-            return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type);
+            return frame.TypeMap.SubstituteType((object)local != null ? local.Type : ((ParameterSymbol)variable).Type).Type;
         }
 
         internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)

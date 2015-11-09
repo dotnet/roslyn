@@ -10,47 +10,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Partial Friend Class VisualBasicTypeInferenceService
         Private Class TypeInferrer
-            Private ReadOnly _semanticModel As SemanticModel
-            Private ReadOnly _cancellationToken As CancellationToken
+            Inherits AbstractTypeInferrer
 
-            Public Sub New(
-                semanticModel As SemanticModel,
-                cancellationToken As CancellationToken)
-
-                _semanticModel = semanticModel
-                _cancellationToken = cancellationToken
+            Public Sub New(semanticModel As SemanticModel, cancellationToken As CancellationToken)
+                MyBase.New(semanticModel, cancellationToken)
             End Sub
 
-            Private ReadOnly Property Compilation As Compilation
-                Get
-                    Return Me._semanticModel.Compilation
-                End Get
-            End Property
-
-            Public Function InferTypes(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
-                If expression Is Nothing Then
-                    Return Nothing
-                End If
-
-                Return InferTypesWorker(expression)
-            End Function
-
-            Public Function InferTypes(position As Integer) As IEnumerable(Of ITypeSymbol)
-                Return InferTypesWorker(position)
-            End Function
-
-            Private Shared Function IsUnusableType(otherSideType As ITypeSymbol) As Boolean
-                If otherSideType Is Nothing Then
-                    Return True
-                End If
-
+            Protected Overrides Function IsUnusableType(otherSideType As ITypeSymbol) As Boolean
                 Return otherSideType.IsErrorType() AndAlso
                     otherSideType.Name = String.Empty
             End Function
 
-            Private Overloads Function GetTypes(expression As ExpressionSyntax, Optional objectAsDefault As Boolean = False) As IEnumerable(Of ITypeSymbol)
+            Protected Overrides Function GetTypes_DoNotCallDirectly(expression As ExpressionSyntax, objectAsDefault As Boolean) As IEnumerable(Of ITypeSymbol)
                 If expression IsNot Nothing Then
-                    Dim info = _semanticModel.GetTypeInfo(expression)
+                    Dim info = SemanticModel.GetTypeInfo(expression)
                     If info.Type IsNot Nothing AndAlso info.Type.TypeKind <> TypeKind.Error Then
                         Return SpecializedCollections.SingletonEnumerable(info.Type)
                     End If
@@ -61,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If expression.Kind = SyntaxKind.AddressOfExpression Then
                         Dim unaryExpression = DirectCast(expression, UnaryExpressionSyntax)
-                        Dim symbol = _semanticModel.GetSymbolInfo(unaryExpression.Operand, _cancellationToken).GetAnySymbol()
+                        Dim symbol = SemanticModel.GetSymbolInfo(unaryExpression.Operand, CancellationToken).GetAnySymbol()
                         Dim type = symbol.ConvertToType(Me.Compilation)
                         If type IsNot Nothing Then
                             Return SpecializedCollections.SingletonEnumerable(type)
@@ -72,20 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return If(objectAsDefault, SpecializedCollections.SingletonEnumerable(Me.Compilation.ObjectType), SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
             End Function
 
-            Private Function InferTypesWorker(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
                 expression = expression.WalkUpParentheses()
                 Dim parent = expression.Parent
-                If TypeOf parent Is ConditionalAccessExpressionSyntax Then
-                    parent = parent.Parent
-                End If
-
-                If TypeOf parent Is MemberAccessExpressionSyntax Then
-                    Dim awaitExpression = parent.GetAncestor(Of AwaitExpressionSyntax)
-                    Dim lambdaExpression = parent.GetAncestor(Of LambdaExpressionSyntax)
-                    If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
-                        parent = awaitExpression
-                    End If
-                End If
 
                 Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),
@@ -98,32 +60,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(attribute As AttributeSyntax) InferTypeInAttribute(attribute),
                     Function(awaitExpression As AwaitExpressionSyntax) InferTypeInAwaitExpression(awaitExpression),
                     Function(binaryExpression As BinaryExpressionSyntax) InferTypeInBinaryExpression(binaryExpression, expression),
+                    Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression, expression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause),
                     Function(collectionInitializer As CollectionInitializerSyntax) InferTypeInCollectionInitializerExpression(collectionInitializer, expression),
+                    Function(conditionalAccessExpression As ConditionalAccessExpressionSyntax) InferTypeInConditionalAccessExpression(conditionalAccessExpression),
                     Function(conditionalExpression As BinaryConditionalExpressionSyntax) InferTypeInBinaryConditionalExpression(conditionalExpression, expression),
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, expression),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(),
                     Function(equalsValue As EqualsValueSyntax) InferTypeInEqualsValue(equalsValue),
-                    Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
+                    Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
                     Function(forEachStatement As ForEachStatementSyntax) InferTypeInForEachStatement(forEachStatement, expression),
-                    Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause),
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, expression),
-                    Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(),
+                    Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause),
                     Function(ifStatement As ElseIfStatementSyntax) InferTypeInIfOrElseIfStatement(),
+                    Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(),
+                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer),
-                    Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary),
                     Function(returnStatement As ReturnStatementSyntax) InferTypeForReturnStatement(returnStatement),
+                    Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression),
                     Function(switchStatement As SelectStatementSyntax) InferTypeInSelectStatement(switchStatement),
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),
                     Function(typeOfExpression As TypeOfExpressionSyntax) InferTypeInTypeOfExpressionSyntax(typeOfExpression),
                     Function(usingStatement As UsingStatementSyntax) InferTypeInUsingStatement(usingStatement),
-                    Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
                     Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
+                    Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
                     Function(yieldStatement As YieldStatementSyntax) InferTypeInYieldStatement(yieldStatement),
-                    Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
                     Function(x) SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
             End Function
 
@@ -133,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
-                Dim typeSymbol = _semanticModel.GetTypeInfo(expressionType).Type
+                Dim typeSymbol = SemanticModel.GetTypeInfo(expressionType).Type
                 If TypeOf typeSymbol IsNot INamedTypeSymbol Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
@@ -150,15 +114,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
             End Function
 
-            Private Function InferTypesWorker(position As Integer) As IEnumerable(Of ITypeSymbol)
-                Dim tree = TryCast(Me._semanticModel.SyntaxTree, SyntaxTree)
-                Dim token = tree.FindTokenOnLeftOfPosition(position, _cancellationToken)
+            Protected Overrides Function InferTypesWorker_DoNotCallDirectly(position As Integer) As IEnumerable(Of ITypeSymbol)
+                Dim tree = TryCast(Me.SemanticModel.SyntaxTree, SyntaxTree)
+                Dim token = tree.FindTokenOnLeftOfPosition(position, CancellationToken)
                 token = token.GetPreviousTokenIfTouchingWord(position)
 
                 Dim parent = token.Parent
 
                 Return parent.TypeSwitch(
-                    Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), previousToken:=token),
                     Function(argumentList As ArgumentListSyntax) InferTypeInArgumentList(argumentList, previousToken:=token),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),
@@ -169,6 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(attribute As AttributeSyntax) InferTypeInAttribute(attribute),
                     Function(awaitExpression As AwaitExpressionSyntax) InferTypeInAwaitExpression(awaitExpression),
                     Function(binaryExpression As BinaryExpressionSyntax) InferTypeInBinaryExpression(binaryExpression, previousToken:=token),
+                    Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
                     Function(caseStatement As CaseStatementSyntax) InferTypeInCaseStatement(caseStatement),
                     Function(castExpression As CastExpressionSyntax) InferTypeInCastExpression(castExpression),
                     Function(catchFilterClause As CatchFilterClauseSyntax) InferTypeInCatchFilterClause(catchFilterClause, previousToken:=token),
@@ -176,28 +140,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(conditionalExpression As TernaryConditionalExpressionSyntax) InferTypeInTernaryConditionalExpression(conditionalExpression, previousToken:=token),
                     Function(doStatement As DoStatementSyntax) InferTypeInDoStatement(token),
                     Function(equalsValue As EqualsValueSyntax) InferTypeInEqualsValue(equalsValue, token),
-                    Function(callStatement As CallStatementSyntax) InferTypeInCallStatement(),
+                    Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
                     Function(forEachStatement As ForEachStatementSyntax) InferTypeInForEachStatement(forEachStatement, previousToken:=token),
-                    Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
+                    Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
+                    Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
-                    Function(objectCreation As ObjectCreationExpressionSyntax) InferTypesWorker(objectCreation),
-                    Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
+                    Function(objectCreation As ObjectCreationExpressionSyntax) InferTypes(objectCreation),
+                    Function(parameterListSyntax As ParameterListSyntax) InferTypeInParameterList(parameterListSyntax),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda, token),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary, token),
                     Function(returnStatement As ReturnStatementSyntax) InferTypeForReturnStatement(returnStatement, token),
+                    Function(singleLineLambdaExpression As SingleLineLambdaExpressionSyntax) InferTypeInLambda(singleLineLambdaExpression, token),
                     Function(switchStatement As SelectStatementSyntax) InferTypeInSelectStatement(switchStatement, token),
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),
                     Function(usingStatement As UsingStatementSyntax) InferTypeInUsingStatement(usingStatement),
-                    Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
                     Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
+                    Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
                     Function(yieldStatement As YieldStatementSyntax) InferTypeInYieldStatement(yieldStatement, token),
-                    Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
-                    Function(parameterListSyntax As ParameterListSyntax) If(parameterListSyntax.Parent IsNot Nothing,
-                                                                            InferTypeInLambda(TryCast(parameterListSyntax.Parent.Parent, LambdaExpressionSyntax)),
-                                                                            SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()),
                     Function(x) SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
+            End Function
+
+            Private Function InferTypeInParameterList(parameterList As ParameterListSyntax) As IEnumerable(Of ITypeSymbol)
+                Return If(parameterList.Parent IsNot Nothing,
+                    InferTypeInLambda(TryCast(parameterList.Parent.Parent, LambdaExpressionSyntax)),
+                    SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
             End Function
 
             Private Function InferTypeInArgumentList(argumentList As ArgumentListSyntax,
@@ -207,7 +175,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If argumentList.Parent IsNot Nothing Then
-                    If argumentList.IsParentKind(SyntaxKind.InvocationExpression) Then
+                    If argumentList.IsParentKind(SyntaxKind.ArrayCreationExpression) Then
+                        Return SpecializedCollections.SingletonEnumerable(Compilation.GetSpecialType(SpecialType.System_Int32))
+                    ElseIf argumentList.IsParentKind(SyntaxKind.InvocationExpression) Then
                         Dim invocation = TryCast(argumentList.Parent, InvocationExpressionSyntax)
 
                         Dim index As Integer = 0
@@ -217,7 +187,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             index = GetArgumentListIndex(argumentList, previousToken)
                         End If
 
-                        Dim info = _semanticModel.GetSymbolInfo(invocation)
+                        If index < 0 Then
+                            Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                        End If
+
+                        Dim info = SemanticModel.GetSymbolInfo(invocation)
                         ' Check all the methods that have at least enough arguments to support being
                         ' called with argument at this position.  Note: if they're calling an extension
                         ' method then it will need one more argument in order for us to call it.
@@ -234,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             If targetExpression IsNot Nothing Then
-                                Dim expressionType = _semanticModel.GetTypeInfo(targetExpression)
+                                Dim expressionType = SemanticModel.GetTypeInfo(targetExpression)
                                 If TypeOf expressionType.Type Is IArrayTypeSymbol Then
                                     Return SpecializedCollections.SingletonEnumerable(Compilation.GetSpecialType(SpecialType.System_Int32))
                                 End If
@@ -247,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         '
                         ' etc.
                         Dim creation = TryCast(argumentList.Parent, ObjectCreationExpressionSyntax)
-                        Dim info = _semanticModel.GetSymbolInfo(creation.Type)
+                        Dim info = SemanticModel.GetSymbolInfo(creation.Type)
                         Dim namedType = TryCast(info.Symbol, INamedTypeSymbol)
                         If namedType IsNot Nothing Then
                             If namedType.TypeKind = TypeKind.Delegate Then
@@ -259,6 +233,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Else
                                     index = GetArgumentListIndex(argumentList, previousToken)
                                 End If
+
+                                If index < 0 Then
+                                    Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                                End If
+
                                 Dim constructors = namedType.InstanceConstructors.Where(Function(m) m.Parameters.Length > index)
                                 Return InferTypeInArgument(argumentOpt, index, constructors)
                             End If
@@ -279,7 +258,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             index = GetArgumentListIndex(argumentList, previousToken)
                         End If
 
-                        Dim info = _semanticModel.GetSymbolInfo(attribute)
+                        If index < 0 Then
+                            Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                        End If
+
+                        Dim info = SemanticModel.GetSymbolInfo(attribute)
                         Dim symbols = info.GetBestOrAllSymbols()
                         If symbols.Any() Then
                             Dim methods = symbols.OfType(Of IMethodSymbol)()
@@ -416,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInAwaitExpression(awaitExpression As AwaitExpressionSyntax) As IEnumerable(Of ITypeSymbol)
                 ' await <expression>
 
-                Dim types = InferTypes(awaitExpression)
+                Dim types = InferTypes(awaitExpression, filterUnusable:=False)
 
                 Dim task = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task")
                 Dim taskOfT = Me.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1")
@@ -430,6 +413,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return types.Select(Function(t) If(t.SpecialType = SpecialType.System_Void, task, taskOfT.Construct(t)))
+            End Function
+
+            Private Function InferTypeInConditionalAccessExpression(conditional As ConditionalAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+                Return InferTypes(conditional)
             End Function
 
             Private Function InferTypeInBinaryConditionalExpression(conditional As BinaryConditionalExpressionSyntax,
@@ -547,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If variableDeclarator.Names.Count >= 1 Then
                         Dim name = variableDeclarator.Names(0)
-                        Dim symbol = _semanticModel.GetDeclaredSymbol(name, _cancellationToken)
+                        Dim symbol = SemanticModel.GetDeclaredSymbol(name, CancellationToken)
 
                         If symbol IsNot Nothing Then
                             Select Case symbol.Kind
@@ -565,7 +552,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 ElseIf equalsValue.IsParentKind(SyntaxKind.PropertyStatement) Then
                     Dim propertySyntax = CType(equalsValue.Parent, PropertyStatementSyntax)
-                    Dim propertySymbol = _semanticModel.GetDeclaredSymbol(propertySyntax)
+                    Dim propertySymbol = SemanticModel.GetDeclaredSymbol(propertySyntax)
                     If propertySymbol Is Nothing Then
                         Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                     End If
@@ -628,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInForStepClause(forStepClause As ForStepClauseSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 ' TODO(cyrusn): Potentially infer a different type based on the type of the variable
-                ' being foreached over.
+                ' being foreach-ed over.
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
             End Function
 
@@ -642,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Func<int,string> = i => Foo();
-                Dim lambdaTypes = GetTypes(lambda).Where(Function(t) Not IsUnusableType(t))
+                Dim lambdaTypes = GetTypes(lambda).Where(IsUsableTypeFunc)
                 If lambdaTypes.IsEmpty() Then
                     lambdaTypes = InferTypes(lambda)
                 End If
@@ -658,7 +645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
-                ' If we're in a lambda, then use the return tpe of the lambda to figure out what to
+                ' If we're in a lambda, then use the return type of the lambda to figure out what to
                 ' infer.  i.e.   Func<int,string> f = i => { return Foo(); }
                 Dim lambda = returnStatement.GetAncestorsOrThis(Of ExpressionSyntax)().FirstOrDefault(
                     Function(e) TypeOf e Is MultiLineLambdaExpressionSyntax OrElse
@@ -671,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                 End If
 
-                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, returnStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
+                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, returnStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
 
                 Dim memberMethod = TryCast(memberSymbol, IMethodSymbol)
                 If memberMethod IsNot Nothing Then
@@ -702,7 +689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                 End If
 
-                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, yieldStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
+                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, yieldStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
 
                 Dim memberType = memberSymbol.TypeSwitch(
                     Function(method As IMethodSymbol) method.ReturnType,
@@ -724,13 +711,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim declaration As DeclarationStatementSyntax
 
                 If currentSemanticModel.IsSpeculativeSemanticModel Then
-                    Dim tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(_cancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation)
+                    Dim tokenInOriginalTree = originalSemanticModel.SyntaxTree.GetRoot(CancellationToken).FindToken(currentSemanticModel.OriginalPositionForSpeculation)
                     declaration = tokenInOriginalTree.GetAncestor(Of DeclarationStatementSyntax)
                 Else
                     declaration = declarationInCurrentTree
                 End If
 
-                Return originalSemanticModel.GetDeclaredSymbol(declaration, _cancellationToken)
+                Return originalSemanticModel.GetDeclaredSymbol(declaration, CancellationToken)
             End Function
 
             Private Function InferTypeInSelectStatement(switchStatementSyntax As SelectStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
@@ -766,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInThrowStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                ' If we're not the Throw token, there's nothing to to
+                ' If we're not the Throw token, there's nothing to do
                 If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.ThrowKeyword Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
@@ -814,13 +801,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
             End Function
 
+            Private Function InferTypeInMemberAccessExpression(expression As MemberAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+                Dim awaitExpression = expression.GetAncestor(Of AwaitExpressionSyntax)
+                Dim lambdaExpression = expression.GetAncestor(Of LambdaExpressionSyntax)
+                If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
+                    Return InferTypes(awaitExpression.Expression)
+                End If
+
+                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+            End Function
+
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                Dim right = _semanticModel.GetTypeInfo(initializer.Name).Type
+                Dim right = SemanticModel.GetTypeInfo(initializer.Name).Type
                 If right IsNot Nothing AndAlso TypeOf right IsNot IErrorTypeSymbol Then
                     Return SpecializedCollections.SingletonEnumerable(right)
                 End If
 
-                Return SpecializedCollections.SingletonEnumerable(_semanticModel.GetTypeInfo(initializer.Expression).Type)
+                Return SpecializedCollections.SingletonEnumerable(SemanticModel.GetTypeInfo(initializer.Expression).Type)
             End Function
 
             Public Function InferTypeInCaseStatement(caseStatement As CaseStatementSyntax) As IEnumerable(Of ITypeSymbol)
@@ -838,7 +835,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim index = argumentList.Arguments.GetWithSeparators().IndexOf(previousToken)
-                Return (index + 1) \ 2
+                Return If(index >= 0, (index + 1) \ 2, -1)
             End Function
 
             Private Function InferTypeInCollectionInitializerExpression(
@@ -848,7 +845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' New List(Of T) From { x }
                 If expression IsNot Nothing Then
-                    Dim expressionAddMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
+                    Dim expressionAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(expression).GetAllSymbols()
                     Dim expressionAddMethodParameterTypes = expressionAddMethodSymbols _
                         .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = 1) _
                         .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters(0).Type).WhereNotNull()
@@ -863,7 +860,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         collectionInitializer.Initializers.GetSeparators().ToList().IndexOf(previousToken.Value) + 1,
                         collectionInitializer.Initializers.IndexOf(expression))
 
-                Dim initializerAddMethodSymbols = _semanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
+                Dim initializerAddMethodSymbols = SemanticModel.GetCollectionInitializerSymbolInfo(collectionInitializer).GetAllSymbols()
                 Dim initializerAddMethodParameterTypes = initializerAddMethodSymbols _
                     .Where(Function(a) DirectCast(a, IMethodSymbol).Parameters.Count() = collectionInitializer.Initializers.Count) _
                     .Select(Function(a) DirectCast(a, IMethodSymbol).Parameters.ElementAtOrDefault(parameterIndex)?.Type).WhereNotNull()

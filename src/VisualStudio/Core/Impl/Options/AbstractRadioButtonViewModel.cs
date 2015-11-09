@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private bool _isChecked;
         private string _groupName;
 
-        public string Description { get; private set; }
-        public string GroupName { get; private set; }
+        public string Description { get; }
+        public string GroupName { get; }
 
         public bool IsChecked
         {

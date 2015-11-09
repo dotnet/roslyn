@@ -3,6 +3,8 @@
 
   <Extern href="stdidcmd.h"/>
   <Extern href="vsshlids.h"/>
+    
+  <Include href="KnownImageIds.vsct"/>
 
   <Commands package="guidCSharpReplPackageId">
     <Groups>
@@ -14,12 +16,15 @@
     <Buttons>
       <Button guid="guidCSharpInteractiveCommandSet" id="cmdidCSharpInteractiveToolWindow" priority="0x8000" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
-        <Icon guid="guidCSharpInteractiveImages" id="bmpCSharpInteractiveWindow" />
+        <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): RoslynImageCatalogGuid -> ImageCatalogGuid -->
+        <Icon guid="RoslynImageCatalogGuid" id="CSInteractiveWindow" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>C# Interactive</ButtonText>
         </Strings>
       </Button>
 
+      <!-- https://github.com/dotnet/roslyn/issues/4688
       <Button guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" priority="0x0100" type="Button">
         <Parent guid="guidCSharpInteractiveCommandSet" id="IDG_INTERACTIVE_PROJECT"/>
         <CommandFlag>DynamicVisibility</CommandFlag>
@@ -30,17 +35,20 @@
           <LocCanonicalName>ResetC#InteractiveFromProject</LocCanonicalName>
         </Strings>
       </Button>
+      -->
     </Buttons>
-
-    <Bitmaps>
-      <Bitmap guid="guidCSharpInteractiveImages" href="Resources\CSharpInteractive.png" usedList="bmpCSharpInteractiveWindow"/>
-    </Bitmaps>
   </Commands>
-
+  
+  <VisibilityConstraints>
+    <VisibilityItem context="guidCSProjectContext" guid="guidCSharpInteractiveCommandSet" id="cmdidResetInteractiveFromProject" />
+  </VisibilityConstraints>
+  
+  <!-- https://github.com/dotnet/roslyn/issues/3941
   <KeyBindings>
     <KeyBinding guid="guidCSharpInteractiveCommandSet" id="cmdidCSharpInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" mod2="Control" key2="I" />
     <KeyBinding guid="guidCSharpInteractiveCommandSet" id="cmdidCSharpInteractiveToolWindow" editor="guidVSStd97" mod1="Control" key1="W" key2="I" />
   </KeyBindings>
+  -->
 
   <Symbols>
     <GuidSymbol name="guidCSharpReplPackageId" value="{c5edd1ee-c43b-4360-9ce4-6b993ca12897}" />
@@ -52,8 +60,11 @@
       <IDSymbol name="cmdidResetInteractiveFromProject" value="0x0002"/>
     </GuidSymbol>
 
-    <GuidSymbol name="guidCSharpInteractiveImages" value="{F6A1DE39-7690-4ED5-AF68-9569926B2F3A}" >
-      <IDSymbol name="bmpCSharpInteractiveWindow" value="0x01" />
+    <GuidSymbol name="guidCSProjectContext" value="{FAE04EC1-301F-11D3-BF4B-00C04F79EFBC}" />
+      
+    <!-- TODO (https://github.com/dotnet/roslyn/issues/6078): delete this -->
+    <GuidSymbol name="RoslynImageCatalogGuid" value="{ae27a6b0-e345-4288-96df-5eaf394ee369}">
+        <IDSymbol name="CSInteractiveWindow" value="3682" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

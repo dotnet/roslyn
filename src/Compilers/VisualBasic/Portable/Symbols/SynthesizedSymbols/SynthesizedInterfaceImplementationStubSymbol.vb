@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each p As ParameterSymbol In implementingMethod.Parameters
                 Dim implementedParameter = implementedMethod.Parameters(p.Ordinal)
                 builder.Add(New SynthesizedParameterSymbolWithCustomModifiers(Me, implementedParameter.Type, p.Ordinal, p.IsByRef, p.Name,
-                                                                              implementedParameter.CustomModifiers, implementedParameter.HasByRefBeforeCustomModifiers))
+                                                                              implementedParameter.CustomModifiers, implementedParameter.CountOfCustomModifiersPrecedingByRef))
             Next
 
             _parameters = builder.ToImmutableAndFree()

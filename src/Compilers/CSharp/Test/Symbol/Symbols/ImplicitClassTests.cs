@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,6 +32,14 @@ namespace N
             Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
             Assert.False(implicitClass.IsSubmissionClass);
             Assert.False(implicitClass.IsScriptClass);
+
+            var c2 = CreateCompilationWithMscorlib45("", new[] { c.ToMetadataReference() });
+
+            n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
+            implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
+            Assert.IsType<CSharp.Symbols.Retargeting.RetargetingNamedTypeSymbol>(implicitClass);
+            Assert.Equal(0, implicitClass.Interfaces.Length);
+            Assert.Equal(c2.ObjectType, implicitClass.BaseType);
         }
 
         [Fact]
@@ -58,7 +65,7 @@ void Foo()
         [Fact, WorkItem(531535, "DevDiv")]
         public void Events()
         {
-            var c = CreateCompilationWithMscorlib(@"
+            var c = CreateCompilationWithMscorlib45(@"
 event System.Action e;
 ", parseOptions: TestOptions.Script);
 

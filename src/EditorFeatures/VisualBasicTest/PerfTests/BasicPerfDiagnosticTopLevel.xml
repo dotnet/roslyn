@@ -9,7 +9,7 @@
     <StartTarget DontResetOptions="true" />
     <EnableClosedFileDiagnostic Enabled="true" Language="Visual Basic"/>
     <PerfEnableEtwDiagnosticLogger/>
-    <OpenProject ProjectFile="$(WorkingDir)\..\..\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-VB.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
+    <OpenProject ProjectFile="C:\Roslyn\LegacyTest\RealworldProjects\RoslynSolutions\Roslyn-VB.sln" DeleteSuoFileBeforeOpening="true" DeleteIDECacheBeforeOpening="true"/>
     <Wait Seconds="60" />
     <AddAnalyzersToSolution CommonAnalyzers="Microsoft.CodeAnalysis.FxCopAnalyzers.dll"
                                 CSharpAnalyzers="Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.dll"
@@ -35,8 +35,8 @@
       <CollectPerfViewTrace Action="Stop" />
       <PerfStopEtwListener/>
 
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" />
-      <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" />
+      <!-- <VerifyRoslynModulesLoadedStatus ExpectedStatus="NoCSharp" /> -->
+      <!-- <VerifyRoslynModulesLoadedStatus ExpectedStatus="Basic" /> -->
     </Scenario>
 
   </ScenarioList>

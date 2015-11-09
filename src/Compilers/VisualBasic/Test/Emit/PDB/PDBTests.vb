@@ -1,9 +1,13 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
+Imports System.Reflection.Metadata
+Imports System.Reflection.Metadata.Ecma335
+Imports System.Reflection.PortableExecutable
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 
@@ -61,6 +65,111 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 </symbols>, options:=PdbToXmlOptions.ExcludeMethods)
 
         End Sub
+
+        <Fact>
+        Public Sub CustomDebugEntryPoint_DLL()
+            Dim source = "
+Class C 
+  Shared Sub F()
+  End Sub
+End Class
+"
+            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+
+            Dim f = c.GetMember(Of MethodSymbol)("C.F")
+            c.VerifyPdb(
+<symbols>
+    <entryPoint declaringType="C" methodName="F"/>
+    <methods/>
+</symbols>, debugEntryPoint:=f, options:=PdbToXmlOptions.ExcludeScopes Or PdbToXmlOptions.ExcludeSequencePoints Or PdbToXmlOptions.ExcludeCustomDebugInformation)
+
+            Dim peReader = New PEReader(c.EmitToArray(debugEntryPoint:=f))
+            Dim peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress
+            Assert.Equal(0, peEntryPointToken)
+        End Sub
+
+        <Fact>
+        Public Sub CustomDebugEntryPoint_EXE()
+            Dim source = "
+Class M 
+  Shared Sub Main() 
+  End Sub
+End Class
+
+Class C 
+  Shared Sub F(Of S)()
+  End Sub
+End Class
+"
+            Dim c = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugExe)
+
+            Dim f = c.GetMember(Of MethodSymbol)("C.F")
+            c.VerifyPdb(
+<symbols>
+    <entryPoint declaringType="C" methodName="F"/>
+    <methods/>
+</symbols>, debugEntryPoint:=f, options:=PdbToXmlOptions.ExcludeScopes Or PdbToXmlOptions.ExcludeSequencePoints Or PdbToXmlOptions.ExcludeCustomDebugInformation)
+
+            Dim peReader = New PEReader(c.EmitToArray(debugEntryPoint:=f))
+            Dim peEntryPointToken = peReader.PEHeaders.CorHeader.EntryPointTokenOrRelativeVirtualAddress
+
+            Dim mdReader = peReader.GetMetadataReader()
+            Dim methodDef = mdReader.GetMethodDefinition(CType(MetadataTokens.Handle(peEntryPointToken), MethodDefinitionHandle))
+
+            Assert.Equal("Main", mdReader.GetString(methodDef.Name))
+        End Sub
+
+        <Fact>
+        Public Sub CustomDebugEntryPoint_Errors()
+            Dim source1 = "
+Class C 
+  Shared Sub F
+  End Sub
+End Class 
+
+Class D(Of T)
+  Shared Sub G(Of S)()
+  End Sub
+End Class
+"
+            Dim source2 = "
+Class C 
+  Shared Sub F() 
+  End Sub
+End Class
+"
+            Dim c1 = CreateCompilationWithMscorlib({source1}, options:=TestOptions.DebugDll)
+            Dim c2 = CreateCompilationWithMscorlib({source2}, options:=TestOptions.DebugDll)
+
+            Dim f1 = c1.GetMember(Of MethodSymbol)("C.F")
+            Dim f2 = c2.GetMember(Of MethodSymbol)("C.F")
+            Dim g = c1.GetMember(Of MethodSymbol)("D.G")
+            Dim d = c1.GetMember(Of NamedTypeSymbol)("D")
+
+            Assert.NotNull(f1)
+            Assert.NotNull(f2)
+            Assert.NotNull(g)
+            Assert.NotNull(d)
+
+            Dim stInt = c1.GetSpecialType(SpecialType.System_Int32)
+            Dim d_t_g_int = g.Construct(stInt)
+            Dim d_int = d.Construct(stInt)
+            Dim d_int_g = d_int.GetMember(Of MethodSymbol)("G")
+            Dim d_int_g_int = d_int_g.Construct(stInt)
+
+            Dim result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=f2)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+
+            result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=d_t_g_int)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+
+            result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=d_int_g)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+
+            result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=d_int_g_int)
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+        End Sub
+
 #End Region
 
         <Fact>
@@ -4127,6 +4236,99 @@ End Class
     </methods>
 </symbols>)
         End Sub
+
+        <Fact>
+        Public Sub ImportsInAsync()
+            Dim source =
+"Imports System.Linq
+Imports System.Threading.Tasks
+Class C
+    Shared Async Function F() As Task
+        Dim c = {1, 2, 3}
+        c.Select(Function(i) i)
+    End Function
+End Class"
+            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            c.VerifyPdb("C+VB$StateMachine_1_F.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+VB$StateMachine_1_F" name="MoveNext">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="4" startColumn="5" endLine="4" endColumn="38"/>
+                <entry offset="0x8" startLine="5" startColumn="13" endLine="5" endColumn="26"/>
+                <entry offset="0x1f" startLine="6" startColumn="9" endLine="6" endColumn="32"/>
+                <entry offset="0x4f" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x51" hidden="true"/>
+                <entry offset="0x58" hidden="true"/>
+                <entry offset="0x74" startLine="7" startColumn="5" endLine="7" endColumn="17"/>
+                <entry offset="0x7e" hidden="true"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x8b">
+                <importsforward declaringType="C+_Closure$__" methodName="_Lambda$__1-0" parameterNames="i"/>
+                <local name="$VB$ResumableLocal_c$0" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
+            </scope>
+            <asyncInfo>
+                <kickoffMethod declaringType="C" methodName="F"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
+        <Fact>
+        Public Sub ImportsInAsyncLambda()
+            Dim source =
+"Imports System.Linq
+Class C
+    Shared Sub M()
+        Dim f As System.Action =
+            Async Sub()
+                Dim c = {1, 2, 3}
+                c.Select(Function(i) i)
+            End Sub
+    End Sub
+End Class"
+            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            c.VerifyPdb("C+_Closure$__+VB$StateMachine___Lambda$__1-0.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+_Closure$__+VB$StateMachine___Lambda$__1-0" name="MoveNext">
+            <customDebugInfo>
+                <encLocalSlotMap>
+                    <slot kind="27" offset="38"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true"/>
+                <entry offset="0x7" startLine="5" startColumn="13" endLine="5" endColumn="24"/>
+                <entry offset="0x8" startLine="6" startColumn="21" endLine="6" endColumn="34"/>
+                <entry offset="0x1f" startLine="7" startColumn="17" endLine="7" endColumn="40"/>
+                <entry offset="0x4f" startLine="8" startColumn="13" endLine="8" endColumn="20"/>
+                <entry offset="0x51" hidden="true"/>
+                <entry offset="0x58" hidden="true"/>
+                <entry offset="0x74" hidden="true"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x8b">
+                <importsforward declaringType="C" methodName="M"/>
+                <local name="$VB$ResumableLocal_c$0" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
+            </scope>
+            <asyncInfo>
+                <catchHandler offset="0x51"/>
+                <kickoffMethod declaringType="C+_Closure$__" methodName="_Lambda$__1-0"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
+        End Sub
+
     End Class
 
 End Namespace

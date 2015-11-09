@@ -1,73 +1,58 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports System.Reflection
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Scripting.Test
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 Imports Xunit
+
+#Disable Warning RS0003 ' Do not directly await a Task
 
 Namespace Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests
 
     Public Class InteractiveSessionTests
-        Inherits BasicTestBase
+        Inherits TestBase
 
         <Fact>
-        Public Sub Fields()
-            Dim engine = New VisualBasicScriptEngine()
-            Dim session As Session = engine.CreateSession()
+        Public Async Function Fields() As Task
+            Dim s = Await VisualBasicScript.
+                RunAsync("Dim x As Integer = 1").
+                ContinueWith("Dim y As Integer = 2").
+                ContinueWith("?x + y")
 
-            session.Execute("Dim x As Integer = 1")
-            session.Execute("Dim y As Integer = 2")
-            Dim result = session.Execute("?x + y")
-            Assert.Equal(3, result)
-        End Sub
+            Assert.Equal(3, s.ReturnValue)
+        End Function
 
         <Fact>
         Public Sub StatementExpressions_LineContinuation()
-            Dim source = <text>
+            Dim source = "
 ?1 _
-</text>.Value
-
-            Dim engine = New VisualBasicScriptEngine()
-            Dim result = engine.CreateSession().Execute(source)
-            Assert.Equal(result, 1)
+"
+            Assert.Equal(1, VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
 
         <Fact>
         Public Sub StatementExpressions_IntLiteral()
-            Dim source = <text>
+            Dim source = "
 ?1
-</text>.Value
-
-            Dim engine = New VisualBasicScriptEngine()
-            Dim result = engine.CreateSession().Execute(source)
-            Assert.Equal(result, 1)
+"
+            Assert.Equal(1, VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
 
         <Fact>
         Public Sub StatementExpressions_Nothing()
-            Dim source = <text>
+            Dim source = "
 ?  Nothing
-</text>.Value
+"
 
-            Dim engine = New VisualBasicScriptEngine()
-            Dim session = engine.CreateSession()
-            Dim result = session.Execute(source)
-            Assert.Equal(result, Nothing)
+            Assert.Null(VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
-
-        Public Class B
-            Public x As Integer = 1, w As Integer = 4
-        End Class
 
         <WorkItem(10856, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub IfStatement()
-            Dim source = <text>
+            Dim source = "
 Dim x As Integer
 If (True)
    x = 5
@@ -76,99 +61,55 @@ Else
 End If
 
 ?x + 1
-</text>.Value
+"
 
-            Dim engine = New VisualBasicScriptEngine()
-            Dim session = engine.CreateSession()
-            Dim result = session.Execute(source)
-
-            Assert.Equal(6, result)
-        End Sub
-
-        <WorkItem(530404)>
-        <Fact>
-        Public Sub DiagnosticsPass()
-            Dim engine = New VisualBasicScriptEngine()
-            Dim session = engine.CreateSession()
-            session.AddReference(GetType(Expressions.Expression).Assembly)
-            session.Execute(
-"Function F(e As System.Linq.Expressions.Expression(Of System.Func(Of Object))) As Object
-    Return e.Compile()()
-End Function")
-            ScriptingTestHelpers.AssertCompilationError(
-                session,
-                "F(Function()
-                        Return Nothing
-                    End Function)",
-                Diagnostic(ERRID.ERR_StatementLambdaInExpressionTree, "Function()
-                        Return Nothing
-                    End Function").WithLocation(1, 3))
+            Assert.Equal(6, VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
 
         <Fact>
         Public Sub AnonymousTypes_TopLevel_MultipleSubmissions()
-            Dim engine = New VisualBasicScriptEngine()
-            Dim session = engine.CreateSession()
-
-            session.Execute(
-    <text>
+            Dim script = VisualBasicScript.Create("
 Option Infer On
 Dim a = New With { .f = 1 }
-</text>.Value)
-
-            session.Execute(
-    <text>
+").ContinueWith("
 Option Infer On
 Dim b = New With { Key .f = 1 }
-</text>.Value)
+").ContinueWith("
+Option Infer On
+Dim c = New With { .F = 222 }
+Dim d = New With { Key .F = 777 }
 
-            Dim result = session.Execute(Of Object)(
-            <![CDATA[
-    Option Infer On
-    Dim c = New With { .F = 222 }
-    Dim d = New With { Key .F = 777 }
-    ? (a.GetType() is c.GetType()).ToString() _
-        & " " & (a.GetType() is b.GetType()).ToString() _ 
-        & " " & (b.GetType() is d.GetType()).ToString()
-    ]]>.Value)
-
-            Assert.Equal("True False True", result.ToString)
+? (a.GetType() Is c.GetType()).ToString() _
+    & "" "" & (a.GetType() Is b.GetType()).ToString() _
+    & "" "" & (b.GetType() is d.GetType()).ToString()
+")
+            Assert.Equal("True False True", script.EvaluateAsync().Result)
         End Sub
 
         <Fact>
         Public Sub AnonymousTypes_TopLevel_MultipleSubmissions2()
-            Dim engine = New VisualBasicScriptEngine()
-            Dim session = engine.CreateSession()
-
-            session.Execute(
-    <text>
+            Dim script = VisualBasicScript.Create("
 Option Infer On
 Dim a = Sub()
         End Sub
-</text>.Value)
-
-            session.Execute(
-    <text>
+").ContinueWith("
 Option Infer On
 Dim b = Function () As Integer
             Return 0
         End Function
-</text>.Value)
+").ContinueWith("
+Option Infer On
+Dim c = Sub()
+        End Sub
+Dim d = Function () As Integer
+            Return 0
+        End Function
+? (a.GetType() is c.GetType()).ToString() _
+    & "" "" & (a.GetType() is b.GetType()).ToString() _ 
+    & "" "" & (b.GetType() is d.GetType()).ToString()
+")
 
-            Dim result = session.Execute(Of Object)(
-            <![CDATA[
-    Option Infer On
-    Dim c = Sub()
-            End Sub
-    Dim d = Function () As Integer
-                Return 0
-            End Function
-    ? (a.GetType() is c.GetType()).ToString() _
-        & " " & (a.GetType() is b.GetType()).ToString() _ 
-        & " " & (b.GetType() is d.GetType()).ToString()
-    ]]>.Value)
-
-            Assert.Equal("True False True", result.ToString)
+            Assert.Equal("True False True", script.EvaluateAsync().Result)
         End Sub
     End Class
 End Namespace

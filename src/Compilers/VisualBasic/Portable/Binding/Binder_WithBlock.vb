@@ -159,20 +159,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' to the usage of Me reference in this expression. As these restrictions are only to be checked 
             ''' in few scenarios, this flag is being calculated lazily.
             ''' </summary>
-            Public ReadOnly Property ExpressionHasByRefMeReference As Boolean
-                Get
-                    If Me._exprHasByRefMeReference = ThreeState.Unknown Then
-                        ' Analyze the expression which will be used instead of placeholder
-                        Dim value As Boolean = ValueTypedMeReferenceFinder.HasByRefMeReference(Me.DraftSubstitute)
-                        Dim newValue As Integer = If(value, ThreeState.True, ThreeState.False)
-                        Dim oldValue = Interlocked.CompareExchange(Me._exprHasByRefMeReference, newValue, ThreeState.Unknown)
-                        Debug.Assert(newValue = oldValue OrElse oldValue = ThreeState.Unknown)
-                    End If
+            Public Function ExpressionHasByRefMeReference(recursionDepth As Integer) As Boolean
+                If Me._exprHasByRefMeReference = ThreeState.Unknown Then
+                    ' Analyze the expression which will be used instead of placeholder
+                    Dim value As Boolean = ValueTypedMeReferenceFinder.HasByRefMeReference(Me.DraftSubstitute, recursionDepth)
+                    Dim newValue As Integer = If(value, ThreeState.True, ThreeState.False)
+                    Dim oldValue = Interlocked.CompareExchange(Me._exprHasByRefMeReference, newValue, ThreeState.Unknown)
+                    Debug.Assert(newValue = oldValue OrElse oldValue = ThreeState.Unknown)
+                End If
 
-                    Debug.Assert(Me._exprHasByRefMeReference <> ThreeState.Unknown)
-                    Return Me._exprHasByRefMeReference = ThreeState.True
-                End Get
-            End Property
+                Debug.Assert(Me._exprHasByRefMeReference <> ThreeState.Unknown)
+                Return Me._exprHasByRefMeReference = ThreeState.True
+            End Function
 
             Private _exprHasByRefMeReference As Integer = ThreeState.Unknown
 
@@ -247,15 +245,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Is being only used for calculating the value of 'ExpressionHasByRefMeReference'
         ''' </summary>
         Private Class ValueTypedMeReferenceFinder
-            Inherits BoundTreeWalker
+            Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
-            Private Sub New()
+            Private Sub New(recursionDepth As Integer)
+                MyBase.New(recursionDepth)
             End Sub
 
             Private _found As Boolean = False
 
-            Public Shared Function HasByRefMeReference(expression As BoundExpression) As Boolean
-                Dim walker As New ValueTypedMeReferenceFinder()
+            Public Shared Function HasByRefMeReference(expression As BoundExpression, recursionDepth As Integer) As Boolean
+                Dim walker As New ValueTypedMeReferenceFinder(recursionDepth)
                 walker.Visit(expression)
                 Return walker._found
             End Function
@@ -264,6 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not _found Then
                     Return MyBase.Visit(node)
                 End If
+
                 Return Nothing
             End Function
 

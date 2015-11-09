@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-        ' Given an an implementing symbol, and an implemented symbol, get the location of the 
+        ' Given an implementing symbol, and an implemented symbol, get the location of the 
         ' syntax in the implements clause that matches that implemented symbol. Should only use for 
         ' symbols from source.
         '
@@ -443,6 +443,12 @@ DoneWithErrorReporting:
                     Binder.ReportDiagnostic(diagBag, implementedMemberSyntax, ERRID.ERR_PropertyDoesntImplementAllAccessors,
                                             implementedProperty,
                                             implementingProperty.GetPropertyKindText())
+
+                ElseIf ((implementedProperty.GetMethod Is Nothing) Xor (implementedProperty.SetMethod Is Nothing)) AndAlso
+                       implementingProperty.GetMethod IsNot Nothing AndAlso implementingProperty.SetMethod IsNot Nothing
+                    InternalSyntax.Parser.CheckFeatureAvailability(diagBag, implementedMemberSyntax.GetLocation(),
+                                                                   DirectCast(implementedMemberSyntax.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion,
+                                                                   InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite)
                 End If
             End If
 
@@ -595,7 +601,7 @@ DoneWithErrorReporting:
                     substitutedImplementations(i) = unsubstitutedImplementations(i) ' default: no substitution necessary
 
                     If unsubstitutedInterfaceType.IsGenericType Then
-                        Dim substitutedInterfaceType = TryCast(unsubstitutedInterfaceType.InternalSubstituteTypeParameters(substitution), SubstitutedNamedType)
+                        Dim substitutedInterfaceType = TryCast(unsubstitutedInterfaceType.InternalSubstituteTypeParameters(substitution).AsTypeSymbolOnly(), SubstitutedNamedType)
 
                         If substitutedInterfaceType IsNot Nothing Then
                             ' Get the substituted version of the member

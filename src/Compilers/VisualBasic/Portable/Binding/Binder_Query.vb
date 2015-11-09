@@ -1669,7 +1669,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '
             '  2) Range variables declared in the [Into] clause must not shadow outer's range variables simply 
             '     because they are merged into the same Anonymous Type by the [Into] selector. They also must
-            '     not shadow outer's outer range variables (possibly throughout the whole whole hierarchy),
+            '     not shadow outer's outer range variables (possibly throughout the whole hierarchy),
             '     with which they will later get into the same scope within an [On] clause. Note, that declaredNames
             '     parameter, when passed, includes the names of all such range variables and this function will add
             '     to this set.
@@ -2387,7 +2387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim boolSymbol As NamedTypeSymbol = GetSpecialType(SpecialType.System_Boolean, condition, diagnostics)
 
-            ' If pedicate has type Object we will keep result of conversion, otherwise we drop it.
+            ' If predicate has type Object we will keep result of conversion, otherwise we drop it.
             Dim predicateType As TypeSymbol = predicate.Type
             Dim keepConvertedPredicate As Boolean = False
 
@@ -2850,7 +2850,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim fields = New AnonymousTypeField(selectVariables.Count - 1) {}
 
-                    For i As Integer = 0 To rangeVariables.Count - 1
+                    For i As Integer = 0 To rangeVariables.Length - 1
                         Dim rangeVar As RangeVariableSymbol = rangeVariables(i)
                         fields(i) = New AnonymousTypeField(
                             rangeVar.Name, rangeVar.Type, rangeVar.Syntax.GetLocation(), isKeyOrByRef:=True)
@@ -3494,13 +3494,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim left As BoundExpression = outerKeyBinder.BindRValue(joinCondition.Left, diagnostics)
 
                 Dim leftSide As JoinConditionSideDeterminationVisitor.Result
-                leftSide = sideDeterminator.DetermineTheSide(left)
+                leftSide = sideDeterminator.DetermineTheSide(left, diagnostics)
 
                 If leftSide = JoinConditionSideDeterminationVisitor.Result.Outer Then
                     outerKey = left
                     innerKey = innerKeyBinder.BindRValue(joinCondition.Right, diagnostics)
                     keysAreGood = innerKeyBinder.VerifyJoinKeys(outerKey, outerRangeVariables, leftSide,
-                                                                innerKey, innerRangeVariables, sideDeterminator.DetermineTheSide(innerKey),
+                                                                innerKey, innerRangeVariables, sideDeterminator.DetermineTheSide(innerKey, diagnostics),
                                                                 diagnostics)
                 ElseIf leftSide = JoinConditionSideDeterminationVisitor.Result.Inner Then
                     ' Rebind with the inner binder.
@@ -3509,16 +3509,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     innerKey = innerKeyBinder.BindRValue(joinCondition.Left, suppressDiagnostics)
-                    Debug.Assert(leftSide = sideDeterminator.DetermineTheSide(innerKey))
+                    Debug.Assert(leftSide = sideDeterminator.DetermineTheSide(innerKey, diagnostics))
                     outerKey = outerKeyBinder.BindRValue(joinCondition.Right, diagnostics)
-                    keysAreGood = innerKeyBinder.VerifyJoinKeys(outerKey, outerRangeVariables, sideDeterminator.DetermineTheSide(outerKey),
+                    keysAreGood = innerKeyBinder.VerifyJoinKeys(outerKey, outerRangeVariables, sideDeterminator.DetermineTheSide(outerKey, diagnostics),
                                                                 innerKey, innerRangeVariables, leftSide,
                                                                 diagnostics)
                 Else
                     Dim right As BoundExpression = innerKeyBinder.BindRValue(joinCondition.Right, diagnostics)
 
                     Dim rightSide As JoinConditionSideDeterminationVisitor.Result
-                    rightSide = sideDeterminator.DetermineTheSide(right)
+                    rightSide = sideDeterminator.DetermineTheSide(right, diagnostics)
 
                     If rightSide = JoinConditionSideDeterminationVisitor.Result.Outer Then
                         ' Rebind with the outer binder.
@@ -3706,7 +3706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Helper visitor to determine what join sides are referenced by an expression.
             ''' </summary>
             Private Class JoinConditionSideDeterminationVisitor
-                Inherits BoundTreeWalker
+                Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
                 <Flags()>
                 Public Enum Result
@@ -3728,9 +3728,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     _innerRangeVariables = StaticCast(Of Object).From(innerRangeVariables)
                 End Sub
 
-                Public Function DetermineTheSide(node As BoundExpression) As Result
+                Public Function DetermineTheSide(node As BoundExpression, diagnostics As DiagnosticBag) As Result
                     _side = Result.None
-                    Visit(node)
+                    Try
+                        Visit(node)
+                    Catch ex As CancelledByStackGuardException
+                        ex.AddAnError(diagnostics)
+                    End Try
+
                     Return _side
                 End Function
 
@@ -3752,7 +3757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' Helper visitor to report query specific errors for an operand of an Equals expression.
             ''' </summary>
             Private Class EqualsOperandIsBadErrorVisitor
-                Inherits BoundTreeWalker
+                Inherits BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
 
                 Private ReadOnly _binder As Binder
                 Private ReadOnly _errorInfo As DiagnosticInfo
@@ -3779,7 +3784,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     diagnostics As DiagnosticBag
                 )
                     Dim v As New EqualsOperandIsBadErrorVisitor(binder, errorInfo, badRangeVariables, diagnostics)
-                    v.Visit(node)
+                    Try
+                        v.Visit(node)
+                    Catch ex As CancelledByStackGuardException
+                        ex.AddAnError(diagnostics)
+                    End Try
                 End Sub
 
                 Public Overrides Function VisitRangeVariable(node As BoundRangeVariable) As BoundNode
@@ -3793,7 +3802,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
             End Class
-
         End Class
 
         ''' <summary>

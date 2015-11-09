@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me._elementType = method.ContainingAssembly.GetSpecialType(SpecialType.System_Object)
             Else
                 ' the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
-                Me._elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap)
+                Me._elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics().Single().InternalSubstituteTypeParameters(Me.TypeMap).Type
             End If
         End Sub
 

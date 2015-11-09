@@ -71,6 +71,34 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzer Driver Failure.
+        /// </summary>
+        internal static string AnalyzerDriverFailure {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer driver threw an exception of type &apos;{0}&apos; with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string AnalyzerDriverThrows {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverThrows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer driver threw the following exception:
+        ///&apos;{0}&apos;..
+        /// </summary>
+        internal static string AnalyzerDriverThrowsDescription {
+            get {
+                return ResourceManager.GetString("AnalyzerDriverThrowsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Time (s).
         /// </summary>
         internal static string AnalyzerExecutionTimeColumnHeader {
@@ -206,6 +234,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t create a metadata reference to an assembly without location..
+        /// </summary>
+        internal static string CantCreateReferenceToAssemblyWithoutLocation {
+            get {
+                return ResourceManager.GetString("CantCreateReferenceToAssemblyWithoutLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t create a metadata reference to a dynamic assembly..
         /// </summary>
         internal static string CantCreateReferenceToDynamicAssembly {
@@ -278,7 +315,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compiler Analyzer Failure.
+        ///   Looks up a localized string similar to Analyzer Failure.
         /// </summary>
         internal static string CompilerAnalyzerFailure {
             get {
@@ -287,7 +324,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Compiler Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
+        ///   Looks up a localized string similar to Analyzer &apos;{0}&apos; threw an exception of type &apos;{1}&apos; with message &apos;{2}&apos;..
         /// </summary>
         internal static string CompilerAnalyzerThrows {
             get {
@@ -333,6 +370,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument contains duplicate analyzer instances..
+        /// </summary>
+        internal static string DuplicateAnalyzerInstances {
+            get {
+                return ResourceManager.GetString("DuplicateAnalyzerInstances", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A key in the pathMap is empty..
+        /// </summary>
+        internal static string EmptyKeyInPathMap {
+            get {
+                return ResourceManager.GetString("EmptyKeyInPathMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Empty or invalid file name.
         /// </summary>
         internal static string EmptyOrInvalidFileName {
@@ -347,6 +402,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string EmptyOrInvalidResourceName {
             get {
                 return ResourceManager.GetString("EmptyOrInvalidResourceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value in the pathMap is empty..
+        /// </summary>
+        internal static string EmptyValueInPathMap {
+            get {
+                return ResourceManager.GetString("EmptyValueInPathMap", resourceCulture);
             }
         }
         
@@ -437,6 +501,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string IconStreamUnexpectedFormat {
             get {
                 return ResourceManager.GetString("IconStreamUnexpectedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inconsistent language versions.
+        /// </summary>
+        internal static string InconsistentLanguageVersions {
+            get {
+                return ResourceManager.GetString("InconsistentLanguageVersions", resourceCulture);
             }
         }
         
@@ -540,6 +613,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which is not a valid identifier..
+        /// </summary>
+        internal static string InvalidDiagnosticIdReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticIdReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid hash..
         /// </summary>
         internal static string InvalidHash {
@@ -612,6 +694,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Syntax tree doesn&apos;t belong to the underlying &apos;Compilation&apos;..
+        /// </summary>
+        internal static string InvalidTree {
+            get {
+                return ResourceManager.GetString("InvalidTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument to &apos;/keepalive&apos; option is not a 32-bit integer..
         /// </summary>
         internal static string KeepAliveIsNotAnInteger {
@@ -635,6 +726,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string KeepAliveWithoutShared {
             get {
                 return ResourceManager.GetString("KeepAliveWithoutShared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A key in the pathMap ends with a path separator..
+        /// </summary>
+        internal static string KeyInPathMapEndsWithSeparator {
+            get {
+                return ResourceManager.GetString("KeyInPathMapEndsWithSeparator", resourceCulture);
             }
         }
         
@@ -864,6 +964,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Resource stream ended at {0} bytes, expected {1} bytes..
+        /// </summary>
+        internal static string ResourceStreamEndedUnexpectedly {
+            get {
+                return ResourceManager.GetString("ResourceStreamEndedUnexpectedly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resource stream provider should return non-null stream..
         /// </summary>
         internal static string ResourceStreamProviderShouldReturnNonNullStream {
@@ -1040,6 +1149,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unresolved {
             get {
                 return ResourceManager.GetString("Unresolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Argument contains an analyzer instance that does not belong to the &apos;Analyzers&apos; for this CompilationWithAnalyzers instance..
+        /// </summary>
+        internal static string UnsupportedAnalyzerInstance {
+            get {
+                return ResourceManager.GetString("UnsupportedAnalyzerInstance", resourceCulture);
             }
         }
         

@@ -1,12 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
@@ -277,8 +276,8 @@ End Class"
 
             Dim errorMessage As String = Nothing
             testData = New CompilationTestData()
-            context.CompileExpression("b", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal(errorMessage, "(1) : error BC30451: 'b' is not declared. It may be inaccessible due to its protection level.")
+            context.CompileExpression("b", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal(errorMessage, "error BC30451: 'b' is not declared. It may be inaccessible due to its protection level.")
 
             testData = New CompilationTestData()
             context.CompileExpression("a(1)", errorMessage, testData)
@@ -1744,7 +1743,7 @@ End Class
 
             Dim errorMessage As String = Nothing
             Dim testData As New CompilationTestData()
-            context.CompileAssignment("o", "Nothing", errorMessage, testData, VisualBasicDiagnosticFormatter.Instance)
+            context.CompileAssignment("o", "Nothing", errorMessage, testData, DebuggerDiagnosticFormatter.Instance)
             Assert.Null(errorMessage) ' In regular code, there would be an error about modifying a lock local.
 
             testData.GetMethodData("<>x.<>m0").VerifyIL(
@@ -1783,8 +1782,8 @@ End Class
                 methodName:="C.M")
 
             Dim errorMessage As String = Nothing
-            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30074: Constant cannot be the target of an assignment.", errorMessage)
+            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30074: Constant cannot be the target of an assignment.", errorMessage)
 
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -1832,8 +1831,8 @@ End Class
                 methodName:="C.M")
 
             Dim errorMessage As String = Nothing
-            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=VisualBasicDiagnosticFormatter.Instance)
-            Assert.Equal("(1) : error BC30074: Constant cannot be the target of an assignment.", errorMessage)
+            context.CompileAssignment("d", "Nothing", errorMessage, formatter:=DebuggerDiagnosticFormatter.Instance)
+            Assert.Equal("error BC30074: Constant cannot be the target of an assignment.", errorMessage)
 
             Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
             Dim typeName As String = Nothing
@@ -3194,10 +3193,72 @@ End Class
             testData.GetMethodData("<>x.<>m0").VerifyIL(xIL)
         End Sub
 
+        <WorkItem(955, "https://github.com/aspnet/Home/issues/955")>
+        <Fact>
+        Public Sub ConstantWithErrorType()
+            Const source = "
+Module Module1
+    Sub Main()
+        Const a = 1
+    End Sub
+End Module"
+            Dim comp = CreateCompilationWithMscorlib({source}, {MsvbRef}, options:=TestOptions.DebugExe)
+            Dim runtime = CreateRuntimeInstance(comp)
+            Dim badConst = New MockSymUnmanagedConstant(
+                "a",
+                1,
+                Function(bufferLength As Integer, ByRef count As Integer, name() As Byte)
+                    count = 0
+                    Return DiaSymReader.SymUnmanagedReaderExtensions.E_NOTIMPL
+                End Function)
+            Dim debugInfo = New MethodDebugInfoBytes.Builder(constants:={badConst}).Build()
+            Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
+
+            GetLocals(runtime, "Module1.Main", debugInfo, locals, count:=0)
+
+            locals.Free()
+        End Sub
+
         Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, argumentsOnly As Boolean, locals As ArrayBuilder(Of LocalAndMethod), count As Integer, ByRef typeName As String, ByRef testData As CompilationTestData)
             Dim context = CreateMethodContext(runtime, methodName)
+
             testData = New CompilationTestData()
             Dim assembly = context.CompileGetLocals(locals, argumentsOnly, typeName, testData)
+
+            Assert.NotNull(assembly)
+            If count = 0 Then
+                Assert.Equal(0, assembly.Count)
+            Else
+                Assert.InRange(assembly.Count, 0, Integer.MaxValue)
+            End If
+            Assert.Equal(count, locals.Count)
+        End Sub
+
+        Private Shared Sub GetLocals(runtime As RuntimeInstance, methodName As String, debugInfo As MethodDebugInfoBytes, locals As ArrayBuilder(Of LocalAndMethod), count As Integer)
+            Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
+            Dim moduleVersionId As Guid = Nothing
+            Dim methodToken = 0
+            Dim localSignatureToken = 0
+            GetContextState(runtime, methodName, blocks, moduleVersionId, symReader:=Nothing, methodOrTypeToken:=methodToken, localSignatureToken:=localSignatureToken)
+
+            Dim symReader = New MockSymUnmanagedReader(
+                New Dictionary(Of Integer, MethodDebugInfoBytes)() From
+                {
+                    {methodToken, debugInfo}
+                }.ToImmutableDictionary())
+            Dim context = EvaluationContext.CreateMethodContext(
+                Nothing,
+                blocks,
+                MakeDummyLazyAssemblyReaders(),
+                symReader,
+                moduleVersionId,
+                methodToken,
+                methodVersion:=1,
+                ilOffset:=0,
+                localSignatureToken:=localSignatureToken)
+
+            Dim assembly = context.CompileGetLocals(locals, argumentsOnly:=False, typeName:=Nothing, testData:=Nothing)
+
             Assert.NotNull(assembly)
             If count = 0 Then
                 Assert.Equal(0, assembly.Count)

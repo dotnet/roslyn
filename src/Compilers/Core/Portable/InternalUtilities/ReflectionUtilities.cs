@@ -2,23 +2,38 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Roslyn.Utilities
 {
     internal static class ReflectionUtilities
     {
+        public static Type TryGetType(string assemblyQualifiedName)
+        {
+            try
+            {
+                // Note that throwOnError=false only suppresses some exceptions, not all.
+                return Type.GetType(assemblyQualifiedName, throwOnError: false);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         /// Find a <see cref="Type"/> instance by first probing the contract name and then the name as it
         /// would exist in mscorlib.  This helps satisfy both the CoreCLR and Desktop scenarios. 
         /// </summary>
         public static Type GetTypeFromEither(string contractName, string desktopName)
         {
-            var type = Type.GetType(contractName, throwOnError: false);
+            var type = TryGetType(contractName);
 
             if (type == null)
             {
-                type = Type.GetType(desktopName, throwOnError: false);
+                type = TryGetType(desktopName);
             }
 
             return type;
@@ -72,6 +87,35 @@ namespace Roslyn.Utilities
             }
 
             return (T)(object)methodInfo.CreateDelegate(typeof(T));
+        }
+
+        public static T InvokeConstructor<T>(this ConstructorInfo constructorInfo, params object[] args)
+        {
+            if (constructorInfo == null)
+            {
+                return default(T);
+            }
+
+            try
+            {
+                return (T)constructorInfo.Invoke(args);
+            }
+            catch (TargetInvocationException e)
+            {
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                Debug.Assert(false, "Unreachable");
+                return default(T);
+            }
+        }
+
+        public static object InvokeConstructor(this ConstructorInfo constructorInfo, params object[] args)
+        {
+            return constructorInfo.InvokeConstructor<object>(args);
+        }
+
+        public static T Invoke<T>(this MethodInfo methodInfo, object obj, params object[] args)
+        {
+            return (T)methodInfo.Invoke(obj, args);
         }
     }
 }

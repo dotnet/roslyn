@@ -269,7 +269,7 @@ lReportErrorOnTwoTokens:
                 End If
             Else
                 ' If alias syntax not specified use Nothing - the emitter will fill in the metadata method name and 
-                ' the users can determine wheter or not it was specified.
+                ' the users can determine whether or not it was specified.
                 entryPointName = Nothing
             End If
 
@@ -902,7 +902,7 @@ lReportErrorOnTwoTokens:
 
             ' Wrap constraints binder in a location-specific binder to
             ' avoid checking constraints when binding type names.
-            binder = New LocationSpecificBinder(BindingLocation.GenericConstraintsClause, binder)
+            binder = New LocationSpecificBinder(BindingLocation.GenericConstraintsClause, Me, binder)
             Return binder.BindTypeParameterConstraintClause(Me, syntax.TypeParameterConstraintClause, diagnostics)
         End Function
 
@@ -2066,7 +2066,7 @@ lReportErrorOnTwoTokens:
                     Dim fakeParamsBuilder = ArrayBuilder(Of ParameterSymbol).GetInstance(params.Length)
                     For Each param As ParameterSymbol In params
                         fakeParamsBuilder.Add(New SignatureOnlyParameterSymbol(
-                                                param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters),
+                                                param.Type.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                 ImmutableArray(Of CustomModifier).Empty,
                                                 defaultConstantValue:=Nothing,
                                                 isParamArray:=False,
@@ -2080,12 +2080,13 @@ lReportErrorOnTwoTokens:
                                                                             Me.CallingConvention,
                                                                             fakeTypeParameters,
                                                                             fakeParamsBuilder.ToImmutableAndFree(),
-                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters),
+                                                                            retType.InternalSubstituteTypeParameters(replaceMethodTypeParametersWithFakeTypeParameters).AsTypeSymbolOnly(),
                                                                             ImmutableArray(Of CustomModifier).Empty,
                                                                             ImmutableArray(Of MethodSymbol).Empty,
                                                                             isOverrides:=True))
                 End If
 
+                Debug.Assert(IsDefinition)
                 Dim overridden = overriddenMembers.OverriddenMember
 
                 If overridden IsNot Nothing Then

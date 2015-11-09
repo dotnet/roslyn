@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -11,10 +10,12 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Outlining;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Library;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -49,13 +50,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = componentModel.GetService<IMetadataAsSourceFileService>();
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, bool usePreviewTab = false)
+        public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet options, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
             {
                 return false;
             }
 
+            options = options ?? project.Solution.Workspace.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -70,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var editorWorkspace = targetDocument.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
-                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, usePreviewTab);
+                    return navigationService.TryNavigateToSpan(editorWorkspace, targetDocument.Id, sourceLocation.SourceSpan, options);
                 }
             }
 
@@ -82,11 +84,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
+            // Should we prefer navigating to the Object Browser over metadata-as-source?
+            if (options.GetOption(VisualStudioNavigationOptions.NavigateToObjectBrowser, project.Language))
+            {
+                var libraryService = project.LanguageServices.GetService<ILibraryService>();
+                if (libraryService == null)
+                {
+                    return false;
+                }
+
+                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, project, compilation);
+                if (navInfo == null)
+                {
+                    navInfo = libraryService.NavInfoFactory.CreateForProject(project);
+                }
+
+                if (navInfo != null)
+                {
+                    var navigationTool = GetService<SVsObjBrowser, IVsNavigationTool>();
+                    return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
+                }
+
+                // Note: we'll fallback to Metadata-As-Source if we fail to get IVsNavInfo, but that should never happen.
+            }
+
             // Generate new source or retrieve existing source for the symbol in question
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol).WaitAndGetResult(CancellationToken.None);
+            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, cancellationToken).WaitAndGetResult(cancellationToken);
 
             var vsRunningDocumentTable4 = GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
-            var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid((string)result.FilePath);
+            var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>();
 
@@ -99,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
             var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
-            var textBuffer = _editorAdaptersFactory.GetDataBuffer((IVsTextBuffer)vsTextBuffer);
+            var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 
             if (!fileAlreadyOpen)
             {
@@ -115,7 +142,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 var editorWorkspace = openedDocument.Project.Solution.Workspace;
                 var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
-                return navigationService.TryNavigateToSpan(editorWorkspace, openedDocument.Id, result.IdentifierLocation.SourceSpan, usePreviewTab: true);
+
+                return navigationService.TryNavigateToSpan(
+                    workspace: editorWorkspace,
+                    documentId: openedDocument.Id,
+                    textSpan: result.IdentifierLocation.SourceSpan,
+                    options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
             }
 
             return true;
@@ -290,9 +322,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return false;
         }
 
-        private I GetService<S, I>()
+        private TInterface GetService<TService, TInterface>()
         {
-            var service = (I)_serviceProvider.GetService(typeof(S));
+            var service = (TInterface)_serviceProvider.GetService(typeof(TService));
             Debug.Assert(service != null);
             return service;
         }

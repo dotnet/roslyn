@@ -22,8 +22,6 @@ class Program
     {
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
@@ -35,20 +33,11 @@ class Program
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
@@ -74,8 +63,6 @@ class Program
     {
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
 
@@ -88,20 +75,11 @@ class Program
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
@@ -127,8 +105,6 @@ class Program
     {
         yield return 1; //hidden sequence point after this.
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
 
@@ -141,20 +117,11 @@ class Program
         <forwardIterator name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""22"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""23"" endLine=""9"" endColumn=""24"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
         </encLocalSlotMap>
@@ -189,8 +156,6 @@ class Program
         }
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseDll);
@@ -202,19 +167,11 @@ class Program
         <forwardIterator name=""&lt;IEI&gt;d__0"" />
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""23"" endLine=""17"" endColumn=""24"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x2a"" endOffset=""0xb3"" />
           <slot startOffset=""0x6e"" endOffset=""0xb1"" />
@@ -257,8 +214,6 @@ class Program
         }
         yield break;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
@@ -274,20 +229,11 @@ class Program
         </encLocalSlotMap>
       </customDebugInfo>
     </method>
-    <method containingType=""Program"" name=""F"">
+    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""0"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""21"" endLine=""17"" endColumn=""22"" />
-        <entry offset=""0x1"" startLine=""17"" startColumn=""23"" endLine=""17"" endColumn=""24"" />
-      </sequencePoints>
-    </method>
-    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x39"" endOffset=""0xc5"" />
           <slot startOffset=""0x7e"" endOffset=""0xc3"" />
@@ -339,8 +285,6 @@ class Test<T>
         }
         yield return val;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
@@ -356,24 +300,11 @@ class Test<T>
         </encLocalSlotMap>
       </customDebugInfo>
     </method>
-    <method containingType=""Test`1"" name=""F"">
+    <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
         <using>
           <namespace usingCount=""2"" />
         </using>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""19"" startColumn=""21"" endLine=""19"" endColumn=""22"" />
-        <entry offset=""0x1"" startLine=""19"" startColumn=""23"" endLine=""19"" endColumn=""24"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x2"">
-        <namespace name=""System"" />
-        <namespace name=""System.Collections.Generic"" />
-      </scope>
-    </method>
-    <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"">
-      <customDebugInfo>
-        <forward declaringType=""Test`1"" methodName=""F"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x32"" endOffset=""0xe1"" />
           <slot startOffset=""0x0"" endOffset=""0x0"" />
@@ -403,6 +334,10 @@ class Test<T>
         <entry offset=""0xde"" startLine=""17"" startColumn=""5"" endLine=""17"" endColumn=""6"" />
         <entry offset=""0xe2"" hidden=""true"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xec"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
@@ -889,8 +824,6 @@ class C
         if (disposable != null) { using (disposable) { } }
         lock (this) { }
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }";
             CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
@@ -1058,8 +991,6 @@ class C
 
         yield return 1;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             // TODO: Currently we don't have means necessary to pass information about the display 
@@ -1128,7 +1059,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" />
@@ -1184,8 +1115,6 @@ class C
         // Possible EnC edit - add lambda:
         // () => { x1 }
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             // We need to hoist display class variable to allow adding a new lambda after yield return 
@@ -1267,7 +1196,7 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <forward declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" />
         <hoistedLocalScopes>
           <slot startOffset=""0x1f"" endOffset=""0x7e"" />
         </hoistedLocalScopes>
@@ -1327,8 +1256,6 @@ class C
         yield return d;
         d.ToString();
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1349,7 +1276,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <hoistedLocalScopes>
           <slot startOffset=""0x1f"" endOffset=""0xe2"" />
         </hoistedLocalScopes>
@@ -1366,6 +1295,9 @@ class C
         <entry offset=""0x89"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" />
         <entry offset=""0xe1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xe3"">
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
     </method>
   </methods>
 </symbols>");
@@ -1402,8 +1334,6 @@ class C
         dynamic d = 1;
         yield return d;
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1421,7 +1351,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d"" />
         </dynamicLocals>
@@ -1434,6 +1366,7 @@ class C
         <entry offset=""0x74"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x76"">
+        <namespace name=""System.Collections.Generic"" />
         <scope startOffset=""0x17"" endOffset=""0x76"">
           <local name=""d"" il_index=""1"" il_start=""0x17"" il_end=""0x76"" attributes=""0"" />
         </scope>
@@ -1460,8 +1393,6 @@ class C
         // Possible EnC edit:
         // System.Console.WriteLine(d);
     }
-
-    public void F() { } // needs to be present to work around SymWriter bug #1068894
 }
 ";
             var v = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1480,7 +1411,9 @@ class C
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
       <customDebugInfo>
-        <forward declaringType=""C"" methodName=""F"" />
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
         <hoistedLocalScopes>
           <slot startOffset=""0x1f"" endOffset=""0x8a"" />
         </hoistedLocalScopes>
@@ -1496,6 +1429,9 @@ class C
         <entry offset=""0x82"" hidden=""true"" />
         <entry offset=""0x89"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
       </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x8b"">
+        <namespace name=""System.Collections.Generic"" />
+      </scope>
     </method>
   </methods>
 </symbols>");

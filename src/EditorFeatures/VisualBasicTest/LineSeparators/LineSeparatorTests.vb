@@ -14,54 +14,54 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
     Public Class LineSeparatorTests
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub NoLinesInEmptyFile()
             AssertTags(Array.Empty(Of TextSpan)(), "")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub EmptyClass()
             AssertTags({New TextSpan(9, 9)},
                        "Class C",
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub EmptyModule()
             AssertTags({New TextSpan(10, 10)},
                        "Module C",
                        "End Module")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub EmptyStructure()
             AssertTags({New TextSpan(13, 13)},
                        "Structure S",
                        "End Structure")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub EmptyInterface()
             AssertTags({New TextSpan(13, 13)},
                        "Interface I",
                        "End Interface")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub EmptyEnum()
             AssertTags({New TextSpan(8, 8)},
                        "Enum E",
                        "End Enum")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub EmptyNamespace()
             AssertTags({New TextSpan(13, 13)},
                        "Namespace N",
                        "End Namespace")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub ClassWithOneMethod()
             AssertTags({New TextSpan(40, 9)},
                        "Class C",
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub ClassWithTwoMethods()
             AssertTags({
                            New TextSpan(32, 7),
@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub ClassWithTwoNonEmptyMethods()
             AssertTags({
                             New TextSpan(45, 7),
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub ClassWithMethodAndField()
             AssertTags({
                             New TextSpan(32, 7),
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub ClassWithFieldAndMethod()
             AssertTags({
                            New TextSpan(17, 12),
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub EmptyClassInNamespace()
             AssertTags({New TextSpan(41, 13)},
                        "Namespace N",
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Namespace")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub NamespaceAndTwoClasses()
             AssertTags({
                            New TextSpan(31, 9),
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Namespace")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub NamespaceAndTwoClassesAndDelegate()
             AssertTags({
                            New TextSpan(31, 9),
@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Namespace")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub NestedClass()
             AssertTags({New TextSpan(37, 9)},
                        "Class C",
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub TwoNestedClasses()
             AssertTags({
                            New TextSpan(27, 9),
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
         End Sub
 
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub TestProperty()
             AssertTags({New TextSpan(164, 9)},
                        "Class C",
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub TestPropertyAndField()
             AssertTags({
                            New TextSpan(150, 12),
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub TestImports()
             AssertTags({
                             New TextSpan(8, 6),
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub TestCustomEvent()
             AssertTags({
                             New TextSpan(235, 9),
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineSeparators
                        "End Class")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Sub TestConstructor()
             AssertTags({
                             New TextSpan(26, 7),

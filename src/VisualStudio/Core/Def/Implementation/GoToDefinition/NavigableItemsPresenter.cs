@@ -26,13 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.GoToDefinition
             _manager = (LibraryManager)serviceProvider.GetService(typeof(LibraryManager));
         }
 
-        public void DisplayResult(IEnumerable<INavigableItem> items)
+        public void DisplayResult(string title, IEnumerable<INavigableItem> items)
         {
-            var first = items.FirstOrDefault();
-            if (first != null)
+            if (title == null)
             {
-                _manager.PresentNavigableItems(first.DisplayName, items);
+                throw new ArgumentNullException(nameof(title));
             }
+
+            _manager.PresentNavigableItems(title, items);
         }
     }
 }

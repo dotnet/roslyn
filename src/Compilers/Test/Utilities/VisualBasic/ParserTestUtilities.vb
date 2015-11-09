@@ -31,7 +31,7 @@ Friend Module ParserTestUtilities
             expectedDiagnostics = New DiagnosticDescription(expectedXml.Count - 1) {}
             For i = 0 To expectedDiagnostics.Length - 1
                 Dim e = expectedXml.ElementAt(i)
-                expectedDiagnostics(i) = BasicTestBase.Diagnostic(CType(CInt(e.@id), ERRID))
+                expectedDiagnostics(i) = TestBase.Diagnostic(CType(CInt(e.@id), ERRID))
 
                 Debug.Assert(e.@line Is Nothing, "'line' attribute will be ignored")
                 Debug.Assert(e.@column Is Nothing, "'column' attribute will be ignored")

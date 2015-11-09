@@ -2,68 +2,75 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
-Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Tagging
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     Public Class MiscDiagnosticUpdateSourceTests
-        <Fact>
-        Public Sub TestMiscSquiggles()
+        <WpfFact>
+        Public Async Function TestMiscSquiggles() As Task
             Dim code = <code>
 class 123 { }
                        </code>
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
+                    New MockDiagnosticUpdateSourceRegistrationService())
+
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                Dim diagnosticWaiter = New DiagnosticServiceWaiter()
-                Dim listener = SpecializedCollections.SingletonEnumerable(New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
-                    Function() diagnosticWaiter,
-                    New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.DiagnosticService}})))
+                Dim listener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
 
-                Dim diagnosticService = New DiagnosticService(New IDiagnosticUpdateSource() {miscService}, listener)
+                Dim diagnosticService = New DiagnosticService(listeners)
+                diagnosticService.Register(miscService)
 
                 Dim optionsService = workspace.Services.GetService(Of IOptionService)()
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                Dim squiggleWaiter = New ErrorSquiggleWaiter()
-                Dim foregroundService = New TestForegroundNotificationService()
-                Dim taggerSource = New DiagnosticsSquiggleTaggerProvider.TagSource(buffer, foregroundService, diagnosticService, optionsService, squiggleWaiter)
+                Dim foregroundService = workspace.GetService(Of IForegroundNotificationService)()
+                Dim provider = New DiagnosticsSquiggleTaggerProvider(optionsService, diagnosticService, foregroundService, listeners)
+                Dim tagger = provider.CreateTagger(Of IErrorTag)(buffer)
+                Using disposable = TryCast(tagger, IDisposable)
+                    Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                    Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
 
-                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+                    Await listener.CreateWaitTask().ConfigureAwait(True)
 
-                diagnosticWaiter.CreateWaitTask().PumpingWait()
-                squiggleWaiter.CreateWaitTask().PumpingWait()
+                    Dim snapshot = buffer.CurrentSnapshot
+                    Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
 
-                Dim snapshot = buffer.CurrentSnapshot
-                Dim intervalTree = taggerSource.GetTagIntervalTreeForBuffer(buffer)
-                Dim spans = intervalTree.GetIntersectingSpans(New SnapshotSpan(snapshot, 0, snapshot.Length)).ToImmutableArray()
-
-                Assert.True(spans.Count() > 0)
-                Assert.True(spans.All(Function(s) s.Span.Length > 0))
-
-                taggerSource.TestOnly_Dispose()
+                    Assert.True(spans.Count() > 0)
+                    Assert.True(spans.All(Function(s) s.Span.Length > 0))
+                End Using
             End Using
-        End Sub
+        End Function
 
-        <Fact>
-        Public Sub TestMiscCSharpErrorSource()
+        <WpfFact>
+        Public Async Function TestMiscCSharpErrorSource() As Tasks.Task
             Dim code = <code>
 class 123 { }
                        </code>
             Using workspace = CSharpWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
+                    New MockDiagnosticUpdateSourceRegistrationService())
+
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
@@ -72,20 +79,23 @@ class 123 { }
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
-        End Sub
+        End Function
 
-        <Fact>
-        Public Sub TestMiscVBErrorSource()
+        <WpfFact>
+        Public Async Function TestMiscVBErrorSource() As Task
             Dim code = <code>
 Class 123
 End Class
                        </code>
             Using workspace = VisualBasicWorkspaceFactory.CreateWorkspaceFromLines(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()))
+                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
+                    New MockDiagnosticUpdateSourceRegistrationService())
+
                 Dim buildTool = String.Empty
 
                 AddHandler miscService.DiagnosticsUpdated, Sub(e, a)
@@ -94,13 +104,10 @@ End Class
                                                            End Sub
 
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
-                analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).PumpingWait()
+                Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), CancellationToken.None).ConfigureAwait(True)
 
                 Assert.Equal(PredefinedBuildTools.Live, buildTool)
             End Using
-        End Sub
-
-        Private Class DiagnosticServiceWaiter : Inherits AsynchronousOperationListener : End Class
-        Private Class ErrorSquiggleWaiter : Inherits AsynchronousOperationListener : End Class
+        End Function
     End Class
 End Namespace

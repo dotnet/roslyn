@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private ParameterSymbol MakeParameterSymbol(int ordinal, string name, ParameterSymbol sourceParameter)
         {
-            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers);
+            return new SynthesizedParameterSymbol(this, sourceParameter.Type, ordinal, sourceParameter.RefKind, name, sourceParameter.CustomModifiers, sourceParameter.CountOfCustomModifiersPrecedingByRef);
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -425,6 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return;
             }
 
+            try
+            {
             var declaredLocals = PooledHashSet<LocalSymbol>.GetInstance();
             try
             {
@@ -482,12 +484,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             localsSet.Free();
 
-            body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+            body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
 
             Debug.Assert(!diagnostics.HasAnyErrors());
             Debug.Assert(!body.HasErrors);
 
             bool sawLambdas;
+            bool sawLocalFunctions;
             bool sawAwaitInExceptionHandler;
             body = LocalRewriter.Rewrite(
                 compilation: this.DeclaringCompilation,
@@ -500,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 allowOmissionOfConditionalCalls: false,
                 diagnostics: diagnostics,
                 sawLambdas: out sawLambdas,
+                sawLocalFunctions: out sawLocalFunctions,
                 sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
             Debug.Assert(!sawAwaitInExceptionHandler);
@@ -554,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 return;
             }
 
-            if (sawLambdas)
+            if (sawLambdas || sawLocalFunctions)
             {
                 var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                 var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
@@ -565,6 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     thisParameter: _thisParameter,
                     method: this,
                     methodOrdinal: _methodOrdinal,
+                    substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
                     closureDebugInfoBuilder: closureDebugInfoBuilder,
                     lambdaDebugInfoBuilder: lambdaDebugInfoBuilder,
                     slotAllocatorOpt: null,
@@ -597,9 +602,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 localBuilder.Add(local);
             }
 
-            body = block.Update(localBuilder.ToImmutableAndFree(), block.Statements);
+            body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.Statements);
             TypeParameterChecker.Check(body, _allTypeParameters);
             compilationState.AddSynthesizedMethod(this, body);
+        }
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+            }
         }
 
         private static TypeSymbol CalculateReturnType(CSharpCompilation compilation, BoundStatement bodyOpt)

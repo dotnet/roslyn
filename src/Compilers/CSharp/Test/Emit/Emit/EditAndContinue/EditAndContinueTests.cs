@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -85,18 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 generation0,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
 
-            var reader1 = diff1.GetMetadata().Reader;
-
-            var assemblyDef = reader1.GetAssemblyDefinition();
-            Assert.False(assemblyDef.Name.IsNil);
-            Assert.Equal(0, assemblyDef.Version.Major);
-            Assert.Equal(0, assemblyDef.Version.Minor);
-            Assert.Equal(0, assemblyDef.Version.Revision);
-            Assert.Equal(0, assemblyDef.Version.Build);
-            Assert.True(assemblyDef.PublicKey.IsNil);
-            Assert.True(assemblyDef.Culture.IsNil);
-            Assert.Equal((AssemblyFlags)0, assemblyDef.Flags);
-            Assert.Equal(AssemblyHashAlgorithm.Sha1, assemblyDef.HashAlgorithm);
+            // AssemblyDef record is not emitted to delta since changes in assembly identity are not allowed:
+            Assert.True(md0.MetadataReader.IsAssembly);
+            Assert.False(diff1.GetMetadata().Reader.IsAssembly);
         }
 
         [Fact]
@@ -3931,7 +3923,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md1 = diff1.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000002] 0x0000028b.0x00000298" }, DumpTypeRefs(md1.Reader));
+            AssertEx.Equal(new[] { "[0x23000002] 0x00000266.0x00000273" }, DumpTypeRefs(md1.Reader));
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -3954,7 +3946,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] 0x000002f9.0x00000306" }, DumpTypeRefs(md2.Reader));
+            AssertEx.Equal(new[] { "[0x23000003] 0x000002af.0x000002bc" }, DumpTypeRefs(md2.Reader));
         }
 
         [Fact]
@@ -4039,7 +4031,7 @@ class C
 ");
             // expect a single TypeRef for System.Object
             var md2 = diff2.GetMetadata();
-            AssertEx.Equal(new[] { "[0x23000003] 0x0000032c.0x00000339" }, DumpTypeRefs(md2.Reader));
+            AssertEx.Equal(new[] { "[0x23000003] 0x000002e2.0x000002ef" }, DumpTypeRefs(md2.Reader));
         }
 
         private static IEnumerable<string> DumpTypeRefs(MetadataReader reader)
@@ -5232,16 +5224,15 @@ class C
                 "<>f__AnonymousType1<<<>h__TransparentIdentifier0>j__TPar, <y>j__TPar>: {Equals, GetHashCode, ToString}");
 
             diff1.VerifyLocalSignature("C.F", @"
-.locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
-              System.Collections.Generic.IEnumerable<string> V_1, //newArgs
-              <>f__AnonymousType5<dynamic, dynamic> V_2, //list
-              int V_3, //i
-              <>f__AnonymousType5<string, dynamic> V_4, //linked
-              object V_5, //str
-              <>f__AnonymousType5<string, dynamic> V_6,
-              object V_7,
-              int V_8,
-              bool V_9)
+  .locals init (System.Collections.Generic.IEnumerable<<anonymous type: string Value, int Length>> V_0, //result
+                System.Collections.Generic.IEnumerable<string> V_1, //newArgs
+                <>f__AnonymousType5<dynamic, dynamic> V_2, //list
+                int V_3, //i
+                <>f__AnonymousType5<string, dynamic> V_4, //linked
+                object V_5, //str
+                <>f__AnonymousType5<string, dynamic> V_6,
+                object V_7,
+                bool V_8)
 ");
         }
 
@@ -5539,34 +5530,30 @@ class C
 
             diff1.VerifyIL("C.M", @"
 {
-  // Code size       40 (0x28)
+  // Code size       32 (0x20)
   .maxstack  3
   .locals init (C V_0, //c
-                [unchanged] V_1,
+                [int] V_1,
                 [int] V_2,
-                [int] V_3,
-                C V_4,
-                int V_5,
-                int V_6)
+                int V_3,
+                int V_4)
   IL_0000:  nop
   IL_0001:  newobj     ""C..ctor()""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  stloc.s    V_4
-  IL_000a:  ldloc.s    V_4
-  IL_000c:  callvirt   ""int C.P.get""
-  IL_0011:  stloc.s    V_5
-  IL_0013:  ldloc.s    V_4
-  IL_0015:  ldloc.s    V_5
-  IL_0017:  ldc.i4.1
-  IL_0018:  add
-  IL_0019:  callvirt   ""void C.P.set""
-  IL_001e:  nop
-  IL_001f:  ldloc.s    V_5
-  IL_0021:  stloc.s    V_6
-  IL_0023:  br.s       IL_0025
-  IL_0025:  ldloc.s    V_6
-  IL_0027:  ret
+  IL_0008:  dup
+  IL_0009:  callvirt   ""int C.P.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  ldc.i4.1
+  IL_0011:  add
+  IL_0012:  callvirt   ""void C.P.set""
+  IL_0017:  nop
+  IL_0018:  ldloc.3
+  IL_0019:  stloc.s    V_4
+  IL_001b:  br.s       IL_001d
+  IL_001d:  ldloc.s    V_4
+  IL_001f:  ret
 }");
         }
 

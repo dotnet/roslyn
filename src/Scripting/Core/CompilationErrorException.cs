@@ -2,29 +2,28 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
     /// <summary>
     /// An exception thrown when the compilation stage of interactive execution produces compilation errors.
     /// </summary>
-    public class CompilationErrorException : Exception
+    public sealed class CompilationErrorException : Exception
     {
-        private readonly ImmutableArray<Diagnostic> _diagnostics;
-
-        internal CompilationErrorException(string message, ImmutableArray<Diagnostic> diagnostics)
-            : base(message)
-        {
-            _diagnostics = diagnostics;
-        }
-
         /// <summary>
         /// The list of diagnostics produced by compilation.
         /// </summary>
-        public ImmutableArray<Diagnostic> Diagnostics
+        public ImmutableArray<Diagnostic> Diagnostics { get; }
+
+        public CompilationErrorException(string message, ImmutableArray<Diagnostic> diagnostics)
+            : base(message)
         {
-            get { return _diagnostics; }
+            if (diagnostics.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(diagnostics));
+            }
+
+            Diagnostics = diagnostics;
         }
     }
 }

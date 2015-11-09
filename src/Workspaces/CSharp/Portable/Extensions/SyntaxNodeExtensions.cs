@@ -114,8 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return node.IsFoundUnder((PropertyDeclarationSyntax p) => p.Initializer);
 
                 case SyntaxKind.FieldDeclaration:
-                    // Inside a field one can only access static members of a type.
-                    return true;
+                case SyntaxKind.EventFieldDeclaration:
+                    // Inside a field one can only access static members of a type (unless it's top-level).
+                    return !memberDeclaration.Parent.IsKind(SyntaxKind.CompilationUnit);
 
                 case SyntaxKind.DestructorDeclaration:
                     return false;
@@ -175,9 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var endOfLine = Match(SyntaxKind.EndOfLineTrivia, "\\n");
             var singleBlankLine = Matcher.Sequence(whitespace, endOfLine);
 
+            var shebangComment = Match(SyntaxKind.ShebangDirectiveTrivia, "#!");
             var singleLineComment = Match(SyntaxKind.SingleLineCommentTrivia, "//");
             var multiLineComment = Match(SyntaxKind.MultiLineCommentTrivia, "/**/");
-            var anyCommentMatcher = Matcher.Choice(singleLineComment, multiLineComment);
+            var anyCommentMatcher = Matcher.Choice(shebangComment, singleLineComment, multiLineComment);
 
             var commentLine = Matcher.Sequence(whitespace, anyCommentMatcher, whitespace, endOfLine);
 
@@ -248,6 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
@@ -656,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (ppIndex != -1)
             {
-                // We have a pp directive.  it (and all all previous trivia) must be stripped.
+                // We have a pp directive.  it (and all previous trivia) must be stripped.
                 leadingTriviaToStrip = new List<SyntaxTrivia>(leadingTrivia.Take(ppIndex + 1));
                 leadingTriviaToKeep = new List<SyntaxTrivia>(leadingTrivia.Skip(ppIndex + 1));
             }
@@ -802,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenForward : null;
 
             return FindTokenHelper.FindTokenOnRightOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -818,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool includeDirectives = false,
             bool includeDocumentationComments = false)
         {
-            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : (Func<SyntaxTriviaList, int, SyntaxToken>)null;
+            var skippedTokenFinder = includeSkipped ? s_findSkippedTokenBackward : null;
 
             return FindTokenHelper.FindTokenOnLeftOfPosition<CompilationUnitSyntax>(
                 root, position, skippedTokenFinder, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -840,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             while (left <= right)
             {
                 int middle = left + ((right - left) / 2);
-                SyntaxNodeOrToken node = childList.ElementAt(middle);
+                SyntaxNodeOrToken node = childList[middle];
 
                 var span = node.FullSpan;
                 if (position < span.Start)
@@ -958,25 +961,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsEmbeddedStatementOwner(this SyntaxNode node)
         {
-            return node is IfStatementSyntax ||
+            return
+                   node is DoStatementSyntax ||
                    node is ElseClauseSyntax ||
-                   node is WhileStatementSyntax ||
-                   node is ForStatementSyntax ||
+                   node is FixedStatementSyntax ||
                    node is ForEachStatementSyntax ||
+                   node is ForStatementSyntax ||
+                   node is IfStatementSyntax ||
+                   node is LabeledStatementSyntax ||
+                   node is LockStatementSyntax ||
                    node is UsingStatementSyntax ||
-                   node is DoStatementSyntax;
+                   node is WhileStatementSyntax;
         }
 
         public static StatementSyntax GetEmbeddedStatement(this SyntaxNode node)
         {
+
             return node.TypeSwitch(
-                (IfStatementSyntax n) => n.Statement,
-                (ElseClauseSyntax n) => n.Statement,
-                (WhileStatementSyntax n) => n.Statement,
-                (ForStatementSyntax n) => n.Statement,
-                (ForEachStatementSyntax n) => n.Statement,
-                (UsingStatementSyntax n) => n.Statement,
                 (DoStatementSyntax n) => n.Statement,
+                (ElseClauseSyntax n) => n.Statement,
+                (FixedStatementSyntax n) => n.Statement,
+                (ForEachStatementSyntax n) => n.Statement,
+                (ForStatementSyntax n) => n.Statement,
+                (IfStatementSyntax n) => n.Statement,
+                (LabeledStatementSyntax n) => n.Statement,
+                (LockStatementSyntax n) => n.Statement,
+                (UsingStatementSyntax n) => n.Statement,
+                (WhileStatementSyntax n) => n.Statement,
                 (SyntaxNode n) => null);
         }
 

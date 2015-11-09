@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsArray();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             refKind = parameter.RefKind;
 
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && parameter.Type.TypeKind == TypeKind.Array)
+                parameter.IsParams && parameter.Type.IsSZArray())
             {
                 return ((ArrayTypeSymbol)parameter.Type).ElementType;
             }
@@ -1551,8 +1551,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (arguments.Count < declaredParameterCount)
                 {
-                    // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
-                    parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    ImmutableArray<int> argsToParamsOpt = m.Result.ArgsToParamsOpt;
+
+                    if (argsToParamsOpt.IsDefaultOrEmpty || !argsToParamsOpt.Contains(declaredParameterCount - 1))
+                    {
+                        // params parameter isn't used (see ExpressionBinder::TryGetExpandedParams in the native compiler)
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount - 1;
+                    }
+                    else
+                    {
+                        // params parameter is used by a named argument
+                        parametersUsedIncludingExpansionAndOptional = declaredParameterCount;
+                    }
                 }
                 else
                 {
@@ -1631,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We should not have gotten here unless there were identity conversions
                 // between the two types.
-                Debug.Assert(arr1.Rank == arr2.Rank);
+                Debug.Assert(arr1.HasSameShapeAs(arr2));
 
                 return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteDiagnostics);
             }
@@ -1913,9 +1923,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _returns = returns;
             }
 
-            public override BoundNode VisitLambda(BoundLambda node)
+            public override BoundNode Visit(BoundNode node)
             {
-                // Do not recurse into nested lambdas; we don't want their returns.
+                if (!(node is BoundExpression))
+                {
+                    return base.Visit(node);
+                }
+
+                return null;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+            {
+                // Do not recurse into nested local functions; we don't want their returns.
                 return null;
             }
 
@@ -2584,10 +2609,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // using the generic parameters of "method", so we can now substitute these type parameters 
                     // in the constructed effective parameters.
 
-                    var map = new TypeMap(method.TypeParameters, typeArguments, allowAlpha: true);
+                    var map = new TypeMap(method.TypeParameters, typeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers), allowAlpha: true);
 
                     effectiveParameters = new EffectiveParameters(
-                        map.SubstituteTypes(constructedEffectiveParameters.ParameterTypes),
+                        map.SubstituteTypesWithoutModifiers(constructedEffectiveParameters.ParameterTypes),
                         constructedEffectiveParameters.ParameterRefKinds);
 
                     ignoreOpenTypes = false;

@@ -2547,7 +2547,7 @@ Class Program // this will get a Property declaration ... *sigh*
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var expr = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single();
+            var expr = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().First();
             var declaredSymbol = model.GetDeclaredSymbol(expr);
         }
 

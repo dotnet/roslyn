@@ -28,7 +28,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithReferences({source.Tree}, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithReferences({source.Tree}, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source.Tree)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -174,8 +174,8 @@ End Class
     </file>
 </compilation>
 
-            Dim debug = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim release = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.ReleaseDll)
+            Dim debug = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim release = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(debug).VerifyPdb("C.M",
 <symbols>
@@ -474,7 +474,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -579,7 +579,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -751,7 +751,7 @@ End Class
                 </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)

@@ -4,6 +4,10 @@ using System.IO;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -283,6 +287,57 @@ namespace RoslynYield
     }
 }";
             CompileAndVerify(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(5390, "https://github.com/dotnet/roslyn/issues/5390")]
+        public void TopLevelYieldReturn()
+        {
+            // The imcomplete statement is intended
+            var text = "yield return int.";
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            comp.VerifyDiagnostics(
+                // (1,18): error CS1001: Identifier expected
+                // yield return int.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 18),
+                // (1,18): error CS1002: ; expected
+                // yield return int.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 18),
+                // (1,18): error CS0117: 'int' does not contain a definition for ''
+                // yield return int.
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "").WithArguments("int", "").WithLocation(1, 18),
+                // (1,1): error CS7020: You cannot use 'yield' in top-level script code
+                // yield return int.
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
+
+            var tree = comp.SyntaxTrees[0];     
+            var yieldNode = (YieldStatementSyntax)tree.GetRoot().DescendantNodes().Where(n => n is YieldStatementSyntax).SingleOrDefault();
+
+            Assert.NotNull(yieldNode);
+            Assert.Equal(SyntaxKind.YieldReturnStatement, yieldNode.Kind());
+
+            var model = comp.GetSemanticModel(tree);          
+            var typeInfo = model.GetTypeInfo(yieldNode.Expression);
+
+            Assert.Equal(TypeKind.Error, typeInfo.Type.TypeKind);
+        }
+
+        [Fact]
+        [WorkItem(5390, "https://github.com/dotnet/roslyn/issues/5390")]
+        public void TopLevelYieldBreak()
+        {
+            var text = "yield break;";
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            comp.VerifyDiagnostics(
+                // (1,1): error CS7020: You cannot use 'yield' in top-level script code
+                // yield break;
+                Diagnostic(ErrorCode.ERR_YieldNotAllowedInScript, "yield").WithLocation(1, 1));
+
+            var tree = comp.SyntaxTrees[0];
+            var yieldNode = (YieldStatementSyntax)tree.GetRoot().DescendantNodes().Where(n => n is YieldStatementSyntax).SingleOrDefault();
+
+            Assert.NotNull(yieldNode);
+            Assert.Equal(SyntaxKind.YieldBreakStatement, yieldNode.Kind());
         }
     }
 }

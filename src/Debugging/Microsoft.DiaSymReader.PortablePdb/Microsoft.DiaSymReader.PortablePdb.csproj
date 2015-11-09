@@ -2,8 +2,8 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
-    <Import Project="Version.targets" />
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+    <Import Project="Version.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
@@ -22,36 +22,38 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.MemoryMappedFiles.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.MemoryMappedFiles.dll">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="..\..\..\packages\System.IO.MemoryMappedFiles.4.0.0-beta-22816\lib\net45\System.IO.MemoryMappedFiles.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ImmutableArrayExtensions.cs">
+      <Link>Utilities\ImmutableArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
+      <Link>Utilities\ReflectionUtilities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Core\Portable\PortableShim.cs">
+      <Link>Utilities\PortableShim.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
+      <Link>System.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\CustomModifier.cs">
+      <Link>System.Reflection.Metadata.Decoding\CustomModifier.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs">
+      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs">
+      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs">
+      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs">
+      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs">
+      <Link>System.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
+    </Compile>
     <Compile Include="AsyncMethodData.cs" />
+    <Compile Include="MethodMap.cs" />
     <Compile Include="Utilities\BlobWriter.cs" />
     <Compile Include="Utilities\FileNameUtilities.cs" />
     <Compile Include="Utilities\HResult.cs" />
@@ -74,15 +76,12 @@
     <Compile Include="SymVariable.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.DiaSymReader.PortablePdb.UnitTests" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

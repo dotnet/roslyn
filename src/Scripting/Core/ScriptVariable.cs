@@ -10,62 +10,63 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// A variable declared by the script.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    public class ScriptVariable
+    public sealed class ScriptVariable
     {
         private readonly object _instance;
-        private readonly MemberInfo _member;
+        private readonly FieldInfo _field;
 
-        internal ScriptVariable(object instance, MemberInfo member)
+        internal ScriptVariable(object instance, FieldInfo field)
         {
+            Debug.Assert(instance != null);
+            Debug.Assert(field != null);
+
             _instance = instance;
-            _member = member;
+            _field = field;
         }
 
         /// <summary>
         /// The name of the variable.
         /// </summary>
-        public string Name
-        {
-            get { return _member.Name; }
-        }
+        public string Name => _field.Name;
 
         /// <summary>
         /// The type of the variable.
         /// </summary>
-        public Type Type
-        {
-            get
-            {
-                var field = _member as FieldInfo;
-                if (field != null)
-                {
-                    return field.FieldType;
-                }
+        public Type Type => _field.FieldType;
 
-                return ((PropertyInfo)_member).PropertyType;
-            }
-        }
+        /// <summary>
+        /// True if the variable can't be written to (it's declared as readonly or a constant).
+        /// </summary>
+        public bool IsReadOnly => _field.IsInitOnly || _field.IsLiteral;
 
         /// <summary>
         /// The value of the variable after running the script.
         /// </summary>
+        /// <exception cref="InvalidOperationException">Variable is read-only or a constant.</exception>
+        /// <exception cref="ArgumentException">The type of the specified <paramref name="value"/> isn't assignable to the type of the variable.</exception>
         public object Value
         {
             get
             {
-                var field = _member as FieldInfo;
-                if (field != null)
+                return _field.GetValue(_instance);
+            }
+
+            set
+            {
+                if (_field.IsInitOnly)
                 {
-                    return field.GetValue(_instance);
+                    throw new InvalidOperationException(ScriptingResources.CannotSetReadOnlyVariable);
                 }
 
-                return ((PropertyInfo)_member).GetValue(_instance);
+                if (_field.IsLiteral)
+                {
+                    throw new InvalidOperationException(ScriptingResources.CannotSetConstantVariable);
+                }
+
+                _field.SetValue(_instance, value);
             }
         }
 
-        private string GetDebuggerDisplay()
-        {
-            return string.Format("{0}: {1}", this.Name, this.Value?.ToString() ?? "<null>");
-        }
+        private string GetDebuggerDisplay() => $"{Name}: {Value ?? "<null>"}";
     }
 }

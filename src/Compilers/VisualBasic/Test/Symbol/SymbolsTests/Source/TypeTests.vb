@@ -2918,7 +2918,7 @@ Friend Class c2
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -2984,7 +2984,7 @@ BC37211: Type 'ITest20(Of T)' exported from module 'ITest20Mod.netmodule' confli
 ]]>
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(ilSource.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
@@ -3090,21 +3090,21 @@ End Class
 ]]>.Value
 
             Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module1_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
+            Using reference = IlasmUtilities.CreateTempAssembly(modSource.Replace("<<ModuleName>>", "module1_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
             Dim module1_FT1_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module2_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
+            Using reference = IlasmUtilities.CreateTempAssembly(modSource.Replace("<<ModuleName>>", "module2_FT1").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes1"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 
             Dim module2_FT1_Ref = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(modSource.Replace("<<ModuleName>>", "module3_FT2").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes2"),
+            Using reference = IlasmUtilities.CreateTempAssembly(modSource.Replace("<<ModuleName>>", "module3_FT2").Replace("<<TypesForWardedToAssembly>>", "ForwardedTypes2"),
                                                                        appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
@@ -3136,7 +3136,7 @@ End Class
 // Image base: 0x01100000
 ]]>.Value
 
-            Using reference = SharedCompilationUtils.IlasmTempAssembly(module4_FT1_source, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(module4_FT1_source, appendDefaultHeader:=False)
                 ilBytes = ReadFromFile(reference.Path)
             End Using
 

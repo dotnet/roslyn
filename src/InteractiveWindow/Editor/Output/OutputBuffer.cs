@@ -112,7 +112,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         public void Flush()
         {
             Entry firstEntryToFlush = null;
-            int flushLength = 0;
 
             lock (_mutex)
             {
@@ -137,7 +136,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     }
 
                     firstEntryToFlush = _firstEntry;
-                    flushLength = _unflushedLength;
 
                     _firstEntry = _lastEntry = null;
                     _unflushedLength = 0;
@@ -148,7 +146,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             if (firstEntryToFlush != null)
             {
-                _window.AppendOutput(GetEntries(firstEntryToFlush), flushLength);
+                _window.AppendOutput(GetEntries(firstEntryToFlush));
             }
         }
 

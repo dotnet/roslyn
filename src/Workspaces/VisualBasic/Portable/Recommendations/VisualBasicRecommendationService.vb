@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -133,9 +134,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 symbols = symbols.Where(Function(symbol) Not symbol.IsInaccessibleLocal(context.Position))
             End If
 
-            ' Hide backing fields and events
+            ' GitHub #4428: When the user is typing a predicate (eg. "Enumerable.Range(0,10).Select($$")
+            ' "Func(Of" tends to get in the way of typing "Function". Exclude System.Func from expression
+            ' contexts, except within GetType
+            If Not context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
+                    Not context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
 
+                symbols = symbols.Where(Function(s) Not IsInEligibleDelegate(s))
+            End If
+
+
+            ' Hide backing fields and events
             Return symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(Nothing, s))
+        End Function
+
+        Private Function IsInEligibleDelegate(s As ISymbol) As Boolean
+            If s.IsDelegateType() Then
+                Dim typeSymbol = DirectCast(s, ITypeSymbol)
+                Return typeSymbol.SpecialType <> SpecialType.System_Delegate
+            End If
+
+            Return False
         End Function
 
         Private Function GetSymbolsForQualifiedNameSyntax(
@@ -310,6 +329,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             ' Filter events and generated members
             symbols = symbols.Where(Function(s) FilterEventsAndGeneratedSymbols(node, s))
+
+            ' Never show the enum backing field
+            symbols = symbols.Where(Function(s) s.Kind <> SymbolKind.Field OrElse Not s.ContainingType.IsEnumType() OrElse s.Name <> WellKnownMemberNames.EnumBackingFieldName)
 
             Return symbols
         End Function

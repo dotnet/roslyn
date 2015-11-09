@@ -7,6 +7,7 @@ Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -73,7 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-
         ''' <summary>
         ''' Get all the errors within the syntax tree associated with this object. Includes errors involving compiling
         ''' method bodies or initializers, in addition to the errors returned by GetDeclarationDiagnostics and parse errors.
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' initializers are not cached, the any semantic information used to obtain the diagnostics is discarded.
         ''' </remarks>
         Public Overrides Function GetDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForTree(CompilationStage.Compile, _syntaxTree, span, True, cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=True, cancellationToken:=cancellationToken)
         End Function
 
         ''' <summary>
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="cancellationToken">A cancellation token that can be used to cancel the
         ''' process of obtaining the diagnostics.</param>
         Public Overrides Function GetSyntaxDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForTree(CompilationStage.Parse, _syntaxTree, span, False, cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Parse, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
         ''' <summary>
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
         ''' </remarks>
         Public Overrides Function GetDeclarationDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForTree(CompilationStage.Declare, _syntaxTree, span, False, cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
         ''' <summary>
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' declarations are analyzed for diagnostics. Calling this a second time will return the cached diagnostics.
         ''' </remarks>
         Public Overrides Function GetMethodBodyDiagnostics(Optional span As TextSpan? = Nothing, Optional cancellationToken As CancellationToken = Nothing) As ImmutableArray(Of Diagnostic)
-            Return _compilation.GetDiagnosticsForTree(CompilationStage.Compile, _syntaxTree, span, False, cancellationToken)
+            Return _compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, _syntaxTree, span, includeEarlierStages:=False, cancellationToken:=cancellationToken)
         End Function
 
         ' PERF: These shared variables avoid repeated allocation of Func(Of Binder, MemberSemanticModel) in GetMemberSemanticModel
@@ -346,6 +346,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If model IsNot Nothing Then
                 Return model.GetExpressionConstantValue(node, cancellationToken)
+            Else
+                Return Nothing
+            End If
+        End Function
+
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
+            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+
+            If model IsNot Nothing Then
+                Return model.GetOperationWorker(node, options, cancellationToken)
             Else
                 Return Nothing
             End If
@@ -956,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Delegate declarations are a subclass of MethodBaseSyntax syntax-wise, but they are
             ' more like a type declaration, so we need to special case here.
             If declarationSyntax.Kind = SyntaxKind.DelegateFunctionStatement OrElse
-                    declarationSyntax.Kind = SyntaxKind.DelegateSubStatement Then
+                declarationSyntax.Kind = SyntaxKind.DelegateSubStatement Then
                 Return GetDeclaredSymbol(DirectCast(declarationSyntax, DelegateStatementSyntax), cancellationToken)
             End If
 
@@ -1015,10 +1025,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' We are asserting what we know so far. If this assert fails, this is not a bug, we either need to remove this assert or relax the assert. 
                         Debug.Assert(statementSyntax.Kind = SyntaxKind.NamespaceBlock AndAlso
-                                         (TypeOf (declarationSyntax) Is AccessorStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is EventStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is MethodStatementSyntax OrElse
-                                          TypeOf (declarationSyntax) Is PropertyStatementSyntax))
+                                     (TypeOf (declarationSyntax) Is AccessorStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is EventStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is MethodStatementSyntax OrElse
+                                      TypeOf (declarationSyntax) Is PropertyStatementSyntax))
 
                         Return Nothing
                 End Select
@@ -1060,7 +1070,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Case SymbolKind.NamedType
                                 '  check for being delegate 
                                 Dim typeSymbol = DirectCast(symbol, NamedTypeSymbol)
-                                Debug.Assert(typeSymbol.TypeKind = TypeKind.Delegate)
+                                Debug.Assert(typeSymbol.TypeKind = TYPEKIND.Delegate)
                                 If typeSymbol.DelegateInvokeMethod IsNot Nothing Then
                                     Return GetParameterSymbol(typeSymbol.DelegateInvokeMethod.Parameters, parameter)
                                 End If
@@ -1378,7 +1388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             ' TODO(cyrusn): Check arguments.  This is a public entrypoint, so we must do appropriate
-            ' checks here.  However, no other methods in this type do any checking currently.  SO i'm
+            ' checks here.  However, no other methods in this type do any checking currently.  So I'm
             ' going to hold off on this until we do a full sweep of the API.
             Dim binding = Me.GetMemberSemanticModel(expression)
             If binding Is Nothing Then

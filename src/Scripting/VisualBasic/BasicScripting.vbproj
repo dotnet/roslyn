@@ -10,13 +10,12 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.VisualBasic</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
-    <ImplicitlyExpandTargetFramework>False</ImplicitlyExpandTargetFramework>
-    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -43,86 +42,15 @@
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.Extensions.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.Loader.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Loader.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Primitives.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.Extensions.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Extensions.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Resources.ResourceManager.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Resources.ResourceManager.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.InteropServices.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.InteropServices.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Collections.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Collections.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Linq.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Linq.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Diagnostics.Debug.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Debug.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Diagnostics.Tools.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Globalization.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Globalization.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Text.Encoding.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Text.Encoding.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Threading.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Threading.Tasks.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.Tasks.dll">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
+    <Compile Include="Hosting\CommandLine\Vbi.vb" />
     <Compile Include="VBScriptingResources.Designer.vb">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VBScriptingResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="VisualBasicObjectFormatter.vb" />
+    <Compile Include="Hosting\ObjectFormatter\VisualBasicObjectFormatter.vb" />
     <Compile Include="VisualBasicScript.vb" />
-  </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
-    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
+    <Compile Include="VisualBasicScriptCompiler.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VBScriptingResources.resx">
@@ -132,13 +60,26 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="My Project\" />
+    <InternalsVisibleTo Include="vbi" />
+    <!-- TODO: remove, see https://github.com/dotnet/roslyn/issues/5661 -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
+    <!-- /TODO -->
+    <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Emit.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.VisualBasic.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

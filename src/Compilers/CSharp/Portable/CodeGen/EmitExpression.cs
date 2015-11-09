@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
     internal partial class CodeGenerator
     {
+        private int _recursionDepth;
+
+        private class EmitCancelledException : Exception
+        { }
+
         private void EmitExpression(BoundExpression expression, bool used)
         {
             if (expression == null)
@@ -35,6 +40,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
+            _recursionDepth++;
+
+            if (_recursionDepth > 1)
+            {
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
+
+                EmitExpressionCore(expression, used);
+            }
+            else
+            {
+                EmitExpressionCoreWithStackGuard(expression, used);
+            }
+
+            _recursionDepth--;
+        }
+
+        private void EmitExpressionCoreWithStackGuard(BoundExpression expression, bool used)
+        {
+            Debug.Assert(_recursionDepth == 1);
+
+            try
+            {
+                EmitExpressionCore(expression, used);
+                Debug.Assert(_recursionDepth == 1);
+            }
+            catch (Exception ex) when (StackGuard.IsInsufficientExecutionStackException(ex))
+            {
+                _diagnostics.Add(ErrorCode.ERR_InsufficientStack, 
+                                 BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(expression));
+                throw new EmitCancelledException();
+            }
+        }
+
+        private void EmitExpressionCore(BoundExpression expression, bool used)
+        {
             switch (expression.Kind)
             {
                 case BoundKind.AssignmentOperator:
@@ -687,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitExpression(arrayAccess.Expression, used: true);
             EmitArrayIndices(arrayAccess.Indices);
 
-            if (arrayAccess.Indices.Length == 1)
+            if (((ArrayTypeSymbol)arrayAccess.Expression.Type).IsSZArray)
             {
                 var elementType = arrayAccess.Type;
                 if (elementType.IsEnumType())
@@ -1415,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 EmitPopIfUnused(used);
             }
-            else if (_optimizations == OptimizationLevel.Debug)
+            else if (_ilEmitStyle == ILEmitStyle.Debug)
             {
                 // The only void methods with usable return values are constructors and we represent those
                 // as BoundObjectCreationExpressions, not BoundCalls.
@@ -1617,7 +1657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EmitArrayIndices(expression.Bounds);
 
-            if (arrayType.Rank == 1)
+            if (arrayType.IsSZArray)
             {
                 _builder.EmitOpCode(ILOpCode.Newarr);
                 EmitSymbolToken(arrayType.ElementType, expression.Syntax);
@@ -2221,7 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitArrayElementStore(ArrayTypeSymbol arrayType, CSharpSyntaxNode syntaxNode)
         {
-            if (arrayType.Rank == 1)
+            if (arrayType.IsSZArray)
             {
                 EmitVectorElementStore(arrayType, syntaxNode);
             }

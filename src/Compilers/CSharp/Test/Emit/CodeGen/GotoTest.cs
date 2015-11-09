@@ -3,11 +3,12 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class GotoStatementTest : EmitMetadataTestBase
+    public class GotoTests : EmitMetadataTestBase
     {
         [Fact]
         public void Goto()
@@ -804,34 +805,316 @@ public class A
             CompileAndVerify(text, expectedOutput: "Catch");
         }
 
-        [Fact(Skip = "3712"), WorkItem(3712)]
-        public void Goto_Script()
+        [Fact]
+        public void OutOfScriptBlock()
         {
-            string source = @"
-using System;
-
-Console.WriteLine(""a"");
-goto C;
-Console.Write(""you won't see me"");
-C: Console.WriteLine(""b"");
-";
-            string expectedOutput = @"a
-b
-";
-            CompileAndVerify(source, parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Script), expectedOutput: expectedOutput);
+            string source =
+@"bool b = true;
+L0: ;
+{
+    {
+        System.Console.WriteLine(b);
+        if (b) b = !b;
+        else goto L1;
+        goto L0;
+    }
+    L1: ;
+}";
+            string expectedOutput =
+@"True
+False";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
         }
 
-        [Fact(Skip = "3712"), WorkItem(3712)]
+        [Fact]
+        public void IntoScriptBlock()
+        {
+            string source =
+@"goto L0;
+{
+    L0: goto L1;
+}
+{
+    L1: ;
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (1,6): error CS0159: No such label 'L0' within the scope of the goto statement
+                // goto L0;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "L0").WithArguments("L0").WithLocation(1, 6),
+                // (3,14): error CS0159: No such label 'L1' within the scope of the goto statement
+                //     L0: goto L1;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "L1").WithArguments("L1").WithLocation(3, 14),
+                // (3,5): warning CS0164: This label has not been referenced
+                //     L0: goto L1;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L0").WithLocation(3, 5),
+                // (6,5): warning CS0164: This label has not been referenced
+                //     L1: ;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L1").WithLocation(6, 5));
+        }
+
+        [Fact]
+        public void AcrossScriptDeclarations()
+        {
+            string source =
+@"int P { get; } = G(""P"");
+L:
+int F = G(""F"");
+int Q { get; } = G(""Q"");
+static int x = 2;
+static int G(string s)
+{
+    System.Console.WriteLine(""{0}: {1}"", x, s);
+    x++;
+    return x;
+}
+if (Q < 4) goto L;";
+            string expectedOutput =
+@"2: P
+3: F
+4: Q";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+        }
+
+        [Fact]
+        public void AcrossSubmissions()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"bool b = false;
+L: ;
+if (b)
+{
+    goto L;
+}";
+            var source1 =
+@"goto L;";
+            var s0 = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script), references);
+            s0.VerifyDiagnostics();
+            var s1 = CSharpCompilation.CreateScriptCompilation("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Script), references, previousScriptCompilation: s0);
+            s1.VerifyDiagnostics(
+                // (1,6): error CS0159: No such label 'L' within the scope of the goto statement
+                // goto L;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "L").WithArguments("L").WithLocation(1, 6));
+        }
+
+        [Fact]
+        public void OutOfScriptMethod()
+        {
+            string source =
+@"static void F(bool b)
+{
+    if (b) goto L;
+}
+L:
+F(true);";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics(
+                // (5,1): warning CS0164: This label has not been referenced
+                // L:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 1),
+                // (3,17): error CS0159: No such label 'L' within the scope of the goto statement
+                //     if (b) goto L;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "L").WithArguments("L").WithLocation(3, 17));
+        }
+
+        [Fact]
+        public void IntoScriptMethod()
+        {
+            string source =
+@"static void F()
+{
+L:
+    return;
+}
+goto L;";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script);
+            compilation.VerifyDiagnostics(
+                // (6,6): error CS0159: No such label 'L' within the scope of the goto statement
+                // goto L;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "L").WithArguments("L").WithLocation(6, 6),
+                // (3,1): warning CS0164: This label has not been referenced
+                // L:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(3, 1));
+        }
+
+        [Fact]
+        public void InScriptSwitch()
+        {
+            string source =
+@"int x = 3;
+switch (x)
+{
+case 1:
+    break;
+case 2:
+    System.Console.WriteLine(x);
+    break;
+default:
+    goto case 2;
+}";
+            string expectedOutput =
+@"3";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: false);
+        }
+
+        [Fact]
+        public void DuplicateLabelInScript()
+        {
+            string source =
+@"bool b = false;
+L: ;
+if (b)
+{
+    goto L;
+}
+else
+{
+    b = !b;
+    if (b) goto L;
+L: ;
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (11,1): error CS0158: The label 'L' shadows another label by the same name in a contained scope
+                // L: ;
+                Diagnostic(ErrorCode.ERR_LabelShadow, "L").WithArguments("L").WithLocation(11, 1));
+        }
+
+        [Fact]
+        public void DuplicateLabelInSeparateSubmissions()
+        {
+            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            var source0 =
+@"bool b = false;
+L: ;
+if (b)
+{
+    goto L;
+}";
+            var source1 =
+@"if (!b)
+{
+    b = !b;
+    if (b) goto L;
+L: ;
+}";
+            var s0 = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script), references);
+            s0.VerifyDiagnostics();
+            var s1 = CSharpCompilation.CreateScriptCompilation("s1.dll", SyntaxFactory.ParseSyntaxTree(source1, options: TestOptions.Script), references, previousScriptCompilation: s0);
+            s1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LoadedFile()
+        {
+            var sourceA =
+@"goto A;
+A: goto B;";
+            var sourceB =
+@"#load ""a.csx""
+goto B;
+B: goto A;";
+            var resolver = TestSourceReferenceResolver.Create(KeyValuePair.Create("a.csx", sourceA));
+            var options = TestOptions.DebugDll.WithSourceReferenceResolver(resolver);
+            var compilation = CreateCompilationWithMscorlib45(sourceB, options: options, parseOptions: TestOptions.Script);
+            compilation.GetDiagnostics().Verify(
+                // a.csx(2,9): error CS0159: No such label 'B' within the scope of the goto statement
+                // A: goto B;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "B").WithArguments("B").WithLocation(2, 9),
+                // (3,9): error CS0159: No such label 'A' within the scope of the goto statement
+                // B: goto A;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "A").WithArguments("A").WithLocation(3, 9));
+        }
+
+        [Fact, WorkItem(3712)]
+        public void Label_GetDeclaredSymbol_Script()
+        {
+            string source =
+@"L0: goto L1;
+static void F() { }
+L1: goto L0;";
+            var tree = Parse(source, options: TestOptions.Script);
+            var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
+            var label = (LabeledStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LabeledStatement);
+            var symbol = model.GetDeclaredSymbol(label);
+            Assert.Equal("L0", symbol.Name);
+        }
+
+        [Fact, WorkItem(3712)]
         public void Label_GetDeclaredSymbol_Error_Script()
         {
             string source = @"
 C: \a\b\
 ";
-            var tree = Parse(source, options: new CSharpParseOptions(kind: SourceCodeKind.Script));
+            var tree = Parse(source, options: TestOptions.Script);
             var model = CreateCompilationWithMscorlib45(new[] { tree }).GetSemanticModel(tree, ignoreAccessibility: false);
             var label = (LabeledStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LabeledStatement);
             var symbol = model.GetDeclaredSymbol(label);
-            // TODO: Add some verification for symbol...
+            Assert.Equal("C", symbol.Name);
+        }
+
+        [Fact]
+        public void TrailingExpression()
+        {
+            var source = @"
+goto EOF;
+EOF:";
+
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            compilation.GetDiagnostics().Verify(
+                // (3,5): error CS1733: Expected expression
+                // EOF:
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 5));
+
+            compilation = CreateSubmission(source);
+            compilation.GetDiagnostics().Verify(
+                // (3,5): error CS1733: Expected expression
+                // EOF:
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(3, 5));
+
+            source = @"
+goto EOF;
+EOF: 42";
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            compilation.GetDiagnostics().Verify(
+                // (3,8): error CS1002: ; expected
+                // EOF: 42
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 8));
+
+            source = @"
+var obj = new object();
+goto L1;
+L1:
+L2:
+EOF: obj.ToString()";
+
+            compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            compilation.GetDiagnostics().Verify(
+                // (6,20): error CS1002: ; expected
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 20),
+                // (5,1): warning CS0164: This label has not been referenced
+                // L2:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L2").WithLocation(5, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "EOF").WithLocation(6, 1));
+
+            compilation = CreateSubmission(source);
+            compilation.GetDiagnostics().Verify(
+                // (6,20): error CS1002: ; expected
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 20),
+                // (5,1): warning CS0164: This label has not been referenced
+                // L2:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L2").WithLocation(5, 1),
+                // (6,1): warning CS0164: This label has not been referenced
+                // EOF: obj.ToString()
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "EOF").WithLocation(6, 1));
         }
     }
 }

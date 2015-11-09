@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,44 +13,23 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Solution _solution;
             private readonly ISymbol _symbol;
             private readonly Location _location;
-            private readonly Lazy<string> _lazyDisplayName;
+            private readonly string _displayString;
 
             public SymbolLocationNavigableItem(
                 Solution solution,
                 ISymbol symbol,
-                Location location)
+                Location location,
+                string displayString)
             {
                 _solution = solution;
                 _symbol = symbol;
                 _location = location;
-
-                _lazyDisplayName = new Lazy<string>(() =>
-                {
-                    var symbolDisplayService = this.Document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-
-                    switch (symbol.Kind)
-                    {
-                        case SymbolKind.NamedType:
-                            return symbolDisplayService.ToDisplayString(_symbol, s_shortFormatWithModifiers);
-
-                        case SymbolKind.Method:
-                            return _symbol.IsStaticConstructor()
-                                ? symbolDisplayService.ToDisplayString(_symbol, s_shortFormatWithModifiers)
-                                : symbolDisplayService.ToDisplayString(_symbol, s_shortFormat);
-
-                        default:
-                            return symbolDisplayService.ToDisplayString(_symbol, s_shortFormat);
-                    }
-                });
+                _displayString = displayString;
             }
 
-            public string DisplayName
-            {
-                get
-                {
-                    return _lazyDisplayName.Value;
-                }
-            }
+            public bool DisplayFileLocation => true;
+
+            public string DisplayString => _displayString;
 
             public Glyph Glyph
             {

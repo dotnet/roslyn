@@ -49,11 +49,41 @@
     </When>
   </Choose>
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable' And '$(TargetCoreClr)' != 'True'" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
+          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
+          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
+          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"
+          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
+
+  <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
+          Condition="'$(OS)' != 'Windows_NT'" />
+
+  <PropertyGroup Condition="
+      '$(TargetFrameworkIdentifier)' == '.NETPortable' AND
+      '$(TargetFrameworkVersion)' == 'v5.0' AND
+      '$(OutputType)' == 'Exe'">
+    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Unix'">ubuntu.14.04</BaseNuGetRuntimeIdentifier>
+  </PropertyGroup>
+
+  <!-- It looks like MSBuild has a bug on *nix where they aggressively
+       directory separators from '\' to '/', even when the '\'
+       is being used as an escape character in a define constant in VB.
+       This change works around the bug by removing all quotes from
+       define constants after Microsoft.VisualBasic.CurrentVersion adds
+       them in our build. This should be OK since none of our constants
+       should require quoting. See https://github.com/Microsoft/msbuild/issues/137 -->
+  <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+    <FinalDefineConstants>$(FinalDefineConstants.Replace('"', ''))</FinalDefineConstants>
+  </PropertyGroup>
 
   <PropertyGroup>
     <BuildDependsOn>
@@ -125,47 +155,29 @@
     </ItemGroup>
   </Target>
 
-  <PropertyGroup Condition="'$(TargetCoreClr)' == 'True'">
+  <!-- ====================================================================================
 
-    <BuildToolsVersion>1.0.25-prerelease-00063</BuildToolsVersion>
+         Force-include our NuGet-consumed assets into VSIX projects
 
-    <!-- fix this to be not hacky -->
-    <BuildToolsDir>$(NuGetPackagesPath)\Microsoft.DotNet.BuildTools.$(BuildToolsVersion)\lib\</BuildToolsDir>
+         NOTE: this is a very specialized behavior we need for producing the Roslyn VSIXes.
+           It should not be copied into other projects without careful thought and
+           understanding of the VSSDK VSIX targets.
 
-    <!-- Implicitly needed by packageresolve.targets.  Should file a bug for a better error message here -->
-    <PackagesDir>$(NuGetPackagesPath)\</PackagesDir>
+       ==================================================================================== -->
 
-    <DnxVersion>1.0.0-beta5-12101</DnxVersion>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'!='Unix'">dnx-coreclr-win-x86.$(DnxVersion)</DnxPackageName>
-    <DnxPackageName Condition="'$(DnxPackageName)' == '' and '$(OsEnvironment)'=='Unix'">dnx-mono.$(DnxVersion)</DnxPackageName>
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
 
-    <NuGetToolPath Condition="'$(NuGetToolPath)' == ''">$(NuGetPackagesPath)\..\.nuget\</NuGetToolPath>
-    <NuGetConfigCommandLine>-ConfigFile "$(NuGetConfigFile)"</NuGetConfigCommandLine>
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
+    <ItemGroup Condition="'$(IncludeCopyLocalReferencesInVSIXContainer)' == 'true'">
+      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''">
+        <ForceIncludeInVsix>true</ForceIncludeInVsix>
+        <Private>true</Private>
+      </VSIXCopyLocalReferenceSourceItem>
+    </ItemGroup>
+  </Target>
 
-    <NugetRestoreCommand>"$(NuGetToolPath)NuGet.exe"</NugetRestoreCommand>
-    <NugetRestoreCommand>$(NugetRestoreCommand) install</NugetRestoreCommand>
-    <NugetRestoreCommand>$(NugetRestoreCommand) -OutputDirectory "$(NuGetPackagesPath)"</NugetRestoreCommand>
-    <NugetRestoreCommand>$(NugetRestoreCommand) -Config "$(NuGetToolPath)NuGet.Config"</NugetRestoreCommand>
-
-    <DnxPackageDir Condition="'$(DnxPackageDir)'==''">$([System.IO.Path]::GetFullPath('$(NuGetPackagesPath)'))\$(DnxPackageName)\</DnxPackageDir>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' == 'Windows_NT'">$(DnxPackageDir)\bin\dnu.cmd</DnuToolPath>
-    <DnuToolPath Condition="'$(DnuToolPath)'=='' and '$(OS)' != 'Windows_NT'">$(DnxPackageDir)/bin/dnu</DnuToolPath>
-
-    <DnuRestoreCommand>"$(DnuToolPath)"</DnuRestoreCommand>
-    <DnuRestoreCommand>$(DnuRestoreCommand) restore</DnuRestoreCommand>
-    <DnuRestoreCommand>$(DnuRestoreCommand) --packages "$(PackagesDir.TrimEnd('/').TrimEnd('\\'))"</DnuRestoreCommand>
-
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-
-    <!-- For now continue to sign things the way we've always signed them -->
-    <SkipSigning>True</SkipSigning>
-
-    <!-- Consider changing this in buildtools directly -->
-    <NoStdLib>True</NoStdLib>
-
- </PropertyGroup>
-
-  <Import Condition="'$(TargetCoreClr)' == 'True'" Project="$(BuildToolsDir)Build.Common.Targets" />
 
   <!-- ====================================================================================
 
@@ -198,7 +210,7 @@
 
        ==================================================================================== -->
 
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true' AND '$(CIBuild)' == ''" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
 
   <!-- ====================================================================================
 
@@ -266,11 +278,14 @@
   </PropertyGroup>
 
   <Target Name="FakeSign"
-          Condition="'$(DelaySign)' == 'true' AND '$(ShouldSignBuild)' != 'true' AND ('$(Language)' == 'C#' OR '$(Language)' == 'VB')"
+          Condition="'$(DelaySign)' == 'true' AND
+                     '$(ShouldSignBuild)' != 'true' AND
+                     ('$(Language)' == 'C#' OR '$(Language)' == 'VB') AND
+                     '$(BuildingProject)' == 'true'"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
 
-    <Exec Command="$(FakeSignToolPath) &quot;@(IntermediateAssembly)&quot;" />
+    <Exec Command="&quot;$(FakeSignToolPath)&quot; &quot;@(IntermediateAssembly)&quot;" />
 
   </Target>
 

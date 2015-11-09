@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // this should be relatively uncommon
                     // most symbols that may be contained in a type
                     // know their containing type and can override ContainingType
-                    // with a more precicse implementation
+                    // with a more precise implementation
                     return containerAsType;
                 }
 
@@ -438,10 +438,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (method.MethodKind)
                         {
                             case MethodKind.Ordinary:
+                            case MethodKind.LocalFunction:
                             case MethodKind.ReducedExtension:
                                 break;
                             case MethodKind.Destructor:
-                                // You wouldn't think that destructors would be referencable by name, but
+                                // You wouldn't think that destructors would be referenceable by name, but
                                 // dev11 only prevents them from being invoked - they can still be assigned
                                 // to delegates.
                                 return true;
@@ -496,6 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (method.MethodKind)
                     {
                         case MethodKind.Ordinary:
+                        case MethodKind.LocalFunction:
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
                             return true;
@@ -679,7 +681,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default(CancellationToken))
         {
-            foreach (var syntaxRef in this.DeclaringSyntaxReferences)
+            var declaringReferences = this.DeclaringSyntaxReferences;
+            if (this.IsImplicitlyDeclared && declaringReferences.Length == 0)
+            {
+                return this.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken);
+            }
+
+            foreach (var syntaxRef in declaringReferences)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -928,7 +936,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (CustomModifier modifier in customModifiers)
             {
-                if (DeriveUseSiteDiagnosticFromType(ref result, (TypeSymbol)modifier.Modifier))
+                var modifierType = (NamedTypeSymbol)modifier.Modifier;
+
+                // Unbound generic type is valid as a modifier, let's not report any use site diagnostics because of that.
+                if (modifierType.IsUnboundGenericType )
+                {
+                    modifierType = modifierType.OriginalDefinition;
+                }
+
+                if (DeriveUseSiteDiagnosticFromType(ref result, modifierType))
                 {
                     return true;
                 }

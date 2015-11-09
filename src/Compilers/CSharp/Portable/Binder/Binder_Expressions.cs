@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = argument.HasAnyErrors;
 
-            TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);
+            TypeSymbol typedReferenceType = GetSpecialType(SpecialType.System_TypedReference, diagnostics, node);
 
             if ((object)argument.Type != null && argument.Type.IsRestrictedType())
             {
@@ -852,8 +852,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
             }
 
+            var name = node.Identifier.ValueText;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: arity, useSiteDiagnostics: ref useSiteDiagnostics, options: options);
+            this.LookupSymbolsWithFallback(lookupResult, name, arity: arity, useSiteDiagnostics: ref useSiteDiagnostics, options: options);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if (lookupResult.Kind != LookupResultKind.Empty)
@@ -862,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError = false;
                 bool wasError;
                 var members = ArrayBuilder<Symbol>.GetInstance();
-                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, node.Identifier.ValueText, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
+                Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out wasError);  // reports diagnostics in result.
 
                 isError |= wasError;
 
@@ -876,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArgumentList,
                         typeArguments,
                         receiver,
-                        node.Identifier.ValueText,
+                        name,
                         members,
                         lookupResult,
                         receiver != null ? BoundMethodGroupFlags.HasImplicitReceiver : BoundMethodGroupFlags.None,
@@ -919,15 +920,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (IsJoinRangeVariableInLeftKey(node))
                 {
-                    Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, node.Identifier.ValueText);
+                    Error(diagnostics, ErrorCode.ERR_QueryOuterKey, node, name);
                 }
                 else if (IsInJoinRightKey(node))
                 {
-                    Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, node.Identifier.ValueText);
+                    Error(diagnostics, ErrorCode.ERR_QueryInnerKey, node, name);
                 }
                 else
                 {
-                    Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, node.Identifier.ValueText);
+                    Error(diagnostics, ErrorCode.ERR_NameNotInContext, node, name);
                 }
             }
 
@@ -1192,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!parameter.ContainingSymbol.Equals(containingMethod));
 
                                 // Captured in a lambda.
-                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction) // false in EE evaluation method
+                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) // false in EE evaluation method
                                 {
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                                 }
@@ -2079,7 +2080,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node, bestType);
             }
 
-            var arrayType = new ArrayTypeSymbol(Compilation.Assembly, bestType, ImmutableArray<CustomModifier>.Empty, rank);
+            var arrayType = ArrayTypeSymbol.CreateCSharpArray(Compilation.Assembly, bestType, ImmutableArray<CustomModifier>.Empty, rank);
             return BindArrayCreationWithInitializer(diagnostics, node, initializer, arrayType,
                 sizes: ImmutableArray<BoundExpression>.Empty, boundInitExprOpt: boundInitializerExpressions);
         }
@@ -4753,7 +4754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typeArguments,
                         boundLeft,
                         rightName,
-                        ImmutableArray<MethodSymbol>.Empty,
+                        lookupResult.Symbols.All(s => s.Kind == SymbolKind.Method) ? lookupResult.Symbols.SelectAsArray(s_toMethodSymbolFunc) : ImmutableArray<MethodSymbol>.Empty,
                         lookupResult,
                         flags);
                 }
@@ -5099,9 +5100,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // be inferred. (In the case of nameof(o.M) or the error case of o.M = null; for instance.)
                 if (analyzedArguments == null)
                 {
-                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                    if (expression == EnclosingNameofArgument)
                     {
-                        if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                        for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                        {
+                            if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
+                        }
                     }
 
                     if (methodGroup.Methods.Count != 0)
@@ -5676,7 +5680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int rank = arrayType.Rank;
 
-            if (arguments.Arguments.Count != arrayType.Rank)
+            if (arguments.Arguments.Count != rank)
             {
                 Error(diagnostics, ErrorCode.ERR_BadIndexCount, node, rank);
                 return new BoundArrayAccess(node, expr, BuildArgumentsForErrorRecovery(arguments), arrayType.ElementType, hasErrors: true);

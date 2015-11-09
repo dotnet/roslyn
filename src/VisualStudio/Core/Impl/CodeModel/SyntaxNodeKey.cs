@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public override string ToString()
         {
-            return string.Format("{{{0}, {1}}}", _name, _ordinal);
+            return $"{{{_name}, {_ordinal}}}";
         }
 
         public string Name

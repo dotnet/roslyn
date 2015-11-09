@@ -85,7 +85,7 @@ Class C
     End Sub
 End Class
 "
-            Const expectedErrorMessage = "(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level."
+            Const expectedErrorMessage = "error BC30451: 'x' is not declared. It may be inaccessible due to its protection level."
 
             Const expectedIlTemplate = "
 {{
@@ -188,7 +188,7 @@ Class C
     End Sub
 End Class
 "
-            Const expectedErrorMessage = "(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level."
+            Const expectedErrorMessage = "error BC30451: 'x' is not declared. It may be inaccessible due to its protection level."
 
             Const expectedIlTemplate = "
 {{
@@ -328,13 +328,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -367,10 +367,10 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -421,7 +421,7 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("u1", errorMessage, testData)
@@ -442,7 +442,7 @@ End Class
 ")
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -475,13 +475,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -532,10 +532,10 @@ End Class
 ")
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -587,7 +587,7 @@ End Class
 ")
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -638,13 +638,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -677,10 +677,10 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -730,7 +730,7 @@ End Class
             Dim errorMessage As String = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             Dim testData = New CompilationTestData()
             context.CompileExpression("u1", errorMessage, testData)
@@ -751,7 +751,7 @@ End Class
 ")
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -784,13 +784,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -823,13 +823,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -851,7 +851,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
@@ -868,10 +868,10 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -911,7 +911,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x", "<>TypeVariables")
         End Sub
@@ -928,7 +928,7 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("u1", errorMessage, testData)
@@ -949,7 +949,7 @@ End Class
 ")
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -971,7 +971,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u1", "<>TypeVariables")
         End Sub
@@ -988,13 +988,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30043: 't1' is valid only within an instance method.", errorMessage)
+            Assert.Equal("error BC30043: 't1' is valid only within an instance method.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -1016,7 +1016,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
@@ -1051,10 +1051,10 @@ End Class
 ")
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -1076,7 +1076,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "Me", "ch", "<>TypeVariables")
         End Sub
@@ -1112,7 +1112,7 @@ End Class
 ")
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -1152,7 +1152,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "Me", "ch", "x", "<>TypeVariables")
         End Sub
@@ -1169,13 +1169,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
+            Assert.Equal("error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -1197,7 +1197,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
@@ -1214,10 +1214,10 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
+            Assert.Equal("error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("x", errorMessage, testData)
@@ -1257,7 +1257,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "x", "<>TypeVariables")
         End Sub
@@ -1274,7 +1274,7 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
+            Assert.Equal("error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("u1", errorMessage, testData)
@@ -1295,7 +1295,7 @@ End Class
 ")
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -1317,7 +1317,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "u1", "<>TypeVariables")
         End Sub
@@ -1334,13 +1334,13 @@ End Class
             Dim testData As CompilationTestData = Nothing
 
             context.CompileExpression("t1", errorMessage)
-            Assert.Equal("(1,2): error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
+            Assert.Equal("error BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.", errorMessage)
 
             context.CompileExpression("u1", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'u1' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             context.CompileExpression("x", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'x' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             testData = New CompilationTestData()
             context.CompileExpression("ch", errorMessage, testData)
@@ -1362,7 +1362,7 @@ End Class
             context.CompileExpression("GetType(T)", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("GetType(U)", errorMessage)
-            Assert.Equal("(1,10): error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
+            Assert.Equal("error BC30002: Type 'U' is not defined.", errorMessage) ' As in Dev12.
 
             AssertEx.SetEqual(GetLocalNames(context), "ch", "<>TypeVariables")
         End Sub
@@ -1416,7 +1416,7 @@ End Class
             context.CompileExpression("x", errorMessage)
             Assert.Null(errorMessage)
             context.CompileExpression("y", errorMessage)
-            Assert.Equal("(1,2): error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
+            Assert.Equal("error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
             ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=200)
             context = EvaluationContext.CreateMethodContext(

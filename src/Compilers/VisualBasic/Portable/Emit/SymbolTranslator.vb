@@ -5,6 +5,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -316,6 +317,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility)
             End Select
+        End Function
+
+        Friend Overloads Overrides Function Translate(symbol As MethodSymbol, diagnostics As DiagnosticBag, needDeclaration As Boolean) As IMethodReference
+            Return Translate(symbol, Nothing, diagnostics, needDeclaration)
         End Function
 
         Friend Overloads Function Translate(

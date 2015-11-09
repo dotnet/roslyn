@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
                 Return
             End If
 
-            Dim rewriter = New Rewriter(_syntaxFactsService, TryCast(semanticModel, SemanticModel), cancellationToken)
+            Dim rewriter = New Rewriter(_syntaxFactsService, semanticModel, cancellationToken)
 
             If span.Length <= s_threshold Then
                 candidates.Do(Sub(t) Rewrite(t, rewriter, replacements))

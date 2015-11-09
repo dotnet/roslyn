@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return Cci.TypeMemberVisibility.Public;
 
                 case Accessibility.Private:
-                    if (symbol.ContainingType.TypeKind == TypeKind.Submission)
+                    if (symbol.ContainingType?.TypeKind == TypeKind.Submission)
                     {
                         // top-level private member:
                         return Cci.TypeMemberVisibility.Public;
@@ -1030,6 +1030,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility);
             }
+        }
+
+        internal override Cci.IMethodReference Translate(MethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration)
+        {
+            return Translate(symbol, null, diagnostics, null, needDeclaration);
         }
 
         internal Cci.IMethodReference Translate(

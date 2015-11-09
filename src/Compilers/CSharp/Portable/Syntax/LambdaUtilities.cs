@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DescendingOrdering:
                 case SyntaxKind.JoinClause:
                 case SyntaxKind.GroupClause:
+                case SyntaxKind.LocalFunctionStatement:
                     return true;
 
                 case SyntaxKind.SelectClause:
@@ -96,6 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return (oldGroup.GroupExpression == oldBody) ?
                         (IsReducedSelectOrGroupByClause(newGroup, newGroup.GroupExpression) ? null : newGroup.GroupExpression) : newGroup.ByExpression;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var newLocalFunction = (LocalFunctionStatementSyntax)newLambda;
+                    return (SyntaxNode)newLocalFunction.Body ?? newLocalFunction.ExpressionBody;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(oldLambda.Kind());
             }
@@ -124,6 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AnonymousMethodExpression:
                     var anonymousFunction = (AnonymousFunctionExpressionSyntax)parent;
                     return anonymousFunction.Body == node;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)parent;
+                    return localFunction.Body == node || localFunction.ExpressionBody == node;
 
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)parent;
@@ -308,6 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         lambdaBody2 = groupClause.ByExpression;
                     }
 
+                    return true;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)node;
+                    lambdaBody1 = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
                     return true;
             }
 

@@ -125,15 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This compilation doesn&apos;t represent an interactive submission..
-        '''</summary>
-        Friend ReadOnly Property CompilationDoesNotRepresentInteractiveSubmission() As String
-            Get
-                Return ResourceManager.GetString("CompilationDoesNotRepresentInteractiveSubmission", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Compilation (Visual Basic): .
         '''</summary>
         Friend ReadOnly Property CompilationVisualBasic() As String
@@ -2703,6 +2694,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Debug entry point must be a definition of a method declared in the current compilation..
+        '''</summary>
+        Friend ReadOnly Property ERR_DebugEntryPointNotSourceMethodDefinition() As String
+            Get
+                Return ResourceManager.GetString("ERR_DebugEntryPointNotSourceMethodDefinition", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Declare&apos; statements are not allowed in generic types or types contained in generic types..
         '''</summary>
         Friend ReadOnly Property ERR_DeclaresCantBeInGeneric() As String
@@ -4283,6 +4283,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ExpectedSColon() As String
             Get
                 Return ResourceManager.GetString("ERR_ExpectedSColon", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Expected a single script (.vbx file).
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedSingleScript() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedSingleScript", resourceCulture)
             End Get
         End Property
         
@@ -6095,6 +6104,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InvalidParameterSyntax() As String
             Get
                 Return ResourceManager.GetString("ERR_InvalidParameterSyntax", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The pathmap option was incorrectly formatted.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidPathMap() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidPathMap", resourceCulture)
             End Get
         End Property
         
@@ -7959,15 +7977,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_NoResponseFile() As String
             Get
                 Return ResourceManager.GetString("ERR_NoResponseFile", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Expected at least one script (.vbx file) but none specified.
-        '''</summary>
-        Friend ReadOnly Property ERR_NoScriptsSpecified() As String
-            Get
-                Return ResourceManager.GetString("ERR_NoScriptsSpecified", resourceCulture)
             End Get
         End Property
         
@@ -11614,6 +11623,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to CObj in attribute arguments.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CObjInAttributeArguments() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CObjInAttributeArguments", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to variance.
         '''</summary>
         Friend ReadOnly Property FEATURE_CoContraVariance() As String
@@ -11650,6 +11668,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to implementing read-only or write-only property with read-write property.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to iterators.
         '''</summary>
         Friend ReadOnly Property FEATURE_Iterators() As String
@@ -11664,6 +11691,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_LineContinuation() As String
             Get
                 Return ResourceManager.GetString("FEATURE_LineContinuation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to line continuation comments.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_LineContinuationComments() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_LineContinuationComments", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to multiline string literals.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_MultilineStringLiterals() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_MultilineStringLiterals", resourceCulture)
             End Get
         End Property
         
@@ -11686,6 +11731,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to partial interfaces.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_PartialInterfaces() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_PartialInterfaces", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to partial modules.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_PartialModules() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_PartialModules", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to readonly auto-implemented properties.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_ReadonlyAutoProperties() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_ReadonlyAutoProperties", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to region directives within method bodies or regions crossing boundaries of declaration blocks.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_RegionsEverywhere() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_RegionsEverywhere", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to multi-line lambda expressions.
         '''</summary>
         Friend ReadOnly Property FEATURE_StatementLambdas() As String
@@ -11700,6 +11781,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_SubLambdas() As String
             Get
                 Return ResourceManager.GetString("FEATURE_SubLambdas", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to TypeOf IsNot expression.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_TypeOfIsNot() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_TypeOfIsNot", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to warning directives.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_WarningDirectives() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_WarningDirectives", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to year-first date literals.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_YearFirstDateLiterals() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_YearFirstDateLiterals", resourceCulture)
             End Get
         End Property
         

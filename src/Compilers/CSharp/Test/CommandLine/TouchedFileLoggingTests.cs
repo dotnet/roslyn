@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+using static Roslyn.Test.Utilities.SharedResourceHelpers;
 using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests

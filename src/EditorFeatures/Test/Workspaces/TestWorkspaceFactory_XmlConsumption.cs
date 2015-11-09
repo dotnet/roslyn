@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias WORKSPACES;
 
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -28,8 +30,17 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
+    using RelativePathResolver = WORKSPACES::Microsoft.CodeAnalysis.RelativePathResolver;
+
     public partial class TestWorkspaceFactory
     {
+        /// <summary>
+        /// This place-holder value is used to set a project's file path to be null.  It was explicitly chosen to be
+        /// convoluted to avoid any accidental usage (e.g., what if I really wanted FilePath to be the string "null"?),
+        /// obvious to anybody debugging that it is a special value, and invalid as an actual file path.
+        /// </summary>
+        public const string NullFilePath = "NullFilePath::{AFA13775-BB7D-4020-9E58-C68CF43D8A68}";
+
         private class TestDocumentationProvider : DocumentationProvider
         {
             protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
@@ -60,8 +71,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             string workspaceKind = null)
         {
-            SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-
             if (workspaceElement.Name != WorkspaceElementName)
             {
                 throw new ArgumentException();
@@ -132,7 +141,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             for (int i = 1; i < submissions.Count; i++)
             {
-                workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[i - 1].Id));
+                if (submissions[i].CompilationOptions == null)
+                {
+                    continue;
+                }
+
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    if (submissions[j].CompilationOptions != null)
+                    {
+                        workspace.OnProjectReferenceAdded(submissions[i].Id, new ProjectReference(submissions[j].Id));
+                        break;
+                    }
+                }
             }
 
             foreach (var project in projectMap.Values)
@@ -180,13 +201,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The project
 
-                var document = new TestHostDocument(exportProvider, languageServices, textBuffer, submissionName, cursorPosition, spans, SourceCodeKind.Interactive);
+                var document = new TestHostDocument(exportProvider, languageServices, textBuffer, submissionName, cursorPosition, spans, SourceCodeKind.Script);
+                var documents = new List<TestHostDocument> { document };
+
+                if (languageName == NoCompilationConstants.LanguageName)
+                {
+                    submissions.Add(
+                        new TestHostProject(
+                            languageServices, 
+                            compilationOptions: null, 
+                            parseOptions: null, 
+                            assemblyName: submissionName, 
+                            references: null, 
+                            documents: documents, 
+                            isSubmission: true));
+                    continue;
+                }
 
                 var syntaxFactory = languageServices.GetService<ISyntaxTreeFactoryService>();
                 var compilationFactory = languageServices.GetService<ICompilationFactoryService>();
                 var compilationOptions = compilationFactory.GetDefaultCompilationOptions().WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
 
-                var parseOptions = syntaxFactory.GetDefaultParseOptions().WithKind(SourceCodeKind.Interactive);
+                var parseOptions = syntaxFactory.GetDefaultParseOptions().WithKind(SourceCodeKind.Script);
 
                 var references = CreateCommonReferences(workspace, submissionElement);
 
@@ -196,7 +232,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     parseOptions,
                     submissionName,
                     references,
-                    new List<TestHostDocument> { document }, isSubmission: true);
+                    documents, 
+                    isSubmission: true);
 
                 submissions.Add(project);
             }
@@ -225,6 +262,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             if (projectElement.Attribute(FilePathAttributeName) != null)
             {
                 filePath = projectElement.Attribute(FilePathAttributeName).Value;
+                if (string.Compare(filePath, NullFilePath, StringComparison.Ordinal) == 0)
+                {
+                    // allow explicit null file path
+                    filePath = null;
+                }
             }
             else
             {
@@ -417,9 +459,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     }
 
                     return language == LanguageNames.CSharp
-                       ? (CompilationOptions)new CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
-                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports)
-                                                                         .WithRootNamespace(rootNamespace);
+                       ? (CompilationOptions)new CSharpCompilationOptions(OutputKind.WindowsRuntimeMetadata)
+                       : new VisualBasicCompilationOptions(OutputKind.WindowsRuntimeMetadata).WithGlobalImports(globalImports).WithRootNamespace(rootNamespace);
                 }
             }
             else
@@ -432,12 +473,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             // TODO: Allow these to be specified.
             var languageServices = workspace.Services.GetLanguageServices(language);
+            var metadataService = workspace.Services.GetService<IMetadataService>();
             var compilationOptions = languageServices.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
             compilationOptions = compilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
                                                    .WithGeneralDiagnosticOption(reportDiagnostic)
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
-                                                   .WithMetadataReferenceResolver(new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default))
+                                                   .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, null)))
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
             if (language == LanguageNames.VisualBasic)

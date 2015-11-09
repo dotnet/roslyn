@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
             End If
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestSimpleInstanceMethod_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -57,7 +57,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestSimpleStaticMethod_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -94,7 +94,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestParameters_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -136,7 +136,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestExplicitInterface_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -170,7 +170,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestDelegate_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -212,7 +212,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestAbstractMethod_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -248,7 +248,7 @@ end class
             Test(input, expected, codeActionIndex:=1)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestSimpleInstanceMethod_VisualBasicToCSharp()
             Dim input =
         <Workspace>
@@ -287,7 +287,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedType_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -328,7 +328,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedGenericType_CSharpToVisualBasic()
             Dim input =
         <Workspace>
@@ -369,7 +369,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedType_VisualBasicToCSharp()
             Dim input =
         <Workspace>
@@ -414,7 +414,7 @@ end class
             Test(input, expected)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub TestIntoNestedGenericType_VisualBasicToCSharp()
             Dim input =
         <Workspace>
@@ -460,7 +460,7 @@ end class
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_SingleNamedType()
             Dim input =
         <Workspace>
@@ -515,7 +515,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints()
             Dim input =
         <Workspace>
@@ -585,7 +585,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints_Interfaces()
             Dim input =
         <Workspace>
@@ -655,7 +655,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_NoCommonDerived()
             Dim input =
         <Workspace>
@@ -823,7 +823,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedNestedType()
             Dim input =
         <Workspace>
@@ -908,7 +908,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedInstantiatedTypes()
             Dim input =
         <Workspace>
@@ -1000,7 +1000,7 @@ End Module]]>
         End Sub
 
         <WorkItem(608827)>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Sub GenerateMethodUsingTypeConstraint_InstantiatedGenerics()
             Dim input =
         <Workspace>
@@ -1071,5 +1071,276 @@ End Module]]>
 
             Test(input, expected)
         End Sub
+
+#Region "Normal tests"
+
+        <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub PreferNormalFileOverAutoGeneratedFile_CSharp()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document FilePath="Form1.cs">
+class Form1
+{
+    void M() 
+    { 
+        UserControl1 control;
+        control.Draw$$();
+    }
+}
+        </Document>
+        <Document FilePath="UserControl1.Designer.cs">
+// This file is auto-generated
+partial class UserControl1
+{
+    
+}
+        </Document>
+        <Document FilePath="UserControl1.cs">
+public partial class UserControl1
+{
+    
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expectedFileWithText =
+                 New Dictionary(Of String, String) From {
+                    {"UserControl1.cs",
+<Text>
+using System;
+public partial class UserControl1
+{
+    internal void Draw()
+    {
+        throw new NotImplementedException();
+    }
+}
+</Text>.Value.Trim()},
+                    {"UserControl1.Designer.cs",
+<Text>
+// This file is auto-generated
+partial class UserControl1
+{
+    
+}
+</Text>.Value.Trim()}
+                }
+
+            Test(input, fileNameToExpected:=expectedFileWithText)
+        End Sub
+
+        <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub IntoAutoGeneratedFileIfNoBetterLocationExists_CSharp()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document FilePath="Form1.cs">
+class Form1
+{
+    void M() 
+    { 
+        UserControl1 control;
+        control.Draw$$();
+    }
+}
+        </Document>
+        <Document FilePath="UserControl1.Designer.cs">
+// This file is auto-generated
+partial class UserControl1
+{
+    
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expectedFileWithText =
+                 New Dictionary(Of String, String) From {
+                    {"UserControl1.Designer.cs",
+<Text>
+using System;
+// This file is auto-generated
+partial class UserControl1
+{
+    internal void Draw()
+    {
+        throw new NotImplementedException();
+    }
+}
+</Text>.Value.Trim()}}
+
+            Test(input, fileNameToExpected:=expectedFileWithText)
+        End Sub
+
+        <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub InAutoGeneratedFiles_CSharp()
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document FilePath="Form1.Designer.cs">
+using System;
+// This file is auto-generated
+class Form1
+{
+    void M() 
+    { 
+        this.Draw$$();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expectedFileWithText =
+                 New Dictionary(Of String, String) From {
+                    {"Form1.Designer.cs",
+<Text>
+using System;
+// This file is auto-generated
+class Form1
+{
+    void M()
+    {
+        this.Draw();
+    }
+
+    private void Draw()
+    {
+        throw new NotImplementedException();
+    }
+}
+</Text>.Value.Trim()}}
+
+            Test(input, fileNameToExpected:=expectedFileWithText)
+        End Sub
+
+        <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub PreferNormalFileOverAutoGeneratedFile_Basic()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document FilePath="Form1.vb">
+Class Form1
+    Sub M() 
+        Dim control As UserControl1
+        control.Draw$$()
+    End Sub
+End Class
+        </Document>
+        <Document FilePath="UserControl1.Designer.vb">
+' This file is auto-generated
+Partial Class UserControl1
+    
+End Class
+        </Document>
+        <Document FilePath="UserControl1.vb">
+Partial Public Class UserControl1
+    
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expectedFileWithText =
+                 New Dictionary(Of String, String) From {
+                    {"UserControl1.vb",
+<Text>
+Partial Public Class UserControl1
+    Friend Sub Draw()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+</Text>.Value.Trim()},
+                    {"UserControl1.Designer.vb",
+<Text>
+' This file is auto-generated
+Partial Class UserControl1
+    
+End Class
+</Text>.Value.Trim()}
+                }
+
+            Test(input, fileNameToExpected:=expectedFileWithText)
+        End Sub
+
+        <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub IntoAutoGeneratedFileIfNoBetterLocationExists_Basic()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document FilePath="Form1.vb">
+Class Form1
+    Sub M() 
+        Dim control As UserControl1
+        control.Draw$$()
+    End Sub
+End Class
+        </Document>
+        <Document FilePath="UserControl1.Designer.vb">
+' This file is auto-generated
+Partial Class UserControl1
+    
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expectedFileWithText =
+                 New Dictionary(Of String, String) From {
+                    {"UserControl1.Designer.vb",
+<Text>
+' This file is auto-generated
+Partial Class UserControl1
+    Friend Sub Draw()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+</Text>.Value.Trim()}}
+
+            Test(input, fileNameToExpected:=expectedFileWithText)
+        End Sub
+
+        <WorkItem(144843, "Generate method stub generates into *.Designer.cs")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub InAutoGeneratedFiles_Basic()
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document FilePath="Form1.Designer.vb">
+Class Form1
+    Sub M() 
+        Me.Draw$$()
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expectedFileWithText =
+                 New Dictionary(Of String, String) From {
+                    {"Form1.Designer.vb",
+<Text>
+Class Form1
+    Sub M() 
+        Me.Draw()
+    End Sub
+    Private Sub Draw()
+        Throw New NotImplementedException()
+    End Sub
+End Class
+</Text>.Value.Trim()}}
+
+            Test(input, fileNameToExpected:=expectedFileWithText)
+        End Sub
+
+#End Region
+
     End Class
 End Namespace

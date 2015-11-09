@@ -1,13 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class CompletionListTagCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
+            MyBase.New(workspaceFixture)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberAlways()
             Dim markup = <Text><![CDATA[
 Class P
@@ -35,7 +40,7 @@ End Class
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberNever()
             Dim markup = <Text><![CDATA[
 Class P
@@ -62,7 +67,7 @@ End Class
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub EditorBrowsable_EnumTypeDotMemberAdvanced()
             Dim markup = <Text><![CDATA[
 Class P
@@ -100,7 +105,7 @@ End Class
                 hideAdvancedMembers:=False)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TriggeredOnOpenParen()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -125,7 +130,7 @@ End Class
             VerifyItemExists(markup, "Color.Y", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub RightSideOfAssignment()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -146,7 +151,7 @@ End Class
             VerifyItemExists(markup, "Color.Y", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub DoNotCrashInObjectInitializer()
             Dim markup = <Text><![CDATA[
 Module Program
@@ -170,7 +175,7 @@ End Module
             VerifyNoItemsExist(markup)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InYieldReturn()
             Dim markup = <Text><![CDATA[
 Imports System
@@ -193,7 +198,7 @@ End Class
             VerifyItemExists(markup, "Color.X")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InAsyncMethodReturnStatement()
             Dim markup = <Text><![CDATA[
 Imports System.Threading.Tasks
@@ -214,7 +219,7 @@ End Class
             VerifyItemExists(markup, "Color.X")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub InIndexedProperty()
             Dim markup = <Text><![CDATA[
 Module Module1
@@ -250,7 +255,7 @@ End Module
             VerifyItemExists(markup, "Color.Y")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub FullyQualified()
             Dim markup = <Text><![CDATA[
 Namespace ColorNamespace
@@ -272,7 +277,7 @@ End Class
             VerifyItemExists(markup, "ColorNamespace.Color.Y", glyph:=CType(Glyph.EnumMember, Integer))
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TriggeredForNamedArgument()
             Dim markup = <Text><![CDATA[
 Class C
@@ -290,7 +295,7 @@ End Class
             VerifyItemExists(markup, "Color.X", usePreviousCharAsTrigger:=True)
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub NotInObjectCreation()
             Dim markup = <Text><![CDATA[
 ''' <completionlist cref="Program"/>
@@ -306,7 +311,7 @@ End Class
         End Sub
 
         <WorkItem(954694)>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub AnyAccessibleMember()
             Dim markup = <Text><![CDATA[
 Public Class Program
@@ -325,7 +330,7 @@ End Class
             VerifyItemExists(markup, "Program.field1")
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(815963)>
         Public Sub LocalNoAs()
             Dim markup = <Text><![CDATA[
@@ -341,6 +346,59 @@ End Class
 ]]></Text>.Value
             VerifyItemIsAbsent(markup, "e As E")
         End Sub
+
+        <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotInTrivia()
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub Test()
+        M(Type2.A)
+        ' $$
+    End Sub
+
+    Private Sub M(a As Type1)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+''' <completionlist cref="Type2"/>
+Public Class Type1
+End Class
+
+Public Class Type2
+    Public Shared A As Type1
+    Public Shared B As Type1
+End Class
+]]></Text>.Value
+            VerifyNoItemsExist(markup)
+        End Sub
+
+        <WorkItem(3518, "https://github.com/dotnet/roslyn/issues/3518")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Sub NotAfterInvocationWithCompletionListTagTypeAsFirstParameter()
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub Test()
+        M(Type2.A)
+        $$
+    End Sub
+
+    Private Sub M(a As Type1)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+''' <completionlist cref="Type2"/>
+Public Class Type1
+End Class
+
+Public Class Type2
+    Public Shared A As Type1
+    Public Shared B As Type1
+End Class
+]]></Text>.Value
+            VerifyNoItemsExist(markup)
+        End Sub
+
 
         Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
             Return New CompletionListTagCompletionProvider()

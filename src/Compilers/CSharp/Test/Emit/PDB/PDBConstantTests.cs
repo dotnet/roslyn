@@ -107,9 +107,9 @@ class C
         <entry offset=""0x0"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
         <entry offset=""0x1"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""14"" />
         <entry offset=""0x2"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""14"" />
-        <entry offset=""0x5"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
+        <entry offset=""0x3"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x6"">
+      <scope startOffset=""0x0"" endOffset=""0x4"">
         <constant name=""y"" value=""2"" type=""Int32"" />
         <scope startOffset=""0x1"" endOffset=""0x3"">
           <constant name=""z"" value=""3"" type=""Int32"" />
@@ -308,7 +308,7 @@ this is a string constant that is too long to fit into the PDB"";
       </sequencePoints>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.Pdb);
+</symbols>", format: DebugInformationFormat.Pdb);
 
             c.VerifyPdb("C.M", @"
 <symbols>
@@ -323,7 +323,7 @@ this is a string constant that is too long to fit into the PDB"";
       </scope>
     </method>
   </methods>
-</symbols>", DebugInformationFormat.PortablePdb);
+</symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
         [Fact]

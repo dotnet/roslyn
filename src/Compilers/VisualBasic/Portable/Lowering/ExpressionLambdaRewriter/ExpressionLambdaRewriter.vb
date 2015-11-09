@@ -34,11 +34,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _parameterMap As Dictionary(Of ParameterSymbol, BoundExpression) = New Dictionary(Of ParameterSymbol, BoundExpression)()
 
-        Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, typeMap As TypeSubstitution, binder As Binder, node As VisualBasicSyntaxNode, diagnostics As DiagnosticBag)
+        Private _recursionDepth As Integer
+
+        Private Sub New(currentMethod As MethodSymbol, compilationState As TypeCompilationState, typeMap As TypeSubstitution, binder As Binder,
+                        node As VisualBasicSyntaxNode, recursionDepth As Integer, diagnostics As DiagnosticBag)
             _binder = binder
             _typeMap = typeMap
             _factory = New SyntheticBoundNodeFactory(Nothing, currentMethod, node, compilationState, diagnostics)
             _expressionType = _factory.WellKnownType(WellKnownType.System_Linq_Expressions_Expression)
+            _recursionDepth = recursionDepth
         End Sub
 
         Public ReadOnly Property ElementInitType As NamedTypeSymbol
@@ -95,9 +99,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              compilationState As TypeCompilationState,
                                              typeMap As TypeSubstitution,
                                              diagnostics As DiagnosticBag,
-                                             rewrittenNodes As HashSet(Of BoundNode)) As BoundExpression
+                                             rewrittenNodes As HashSet(Of BoundNode),
+                                             recursionDepth As Integer) As BoundExpression
 
-            Dim r As New ExpressionLambdaRewriter(currentMethod, compilationState, typeMap, node.LambdaSymbol.ContainingBinder, node.Syntax, diagnostics)
+            Dim r As New ExpressionLambdaRewriter(currentMethod, compilationState, typeMap, node.LambdaSymbol.ContainingBinder, node.Syntax, recursionDepth, diagnostics)
             Dim expressionTree As BoundExpression = r.VisitLambdaInternal(node, delegateType)
 
             If Not expressionTree.HasErrors Then
@@ -106,7 +111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      compilationState,
                                                                      previousSubmissionFields:=Nothing,
                                                                      diagnostics:=diagnostics,
-                                                                     rewrittenNodes:=rewrittenNodes)
+                                                                     rewrittenNodes:=rewrittenNodes,
+                                                                     recursionDepth:=recursionDepth)
             End If
 
             Return expressionTree
@@ -188,7 +194,7 @@ lSelect:
             Return _factory.Convert(_expressionType, result)
         End Function
 
-        Private Function VisitInternal(node As BoundExpression) As BoundExpression
+        Private Function VisitExpressionWithoutStackGuard(node As BoundExpression) As BoundExpression
             Select Case node.Kind
                 Case BoundKind.ArrayCreation
                     Return VisitArrayCreation(DirectCast(node, BoundArrayCreation))
@@ -271,6 +277,36 @@ lSelect:
             End Select
         End Function
 
+        Private Function VisitInternal(node As BoundExpression) As BoundExpression
+            Dim result As BoundExpression
+            _recursionDepth += 1
+
+#If DEBUG Then
+            Dim saveRecursionDepth = _recursionDepth
+#End If
+
+            If _recursionDepth > 1 Then
+                StackGuard.EnsureSufficientExecutionStack(_recursionDepth)
+                result = VisitExpressionWithoutStackGuard(node)
+            Else
+                result = VisitExpressionWithStackGuard(node)
+            End If
+
+#If DEBUG Then
+            Debug.Assert(saveRecursionDepth = _recursionDepth)
+#End If
+            _recursionDepth -= 1
+            Return result
+        End Function
+
+        Private Function VisitExpressionWithStackGuard(node As BoundExpression) As BoundExpression
+            Try
+                Return VisitExpressionWithoutStackGuard(node)
+            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+                Throw New BoundTreeVisitor.CancelledByStackGuardException(ex, node)
+            End Try
+        End Function
+
         Private Function VisitLambdaInternal(node As BoundLambda, delegateType As NamedTypeSymbol) As BoundExpression
             Dim parameterExpressionType = _factory.WellKnownType(WellKnownType.System_Linq_Expressions_ParameterExpression)
 
@@ -290,7 +326,7 @@ lSelect:
                 parameters.Add(parameterReference)
                 _parameterMap(p) = parameterReference
 
-                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type.InternalSubstituteTypeParameters(_typeMap)), _factory.Literal(p.Name))
+                Dim parameter As BoundExpression = ConvertRuntimeHelperToExpressionTree("Parameter", _factory.[Typeof](p.Type.InternalSubstituteTypeParameters(_typeMap).Type), _factory.Literal(p.Name))
                 If Not parameter.HasErrors Then
                     initializers.Add(_factory.AssignmentExpression(parameterReferenceLValue, parameter))
                 End If
@@ -546,7 +582,7 @@ lSelect:
                 Dim right As BoundExpression = assignment.Right
 
                 Debug.Assert(initializer.PlaceholderOpt IsNot Nothing)
-                Debug.Assert(Not BoundNodeFinder.ContainsNode(right, initializer.PlaceholderOpt), "Should be addressed in DiagnosticsPass")
+                Debug.Assert(Not BoundNodeFinder.ContainsNode(right, initializer.PlaceholderOpt, _recursionDepth, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException:=True), "Should be addressed in DiagnosticsPass")
                 Debug.Assert(leftSymbol.Kind = SymbolKind.Field OrElse leftSymbol.Kind = SymbolKind.Property)
 
                 Dim memberRef As BoundExpression = If(leftSymbol.Kind = SymbolKind.Field,
@@ -571,7 +607,7 @@ lSelect:
                 ' Note, for extension methods we are dropping the "Me" parameter to remove
                 ' BoundCollectionInitializerExpression.PlaceholderOpt references from the tree.
                 ' Otherwise, IL generation fails because it doesn't know what to do with it.
-                ' At run-time, this code is going to throw because ElementInit API doesnt accept
+                ' At run-time, this code is going to throw because ElementInit API doesn't accept
                 ' shared methods. We don't fail compilation in this scenario due to backward
                 ' compatibility reasons.
                 newInitializers(i) = _factory.Convert(
@@ -630,7 +666,7 @@ lSelect:
             ' All other cases are not supported, note that some cases of invalid
             ' sequences are handled in DiagnosticsPass, but we still want to catch
             ' here those sequences created in lowering
-            Return GenerateDiagnosticAndReturnDummyExpression(ERRID.ERR_ExpressionTreeNotSupported, value)
+            Return GenerateDiagnosticAndReturnDummyExpression(ERRID.ERR_ExpressionTreeNotSupported, node)
         End Function
 
         Private Function VisitArrayLength(node As BoundArrayLength) As BoundExpression
@@ -656,7 +692,7 @@ lSelect:
             Dim boundType As BoundExpression = _factory.[Typeof](arrayType.ElementType)
             Dim initializer As BoundArrayInitialization = node.InitializerOpt
             If initializer IsNot Nothing AndAlso Not initializer.Initializers.IsEmpty Then
-                Debug.Assert(arrayType.Rank = 1, "Rank > 1 should be addressed in DiagnosticsPass")
+                Debug.Assert(arrayType.IsSZArray, "Not SZArray should be addressed in DiagnosticsPass")
                 Return ConvertRuntimeHelperToExpressionTree("NewArrayInit", boundType, ConvertArgumentsIntoArray(node.InitializerOpt.Initializers))
             Else
                 Return ConvertRuntimeHelperToExpressionTree("NewArrayBounds", boundType, ConvertArgumentsIntoArray(node.Bounds))

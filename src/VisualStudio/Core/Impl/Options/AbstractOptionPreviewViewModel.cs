@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public string Language { get; private set; }
+        public string Language { get; }
 
         public void UpdatePreview(string text)
         {

@@ -372,7 +372,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Get the <see cref="Compilation"/> for this project if it is available.
+        /// Tries to get the cached <see cref="Compilation"/> for this project if it has already been created and is still cached. In almost all
+        /// cases you should call <see cref="GetCompilationAsync"/> which will either return the cached <see cref="Compilation"/>
+        /// or create a new one otherwise.
         /// </summary>
         public bool TryGetCompilation(out Compilation compilation)
         {
@@ -385,6 +387,15 @@ namespace Microsoft.CodeAnalysis
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return _solution.GetCompilationAsync(this, cancellationToken);
+        }
+
+        /// <summary>
+        /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> has all the references it's expected to have.
+        /// </summary>
+        // TODO: make this public
+        internal Task<bool> HasCompleteReferencesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _solution.HasCompleteReferencesAsync(this, cancellationToken);
         }
 
         /// <summary>
@@ -579,9 +590,9 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of this project updated to replace existing analyzer references 
         /// with the specified ones.
         /// </summary>
-        public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+        public Project WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferencs)
         {
-            return this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferences).GetProject(this.Id);
+            return this.Solution.WithProjectAnalyzerReferences(this.Id, analyzerReferencs).GetProject(this.Id);
         }
 
         /// <summary>

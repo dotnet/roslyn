@@ -219,6 +219,15 @@
   <data name="AbsolutePathExpected" xml:space="preserve">
     <value>Absolute path expected.</value>
   </data>
+  <data name="EmptyKeyInPathMap" xml:space="preserve">
+    <value>A key in the pathMap is empty.</value>
+  </data>
+  <data name="EmptyValueInPathMap" xml:space="preserve">
+    <value>A value in the pathMap is empty.</value>
+  </data>
+  <data name="KeyInPathMapEndsWithSeparator" xml:space="preserve">
+    <value>A key in the pathMap ends with a path separator.</value>
+  </data>
   <data name="CompilationOptionsMustNotHaveErrors" xml:space="preserve">
     <value>Compilation options must not have errors.</value>
   </data>
@@ -318,6 +327,9 @@
   <data name="UnsupportedHashAlgorithm" xml:space="preserve">
     <value>Unsupported hash algorithm.</value>
   </data>
+  <data name="InconsistentLanguageVersions" xml:space="preserve">
+    <value>Inconsistent language versions</value>
+  </data>
   <data name="CoffResourceInvalidRelocation" xml:space="preserve">
     <value>Win32 resources, assumed to be in COFF object format, have one or more invalid relocation header values.</value>
   </data>
@@ -355,14 +367,24 @@
     <value>An error occurred while loading the included rule set file {0} - {1}</value>
   </data>
   <data name="CompilerAnalyzerFailure" xml:space="preserve">
-    <value>Compiler Analyzer Failure</value>
+    <value>Analyzer Failure</value>
   </data>
   <data name="CompilerAnalyzerThrows" xml:space="preserve">
-    <value>The Compiler Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
+    <value>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.</value>
   </data>
   <data name="CompilerAnalyzerThrowsDescription" xml:space="preserve">
     <value>Analyzer '{0}' threw the following exception:
 '{1}'.</value>
+  </data>
+  <data name="AnalyzerDriverFailure" xml:space="preserve">
+    <value>Analyzer Driver Failure</value>
+  </data>
+  <data name="AnalyzerDriverThrows" xml:space="preserve">
+    <value>Analyzer driver threw an exception of type '{0}' with message '{1}'.</value>
+  </data>
+  <data name="AnalyzerDriverThrowsDescription" xml:space="preserve">
+    <value>Analyzer driver threw the following exception:
+'{0}'.</value>
   </data>
   <data name="PEImageDoesntContainManagedMetadata" xml:space="preserve">
     <value>PE image doesn't contain managed metadata.</value>
@@ -382,6 +404,9 @@
   <data name="CantCreateReferenceToDynamicAssembly" xml:space="preserve">
     <value>Can't create a metadata reference to a dynamic assembly.</value>
   </data>
+  <data name="CantCreateReferenceToAssemblyWithoutLocation" xml:space="preserve">
+    <value>Can't create a metadata reference to an assembly without location.</value>
+  </data>
   <data name="ArgumentCannotBeEmpty" xml:space="preserve">
     <value>Argument cannot be empty.</value>
   </data>
@@ -390,6 +415,9 @@
   </data>
   <data name="UnsupportedDiagnosticReported" xml:space="preserve">
     <value>Reported diagnostic with ID '{0}' is not supported by the analyzer.</value>
+  </data>
+  <data name="InvalidDiagnosticIdReported" xml:space="preserve">
+    <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
   <data name="NoBinderException" xml:space="preserve">
     <value>Cannot deserialize type '{0}', no binder supplied.</value>
@@ -459,5 +487,17 @@
   </data>
   <data name="NoAnalyzersFound" xml:space="preserve">
     <value>No analyzers found</value>
+  </data>
+  <data name="DuplicateAnalyzerInstances" xml:space="preserve">
+    <value>Argument contains duplicate analyzer instances.</value>
+  </data>
+  <data name="UnsupportedAnalyzerInstance" xml:space="preserve">
+    <value>Argument contains an analyzer instance that does not belong to the 'Analyzers' for this CompilationWithAnalyzers instance.</value>
+  </data>
+  <data name="InvalidTree" xml:space="preserve">
+    <value>Syntax tree doesn't belong to the underlying 'Compilation'.</value>
+  </data>
+  <data name="ResourceStreamEndedUnexpectedly" xml:space="preserve">
+    <value>Resource stream ended at {0} bytes, expected {1} bytes.</value>
   </data>
 </root>

@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 params.Add(
                     WithNewContainerAndType(
                     Me,
-                    curParam.Type.InternalSubstituteTypeParameters(TypeMap),
+                    curParam.Type.InternalSubstituteTypeParameters(TypeMap).Type,
                     curParam))
             Next
 
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property ReturnType As TypeSymbol
             Get
-                Return _lambda.ReturnType.InternalSubstituteTypeParameters(TypeMap)
+                Return _lambda.ReturnType.InternalSubstituteTypeParameters(TypeMap).Type
             End Get
         End Property
 

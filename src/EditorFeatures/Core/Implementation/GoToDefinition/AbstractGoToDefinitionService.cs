@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             // realize the list here so that the consumer await'ing the result doesn't lazily cause
             // them to be created on an inappropriate thread.
-            return NavigableItemFactory.GetItemsfromPreferredSourceLocations(document.Project.Solution, symbol).ToList();
+            return NavigableItemFactory.GetItemsFromPreferredSourceLocations(document.Project.Solution, symbol).ToList();
         }
 
         public bool TryGoToDefinition(Document document, int position, CancellationToken cancellationToken)
@@ -51,9 +50,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
 
             if (symbol != null)
             {
-                var containingTypeSymbol = GetContainingTypeSymbol(position, document, cancellationToken);
+                var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
 
-                if (GoToDefinitionHelpers.TryGoToDefinition(symbol, document.Project, _presenters, containingTypeSymbol, throwOnHiddenDefinition: true, cancellationToken: cancellationToken))
+                if (GoToDefinitionHelpers.TryGoToDefinition(symbol,
+                    document.Project,
+                    _presenters,
+                    thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
+                    throwOnHiddenDefinition: true,
+                    cancellationToken: cancellationToken))
                 {
                     return true;
                 }
@@ -62,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             return false;
         }
 
-        private static ITypeSymbol GetContainingTypeSymbol(int caretPosition, Document document, CancellationToken cancellationToken)
+        private static bool IsThirdPartyNavigationAllowed(ISymbol symbolToNavigateTo, int caretPosition, Document document, CancellationToken cancellationToken)
         {
             var syntaxRoot = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
@@ -71,10 +75,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             if (containingTypeDeclaration != null)
             {
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-                return semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) as ITypeSymbol;
+                var containingTypeSymbol = semanticModel.GetDeclaredSymbol(containingTypeDeclaration, cancellationToken) as ITypeSymbol;
+
+                // Allow third parties to navigate to all symbols except types/constructors
+                // if we are navigating from the corresponding type.
+
+                if (containingTypeSymbol != null &&
+                    (symbolToNavigateTo is ITypeSymbol || symbolToNavigateTo.IsConstructor()))
+                {
+                    var candidateTypeSymbol = symbolToNavigateTo is ITypeSymbol
+                        ? symbolToNavigateTo
+                        : symbolToNavigateTo.ContainingType;
+
+                    if (containingTypeSymbol == candidateTypeSymbol)
+                    {
+                        // We are navigating from the same type, so don't allow third parties to perform the navigation.
+                        // This ensures that if we navigate to a class from within that class, we'll stay in the same file
+                        // rather than navigate to, say, XAML.
+                        return false;
+                    }
+                }
             }
 
-            return null;
+            return true;
         }
     }
 }

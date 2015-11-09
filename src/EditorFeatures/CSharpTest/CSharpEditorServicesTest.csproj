@@ -5,20 +5,13 @@
   </ImportGroup>
   <PropertyGroup>
     <StartupObject />
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
-    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.CodeAnalysis.Test.Resources.Proprietary.1.1.0-beta1-20150716-05\lib\net45\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.Composition, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Composition.dll</HintPath>
     </Reference>
-    <Reference Include="..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -33,9 +26,13 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</Project>
       <Name>CSharpCompilerTestUtilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\TestUtilities.csproj">
+    <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj">
+      <Project>{fe2cbea6-d121-4faa-aa8b-fc9900bf8c83}</Project>
+      <Name>CSharpInteractiveEditorFeatures</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-391898DBEB52}</Project>
-      <Name>TestUtilities</Name>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -45,11 +42,11 @@
       <Project>{5F8D2414-064A-4B3A-9B42-8E2A04246BE5}</Project>
       <Name>Workspaces</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\CSharp\CSharpFeatures.csproj">
+    <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj">
       <Project>{3973B09A-4FBF-44A5-8359-3D22CEB71F71}</Project>
       <Name>CSharpFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Features\Core\Features.csproj">
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Features</Name>
     </ProjectReference>
@@ -85,9 +82,9 @@
       <Project>{B0CE9307-FFDB-4838-A5EC-CE1F7CDC4AC2}</Project>
       <Name>CSharpEditorFeatures</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\Core2\CompilerTestUtilities2.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Portable.FX45\TestUtilities.FX45.csproj">
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
-      <Name>CompilerTestUtilities2</Name>
+      <Name>TestUtilities.FX45</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
@@ -96,11 +93,6 @@
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76C6F005-C89D-4348-BB4A-39189DDBEB52}</Project>
       <Name>ServicesTestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Scripting\Test\ScriptingTest.csproj">
-      <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
-      <Name>ScriptingTest</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
@@ -118,46 +110,31 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"><Private>false</Private></Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit">
-      <HintPath>..\..\..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.AttributedModel">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -173,7 +150,7 @@
     <Compile Include="AutomaticCompletion\AutomaticLineEnderTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticLiteralCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticParenthesisCompletionTests.cs" />
-    <Compile Include="BraceMatching\BraceHighlightingTests.cs" />
+    <Compile Include="BraceHighlighting\BraceHighlightingTests.cs" />
     <Compile Include="BraceMatching\CSharpBraceMatcherTests.cs" />
     <Compile Include="CallHierarchy\CallHierarchyTests.cs" />
     <Compile Include="ChangeSignature\ChangeSignature_CheckAllSignatureChanges.cs" />
@@ -206,6 +183,9 @@
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
     <Compile Include="CodeActions\Preview\PreviewExceptionTests.cs" />
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
+    <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
+    <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
+    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="CommentSelection\CSharpCommentSelectionTests.cs" />
     <Compile Include="Completion\CompletionProviders\AbstractCSharpCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\AttributeNamedParameterCompletionProviderTests.cs" />
@@ -228,6 +208,7 @@
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
     <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_ExtensionMethods.cs" />
@@ -244,6 +225,7 @@
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
     <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
+    <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
@@ -257,6 +239,7 @@
     <Compile Include="Diagnostics\RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.cs" />
+    <Compile Include="Diagnostics\Suppression\SuppressionTest_FixAllTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTests.cs" />
     <Compile Include="DocumentationComments\DocumentationCommentTests.cs" />
@@ -294,11 +277,11 @@
     <Compile Include="Formatting\Indentation\FormatterTestsBase.cs" />
     <Compile Include="Formatting\Indentation\SmartIndenterEnterOnTokenTests.cs" />
     <Compile Include="Formatting\Indentation\SmartIndenterTests.cs" />
+    <Compile Include="Formatting\Indentation\SmartIndenterTests_Performance.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatRangeTests.cs" />
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="Interactive\BraceMatching\InteractiveBraceHighlightingTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
-    <Compile Include="Interactive\CommandArgumentsParsingTest.cs" />
     <Compile Include="Interactive\NavigateTo\InteractiveNavigateToTests.cs" />
     <Compile Include="KeywordHighlighting\AbstractCSharpKeywordHighlighterTests.cs" />
     <Compile Include="KeywordHighlighting\AsyncAnonymousMethodHighlighterTests.cs" />
@@ -368,135 +351,6 @@
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
-    <Compile Include="Recommendations\AbstractKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AddKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AliasKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AscendingKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AssemblyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AsyncKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\AwaitKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\BaseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\BoolKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\BreakKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ByKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ByteKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CaseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CatchKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CharKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\CheckedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ChecksumKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ClassKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ConstKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ContinueKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DecimalKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DefaultKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DefineKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DelegateKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DescendingKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DisableKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DoKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DoubleKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\DynamicKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ElifKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ElseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EndIfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EndRegionKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EnumKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EqualsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ErrorKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\EventKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ExplicitKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ExternKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FalseKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FieldKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FinallyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FixedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FloatKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ForEachKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ForKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\FromKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GetKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GlobalKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GotoKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\GroupKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\HiddenKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ImplicitKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\InKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\InterfaceKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\InternalKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IntKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IntoKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\IsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\JoinKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\KeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LetKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LineKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LockKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\LongKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\MethodKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ModuleKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NamespaceKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NewKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NullKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ObjectKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OnKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OperatorKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OrderByKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OutKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\OverrideKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ParamKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ParamsKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PartialKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PragmaKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PrivateKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PropertyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ProtectedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\PublicKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ReadOnlyKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RecommenderTests.cs" />
-    <Compile Include="Recommendations\ReferenceKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RefKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RegionKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RemoveKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\RestoreKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ReturnKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SByteKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SealedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SelectKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SetKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ShortKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SizeOfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StackAllocKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StaticKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StringKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\StructKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\SwitchKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ThisKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ThrowKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TrueKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TryKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TypeKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\NameOfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TypeOfKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\TypeVarKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UIntKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\ULongKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UncheckedKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UndefKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UnsafeKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UShortKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\UsingKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VarKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VirtualKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VoidKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\VolatileKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WarningKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WhenKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WhereKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\WhileKeywordRecommenderTests.cs" />
-    <Compile Include="Recommendations\YieldKeywordRecommenderTests.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\AttributeSignatureHelpProviderTests.cs" />
@@ -519,7 +373,7 @@
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
     <Compile Include="Workspaces\WorkspaceTests.cs" />
     <None Include="app.config" />
-    <None Include="packages.config" />
+    <None Include="project.json" />
     <None Include="PerfTests\CSharpPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -669,9 +523,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

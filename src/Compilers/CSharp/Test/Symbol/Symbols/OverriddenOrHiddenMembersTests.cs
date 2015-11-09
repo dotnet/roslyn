@@ -2390,13 +2390,7 @@ class Test
         c.GAB(ref c); // modopts A, B (inside and outside ref, respectively)
     }
 }";
-            // NOTE: dev11 accepts all of these signatures, even though they are not valid
-            // according to the CLI spec.  Roslyn has special handling to accept GA, but
-            // still rejects GAB.
-            CreateCompilationWithCustomILSource(csharp, il).VerifyDiagnostics(
-                // (16,9): error CS0570: 'C.GAB(ref ?)' is not supported by the language
-                //         c.GAB(ref c);
-                Diagnostic(ErrorCode.ERR_BindToBogus, "GAB").WithArguments("C.GAB(ref ?)"));
+            CompileAndVerify(CreateCompilationWithCustomILSource(csharp, il));
         }
 
         [WorkItem(545653, "DevDiv")]
@@ -3615,6 +3609,334 @@ class Derived : Base
 
             // Dev11 spuriously reports WRN_EqualsWithoutGetHashCode.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
+        public void AbstractGenericBase_01()
+        {
+            var text = @"
+class C
+{
+    public static void Main()
+    {
+        var t = new Required();
+        t.Test1(null);
+        t.Test2(null);
+    }
+}
+
+public abstract class Validator
+{
+    public abstract void DoValidate(object objectToValidate);
+
+    public void Test1(object objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class Validator<T> : Validator
+{
+    public override void DoValidate(object objectToValidate)
+    {
+        System.Console.WriteLine(""void Validator<T>.DoValidate(object objectToValidate)"");
+    }
+
+    protected abstract void DoValidate(T objectToValidate);
+
+    public void Test2(T objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class ValidatorBase<T> : Validator<T>
+{
+    protected override void DoValidate(T objectToValidate)
+    {
+        System.Console.WriteLine(""void ValidatorBase<T>.DoValidate(T objectToValidate)"");
+    }
+}
+
+public class Required : ValidatorBase<object>
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+
+            var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
+            var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
+
+            Assert.Equal(1, doVaidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateT.OverriddenMethod.ToTestDisplayString());
+            Assert.False(validatorBaseT.AbstractMembers.Any());
+
+            var validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType);
+            var doVaidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
+
+            Assert.Equal(2, doVaidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
+            Assert.False(validatorBaseObject.AbstractMembers.Any());
+
+            CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)");
+        }
+
+        [Fact]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
+        public void AbstractGenericBase_02()
+        {
+            var text = @"
+class C
+{
+    public static void Main()
+    {
+        var t = new Required();
+        t.Test1(null);
+        t.Test2(null);
+    }
+}
+
+public abstract class Validator
+{
+    public abstract void DoValidate(object objectToValidate);
+
+    public void Test1(object objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class Validator<T> : Validator
+{
+    public abstract override void DoValidate(object objectToValidate);
+
+    public virtual void DoValidate(T objectToValidate)
+    {
+        System.Console.WriteLine(""void Validator<T>.DoValidate(T objectToValidate)"");
+    }
+
+    public void Test2(T objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+
+public abstract class ValidatorBase<T> : Validator<T>
+{
+    public override void DoValidate(T objectToValidate)
+    {
+        System.Console.WriteLine(""void ValidatorBase<T>.DoValidate(T objectToValidate)"");
+    }
+}
+
+public class Required : ValidatorBase<object>
+{
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+
+            compilation.VerifyDiagnostics(
+        // (46,14): error CS0534: 'Required' does not implement inherited abstract member 'Validator<object>.DoValidate(object)'
+        // public class Required : ValidatorBase<object>
+        Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Required").WithArguments("Required", "Validator<object>.DoValidate(object)").WithLocation(46, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
+        public void AbstractGenericBase_03()
+        {
+            var text = @"
+class C
+{
+    public static void Main()
+    {
+        var t = new Required();
+        t.Test1(null);
+        t.Test2(null);
+    }
+}
+
+public abstract class Validator0<T>
+{
+    public abstract void DoValidate(T objectToValidate);
+
+    public void Test2(T objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class Validator<T> : Validator0<T>
+{
+    public virtual void DoValidate(object objectToValidate)
+    {
+        System.Console.WriteLine(""void Validator<T>.DoValidate(object objectToValidate)"");
+    }
+
+    public void Test1(object objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+
+public abstract class ValidatorBase<T> : Validator<T>
+{
+    public override void DoValidate(T objectToValidate)
+    {
+        System.Console.WriteLine(""void ValidatorBase<T>.DoValidate(T objectToValidate)"");
+    }
+}
+
+public class Required : ValidatorBase<object>
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)");
+        }
+
+        [Fact]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
+        public void AbstractGenericBase_04()
+        {
+            var text = @"
+class C
+{
+    public static void Main()
+    {
+        var t = new Required();
+        Test1(t);
+        Test2(t, null);
+    }
+
+    static void Test1(Validator v)
+    {
+        v.Test1(null);
+    }
+
+    static void Test2<T>(Validator<T> v, T o)
+    {
+        v.Test2(o);
+    }
+}
+
+public abstract class Validator
+{
+    public abstract void DoValidate(object objectToValidate);
+
+    public void Test1(object objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class Validator<T> : Validator
+{
+    public virtual void DoValidate(T objectToValidate)
+    {
+        System.Console.WriteLine(""void Validator<T>.DoValidate(T objectToValidate)"");
+    }
+
+    public void Test2(T objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class ValidatorBase<T> : Validator<T>
+{
+    public override void DoValidate(object objectToValidate)
+    {
+        System.Console.WriteLine(""void ValidatorBase<T>.DoValidate(object objectToValidate)"");
+    }
+}
+
+public class Required : ValidatorBase<object>
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"void ValidatorBase<T>.DoValidate(object objectToValidate)
+void Validator<T>.DoValidate(T objectToValidate)");
+        }
+
+        [Fact]
+        [WorkItem(6148, "https://github.com/dotnet/roslyn/issues/6148")]
+        public void AbstractGenericBase_05()
+        {
+            var text = @"
+class C
+{
+    public static void Main()
+    {
+        var t = new Required();
+        t.Test1(null);
+        t.Test2(null);
+    }
+}
+
+public abstract class Validator0<T>
+{
+    public abstract void DoValidate(object objectToValidate);
+
+    public void Test1(object objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class Validator<T> : Validator0<int>
+{
+    public override void DoValidate(object objectToValidate)
+    {
+        System.Console.WriteLine(""void Validator<T>.DoValidate(object objectToValidate)"");
+    }
+
+    protected abstract void DoValidate(T objectToValidate);
+
+    public void Test2(T objectToValidate)
+    {
+         DoValidate(objectToValidate);
+    }
+}
+
+public abstract class ValidatorBase<T> : Validator<T>
+{
+    protected override void DoValidate(T objectToValidate)
+    {
+        System.Console.WriteLine(""void ValidatorBase<T>.DoValidate(T objectToValidate)"");
+    }
+}
+
+public class Required : ValidatorBase<object>
+{
+}
+";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe);
+
+            var validatorBaseT = compilation.GetTypeByMetadataName("ValidatorBase`1");
+            var doVaidateT = validatorBaseT.GetMember<MethodSymbol>("DoValidate");
+
+            Assert.Equal(1, doVaidateT.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateT.OverriddenMethod.ToTestDisplayString());
+            Assert.False(validatorBaseT.AbstractMembers.Any());
+
+            var validatorBaseObject = validatorBaseT.Construct(compilation.ObjectType);
+            var doVaidateObject = validatorBaseObject.GetMember<MethodSymbol>("DoValidate");
+
+            Assert.Equal(2, doVaidateObject.OverriddenOrHiddenMembers.OverriddenMembers.Length);
+            Assert.Equal("void Validator<T>.DoValidate(T objectToValidate)", doVaidateObject.OverriddenMethod.OriginalDefinition.ToTestDisplayString());
+            Assert.False(validatorBaseObject.AbstractMembers.Any());
+
+            CompileAndVerify(compilation, expectedOutput: @"void Validator<T>.DoValidate(object objectToValidate)
+void ValidatorBase<T>.DoValidate(T objectToValidate)");
         }
 
         #endregion

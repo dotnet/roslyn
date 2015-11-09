@@ -4340,8 +4340,8 @@
   <data name="WRN_PrefixAndXmlnsLocalName_Title" xml:space="preserve">
     <value>It is not recommended to have attributes named xmlns</value>
   </data>
-  <data name="ERR_NoScriptsSpecified" xml:space="preserve">
-    <value>Expected at least one script (.vbx file) but none specified</value>
+  <data name="ERR_ExpectedSingleScript" xml:space="preserve">
+    <value>Expected a single script (.vbx file)</value>
   </data>
   <data name="ERR_ReservedAssemblyName" xml:space="preserve">
     <value>The assembly name '{0}' is reserved and cannot be used as a reference in an interactive session</value>
@@ -4910,9 +4910,6 @@
   <data name="IDS_TheSystemCannotFindThePathSpecified" xml:space="preserve">
     <value>The system cannot find the path specified</value>
   </data>
-  <data name="CompilationDoesNotRepresentInteractiveSubmission" xml:space="preserve">
-    <value>This compilation doesn't represent an interactive submission.</value>
-  </data>
   <data name="IDS_UnrecognizedFileFormat" xml:space="preserve">
     <value>Unrecognized file format.</value>
   </data>
@@ -5051,7 +5048,10 @@
 /removeintchecks[+|-]             Remove integer checks. Default off.
 /debug[+|-]                       Emit debugging information.
 /debug:full                       Emit full debugging information (default).
+/debug:portable                   Emit debugging information in the portable format.
 /debug:pdbonly                    Emit PDB file only.
+/deterministic                    Produce a deterministic assembly
+                                  (including module version GUID and timestamp)
 
                                   - ERRORS AND WARNINGS -
 /nowarn                           Disable all warnings.
@@ -5065,6 +5065,7 @@
 /reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
                                   - LANGUAGE -
+
 /define:&lt;symbol_list&gt;             Declare global conditional compilation 
                                   symbol(s). symbol_list:name=value,... 
                                   (Short form: /d)
@@ -5122,6 +5123,9 @@
 /netcf                            Target the .NET Compact Framework.
 /nostdlib                         Do not reference standard libraries 
                                   (system.dll and VBC.RSP file).
+/pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                                  Specify a mapping for source path names output by
+                                  the compiler.
 /platform:&lt;string&gt;                Limit which platforms this code can run on; 
                                   must be x86, x64, Itanium, arm,
                                   AnyCPU32BitPreferred or anycpu (default).
@@ -5268,6 +5272,9 @@
   <data name="FEATURE_AutoProperties" xml:space="preserve">
     <value>auto-implemented properties</value>
   </data>
+  <data name="FEATURE_ReadonlyAutoProperties" xml:space="preserve">
+    <value>readonly auto-implemented properties</value>
+  </data>
   <data name="FEATURE_CoContraVariance" xml:space="preserve">
     <value>variance</value>
   </data>
@@ -5295,10 +5302,46 @@
   <data name="FEATURE_NameOfExpressions" xml:space="preserve">
     <value>'nameof' expressions</value>
   </data>
+  <data name="FEATURE_RegionsEverywhere" xml:space="preserve">
+    <value>region directives within method bodies or regions crossing boundaries of declaration blocks</value>
+  </data>
+  <data name="FEATURE_MultilineStringLiterals" xml:space="preserve">
+    <value>multiline string literals</value>
+  </data>
+  <data name="FEATURE_CObjInAttributeArguments" xml:space="preserve">
+    <value>CObj in attribute arguments</value>
+  </data>
+  <data name="FEATURE_LineContinuationComments" xml:space="preserve">
+    <value>line continuation comments</value>
+  </data>
+  <data name="FEATURE_TypeOfIsNot" xml:space="preserve">
+    <value>TypeOf IsNot expression</value>
+  </data>
+  <data name="FEATURE_YearFirstDateLiterals" xml:space="preserve">
+    <value>year-first date literals</value>
+  </data>
+  <data name="FEATURE_WarningDirectives" xml:space="preserve">
+    <value>warning directives</value>
+  </data>
+  <data name="FEATURE_PartialModules" xml:space="preserve">
+    <value>partial modules</value>
+  </data>
+  <data name="FEATURE_PartialInterfaces" xml:space="preserve">
+    <value>partial interfaces</value>
+  </data>
+  <data name="FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite" xml:space="preserve">
+    <value>implementing read-only or write-only property with read-write property</value>
+  </data>
   <data name="FEATURE_DigitSeparators" xml:space="preserve">
     <value>digit separators</value>
   </data>
   <data name="FEATURE_BinaryLiterals" xml:space="preserve">
     <value>binary literals</value>
+  </data>
+  <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
+    <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
   </data>
 </root>

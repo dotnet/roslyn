@@ -19,7 +19,7 @@
                  @(_DebugSymbolsIntermediatePath);
                  $(NonExistentFile);
                  @(CustomAdditionalCompileOutputs)"
-          Returns=""
+          Returns="@(VbcCommandLineArgs)"
           DependsOnTargets="$(CoreCompileDependsOn)"
     >
     <PropertyGroup>
@@ -87,6 +87,7 @@
           NoWarnings="$(_NoWarnings)"
           NoWin32Manifest="$(NoWin32Manifest)"
           Optimize="$(Optimize)"
+          Deterministic="$(Deterministic)"
           OptionCompare="$(OptionCompare)"
           OptionExplicit="$(OptionExplicit)"
           OptionInfer="$(OptionInfer)"
@@ -97,6 +98,7 @@
           Platform="$(PlatformTarget)"
           Prefer32Bit="$(Prefer32Bit)"
           PreferredUILang="$(PreferredUILang)"
+          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
           References="@(ReferencePath)"
           RemoveIntegerChecks="$(RemoveIntegerChecks)"
           ReportAnalyzer="$(ReportAnalyzer)"
@@ -104,6 +106,7 @@
           ResponseFiles="$(CompilerResponseFile)"
           RootNamespace="$(RootNamespace)"
           SdkPath="$(FrameworkPathOverride)"
+          SkipCompilerExecution="$(SkipCompilerExecution)"
           Sources="@(Compile)"
           SubsystemVersion="$(SubsystemVersion)"
           TargetCompactFramework="$(TargetCompactFramework)"
@@ -123,8 +126,10 @@
           Win32Manifest="$(Win32Manifest)"
           Win32Resource="$(Win32Resource)"
           VBRuntime="$(VBRuntime)"
-          />
-
+          PathMap="$(PathMap)"
+          >
+      <Output TaskParameter="CommandLineArgs" ItemName="VbcCommandLineArgs" />
+    </Vbc>
     <ItemGroup>
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />
     </ItemGroup>

@@ -11,10 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         Private Shared ReadOnly s_signedDll As VisualBasicCompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                                              optimizationLevel:=OptimizationLevel.Release,
-                                              cryptoKeyFile:=SigningTestHelpers.KeyPairFile,
-                                              strongNameProvider:=New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(Of String)()))
+            TestOptions.ReleaseDll.WithCryptoPublicKey(TestResources.TestKeys.PublicKey_ce65828c82a341f2)
 
         <WorkItem(5483, "DevDiv_Projects/Roslyn")>
         <WorkItem(527917, "DevDiv")>
@@ -1667,6 +1664,395 @@ End Class
             Assert.Same(assembly1.CorLibrary, assembly1)
             Assert.Same(assembly2.CorLibrary, assembly2)
             Assert.True(corlib1.ReferenceManagerEquals(corlib2))
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution1()
+            ' c - a -> b
+            Dim bRef = CreateCompilationWithMscorlib({"Public Class B : End Class"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Class A : Inherits B : End Class"}, {bRef}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B", bRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Inherits A : End Class"}, {aRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal("B", DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol).Name)
+
+            Resolver.VerifyResolutionAttempts(
+                "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_WeakIdentities1()
+            ' c - a -> "b,v1,PKT=null" 
+            '   - d -> "b,v2,PKT=null"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b4Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits B : End Interface"}, {b1Ref}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : Inherits B : End Interface"}, {b2Ref}, TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b1Ref},
+                {"B, 2.0.0.0", b2Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A, D : End Interface"}, {aRef, dRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            AssertEx.Equal(
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+            }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolver.VerifyResolutionAttempts(
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_WeakIdentities2()
+            ' c - a -> "b,v1,PKT=null"
+            '   - d -> "b,v2,PKT=null"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim b4Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")> : Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits B : End Interface"}, {b1Ref}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : Inherits B : End Interface"}, {b2Ref}, TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+
+            Dim resolver As TestMissingMetadataReferenceResolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b3Ref},
+                {"B, 2.0.0.0", b4Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A, D : End Interface"}, {aRef, dRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            AssertEx.Equal(
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=null"
+            }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolver.VerifyResolutionAttempts(
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "A -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_None()
+            ' c - a -> d
+            '   - d
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseDll, assemblyName:="A").ToMetadataReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference)())
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef, dRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyDiagnostics()
+            resolver.VerifyResolutionAttempts()
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_ActualMissing()
+            ' c - a -> d
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseDll, assemblyName:="A").ToMetadataReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference)())
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UnreferencedAssembly3, "A").WithArguments("D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D"))
+
+            resolver.VerifyResolutionAttempts(
+                "A -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        ''' <summary>
+        ''' Ignore assemblies returned by the resolver that don't match the reference identity.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_MissingDueToResolutionMismatch()
+            ' c - a -> b
+            Dim bRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {bRef}, TestOptions.ReleaseDll, assemblyName:="A").ToMetadataReference()
+
+            Dim eRef = CreateCompilationWithMscorlib({"Public Interface E : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="E").ToMetadataReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+                {
+                    {"B, 1.0.0.0", eRef}
+                })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_UnreferencedAssembly3, "A").WithArguments("B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D"))
+
+            resolver.VerifyResolutionAttempts(
+                "A -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_Modules()
+            ' c - a - d
+            '   - module(m) - b
+            '   - module(n) - d 
+            Dim bRef = CreateCompilationWithMscorlib({"Public Interface B : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="B").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"Public Interface D : End Interface"}, options:=TestOptions.ReleaseDll, assemblyName:="D").EmitToImageReference()
+
+            Dim mRef = CreateCompilationWithMscorlib({"Public Interface M : Inherits B : End Interface"}, {bRef}, TestOptions.ReleaseModule.WithModuleName("M.netmodule")).EmitToImageReference()
+            Dim nRef = CreateCompilationWithMscorlib({"Public Interface N : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseModule.WithModuleName("N.netmodule")).EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"Public Interface A : Inherits D : End Interface"}, {dRef}, TestOptions.ReleaseDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B", bRef},
+                {"D", dRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Interface C : Inherits A : End Interface"}, {aRef, mRef, nRef},
+                TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyEmitDiagnostics()
+            Assert.Equal("B", (DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol)).Name)
+            Assert.Equal("D", (DirectCast(c.GetAssemblyOrModuleSymbol(dRef), AssemblySymbol)).Name)
+
+            ' We don't resolve one assembly reference identity twice, even if the requesting definition is different.
+            resolver.VerifyResolutionAttempts(
+                "A -> D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+                "M.netmodule -> B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+        End Sub
+
+        ''' <summary>
+        ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToForExplicitReference1()
+            ' c - a -> "b,v1"
+            '   - "b,v3"
+            '      
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Class B : End Class"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Class B : End Class"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Class B : End Class"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Class A : Inherits B : End Class"}, {b1Ref}, options:=s_signedDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolver = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 1.0.0.0", b2Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Inherits A : End Class"}, {aRef, b3Ref}, s_signedDll.WithMetadataReferenceResolver(resolver))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal(
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                DirectCast(c.GetAssemblyOrModuleSymbol(b3Ref), AssemblySymbol).Identity.GetDisplayName())
+
+            Assert.Null(DirectCast(c.GetAssemblyOrModuleSymbol(b2Ref), AssemblySymbol))
+
+            resolver.VerifyResolutionAttempts()
+        End Sub
+
+        ''' <summary>
+        ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToExplicitReference_WorseVersion()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '   - "b,v1"  
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim resolverA = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 2.0.0.0", b2Ref},
+                {"B, 1.0.0.0", b1Ref}
+            })
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     {dRef, eRef},
+                                                     s_signedDll.WithMetadataReferenceResolver(resolverA), assemblyName:="A").EmitToImageReference()
+
+            Assert.Equal(2, resolverA.ResolutionAttempts.Count)
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef, b1Ref}, s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_SxSIndirectRefHigherThanDirectRef3, "A").WithArguments("B", "2.0.0.0", "1.0.0.0"))
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+        End Sub
+
+        ''' <summary>
+        ''' Don't try to resolve AssemblyRefs that already match explicitly specified definition.
+        ''' </summary>
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToExplicitReference_BetterVersion()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '   - "b,v2"  
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim resolverA = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"B, 2.0.0.0", b2Ref},
+                {"B, 1.0.0.0", b1Ref}
+            })
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     {dRef, eRef},
+                                                     s_signedDll.WithMetadataReferenceResolver(resolverA),
+                                                     assemblyName:="A").EmitToImageReference()
+
+            Assert.Equal(2, resolverA.ResolutionAttempts.Count)
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef, b2Ref},
+                s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics()
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToImplicitReference1()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '          "b,v1"
+            '          "b,v2"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     {dRef, eRef, b1Ref, b2Ref},
+                                                     s_signedDll,
+                                                     assemblyName:="A").EmitToImageReference()
+
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef},
+                {"B, 1.0.0.0", b1Ref},
+                {"B, 2.0.0.0", b2Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef},
+                s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal(
+                "B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                DirectCast(c.GetAssemblyOrModuleSymbol(b1Ref), AssemblySymbol).Identity.GetDisplayName())
+
+            Assert.Equal(
+                "B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                DirectCast(c.GetAssemblyOrModuleSymbol(b2Ref), AssemblySymbol).Identity.GetDisplayName())
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+        End Sub
+
+        <Fact>
+        Public Sub MissingAssemblyResolution_BindingToImplicitReference2()
+            ' c - a -> d -> "b,v2"
+            '          e -> "b,v1"
+            '          "b,v1"
+            '          "b,v2"
+            Dim b1Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b2Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b3Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""3.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+            Dim b4Ref = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""4.0.0.0"")> : Public Interface B : End Interface"}, options:=s_signedDll, assemblyName:="B").EmitToImageReference()
+
+            Dim dRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
+            Dim eRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
+
+            Dim aRef = CreateCompilationWithMscorlib({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface A : Inherits D, E : End Interface"}, {dRef, eRef, b1Ref, b2Ref}, s_signedDll, assemblyName:="A").EmitToImageReference()
+
+            Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
+            {
+                {"D, 1.0.0.0", dRef},
+                {"E, 1.0.0.0", eRef},
+                {"B, 1.0.0.0", b3Ref},
+                {"B, 2.0.0.0", b4Ref}
+            })
+
+            Dim c = CreateCompilationWithMscorlib({"Public Class C : Implements A : End Class"}, {aRef}, s_signedDll.WithMetadataReferenceResolver(resolverC))
+
+            c.VerifyEmitDiagnostics()
+
+            Assert.Equal(4, resolverC.ResolutionAttempts.Count)
+
+            AssertEx.Equal(
+            {
+                "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "A, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "B, Version=3.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "B, Version=4.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2"
+            }, c.GetBoundReferenceManager().ReferencedAssemblies.Select(Function(a) a.Identity.GetDisplayName()))
+
+            resolverC.VerifyResolutionAttempts(
+                "A -> D, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "A -> E, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "E -> B, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2",
+                "D -> B, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
         End Sub
     End Class
 End Namespace

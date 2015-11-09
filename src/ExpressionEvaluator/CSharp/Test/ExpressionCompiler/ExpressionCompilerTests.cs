@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string error;
             var result = context.CompileExpression("M(", out error);
             Assert.Null(result);
-            Assert.Equal(error, "(1,3): error CS1026: ) expected");
+            Assert.Equal(error, "error CS1026: ) expected");
         }
 
         /// <summary>
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(error);
             // Multiple semicolons: not supported.
             result = context.CompileExpression("x;;", out error);
-            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ';'");
+            Assert.Equal(error, "error CS1073: Unexpected token ';'");
             // // comments.
             result = context.CompileExpression("x;//", out error);
             Assert.Equal(error, "error CS0726: ';//' is not a valid format specifier");
@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(error);
             // Trailing semicolon, no expression.
             result = context.CompileExpression(" ; ", out error);
-            Assert.Equal(error, "(1,2): error CS1733: Expected expression");
+            Assert.Equal(error, "error CS1733: Expected expression");
         }
 
         [Fact]
@@ -545,16 +545,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Format specifiers on assignment value.
             result = context.CompileAssignment("x", "null, y", out error);
             Assert.Null(result);
-            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
+            Assert.Equal(error, "error CS1073: Unexpected token ','");
             // Trailing semicolon, no format specifiers.
             result = context.CompileExpression("x; ", out error);
             CheckFormatSpecifiers(result);
             // Format specifiers, no expression.
             result = context.CompileExpression(",f", out error);
-            Assert.Equal(error, "(1,1): error CS1525: Invalid expression term ','");
+            Assert.Equal(error, "error CS1525: Invalid expression term ','");
             // Format specifiers before semicolon: not supported.
             result = context.CompileExpression("x,f;\t", out error);
-            Assert.Equal(error, "(1,1): error CS1073: Unexpected token ','");
+            Assert.Equal(error, "error CS1073: Unexpected token ','");
             // Format specifiers after semicolon: not supported.
             result = context.CompileExpression("x;,f", out error);
             Assert.Equal(error, "error CS0726: ';' is not a valid format specifier");
@@ -2021,7 +2021,7 @@ class C
             context.CompileExpression(
                 "@0xffff0000ffff0000ffff0000",
                 out error, testData);
-            Assert.Equal(error, "(1,1): error CS1021: Integral constant is too large");
+            Assert.Equal(error, "error CS1021: Integral constant is too large");
         }
 
         [WorkItem(986227)]
@@ -2054,6 +2054,7 @@ class C<T>
     E<T> e1 = null;
     try
     {
+        string.Empty.ToString();
     }
     catch (E<T> e2)
     {
@@ -2074,7 +2075,7 @@ class C<T>
             // Return type E<T> with type argument T from <>c<T>.
             Assert.Equal(returnType.TypeArguments[0].ContainingSymbol, containingType.ContainingType);
             var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
-            Assert.Equal(locals.Length, 1);
+            Assert.Equal(1, locals.Length);
             // All locals of type E<T> with type argument T from <>c<T>.
             foreach (var local in locals)
             {
@@ -2085,27 +2086,30 @@ class C<T>
 
             methodData.VerifyIL(
 @"{
-  // Code size       12 (0xc)
+  // Code size       23 (0x17)
   .maxstack  1
   .locals init (E<T> V_0) //e1
   IL_0000:  ldnull
   IL_0001:  stloc.0
   .try
-{
-  IL_0002:  leave.s    IL_000a
-}
+  {
+    IL_0002:  ldsfld     ""string string.Empty""
+    IL_0007:  callvirt   ""string object.ToString()""
+    IL_000c:  pop
+    IL_000d:  leave.s    IL_0015
+  }
   catch E<T>
-{
-  IL_0004:  stloc.0
-  IL_0005:  leave.s    IL_000a
-}
+  {
+    IL_000f:  stloc.0
+    IL_0010:  leave.s    IL_0015
+  }
   catch object
-{
-  IL_0007:  pop
-  IL_0008:  leave.s    IL_000a
-}
-  IL_000a:  ldloc.0
-  IL_000b:  ret
+  {
+    IL_0012:  pop
+    IL_0013:  leave.s    IL_0015
+  }
+  IL_0015:  ldloc.0
+  IL_0016:  ret
 }");
         }
 
@@ -2695,7 +2699,7 @@ class C<T>
             // Currently generating errors but this seems unnecessary and
             // an extra burden for the user. Consider allowing names
             // inside the expression that shadow names outside.
-            Assert.Equal("(1,32): error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+            Assert.Equal("error CS0136: A local or parameter named 'y' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
         }
 
         [Fact]
@@ -3625,7 +3629,7 @@ class C
                 "o.First()",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -3809,6 +3813,7 @@ class C
                         win32Resources: null,
                         manifestResources: null,
                         options: EmitOptions.Default,
+                        debugEntryPoint: null,
                         testData: testData0,
                         getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
@@ -3838,7 +3843,7 @@ class C
                 "x.F0 + y.F0",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -3851,7 +3856,7 @@ class C
                 "y.F0",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -3864,7 +3869,7 @@ class C
                 "z.F1",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
@@ -4484,7 +4489,7 @@ class C
                 resultProperties: out resultProperties,
                 error: out error);
 
-            Assert.Equal("(1,1): error CS1525: Invalid expression term 'throw'", error);
+            Assert.Equal("error CS1525: Invalid expression term 'throw'", error);
         }
 
         [WorkItem(1016555)]
@@ -4514,7 +4519,7 @@ class C
                 expr: "(System.Func<object>)(() => 2))(",
                 error: out error,
                 testData: testData);
-            Assert.Equal("(1,1): error CS1073: Unexpected token ')'", error);
+            Assert.Equal("error CS1073: Unexpected token ')'", error);
         }
 
         [WorkItem(1015887)]
@@ -5301,14 +5306,14 @@ class C
                 "from c in \"ABC\" select c",
                 DkmEvaluationFlags.TreatAsExpression,
                 NoAliases,
-                DiagnosticFormatter.Instance,
+                DebuggerDiagnosticFormatter.Instance,
                 out resultProperties,
                 out error,
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
             Assert.Equal(new AssemblyIdentity("System.Core"), missingAssemblyIdentities.Single());
-            Assert.Equal(error, "(1,11): error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?");
+            Assert.Equal(error, "error CS1935: Could not find an implementation of the query pattern for source type 'string'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?");
         }
 
         [WorkItem(1079762)]
@@ -5591,7 +5596,7 @@ public class C
                     expr,
                     DkmEvaluationFlags.TreatAsExpression,
                     NoAliases,
-                    DiagnosticFormatter.Instance,
+                    DebuggerDiagnosticFormatter.Instance,
                     out resultProperties,
                     out actualError,
                     out actualMissingAssemblyIdentities,
@@ -5926,7 +5931,7 @@ public class C
             Assert.Equal("error CS7003: Unexpected use of an unbound generic name", error);
 
             context.CompileExpression("typeof(Action<>a)", out error);
-            Assert.Equal("(1,16): error CS1026: ) expected", error);
+            Assert.Equal("error CS1026: ) expected", error);
         }
 
         [WorkItem(1068138, "DevDiv")]
@@ -6270,6 +6275,138 @@ class C
                 ilOffset: ExpressionCompilerTestHelpers.NoILOffset,
                 localSignatureToken: localSignatureToken);
             Assert.Same(previous, context);
+        }
+
+        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
+        [Fact]
+        public void SelectAnonymousType()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    static void M(List<int> list)
+    {
+        var useLinq = list.Last();
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlibAndSystemCore(
+                source,
+                options: TestOptions.DebugDll,
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "C.M");
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("from x in list from y in list where x > 0 select new { x, y };", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size      140 (0x8c)
+  .maxstack  4
+  .locals init (int V_0, //useLinq
+                <>x.<>c__DisplayClass0_0 V_1) //CS$<>8__locals0
+  IL_0000:  newobj     ""<>x.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldloc.1
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""System.Collections.Generic.List<int> <>x.<>c__DisplayClass0_0.list""
+  IL_000d:  ldloc.1
+  IL_000e:  ldfld      ""System.Collections.Generic.List<int> <>x.<>c__DisplayClass0_0.list""
+  IL_0013:  ldloc.1
+  IL_0014:  ldftn      ""System.Collections.Generic.IEnumerable<int> <>x.<>c__DisplayClass0_0.<<>m0>b__0(int)""
+  IL_001a:  newobj     ""System.Func<int, System.Collections.Generic.IEnumerable<int>>..ctor(object, System.IntPtr)""
+  IL_001f:  ldsfld     ""System.Func<int, int, <anonymous type: int x, int y>> <>x.<>c.<>9__0_1""
+  IL_0024:  dup
+  IL_0025:  brtrue.s   IL_003e
+  IL_0027:  pop
+  IL_0028:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_002d:  ldftn      ""<anonymous type: int x, int y> <>x.<>c.<<>m0>b__0_1(int, int)""
+  IL_0033:  newobj     ""System.Func<int, int, <anonymous type: int x, int y>>..ctor(object, System.IntPtr)""
+  IL_0038:  dup
+  IL_0039:  stsfld     ""System.Func<int, int, <anonymous type: int x, int y>> <>x.<>c.<>9__0_1""
+  IL_003e:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>> System.Linq.Enumerable.SelectMany<int, int, <anonymous type: int x, int y>>(System.Collections.Generic.IEnumerable<int>, System.Func<int, System.Collections.Generic.IEnumerable<int>>, System.Func<int, int, <anonymous type: int x, int y>>)""
+  IL_0043:  ldsfld     ""System.Func<<anonymous type: int x, int y>, bool> <>x.<>c.<>9__0_2""
+  IL_0048:  dup
+  IL_0049:  brtrue.s   IL_0062
+  IL_004b:  pop
+  IL_004c:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_0051:  ldftn      ""bool <>x.<>c.<<>m0>b__0_2(<anonymous type: int x, int y>)""
+  IL_0057:  newobj     ""System.Func<<anonymous type: int x, int y>, bool>..ctor(object, System.IntPtr)""
+  IL_005c:  dup
+  IL_005d:  stsfld     ""System.Func<<anonymous type: int x, int y>, bool> <>x.<>c.<>9__0_2""
+  IL_0062:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>> System.Linq.Enumerable.Where<<anonymous type: int x, int y>>(System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>>, System.Func<<anonymous type: int x, int y>, bool>)""
+  IL_0067:  ldsfld     ""System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>> <>x.<>c.<>9__0_3""
+  IL_006c:  dup
+  IL_006d:  brtrue.s   IL_0086
+  IL_006f:  pop
+  IL_0070:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_0075:  ldftn      ""<anonymous type: int x, int y> <>x.<>c.<<>m0>b__0_3(<anonymous type: int x, int y>)""
+  IL_007b:  newobj     ""System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>>..ctor(object, System.IntPtr)""
+  IL_0080:  dup
+  IL_0081:  stsfld     ""System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>> <>x.<>c.<>9__0_3""
+  IL_0086:  call       ""System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>> System.Linq.Enumerable.Select<<anonymous type: int x, int y>, <anonymous type: int x, int y>>(System.Collections.Generic.IEnumerable<<anonymous type: int x, int y>>, System.Func<<anonymous type: int x, int y>, <anonymous type: int x, int y>>)""
+  IL_008b:  ret
+}");
+        }
+
+        [WorkItem(2501)]
+        [Fact]
+        public void ImportsInAsyncLambda()
+        {
+            var source =
+@"namespace N
+{
+    using System.Linq;
+    class C
+    {
+        static void M()
+        {
+            System.Action f = async () =>
+            {
+                var c = new[] { 1, 2, 3 };
+                c.Select(i => i);
+            };
+        }
+    }
+}";
+            var compilation0 = CreateCompilationWithMscorlib45(
+                source,
+                options: TestOptions.DebugDll,
+                references: new[] { SystemCoreRef },
+                assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var runtime = CreateRuntimeInstance(compilation0);
+            var context = CreateMethodContext(
+                runtime,
+                methodName: "N.C.<>c.<<M>b__0_0>d.MoveNext");
+            string error;
+            var testData = new CompilationTestData();
+            context.CompileExpression("c.Where(n => n > 0)", out error, testData);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size       43 (0x2b)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Exception V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int[] N.C.<>c.<<M>b__0_0>d.<c>5__1""
+  IL_0006:  ldsfld     ""System.Func<int, bool> <>x.<>c.<>9__0_0""
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0025
+  IL_000e:  pop
+  IL_000f:  ldsfld     ""<>x.<>c <>x.<>c.<>9""
+  IL_0014:  ldftn      ""bool <>x.<>c.<<>m0>b__0_0(int)""
+  IL_001a:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
+  IL_001f:  dup
+  IL_0020:  stsfld     ""System.Func<int, bool> <>x.<>c.<>9__0_0""
+  IL_0025:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
+  IL_002a:  ret
+}");
         }
     }
 }

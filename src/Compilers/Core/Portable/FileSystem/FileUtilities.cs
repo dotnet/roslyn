@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace Roslyn.Utilities
 {
@@ -34,7 +33,7 @@ namespace Roslyn.Utilities
         /// Method that tests existence of a file.
         /// </param>
         /// <returns>
-        /// The resolved path or null if the path can't be resolved.
+        /// The resolved path or null if the path can't be resolved or does not exist.
         /// </returns>
         internal static string ResolveRelativePath(
             string path,
@@ -47,6 +46,7 @@ namespace Roslyn.Utilities
             Debug.Assert(searchPaths != null);
             Debug.Assert(fileExists != null);
 
+            string combinedPath;
             var kind = PathUtilities.GetPathKind(path);
             if (kind == PathKind.Relative)
             {
@@ -54,10 +54,9 @@ namespace Roslyn.Utilities
                 baseDirectory = GetBaseDirectory(basePath, baseDirectory);
                 if (baseDirectory != null)
                 {
-                    string combinedPath = PathUtilities.CombinePathsUnchecked(baseDirectory, path);
+                    combinedPath = PathUtilities.CombinePathsUnchecked(baseDirectory, path);
                     Debug.Assert(PathUtilities.IsAbsolute(combinedPath));
-
-                    if (fileExists == null || fileExists(combinedPath))
+                    if (fileExists(combinedPath))
                     {
                         return combinedPath;
                     }
@@ -66,10 +65,9 @@ namespace Roslyn.Utilities
                 // try search paths:
                 foreach (var searchPath in searchPaths)
                 {
-                    string combinedPath = PathUtilities.CombinePathsUnchecked(searchPath, path);
-
+                    combinedPath = PathUtilities.CombinePathsUnchecked(searchPath, path);
                     Debug.Assert(PathUtilities.IsAbsolute(combinedPath));
-                    if (fileExists == null || fileExists(combinedPath))
+                    if (fileExists(combinedPath))
                     {
                         return combinedPath;
                     }
@@ -78,7 +76,17 @@ namespace Roslyn.Utilities
                 return null;
             }
 
-            return ResolveRelativePath(kind, path, basePath, baseDirectory);
+            combinedPath = ResolveRelativePath(kind, path, basePath, baseDirectory);
+            if (combinedPath != null)
+            {
+                Debug.Assert(PathUtilities.IsAbsolute(combinedPath));
+                if (fileExists(combinedPath))
+                {
+                    return combinedPath;
+                }
+            }
+
+            return null;
         }
 
         internal static string ResolveRelativePath(string path, string baseDirectory)
@@ -292,9 +300,14 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
 
+            return RethrowExceptionsAsIOException(() => PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read, 4096, PortableShim.FileOptions.Asynchronous));
+        }
+
+        internal static T RethrowExceptionsAsIOException<T>(Func<T> operation)
+        {
             try
             {
-                return PortableShim.FileStream.Create(fullPath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.Read, 4096, PortableShim.FileOptions.Asynchronous);
+                return operation();
             }
             catch (IOException)
             {

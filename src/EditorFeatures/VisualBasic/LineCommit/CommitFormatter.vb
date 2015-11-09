@@ -51,8 +51,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 End If
 
                 Dim textSpanToFormat = spanToFormat.Span.ToTextSpan()
+                If AbortForDiagnostics(document, textSpanToFormat, cancellationToken) Then
+                    Return
+                End If
 
-                ' create commit formatting cleaup provider that has line commit specific behavior
+                ' create commit formatting cleanup provider that has line commit specific behavior
                 Dim commitFormattingCleanup = GetCommitFormattingCleanupProvider(
                                                 document,
                                                 spanToFormat,
@@ -86,6 +89,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 finalDocument.Project.Solution.Workspace.ApplyDocumentChanges(finalDocument, cancellationToken)
             End Using
         End Sub
+
+        Private Function AbortForDiagnostics(document As Document, textSpanToFormat As TextSpan, cancellationToken As CancellationToken) As Boolean
+            Const UnterminatedStringId = "BC30648"
+
+            Dim tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+
+            ' If we have any unterminated strings that overlap what we're trying to format, then
+            ' bail out.  It's quite likely the unterminated string will cause a bunch of code to
+            ' swap between real code and string literals, and committing will just cause problems.
+            Dim diagnostics = tree.GetDiagnostics(cancellationToken).Where(
+                    Function(d) d.Descriptor.Id = UnterminatedStringId)
+
+            Return diagnostics.Any()
+        End Function
 
         Private Function GetCommitFormattingCleanupProvider(
             document As Document,
@@ -217,7 +234,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' collect all indent operation
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
-                operations.AddRange(FormattingOperations.GetIndentBlockOperations(Formatter.GetDefaultFormattingRules(document), node, optionSet))
+                operations.AddRange(FormattingOperations.GetIndentBlockOperations(
+                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=optionSet))
                 node = node.Parent
             End While
 

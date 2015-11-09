@@ -1149,9 +1149,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExternAliasNotAllowed = 7015,
         ERR_ConflictingAliasAndDefinition = 7016,
         ERR_GlobalDefinitionOrStatementExpected = 7017,
-        ERR_NoScriptsSpecified = 7018,
+        ERR_ExpectedSingleScript = 7018,
         ERR_RecursivelyTypedVariable = 7019,
-        ERR_ReturnNotAllowedInScript = 7020,
+        ERR_YieldNotAllowedInScript = 7020,
         ERR_NamespaceNotAllowedInScript = 7021,
         WRN_MainIgnored = 7022,
         ERR_StaticInAsOrIs = 7023,
@@ -1311,5 +1311,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NameofExtensionMethod = 8093,
         WRN_AlignmentMagnitude = 8094,
         ERR_ConstantStringTooLong = 8095,
+        ERR_DebugEntryPointNotSourceMethodDefinition = 8096,
+        ERR_LoadDirectiveOnlyAllowedInScripts = 8097,
+        ERR_PPLoadFollowsToken = 8098,
+        ERR_SourceFileReferencesNotSupported = 8099,
+        ERR_BadAwaitInStaticVariableInitializer = 8100,
+        ERR_InvalidPathMap = 8101,
+        ERR_ExpressionTreeContainsLocalFunction = 8102,
+        ERR_ReturnTypesDontMatch = 8103,
+        ERR_DynamicLocalFunctionParameter = 8104,
+        ERR_CantInferVoid = 8105
     }
 }

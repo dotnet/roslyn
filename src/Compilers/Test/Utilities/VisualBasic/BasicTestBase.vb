@@ -123,7 +123,7 @@ Public MustInherit Class BasicTestBase
         Optional useLatestFramework As Boolean = False
     ) As CompilationVerifier
 
-        Dim defaultRefs = If(useLatestFramework, LatestReferences, DefaultReferences)
+        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
         Dim allReferences = If(additionalRefs IsNot Nothing, defaultRefs.Concat(additionalRefs), defaultRefs)
 
         Return Me.CompileAndVerify(source,
@@ -295,7 +295,7 @@ Public MustInherit Class BasicTestBase
         End If
 
         Dim reference As MetadataReference = Nothing
-        Using tempAssembly = SharedCompilationUtils.IlasmTempAssembly(ilSource)
+        Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
             reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
         End Using
 
@@ -329,7 +329,7 @@ Public MustInherit Class BasicTestBase
                                                            Optional isField As Boolean = True) As CompilationVerifier
         Return CompileAndVerify(source,
                                 options:=TestOptions.ReleaseDll,
-                                validator:=Sub(assembly) MarshalAsMetadataValidator(assembly, getExpectedBlob, isField),
+                                validator:=Sub(assembly) MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField),
                                 expectedSignatures:=expectedSignatures)
     End Function
 
@@ -337,63 +337,6 @@ End Class
 
 Public MustInherit Class BasicTestBaseBase
     Inherits CommonTestBase
-
-    Friend Shared Function Diagnostic(code As ERRID) As DiagnosticDescription
-        Dim syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing
-        Return New DiagnosticDescription(code:=CType(code, Integer),
-                                         squiggledText:=CType(Nothing, String),
-                                         arguments:=Nothing,
-                                         startLocation:=Nothing,
-                                         syntaxNodePredicate:=Nothing,
-                                         argumentOrderDoesNotMatter:=False, errorCodeType:=GetType(ERRID))
-    End Function
-
-    Friend Shared Function Diagnostic(code As ERRID, squiggledText As String, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
-        Return New DiagnosticDescription(code:=CType(code, Integer),
-                                         squiggledText:=squiggledText,
-                                         arguments:=arguments,
-                                         startLocation:=startLocation,
-                                         syntaxNodePredicate:=DirectCast(syntaxNodePredicate, Func(Of SyntaxNode, Boolean)),
-                                         argumentOrderDoesNotMatter:=argumentOrderDoesNotMatter,
-                                         errorCodeType:=GetType(ERRID))
-    End Function
-
-    Friend Shared Function AnalyzerDiagnostic(code As String, Optional squiggledText As XCData = Nothing, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
-        'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
-        Return New DiagnosticDescription(code:=code,
-                                         squiggledText:=If(squiggledText IsNot Nothing, NormalizeDiagnosticString(squiggledText.Value), Nothing),
-                                         arguments:=arguments,
-                                         startLocation:=startLocation,
-                                         syntaxNodePredicate:=DirectCast(syntaxNodePredicate, Func(Of SyntaxNode, Boolean)),
-                                         argumentOrderDoesNotMatter:=argumentOrderDoesNotMatter,
-                                         errorCodeType:=GetType(String))
-    End Function
-    Friend Shared Function Diagnostic(code As ERRID, squiggledText As XCData, Optional arguments As Object() = Nothing, Optional startLocation As LinePosition? = Nothing, Optional syntaxNodePredicate As Func(Of VisualBasicSyntaxNode, Boolean) = Nothing, Optional argumentOrderDoesNotMatter As Boolean = False) As DiagnosticDescription
-        'Additional Overload taking XCData which needs to call NormalizeDiagnosticString to ensure that differences in end of line characters are normalized
-        Return New DiagnosticDescription(code:=CType(code, Integer),
-                                         squiggledText:=NormalizeDiagnosticString(squiggledText.Value),
-                                         arguments:=arguments,
-                                         startLocation:=startLocation,
-                                         syntaxNodePredicate:=DirectCast(syntaxNodePredicate, Func(Of SyntaxNode, Boolean)),
-                                         argumentOrderDoesNotMatter:=argumentOrderDoesNotMatter,
-                                         errorCodeType:=GetType(ERRID))
-    End Function
-
-    Private Shared Function NormalizeDiagnosticString(inputString As String) As String
-        Dim NormalizedString = ""
-
-        If inputString.Contains(vbCrLf) = False Then
-            If (inputString.Contains(vbLf)) Then
-                NormalizedString = inputString.Replace(vbLf, vbCrLf)
-            Else
-                NormalizedString = inputString
-            End If
-        Else
-            NormalizedString = inputString
-        End If
-
-        Return NormalizedString
-    End Function
 
     Friend Overrides Function ReferencesToModuleSymbols(references As IEnumerable(Of MetadataReference), Optional importOptions As MetadataImportOptions = MetadataImportOptions.Public) As IEnumerable(Of IModuleSymbol)
         Dim options = DirectCast(CompilationOptionsReleaseDll, VisualBasicCompilationOptions).WithMetadataImportOptions(importOptions)
@@ -415,29 +358,6 @@ Public MustInherit Class BasicTestBaseBase
         End Get
     End Property
 
-    Private Shared _lazyDefaultReferences As MetadataReference()
-    Private Shared _lazyLatestReferences As MetadataReference()
-
-    Friend Shared ReadOnly Property DefaultReferences As MetadataReference()
-        Get
-            If _lazyDefaultReferences Is Nothing Then
-                _lazyDefaultReferences = {MscorlibRef, SystemRef, SystemCoreRef, MsvbRef}
-            End If
-
-            Return _lazyDefaultReferences
-        End Get
-    End Property
-
-    Friend Shared ReadOnly Property LatestReferences As MetadataReference()
-        Get
-            If _lazyLatestReferences Is Nothing Then
-                _lazyLatestReferences = {MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, MsvbRef_v4_0_30319_17929}
-            End If
-
-            Return _lazyLatestReferences
-        End Get
-    End Property
-
     Protected Overrides Function GetCompilationForEmit(
         source As IEnumerable(Of String),
         additionalRefs As IEnumerable(Of MetadataReference),
@@ -447,8 +367,25 @@ Public MustInherit Class BasicTestBaseBase
         Return VisualBasicCompilation.Create(
             GetUniqueName(),
             syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
-            references:=If(additionalRefs IsNot Nothing, DefaultReferences.Concat(additionalRefs), DefaultReferences),
+            references:=If(additionalRefs IsNot Nothing, DefaultVbReferences.Concat(additionalRefs), DefaultVbReferences),
             options:=DirectCast(options, VisualBasicCompilationOptions))
+    End Function
+
+    Public Shared Function CreateSubmission(code As String,
+                                            Optional references As IEnumerable(Of MetadataReference) = Nothing,
+                                            Optional options As VisualBasicCompilationOptions = Nothing,
+                                            Optional parseOptions As VisualBasicParseOptions = Nothing,
+                                            Optional previous As VisualBasicCompilation = Nothing,
+                                            Optional returnType As Type = Nothing,
+                                            Optional hostObjectType As Type = Nothing) As VisualBasicCompilation
+        Return VisualBasicCompilation.CreateScriptCompilation(
+                GetUniqueName(),
+                references:=If(references Is Nothing, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}.Concat(references)),
+                options:=options,
+                syntaxTree:=Parse(code, options:=If(parseOptions, TestOptions.Script)),
+                previousScriptCompilation:=previous,
+                returnType:=returnType,
+                globalsType:=hostObjectType)
     End Function
 
     Friend Shared Function GetAttributeNames(attributes As ImmutableArray(Of SynthesizedAttributeData)) As IEnumerable(Of String)
@@ -468,7 +405,7 @@ Public MustInherit Class BasicTestBaseBase
     End Function
 
     Public Shared Shadows Function GetPdbXml(compilation As VisualBasicCompilation, Optional methodName As String = "") As XElement
-        Return XElement.Parse(TestBase.GetPdbXml(compilation, methodName))
+        Return XElement.Parse(PdbValidation.GetPdbXml(compilation, qualifiedMethodName:=methodName))
     End Function
 
     Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement

@@ -27,16 +27,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Suppression
 
         [WorkItem(956453)]
         [WorkItem(1007071)]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
         public void TestPragmaWarningOnEveryNodes()
         {
             TestPragma(TestResource.AllInOneCSharpCode, CSharpParseOptions.Default, verifier: t => t.IndexOf("#pragma warning disable", StringComparison.Ordinal) >= 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-        public void TestLocalSuppressionOnEveryNodes()
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+        public void TestSuppressionWithAttributeOnEveryNodes()
         {
-            TestLocalSuppression(
+            TestSuppressionWithAttribute(
                 TestResource.AllInOneCSharpCode,
                 CSharpParseOptions.Default,
                 digInto: n => !(n is StatementSyntax) || n is BlockSyntax,

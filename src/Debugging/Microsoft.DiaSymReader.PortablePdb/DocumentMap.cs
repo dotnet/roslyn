@@ -4,25 +4,37 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
     internal sealed class DocumentMap
     {
+        private struct DocumentNameAndHandle
+        {
+            public readonly DocumentHandle Handle;
+            public readonly string FileName;
+
+            public DocumentNameAndHandle(DocumentHandle handle, string fileName)
+            {
+                Handle = handle;
+                FileName = fileName;
+            }
+        }
+
         private readonly MetadataReader _reader;
 
-        // { last part of document name -> one or many document handles that have the part in commmon }
-        private readonly IReadOnlyDictionary<string, KeyValuePair<DocumentHandle, ImmutableArray<DocumentHandle>>> _map;
+        // { last part of document name -> one or many document handles that have the part in common }
+        private readonly IReadOnlyDictionary<string, KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>>> _map;
 
         public DocumentMap(MetadataReader reader)
         {
             _reader = reader;
+
+            // group ignoring case, we will match the case within the group
             _map = GetDocumentsByFileName(reader).GroupBy(StringComparer.OrdinalIgnoreCase);
         }
 
-        private static IEnumerable<KeyValuePair<string, DocumentHandle>> GetDocumentsByFileName(MetadataReader reader)
+        private static IEnumerable<KeyValuePair<string, DocumentNameAndHandle>> GetDocumentsByFileName(MetadataReader reader)
         {
             foreach (var documentHandle in reader.Documents)
             {
@@ -34,7 +46,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                     continue;
                 }
 
-                yield return new KeyValuePair<string, DocumentHandle>(fileName, documentHandle);
+                yield return new KeyValuePair<string, DocumentNameAndHandle>(fileName, new DocumentNameAndHandle(documentHandle, fileName));
             }
         }
 
@@ -83,7 +95,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
         {
             var fileName = FileNameUtilities.GetFileName(fullPath);
 
-            KeyValuePair<DocumentHandle, ImmutableArray<DocumentHandle>> documents; 
+            KeyValuePair<DocumentNameAndHandle, ImmutableArray<DocumentNameAndHandle>> documents; 
             if (!_map.TryGetValue(fileName, out documents))
             {
                 documentHandle = default(DocumentHandle);
@@ -92,11 +104,11 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
             // SymReader first attempts to find the document by the full path, then by file name with extension.
 
-            if (!documents.Key.IsNil)
+            if (documents.Key.FileName != null)
             {
                 // There is only one document with the specified file name.
                 // SymReader returns the document regardless of whether the path matches the name.
-                documentHandle = documents.Key;
+                documentHandle = documents.Key.Handle;
                 return true;
             }
 
@@ -105,16 +117,37 @@ namespace Microsoft.DiaSymReader.PortablePdb
             // We have multiple candidates with the same file name. Find the one whose name matches the specified full path.
             // If none does return the first one. It will be the one with the smallest handle, due to the multi-map construction implementation.
 
-            foreach (DocumentHandle candidateHandle in documents.Value)
+            // First try to find candidate whose full name is exactly matching.
+            foreach (DocumentNameAndHandle candidate in documents.Value)
             {
-                if (_reader.StringComparer.Equals(_reader.GetDocument(candidateHandle).Name, fullPath, ignoreCase: true))
+                if (_reader.StringComparer.Equals(_reader.GetDocument(candidate.Handle).Name, fullPath, ignoreCase: false))
                 {
-                    documentHandle = candidateHandle;
+                    documentHandle = candidate.Handle;
                     return true;
                 }
             }
 
-            documentHandle = documents.Value[0];
+            // Then try to find candidate whose full name is matching ignoring case.
+            foreach (DocumentNameAndHandle candidate in documents.Value)
+            {
+                if (_reader.StringComparer.Equals(_reader.GetDocument(candidate.Handle).Name, fullPath, ignoreCase: true))
+                {
+                    documentHandle = candidate.Handle;
+                    return true;
+                }
+            }
+
+            // Then try to find candidate whose file name is matching exactly.
+            foreach (DocumentNameAndHandle candidate in documents.Value)
+            {
+                if (candidate.FileName == fileName)
+                {
+                    documentHandle = candidate.Handle;
+                    return true;
+                }
+            }
+
+            documentHandle = documents.Value[0].Handle;
             return true;
         }
     }

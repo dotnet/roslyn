@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         private readonly IEqualityComparer<IAssemblySymbol> _assemblyComparerOpt;
 
-        public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; private set; }
-        public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; private set; }
+        public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
+        public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
 
         internal SymbolEquivalenceComparer(IEqualityComparer<IAssemblySymbol> assemblyComparerOpt, bool distinguishRefFromOut)
         {

@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
+Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -116,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' this should be relatively uncommon
                     ' most symbols that may be contained in a type
                     ' know their containing type and can override ContainingType
-                    ' with a more precicse implementation
+                    ' with a more precise implementation
                     Return containerAsType
                 End If
 
@@ -185,11 +186,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Debug.Assert(Not (TypeOf Me Is SourceAssemblySymbol), "SourceAssemblySymbol must override DeclaringCompilation")
                         Return Nothing
                     Case SymbolKind.NetModule
-                        Debug.Assert(Not (TypeOf Me Is sourceModuleSymbol), "SourceModuleSymbol must override DeclaringCompilation")
+                        Debug.Assert(Not (TypeOf Me Is SourceModuleSymbol), "SourceModuleSymbol must override DeclaringCompilation")
                         Return Nothing
                 End Select
 
-                Dim sourceModuleSymbol = TryCast(Me.ContainingModule, sourceModuleSymbol)
+                Dim sourceModuleSymbol = TryCast(Me.ContainingModule, SourceModuleSymbol)
                 Return If(sourceModuleSymbol Is Nothing, Nothing, sourceModuleSymbol.DeclaringCompilation)
             End Get
         End Property
@@ -800,9 +801,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Returns true if some or all of the symbol is defined in the given source tree.
         Friend Overridable Function IsDefinedInSourceTree(tree As SyntaxTree, definedWithinSpan As TextSpan?, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+            Dim declaringReferences = Me.DeclaringSyntaxReferences
+            If Me.IsImplicitlyDeclared AndAlso declaringReferences.Length = 0 Then
+                Return Me.ContainingSymbol.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)
+            End If
+
             ' Default implementation: go through all locations and check for the definition.
             ' This is overridden for certain special cases (e.g., the implicit default constructor).
-            For Each syntaxRef In Me.DeclaringSyntaxReferences
+            For Each syntaxRef In declaringReferences
                 cancellationToken.ThrowIfCancellationRequested()
 
                 If syntaxRef.SyntaxTree Is tree AndAlso

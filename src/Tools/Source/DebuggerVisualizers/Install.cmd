@@ -1,6 +1,6 @@
 @echo off
 set VISUALIZERS=%USERPROFILE%\Documents\Visual Studio 2015\Visualizers
-set BIN=%~dp0..\..\..\Binaries\Debug
+set BIN=%~dp0..\..\..\..\Binaries\Debug
 
 copy /y "%BIN%\Roslyn.DebuggerVisualizers.dll" "%VISUALIZERS%"
 copy /y "%BIN%\Roslyn.Test.PdbUtilities.dll" "%VISUALIZERS%"

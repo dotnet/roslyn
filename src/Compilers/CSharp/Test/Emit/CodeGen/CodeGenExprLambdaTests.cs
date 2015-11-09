@@ -3038,7 +3038,7 @@ public class A
 }";
             CreateCompilationWithMscorlibAndSystemCore(text)
                 .VerifyDiagnostics(
-                // (9,39): error CS1945: An expression tree may not contain an anonymous method expressio
+                // (9,39): error CS1945: An expression tree may not contain an anonymous method expression
                 //        Expression<Func<D>> f = () => delegate() { };
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAnonymousMethod, "delegate() { }")
                 );
@@ -3132,7 +3132,85 @@ Lambda:
                 new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [Fact]
+        public void ExprTreeConvertedNullOnLHS()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    Expression<Func<object>> testExpr = () => null ?? ""hello"";
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (6,47): error CS0845: An expression tree lambda may not contain a coalescing operator with a null literal left-hand side
+                //     Expression<Func<object>> testExpr = () => null ?? new object();
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, "null").WithLocation(6, 47) );
+        }
+
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
+        [Fact]
+        public void ExprTreeNullableInt()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<int?>> testExpr = () => (int?)null ?? (int?)5;
+        ExpressionVisitor ev = new ExpressionVisitor();
+        ev.Visit(testExpr);
+        Console.Write(ev.toStr);
+    }
+}";
+            var expectedOutput = @"
+Lambda:
+    Type->System.Func`1[System.Nullable`1[System.Int32]]
+    Parameters->
+    Body->
+    Coalesce:
+        Type->System.Nullable`1[System.Int32]
+        Method->
+        IsLifted->False
+        IsLiftedToNull->False
+        Left->
+            Convert:
+                Type->System.Nullable`1[System.Int32]
+                Method->
+                IsLifted->True
+                IsLiftedToNull->True
+                Operand->
+                    Constant:
+                        Type->System.Object
+                        Value->
+        Right->
+            Convert:
+                Type->System.Nullable`1[System.Int32]
+                Method->
+                IsLifted->True
+                IsLiftedToNull->True
+                Operand->
+                    Constant:
+                        Type->System.Int32
+                        Value->5
+                        Conversion->
+";
+
+            //CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics();
+            CompileAndVerify(
+                new[] { text, TreeWalkerLib },
+                new[] { ExpressionAssemblyRef }, expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
+
         [WorkItem(544442, "DevDiv")]
+        [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
         public void ExprTreeFieldInitCoalesceWithNullOnLHS()
         {
@@ -4159,6 +4237,48 @@ class Test
         var r1 = f(default(T));
         Expression<Func<T, int>> e = x => x.M() + x.P + x.P;
         var r2 = e.Compile()(default(T));
+        Console.WriteLine(r1!=r2 ? ""pass"" : ""fail"");
+    }
+    static void Main()
+    {
+        Test1<S>();
+    }
+}";
+
+            string expectedOutput = @"pass";
+
+            CompileAndVerify(
+                new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(530529, "DevDiv")]
+        [Fact]
+        public void BoxTypeParameter1()
+        {
+            string source =
+@"using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+interface I
+{
+    int P();
+}
+struct S : I
+{
+    int _p;
+    public int P() => _p++;
+}
+class Test
+{
+    public static void Test1<T>() where T : I
+    {
+        Func<T, int> f = x => x.P() + x.P();
+        var r1 = f(default(T));
+        Expression<Func<T, int>> e = x => x.P() + x.P();
+        var r2 = e.Compile()(default(T));
         Console.WriteLine(r1==r2 ? ""pass"" : ""fail"");
     }
     static void Main()
@@ -4225,6 +4345,437 @@ class Test
     }
 }";
             string expectedOutput = "TypeIs(Constant(null Type:System.Object) TypeOperand:Test Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCast()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: class, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass1()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: C1, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass2()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1(), new C1());
+    }
+
+    public static void Test1<T, U>(T x, U u)
+        where T: U, IDeletedID
+        where U: C1
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastClass3()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public class C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1(), new C1());
+    }
+
+    public static void Test1<T, U>(T x, U u)
+        where T: U, IDeletedID
+        where U: class
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1] Type:Test+<>c__DisplayClass3_0`2[Test+C1,Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/4471")]
+        public void GenericPropertyReceiverCastStruct()
+        {
+            string source =
+@"using System;
+using System.Linq.Expressions;
+class Test
+{
+    public interface IDeletedID
+    {
+        int DeletedID { get; }
+    }
+
+    public struct C1 : IDeletedID
+    {
+        int IDeletedID.DeletedID
+        {
+            get
+            {
+                return 1;
+            }
+        }
+    }
+
+    public static void Main()
+    {
+        Test1(new C1());
+    }
+
+    public static void Test1<T>(T x) where T: struct, IDeletedID
+    {
+        Expression<Func<bool>> expr = () => x.DeletedID == 1;
+        Console.WriteLine(expr.Dump());
+    }
+
+}";
+            string expectedOutput = "Equal(MemberAccess(Convert(MemberAccess(Constant(Test+<>c__DisplayClass3_0`1[Test+C1] Type:Test+<>c__DisplayClass3_0`1[Test+C1]).x Type:Test+C1) Type:Test+IDeletedID).DeletedID Type:System.Int32) Constant(1 Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality001()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == YesNo.Yes;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(Yes Type:ConsoleApplication1.YesNo) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality002()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == x.YesNo;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality003()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == x.YesNo;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:ConsoleApplication1.YesNo) Type:System.Int32) Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:ConsoleApplication1.YesNo) Type:System.Int32) Type:System.Boolean)";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(4471, "https://github.com/dotnet/roslyn/issues/5734")]
+        public void EnumEquality004()
+        {
+            string source =
+@"
+using System;
+using System.Linq.Expressions;
+
+namespace ConsoleApplication1
+{
+    enum YesNo
+    {
+        Yes,
+        No
+    }
+
+    class MyType
+    {
+        public string Name { get; set; }
+        public YesNo? YesNo { get; set; }
+
+        public int? Age { get; set; }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            Expression<Func<MyType, bool>> expr = (MyType x) => x.YesNo == (YesNo)1;
+            Console.WriteLine(expr.Dump());
+        }
+    }
+
+}";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(No Type:ConsoleApplication1.YesNo) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
             CompileAndVerify(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
@@ -4999,6 +5550,31 @@ class C : TestBase
                 expectedOutput: expectedOutput);
         }
 
+        [Fact]
+        public void LiftedIntPtrConversion()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    static void Main()
+    {
+        Check(() => (IntPtr?)M(), ""Convert(Call(null.[System.Nullable`1[System.Int32] M()]() Type:System.Nullable`1[System.Int32]) Lifted LiftedToNull Method:[IntPtr op_Explicit(Int32)] Type:System.Nullable`1[System.IntPtr])"");
+        Console.WriteLine(""DONE"");
+    }
+
+    static int? M() { return 0; }
+}
+";
+
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: "DONE");
+        }
+
         /// <summary>
         /// Ignore inaccessible members of System.Linq.Expressions.Expression.
         /// </summary>
@@ -5040,6 +5616,156 @@ class C
                 result.Diagnostics.Verify();
             }
         }
+
+
+        [WorkItem(3923, "https://github.com/dotnet/roslyn/issues/3923")]
+        [Fact]
+        public void NameofInExpressionTree()
+        {
+            string program = @"
+using System;
+using System.Linq.Expressions;
+
+public class Program
+{
+    public static void Main()
+    {
+        Expression<Func<string>> func = () => nameof(Main);
+        Console.WriteLine(func.Compile().Invoke());
+    }
+}
+";
+            CompileAndVerify(
+                sources: new string[] { program },
+                additionalRefs: new[] { SystemCoreRef },
+                expectedOutput: @"Main")
+                .VerifyDiagnostics();
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions001()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => E1.b == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (1 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions002()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var v = E1.b;
+            Expression<Func<bool>> e = () => (43 - E1.b) == v;
+
+            System.Console.WriteLine(e);
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => (42 == Convert(value(C+Program+<>c__DisplayClass0_0).v))";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
+        [Fact]
+        public void EnumConversions003()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C //: TestBase
+{
+    enum E1
+    {
+        a,
+        b
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Expression<Func<int>> e = () => foo((int)E1.b);
+
+            System.Console.WriteLine(e);
+        }
+
+        static int foo(int x)
+        {
+            return x;
+        }
+    }
+}";
+
+            const string expectedOutput = @"() => foo(1)";
+            CompileAndVerify(
+                new[] {
+                    source,
+                //    ExpressionTestLibrary
+                },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
 
         #endregion Regression Tests
 

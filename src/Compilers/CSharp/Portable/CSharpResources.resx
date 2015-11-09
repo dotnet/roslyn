@@ -219,6 +219,9 @@
   <data name="IDS_FeatureAutoImplementedProperties" xml:space="preserve">
     <value>automatically implemented properties</value>
   </data>
+  <data name="IDS_FeatureReadonlyAutoImplementedProperties" xml:space="preserve">
+    <value>readonly automatically implemented properties</value>
+  </data>
   <data name="IDS_FeatureObjectInitializer" xml:space="preserve">
     <value>object initializer</value>
   </data>
@@ -373,7 +376,7 @@
     <value>Metadata file '{0}' could not be found</value>
   </data>
   <data name="ERR_MetadataReferencesNotSupported" xml:space="preserve">
-    <value>Metadata references not supported.</value>
+    <value>Metadata references are not supported.</value>
   </data>
   <data name="FTL_MetadataCantOpenFile" xml:space="preserve">
     <value>Metadata file '{0}' could not be opened -- {1}</value>
@@ -2136,7 +2139,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}': Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit)</value>
   </data>
   <data name="ERR_UnassignedThisAutoProperty" xml:space="preserve">
-    <value>Auto-implemented property property '{0}' must be fully assigned before control is returned to the caller.</value>
+    <value>Auto-implemented property '{0}' must be fully assigned before control is returned to the caller.</value>
   </data>
   <data name="ERR_VariableUsedBeforeDeclarationAndHidesField" xml:space="preserve">
     <value>Cannot use local variable '{0}' before it is declared. The declaration of the local variable hides the field '{1}'.</value>
@@ -3227,8 +3230,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="WRN_NoSources_Title" xml:space="preserve">
     <value>No source files specified</value>
   </data>
-  <data name="ERR_NoScriptsSpecified" xml:space="preserve">
-    <value>Expected at least one script (.csx file) but none specified</value>
+  <data name="ERR_ExpectedSingleScript" xml:space="preserve">
+    <value>Expected a script (.csx file) but none specified</value>
   </data>
   <data name="ERR_OpenResponseFile" xml:space="preserve">
     <value>Error opening response file '{0}'</value>
@@ -3527,11 +3530,14 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInLock" xml:space="preserve">
     <value>Cannot await in the body of a lock statement</value>
   </data>
+  <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
+    <value>The 'await' operator cannot be used in a static script variable initializer.</value>
+  </data>
   <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
     <value>Cannot await in an unsafe context</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
-    <value>The 'async' modifier can only be used in methods that have a statement body.</value>
+    <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
@@ -3695,11 +3701,11 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_OverloadRefOutCtor" xml:space="preserve">
     <value>Cannot define overloaded constructor '{0}' because it differs from another constructor only on ref and out</value>
   </data>
-  <data name="ERR_ReturnNotAllowedInScript" xml:space="preserve">
-    <value>You cannot use 'return' in top-level script code</value>
+  <data name="ERR_YieldNotAllowedInScript" xml:space="preserve">
+    <value>Cannot use 'yield' in top-level script code</value>
   </data>
   <data name="ERR_NamespaceNotAllowedInScript" xml:space="preserve">
-    <value>You cannot declare namespace in script code</value>
+    <value>Cannot declare namespace in script code</value>
   </data>
   <data name="ERR_GlobalAttributesNotAllowed" xml:space="preserve">
     <value>Assembly and module attributes are not allowed in this context</value>
@@ -4161,14 +4167,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="CantReferenceCompilationOf" xml:space="preserve">
     <value>Can't reference compilation of type '{0}' from {1} compilation.</value>
   </data>
-  <data name="TreesMustHaveRootNode" xml:space="preserve">
-    <value>trees[{0}] must have root node with SyntaxKind.CompilationUnit.</value>
-  </data>
   <data name="SyntaxTreeAlreadyPresent" xml:space="preserve">
     <value>Syntax tree already present</value>
-  </data>
-  <data name="Trees0" xml:space="preserve">
-    <value>trees[{0}]</value>
   </data>
   <data name="SubmissionCanOnlyInclude" xml:space="preserve">
     <value>Submission can only include script code.</value>
@@ -4204,13 +4204,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>items: must be non-empty</value>
   </data>
   <data name="UseVerbatimIdentifier" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Identifier or Roslyn.Compilers.CSharp.Syntax.VerbatimIdentifier to create identifier tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens.</value>
   </data>
   <data name="UseLiteralForTokens" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Literal to create character literal tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens.</value>
   </data>
   <data name="UseLiteralForNumeric" xml:space="preserve">
-    <value>Use Roslyn.Compilers.CSharp.Syntax.Literal to create numeric literal tokens.</value>
+    <value>Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens.</value>
   </data>
   <data name="ThisMethodCanOnlyBeUsedToCreateTokens" xml:space="preserve">
     <value>This method can only be used to create tokens - {0} is not a token kind.</value>
@@ -4235,9 +4235,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="PositionIsNotWithinSyntax" xml:space="preserve">
     <value>Position is not within syntax tree with full span {0}</value>
-  </data>
-  <data name="ThisCompilationNotInteractive" xml:space="preserve">
-    <value>This compilation doesn't represent an interactive submission.</value>
   </data>
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
@@ -4393,10 +4390,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly}         Specify debugging type ('full' is default, and 
+ /debug:{full|pdbonly|portable}
+                               Specify debugging type ('full' is default, and 
                                enables attaching a debugger to a running 
-                               program)
+                               program. 'portable' is a cross-platform format)
  /optimize[+|-]                Enable optimizations (Short form: /o)
+ /deterministic                Produce a deterministic assembly
+                               (including module version GUID and timestamp)
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors
@@ -4447,6 +4447,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /fullpaths                    Compiler generates fully qualified paths
  /filealign:&lt;n&gt;                Specify the alignment used for output file 
                                sections
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                               Specify a mapping for source path names output by
+                               the compiler.
  /pdb:&lt;file&gt;                   Specify debug information file name (default: 
                                output file name with .pdb extension)
  /errorendlocation             Output line and column of the end location of 
@@ -4605,6 +4608,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureDigitSeparator" xml:space="preserve">
     <value>digit separators</value>
   </data>
+  <data name="IDS_FeatureLocalFunctions" xml:space="preserve">
+    <value>local functions</value>
+  </data>
   <data name="ERR_UnescapedCurly" xml:space="preserve">
     <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>
   </data>
@@ -4643,5 +4649,39 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
+  </data>
+  <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
+    <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
+  </data>
+  <data name="ERR_LoadDirectiveOnlyAllowedInScripts" xml:space="preserve">
+    <value>#load is only allowed in scripts</value>
+  </data>
+  <data name="ERR_PPLoadFollowsToken" xml:space="preserve">
+    <value>Cannot use #load after first token in file</value>
+  </data>
+  <data name="CouldNotFindFile" xml:space="preserve">
+    <value>Could not find file.</value>
+    <comment>File path referenced in source (#load) could not be resolved.</comment>
+  </data>
+  <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
+    <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>
+  </data>
+  <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
+    <value>Source file references are not supported.</value>
+  </data>
+  <data name="ERR_InvalidPathMap" xml:space="preserve">
+    <value>The pathmap option was incorrectly formatted.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
+    <value>An expression tree may not contain a reference to a local function</value>
+  </data>
+  <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
+    <value>Cannot infer the return type of '{0}' due to differing return types.</value>
+  </data>
+  <data name="ERR_DynamicLocalFunctionParameter" xml:space="preserve">
+    <value>Cannot invoke the local function '{0}' with dynamic parameters.</value>
+  </data>
+  <data name="ERR_CantInferVoid" xml:space="preserve">
+    <value>Cannot infer the type of '{0}' as it does not return a value.</value>
   </data>
 </root>

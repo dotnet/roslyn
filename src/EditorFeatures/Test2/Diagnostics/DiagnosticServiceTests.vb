@@ -1,13 +1,11 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.EngineV1
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -15,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Roslyn.Utilities
-Imports Xunit.Sdk
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
@@ -27,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Return New AnalyzerFileReference(fullPath, _assemblyLoader)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestProjectAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -56,8 +53,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim document = project.Documents.Single()
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan).WaitAndGetResult(CancellationToken.None)
 
                 Assert.Equal(1, diagnostics.Count())
 
@@ -92,8 +88,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 document = project.Documents.Single()
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                    ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(3, diagnostics.Count())
 
                 ' Remove a project analyzer
@@ -108,8 +104,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 document = project.Documents.Single()
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                    ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(2, diagnostics.Count())
 
                 ' Verify available diagnostic descriptors/analyzers if not project specific
@@ -133,13 +129,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 document = project.Documents.Single()
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                    CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                    ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(2, diagnostics.Count())
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestEmptyProjectAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -172,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestNameCollisionOnDisplayNames()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -210,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestRulesetBasedDiagnosticFiltering()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -237,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim span = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
 
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
                 Assert.Equal(1, diagnostics.Length)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics(0).Id)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.DefaultSeverity, diagnostics(0).Severity)
@@ -248,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim newCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(suppressDiagOptions)
                 project = project.WithCompilationOptions(newCompilationOptions)
                 document = project.Documents.Single()
-                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
+                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
                 Assert.Equal(0, diagnostics.Length)
 
                 Dim changeSeverityDiagOptions = New Dictionary(Of String, ReportDiagnostic)
@@ -256,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 newCompilationOptions = project.CompilationOptions.WithSpecificDiagnosticOptions(changeSeverityDiagOptions)
                 project = project.WithCompilationOptions(newCompilationOptions)
                 document = project.Documents.Single()
-                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span, CancellationToken.None).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
+                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, span).WaitAndGetResult(CancellationToken.None).ToImmutableArray()
                 Assert.Equal(1, diagnostics.Length)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics(0).Id)
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.DefaultSeverity, diagnostics(0).DefaultSeverity)
@@ -264,7 +260,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestProjectAnalyzerMessages()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -301,17 +297,17 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Dim alphaDescriptors = diagnosticService.GetDiagnosticDescriptors(alpha)
                 Assert.Equal("XX0001", alphaDescriptors.Single().Value.Single().Id)
-                Dim alphaDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(alpha.Documents.Single(), New TextSpan(0, alpha.Documents.Single().GetTextAsync().Result.Length), CancellationToken.None).Result
+                Dim alphaDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(alpha.Documents.Single(), New TextSpan(0, alpha.Documents.Single().GetTextAsync().Result.Length)).Result
                 Assert.Equal("XX0001", alphaDiagnostics.Single().Id)
 
                 Dim bravoDescriptors = diagnosticService.GetDiagnosticDescriptors(bravo)
                 Assert.Equal("XX0002", bravoDescriptors.Single().Value.Single().Id)
-                Dim bravoDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(bravo.Documents.Single(), New TextSpan(0, bravo.Documents.Single().GetTextAsync().Result.Length), CancellationToken.None).Result
+                Dim bravoDiagnostics = diagnosticService.GetDiagnosticsForSpanAsync(bravo.Documents.Single(), New TextSpan(0, bravo.Documents.Single().GetTextAsync().Result.Length)).Result
                 Assert.Equal("XX0002", bravoDiagnostics.Single().Id)
             End Using
         End Sub
 
-        <Fact>
+        <WpfFact>
         Public Sub TestGlobalAnalyzerGroup()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -336,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateFileAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -352,12 +348,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim analyzerReference2 = CreateAnalyzerFileReference("x:\temp.dll")
                 project = project.AddAnalyzerReference(analyzerReference1)
 #If DEBUG Then
-                Assert.Throws(Of TraceAssertException)(Function() project.AddAnalyzerReference(analyzerReference2))
+                Debug.Assert(project.AnalyzerReferences.Contains(analyzerReference2))
 #End If
             End Using
         End Sub
 
-        <Fact, WorkItem(1091877), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1091877), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateFileAnalyzers2()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -383,8 +379,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim document = project.Documents.Single()
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(
                         document,
-                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                        CancellationToken.None) _
+                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan) _
                     .WaitAndGetResult(CancellationToken.None) _
                     .Select(Function(d) d.Id = WorkspaceDiagnosticAnalyzer.Descriptor.Id)
 
@@ -392,7 +387,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(923324), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDuplicateImageAnalyzers()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -410,12 +405,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 project = project.AddAnalyzerReference(analyzerReference1)
                 project = project.AddAnalyzerReference(analyzerReference2)
 #If DEBUG Then
-                Assert.Throws(Of TraceAssertException)(Function() project.AddAnalyzerReference(analyzerReference1))
+                Debug.Assert(project.AnalyzerReferences.Contains(analyzerReference1))
 #End If
             End Using
         End Sub
 
-        <Fact, WorkItem(937956), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937956), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -442,13 +437,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                        ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(0, diagnostics.Count())
             End Using
         End Sub
 
-        <Fact, WorkItem(937915), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937915), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         <WorkItem(759)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully2()
             Dim test = <Workspace>
@@ -475,19 +470,19 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                        ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(0, diagnostics.Count())
 
                 diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
-                Assert.True(AnalyzerExecutor.IsAnalyzerExceptionDiagnostic(diagnostic.ToDiagnostic(document.GetSyntaxTreeAsync().Result)))
+                Assert.True(diagnostic.Id = "AD0001")
                 Assert.Contains("CodeBlockStartedAnalyzer", diagnostic.Message, StringComparison.Ordinal)
             End Using
         End Sub
 
-        <Fact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1167439), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledNoCrash()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -502,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Dim expected = Diagnostic.Create("test", "test", "test", DiagnosticSeverity.Error, DiagnosticSeverity.Error, True, 0)
                 Dim exceptionDiagnosticsSource = New TestHostDiagnosticUpdateSource(workspace)
 
-                ' check reporting diagnostic to a project that doesnt exist
+                ' check reporting diagnostic to a project that doesn't exist
                 exceptionDiagnosticsSource.ReportAnalyzerDiagnostic(analyzer, expected, workspace, New ProjectId(Guid.NewGuid(), "dummy"))
                 Dim diagnostics = exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(analyzer)
                 Assert.Equal(0, diagnostics.Count())
@@ -516,7 +511,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        <Fact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatelessCodeBlockEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -541,15 +536,15 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                        ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
                 Assert.Equal(CodeBlockEndedAnalyzer.Descriptor.Id, diagnostic.Id)
             End Using
         End Sub
 
-        <Fact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937939), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestSameCodeBlockStartedAndEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -575,15 +570,15 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                        ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
                 Assert.Equal(CodeBlockEndedAnalyzer.Descriptor.Id, diagnostic.Id)
             End Using
         End Sub
 
-        <Fact, WorkItem(1005568), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1005568), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestCodeBlockAnalyzerForLambda()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -651,15 +646,15 @@ class AnonymousFunctions
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                        ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(4, diagnostics.Count())
                 Dim diagnostic = diagnostics.First()
                 Assert.Equal(CodeBlockEndedAnalyzer.Descriptor.Id, diagnostic.Id)
             End Using
         End Sub
 
-        <Fact, WorkItem(937952), WorkItem(944832), WorkItem(1112907), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(937952), WorkItem(944832), WorkItem(1112907), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestCompilationEndedAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -690,15 +685,15 @@ class AnonymousFunctions
                 Dim document = project.Documents.Single()
 
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
-                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
-                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
@@ -716,13 +711,13 @@ class AnonymousFunctions
                 Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
                 Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
                 Dim tree = diagnosticDocument.GetSyntaxTreeAsync().Result
-                Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnostic(tree).Location
+                Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnosticAsync(project, CancellationToken.None).Result.Location
                 Dim expectedLocation = document.GetSyntaxRootAsync().Result.GetLocation
                 Assert.Equal(expectedLocation, actualLocation)
             End Using
         End Sub
 
-        <Fact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1083854), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatefulCompilationAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -747,7 +742,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(248, "https://github.com/dotnet/roslyn/issues/248"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestStatefulCompilationAnalyzer_2()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -779,7 +774,7 @@ class AnonymousFunctions
             End Using
         End Sub
 
-        <Fact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestPartialTypeInGeneratedCode()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -794,6 +789,8 @@ class AnonymousFunctions
 
             Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
                 Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test partial type diagnostic reported on user file.
                 Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=1)
                 Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
                 project = project.AddAnalyzerReference(analyzerReference)
@@ -807,13 +804,59 @@ class AnonymousFunctions
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostics.Single().Id)
             End Using
         End Sub
 
-        <Fact, WorkItem(1067286)>
+        <WpfFact, WorkItem(1042914), Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Sub TestDiagnosticsReportedOnAllPartialDefinitions()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document FilePath="Test1.cs">
+                                   public partial class Foo { }
+                               </Document>
+                               <Document FilePath="Test2.cs">
+                                   public partial class Foo { }
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Test partial type diagnostic reported on all source files.
+                Dim analyzer = New PartialTypeDiagnosticAnalyzer(indexOfDeclToReportDiagnostic:=Nothing)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+
+                ' Verify project diagnostics contains diagnostics reported on both partial definitions.
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+                Dim diagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(2, diagnostics.Count())
+                Dim file1HasDiag = False, file2HasDiag = False
+                For Each diagnostic In diagnostics
+                    Assert.Equal(PartialTypeDiagnosticAnalyzer.DiagDescriptor.Id, diagnostic.Id)
+                    Dim document = project.GetDocument(diagnostic.DocumentId)
+                    If document.Name = "Test1.cs" Then
+                        file1HasDiag = True
+                    ElseIf document.Name = "Test2.cs"
+                        file2HasDiag = True
+                    End If
+                Next
+
+                Assert.True(file1HasDiag)
+                Assert.True(file2HasDiag)
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(1067286)>
         Private Sub TestCodeBlockAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -845,7 +888,7 @@ public class B
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(6, diagnostics.Count())
                 Assert.Equal(3, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor1.Id).Count)
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor4.Id).Count)
@@ -854,7 +897,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(592)>
+        <WpfFact, WorkItem(592)>
         Private Sub TestSyntaxNodeAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -886,7 +929,7 @@ public class B
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
 
                 Assert.Equal(3, diagnostics.Count())
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = CodeBlockOrSyntaxNodeAnalyzer.Descriptor4.Id).Count)
@@ -895,7 +938,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(592)>
+        <WpfFact, WorkItem(592)>
         Private Sub TestMethodSymbolAnalyzersForExpressionBody()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -928,7 +971,7 @@ public class B
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
 
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).
                     WaitAndGetResult(CancellationToken.None).
                     OrderBy(Function(d) d.TextSpan.Start).ToArray
 
@@ -940,7 +983,7 @@ public class B
             End Using
         End Sub
 
-        <Fact, WorkItem(1109105)>
+        <WpfFact, WorkItem(1109105)>
         Public Sub TestMethodSymbolAnalyzer_MustOverrideMethod()
             Dim test = <Workspace>
                            <Project Language="Visual Basic" CommonReferences="true">
@@ -977,7 +1020,7 @@ End Class
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(1, diagnostics.Where(Function(d) d.Id = MustOverrideMethodAnalyzer.Descriptor1.Id).Count)
             End Using
@@ -1007,7 +1050,7 @@ End Class
             End Sub
         End Class
 
-        <Fact, WorkItem(565)>
+        <WpfFact, WorkItem(565)>
         Public Sub TestFieldDeclarationAnalyzer()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1038,7 +1081,7 @@ public class B
                 Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
-                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).
                     WaitAndGetResult(CancellationToken.None).
                     OrderBy(Function(d) d.TextSpan.Start).
                     ToArray()
@@ -1073,7 +1116,7 @@ public class B
             End Sub
         End Class
 
-        <Fact, WorkItem(530)>
+        <WpfFact, WorkItem(530)>
         Public Sub TestCompilationAnalyzerWithAnalyzerOptions()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1120,7 +1163,7 @@ public class B
             Dim document = project.Documents.Single()
             Dim fullSpan = document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
 
-            Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan, CancellationToken.None).
+            Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document, fullSpan).
                 WaitAndGetResult(CancellationToken.None)
             Assert.Equal(1, diagnostics.Count())
             Assert.Equal(CompilationAnalyzerWithAnalyzerOptions.Descriptor.Id, diagnostics(0).Id)
@@ -1228,8 +1271,8 @@ public class B
         Private Class PartialTypeDiagnosticAnalyzer
             Inherits DiagnosticAnalyzer
 
-            Private ReadOnly _indexOfDeclToReportDiagnostic As Integer
-            Public Sub New(indexOfDeclToReportDiagnostic As Integer)
+            Private ReadOnly _indexOfDeclToReportDiagnostic As Integer?
+            Public Sub New(indexOfDeclToReportDiagnostic As Integer?)
                 Me._indexOfDeclToReportDiagnostic = indexOfDeclToReportDiagnostic
             End Sub
 
@@ -1246,7 +1289,15 @@ public class B
             End Sub
 
             Private Sub AnalyzeSymbol(context As SymbolAnalysisContext)
-                context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, context.Symbol.Locations.ElementAt(Me._indexOfDeclToReportDiagnostic)))
+                Dim index = 0
+                For Each location In context.Symbol.Locations
+                    If Not Me._indexOfDeclToReportDiagnostic.HasValue OrElse Me._indexOfDeclToReportDiagnostic.Value = index Then
+                        context.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, location))
+                    End If
+
+                    index += 1
+                Next
+
             End Sub
         End Class
 
@@ -1514,7 +1565,7 @@ public class B
             End Sub
         End Class
 
-        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <WpfFact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1543,7 +1594,7 @@ End Class
             TestCodeBlockActionCore(test)
         End Sub
 
-        <Fact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
+        <WpfFact, WorkItem(1709, "https://github.com/dotnet/roslyn/issues/1709")>
         Public Sub TestCodeBlockAction_OnlyStatelessAction()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1590,8 +1641,8 @@ End Class
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                        ).WaitAndGetResult(CancellationToken.None)
                 Dim expectedCount = If(onlyStatelessAction, 1, 2)
                 Assert.Equal(expectedCount, diagnostics.Count())
 
@@ -1606,7 +1657,7 @@ End Class
             End Using
         End Sub
 
-        <Fact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
+        <WpfFact, WorkItem(2614, "https://github.com/dotnet/roslyn/issues/2614")>
         Public Sub TestGenericName()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1649,8 +1700,8 @@ namespace ConsoleApplication1
 
                 Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
-                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan,
-                                                                        CancellationToken.None).WaitAndGetResult(CancellationToken.None)
+                                                                        document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                                                                        ).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(1, diagnostics.Count())
 
                 Dim diagnostic = diagnostics.Single(Function(d) d.Id = expectedId)
@@ -1658,7 +1709,7 @@ namespace ConsoleApplication1
             End Using
         End Sub
 
-        <Fact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")>
+        <WpfFact, WorkItem(2980, "https://github.com/dotnet/roslyn/issues/2980")>
         Public Sub TestAnalyzerWithNoActions()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
@@ -1684,6 +1735,85 @@ namespace ConsoleApplication1
             ' Ensure that adding a dummy analyzer with no actions doesn't bring down entire analysis.
             ' See https//github.com/dotnet/roslyn/issues/2980 for details.
             TestGenericNameCore(test, CSharpGenericNameAnalyzer.Message, CSharpGenericNameAnalyzer.DiagnosticId, New AnalyzerWithNoActions, New CSharpGenericNameAnalyzer)
+        End Sub
+
+        <WpfFact, WorkItem(4055, "https://github.com/dotnet/roslyn/issues/4055")>
+        Public Sub TestAnalyzerWithNoSupportedDiagnostics()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            ' Ensure that adding a dummy analyzer with no supported diagnostics doesn't bring down entire analysis.
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New AnalyzerWithNoSupportedDiagnostics()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Verify available diagnostic descriptors/analyzers
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+                Assert.Equal(0, descriptorsMap.First().Value.Length)
+
+                Dim document = project.Documents.Single()
+                Dim diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
+                    document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
+                    ).WaitAndGetResult(CancellationToken.None)
+
+                Assert.Equal(0, diagnostics.Count())
+            End Using
+        End Sub
+
+        <WpfFact, WorkItem(4068, "https://github.com/dotnet/roslyn/issues/4068")>
+        Public Sub TestAnalyzerWithCompilationActionReportingHiddenDiagnostics()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(test)
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New HiddenDiagnosticsCompilationAnalyzer()
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                Dim diagnosticService = New TestDiagnosticAnalyzerService()
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Verify available diagnostic descriptors
+                Dim descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
+                Assert.Equal(1, descriptorsMap.Count)
+                Dim descriptors = descriptorsMap.First().Value
+                Assert.Equal(1, descriptors.Length)
+                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, descriptors.Single().Id)
+
+                ' Force project analysis
+                incrementalAnalyzer.AnalyzeProjectAsync(project, semanticsChanged:=True, cancellationToken:=CancellationToken.None).Wait()
+
+                ' Get cached project diagnostics.
+                Dim diagnostics = diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id).WaitAndGetResult(CancellationToken.None)
+
+                Assert.Equal(1, diagnostics.Count())
+                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, diagnostics.Single().Id)
+            End Using
         End Sub
     End Class
 End Namespace

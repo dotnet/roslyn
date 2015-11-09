@@ -17,32 +17,6 @@
     <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Composition.AttributedModel">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.AttributedModel.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Convention">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Convention.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Hosting">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Hosting.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.Runtime">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Composition.TypedParts">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\packages\Microsoft.Composition.$(MicrosoftCompositionVersion)\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -91,6 +65,7 @@
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />
     <Compile Include="Classification\ClassificationHelpers.vb" />
     <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.vb" />
+    <Compile Include="Classification\Classifiers\IdentifierNameSyntaxClassifier.vb" />
     <Compile Include="Classification\Classifiers\ImportAliasClauseSyntaxClassifier.vb" />
     <Compile Include="Classification\Classifiers\NameSyntaxClassifier.vb" />
     <Compile Include="Classification\SyntaxClassifier.vb" />
@@ -152,7 +127,6 @@
     <Compile Include="Extensions\INamespaceOrTypeSymbolExtensions.vb" />
     <Compile Include="Extensions\InvocationExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\ITypeSymbolExtensions.vb" />
-    <Compile Include="Extensions\LocationExtensions.vb" />
     <Compile Include="Extensions\MemberAccessExpressionSyntaxExtensions.vb" />
     <Compile Include="Extensions\MethodBaseSyntaxExtensions.vb" />
     <Compile Include="Extensions\NameSyntaxExtensions.vb" />
@@ -177,6 +151,7 @@
     <Compile Include="Extensions\TypeBlockSyntaxExtensions.vb" />
     <Compile Include="Extensions\TypeSyntaxGeneratorVisitor.vb" />
     <Compile Include="Extensions\VariableDeclaratorSyntaxExtensions.vb" />
+    <Compile Include="FindSymbols\VisualBasicReferenceFinder.vb" />
     <Compile Include="Formatting\DefaultOperationProvider.vb" />
     <Compile Include="Formatting\Engine\AggregatedFormattingResult.vb" />
     <Compile Include="Formatting\Engine\FormattingResult.vb" />
@@ -264,6 +239,7 @@
     <Compile Include="Utilities\NameSyntaxIterator.vb" />
     <Compile Include="Utilities\PossibleDeclarationTypes.vb" />
     <Compile Include="Utilities\SpeculationAnalyzer.vb" />
+    <Compile Include="Utilities\SymbolExtensions.vb" />
     <Compile Include="Utilities\SyntaxKindSet.vb" />
     <Compile Include="Utilities\TokenComparer.vb" />
     <Compile Include="Utilities\TypeSyntaxComparer.vb" />
@@ -292,13 +268,13 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <PublicAPI Include="PublicAPI.txt" />
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

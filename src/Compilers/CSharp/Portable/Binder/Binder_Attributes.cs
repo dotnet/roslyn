@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol parameter = parameters[i];
                 TypedConstant reorderedArgument;
 
-                if (parameter.IsParams && parameter.Type.IsArray() && i + 1 == parameterCount)
+                if (parameter.IsParams && parameter.Type.IsSZArray() && i + 1 == parameterCount)
                 {
                     reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, argumentsCount, argsConsumedCount, this.Conversions);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);

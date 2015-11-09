@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// represents a general trivia between two tokens. slightly more expensive than others since it
         /// needs to calculate stuff unlike other cases
         /// </summary>
-        private class ComplexTrivia : AbstractComplexTrivia<SyntaxToken, SyntaxTrivia>
+        private class ComplexTrivia : AbstractComplexTrivia
         {
             public ComplexTrivia(OptionSet optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2) :
                 base(optionSet, treeInfo, token1, token2)
@@ -31,16 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             protected override void ExtractLineAndSpace(string text, out int lines, out int spaces)
             {
                 text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), out lines, out spaces);
-            }
-
-            protected override SyntaxToken ConvertToken(SyntaxToken token)
-            {
-                return token;
-            }
-
-            protected override SyntaxTrivia ConvertTrivia(SyntaxTrivia trivia)
-            {
-                return trivia;
             }
 
             protected override TriviaData CreateComplexTrivia(int line, int space)
@@ -58,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return new ModifiedComplexTrivia(this.OptionSet, this, line, space);
             }
 
-            protected override TriviaDataWithList<SyntaxTrivia> Format(
+            protected override TriviaDataWithList Format(
                 FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken)
             {
                 return new FormattedComplexTrivia(context, formattingRules, this.Token1, this.Token2, lines, spaces, this.OriginalString, cancellationToken);
@@ -74,7 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 var commonToken1 = this.Token1;
                 var commonToken2 = this.Token2;
 
-                var span = TextSpan.FromBounds(commonToken1.Span.End, commonToken2.Span.Start);
+                var formatSpanEnd = commonToken2.Kind() == SyntaxKind.None ? commonToken1.Span.End : commonToken2.Span.Start;
+                var span = TextSpan.FromBounds(commonToken1.Span.End, formatSpanEnd);
                 if (context.IsSpacingSuppressed(span))
                 {
                     return false;

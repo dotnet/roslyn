@@ -3,7 +3,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
-    <Import Project="..\..\..\packages\xunit.core.2.1.0-beta2-build2981\build\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.props" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
@@ -16,127 +15,48 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ImplicitlyExpandTargetFramework>False</ImplicitlyExpandTargetFramework>
-    <NoStdLib>true</NoStdLib>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
+      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
+      <Name>PdbUtilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
       <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="..\..\..\packages\Microsoft.DiaSymReader.1.0.5\lib\net45\Microsoft.DiaSymReader.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Collections.Immutable, Version=$(SystemCollectionsImmutableAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Collections.Immutable.$(SystemCollectionsImmutableVersion)\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata, Version=$(SystemReflectionMetadataAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\System.Reflection.Metadata.$(SystemReflectionMetadataVersion)\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.IO.FileSystem.Primitives.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.Extensions.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Extensions.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.Loader.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.Loader.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.Primitives.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Primitives.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Reflection.Extensions.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Reflection.Extensions.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Resources.ResourceManager.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Resources.ResourceManager.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Runtime.InteropServices.4.0.20-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Runtime.InteropServices.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Collections.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Collections.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Linq.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Linq.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Diagnostics.Debug.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Debug.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Diagnostics.Tools.4.0.0-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Diagnostics.Tools.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Globalization.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Globalization.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Text.Encoding.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Text.Encoding.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Threading.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.dll">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="..\..\..\packages\System.Threading.Tasks.4.0.10-beta-22816\lib\portable-wpa81+wp80+win80+net45+aspnetcore50\System.Threading.Tasks.dll">
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>False</Visible>
-    </Content>
-    <Content Include="..\..\..\packages\System.IO.FileSystem.Primitives.4.0.0-beta-22816\lib\net45\System.IO.FileSystem.Primitives.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\xunit.abstractions.2.0.0\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.assert, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\xunit.assert.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.assert.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit.core, Version=2.0.0.2785, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\packages\xunit.extensibility.core.2.1.0-beta2-build2981\lib\portable-net45+dnxcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Async.dll">
       <LogicalName>Async.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Async.pdb">
+      <LogicalName>Async.pdb</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Async.dllx">
+      <LogicalName>Async.dllx</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Async.pdbx">
       <LogicalName>Async.pdbx</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\Documents.dll">
-      <LogicalName>Documents.dll</LogicalName>
+    <EmbeddedResource Include="Resources\Documents.dllx">
+      <LogicalName>Documents.dllx</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Documents.pdbx">
       <LogicalName>Documents.pdbx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.dll">
+      <LogicalName>Documents.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Documents.pdb">
+      <LogicalName>Documents.pdb</LogicalName>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\Scopes.dll">
       <LogicalName>Scopes.dll</LogicalName>
@@ -144,16 +64,37 @@
     <EmbeddedResource Include="Resources\Scopes.pdbx">
       <LogicalName>Scopes.pdbx</LogicalName>
     </EmbeddedResource>
-    <None Include="Resources\build.cmd" />
-    <None Include="Resources\Scopes.cs" />
-    <None Include="Resources\Async.cs" />
+    <EmbeddedResource Include="Resources\MethodBoundaries.dll">
+      <LogicalName>MethodBoundaries.dll</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.pdb">
+      <LogicalName>MethodBoundaries.pdb</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.dllx">
+      <LogicalName>MethodBoundaries.dllx</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\MethodBoundaries.pdbx">
+      <LogicalName>MethodBoundaries.pdbx</LogicalName>
+    </EmbeddedResource>
+    <Content Include="Resources\Documents.cmd" />
+    <Content Include="Resources\Scopes.cmd" />
+    <Content Include="Resources\MethodBoundaries.cmd" />
+    <Content Include="Resources\Async.cmd" />
+    <Content Include="Resources\Scopes.cs" />
+    <Content Include="Resources\Async.cs" />
     <Content Include="Resources\Documents.cs" />
+    <Compile Include="MethodMapTests.cs" />
+    <Compile Include="ResourceLoader.cs" />
+    <Content Include="Resources\MethodBoundaries.cs" />
+    <Compile Include="SymBinderTests.cs" />
+    <Compile Include="TestHelpers\SymTestHelpers.cs" />
+    <Compile Include="TestResources.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
       <Link>TestHelpers\ComStreamWrapper.cs</Link>
     </Compile>
-    <Compile Include="ResourceLoader.cs" />
-    <Compile Include="SymBinderTests.cs" />
-    <Compile Include="TestResources.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
+      <Link>TestHelpers\StreamExtensions.cs</Link>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers\AssertEx.cs" />
@@ -162,10 +103,10 @@
     <Compile Include="SymReaderTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="App.config" />
+    <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
-    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

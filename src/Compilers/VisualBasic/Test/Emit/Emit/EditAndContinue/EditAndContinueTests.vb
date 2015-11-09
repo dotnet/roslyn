@@ -3488,7 +3488,7 @@ End Class
 ")
             ' expect a single TypeRef for System.Object
             Dim md1 = diff1.GetMetadata()
-            AssertEx.Equal({"[0x23000002] 0x00000232.0x0000023f"}, DumpTypeRefs(md1.Reader))
+            AssertEx.Equal({"[0x23000002] 0x0000020d.0x0000021a"}, DumpTypeRefs(md1.Reader))
 
             Dim diff2 = compilation2.EmitDifference(diff1.NextGeneration,
                 ImmutableArray.Create(
@@ -3508,7 +3508,7 @@ End Class
 ")
             ' expect a single TypeRef for System.Object
             Dim md2 = diff2.GetMetadata()
-            AssertEx.Equal({"[0x23000003] 0x000002a0.0x000002ad"}, DumpTypeRefs(md2.Reader))
+            AssertEx.Equal({"[0x23000003] 0x00000256.0x00000263"}, DumpTypeRefs(md2.Reader))
         End Sub
 
         <Fact>
@@ -3580,7 +3580,7 @@ End Class
 ")
             ' expect a single TypeRef for System.Object
             Dim md2 = diff2.GetMetadata()
-            AssertEx.Equal({"[0x23000003] 0x000002d3.0x000002e0"}, DumpTypeRefs(md2.Reader))
+            AssertEx.Equal({"[0x23000003] 0x00000289.0x00000296"}, DumpTypeRefs(md2.Reader))
         End Sub
 
         Private Shared Iterator Function DumpTypeRefs(reader As MetadataReader) As IEnumerable(Of String)

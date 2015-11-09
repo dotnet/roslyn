@@ -8,7 +8,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Roslyn.Test.Utilities
 
 Public Class LanguageBlockTests
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_NotInImports_VB()
         VerifyNoBlock("
 I$$mports System
@@ -21,7 +21,7 @@ End Module
 ", LanguageNames.VisualBasic)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_NotLeadingTriviaOfRootClass_VB()
         VerifyNoBlock("
 Imports System
@@ -36,7 +36,7 @@ End Module
 ", LanguageNames.VisualBasic)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InNamespace_VB()
         VerifyBlock("
 [|Namespace N
@@ -50,7 +50,7 @@ End Namespace|]
 ", LanguageNames.VisualBasic, "N")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InModule_VB()
         VerifyBlock("
 Namespace N
@@ -64,7 +64,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Program")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InSub()
         VerifyBlock("
 Namespace N
@@ -77,7 +77,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Sub Program.M()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InFunction()
         VerifyBlock("
 Namespace N
@@ -90,7 +90,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Function Program.F() As Integer")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InProperty_VB()
         VerifyBlock("
 Namespace N
@@ -105,7 +105,7 @@ End Namespace
 ", LanguageNames.VisualBasic, "Property Program.P() As Integer")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_NotInUsings_CS()
         VerifyNoBlock("
 u$$sing System;
@@ -117,7 +117,7 @@ class Program
 ", LanguageNames.CSharp)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_NotLeadingTriviaOfRootClass_CS()
         VerifyNoBlock("
 using System;
@@ -131,7 +131,7 @@ class Program
 ", LanguageNames.CSharp)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InNamespace_CS()
         VerifyBlock("
 [|namespace N
@@ -145,7 +145,7 @@ $$
 ", LanguageNames.CSharp, "N")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InClass_CS()
         VerifyBlock("
 namespace N
@@ -159,7 +159,7 @@ namespace N
 ", LanguageNames.CSharp, "Program")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InMethod()
         VerifyBlock("
 namespace N
@@ -175,7 +175,7 @@ namespace N
 ", LanguageNames.CSharp, "void Program.M()")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_InProperty_CS()
         VerifyBlock("
 namespace N
@@ -194,7 +194,7 @@ namespace N
 ", LanguageNames.CSharp, "int Program.P")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock), WorkItem(1043580)>
     Public Sub GetCurrentBlock_DocumentDoesNotSupportSyntax()
         ' NoCompilation is the special Language-Name we use to indicate that a language does not
         ' support SyntaxTrees/SemanticModels.  This test validates that we do not crash in that
@@ -202,20 +202,30 @@ namespace N
         VerifyNoBlock("$$", languageName:="NoCompilation")
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
     Public Sub GetCurrentBlock_NotInGlobalCode_CS()
         VerifyNoBlock("
 var message = ""Hello"";
 System.Console$$.WriteLine(message);
 ", LanguageNames.CSharp, SourceCodeKind.Script)
+
+        VerifyNoBlock("
+var message = ""Hello"";
+System.Console$$.WriteLine(message);
+", LanguageNames.CSharp, SourceCodeKind.Regular)
     End Sub
 
-    <Fact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
+    <WpfFact, Trait(Traits.Feature, Traits.Features.VsLanguageBlock)>
     Public Sub GetCurrentBlock_NotInGlobalCode_VB()
         VerifyNoBlock("
 Dim message = ""Hello""
 System.Console$$.WriteLine(message)
 ", LanguageNames.VisualBasic, SourceCodeKind.Script)
+
+        VerifyNoBlock("
+Dim message = ""Hello""
+System.Console$$.WriteLine(message)
+", LanguageNames.VisualBasic, SourceCodeKind.Regular)
     End Sub
 
     Private Sub VerifyNoBlock(markup As String, languageName As String, Optional sourceCodeKind As SourceCodeKind = SourceCodeKind.Regular)
