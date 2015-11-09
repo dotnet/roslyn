@@ -623,10 +623,11 @@ class C
         }
 
         [WpfFact]
-        public void Delete_Entire_Namespace()
+        public void Delete_EntireNamespace()
         {
             string src1 = @"
-namespace N {
+namespace N
+{
     class C
     {
         static void Main(String[] args)

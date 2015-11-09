@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         continue;
                     }
 
-                    // Finds a matching syntax node in the new source.
+                    // Find a matching syntax node in the new source.
                     // In case the node got deleted the newMember may be missing.
                     // For those the active span should remain empty.
                     SyntaxNode newMember;
