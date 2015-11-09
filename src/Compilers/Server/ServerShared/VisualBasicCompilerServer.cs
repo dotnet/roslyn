@@ -15,46 +15,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
     {
-        internal VisualBasicCompilerServer(string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory, IAnalyzerAssemblyLoader analyzerLoader)
+        private readonly ICompilerServerHost _compilerServerHost;
+
+        internal VisualBasicCompilerServer(ICompilerServerHost compilerServerHost, string[] args, string clientDirectory, string baseDirectory, string sdkDirectory, string libDirectory, IAnalyzerAssemblyLoader analyzerLoader)
             : base(VisualBasicCommandLineParser.Default, clientDirectory != null ? Path.Combine(clientDirectory, ResponseFileName) : null, args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader)
         {
-        }
-
-        public static BuildResponse RunCompiler(
-            string clientDirectory,
-            string[] args,
-            string baseDirectory,
-            string sdkDirectory,
-            string libDirectory,
-            IAnalyzerAssemblyLoader analyzerLoader,
-            CancellationToken cancellationToken)
-        {
-            var compiler = new VisualBasicCompilerServer(args, clientDirectory, baseDirectory, sdkDirectory, libDirectory, analyzerLoader);
-            bool utf8output = compiler.Arguments.Utf8Output;
-
-            if (!AnalyzerConsistencyChecker.Check(baseDirectory, compiler.Arguments.AnalyzerReferences, analyzerLoader))
-            {
-                return new AnalyzerInconsistencyBuildResponse();
-            }
-
-            TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
-            int returnCode = compiler.Run(output, cancellationToken);
-
-            return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), string.Empty);
-        }
-
-        public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken)
-        {
-            int runResult;
-            CompilerServerLogger.Log("****Running VB compiler...");
-            runResult = base.Run(consoleOutput, cancellationToken);
-            CompilerServerLogger.Log("****VB Compilation complete.\r\n****Return code: {0}\r\n****Output:\r\n{1}\r\n", runResult, consoleOutput.ToString());
-            return runResult;
+            _compilerServerHost = compilerServerHost;
         }
 
         internal override Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
-            return CompilerRequestHandler.AssemblyReferenceProvider;
+            return _compilerServerHost.AssemblyReferenceProvider;
         }
 
         protected override uint GetSqmAppID()

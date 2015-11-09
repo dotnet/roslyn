@@ -11,7 +11,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Roslyn.Utilities;
 
-using static Microsoft.CodeAnalysis.AssemblyIdentityUtils;
+using static Microsoft.CodeAnalysis.CommandLine.AssemblyIdentityUtils;
 
 namespace Microsoft.CodeAnalysis
 {
