@@ -233,6 +233,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delegate invocation can be simplified..
+        /// </summary>
+        internal static string DelegateInvocationCanBeSimplified {
+            get {
+                return ResourceManager.GetString("DelegateInvocationCanBeSimplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deprecated.
         /// </summary>
         internal static string Deprecated {

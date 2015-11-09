@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
@@ -605,6 +606,12 @@ namespace Microsoft.DiaSymReader
             {
                 yield return new AsyncStepInfo(yieldOffsets[i], breakpointOffsets[i], breakpointMethods[i]);
             }
+        }
+
+        public static void UpdateSymbolStore(this ISymUnmanagedReader reader, Stream pdbStream)
+        {
+            int hr = reader.UpdateSymbolStore(null, new ComStreamWrapper(pdbStream));
+            ThrowExceptionForHR(hr);
         }
     }
 }

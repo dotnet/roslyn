@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal static class AssemblyIdentityUtils
     {
@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis
                     ImmutableArray<byte> publicKeyOrToken = !publicKeyHandle.IsNil
                         ? metadataReader.GetBlobBytes(publicKeyHandle).AsImmutableOrNull()
                         : default(ImmutableArray<byte>);
-
                     return new AssemblyIdentity(name, version, cultureName, publicKeyOrToken, hasPublicKey);
                 }
             }

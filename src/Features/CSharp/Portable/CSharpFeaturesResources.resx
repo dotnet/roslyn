@@ -437,4 +437,7 @@
   <data name="HideBase" xml:space="preserve">
     <value>Hide base member</value>
   </data>
+  <data name="DelegateInvocationCanBeSimplified" xml:space="preserve">
+    <value>Delegate invocation can be simplified.</value>
+  </data>
 </root>

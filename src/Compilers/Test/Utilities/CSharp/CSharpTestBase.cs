@@ -553,10 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             }
 
             var compilation = CreateCompilationWithMscorlib(cSharpSource, new[] { reference }, compilationOptions);
-            if (compilationVerifier != null)
-            {
-                compilationVerifier(compilation);
-            }
+            compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
