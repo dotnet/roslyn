@@ -5342,7 +5342,7 @@ Class C(Of T)
 End Class
 "
 
-            VerifyItemExists(markup, "I(Of …)")
+            VerifyItemExists(markup, "I(Of â€¦)")
         End Sub
 
         <WorkItem(622563)>
@@ -5567,7 +5567,7 @@ Class DG
     Function Bar() as G(
 End Class</code>.Value
 
-            VerifyProviderCommit(text, "G(Of …)", expected, "("c, "")
+            VerifyProviderCommit(text, "G(Of â€¦)", expected, "("c, "")
         End Sub
 
         <WorkItem(668159)>
