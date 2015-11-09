@@ -41,11 +41,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new TcpClientConnection(tcpClient);
         }
 
-        public string GetSdkDirectory()
-        {
-            return null;
-        }
-
         public void Log(string message)
         {
             // BTODO: Do we need this anymore? 

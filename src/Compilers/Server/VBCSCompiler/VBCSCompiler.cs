@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -100,10 +101,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CompilerServerLogger.Log("Keep alive timeout is: {0} milliseconds.", keepAliveTimeout?.TotalMilliseconds ?? 0);
             FatalError.Handler = FailFast.OnFatalException;
 
+            var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
             var compilerServerHost = new DesktopCompilerServerHost(pipeName);
             var dispatcher = new ServerDispatcher(
                 compilerServerHost,
-                new CompilerRequestHandler(compilerServerHost, compilerExeDirectory), 
+                new CompilerRequestHandler(compilerServerHost, compilerExeDirectory, sdkDirectory), 
                 new EmptyDiagnosticListener());
 
             dispatcher.ListenAndDispatchConnections(keepAliveTimeout);

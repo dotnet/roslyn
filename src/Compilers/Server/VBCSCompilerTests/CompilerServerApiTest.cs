@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CommandLine;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -316,7 +317,7 @@ class Hello
             {
                 var dispatcher = new ServerDispatcher(
                     CreateNopCompilerServerHost().Object,
-                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path), 
+                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path, RuntimeEnvironment.GetRuntimeDirectory()), 
                     listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive);
             });
@@ -345,7 +346,7 @@ class Hello
             {
                 var dispatcher = new ServerDispatcher(
                     CreateNopCompilerServerHost().Object,
-                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path), 
+                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path, RuntimeEnvironment.GetRuntimeDirectory()), 
                     listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive);
             });

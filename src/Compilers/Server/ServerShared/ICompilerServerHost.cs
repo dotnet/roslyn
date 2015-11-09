@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
         Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
 
-        string GetSdkDirectory();
         bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
         void Log(string message);
     }

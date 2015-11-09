@@ -42,10 +42,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private readonly string _clientDirectory;
 
-        internal CompilerRequestHandler(ICompilerServerHost compilerServerHost, string clientDirectory)
+        /// <summary>
+        /// Directory holding mscorlib.  It will be null when run under CoreCLR, 
+        /// </summary>
+        private readonly string _sdkDirectory;
+
+        internal CompilerRequestHandler(ICompilerServerHost compilerServerHost, string clientDirectory, string sdkDirectory)
         {
             _compilerServerHost = compilerServerHost;
             _clientDirectory = clientDirectory;
+            _sdkDirectory = sdkDirectory;
         }
 
         /// <summary>
@@ -106,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 request.Arguments,
                 _clientDirectory,
                 request.CurrentDirectory,
-                _compilerServerHost.GetSdkDirectory(),
+                _sdkDirectory,
                 request.LibDirectory,
                 _compilerServerHost.AnalyzerAssemblyLoader);
         }
@@ -118,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 request.Arguments,
                 _clientDirectory,
                 request.CurrentDirectory,
-                _compilerServerHost.GetSdkDirectory(),
+                _sdkDirectory,
                 request.LibDirectory,
                 _compilerServerHost.AnalyzerAssemblyLoader);
         }

@@ -42,11 +42,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, s_analyzerLoader);
         }
 
-        public string GetSdkDirectory()
-        {
-            return RuntimeEnvironment.GetRuntimeDirectory();
-        }
-
         public void Log(string message)
         {
             CompilerServerLogger.Log(message);

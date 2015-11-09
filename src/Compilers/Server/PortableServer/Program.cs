@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var endPoint = new IPEndPoint(ipAddress, port: 12000);
             var clientDirectory = AppContext.BaseDirectory;
             var compilerHost = new CoreClrCompilerServerHost(endPoint);
-            var compilerRequestHandler = new CompilerRequestHandler(compilerHost, clientDirectory);
+            var compilerRequestHandler = new CompilerRequestHandler(compilerHost, clientDirectory, sdkDirectory: null);
             var serverDispatcher = new ServerDispatcher(compilerHost, compilerRequestHandler, new EmptyDiagnosticListener());
             serverDispatcher.ListenAndDispatchConnections(keepAlive: null, cancellationToken: CancellationToken.None);
         }
