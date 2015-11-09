@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         private readonly IForegroundNotificationService _notificationService;
         private readonly IViewSupportsClassificationService _viewSupportsClassificationServiceOpt;
         private readonly ITextBufferAssociatedViewService _associatedViewService;
+        private readonly HostServices _hostServices;
         private readonly IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> _editorClassificationLanguageServices;
         private readonly IEnumerable<Lazy<ILanguageService, ContentTypeLanguageMetadata>> _contentTypesToLanguageNames;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             ClassificationTypeMap typeMap,
             [Import(AllowDefault = true)] IViewSupportsClassificationService viewSupportsClassificationServiceOpt,
             ITextBufferAssociatedViewService associatedViewService,
+            [Import] MefHostServicesFactoryService mefHostServicesFactoryService,
             [ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> allLanguageServices,
             [ImportMany] IEnumerable<Lazy<ILanguageService, ContentTypeLanguageMetadata>> contentTypes,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
@@ -52,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _editorClassificationLanguageServices = allLanguageServices.Where(s => s.Metadata.ServiceType == typeof(IEditorClassificationService).AssemblyQualifiedName);
             _contentTypesToLanguageNames = contentTypes.Where(x => x.Metadata.DefaultContentType != null);
             _asyncListeners = asyncListeners;
+            _hostServices = mefHostServicesFactoryService.CreateHostServices();
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -83,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     _viewSupportsClassificationServiceOpt,
                     _associatedViewService, 
                     editorClassificationService,
+                    _hostServices,
                     languageName);
 
                 _tagComputers.Add(buffer, tagComputer);

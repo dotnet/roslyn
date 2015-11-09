@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(SymbolMapping.SymbolMappingServiceFactory),
                 typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
-                typeof(TestExportProvider)
+                typeof(TestExportProvider),
+                typeof(Implementation.Workspaces.MefHostServicesFactoryService)
             };
 
             return types.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
