@@ -22,7 +22,7 @@ namespace Microsoft.Cci
         private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobIdx AssemblyKey; public StringIdx AssemblyName; public StringIdx AssemblyCulture; }
         private struct ClassLayoutRow { public ushort PackingSize; public uint ClassSize; public uint Parent; }
         private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
-        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; public int OriginalPosition; }
+        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; public int OriginalIndex; }
         private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobIdx PermissionSet; public int OriginalIndex; }
         protected struct EncLogRow { public uint Token; public byte FuncCode; }
         protected struct EncMapRow { public uint Token; }
@@ -35,7 +35,7 @@ namespace Microsoft.Cci
         private struct FieldDefRow { public ushort Flags; public StringIdx Name; public BlobIdx Signature; }
         private struct FileTableRow { public uint Flags; public StringIdx FileName; public BlobIdx HashValue; }
         private struct GenericParamConstraintRow { public uint Owner; public uint Constraint; }
-        private struct GenericParamRow { public ushort Number; public ushort Flags; public uint Owner; public StringIdx Name; public IGenericParameter GenericParameter; }
+        private struct GenericParamRow { public ushort Number; public ushort Flags; public uint Owner; public StringIdx Name; }
         private struct ImplMapRow { public ushort MappingFlags; public uint MemberForwarded; public StringIdx ImportName; public uint ImportScope; }
         private struct InterfaceImplRow { public uint Class; public uint Interface; }
         private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
@@ -334,7 +334,7 @@ namespace Microsoft.Cci
                 Parent = parent,
                 Type = constructor,
                 Value = value,
-                OriginalPosition = _customAttributeTable.Count
+                OriginalIndex = _customAttributeTable.Count
             });
         }
 
