@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly IEditorClassificationService _editorClassificationService;
             private readonly IViewSupportsClassificationService _viewSupportsClassificationServiceOpt;
             private readonly ITextBufferAssociatedViewService _associatedViewService;
+            private readonly HostServices _hostServices;
 
             private readonly string _languageName;
 
@@ -88,6 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 IViewSupportsClassificationService viewSupportsClassificationServiceOpt,
                 ITextBufferAssociatedViewService associatedViewService,
                 IEditorClassificationService editorClassificationService,
+                HostServices hostServices,
                 string languageName)
             {
                 _subjectBuffer = subjectBuffer;
@@ -98,6 +100,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 _viewSupportsClassificationServiceOpt = viewSupportsClassificationServiceOpt;
                 _associatedViewService = associatedViewService;
                 _editorClassificationService = editorClassificationService;
+                _hostServices = hostServices;
                 _languageName = languageName;
 
                 _workQueue = new AsynchronousSerialWorkQueue(asyncListener);
@@ -184,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     _isClassificationOnlyWorkspace = true;
                     if (_languageName != null)
                     {
-                        _workspace = new AdhocWorkspace();
+                        _workspace = new AdhocWorkspace(_hostServices);
                         var solution = _workspace.CreateSolution(SolutionId.CreateNewId());
                         var project = solution.AddProject(name: string.Empty, assemblyName: string.Empty, language: _languageName);
 

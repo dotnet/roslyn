@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -44,10 +45,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                         associatedViewService: null,
                         allLanguageServices: ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>>.Empty,
                         contentTypes: ImmutableArray<Lazy<ILanguageService, ContentTypeLanguageMetadata>>.Empty,
-                        asyncListeners: ImmutableArray<Lazy<IAsynchronousOperationListener, FeatureMetadata>>.Empty),
+                        asyncListeners: ImmutableArray<Lazy<IAsynchronousOperationListener, FeatureMetadata>>.Empty,
+                        mefHostServicesFactoryService: workspace.GetService<MefHostServicesFactoryService>()),
                     viewSupportsClassificationServiceOpt: null,
                     associatedViewService: null,
                     editorClassificationService: null,
+                    hostServices: null,
                     languageName: null);
 
                 SnapshotSpan span = default(SnapshotSpan);

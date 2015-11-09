@@ -654,6 +654,7 @@
     <Compile Include="Implementation\TodoComment\TodoCommentTokens.cs" />
     <Compile Include="Implementation\Workspaces\EditorErrorReportingService.cs" />
     <Compile Include="Implementation\Workspaces\EditorErrorReportingServiceFactory.cs" />
+    <Compile Include="Implementation\Workspaces\MefHostServicesFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheServiceFactory.cs" />
     <Compile Include="Implementation\Workspaces\EditorTextFactoryService.cs" />
     <Compile Include="Implementation\Workspaces\ProjectCacheService.cs" />
