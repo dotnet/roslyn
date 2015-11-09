@@ -57,7 +57,7 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="csc.exe" target="runtimes/any/native" />
-        <file src="vbc.exe" target="runtimes/any/native" />
+        <file src="csccore/csc.exe" target="runtimes/any/native" />
+        <file src="vbccore/vbc.exe" target="runtimes/any/native" />
     </files>
 </package>
