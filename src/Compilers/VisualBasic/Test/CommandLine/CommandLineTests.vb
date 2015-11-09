@@ -5298,6 +5298,7 @@ End Module
         End Sub
 
         <WorkItem(530221, "DevDiv")>
+        <WorkItem(5664, "https://github.com/dotnet/roslyn/issues/5664")>
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub Bug15538()
             Dim folder = Temp.CreateDirectory()

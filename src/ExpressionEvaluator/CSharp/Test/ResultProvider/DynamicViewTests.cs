@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
+        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
         public void NoMembers()
         {
             var expression = "o";

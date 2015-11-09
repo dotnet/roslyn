@@ -115,6 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         <ConditionalFact(GetType(IsEnglishLocal))>
+        <WorkItem(5667, "https://github.com/dotnet/roslyn/issues/5667")>
         Public Sub NoMembers()
             Dim expression = "o"
             Dim o As Object = New ExpandoObject()

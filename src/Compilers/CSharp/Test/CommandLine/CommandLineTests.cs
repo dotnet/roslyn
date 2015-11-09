@@ -4129,6 +4129,7 @@ public class CS1698_a {}
 
 
         [WorkItem(530221, "DevDiv")]
+        [WorkItem(5660, "https://github.com/dotnet/roslyn/issues/5660")]
         [ConditionalFact(typeof(WindowsOnly), typeof(IsEnglishLocal))]
         public void Bug15538()
         {

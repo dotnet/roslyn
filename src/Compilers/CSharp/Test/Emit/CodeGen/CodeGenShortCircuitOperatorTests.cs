@@ -5865,6 +5865,7 @@ class C
         }
 
         [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
         [ConditionalFact(typeof(IsEnglishLocal))]
         public void ConditionalBoolExpr01b()
         {

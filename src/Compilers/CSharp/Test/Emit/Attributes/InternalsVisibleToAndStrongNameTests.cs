@@ -316,6 +316,7 @@ public class Test
             Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
         }
 
+        [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
         [ConditionalFact(typeof(IsEnglishLocal))]
         public void PubKeyContainerBogusOptions()
         {
@@ -909,6 +910,7 @@ public class Z
             ConfirmModuleAttributePresentAndAddingToAssemblyResultsInSignedOutput(outStrm, AttributeDescription.AssemblyKeyNameAttribute);
         }
 
+        [WorkItem(5665, "https://github.com/dotnet/roslyn/issues/5665")]
         [ConditionalFact(typeof(IsEnglishLocal))]
         public void SignModuleKeyContainerBogus()
         {

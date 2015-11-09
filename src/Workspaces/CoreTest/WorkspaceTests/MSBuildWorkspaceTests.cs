@@ -2373,6 +2373,7 @@ class C1
         }
 
         [ConditionalFact(typeof(IsEnglishLocal)), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WorkItem(5668, "https://github.com/dotnet/roslyn/issues/5668")]
         public void TestOpenProject_MetadataReferenceHasDocComments()
         {
             CreateFiles(GetSimpleCSharpSolutionFiles());
