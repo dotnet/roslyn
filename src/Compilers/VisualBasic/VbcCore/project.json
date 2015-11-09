@@ -41,7 +41,12 @@
     "System.Threading.Thread": "4.0.0-beta-23428",
     "System.Xml.XDocument": "4.0.11-beta-23428",
     "System.Xml.XmlDocument": "4.0.1-beta-23428",
-    "System.Xml.XPath.XDocument": "4.0.1-beta-23428"
+    "System.Xml.XPath.XDocument": "4.0.1-beta-23428",
+    "System.Security.Cryptography.Encoding": "4.0.0-beta-23428",
+    "System.Security.Cryptography.X509Certificates": "4.0.0-beta-23428",
+    "System.Net.Sockets": "4.1.0-beta-23428",
+    "System.IO.FileSystem.Watcher": "4.0.0-beta-23428", 
+    "System.Net.NameResolution": "4.0.0-beta-23428", 
   },
   "frameworks": {
     "dnxcore50": {

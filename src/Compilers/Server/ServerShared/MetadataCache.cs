@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Metadata metadata;
             if (fileKey.HasValue && _metadataCache.TryGetValue(fileKey.Value, out metadata) && metadata != null)
             {
-                CompilerServerLogger.Log("Using already loaded metadata for assembly reference '{0}'", fileKey);
                 return metadata;
             }
 
@@ -92,20 +91,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private FileKey? GetUniqueFileKey(string filePath)
         {
-            FileInfo fileInfo;
-
             try
             {
-                fileInfo = new FileInfo(filePath);
-
-                if (!fileInfo.Exists)
-                {
-                    return null;
-                }
-                else
-                {
-                    return new FileKey(fileInfo.FullName, fileInfo.LastWriteTimeUtc);
-                }
+                return FileKey.Create(filePath);
             }
             catch (Exception)
             {
@@ -117,11 +105,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    internal class CachingMetadataReference : PortableExecutableReference
+    internal sealed class CachingMetadataReference : PortableExecutableReference
     {
         private static readonly MetadataAndSymbolCache s_mdCache = new MetadataAndSymbolCache();
 
-        internal CachingMetadataReference(string fullPath, MetadataReferenceProperties properties)
+        public CachingMetadataReference(string fullPath, MetadataReferenceProperties properties)
             : base(properties, fullPath)
         {
         }

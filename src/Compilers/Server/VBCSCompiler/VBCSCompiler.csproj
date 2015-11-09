@@ -51,30 +51,15 @@
     <Compile Include="..\..\Shared\AbstractAnalyzerAssemblyLoader.cs">
       <Link>AbstractAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="..\..\Shared\AssemblyIdentityUtils.cs">
-      <Link>AssemblyIdentityUtils.cs</Link>
-    </Compile>
     <Compile Include="..\..\Shared\ShadowCopyAnalyzerAssemblyLoader.cs">
       <Link>ShadowCopyAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="AnalyzerConsistencyChecker.cs" />
     <Compile Include="Assembly.cs" />
-    <Compile Include="..\..\Shared\BuildProtocol.cs">
-      <Link>BuildProtocol.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Shared\CompilerServerLogger.cs">
-      <Link>CompilerServerLogger.cs</Link>
-    </Compile>
-    <Compile Include="CompilerRequestHandler.cs" />
-    <Compile Include="CSharpCompilerServer.cs" />
-    <Compile Include="DiagnosticListener.cs" />
-    <Compile Include="IClientConnection.cs" />
-    <Compile Include="MetadataCache.cs" />
+    <Compile Include="DesktopCompilerServerHost.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />
-    <Compile Include="ServerDispatcher.Connection.cs" />
-    <Compile Include="ServerDispatcher.cs" />
-    <Compile Include="ServerDispatcher.MemoryHelper.cs" />
-    <Compile Include="VisualBasicCompilerServer.cs" />
+    <Compile Include="VBCSCompiler.cs" />
+    <Compile Include="MemoryHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -87,6 +72,8 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
   </ItemGroup>
+  <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
+  <Import Project="..\ServerShared\ServerShared.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

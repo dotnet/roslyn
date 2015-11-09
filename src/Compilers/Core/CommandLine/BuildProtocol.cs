@@ -7,12 +7,11 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.CompilerServer.BuildProtocolConstants;
-using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
+using static Microsoft.CodeAnalysis.CommandLine.BuildProtocolConstants;
+using static Microsoft.CodeAnalysis.CommandLine.CompilerServerLogger;
 
 // This file describes data structures about the protocol from client program to server that is 
 // used. The basic protocol is this.
@@ -35,7 +34,7 @@ using static Microsoft.CodeAnalysis.CompilerServer.CompilerServerLogger;
 // NOTE: Changes to the protocol information in this file must also be reflected in protocol.h in the
 // unmanaged csc project, as well as the code in protocol.cpp.
 
-namespace Microsoft.CodeAnalysis.CompilerServer
+namespace Microsoft.CodeAnalysis.CommandLine
 {
     /// <summary>
     /// Represents a request from the client. A request is as follows.
@@ -54,11 +53,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal class BuildRequest
     {
         public readonly uint ProtocolVersion;
-        public readonly BuildProtocolConstants.RequestLanguage Language;
+        public readonly RequestLanguage Language;
         public readonly ImmutableArray<Argument> Arguments;
 
         public BuildRequest(uint protocolVersion,
-                            BuildProtocolConstants.RequestLanguage language,
+                            RequestLanguage language,
                             ImmutableArray<Argument> arguments)
         {
             ProtocolVersion = protocolVersion;
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             using (var reader = new BinaryReader(new MemoryStream(responseBuffer), Encoding.Unicode))
             {
                 var protocolVersion = reader.ReadUInt32();
-                var language = (BuildProtocolConstants.RequestLanguage)reader.ReadUInt32();
+                var language = (RequestLanguage)reader.ReadUInt32();
                 uint argumentCount = reader.ReadUInt32();
 
                 var argumentsBuilder = ImmutableArray.CreateBuilder<Argument>((int)argumentCount);
@@ -366,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// 32-bit integer, followed by an array of characters.
     /// 
     /// </summary>
-    internal class CompletedBuildResponse : BuildResponse
+    internal sealed class CompletedBuildResponse : BuildResponse
     {
         public readonly int ReturnCode;
         public readonly bool Utf8Output;
@@ -405,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 
-    internal class MismatchedVersionBuildResponse : BuildResponse
+    internal sealed class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.MismatchedVersion; } }
 
@@ -415,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
-    internal class AnalyzerInconsistencyBuildResponse : BuildResponse
+    internal sealed class AnalyzerInconsistencyBuildResponse : BuildResponse
     {
         public override ResponseType Type { get { return ResponseType.AnalyzerInconsistency; } }
 
@@ -424,6 +423,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         /// <param name="writer"></param>
         protected override void AddResponseBody(BinaryWriter writer) { }
+    }
+
+    // The id numbers below are just random. It's useful to use id numbers
+    // that won't occur accidentally for debugging.
+    internal enum RequestLanguage
+    {
+        CSharpCompile = 0x44532521,
+        VisualBasicCompile = 0x44532522,
     }
 
     /// <summary>
@@ -436,14 +443,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public const uint ProtocolVersion = 2;
 
-        // The id numbers below are just random. It's useful to use id numbers
-        // that won't occur accidentally for debugging.
-        public enum RequestLanguage
-        {
-            CSharpCompile = 0x44532521,
-            VisualBasicCompile = 0x44532522,
-        }
-
         // Arguments for CSharp and VB Compiler
         public enum ArgumentId
         {
@@ -455,65 +454,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             LibEnvVariable,
             // Request a longer keep alive time for the server
             KeepAlive,
-        }
-
-        /// <summary>
-        /// Given the full path to the directory containing the compiler exes,
-        /// retrieves the name of the pipe for client/server communication on
-        /// that instance of the compiler.
-        /// </summary>
-        internal static string GetBasePipeName(string compilerExeDirectory)
-        {
-            string basePipeName;
-            using (var sha = SHA256.Create())
-            {
-                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
-                basePipeName = Convert.ToBase64String(bytes)
-                    .Replace("/", "_")
-                    .Replace("=", string.Empty);
-            }
-
-            var assembly = typeof(object).GetTypeInfo().Assembly;
-
-            // Prefix with username and elevation
-            var identity = GetCurrentIdentity(assembly);
-
-            var principalType = assembly
-                .GetType("System.Security.Principal.WindowsPrincipal");
-
-            var principal = principalType
-                .GetTypeInfo()
-                .GetDeclaredConstructor(assembly.GetType("System.Security.Principal.WindowsIdentity"))
-                .Invoke(new[] { identity });
-
-            var windowsBuiltInRole = assembly
-                .GetType("System.Security.Principal.WindowsBuiltInRole");
-
-            const int builtInRole_Administrator = 0x220;
-            var admin = Enum.ToObject(windowsBuiltInRole,
-                builtInRole_Administrator);
-
-            var isAdmin = Convert.ToInt32(principalType
-                .GetTypeInfo()
-                .GetDeclaredMethod("IsInRole", new[] { windowsBuiltInRole })
-                .Invoke(principal, new[] { admin }));
-
-            var userName = typeof(Environment)
-                .GetTypeInfo()
-                .GetDeclaredProperty("UserName")
-                .GetValue(null);
-
-            return $"{userName}.{isAdmin}.{basePipeName}";
-        }
-
-        internal static object GetCurrentIdentity(Assembly assembly)
-        {
-            return assembly
-                    .GetType("System.Security.Principal.WindowsIdentity")
-                    .GetTypeInfo()
-                    .GetDeclaredMethods("GetCurrent")
-                    .Single(x => x.GetParameters().Length == 0)
-                    .Invoke(null, null);
         }
 
         /// <summary>

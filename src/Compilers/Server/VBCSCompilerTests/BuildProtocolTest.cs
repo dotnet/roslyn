@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CommandLine;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var request = new BuildRequest(
                     BuildProtocolConstants.ProtocolVersion,
-                    BuildProtocolConstants.RequestLanguage.VisualBasicCompile,
+                    RequestLanguage.VisualBasicCompile,
                     ImmutableArray.Create(
                         new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CurrentDirectory, argumentIndex: 0, value: "directory"),
                         new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, argumentIndex: 1, value: "file")));
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 memoryStream.Position = 0;
                 var read = await BuildRequest.ReadAsync(memoryStream, default(CancellationToken)).ConfigureAwait(false);
                 Assert.Equal(BuildProtocolConstants.ProtocolVersion, read.ProtocolVersion);
-                Assert.Equal(BuildProtocolConstants.RequestLanguage.VisualBasicCompile, read.Language);
+                Assert.Equal(RequestLanguage.VisualBasicCompile, read.Language);
                 Assert.Equal(2, read.Arguments.Length);
                 Assert.Equal(BuildProtocolConstants.ArgumentId.CurrentDirectory, read.Arguments[0].ArgumentId);
                 Assert.Equal(0, read.Arguments[0].ArgumentIndex);
