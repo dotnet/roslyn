@@ -140,5 +140,18 @@ Enum E
 End Enum
                                          </File>, "#Enable Warning", "#Disable Warning")
         End Sub
+
+        <WorkItem(6389, "https://github.com/dotnet/roslyn/issues/6389")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub NotAfterHashRegion()
+            VerifyRecommendationsMissing(<File>
+                                         Class C
+
+                                             #Region |
+
+                                         End Class
+                                         </File>, "#Enable Warning", "#Disable Warning")
+        End Sub
+
     End Class
 End Namespace
