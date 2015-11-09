@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             TrackActiveTokens = true;
         }
 
+        IAsyncToken IAsynchronousOperationListener.BeginAsyncOperation(string name, object tag)
+        {
+            return BeginAsyncOperation(name, tag);
+        }
+
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
             lock (_gate)

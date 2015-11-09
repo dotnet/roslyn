@@ -91,10 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             if (isEdit && isReadOnly)
             {
-                if (_onReadOnlyDocumentEditAttempt != null)
-                {
-                    _onReadOnlyDocumentEditAttempt(documentId, sessionReason, projectReason);
-                }
+                _onReadOnlyDocumentEditAttempt?.Invoke(documentId, sessionReason, projectReason);
             }
 
             return isReadOnly;

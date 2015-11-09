@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
 {
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, refactorings.First(), provider);
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, new TestWaitIndicator(), refactorings.First(), provider);
             await suggestedAction.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, refactorings.First(), provider);
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, new TestWaitIndicator(), refactorings.First(), provider);
             var text = suggestedAction.DisplayText;
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
@@ -78,12 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings
             EditorLayerExtensionManager.ExtensionManager extensionManager;
             VisualStudio.Text.ITextBuffer textBuffer;
             RefactoringSetup(workspace, provider, refactorings, out editHandler, out extensionManager, out textBuffer);
-            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, refactorings.First(), provider);
+            var suggestedAction = new CodeRefactoringSuggestedAction(workspace, textBuffer, editHandler, new TestWaitIndicator(), refactorings.First(), provider);
             var actionSets = await suggestedAction.GetActionSetsAsync(CancellationToken.None).ConfigureAwait(true);
             Assert.True(extensionManager.IsDisabled(provider));
             Assert.False(extensionManager.IsIgnored(provider));
         }
-
 
         private static void RefactoringSetup(TestWorkspace workspace, CodeRefactoringProvider provider, List<CodeAction> refactorings, out ICodeActionEditHandlerService editHandler, out EditorLayerExtensionManager.ExtensionManager extensionManager, out VisualStudio.Text.ITextBuffer textBuffer)
         {

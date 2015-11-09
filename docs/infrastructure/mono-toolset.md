@@ -38,9 +38,7 @@ This is done by executing the following on a Windows box.
 
 - Change to the root of the enlistment.
 - delete the contents of the `~\.nuget\packages`
-- Run
-    - `.\nuget.exe restore Roslyn.sln`
-    - `.\nuget.exe restore build\ToolsetPackages\project.json`
+- Run Restore.cmd
 - Zip the `~\.nuget` directory (via explorer) and name it nuget.X.zip (where X is one higher than the previous number)
 - Use [azcopy](https://azure.microsoft.com/en-us/documentation/articles/storage-use-azcopy) to upload to https://dotnetci.blob.core.windows.net/roslyn
 - Change cibuild.sh to reference the new package. 
