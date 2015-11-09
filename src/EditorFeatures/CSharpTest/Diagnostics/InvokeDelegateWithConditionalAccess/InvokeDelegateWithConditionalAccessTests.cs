@@ -291,5 +291,62 @@ class C
     }
 }");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestTrivia1()
+        {
+            Test(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        // Comment
+        [||]var v = a;
+        if (v != null)
+        {
+            v();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        // Comment
+        a?.Invoke();
+    }
+}", compareTokens: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsInvokeDelegateWithConditionalAccess)]
+        public void TestTrivia2()
+        {
+            Test(
+@"class C
+{
+    System.Action a;
+    void Foo()
+    {
+        // Comment
+        [||]if (a != null)
+        {
+            a();
+        }
+    }
+}",
+@"
+class C
+{
+    System.Action a;
+    void Foo()
+    {
+        // Comment
+        a?.Invoke();
+    }
+}", compareTokens: false);
+        }
     }
 }
