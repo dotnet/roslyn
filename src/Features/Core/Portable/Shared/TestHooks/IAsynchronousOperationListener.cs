@@ -6,6 +6,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal interface IAsynchronousOperationListener
     {
+        // TODO(cyrusn): Remove this overload when we can simply recompile TypeScript and move them
+        // to the better version below.  Right now this version is needed for binary compatibility.
+        IAsyncToken BeginAsyncOperation(string name, object tag);
+
         IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0);
     }
 }
