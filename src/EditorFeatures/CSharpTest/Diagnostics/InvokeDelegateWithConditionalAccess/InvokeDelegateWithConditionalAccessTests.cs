@@ -309,8 +309,7 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
     void Foo()
@@ -337,8 +336,7 @@ class C
         }
     }
 }",
-@"
-class C
+@"class C
 {
     System.Action a;
     void Foo()

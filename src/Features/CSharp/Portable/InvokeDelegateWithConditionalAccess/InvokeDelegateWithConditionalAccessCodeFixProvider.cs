@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                     invocationExpression.Expression,
                     SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
+            newStatement = newStatement.WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia());
 
             if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) && ifStatement.Statement.IsKind(SyntaxKind.Block))
             {
@@ -98,12 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var newStatements = parentBlock.Statements.TakeWhile(s => s != localDeclarationStatement)
-                .Concat(newStatement)
-                .Concat(parentBlock.Statements.SkipWhile(s => s != ifStatement).Skip(1));
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            editor.ReplaceNode(ifStatement, newStatement);
+            editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.AddElasticMarker);
 
-            var newBlock = parentBlock.WithStatements(SyntaxFactory.List(newStatements));
-            return document.WithSyntaxRoot(root.ReplaceNode(parentBlock, newBlock));
+            var newRoot = editor.GetChangedRoot();
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
