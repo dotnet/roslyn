@@ -2002,8 +2002,25 @@ namespace Microsoft.Cci
             return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
 
+        private ImmutableArray<IGenericParameter> GetSortedGenericParameters()
+        {
+            return GetGenericParameters().OrderBy((x, y) =>
+            {
+                // Spec: GenericParam table is sorted by Owner and then by Number.
+                int result = (int)GetTypeOrMethodDefCodedIndex(x) - (int)GetTypeOrMethodDefCodedIndex(y);
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                return x.Index - y.Index;
+            }).ToImmutableArray();
+        }
+
         private void PopulateTables(int[] methodBodyRvas, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter)
         {
+            var sortedGenericParameters = GetSortedGenericParameters();
+
             this.PopulateAssemblyRefTableRows();
             this.PopulateAssemblyTableRows();
             this.PopulateClassLayoutTableRows();
@@ -2017,8 +2034,7 @@ namespace Microsoft.Cci
             this.PopulateFieldRvaTableRows(mappedFieldDataWriter);
             this.PopulateFieldTableRows();
             this.PopulateFileTableRows();
-            this.PopulateGenericParamTableRows();
-            this.PopulateGenericParamConstraintTableRows();
+            this.PopulateGenericParameters(sortedGenericParameters);
             this.PopulateImplMapTableRows();
             this.PopulateInterfaceImplTableRows();
             this.PopulateManifestResourceTableRows(resourceWriter);
@@ -2039,7 +2055,7 @@ namespace Microsoft.Cci
             this.PopulateStandaloneSignatures();
 
             // This table is populated after the others because it depends on the order of the entries of the generic parameter table.
-            this.PopulateCustomAttributeTableRows();
+            this.PopulateCustomAttributeTableRows(sortedGenericParameters);
 
             ImmutableArray<int> rowCounts = GetRowCounts();
             Debug.Assert(rowCounts[(int)TableIndex.EncLog] == 0 && rowCounts[(int)TableIndex.EncMap] == 0);
@@ -2120,7 +2136,7 @@ namespace Microsoft.Cci
                 culture: heaps.GetStringIndex(assembly.Culture));
         }
         
-        private void PopulateCustomAttributeTableRows()
+        private void PopulateCustomAttributeTableRows(ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
             if (this.IsFullMetadata)
             {
@@ -2157,17 +2173,7 @@ namespace Microsoft.Cci
             // TODO: exported types 17
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
-            // The indices of this.GetGenericParameters() do not correspond to the table indices because the
-            // the table may be sorted after the list has been constructed.
-            // Note that in all other cases, tables that are sorted are sorted in an order that depends
-            // only on list indices. The generic parameter table is the sole exception.
-            List<IGenericParameter> sortedGenericParameterList = new List<IGenericParameter>();
-            foreach (GenericParamRow genericParamRow in _genericParamTable)
-            {
-                sortedGenericParameterList.Add(genericParamRow.GenericParameter);
-            }
-
-            this.AddCustomAttributesToTable(sortedGenericParameterList, HasCustomAttributeTag.GenericParam);
+            this.AddCustomAttributesToTable(sortedGenericParameters, HasCustomAttributeTag.GenericParam);
 
             _customAttributeTable.Sort(new CustomAttributeRowComparer());
         }
@@ -2286,7 +2292,7 @@ namespace Microsoft.Cci
                 int result = ((int)x.Parent) - (int)y.Parent;
                 if (result == 0)
                 {
-                    result = x.OriginalPosition - y.OriginalPosition;
+                    result = x.OriginalIndex - y.OriginalIndex;
                 }
 
                 return result;
@@ -2637,58 +2643,26 @@ namespace Microsoft.Cci
                     containsMetadata: fileReference.HasMetadata);
             }
         }
-        
-        private void PopulateGenericParamTableRows()
+
+        private void PopulateGenericParameters(ImmutableArray<IGenericParameter> sortedGenericParameters)
         {
-            var genericParameters = this.GetGenericParameters();
-            _genericParamTable.Capacity = genericParameters.Count;
-
-            foreach (IGenericParameter genPar in genericParameters)
+            foreach (IGenericParameter genericParameter in sortedGenericParameters)
             {
-                GenericParamRow r = new GenericParamRow();
-                r.Number = genPar.Index;
-                r.Flags = (ushort)GetGenericParamFlags(genPar);
-                r.Owner = this.GetTypeOrMethodDefCodedIndex(genPar);
-
                 // CONSIDER: The CLI spec doesn't mention a restriction on the Name column of the GenericParam table,
                 // but they go in the same string heap as all the other declaration names, so it stands to reason that
                 // they should be restricted in the same way.
-                r.Name = this.GetStringIndexForNameAndCheckLength(genPar.Name, genPar);
+                int genericParameterRowId = AddGenericParameter(
+                    parent: GetTypeOrMethodDefCodedIndex(genericParameter),
+                    attributes: GetGenericParamFlags(genericParameter),
+                    name: GetStringIndexForNameAndCheckLength(genericParameter.Name, genericParameter),
+                    index: genericParameter.Index);
 
-                r.GenericParameter = genPar;
-                _genericParamTable.Add(r);
-            }
-
-            _genericParamTable.Sort(new GenericParamRowComparer());
-        }
-
-        private void PopulateGenericParamConstraintTableRows()
-        {
-            uint genericParamIndex = 0;
-            foreach (GenericParamRow genericParameterRow in _genericParamTable)
-            {
-                genericParamIndex++;
-                GenericParamConstraintRow r = new GenericParamConstraintRow();
-                r.Owner = genericParamIndex;
-                foreach (ITypeReference constraint in genericParameterRow.GenericParameter.GetConstraints(Context))
+                foreach (ITypeReference constraint in genericParameter.GetConstraints(Context))
                 {
-                    r.Constraint = this.GetTypeDefOrRefCodedIndex(constraint, true);
-                    _genericParamConstraintTable.Add(r);
+                    AddGenericParameterConstraint(
+                        genericParameterRowId: genericParameterRowId,
+                        constraint: GetTypeDefOrRefCodedIndex(constraint, true));
                 }
-            }
-        }
-
-        private class GenericParamRowComparer : Comparer<GenericParamRow>
-        {
-            public override int Compare(GenericParamRow x, GenericParamRow y)
-            {
-                int result = ((int)x.Owner) - (int)y.Owner;
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                return x.Number - y.Number;
             }
         }
 
