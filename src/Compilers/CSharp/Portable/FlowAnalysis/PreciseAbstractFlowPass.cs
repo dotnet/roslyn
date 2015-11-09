@@ -161,11 +161,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool trackExceptions = false)
         {
             Debug.Assert(node != null);
-            var equalsValue = node as BoundEqualsValue;
-            if (equalsValue != null)
-            {
-                node = equalsValue.Value;
-            }
 
             if (firstInRegion != null && lastInRegion != null)
             {
@@ -2565,6 +2560,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
         {
+            return null;
+        }
+
+        public override BoundNode VisitEqualsValue(BoundEqualsValue node)
+        {
+            VisitRvalue(node.Value);
             return null;
         }
 

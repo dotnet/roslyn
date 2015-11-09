@@ -120,13 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.compilation = _info.Compilation
             Me.symbol = _info.Symbol
             Me.MeParameter = Me.symbol.GetMeParameter()
-            Dim mainNode = _info.Node
-            Dim equalsValue = TryCast(mainNode, BoundEqualsValue)
-            If equalsValue IsNot Nothing Then
-                mainNode = equalsValue.Value
-            End If
-
-            Me._methodOrInitializerMainNode = mainNode
+            Me._methodOrInitializerMainNode = _info.Node
 
             Me._firstInRegion = _region.FirstInRegion
             Me._lastInRegion = _region.LastInRegion
@@ -2608,6 +2602,12 @@ EnteredRegion:
             VisitRvalue(node.FormatStringOpt)
             Return Nothing
         End Function
+
+        Public Overrides Function VisitEqualsValue(node As BoundEqualsValue) As BoundNode
+            VisitRvalue(node.Value)
+            Return Nothing
+        End Function
+
 #End Region
 
     End Class
