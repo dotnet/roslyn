@@ -2174,8 +2174,6 @@ namespace Microsoft.Cci
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
             this.AddCustomAttributesToTable(sortedGenericParameters, HasCustomAttributeTag.GenericParam);
-
-            _customAttributeTable.Sort(new CustomAttributeRowComparer());
         }
 
         private void AddAssemblyAttributesToTable()
@@ -2285,20 +2283,6 @@ namespace Microsoft.Cci
                 value: GetCustomAttributeSignatureIndex(customAttribute));
         }
 
-        private class CustomAttributeRowComparer : Comparer<CustomAttributeRow>
-        {
-            public override int Compare(CustomAttributeRow x, CustomAttributeRow y)
-            {
-                int result = ((int)x.Parent) - (int)y.Parent;
-                if (result == 0)
-                {
-                    result = x.OriginalIndex - y.OriginalIndex;
-                }
-
-                return result;
-            }
-        }
-
         private void PopulateDeclSecurityTableRows()
         {
             IAssembly assembly = this.module.AsAssembly;
@@ -2326,8 +2310,6 @@ namespace Microsoft.Cci
 
                 this.PopulateDeclSecurityTableRowsFor(GetMethodDefIndex(methodDef), HasDeclSecurityTag.MethodDef, methodDef.SecurityAttributes);
             }
-
-            _declSecurityTable.Sort(new DeclSecurityRowComparer());
         }
 
         private void PopulateDeclSecurityTableRowsFor(int parentIndex, HasDeclSecurityTag tag, IEnumerable<SecurityAttribute> attributes)
@@ -2355,20 +2337,6 @@ namespace Microsoft.Cci
             }
 
             groupedSecurityAttributes.Free();
-        }
-
-        private class DeclSecurityRowComparer : Comparer<DeclSecurityRow>
-        {
-            public override int Compare(DeclSecurityRow x, DeclSecurityRow y)
-            {
-                int result = (int)x.Parent - (int)y.Parent;
-                if (result == 0)
-                {
-                    result = x.OriginalIndex - y.OriginalIndex;
-                }
-
-                return result;
-            }
         }
 
         private void PopulateEventTableRows()
@@ -2498,7 +2466,6 @@ namespace Microsoft.Cci
                     descriptor: descriptor);
             }
 
-            int sizeWithOnlyFields = _fieldMarshalTable.Count;
             foreach (IParameterDefinition parDef in this.GetParameterDefs())
             {
                 if (!parDef.IsMarshalledExplicitly)
@@ -2515,19 +2482,6 @@ namespace Microsoft.Cci
                 AddMarshallingDescriptor(
                     parent: GetParameterDefIndex(parDef).ToCodedIndex(HasFieldMarshalTag.Param),
                     descriptor: descriptor);
-            }
-
-            if (sizeWithOnlyFields > 0 && sizeWithOnlyFields < _fieldMarshalTable.Count)
-            {
-                _fieldMarshalTable.Sort(new FieldMarshalRowComparer());
-            }
-        }
-
-        private class FieldMarshalRowComparer : Comparer<FieldMarshalRow>
-        {
-            public override int Compare(FieldMarshalRow x, FieldMarshalRow y)
-            {
-                return ((int)x.Parent) - (int)y.Parent;
             }
         }
 
@@ -2584,7 +2538,6 @@ namespace Microsoft.Cci
                     value: constant.Value);
             }
 
-            int sizeWithOnlyFields = _constantTable.Count;
             foreach (IParameterDefinition parDef in this.GetParameterDefs())
             {
                 var defaultValue = parDef.GetDefaultValue(Context);
@@ -2608,19 +2561,6 @@ namespace Microsoft.Cci
                 AddConstant(
                     parent: GetPropertyDefIndex(propDef).ToCodedIndex(HasConstantTag.Property),
                     value: propDef.DefaultValue.Value);
-            }
-
-            if (sizeWithOnlyFields > 0 && sizeWithOnlyFields < _constantTable.Count)
-            {
-                _constantTable.Sort(new ConstantRowComparer());
-            }
-        }
-
-        private class ConstantRowComparer : Comparer<ConstantRow>
-        {
-            public override int Compare(ConstantRow x, ConstantRow y)
-            {
-                return ((int)x.Parent) - (int)y.Parent;
             }
         }
 
@@ -2825,7 +2765,6 @@ namespace Microsoft.Cci
                 }
             }
 
-            int propertiesOnlyTableCount = _methodSemanticsTable.Count;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 uint association = GetEventDefIndex(eventDef).ToCodedIndex(HasSemanticsTag.Event);
@@ -2854,25 +2793,6 @@ namespace Microsoft.Cci
                         semantics: semantics,
                         methodDefinitionRowId: GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context)));
                 }
-            }
-
-            if (_methodSemanticsTable.Count > propertiesOnlyTableCount)
-            {
-                _methodSemanticsTable.Sort(new MethodSemanticsRowComparer());
-            }
-        }
-
-        private class MethodSemanticsRowComparer : Comparer<MethodSemanticsRow>
-        {
-            public override int Compare(MethodSemanticsRow x, MethodSemanticsRow y)
-            {
-                int result = ((int)x.Association) - (int)y.Association;
-                if (result == 0)
-                {
-                    result = ((int)x.OriginalIndex) - (int)y.OriginalIndex;
-                }
-
-                return result;
             }
         }
 

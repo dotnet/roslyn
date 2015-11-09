@@ -22,8 +22,8 @@ namespace Microsoft.Cci
         private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobIdx AssemblyKey; public StringIdx AssemblyName; public StringIdx AssemblyCulture; }
         private struct ClassLayoutRow { public ushort PackingSize; public uint ClassSize; public uint Parent; }
         private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
-        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; public int OriginalIndex; }
-        private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobIdx PermissionSet; public int OriginalIndex; }
+        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; }
+        private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobIdx PermissionSet; }
         protected struct EncLogRow { public uint Token; public byte FuncCode; }
         protected struct EncMapRow { public uint Token; }
         private struct EventRow { public ushort EventFlags; public StringIdx Name; public uint EventType; }
@@ -41,7 +41,7 @@ namespace Microsoft.Cci
         private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
         private struct MemberRefRow { public uint Class; public StringIdx Name; public BlobIdx Signature; }
         private struct MethodImplRow { public uint Class; public uint MethodBody; public uint MethodDecl; }
-        private struct MethodSemanticsRow { public ushort Semantic; public uint Method; public uint Association; public int OriginalIndex; }
+        private struct MethodSemanticsRow { public ushort Semantic; public uint Method; public uint Association; }
         private struct MethodSpecRow { public uint Method; public BlobIdx Instantiation; }
         private struct MethodRow { public int Rva; public ushort ImplFlags; public ushort Flags; public StringIdx Name; public BlobIdx Signature; public uint ParamList; }
         private struct ModuleRefRow { public StringIdx Name; }
@@ -68,16 +68,30 @@ namespace Microsoft.Cci
         private readonly List<ModuleRow> _moduleTable = new List<ModuleRow>(1);
         private readonly List<AssemblyRow> _assemblyTable = new List<AssemblyRow>(1);
         private readonly List<ClassLayoutRow> _classLayoutTable = new List<ClassLayoutRow>();
+
         private readonly List<ConstantRow> _constantTable = new List<ConstantRow>();
+        private uint _constantTableLastParent;
+        private bool _constantTableNeedsSorting;
+
         private readonly List<CustomAttributeRow> _customAttributeTable = new List<CustomAttributeRow>();
+        private uint _customAttributeTableLastParent;
+        private bool _customAttributeTableNeedsSorting;
+
         private readonly List<DeclSecurityRow> _declSecurityTable = new List<DeclSecurityRow>();
+        private uint _declSecurityTableLastParent;
+        private bool _declSecurityTableNeedsSorting;
+
         private readonly List<EncLogRow> _encLogTable = new List<EncLogRow>();
         private readonly List<EncMapRow> _encMapTable = new List<EncMapRow>();
         private readonly List<EventRow> _eventTable = new List<EventRow>();
         private readonly List<EventMapRow> _eventMapTable = new List<EventMapRow>();        
         private readonly List<ExportedTypeRow> _exportedTypeTable = new List<ExportedTypeRow>();
         private readonly List<FieldLayoutRow> _fieldLayoutTable = new List<FieldLayoutRow>();
+
         private readonly List<FieldMarshalRow> _fieldMarshalTable = new List<FieldMarshalRow>();
+        private uint _fieldMarshalTableLastParent;
+        private bool _fieldMarshalTableNeedsSorting;
+
         private readonly List<FieldRvaRow> _fieldRvaTable = new List<FieldRvaRow>();
         private readonly List<FieldDefRow> _fieldDefTable = new List<FieldDefRow>();
         private readonly List<FileTableRow> _fileTable = new List<FileTableRow>();
@@ -88,7 +102,11 @@ namespace Microsoft.Cci
         private readonly List<ManifestResourceRow> _manifestResourceTable = new List<ManifestResourceRow>();
         private readonly List<MemberRefRow> _memberRefTable = new List<MemberRefRow>();
         private readonly List<MethodImplRow> _methodImplTable = new List<MethodImplRow>();
+
         private readonly List<MethodSemanticsRow> _methodSemanticsTable = new List<MethodSemanticsRow>();
+        private uint _methodSemanticsTableLastAssociation;
+        private bool _methodSemanticsTableNeedsSorting;
+
         private readonly List<MethodSpecRow> _methodSpecTable = new List<MethodSpecRow>();
         private readonly List<MethodRow> _methodTable = new List<MethodRow>();
         private readonly List<ModuleRefRow> _moduleRefTable = new List<ModuleRefRow>();
@@ -308,6 +326,10 @@ namespace Microsoft.Cci
 
         public void AddConstant(uint parent, object value)
         {
+            // the table is required to be sorted by Parent:
+            _constantTableNeedsSorting |= parent < _constantTableLastParent;
+            _constantTableLastParent = parent;
+
             _constantTable.Add(new ConstantRow
             {
                 Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
@@ -318,23 +340,29 @@ namespace Microsoft.Cci
 
         public void AddMethodSemantics(uint association, ushort semantics, int methodDefinitionRowId)
         {
+            // the table is required to be sorted by Association:
+            _methodSemanticsTableNeedsSorting |= association < _methodSemanticsTableLastAssociation;
+            _methodSemanticsTableLastAssociation = association;
+
             _methodSemanticsTable.Add(new MethodSemanticsRow
             {
                 Association = association,
                 Method = (uint)methodDefinitionRowId,
-                Semantic = semantics,
-                OriginalIndex = _methodSemanticsTable.Count
+                Semantic = semantics
             });
         }
 
         public void AddCustomAttribute(uint parent, uint constructor, BlobIdx value)
         {
+            // the table is required to be sorted by Parent:
+            _customAttributeTableNeedsSorting |= parent < _customAttributeTableLastParent;
+            _customAttributeTableLastParent = parent;
+
             _customAttributeTable.Add(new CustomAttributeRow
             {
                 Parent = parent,
                 Type = constructor,
-                Value = value,
-                OriginalIndex = _customAttributeTable.Count
+                Value = value
             });
         }
 
@@ -421,6 +449,10 @@ namespace Microsoft.Cci
             uint parent,
             BlobIdx descriptor)
         {
+            // the table is required to be sorted by Parent:
+            _fieldMarshalTableNeedsSorting |= parent < _fieldMarshalTableLastParent;
+            _fieldMarshalTableLastParent = parent;
+
             _fieldMarshalTable.Add(new FieldMarshalRow
             {
                 Parent = parent,
@@ -555,12 +587,15 @@ namespace Microsoft.Cci
             DeclarativeSecurityAction action,
             BlobIdx permissionSet)
         {
+            // the table is required to be sorted by Parent:
+            _declSecurityTableNeedsSorting |= parent < _declSecurityTableLastParent;
+            _declSecurityTableLastParent = parent;
+
             _declSecurityTable.Add(new DeclSecurityRow
             {
                 Parent = parent,
                 Action = (ushort)action,
-                PermissionSet = permissionSet,
-                OriginalIndex = _declSecurityTable.Count
+                PermissionSet = permissionSet
             });
         }
 
@@ -1040,6 +1075,8 @@ namespace Microsoft.Cci
 
         private void SerializeInterfaceImplTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+            // TODO (bug https://github.com/dotnet/roslyn/issues/3905):
+            // We should sort the table by Class and then by Interface.
             foreach (InterfaceImplRow interfaceImpl in _interfaceImplTable)
             {
                 writer.WriteReference(interfaceImpl.Class, metadataSizes.TypeDefIndexSize);
@@ -1059,7 +1096,10 @@ namespace Microsoft.Cci
 
         private void SerializeConstantTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (ConstantRow constant in _constantTable)
+            // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
+            var ordered = _constantTableNeedsSorting ? _constantTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _constantTable;
+
+            foreach (ConstantRow constant in ordered)
             {
                 writer.WriteByte(constant.Type);
                 writer.WriteByte(0);
@@ -1070,7 +1110,11 @@ namespace Microsoft.Cci
 
         private void SerializeCustomAttributeTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (CustomAttributeRow customAttribute in _customAttributeTable)
+            // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
+            // OrderBy performs a stable sort, so multiple attributes with the same parent will be sorted in the order they were added to the table.
+            var ordered = _customAttributeTableNeedsSorting ? _customAttributeTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _customAttributeTable;
+
+            foreach (CustomAttributeRow customAttribute in ordered)
             {
                 writer.WriteReference(customAttribute.Parent, metadataSizes.HasCustomAttributeCodedIndexSize);
                 writer.WriteReference(customAttribute.Type, metadataSizes.CustomAttributeTypeCodedIndexSize);
@@ -1080,7 +1124,10 @@ namespace Microsoft.Cci
 
         private void SerializeFieldMarshalTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (FieldMarshalRow fieldMarshal in _fieldMarshalTable)
+            // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
+            var ordered = _fieldMarshalTableNeedsSorting ? _fieldMarshalTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _fieldMarshalTable;
+            
+            foreach (FieldMarshalRow fieldMarshal in ordered)
             {
                 writer.WriteReference(fieldMarshal.Parent, metadataSizes.HasFieldMarshalCodedIndexSize);
                 writer.WriteReference((uint)heaps.ResolveBlobIndex(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
@@ -1089,7 +1136,11 @@ namespace Microsoft.Cci
 
         private void SerializeDeclSecurityTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (DeclSecurityRow declSecurity in _declSecurityTable)
+            // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
+            // OrderBy performs a stable sort, so multiple attributes with the same parent will be sorted in the order they were added to the table.
+            var ordered = _declSecurityTableNeedsSorting ? _declSecurityTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _declSecurityTable;
+            
+            foreach (DeclSecurityRow declSecurity in ordered)
             {
                 writer.WriteUInt16(declSecurity.Action);
                 writer.WriteReference(declSecurity.Parent, metadataSizes.DeclSecurityCodedIndexSize);
@@ -1099,6 +1150,12 @@ namespace Microsoft.Cci
 
         private void SerializeClassLayoutTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            for (int i = 1; i < _classLayoutTable.Count; i++)
+            {
+                Debug.Assert(_classLayoutTable[i - 1].Parent < _classLayoutTable[i].Parent);
+            }
+#endif
             foreach (ClassLayoutRow classLayout in _classLayoutTable)
             {
                 writer.WriteUInt16(classLayout.PackingSize);
@@ -1109,6 +1166,12 @@ namespace Microsoft.Cci
 
         private void SerializeFieldLayoutTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            for (int i = 1; i < _fieldLayoutTable.Count; i++)
+            {
+                Debug.Assert(_fieldLayoutTable[i - 1].Field < _fieldLayoutTable[i].Field);
+            }
+#endif
             foreach (FieldLayoutRow fieldLayout in _fieldLayoutTable)
             {
                 writer.WriteUInt32(fieldLayout.Offset);
@@ -1164,7 +1227,11 @@ namespace Microsoft.Cci
 
         private void SerializeMethodSemanticsTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            foreach (MethodSemanticsRow methodSemantic in _methodSemanticsTable)
+            // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
+            // OrderBy performs a stable sort, so multiple attributes with the same parent will be sorted in the order they were added to the table.
+            var ordered = _methodSemanticsTableNeedsSorting ? _methodSemanticsTable.OrderBy((x, y) => (int)x.Association - (int)y.Association) : _methodSemanticsTable;
+            
+            foreach (MethodSemanticsRow methodSemantic in ordered)
             {
                 writer.WriteUInt16(methodSemantic.Semantic);
                 writer.WriteReference(methodSemantic.Method, metadataSizes.MethodDefIndexSize);
@@ -1174,6 +1241,12 @@ namespace Microsoft.Cci
 
         private void SerializeMethodImplTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            for (int i = 1; i < _methodImplTable.Count; i++)
+            {
+                Debug.Assert(_methodImplTable[i - 1].Class <= _methodImplTable[i].Class);
+            }
+#endif
             foreach (MethodImplRow methodImpl in _methodImplTable)
             {
                 writer.WriteReference(methodImpl.Class, metadataSizes.TypeDefIndexSize);
@@ -1200,6 +1273,12 @@ namespace Microsoft.Cci
 
         private void SerializeImplMapTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            for (int i = 1; i < _implMapTable.Count; i++)
+            {
+                Debug.Assert(_implMapTable[i - 1].MemberForwarded < _implMapTable[i].MemberForwarded);
+            }
+#endif
             foreach (ImplMapRow implMap in _implMapTable)
             {
                 writer.WriteUInt16(implMap.MappingFlags);
@@ -1211,6 +1290,12 @@ namespace Microsoft.Cci
 
         private void SerializeFieldRvaTable(BlobBuilder writer, MetadataSizes metadataSizes, int mappedFieldDataStreamRva)
         {
+#if DEBUG
+            for (int i = 1; i < _fieldRvaTable.Count; i++)
+            {
+                Debug.Assert(_fieldRvaTable[i - 1].Field < _fieldRvaTable[i].Field);
+            }
+#endif
             foreach (FieldRvaRow fieldRva in _fieldRvaTable)
             {
                 writer.WriteUInt32((uint)mappedFieldDataStreamRva + fieldRva.Offset);
@@ -1285,6 +1370,12 @@ namespace Microsoft.Cci
 
         private void SerializeNestedClassTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            for (int i = 1; i < _nestedClassTable.Count; i++)
+            {
+                Debug.Assert(_nestedClassTable[i - 1].NestedClass <= _nestedClassTable[i].NestedClass);
+            }
+#endif
             foreach (NestedClassRow nestedClass in _nestedClassTable)
             {
                 writer.WriteReference(nestedClass.NestedClass, metadataSizes.TypeDefIndexSize);
@@ -1294,6 +1385,14 @@ namespace Microsoft.Cci
 
         private void SerializeGenericParamTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            for (int i = 1; i < _genericParamTable.Count; i++)
+            {
+                Debug.Assert(
+                    _genericParamTable[i - 1].Owner < _genericParamTable[i].Owner ||
+                    _genericParamTable[i - 1].Owner == _genericParamTable[i].Owner && _genericParamTable[i - 1].Number < _genericParamTable[i].Number);
+            }
+#endif            
             foreach (GenericParamRow genericParam in _genericParamTable)
             {
                 writer.WriteUInt16(genericParam.Number);
@@ -1303,21 +1402,27 @@ namespace Microsoft.Cci
             }
         }
 
+        private void SerializeGenericParamConstraintTable(BlobBuilder writer, MetadataSizes metadataSizes)
+        {
+#if DEBUG
+            for (int i = 1; i < _genericParamConstraintTable.Count; i++)
+            {
+                Debug.Assert(_genericParamConstraintTable[i - 1].Owner <= _genericParamConstraintTable[i].Owner);
+            }
+#endif
+            foreach (GenericParamConstraintRow genericParamConstraint in _genericParamConstraintTable)
+            {
+                writer.WriteReference(genericParamConstraint.Owner, metadataSizes.GenericParamIndexSize);
+                writer.WriteReference(genericParamConstraint.Constraint, metadataSizes.TypeDefOrRefCodedIndexSize);
+            }
+        }
+
         private void SerializeMethodSpecTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (MethodSpecRow methodSpec in _methodSpecTable)
             {
                 writer.WriteReference(methodSpec.Method, metadataSizes.MethodDefOrRefCodedIndexSize);
                 writer.WriteReference((uint)heaps.ResolveBlobIndex(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
-            }
-        }
-
-        private void SerializeGenericParamConstraintTable(BlobBuilder writer, MetadataSizes metadataSizes)
-        {
-            foreach (GenericParamConstraintRow genericParamConstraint in _genericParamConstraintTable)
-            {
-                writer.WriteReference(genericParamConstraint.Owner, metadataSizes.GenericParamIndexSize);
-                writer.WriteReference(genericParamConstraint.Constraint, metadataSizes.TypeDefOrRefCodedIndexSize);
             }
         }
 
@@ -1343,6 +1448,21 @@ namespace Microsoft.Cci
 
         private void SerializeLocalScopeTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            // Spec: The table is required to be sorted first by Method in ascending order, then by StartOffset in ascending order, then by Length in descending order.
+            for (int i = 1; i < _localScopeTable.Count; i++)
+            {
+                Debug.Assert(_localScopeTable[i - 1].Method <= _localScopeTable[i].Method);
+                if (_localScopeTable[i - 1].Method == _localScopeTable[i].Method)
+                {
+                    Debug.Assert(_localScopeTable[i - 1].StartOffset <= _localScopeTable[i].StartOffset);
+                    if (_localScopeTable[i - 1].StartOffset == _localScopeTable[i].StartOffset)
+                    {
+                        Debug.Assert(_localScopeTable[i - 1].Length >= _localScopeTable[i].Length);
+                    }
+                }
+            }
+#endif
             foreach (var row in _localScopeTable)
             {
                 writer.WriteReference(row.Method, metadataSizes.MethodDefIndexSize);
@@ -1384,6 +1504,12 @@ namespace Microsoft.Cci
 
         private void SerializeStateMachineMethodTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
+#if DEBUG
+            for (int i = 1; i < _stateMachineMethodTable.Count; i++)
+            {
+                Debug.Assert(_stateMachineMethodTable[i - 1].MoveNextMethod < _stateMachineMethodTable[i].MoveNextMethod);
+            }
+#endif
             foreach (var row in _stateMachineMethodTable)
             {
                 writer.WriteReference(row.MoveNextMethod, metadataSizes.MethodDefIndexSize);
@@ -1393,25 +1519,17 @@ namespace Microsoft.Cci
 
         private void SerializeCustomDebugInformationTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
-            // sort by Parent, Kind
-            _customDebugInformationTable.Sort(CustomDebugInformationRowComparer.Instance);
-
-            foreach (var row in _customDebugInformationTable)
+            // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
+            // OrderBy performs a stable sort, so multiple attributes with the same parent and kind will be sorted in the order they were added to the table.
+            foreach (CustomDebugInformationRow row in _customDebugInformationTable.OrderBy((x, y) =>
+            {
+                int result = (int)x.Parent - (int)y.Parent;
+                return (result != 0) ? result : (int)x.Kind - (int)y.Kind;
+            }))
             {
                 writer.WriteReference(row.Parent, metadataSizes.HasCustomDebugInformationSize);
                 writer.WriteReference(row.Kind, metadataSizes.GuidIndexSize);
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Value), metadataSizes.BlobIndexSize);
-            }
-        }
-
-        private class CustomDebugInformationRowComparer : Comparer<CustomDebugInformationRow>
-        {
-            public static readonly CustomDebugInformationRowComparer Instance = new CustomDebugInformationRowComparer();
-
-            public override int Compare(CustomDebugInformationRow x, CustomDebugInformationRow y)
-            {
-                int result = (int)x.Parent - (int)y.Parent;
-                return (result != 0) ? result : (int)x.Kind - (int)y.Kind;
             }
         }
 
