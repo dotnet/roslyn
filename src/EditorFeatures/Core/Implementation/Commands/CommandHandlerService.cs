@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Commands
             }
             else
             {
+                // If there aren't any command handlers, just invoke the last handler (if there is one).
                 lastHandler?.Invoke();
             }
         }
