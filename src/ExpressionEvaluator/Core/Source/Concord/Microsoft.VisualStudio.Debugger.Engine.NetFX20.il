@@ -2516,7 +2516,10 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS12RTM' = int32(0x0C000000)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS12Update2' = int32(0x0C000001)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS12Update3' = int32(0x0C000003)
-		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS14RTM' = int32(0x0E000002)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS14RTM' = int32(0x0E000003)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS14Update1' = int32(0x0E000006)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS14Update2' = int32(0x0E000007)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmApiVersion' 'VS14Win10Tools1Dot1' = int32(0x0E000004)
 	}
 	.class public sealed 'DkmAsyncBreakStatus'
 		extends ['mscorlib']'System'.'Enum'
@@ -3602,6 +3605,7 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_OTHER_USERS_SESSION' = int32(0x800405A8)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_PORTSUPPLIER_NO_PORT' = int32(0x80040080)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_PORT_NO_REQUEST' = int32(0x80040090)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_PRELAUNCH_TARGET_NOT_SUPPORTED' = int32(0x80040D1D)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_PROCESS_ALREADY_CONTINUED' = int32(0x80040D04)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_PROCESS_DEBUGGER_IS_DEBUGGEE' = int32(0x80040071)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_PROCESS_DESTROYED' = int32(0x80040070)
@@ -3650,6 +3654,7 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_REMOTE_SERVER_UNAVAILABLE' = int32(0x80040757)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_REMOTE_UNSUPPORTED_OPERATION_ON_PLATFORM' = int32(0x80040C02)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_REMOTE_VERSION' = int32(0x80040D0F)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_REMOTE_VERSION_IOT' = int32(0x80040D1C)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_REMOTE_WEAK_CONNECTION' = int32(0x80040768)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_REMOTE_WWS_INSTALL_REQUIRES_ADMIN' = int32(0x8004076E)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger'.'DkmExceptionCode' 'E_REMOTE_WWS_NOT_INSTALLED' = int32(0x8004076D)
@@ -4884,6 +4889,11 @@
 		}
 		.method public hidebysig 
 			instance void 'BeforeStopDebugging'()
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance void 'SetDetachUnavailable'(int32 'ReasonCode')
 		{
 			ret
 		}
@@ -9770,6 +9780,16 @@
 		{
 			ret
 		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope' 'GetManagedCppMethodScope'(class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession' 'InspectionSession')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppILLocalVariableSymbol'> 'GetManagedCppFunctionParameters'()
+		{
+			ret
+		}
 		.property instance uint32 'ILOffset'()
 		{
 			.get instance uint32 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrInstructionSymbol'::'get_ILOffset'()
@@ -10199,6 +10219,11 @@
 		{
 			ret
 		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'Create'(class ['Microsoft.VisualStudio.Debugger.Metadata']'Microsoft.VisualStudio.Debugger.Metadata'.'Type' 'type')
+		{
+			ret
+		}
 		.method public hidebysig 
 			instance class ['Microsoft.VisualStudio.Debugger.Metadata']'Microsoft.VisualStudio.Debugger.Metadata'.'Type' 'GetLmrType'()
 		{
@@ -10240,6 +10265,16 @@
 			ret
 		}
 		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'get_FunctionPointerReturnType'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'get_FunctionPointerArgumentTypes'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
 			instance class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrAppDomain' 'get_AppDomain'()
 		{
 			ret
@@ -10256,6 +10291,11 @@
 		}
 		.method public static hidebysig 
 			class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'Create'(class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrModuleInstance' 'ModuleInstance', int32 'Token', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'GenericArguments', class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'ElementType', uint32 'CorElementType', int32 'ArrayRank', valuetype ['mscorlib']'System'.'Guid' 'SyntheticMvid')
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'Create'(class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrModuleInstance' 'ModuleInstance', int32 'Token', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'GenericArguments', class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'ElementType', uint32 'CorElementType', int32 'ArrayRank', valuetype ['mscorlib']'System'.'Guid' 'SyntheticMvid', class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'FunctionPointerReturnType', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'FunctionPointerArgumentTypes')
 		{
 			ret
 		}
@@ -10284,6 +10324,14 @@
 		.property instance class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'ElementType'()
 		{
 			.get instance class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'::'get_ElementType'()
+		}
+		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'FunctionPointerArgumentTypes'()
+		{
+			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'::'get_FunctionPointerArgumentTypes'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'FunctionPointerReturnType'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType' 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'::'get_FunctionPointerReturnType'()
 		}
 		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'GenericArguments'()
 		{
@@ -11163,6 +11211,150 @@
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmNonUserCodeFlags' 'StepThroughAttribute' = int32(0x00000002)
 	}
 }
+.namespace 'Microsoft.VisualStudio.Debugger.Clr.Cpp'
+{
+	.class public 'DkmMCppILLocalVariableSymbol'
+		extends 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 36 31 37 31 64 38 61 39 2D 33 35 36 66 2D 63 61 34 66 2D 34 31 66 32 2D 31 34 32 66 32 61 35 63 30 63 37 66 00 00)
+		.method public hidebysig specialname 
+			instance bool 'get_IsParameter'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance int32 'get_Slot'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppILLocalVariableSymbol' 'Create'(string 'Name', bool 'IsParameter', int32 'Slot')
+		{
+			ret
+		}
+		.property instance bool 'IsParameter'()
+		{
+			.get instance bool 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppILLocalVariableSymbol'::'get_IsParameter'()
+		}
+		.property instance int32 'Slot'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppILLocalVariableSymbol'::'get_Slot'()
+		}
+	}
+	.class public abstract 'DkmMCppLocalVariableSymbol'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 34 61 38 61 35 35 66 64 2D 61 30 38 34 2D 63 63 62 37 2D 62 61 37 30 2D 33 38 66 34 65 33 32 38 64 33 31 32 00 00)
+		.class nested public sealed 'Tag'
+			extends ['mscorlib']'System'.'Enum'
+		{
+			.field public rtspecialname specialname int32 'value__'
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'/'Tag' 'ILLocalVariableSymbol' = int32(0x00000000)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'/'Tag' 'StaticLocalVariableSymbol' = int32(0x00000001)
+		}
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'/'Tag' 'get_TagValue'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_Name'()
+		{
+			ret
+		}
+		.property instance string 'Name'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'::'get_Name'()
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'/'Tag' 'TagValue'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'/'Tag' 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'::'get_TagValue'()
+		}
+	}
+	.class public 'DkmMCppMethodScope'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 36 61 63 36 34 38 39 64 2D 61 36 30 38 2D 38 33 39 31 2D 64 64 66 61 2D 38 37 61 62 63 30 37 65 34 32 32 61 00 00)
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'get_Method'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'get_Module'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmILRange' 'get_ILRange'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope' 'get_Parent'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'> 'get_Variables'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'Method', class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Module', valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmILRange' 'ILRange', class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope' 'Parent', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'> 'Variables')
+		{
+			ret
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmILRange' 'ILRange'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmILRange' 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope'::'get_ILRange'()
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'Method'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope'::'get_Method'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Module'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope'::'get_Module'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope' 'Parent'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope' 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope'::'get_Parent'()
+		}
+		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'> 'Variables'()
+		{
+			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'> 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope'::'get_Variables'()
+		}
+	}
+	.class public 'DkmMCppStaticLocalVariableSymbol'
+		extends 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppLocalVariableSymbol'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 37 38 66 63 38 66 61 62 2D 39 37 61 33 2D 30 62 65 35 2D 66 39 35 36 2D 35 30 63 34 66 64 63 66 64 34 35 35 00 00)
+		.method public hidebysig specialname 
+			instance int32 'get_RVA'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_Type'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppStaticLocalVariableSymbol' 'Create'(string 'Name', int32 'RVA', class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type')
+		{
+			ret
+		}
+		.property instance int32 'RVA'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppStaticLocalVariableSymbol'::'get_RVA'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppStaticLocalVariableSymbol'::'get_Type'()
+		}
+	}
+}
 .namespace 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'
 {
 	.class public 'DkmClrNcContainerModuleInstance'
@@ -11185,17 +11377,17 @@
 			ret
 		}
 		.method public hidebysig 
-			instance uint8[] 'GetAssemblyImageBytes'(uint32 'RVA', uint32 'BytesRequested')
+			instance uint8[] 'GetMergedAssemblyImageBytes'(uint32 'RVA', uint32 'BytesRequested')
 		{
 			ret
 		}
 		.method public hidebysig 
-			instance void 'GetClassInfo'(class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'ClassSignature', [out] class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstanceFieldSymbol'[]& 'InstanceFields', [out] uint32& 'Size')
+			instance void 'GetClassInfo'(class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance' 'ModuleInstance', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'ClassSignature', [out] class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstanceFieldSymbol'[]& 'InstanceFields', [out] uint32& 'Size')
 		{
 			ret
 		}
 		.method public hidebysig 
-			instance uint8[] 'GetGenericDictionaryInfo'()
+			instance bool 'IsMultiFile'()
 		{
 			ret
 		}
@@ -11270,8 +11462,13 @@
 		{
 			ret
 		}
+		.method public hidebysig specialname 
+			instance int32 'get_ReferenceToken'()
+		{
+			ret
+		}
 		.method public static hidebysig 
-			class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionAddress' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'MethodId', uint32 'NativeOffset', uint32 'ILOffset', class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcRuntimeInstance' 'RuntimeInstance', class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance' 'ModuleInstance', class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcContainerModuleInstance' 'ContainerModule', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'GenericParameters', class 'Microsoft.VisualStudio.Debugger'.'DkmInstructionAddress'/'CPUInstruction' 'CPUInstruction')
+			class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionAddress' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'MethodId', uint32 'NativeOffset', uint32 'ILOffset', class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcRuntimeInstance' 'RuntimeInstance', class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance' 'ModuleInstance', class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcContainerModuleInstance' 'ContainerModule', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'GenericParameters', int32 'ReferenceToken', class 'Microsoft.VisualStudio.Debugger'.'DkmInstructionAddress'/'CPUInstruction' 'CPUInstruction')
 		{
 			ret
 		}
@@ -11287,6 +11484,10 @@
 		{
 			.get instance class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance' 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionAddress'::'get_ModuleInstance'()
 		}
+		.property instance int32 'ReferenceToken'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionAddress'::'get_ReferenceToken'()
+		}
 		.property instance class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcRuntimeInstance' 'RuntimeInstance'()
 		{
 			.get instance class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcRuntimeInstance' 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionAddress'::'get_RuntimeInstance'()
@@ -11297,7 +11498,7 @@
 	{
 		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 31 39 64 38 61 38 30 37 2D 33 38 63 38 2D 34 62 36 64 2D 61 38 39 61 2D 34 65 34 62 30 30 61 36 30 34 64 37 00 00)
 		.method public hidebysig specialname 
-			instance uint32 'get_EmbeddedModuleIndex'()
+			instance valuetype ['mscorlib']'System'.'Guid' 'get_LogicalMvid'()
 		{
 			ret
 		}
@@ -11311,22 +11512,31 @@
 		{
 			ret
 		}
-		.method public static hidebysig 
-			class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionSymbol' 'Create'(class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Module', valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'MethodId', uint32 'ILOffset', uint32 'EmbeddedModuleIndex', uint32 'NativeOffset', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'GenericParameters')
+		.method public hidebysig specialname 
+			instance int32 'get_ReferenceToken'()
 		{
 			ret
 		}
-		.property instance uint32 'EmbeddedModuleIndex'()
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionSymbol' 'Create'(class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Module', valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'MethodId', uint32 'ILOffset', valuetype ['mscorlib']'System'.'Guid' 'LogicalMvid', uint32 'NativeOffset', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'GenericParameters', int32 'ReferenceToken')
 		{
-			.get instance uint32 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionSymbol'::'get_EmbeddedModuleIndex'()
+			ret
 		}
 		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'GenericParameters'()
 		{
 			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionSymbol'::'get_GenericParameters'()
 		}
+		.property instance valuetype ['mscorlib']'System'.'Guid' 'LogicalMvid'()
+		{
+			.get instance valuetype ['mscorlib']'System'.'Guid' 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionSymbol'::'get_LogicalMvid'()
+		}
 		.property instance uint32 'NativeOffset'()
 		{
 			.get instance uint32 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionSymbol'::'get_NativeOffset'()
+		}
+		.property instance int32 'ReferenceToken'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcInstructionSymbol'::'get_ReferenceToken'()
 		}
 	}
 	.class public 'DkmClrNcModuleInstance'
@@ -11348,6 +11558,16 @@
 		{
 			ret
 		}
+		.method public hidebysig specialname 
+			instance valuetype ['mscorlib']'System'.'Guid' 'get_Mvid'()
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance uint8[] 'GetAssemblyImageBytes'(uint32 'RVA', uint32 'BytesRequested')
+		{
+			ret
+		}
 		.method public hidebysig 
 			instance void 'CreateInstructionAddressesFromILAddress'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', valuetype 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrMethodId' 'MethodId', uint32 'ILOffset', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmCreateInstructionAddressesFromILAddressAsyncResult'> 'CompletionRoutine')
 		{
@@ -11361,6 +11581,10 @@
 		{
 			.get instance uint32 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance'::'get_Index'()
 		}
+		.property instance valuetype ['mscorlib']'System'.'Guid' 'Mvid'()
+		{
+			.get instance valuetype ['mscorlib']'System'.'Guid' 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance'::'get_Mvid'()
+		}
 		.property instance class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcRuntimeInstance' 'RuntimeInstance'()
 		{
 			.get instance class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcRuntimeInstance' 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance'::'get_RuntimeInstance'()
@@ -11372,6 +11596,16 @@
 		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 61 31 61 33 35 35 65 38 2D 63 34 32 62 2D 63 31 38 66 2D 63 35 65 36 2D 34 32 66 30 36 64 36 61 61 38 63 35 00 00)
 		.method public static hidebysig 
 			class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcRuntimeInstance' 'Create'(class 'Microsoft.VisualStudio.Debugger'.'DkmProcess' 'Process', valuetype 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstanceId' 'Id', valuetype 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeCapabilities' 'Capabilities', class 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstance' 'ParentRuntime', string 'RuntimeVersion', class 'Microsoft.VisualStudio.Debugger'.'DkmDataItem' 'DataItem')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance' 'FindEmbeddedModule'(valuetype ['mscorlib']'System'.'Guid' 'Mvid')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Clr.NativeCompilation'.'DkmClrNcModuleInstance'[] 'GetEmbeddedModules'()
 		{
 			ret
 		}
@@ -12280,6 +12514,13 @@
 		{
 		}
 	}
+	.class public interface abstract 'IDkmExceptionAnalyzer'
+	{
+		.method public virtual hidebysig newslot abstract 
+			instance string 'TryGetAnalyzedDescription'(class 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmExceptionTriggerHit' 'hit')
+		{
+		}
+	}
 	.class public interface abstract 'IDkmExceptionContinuedNotification'
 	{
 		.method public virtual hidebysig newslot abstract 
@@ -12919,6 +13160,17 @@
 		{
 		}
 	}
+	.class public interface abstract 'IDkmMCppSymbolProvider'
+	{
+		.method public virtual hidebysig newslot abstract 
+			instance class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppMethodScope' 'GetManagedCppMethodScope'(class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrInstructionSymbol' 'clrInstruction', class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession' 'inspectionSession')
+		{
+		}
+		.method public virtual hidebysig newslot abstract 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr.Cpp'.'DkmMCppILLocalVariableSymbol'> 'GetManagedCppFunctionParameters'(class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrInstructionSymbol' 'clrInstruction')
+		{
+		}
+	}
 	.class public interface abstract 'IDkmManagedAsyncTaskDecoder'
 	{
 		.method public virtual hidebysig newslot abstract 
@@ -13224,6 +13476,13 @@
 		}
 		.method public virtual hidebysig newslot abstract 
 			instance void 'CommitCodeChange'(class 'Microsoft.VisualStudio.Debugger.Native'.'DkmNativeRuntimeInstance' 'nativeRuntimeInstance', [out] class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<string>& 'warnings', [out] class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<string>& 'errors')
+		{
+		}
+	}
+	.class public interface abstract 'IDkmNativeEditAndContinueUpdate140A'
+	{
+		.method public virtual hidebysig newslot abstract 
+			instance void 'CancelApplyCodeChange'(class 'Microsoft.VisualStudio.Debugger.Native'.'DkmNativeRuntimeInstance' 'nativeRuntimeInstance')
 		{
 		}
 	}
@@ -14347,6 +14606,14 @@
 }
 .namespace 'Microsoft.VisualStudio.Debugger.DefaultPort'
 {
+	.class public sealed 'DkmActivateAppPackageFlags'
+		extends ['mscorlib']'System'.'Enum'
+	{
+		.custom instance void ['mscorlib']'System'.'FlagsAttribute'::.ctor() = (01 00 00 00)
+		.field public rtspecialname specialname int32 'value__'
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmActivateAppPackageFlags' 'None' = int32(0x00000000)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmActivateAppPackageFlags' 'Prelaunch' = int32(0x00000001)
+	}
 	.class public sequential sealed 'DkmActivateBackgroundTaskAsyncResult'
 		extends ['mscorlib']'System'.'ValueType'
 	{
@@ -14922,7 +15189,9 @@
 		.field public rtspecialname specialname int32 'value__'
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'AMD3DNow' = int32(0x00000008)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'AVX' = int32(0x00000010)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'AVX512' = int32(0x00000040)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'MMX' = int32(0x00000001)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'MPX' = int32(0x00000080)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'None' = int32(0x00000000)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'SSE' = int32(0x00000002)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmProcessorFeatures' 'SSE2' = int32(0x00000004)
@@ -15546,6 +15815,11 @@
 		}
 		.method public hidebysig 
 			instance void 'ActivateAppPackageWithStartupTask'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', string 'ActivationName', bool 'LaunchForDebugging', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Start'.'DkmActivateAppPackageAsyncResult'> 'CompletionRoutine')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance void 'ActivateAppPackageExtended'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmPackagedAppPlatform' 'AppPlatform', string 'ActivationName', bool 'LaunchForDebugging', valuetype 'Microsoft.VisualStudio.Debugger.DefaultPort'.'DkmActivateAppPackageFlags' 'ActivationOptions', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Start'.'DkmActivateAppPackageAsyncResult'> 'CompletionRoutine')
 		{
 			ret
 		}
@@ -17453,10 +17727,29 @@
 		{
 			ret
 		}
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResultCategory' 'get_Category'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmIntermediateEvaluationResult' 'Create'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'InspectionContext', class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'StackFrame', string 'Name', string 'FullName', class 'Microsoft.VisualStudio.Debugger'.'DkmDataItem' 'DataItem')
+		{
+			ret
+		}
 		.method public static hidebysig 
 			class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmIntermediateEvaluationResult' 'Create'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'InspectionContext', class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'StackFrame', string 'Name', string 'FullName', string 'Expression', class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmLanguage' 'IntermediateLanguage', class 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstance' 'TargetRuntime', class 'Microsoft.VisualStudio.Debugger'.'DkmDataItem' 'DataItem')
 		{
 			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmIntermediateEvaluationResult' 'Create'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionContext' 'InspectionContext', class 'Microsoft.VisualStudio.Debugger.CallStack'.'DkmStackWalkFrame' 'StackFrame', string 'Name', string 'FullName', string 'Expression', class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmLanguage' 'IntermediateLanguage', class 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstance' 'TargetRuntime', valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResultCategory' 'Category', class 'Microsoft.VisualStudio.Debugger'.'DkmDataItem' 'DataItem')
+		{
+			ret
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResultCategory' 'Category'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationResultCategory' 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmIntermediateEvaluationResult'::'get_Category'()
 		}
 		.property instance string 'Expression'()
 		{
@@ -18409,10 +18702,29 @@
 		{
 			ret
 		}
+		.method public hidebysig specialname 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'get_OptionalCustomModifiers'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'get_RequiredCustomModifiers'()
+		{
+			ret
+		}
 		.method public static hidebysig 
 			class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo' 'Create'(valuetype ['mscorlib']'System'.'Guid' 'PayloadTypeId', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'Payload')
 		{
 			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo' 'Create'(valuetype ['mscorlib']'System'.'Guid' 'PayloadTypeId', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'Payload', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'OptionalCustomModifiers', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'RequiredCustomModifiers')
+		{
+			ret
+		}
+		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'OptionalCustomModifiers'()
+		{
+			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo'::'get_OptionalCustomModifiers'()
 		}
 		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<uint8> 'Payload'()
 		{
@@ -18421,6 +18733,10 @@
 		.property instance valuetype ['mscorlib']'System'.'Guid' 'PayloadTypeId'()
 		{
 			.get instance valuetype ['mscorlib']'System'.'Guid' 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo'::'get_PayloadTypeId'()
+		}
+		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'RequiredCustomModifiers'()
+		{
+			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Clr'.'DkmClrType'> 'Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation'.'DkmClrCustomTypeInfo'::'get_RequiredCustomModifiers'()
 		}
 	}
 	.class public 'DkmClrDebuggerBrowsableAttribute'
@@ -21670,6 +21986,11 @@
 		{
 			ret
 		}
+		.method public hidebysig 
+			instance string 'TryGetAnalyzedDescription'()
+		{
+			ret
+		}
 		.property instance string 'AdditionalInformation'()
 		{
 			.get instance string 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmExceptionTriggerHit'::'get_AdditionalInformation'()
@@ -23122,6 +23443,11 @@
 		{
 			ret
 		}
+		.method public hidebysig 
+			instance void 'CancelApplyCodeChange'()
+		{
+			ret
+		}
 	}
 	.class public 'DkmWin32ExceptionInformation'
 		extends 'Microsoft.VisualStudio.Debugger.Exceptions'.'DkmExceptionInformation'
@@ -23167,6 +23493,529 @@
 		.property instance uint64 'ParentExceptionRecordAddress'()
 		{
 			.get instance uint64 'Microsoft.VisualStudio.Debugger.Native'.'DkmWin32ExceptionInformation'::'get_ParentExceptionRecordAddress'()
+		}
+	}
+}
+.namespace 'Microsoft.VisualStudio.Debugger.Native.Cpp'
+{
+	.class public abstract 'DkmCompiledNativeCppExpression'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 65 35 39 62 65 36 30 38 2D 64 36 63 35 2D 63 62 37 32 2D 65 64 37 66 2D 34 36 39 38 65 39 34 65 30 35 38 36 00 00)
+		.class nested public sealed 'Tag'
+			extends ['mscorlib']'System'.'Enum'
+		{
+			.field public rtspecialname specialname int32 'value__'
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'/'Tag' 'CompiledNativeCppTypeExpression' = int32(0x00000001)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'/'Tag' 'CompiledNativeCppValueExpression' = int32(0x00000000)
+		}
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'/'Tag' 'get_TagValue'()
+		{
+			ret
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'/'Tag' 'TagValue'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'/'Tag' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'::'get_TagValue'()
+		}
+	}
+	.class public 'DkmCompiledNativeCppTypeExpression'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 62 62 33 36 38 63 38 65 2D 64 32 38 35 2D 36 37 33 66 2D 63 39 63 31 2D 64 39 38 39 66 34 61 35 39 33 65 65 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_Type'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppTypeExpression' 'Create'(class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type')
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppTypeExpression'::'get_Type'()
+		}
+	}
+	.class public 'DkmCompiledNativeCppValueExpression'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 63 62 38 66 66 36 31 65 2D 32 38 31 33 2D 35 36 36 63 2D 65 33 64 38 2D 65 31 32 62 33 33 30 31 34 63 62 38 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Evaluation.IL'.'DkmCompiledILInspectionQuery' 'get_InspectionQuery'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_Type'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance bool 'get_IsLValue'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppValueExpression' 'Create'(class 'Microsoft.VisualStudio.Debugger.Evaluation.IL'.'DkmCompiledILInspectionQuery' 'InspectionQuery', class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type', bool 'IsLValue')
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Evaluation.IL'.'DkmCompiledILInspectionQuery' 'InspectionQuery'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Evaluation.IL'.'DkmCompiledILInspectionQuery' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppValueExpression'::'get_InspectionQuery'()
+		}
+		.property instance bool 'IsLValue'()
+		{
+			.get instance bool 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppValueExpression'::'get_IsLValue'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppValueExpression'::'get_Type'()
+		}
+	}
+	.class public 'DkmNativeCppArrayType'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 35 33 39 32 34 36 63 65 2D 30 39 63 39 2D 61 34 31 30 2D 38 34 35 63 2D 33 30 62 39 35 39 32 63 65 30 32 65 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_ElementType'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance int32 'get_ElementCount'()
+		{
+			ret
+		}
+		.property instance int32 'ElementCount'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppArrayType'::'get_ElementCount'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'ElementType'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppArrayType'::'get_ElementType'()
+		}
+	}
+	.class public sealed 'DkmNativeCppCVQualifiers'
+		extends ['mscorlib']'System'.'Enum'
+	{
+		.custom instance void ['mscorlib']'System'.'FlagsAttribute'::.ctor() = (01 00 00 00)
+		.field public rtspecialname specialname int32 'value__'
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Const' = int32(0x00000001)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'None' = int32(0x00000000)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Volatile' = int32(0x00000002)
+	}
+	.class public 'DkmNativeCppCompilationError'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 33 34 37 66 61 34 36 39 2D 66 66 38 39 2D 38 31 37 38 2D 66 35 63 61 2D 36 30 34 63 32 66 31 33 35 35 63 35 00 00)
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationFailureReason' 'get_FailureReason'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_Message'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationError' 'Create'(valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationFailureReason' 'FailureReason', string 'Message')
+		{
+			ret
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationFailureReason' 'FailureReason'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationFailureReason' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationError'::'get_FailureReason'()
+		}
+		.property instance string 'Message'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationError'::'get_Message'()
+		}
+	}
+	.class public sealed 'DkmNativeCppCompilationFailureReason'
+		extends ['mscorlib']'System'.'Enum'
+	{
+		.field public rtspecialname specialname int32 'value__'
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationFailureReason' 'IllegalSideEffect' = int32(0x00000001)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationFailureReason' 'Other' = int32(0x00000002)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationFailureReason' 'UndefinedSymbol' = int32(0x00000000)
+	}
+	.class public 'DkmNativeCppEnumType'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 66 61 36 37 36 38 62 39 2D 38 63 34 37 2D 35 31 32 62 2D 35 33 62 38 2D 65 36 31 35 30 30 35 66 63 61 63 63 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveType' 'get_UnderlyingType'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance string 'get_QualifiedName'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'get_Module'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumValue'> 'get_Values'()
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Module'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumType'::'get_Module'()
+		}
+		.property instance string 'QualifiedName'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumType'::'get_QualifiedName'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveType' 'UnderlyingType'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumType'::'get_UnderlyingType'()
+		}
+		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumValue'> 'Values'()
+		{
+			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumValue'> 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumType'::'get_Values'()
+		}
+	}
+	.class public 'DkmNativeCppEnumValue'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 61 39 34 38 62 35 31 39 2D 35 63 39 66 2D 39 36 35 33 2D 35 36 39 39 2D 37 38 38 34 39 64 36 62 32 62 32 38 00 00)
+		.method public hidebysig specialname 
+			instance string 'get_Name'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance uint64 'get_Value'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumValue' 'Create'(string 'Name', uint64 'Value')
+		{
+			ret
+		}
+		.property instance string 'Name'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumValue'::'get_Name'()
+		}
+		.property instance uint64 'Value'()
+		{
+			.get instance uint64 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppEnumValue'::'get_Value'()
+		}
+	}
+	.class public 'DkmNativeCppFunctionType'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 31 38 39 30 61 36 35 63 2D 38 38 30 34 2D 32 38 34 32 2D 61 66 62 63 2D 64 33 30 64 34 36 39 65 64 31 32 66 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_ReturnType'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'> 'get_ArgumentTypes'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.IL'.'DkmILCallingConvention' 'get_CallingConvention'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance bool 'get_IsEllipsis'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPointerType' 'get_ObjectPointerType'()
+		{
+			ret
+		}
+		.property instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'> 'ArgumentTypes'()
+		{
+			.get instance class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'> 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppFunctionType'::'get_ArgumentTypes'()
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.IL'.'DkmILCallingConvention' 'CallingConvention'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Evaluation.IL'.'DkmILCallingConvention' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppFunctionType'::'get_CallingConvention'()
+		}
+		.property instance bool 'IsEllipsis'()
+		{
+			.get instance bool 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppFunctionType'::'get_IsEllipsis'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPointerType' 'ObjectPointerType'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPointerType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppFunctionType'::'get_ObjectPointerType'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'ReturnType'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppFunctionType'::'get_ReturnType'()
+		}
+	}
+	.class public 'DkmNativeCppInspectionSession'
+		extends 'Microsoft.VisualStudio.Debugger'.'DkmDataContainer'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 34 37 37 65 64 36 35 34 2D 37 66 64 64 2D 33 33 66 62 2D 63 38 62 36 2D 33 65 61 63 66 61 33 30 64 66 62 63 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionSession' 'get_InspectionSession'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance valuetype ['mscorlib']'System'.'Guid' 'get_UniqueId'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession' 'Create'(class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionSession' 'InspectionSession', class 'Microsoft.VisualStudio.Debugger'.'DkmDataItem' 'DataItem')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'FindCppType'(int32 'Id')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'[] 'GetCppTypes'()
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmCompiledNativeCppExpression' 'CompileExpression'(valuetype 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmEvaluationFlags' 'EvaluationFlags', class 'Microsoft.VisualStudio.Debugger'.'DkmRuntimeInstance' 'RuntimeInstance', class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'TypeContext', bool 'IsThisPointerAvailable', class 'Microsoft.VisualStudio.Debugger'.'DkmInstructionAddress' 'InstructionAddress', string 'Text', class ['mscorlib']'System.Collections.ObjectModel'.'ReadOnlyCollection`1'<class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppNamedExpressionParameter'> 'Parameters', [out] class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCompilationError'& 'Error')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveType' 'GetPrimitiveType'(valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Kind', valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Qualifiers')
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionSession' 'InspectionSession'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Evaluation'.'DkmInspectionSession' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession'::'get_InspectionSession'()
+		}
+		.property instance valuetype ['mscorlib']'System'.'Guid' 'UniqueId'()
+		{
+			.get instance valuetype ['mscorlib']'System'.'Guid' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession'::'get_UniqueId'()
+		}
+	}
+	.class public 'DkmNativeCppNamedExpressionParameter'
+		extends ['mscorlib']'System'.'Object'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 37 31 35 36 31 34 33 36 2D 36 61 62 36 2D 63 39 32 30 2D 39 61 34 37 2D 65 34 61 65 35 65 36 66 36 61 33 30 00 00)
+		.method public hidebysig specialname 
+			instance string 'get_Name'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_Type'()
+		{
+			ret
+		}
+		.method public static hidebysig 
+			class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppNamedExpressionParameter' 'Create'(string 'Name', class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type')
+		{
+			ret
+		}
+		.property instance string 'Name'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppNamedExpressionParameter'::'get_Name'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Type'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppNamedExpressionParameter'::'get_Type'()
+		}
+	}
+	.class public 'DkmNativeCppPointerType'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 35 61 38 31 64 37 31 30 2D 65 31 37 38 2D 31 66 38 66 2D 61 30 39 65 2D 64 63 32 34 38 61 65 63 30 66 30 30 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_ElementType'()
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'ElementType'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPointerType'::'get_ElementType'()
+		}
+	}
+	.class public 'DkmNativeCppPrimitiveType'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 33 34 65 36 32 37 61 33 2D 30 36 62 31 2D 63 65 35 38 2D 62 62 31 63 2D 34 64 32 64 65 34 64 61 66 63 64 63 00 00)
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'get_Kind'()
+		{
+			ret
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Kind'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveType'::'get_Kind'()
+		}
+	}
+	.class public sealed 'DkmNativeCppPrimitiveTypeKind'
+		extends ['mscorlib']'System'.'Enum'
+	{
+		.field public rtspecialname specialname int32 'value__'
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Bool' = int32(0x0000000B)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Char' = int32(0x00000001)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Char16T' = int32(0x0000000D)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Char32T' = int32(0x0000000E)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Double' = int32(0x00000010)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Float' = int32(0x0000000F)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'HRESULT' = int32(0x00000011)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Int' = int32(0x00000005)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Int64' = int32(0x00000009)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Long' = int32(0x00000007)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Short' = int32(0x00000003)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Unknown' = int32(0x00000000)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'UnsignedChar' = int32(0x00000002)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'UnsignedInt' = int32(0x00000006)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'UnsignedInt64' = int32(0x0000000A)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'UnsignedLong' = int32(0x00000008)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'UnsignedShort' = int32(0x00000004)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'Void' = int32(0x00000012)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPrimitiveTypeKind' 'WCharT' = int32(0x0000000C)
+	}
+	.class public 'DkmNativeCppReferenceType'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 66 30 63 31 32 65 37 62 2D 64 37 64 33 2D 64 38 37 38 2D 34 61 31 62 2D 39 37 38 30 38 33 64 37 35 33 38 39 00 00)
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'get_ElementType'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance bool 'get_IsRValueReference'()
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'ElementType'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppReferenceType'::'get_ElementType'()
+		}
+		.property instance bool 'IsRValueReference'()
+		{
+			.get instance bool 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppReferenceType'::'get_IsRValueReference'()
+		}
+	}
+	.class public abstract 'DkmNativeCppType'
+		extends 'Microsoft.VisualStudio.Debugger'.'DkmDataContainer'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 30 31 63 31 34 37 63 37 2D 65 37 66 31 2D 35 64 63 63 2D 31 66 33 34 2D 66 63 33 34 36 65 34 38 32 62 66 61 00 00)
+		.class nested public sealed 'Tag'
+			extends ['mscorlib']'System'.'Enum'
+		{
+			.field public rtspecialname specialname int32 'value__'
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'ArrayType' = int32(0x00000003)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'EnumType' = int32(0x00000004)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'FunctionType' = int32(0x00000006)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'PointerType' = int32(0x00000001)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'PrimitiveType' = int32(0x00000000)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'ReferenceType' = int32(0x00000002)
+			.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'UserDefinedType' = int32(0x00000005)
+		}
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'get_TagValue'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession' 'get_InspectionSession'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance int32 'get_Id'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance int32 'get_Size'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'get_Qualifiers'()
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance object 'GetSymbolInterface'()
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppPointerType' 'GetPointerType'(valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Qualifiers')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppReferenceType' 'GetReferenceType'(bool 'IsRValueReference', valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Qualifiers')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppArrayType' 'GetArrayType'(int32 'ElementCount', valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Qualifiers')
+		{
+			ret
+		}
+		.property instance int32 'Id'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'::'get_Id'()
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession' 'InspectionSession'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppInspectionSession' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'::'get_InspectionSession'()
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Qualifiers'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppCVQualifiers' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'::'get_Qualifiers'()
+		}
+		.property instance int32 'Size'()
+		{
+			.get instance int32 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'::'get_Size'()
+		}
+		.property instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'TagValue'()
+		{
+			.get instance valuetype 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'/'Tag' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'::'get_TagValue'()
+		}
+	}
+	.class public 'DkmNativeCppUserDefinedType'
+		extends 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppType'
+	{
+		.custom instance void ['mscorlib']'System.Runtime.InteropServices'.'GuidAttribute'::.ctor(string) = (01 00 24 31 63 31 61 31 32 34 31 2D 64 31 65 35 2D 37 30 64 38 2D 37 64 64 35 2D 36 66 38 61 62 64 36 63 30 31 38 30 00 00)
+		.method public hidebysig specialname 
+			instance string 'get_QualifiedName'()
+		{
+			ret
+		}
+		.method public hidebysig specialname 
+			instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'get_Module'()
+		{
+			ret
+		}
+		.property instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Module'()
+		{
+			.get instance class 'Microsoft.VisualStudio.Debugger.Symbols'.'DkmModule' 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppUserDefinedType'::'get_Module'()
+		}
+		.property instance string 'QualifiedName'()
+		{
+			.get instance string 'Microsoft.VisualStudio.Debugger.Native.Cpp'.'DkmNativeCppUserDefinedType'::'get_QualifiedName'()
 		}
 	}
 }
@@ -24607,6 +25456,7 @@
 		.custom instance void ['mscorlib']'System'.'FlagsAttribute'::.ctor() = (01 00 00 00)
 		.field public rtspecialname specialname int32 'value__'
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Start'.'DkmProcessLaunchFlags' 'None' = int32(0x00000000)
+		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Start'.'DkmProcessLaunchFlags' 'ProfilingLaunch' = int32(0x00000002)
 		.field static public literal valuetype 'Microsoft.VisualStudio.Debugger.Start'.'DkmProcessLaunchFlags' 'VsdebugengEngineUsed' = int32(0x00000001)
 	}
 	.class public sealed 'DkmProcessLaunchModeFlags'
@@ -27005,6 +27855,11 @@
 		}
 		.method public hidebysig 
 			instance void 'Post'(class 'Microsoft.VisualStudio.Debugger'.'DkmWorkList' 'WorkList', class 'Microsoft.VisualStudio.Debugger'.'DkmCompletionRoutine`1'<valuetype 'Microsoft.VisualStudio.Debugger.Telemetry'.'DkmPostAsyncResult'> 'CompletionRoutine')
+		{
+			ret
+		}
+		.method public hidebysig 
+			instance bool 'GetCanCollectPrivateInformation'()
 		{
 			ret
 		}

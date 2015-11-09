@@ -133,6 +133,11 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             return new DkmClrType(appDomain.RuntimeInstance.DefaultModule, appDomain, type);
         }
 
+        public static DkmClrType Create(Type type)
+        {
+            return new DkmClrType(null, null, type);
+        }
+
         private static System.Type GetProxyType(System.Type type)
         {
             var attribute = (DebuggerTypeProxyAttribute)type.GetCustomAttributes(typeof(DebuggerTypeProxyAttribute), inherit: false).FirstOrDefault();

@@ -78,6 +78,44 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             _inheritanceLevel = inheritanceLevel;
         }
 
+        // Obtains the set of the required and optional custom modifiers concerning
+        // this member.  This is required by managed C++, as the compiler emits
+        // modopts for special types, such as C++ references (e.g. 'int&') and 
+        // boxed value-types (e.g. 'int^').  In the core result provider,
+        // we simply treat the list of modopts and modreqs as opaque values
+        // and plumb them on through via the DkmClrCustomTypeInfo.  The language-
+        // specific portion of the EE is responsible for interpereting these
+        // custom modifiers and inferring language-specific semantics from them.
+        public void GetCustomModifiers(out Type[] modopts, out Type[] modreqs)
+        {
+            PropertyInfo pi = _member as PropertyInfo;
+            if (pi != null)
+            {
+                var getMethod = pi.GetGetMethod();
+                if (getMethod != null)
+                {
+                    var returnParam = getMethod.ReturnParameter;
+                    if(returnParam != null)
+                    {
+                        modopts = returnParam.GetOptionalCustomModifiers();
+                        modreqs = returnParam.GetRequiredCustomModifiers();
+                        return;
+                    }
+                }
+            }
+
+            FieldInfo fi = _member as FieldInfo;
+            if(fi != null)
+            {
+                modopts = fi.GetOptionalCustomModifiers();
+                modreqs = fi.GetRequiredCustomModifiers();
+                return;
+            }
+
+            // No custom modifiers
+            modopts = modreqs = null;
+        }
+
         public Type DeclaringType
         {
             get

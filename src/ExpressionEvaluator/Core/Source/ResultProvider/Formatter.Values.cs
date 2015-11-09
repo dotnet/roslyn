@@ -23,8 +23,24 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     // This class provides implementation for the "displaying values as strings" aspect of the default (C#) Formatter component.
     internal abstract partial class Formatter
     {
-        // Note: The managed C++ EE overrides this function.  Do not remove the 'virtual' modifier, or you will break it.
-        internal virtual string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ObjectDisplayOptions options, GetValueFlags flags)
+        // Two things to be careful about when changing this method:
+        // 1) The MC++ EE overrides this.  Do not change the signature in any way, or you will break the MC++ EE.
+        // 2) In the case of C# or VB (or any language where the UseIDkmClrFormatterInterface property is false),
+        //      you cannot use the 'customTypeInfo' parameter.  The problem is that the IDkmClrFormatter interface,
+        //      which already shipped, and therefore cannot change, doesn't consume a DkmClrCustomTypeInfo object,
+        //      so any code paths that go through that interface are forced to throw the custom type info away,
+        //      in which case, we'll just see 'null' here.
+        //
+        //    The only currently known case where the customTypeInfo is needed in MC++.  The MC++ EE uses it in the overriden
+        //    version of this method, and also overrides UseIDkmClrFormatterInterface so that we never call through 
+        //    IDkmClrFormatter, which would cause the custom type info object to be lost.
+        //      
+        internal virtual string GetValueString(
+            DkmClrValue value, 
+            DkmInspectionContext inspectionContext, 
+            ObjectDisplayOptions options, 
+            GetValueFlags flags, 
+            DkmClrCustomTypeInfo customTypeInfo)
         {
             if (value.IsError())
             {
@@ -98,7 +114,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // It should be impossible to nest nullables, so this recursion should introduce only a single extra stack frame.
                 return nullableValue == null
                     ? _nullString
-                    : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
+                    : GetValueString(nullableValue, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName, customTypeInfo);
             }
 
             // "value.EvaluateToString()" will check "Call string-conversion function on objects in variables windows"
@@ -320,7 +336,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext)
+        internal string GetEditableValue(DkmClrValue value, DkmInspectionContext inspectionContext, DkmClrCustomTypeInfo customTypeInfo)
         {
             if (value.IsError())
             {
@@ -336,11 +352,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             if (type.IsEnum)
             {
-                return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName);
+                return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.None, GetValueFlags.IncludeTypeName, customTypeInfo);
             }
             else if (type.IsDecimal())
             {
-                return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.IncludeTypeSuffix, GetValueFlags.None);
+                return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.IncludeTypeSuffix, GetValueFlags.None, customTypeInfo);
             }
             // The legacy EE didn't special-case strings or chars (when ",nq" was used,
             // you had to manually add quotes when editing) but it makes sense to
@@ -349,7 +365,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 if (!value.IsNull)
                 {
-                    return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.UseQuotes, GetValueFlags.None);
+                    return this.GetValueString(value, inspectionContext, ObjectDisplayOptions.UseQuotes, GetValueFlags.None, customTypeInfo);
                 }
             }
             else if (type.IsCharacter())

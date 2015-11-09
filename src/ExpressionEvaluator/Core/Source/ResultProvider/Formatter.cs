@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     {
         private readonly string _defaultFormat;
         private readonly string _nullString;
+
         internal readonly string StaticMembersString;
 
         internal Formatter(string defaultFormat, string nullString, string staticMembersString)
@@ -28,12 +29,65 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             this.StaticMembersString = staticMembersString;
         }
 
+        // True if the language in question supports 3rd-party customizations via the IDkmClrFormatter interface.
+        // By default, this is true, as there existing 3rd-party EE's out there that implement IDkmClrFormatter
+        // to customize the formatting of the C# EE.  One might wonder - why make this overridable at all - why
+        // not true always?  The reason is that the IDkmClrFormatter interfaces were cobbled together quickly
+        // in order to meet the deadline for inclusion in the VS 2015 release, and the signature of some of the
+        // interface methods is missing things.  In particular, the MC++ EE needs GetValueString() to know
+        // the DkmClrCustomTypeInfo for the declared type in order for C++ reference values or boxed values to
+        // get displayed correctly.  But, the existing interface requires GetValueString() to NOT know about
+        // the custom type info.
+        //
+        // Hopefully, we will someday clean up the formatting interfaces to allow for more general 3rd-party
+        // customization than what today's interface supports.  But, for now, decision has been made to hack
+        // things together to allow the MC++ EE to be able to function with a minimal amount of work.  So,
+        // what we do is this:
+        //  - All languages except MC++ throw away the custom type info and call into the existing interface.
+        //      This keeps C# and VB working (which don't need the custom type info), and also 3rd-party languages
+        //      that plug into the existing interfaces (since their components will still get called).
+        //  - 
+
+        protected virtual bool UseIDkmClrFormatterInterface
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         string IDkmClrFormatter.GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers)
         {
+            // Note: This interface drops the custom type info object on the floor.  It sucks, but the signature
+            // of IDkmClrFormatter has already shipped, and we can't change it without breaking things.  Fortunately, C# and VB
+            // do not actually depend on the custom type info for purposes of value formatting, so it doesn't matter there.
+            // MC++, which does need the custom type info, avoids the problem by not getting here (the caller checks the UseIDkmClrFormatterInterface property
+            // before calling us).
+            //
+            // Even under MC++, it is still possible to end here in the context of evaluating DebuggerDisplay expressions, but DebuggerDisplay is always C#, so, again,
+            // dropping the custom type info doesn't matter in that case.
+
             var options = ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
                 ObjectDisplayOptions.UseQuotes :
                 ObjectDisplayOptions.None;
-            return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId);
+
+            return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId, customTypeInfo: null);
+        }
+
+        // Do not change the signature of this method.  The MC++ EE overrides this.
+        internal string GetValueString(DkmClrValue value, DkmInspectionContext inspectionContext, ReadOnlyCollection<string> formatSpecifiers, DkmClrCustomTypeInfo customTypeInfo)
+        {
+            if(UseIDkmClrFormatterInterface)
+            {
+                return value.GetValueString(inspectionContext, formatSpecifiers);
+            }
+            else
+            {
+                var options = ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoQuotes) == 0) ?
+                    ObjectDisplayOptions.UseQuotes :
+                    ObjectDisplayOptions.None;
+                return GetValueString(value, inspectionContext, options, GetValueFlags.IncludeObjectId, customTypeInfo);
+            }
         }
 
         string IDkmClrFormatter.GetTypeName(DkmInspectionContext inspectionContext, DkmClrType type, DkmClrCustomTypeInfo typeInfo, ReadOnlyCollection<string> formatSpecifiers)
@@ -57,7 +111,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         // that can be passed to the ResultProvider on construction (a "LanguageSyntax" service of sorts).
         // It seems more natural to ask these questions of the ResultProvider, but adding such a component
         // for these few methods seemed a bit overly elaborate given the current internal usage.
-        #region Language-specific syntax helpers
+#region Language-specific syntax helpers
 
         internal abstract bool IsValidIdentifier(string name);
 
@@ -179,6 +233,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return expression;
         }
 
-        #endregion
+#endregion
     }
 }

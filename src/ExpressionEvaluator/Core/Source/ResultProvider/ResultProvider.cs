@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     flags.Includes(DkmEvaluationResultFlags.ExceptionThrown) ? null : fullName,
                     formatSpecifiers,
                     flags,
-                    this.Formatter.GetEditableValue(value, inspectionContext));
+                    this.Formatter.GetEditableValue(value, inspectionContext, declaredTypeAndInfo.Info));
                 if (expansion == null)
                 {
                     expansion = value.HasExceptionThrown()
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 formatSpecifiers: formatSpecifiers,
                 category: category,
                 flags: flags,
-                editableValue: this.Formatter.GetEditableValue(value, inspectionContext),
+                editableValue: this.Formatter.GetEditableValue(value, inspectionContext, declaredTypeAndInfo.Info),
                 inspectionContext: inspectionContext);
         }
 
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
             else
             {
-                display = value.GetValueString(inspectionContext, Formatter.NoFormatSpecifiers);
+                display = Formatter.GetValueString(value, inspectionContext, Formatter.NoFormatSpecifiers, declaredTypeInfo);
             }
 
             var typeName = displayType ?? this.Formatter.GetTypeNameOfValue(inspectionContext, value, declaredType, declaredTypeInfo, dataItem.Kind);
