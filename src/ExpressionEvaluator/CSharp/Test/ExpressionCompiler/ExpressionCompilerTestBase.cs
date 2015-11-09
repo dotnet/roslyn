@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 ExpressionCompilerUtilities.GenerateUniqueName(),
                 references.AddIntrinsicAssembly(),
                 exeBytes,
-                includeSymbols ? new SymReader(pdbBytes, exeBytes) : null);
+                includeSymbols ? SymReaderFactory.CreateReader(pdbBytes, exeBytes) : null);
         }
 
         internal RuntimeInstance CreateRuntimeInstance(

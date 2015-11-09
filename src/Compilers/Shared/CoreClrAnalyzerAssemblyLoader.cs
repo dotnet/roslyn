@@ -9,7 +9,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using Roslyn.Utilities;
 
-using static Microsoft.CodeAnalysis.AssemblyIdentityUtils;
+using static Microsoft.CodeAnalysis.CommandLine.AssemblyIdentityUtils;
 
 namespace Microsoft.CodeAnalysis
 {

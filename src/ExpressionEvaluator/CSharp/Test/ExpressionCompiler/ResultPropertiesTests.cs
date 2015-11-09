@@ -118,7 +118,7 @@ class C
                 assemblyName: GetUniqueName(),
                 references: ImmutableArray.Create(MscorlibRef),
                 exeBytes: exeBytes.ToArray(),
-                symReader: new SymReader(pdbBytes.ToArray()));
+                symReader: SymReaderFactory.CreateReader(pdbBytes));
             var context = CreateMethodContext(runtime, methodName: "C.Test");
 
             Assert.Equal(DkmEvaluationResultAccessType.Private, GetResultProperties(context, "Private").AccessType);

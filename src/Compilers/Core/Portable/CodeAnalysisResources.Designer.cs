@@ -406,15 +406,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A value in the pathMap is empty..
-        /// </summary>
-        internal static string EmptyValueInPathMap {
-            get {
-                return ResourceManager.GetString("EmptyValueInPathMap", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;end&apos; must not be less than &apos;start&apos;.
         /// </summary>
         internal static string EndMustNotBeLessThanStart {
@@ -870,6 +861,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string NotWritableException {
             get {
                 return ResourceManager.GetString("NotWritableException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value in the pathMap is null..
+        /// </summary>
+        internal static string NullValueInPathMap {
+            get {
+                return ResourceManager.GetString("NullValueInPathMap", resourceCulture);
             }
         }
         

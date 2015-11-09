@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal static class ConsoleUtil
     {
