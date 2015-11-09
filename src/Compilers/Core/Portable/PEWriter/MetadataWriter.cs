@@ -798,7 +798,7 @@ namespace Microsoft.Cci
             return result;
         }
 
-        public static ushort GetFieldFlags(IFieldDefinition fieldDef)
+        public static FieldAttributes GetFieldFlags(IFieldDefinition fieldDef)
         {
             ushort result = GetTypeMemberVisibilityFlags(fieldDef);
             if (fieldDef.IsStatic)
@@ -846,7 +846,7 @@ namespace Microsoft.Cci
                 result |= 0x8000;
             }
 
-            return result;
+            return (FieldAttributes)result;
         }
 
         internal BlobIdx GetFieldSignatureIndex(IFieldReference fieldReference)
@@ -1048,7 +1048,7 @@ namespace Microsoft.Cci
                 : GetMemberRefIndex(methodReference).ToCodedIndex(MethodDefOrRefTag.MemberRef);
         }
 
-        public static ushort GetMethodFlags(IMethodDefinition methodDef)
+        public static MethodAttributes GetMethodFlags(IMethodDefinition methodDef)
         {
             ushort result = GetTypeMemberVisibilityFlags(methodDef);
             if (methodDef.IsStatic)
@@ -1111,7 +1111,7 @@ namespace Microsoft.Cci
                 result |= 0x8000;
             }
 
-            return result;
+            return (MethodAttributes)result;
         }
 
         internal BlobIdx GetMethodInstanceSignatureIndex(IGenericMethodInstanceReference methodInstanceReference)
@@ -2026,17 +2026,6 @@ namespace Microsoft.Cci
             return (keySize < 128 + 32) ? 128 : keySize - 32;
         }
 
-        private int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
-        {
-            // index of module version ID in the guidWriter stream
-            int moduleVersionIdIndex = _moduleRow.ModuleVersionId;
-
-            // offset into the guidWriter stream of the module version ID
-            int moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
-
-            return guidHeapOffsetInMetadataStream + moduleVersionOffsetInGuidTable;
-        }
-
         private void PopulateTables(int[] methodBodyRvas, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter)
         {
             this.PopulateAssemblyRefTableRows();
@@ -2090,21 +2079,14 @@ namespace Microsoft.Cci
 
             foreach (var identity in assemblyRefs)
             {
-                AssemblyRefTableRow r = new AssemblyRefTableRow();
-
-                r.Version = identity.Version;
-                r.PublicKeyToken = heaps.GetBlobIndex(identity.PublicKeyToken);
-
-                Debug.Assert(!string.IsNullOrEmpty(identity.Name));
-                r.Name = this.GetStringIndexForPathAndCheckLength(identity.Name);
-
-                r.Culture = heaps.GetStringIndex(identity.CultureName);
-                
                 // reference has token, not full public key
-                r.Flags = ((uint)identity.ContentType << 9) | (identity.IsRetargetable ? (uint)AssemblyFlags.Retargetable : 0U);
-                r.HashValue = default(BlobIdx);
-                
-                _assemblyRefTable.Add(r);
+                AddAssemblyReference(
+                    name: GetStringIndexForPathAndCheckLength(identity.Name, assemblyRef),
+                    version: identity.Version,
+                    culture: heaps.GetStringIndex(identity.CultureName),
+                    publicKeyOrToken: heaps.GetBlobIndex(identity.PublicKeyToken),
+                    flags: (AssemblyFlags)((int)identity.ContentType << 9) | (identity.IsRetargetable ? AssemblyFlags.Retargetable : 0),
+                    hashValue: default(BlobIdx));
             }
         }
 
@@ -2116,15 +2098,14 @@ namespace Microsoft.Cci
             }
 
             IAssembly assembly = this.module.AsAssembly;
-            _assemblyTable.Add(new AssemblyRow
-            {
-                Flags = (ushort)assembly.Flags,
-                HashAlgorithm = (uint)assembly.HashAlgorithm,
-                Version = assembly.Identity.Version,
-                AssemblyKey = heaps.GetBlobIndex(assembly.PublicKey),
-                AssemblyName = GetStringIndexForPathAndCheckLength(assembly.Name, assembly),
-                AssemblyCulture = heaps.GetStringIndex(assembly.Identity.CultureName)
-            });
+
+            AddAssembly(
+                flags: assembly.Flags,
+                hashAlgorithm: assembly.HashAlgorithm,
+                version: assembly.Identity.Version,
+                publicKey: heaps.GetBlobIndex(assembly.PublicKey),
+                name: GetStringIndexForPathAndCheckLength(assembly.Name, assembly),
+                culture: heaps.GetStringIndex(assembly.Culture));
         }
         
         private void PopulateCustomAttributeTableRows()
@@ -2229,13 +2210,14 @@ namespace Microsoft.Cci
             int iM = allowMultiple ? 1 : 0;
             if (_dummyAssemblyAttributeParent[iS, iM] == 0)
             {
-                TypeRefRow r = new TypeRefRow();
-                r.ResolutionScope = this.GetResolutionScopeCodedIndex(this.module.GetCorLibrary(Context));
-                r.Name = heaps.GetStringIndex(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]);
-                r.Namespace = heaps.GetStringIndex(dummyAssemblyAttributeParentNamespace);
-                _typeRefTable.Add(r);
-                _dummyAssemblyAttributeParent[iS, iM] = _typeRefTable.Count.ToCodedIndex(HasCustomAttributeTag.TypeRef);
+                int rowId = AddTypeReference(
+                    resolutionScope: GetResolutionScopeCodedIndex(module.GetCorLibrary(Context)),
+                    @namespace: heaps.GetStringIndex(dummyAssemblyAttributeParentNamespace),
+                    name: heaps.GetStringIndex(dummyAssemblyAttributeParentName + dummyAssemblyAttributeParentQualifier[iS, iM]));
+
+                _dummyAssemblyAttributeParent[iS, iM] = rowId.ToCodedIndex(HasCustomAttributeTag.TypeRef);
             }
+
             return _dummyAssemblyAttributeParent[iS, iM];
         }
 
@@ -2277,15 +2259,12 @@ namespace Microsoft.Cci
             }
         }
 
-        private void AddCustomAttributeToTable(uint parentToken, ICustomAttribute customAttribute)
+        private void AddCustomAttributeToTable(uint parentCodedIndex, ICustomAttribute customAttribute)
         {
-            CustomAttributeRow r = new CustomAttributeRow();
-            r.Parent = parentToken;
-            var ctor = customAttribute.Constructor(Context);
-            r.Type = this.GetCustomAttributeTypeCodedIndex(ctor);
-            r.Value = this.GetCustomAttributeSignatureIndex(customAttribute);
-            r.OriginalPosition = _customAttributeTable.Count;
-            _customAttributeTable.Add(r);
+            AddCustomAttribute(
+                parent: parentCodedIndex,
+                constructor: GetCustomAttributeTypeCodedIndex(customAttribute.Constructor(Context)),
+                value: GetCustomAttributeSignatureIndex(customAttribute));
         }
 
         private class CustomAttributeRowComparer : Comparer<CustomAttributeRow>
@@ -2348,15 +2327,13 @@ namespace Microsoft.Cci
                 return;
             }
 
-            DeclSecurityRow r = new DeclSecurityRow();
-            r.Parent = parentIndex.ToCodedIndex(tag);
-
+            uint parent = parentIndex.ToCodedIndex(tag);
             foreach (DeclarativeSecurityAction securityAction in groupedSecurityAttributes.Keys)
             {
-                r.Action = (ushort)securityAction;
-                r.PermissionSet = this.GetPermissionSetIndex(groupedSecurityAttributes[securityAction]);
-                r.OriginalIndex = _declSecurityTable.Count;
-                _declSecurityTable.Add(r);
+                AddDeclarativeSecurityAttribute(
+                    parent: parent,
+                    action: securityAction,
+                    permissionSet: GetPermissionSetIndex(groupedSecurityAttributes[securityAction]));
             }
 
             groupedSecurityAttributes.Free();
@@ -2383,11 +2360,10 @@ namespace Microsoft.Cci
 
             foreach (IEventDefinition eventDef in eventDefs)
             {
-                EventRow r = new EventRow();
-                r.EventFlags = (ushort)GetEventFlags(eventDef);
-                r.Name = this.GetStringIndexForNameAndCheckLength(eventDef.Name, eventDef);
-                r.EventType = this.GetTypeDefOrRefCodedIndex(eventDef.GetType(Context), true);
-                _eventTable.Add(r);
+                AddEvent(
+                    attributes: GetEventFlags(eventDef),
+                    name: GetStringIndexForNameAndCheckLength(eventDef.Name, eventDef),
+                    type: GetTypeDefOrRefCodedIndex(eventDef.GetType(Context), true));
             }
         }
 
@@ -2401,35 +2377,43 @@ namespace Microsoft.Cci
                 {
                     INestedTypeReference nestedRef;
                     INamespaceTypeReference namespaceTypeRef;
-                    ExportedTypeRow r = new ExportedTypeRow();
-                    r.TypeDefId = (uint)MetadataTokens.GetToken(exportedType.TypeDef);
+
+                    TypeFlags flags;
+                    int typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
+                    StringIdx typeName;
+                    StringIdx typeNamespace;
+                    uint implementation;
+
                     if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
                     {
-                        r.Flags = TypeFlags.PublicAccess;
+                        flags = TypeFlags.PublicAccess;
+
                         string mangledTypeName = GetMangledName(namespaceTypeRef);
-                        r.TypeName = this.GetStringIndexForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                        r.TypeNamespace = this.GetStringIndexForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
-                        r.Implementation = this.GetImplementationCodedIndex(namespaceTypeRef);
-                        if ((r.Implementation & 1) == 1)
+                        typeName = this.GetStringIndexForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
+                        typeNamespace = this.GetStringIndexForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                        implementation = GetImplementationCodedIndex(namespaceTypeRef);
+
+                        if ((implementation & 1) == (int)ImplementationTag.AssemblyRef)
                         {
-                            r.Flags = TypeFlags.PrivateAccess | TypeFlags.ForwarderImplementation;
-                            r.TypeDefId = 0; // Must be cleared for type forwarders.
+                            flags = TypeFlags.PrivateAccess | TypeFlags.ForwarderImplementation;
+                            typeDefinitionId = 0; // Must be cleared for type forwarders.
                         }
                     }
                     else if ((nestedRef = exportedType.AsNestedTypeReference) != null)
                     {
-                        r.Flags = TypeFlags.NestedPublicAccess;
-                        r.TypeName = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
-                        r.TypeNamespace = default(StringIdx);
+                        flags = TypeFlags.NestedPublicAccess;
+                        typeName = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
+                        typeNamespace = default(StringIdx);
 
-                        var containingType = nestedRef.GetContainingType(Context);
-                        int ci = GetExportedTypeIndex(containingType);
-                        r.Implementation = ci.ToCodedIndex(ImplementationTag.ExportedType);
+                        ITypeReference containingType = nestedRef.GetContainingType(Context);
 
-                        var parentFlags = _exportedTypeTable[ci - 1].Flags;
+                        int exportedTypeIndex = GetExportedTypeIndex(containingType);
+                        implementation = exportedTypeIndex.ToCodedIndex(ImplementationTag.ExportedType);
+
+                        var parentFlags = (TypeFlags)GetExportedTypeFlags(exportedTypeIndex - 1);
                         if (parentFlags == TypeFlags.PrivateAccess)
                         {
-                            r.Flags = TypeFlags.PrivateAccess;
+                            flags = TypeFlags.PrivateAccess;
                         }
 
                         ITypeReference topLevelType = containingType;
@@ -2439,11 +2423,11 @@ namespace Microsoft.Cci
                             topLevelType = tmp.GetContainingType(Context);
                         }
 
-                        var topLevelFlags = _exportedTypeTable[(int)this.GetExportedTypeIndex(topLevelType) - 1].Flags;
+                        var topLevelFlags = (TypeFlags)GetExportedTypeFlags(GetExportedTypeIndex(topLevelType) - 1);
                         if ((topLevelFlags & TypeFlags.ForwarderImplementation) != 0)
                         {
-                            r.Flags = TypeFlags.PrivateAccess;
-                            r.TypeDefId = 0; // Must be cleared for type forwarders and types they contain.
+                            flags = TypeFlags.PrivateAccess;
+                            typeDefinitionId = 0; // Must be cleared for type forwarders and types they contain.
                         }
                     }
                     else
@@ -2451,7 +2435,12 @@ namespace Microsoft.Cci
                         throw ExceptionUtilities.UnexpectedValue(exportedType);
                     }
 
-                    _exportedTypeTable.Add(r);
+                    AddExportedType(
+                        attributes: (TypeAttributes)flags,
+                        @namespace: typeNamespace,
+                        name: typeName,
+                        implementation: implementation,
+                        typeDefinitionId: typeDefinitionId);
                 }
             }
         }
@@ -2465,11 +2454,9 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint fieldDefIndex = (uint)this.GetFieldDefIndex(fieldDef);
-                FieldLayoutRow r = new FieldLayoutRow();
-                r.Offset = (uint)fieldDef.Offset;
-                r.Field = fieldDefIndex;
-                _fieldLayoutTable.Add(r);
+                AddFieldLayout(
+                    fieldDefinitionRowId: GetFieldDefIndex(fieldDef),
+                    offset: fieldDef.Offset);
             }
         }
 
@@ -2482,16 +2469,15 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                FieldMarshalRow r = new FieldMarshalRow();
-
                 var marshallingInformation = fieldDef.MarshallingInformation;
 
-                r.NativeType = (marshallingInformation != null)
+                BlobIdx descriptor = (marshallingInformation != null)
                     ? GetMarshallingDescriptorIndex(marshallingInformation)
                     : GetMarshallingDescriptorIndex(fieldDef.MarshallingDescriptor);
 
-                r.Parent = GetFieldDefIndex(fieldDef).ToCodedIndex(HasFieldMarshalTag.Field);
-                _fieldMarshalTable.Add(r);
+                AddMarshallingDescriptor(
+                    parent: GetFieldDefIndex(fieldDef).ToCodedIndex(HasFieldMarshalTag.Field),
+                    descriptor: descriptor);
             }
 
             int sizeWithOnlyFields = _fieldMarshalTable.Count;
@@ -2502,16 +2488,15 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                FieldMarshalRow r = new FieldMarshalRow();
-
                 var marshallingInformation = parDef.MarshallingInformation;
 
-                r.NativeType = (marshallingInformation != null)
+               BlobIdx descriptor = (marshallingInformation != null)
                     ? GetMarshallingDescriptorIndex(marshallingInformation)
                     : GetMarshallingDescriptorIndex(parDef.MarshallingDescriptor);
 
-                r.Parent = GetParameterDefIndex(parDef).ToCodedIndex(HasFieldMarshalTag.Param);
-                _fieldMarshalTable.Add(r);
+                AddMarshallingDescriptor(
+                    parent: GetParameterDefIndex(parDef).ToCodedIndex(HasFieldMarshalTag.Param),
+                    descriptor: descriptor);
             }
 
             if (sizeWithOnlyFields > 0 && sizeWithOnlyFields < _fieldMarshalTable.Count)
@@ -2537,15 +2522,13 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                uint fieldIndex = (uint)this.GetFieldDefIndex(fieldDef);
-                FieldRvaRow r = new FieldRvaRow();
-
-                r.Offset = (uint)mappedFieldDataWriter.Position;
+                int rva = mappedFieldDataWriter.Position;
                 mappedFieldDataWriter.WriteBytes(fieldDef.MappedData);
                 mappedFieldDataWriter.Align(MappedFieldDataAlignment);
 
-                r.Field = fieldIndex;
-                _fieldRvaTable.Add(r);
+                AddFieldRelativeVirtualAddress(
+                    fieldDefinitionRowId: GetFieldDefIndex(fieldDef),
+                    relativeVirtualAddress: rva);
             }
         }
 
@@ -2556,17 +2539,15 @@ namespace Microsoft.Cci
 
             foreach (IFieldDefinition fieldDef in fieldDefs)
             {
-                FieldDefRow r = new FieldDefRow();
-                r.Flags = GetFieldFlags(fieldDef);
-
                 if (fieldDef.IsContextualNamedEntity)
                 {
                     ((IContextualNamedEntity)fieldDef).AssociateWithMetadataWriter(this);
                 }
 
-                r.Name = this.GetStringIndexForNameAndCheckLength(fieldDef.Name, fieldDef);
-                r.Signature = this.GetFieldSignatureIndex(fieldDef);
-                _fieldDefTable.Add(r);
+                AddFieldDefinition(
+                    attributes: GetFieldFlags(fieldDef),
+                    name: GetStringIndexForNameAndCheckLength(fieldDef.Name, fieldDef),
+                    signature: GetFieldSignatureIndex(fieldDef));
             }
         }
 
@@ -2580,8 +2561,9 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                int fieldDefIndex = GetFieldDefIndex(fieldDef);
-                _constantTable.Add(CreateConstantRow(constant.Value, parent: fieldDefIndex.ToCodedIndex(HasConstantTag.Field)));
+                AddConstant(
+                    parent: GetFieldDefIndex(fieldDef).ToCodedIndex(HasConstantTag.Field),
+                    value: constant.Value);
             }
 
             int sizeWithOnlyFields = _constantTable.Count;
@@ -2593,8 +2575,9 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                int parameterDefIndex = GetParameterDefIndex(parDef);
-                _constantTable.Add(CreateConstantRow(defaultValue.Value, parent: parameterDefIndex.ToCodedIndex(HasConstantTag.Param)));
+                AddConstant(
+                    parent: GetParameterDefIndex(parDef).ToCodedIndex(HasConstantTag.Param),
+                    value: defaultValue.Value);
             }
 
             foreach (IPropertyDefinition propDef in this.GetPropertyDefs())
@@ -2604,8 +2587,9 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                int propertyDefIndex = GetPropertyDefIndex(propDef);
-                _constantTable.Add(CreateConstantRow(propDef.DefaultValue.Value, parent: propertyDefIndex.ToCodedIndex(HasConstantTag.Property)));
+                AddConstant(
+                    parent: GetPropertyDefIndex(propDef).ToCodedIndex(HasConstantTag.Property),
+                    value: propDef.DefaultValue.Value);
             }
 
             if (sizeWithOnlyFields > 0 && sizeWithOnlyFields < _constantTable.Count)
@@ -2622,16 +2606,6 @@ namespace Microsoft.Cci
             }
         }
 
-        private ConstantRow CreateConstantRow(object value, uint parent)
-        {
-            return new ConstantRow
-            {
-                Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
-                Parent = parent,
-                Value = heaps.GetConstantBlobIndex(value)
-            };
-        }
-
         private void PopulateFileTableRows()
         {
             IAssembly assembly = this.module.AsAssembly;
@@ -2645,11 +2619,10 @@ namespace Microsoft.Cci
 
             foreach (IFileReference fileReference in _fileRefList)
             {
-                FileTableRow r = new FileTableRow();
-                r.Flags = fileReference.HasMetadata ? 0u : 1u;
-                r.FileName = this.GetStringIndexForPathAndCheckLength(fileReference.FileName);
-                r.HashValue = heaps.GetBlobIndex(fileReference.GetHashValue(hashAlgorithm));
-                _fileTable.Add(r);
+                AddAssemblyFile(
+                    name: GetStringIndexForPathAndCheckLength(fileReference.FileName),
+                    hashValue: heaps.GetBlobIndex(fileReference.GetHashValue(hashAlgorithm)),
+                    containsMetadata: fileReference.HasMetadata);
             }
         }
         
@@ -2717,17 +2690,17 @@ namespace Microsoft.Cci
                 }
 
                 var data = methodDef.PlatformInvokeData;
-                var r = new ImplMapRow();
-                r.MappingFlags = (ushort)data.Flags;
-                r.MemberForwarded = GetMethodDefIndex(methodDef).ToCodedIndex(MemberForwardedTag.MethodDef);
-
                 string entryPointName = data.EntryPointName;
-                r.ImportName = entryPointName != null
-                    ? this.GetStringIndexForNameAndCheckLength(entryPointName, methodDef)
+
+                StringIdx importName = (entryPointName != null)
+                    ? GetStringIndexForNameAndCheckLength(entryPointName, methodDef)
                     : heaps.GetStringIndex(methodDef.Name); // Length checked while populating the method def table.
 
-                r.ImportScope = (uint)this.GetModuleRefIndex(data.ModuleName);
-                _implMapTable.Add(r);
+                AddMethodImport(
+                    member: GetMethodDefIndex(methodDef).ToCodedIndex(MemberForwardedTag.MethodDef),
+                    attributes: (MethodImportAttributes)data.Flags,
+                    name: importName,
+                    moduleReferenceRowId: GetModuleRefIndex(data.ModuleName));
             }
         }
 
@@ -2735,13 +2708,12 @@ namespace Microsoft.Cci
         {
             foreach (ITypeDefinition typeDef in this.GetTypeDefs())
             {
-                uint typeDefIndex = (uint)this.GetTypeDefIndex(typeDef);
+                int typeDefIndex = GetTypeDefIndex(typeDef);
                 foreach (ITypeReference interfaceRef in typeDef.Interfaces(Context))
                 {
-                    InterfaceImplRow r = new InterfaceImplRow();
-                    r.Class = typeDefIndex;
-                    r.Interface = this.GetTypeDefOrRefCodedIndex(interfaceRef, true);
-                    _interfaceImplTable.Add(r);
+                    AddInterfaceImplementation(
+                        typeDefinitionRowId: typeDefIndex,
+                        interfaceCodedIndex: GetTypeDefOrRefCodedIndex(interfaceRef, true));
                 }
             }
         }
@@ -2750,24 +2722,23 @@ namespace Microsoft.Cci
         {
             foreach (var resource in this.module.GetResources(Context))
             {
-                ManifestResourceRow r = new ManifestResourceRow();
-                r.Offset = GetManagedResourceOffset(resource, resourceDataWriter);
-                r.Flags = resource.IsPublic ? 1u : 2u;
-                r.Name = this.GetStringIndexForNameAndCheckLength(resource.Name);
-
+                uint implementation;
                 if (resource.ExternalFile != null)
                 {
-                    IFileReference externalFile = resource.ExternalFile;
                     // Length checked on insertion into the file table.
-                    r.Implementation = GetFileRefIndex(externalFile).ToCodedIndex(ImplementationTag.File);
+                    implementation = GetFileRefIndex(resource.ExternalFile).ToCodedIndex(ImplementationTag.File);
                 }
                 else
                 {
                     // This is an embedded resource, we don't support references to resources from referenced assemblies.
-                    r.Implementation = 0;
+                    implementation = 0;
                 }
 
-                _manifestResourceTable.Add(r);
+                AddManifestResource(
+                    attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
+                    name: GetStringIndexForNameAndCheckLength(resource.Name),
+                    implementation: implementation,
+                    offset: GetManagedResourceOffset(resource, resourceDataWriter));
             }
 
             // the stream should be aligned:
@@ -2781,11 +2752,10 @@ namespace Microsoft.Cci
 
             foreach (ITypeMemberReference memberRef in memberRefs)
             {
-                MemberRefRow r = new MemberRefRow();
-                r.Class = this.GetMemberRefParentCodedIndex(memberRef);
-                r.Name = this.GetStringIndexForNameAndCheckLength(memberRef.Name, memberRef);
-                r.Signature = this.GetMemberRefSignatureIndex(memberRef);
-                _memberRefTable.Add(r);
+                AddMemberReference(
+                    type: GetMemberRefParentCodedIndex(memberRef),
+                    name: GetStringIndexForNameAndCheckLength(memberRef.Name, memberRef), 
+                    signature: GetMemberRefSignatureIndex(memberRef));
             }
         }
         
@@ -2795,11 +2765,10 @@ namespace Microsoft.Cci
 
             foreach (MethodImplementation methodImplementation in this.methodImplList)
             {
-                MethodImplRow r = new MethodImplRow();
-                r.Class = (uint)this.GetTypeDefIndex(methodImplementation.ContainingType);
-                r.MethodBody = this.GetMethodDefOrRefCodedIndex(methodImplementation.ImplementingMethod);
-                r.MethodDecl = this.GetMethodDefOrRefCodedIndex(methodImplementation.ImplementedMethod);
-                _methodImplTable.Add(r);
+                AddMethodImplementation(
+                    typeDefinitionRowId: GetTypeDefIndex(methodImplementation.ContainingType),
+                    methodBody: GetMethodDefOrRefCodedIndex(methodImplementation.ImplementingMethod),
+                    methodDeclaration: GetMethodDefOrRefCodedIndex(methodImplementation.ImplementedMethod));
             }
         }
         
@@ -2810,30 +2779,27 @@ namespace Microsoft.Cci
 
             foreach (IGenericMethodInstanceReference genericMethodInstanceReference in methodSpecs)
             {
-                MethodSpecRow r = new MethodSpecRow();
-                r.Method = this.GetMethodDefOrRefCodedIndex(genericMethodInstanceReference.GetGenericMethod(Context));
-                r.Instantiation = this.GetGenericMethodInstanceIndex(genericMethodInstanceReference);
-                _methodSpecTable.Add(r);
+                AddMethodSpecification(
+                    method: GetMethodDefOrRefCodedIndex(genericMethodInstanceReference.GetGenericMethod(Context)),
+                    instantiation: GetGenericMethodInstanceIndex(genericMethodInstanceReference));
             }
         }
 
         private void PopulateMethodTableRows(int[] methodBodyRvas)
         {
             var methodDefs = this.GetMethodDefs();
-            _methodTable = new MethodRow[methodDefs.Count];
+            _methodTable.Capacity = methodDefs.Count;
 
             int i = 0;
             foreach (IMethodDefinition methodDef in methodDefs)
             {
-                _methodTable[i] = new MethodRow
-                {
-                    Rva = methodBodyRvas[i],
-                    ImplFlags = (ushort)methodDef.GetImplementationAttributes(Context),
-                    Flags = GetMethodFlags(methodDef),
-                    Name = this.GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
-                    Signature = this.GetMethodSignatureIndex(methodDef),
-                    ParamList = (uint)this.GetParameterDefIndex(methodDef),
-                };
+                AddMethodDefinition(
+                    attributes: GetMethodFlags(methodDef),
+                    implAttributes: methodDef.GetImplementationAttributes(Context),
+                    name: GetStringIndexForNameAndCheckLength(methodDef.Name, methodDef),
+                    signature: GetMethodSignatureIndex(methodDef),
+                    relativeVirtualAddress: methodBodyRvas[i],
+                    paramList: GetParameterDefIndex(methodDef));
 
                 i++;
             }
@@ -2847,56 +2813,60 @@ namespace Microsoft.Cci
             //EDMAURER an estimate, not necessarily accurate.
             _methodSemanticsTable.Capacity = propertyDefs.Count * 2 + eventDefs.Count * 2;
 
-            uint i = 0;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
-                var r = new MethodSemanticsRow();
-                r.Association = GetPropertyDefIndex(propertyDef).ToCodedIndex(HasSemanticsTag.Property);
+                uint association = GetPropertyDefIndex(propertyDef).ToCodedIndex(HasSemanticsTag.Property);
                 foreach (IMethodReference accessorMethod in propertyDef.Accessors)
                 {
+                    ushort semantics;
                     if (accessorMethod == propertyDef.Setter)
                     {
-                        r.Semantic = 0x0001;
+                        semantics = 0x0001;
                     }
                     else if (accessorMethod == propertyDef.Getter)
                     {
-                        r.Semantic = 0x0002;
+                        semantics = 0x0002;
                     }
                     else
                     {
-                        r.Semantic = 0x0004;
+                        semantics = 0x0004;
                     }
 
-                    r.Method = (uint)this.GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context));
-                    r.OriginalIndex = i++;
-                    _methodSemanticsTable.Add(r);
+                    AddMethodSemantics(
+                        association: association,
+                        semantics: semantics,
+                        methodDefinitionRowId: GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context)));
                 }
             }
 
             int propertiesOnlyTableCount = _methodSemanticsTable.Count;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
-                var r = new MethodSemanticsRow();
-                r.Association = GetEventDefIndex(eventDef).ToCodedIndex(HasSemanticsTag.Event);
+                uint association = GetEventDefIndex(eventDef).ToCodedIndex(HasSemanticsTag.Event);
                 foreach (IMethodReference accessorMethod in eventDef.Accessors)
                 {
-                    r.Semantic = 0x0004;
+                    ushort semantics;
                     if (accessorMethod == eventDef.Adder)
                     {
-                        r.Semantic = 0x0008;
+                        semantics = 0x0008;
                     }
                     else if (accessorMethod == eventDef.Remover)
                     {
-                        r.Semantic = 0x0010;
+                        semantics = 0x0010;
                     }
                     else if (accessorMethod == eventDef.Caller)
                     {
-                        r.Semantic = 0x0020;
+                        semantics = 0x0020;
+                    }
+                    else
+                    {
+                        semantics = 0x0004;
                     }
 
-                    r.Method = (uint)this.GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context));
-                    r.OriginalIndex = i++;
-                    _methodSemanticsTable.Add(r);
+                    AddMethodSemantics(
+                        association: association,
+                        semantics: semantics,
+                        methodDefinitionRowId: GetMethodDefIndex(accessorMethod.GetResolvedMethod(Context)));
                 }
             }
 
@@ -2927,9 +2897,7 @@ namespace Microsoft.Cci
 
             foreach (string moduleName in moduleRefs)
             {
-                ModuleRefRow r = new ModuleRefRow();
-                r.Name = this.GetStringIndexForPathAndCheckLength(moduleName);
-                _moduleRefTable.Add(r);
+                AddModuleReference(GetStringIndexForPathAndCheckLength(moduleName));
             }
         }
         
@@ -2946,22 +2914,13 @@ namespace Microsoft.Cci
                 mvid = Guid.NewGuid();
             }
 
-            _moduleRow = MakeModuleRow(heaps, mvid);
+            AddModule(
+                generation: this.Generation,
+                moduleName: heaps.GetStringIndex(this.module.ModuleName),
+                mvid: mvid,
+                encId: EncId,
+                encBaseId: EncBaseId);
         }
-
-        private ModuleRow MakeModuleRow(MetadataHeapsBuilder heaps, Guid mvid)
-        {
-            return new ModuleRow
-            {
-                Generation = this.Generation,
-                Name = heaps.GetStringIndex(this.module.ModuleName),
-                ModuleVersionId = heaps.AllocateGuid(mvid),
-                EncId = heaps.GetGuidIndex(this.EncId),
-                EncBaseId = heaps.GetGuidIndex(this.EncBaseId),
-            };
-        }
-
-        private ModuleRow _moduleRow;
         
         private void PopulateParamTableRows()
         {
@@ -2970,11 +2929,10 @@ namespace Microsoft.Cci
 
             foreach (IParameterDefinition parDef in parameterDefs)
             {
-                ParamRow r = new ParamRow();
-                r.Flags = (ushort)GetParameterFlags(parDef);
-                r.Sequence = (ushort)(parDef is ReturnValueParameter ? 0 : parDef.Index + 1);
-                r.Name = this.GetStringIndexForNameAndCheckLength(parDef.Name, parDef);
-                _paramTable.Add(r);
+                AddParameter(
+                    attributes: GetParameterFlags(parDef),
+                    sequenceNumber: (parDef is ReturnValueParameter) ? 0 : parDef.Index + 1,
+                    name: GetStringIndexForNameAndCheckLength(parDef.Name, parDef));
             }
         }
 
@@ -2985,11 +2943,10 @@ namespace Microsoft.Cci
 
             foreach (IPropertyDefinition propertyDef in propertyDefs)
             {
-                var r = new PropertyRow();
-                r.PropFlags = (ushort)GetPropertyFlags(propertyDef);
-                r.Name = this.GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef);
-                r.Type = this.GetPropertySignatureIndex(propertyDef);
-                _propertyTable.Add(r);
+                AddProperty(
+                    attributes: GetPropertyFlags(propertyDef),
+                    name: GetStringIndexForNameAndCheckLength(propertyDef.Name, propertyDef),
+                    signature: GetPropertySignatureIndex(propertyDef));
             }
         }
         
@@ -3000,21 +2957,17 @@ namespace Microsoft.Cci
 
             foreach (INamedTypeDefinition typeDef in typeDefs)
             {
-                var r = new TypeDefRow();
                 INamespaceTypeDefinition namespaceType = typeDef.AsNamespaceTypeDefinition(Context);
-                r.Flags = (uint)GetTypeDefFlags(typeDef);
                 string mangledTypeName = GetMangledName(typeDef);
-                r.Name = this.GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef);
-                r.Namespace = namespaceType == null
-                    ? default(StringIdx)
-                    : this.GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName);
                 ITypeReference baseType = typeDef.GetBaseClass(Context);
-                r.Extends = (baseType != null) ? this.GetTypeDefOrRefCodedIndex(baseType, true) : 0;
 
-                r.FieldList = (uint)this.GetFieldDefIndex(typeDef);
-                r.MethodList = (uint)this.GetMethodDefIndex(typeDef);
-
-                _typeDefTable.Add(r);
+                AddTypeDefinition(
+                    attributes: GetTypeDefFlags(typeDef),
+                    @namespace: (namespaceType != null) ? GetStringIndexForNamespaceAndCheckLength(namespaceType, mangledTypeName) : default(StringIdx),
+                    name: GetStringIndexForNameAndCheckLength(mangledTypeName, typeDef),
+                    baseTypeCodedIndex: (baseType != null) ? GetTypeDefOrRefCodedIndex(baseType, true) : 0,
+                    fieldList: GetFieldDefIndex(typeDef),
+                    methodList: GetMethodDefIndex(typeDef));
             }
         }
 
@@ -3028,11 +2981,9 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                NestedClassRow r = new NestedClassRow();
-                uint typeDefIndex = (uint)this.GetTypeDefIndex(typeDef);
-                r.NestedClass = typeDefIndex;
-                r.EnclosingClass = (uint)this.GetTypeDefIndex(nestedTypeDef.ContainingTypeDefinition);
-                _nestedClassTable.Add(r);
+                AddNestedType(
+                    typeDefinitionRowId: GetTypeDefIndex(typeDef),
+                    enclosingTypeDefinitionRowId: GetTypeDefIndex(nestedTypeDef.ContainingTypeDefinition));
             }
         }
 
@@ -3045,11 +2996,10 @@ namespace Microsoft.Cci
                     continue;
                 }
 
-                ClassLayoutRow r = new ClassLayoutRow();
-                r.PackingSize = typeDef.Alignment;
-                r.ClassSize = typeDef.SizeOf;
-                r.Parent = (uint)this.GetTypeDefIndex(typeDef);
-                _classLayoutTable.Add(r);
+                AddTypeLayout(
+                    typeDefinitionRowId: GetTypeDefIndex(typeDef),
+                    packingSize: typeDef.Alignment,
+                    size: typeDef.SizeOf);
             }
         }
 
@@ -3060,7 +3010,10 @@ namespace Microsoft.Cci
 
             foreach (ITypeReference typeRef in typeRefs)
             {
-                TypeRefRow r = new TypeRefRow();
+                uint resolutionScope;
+                StringIdx name;
+                StringIdx @namespace;
+
                 INestedTypeReference nestedTypeRef = typeRef.AsNestedTypeReference;
                 if (nestedTypeRef != null)
                 {
@@ -3076,9 +3029,9 @@ namespace Microsoft.Cci
                         scopeTypeRef = nestedTypeRef.GetContainingType(Context);
                     }
 
-                    r.ResolutionScope = GetTypeRefIndex(scopeTypeRef).ToCodedIndex(ResolutionScopeTag.TypeRef);
-                    r.Name = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedTypeRef), nestedTypeRef);
-                    r.Namespace = default(StringIdx);
+                    resolutionScope = GetTypeRefIndex(scopeTypeRef).ToCodedIndex(ResolutionScopeTag.TypeRef);
+                    name = this.GetStringIndexForNameAndCheckLength(GetMangledName(nestedTypeRef), nestedTypeRef);
+                    @namespace = default(StringIdx);
                 }
                 else
                 {
@@ -3088,13 +3041,16 @@ namespace Microsoft.Cci
                         throw ExceptionUtilities.UnexpectedValue(typeRef);
                     }
 
-                    r.ResolutionScope = this.GetResolutionScopeCodedIndex(namespaceTypeRef.GetUnit(Context));
+                    resolutionScope = this.GetResolutionScopeCodedIndex(namespaceTypeRef.GetUnit(Context));
                     string mangledTypeName = GetMangledName(namespaceTypeRef);
-                    r.Name = this.GetStringIndexForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                    r.Namespace = this.GetStringIndexForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                    name = this.GetStringIndexForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
+                    @namespace = this.GetStringIndexForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
                 }
 
-                _typeRefTable.Add(r);
+                AddTypeReference(
+                    resolutionScope: resolutionScope,
+                    @namespace: @namespace,
+                    name: name);
             }
         }
 
@@ -3105,9 +3061,7 @@ namespace Microsoft.Cci
 
             foreach (ITypeReference typeSpec in typeSpecs)
             {
-                TypeSpecRow r = new TypeSpecRow();
-                r.Signature = this.GetTypeSpecSignatureIndex(typeSpec);
-                _typeSpecTable.Add(r);
+                AddTypeSpecification(GetTypeSpecSignatureIndex(typeSpec));
             }
         }
 
@@ -3115,9 +3069,9 @@ namespace Microsoft.Cci
         {
             var signatures = GetStandAloneSignatures();
 
-            foreach (BlobIdx blob in signatures)
+            foreach (BlobIdx signature in signatures)
             {
-                _standAloneSigTable.Add(new StandaloneSigRow { Signature = blob });
+                AddStandaloneSignature(signature);
             }
         }
 
