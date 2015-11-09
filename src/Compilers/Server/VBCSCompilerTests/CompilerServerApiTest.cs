@@ -317,7 +317,7 @@ class Hello
             {
                 var dispatcher = new ServerDispatcher(
                     CreateNopCompilerServerHost().Object,
-                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path, RuntimeEnvironment.GetRuntimeDirectory()), 
+                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object),
                     listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive);
             });
@@ -346,7 +346,7 @@ class Hello
             {
                 var dispatcher = new ServerDispatcher(
                     CreateNopCompilerServerHost().Object,
-                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object, Temp.CreateDirectory().Path, RuntimeEnvironment.GetRuntimeDirectory()), 
+                    new CompilerRequestHandler(CreateNopCompilerServerHost().Object),
                     listener);
                 dispatcher.ListenAndDispatchConnections(keepAlive);
             });

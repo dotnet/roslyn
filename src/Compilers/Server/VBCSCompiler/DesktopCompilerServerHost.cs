@@ -16,7 +16,7 @@ using System.Security.AccessControl;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class DesktopCompilerServerHost : ICompilerServerHost
+    internal sealed class DesktopCompilerServerHost : CompilerServerHost
     {
         // Size of the buffers to use
         private const int PipeBufferSize = 0x10000;  // 64K
@@ -28,26 +28,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private readonly string _pipeName;
 
-        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => s_analyzerLoader;
+        public override IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => s_analyzerLoader;
 
-        public Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => s_assemblyReferenceProvider;
+        public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => s_assemblyReferenceProvider;
 
         internal DesktopCompilerServerHost(string pipeName)
+            : this(pipeName, AppDomain.CurrentDomain.BaseDirectory, RuntimeEnvironment.GetRuntimeDirectory())
+        {
+
+        }
+
+        internal DesktopCompilerServerHost(string pipeName, string clientDirectory, string sdkDirectory)
+            : base(clientDirectory, sdkDirectory)
         {
             _pipeName = pipeName;
         }
 
-        public bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
+        public override bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
         {
             return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, s_analyzerLoader);
         }
 
-        public void Log(string message)
+        public override void Log(string message)
         {
             CompilerServerLogger.Log(message);
         }
 
-        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
+        public override async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
         {
             var pipeStream = await CreateListenTaskCore(cancellationToken).ConfigureAwait(false);
             return new NamedPipeClientConnection(pipeStream);

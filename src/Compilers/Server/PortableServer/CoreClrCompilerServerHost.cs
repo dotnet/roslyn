@@ -13,35 +13,36 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class CoreClrCompilerServerHost : ICompilerServerHost
+    internal sealed class CoreClrCompilerServerHost : CompilerServerHost
     {
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _assemblyReferenceProvider = (path, properties) => new CachingMetadataReference(path, properties);
         private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader = CoreClrAnalyzerAssemblyLoader.CreateAndSetDefault();
         private readonly TcpListener _listener;
 
-        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => _analyzerAssemblyLoader;
+        public override IAnalyzerAssemblyLoader AnalyzerAssemblyLoader => _analyzerAssemblyLoader;
 
-        public Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => _assemblyReferenceProvider;
+        public override Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider => _assemblyReferenceProvider;
 
-        internal CoreClrCompilerServerHost(IPEndPoint endPoint)
+        internal CoreClrCompilerServerHost(IPEndPoint endPoint, string clientDirectory)
+            :base(clientDirectory : clientDirectory, sdkDirectory: null)
         {
             _listener = new TcpListener(endPoint);
             _listener.Start();
         }
 
-        public bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
+        public override bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers)
         {
             // Analyzers not supported in the portable server yet.
             return analyzers.Length == 0;
         }
 
-        public async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
+        public override async Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken)
         {
             var tcpClient = await _listener.AcceptTcpClientAsync().ConfigureAwait(true);
             return new TcpClientConnection(tcpClient);
         }
 
-        public void Log(string message)
+        public override void Log(string message)
         {
             // BTODO: Do we need this anymore? 
         }

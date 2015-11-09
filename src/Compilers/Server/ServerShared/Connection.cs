@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// from when the client connects to it, until the request is finished or abandoned.
     /// A new task is created to actually service the connection and do the operation.
     /// </summary>
-    internal class Connection
+    internal sealed class Connection
     {
         private readonly IClientConnection _clientConnection;
         private readonly IRequestHandler _handler;

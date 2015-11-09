@@ -14,9 +14,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
         Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
-        Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
-
+        bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler);
         bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
         void Log(string message);
+
+        // BTODO: Move this to a new interface
+        Task<IClientConnection> CreateListenTask(CancellationToken cancellationToken);
     }
 }
