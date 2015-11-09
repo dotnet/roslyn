@@ -102,10 +102,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             FatalError.Handler = FailFast.OnFatalException;
 
             var sdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-            var compilerServerHost = new DesktopCompilerServerHost(pipeName);
+            var compilerServerHost = new DesktopCompilerServerHost(pipeName, compilerExeDirectory, sdkDirectory);
             var dispatcher = new ServerDispatcher(
                 compilerServerHost,
-                new CompilerRequestHandler(compilerServerHost, compilerExeDirectory, sdkDirectory), 
+                new CompilerRequestHandler(compilerServerHost),
                 new EmptyDiagnosticListener());
 
             dispatcher.ListenAndDispatchConnections(keepAliveTimeout);
