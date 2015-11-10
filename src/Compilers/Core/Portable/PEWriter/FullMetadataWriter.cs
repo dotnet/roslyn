@@ -313,7 +313,7 @@ namespace Microsoft.Cci
         {
         }
 
-        protected override void PopulateEventMapTableRows(List<EventMapRow> table)
+        protected override void PopulateEventMapTableRows()
         {
             ITypeDefinition lastParent = null;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
@@ -324,15 +324,14 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = eventDef.ContainingTypeDefinition;
-                int eventIndex = this.GetEventDefIndex(eventDef);
-                EventMapRow r = new EventMapRow();
-                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
-                r.EventList = (uint)eventIndex;
-                table.Add(r);
+
+                tables.AddEventMap(
+                    typeDefinitionRowId: GetTypeDefIndex(lastParent),
+                    eventList: GetEventDefIndex(eventDef));
             }
         }
 
-        protected override void PopulatePropertyMapTableRows(List<PropertyMapRow> table)
+        protected override void PopulatePropertyMapTableRows()
         {
             ITypeDefinition lastParent = null;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
@@ -343,11 +342,10 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = propertyDef.ContainingTypeDefinition;
-                int propertyIndex = this.GetPropertyDefIndex(propertyDef);
-                PropertyMapRow r = new PropertyMapRow();
-                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
-                r.PropertyList = (uint)propertyIndex;
-                table.Add(r);
+
+                tables.AddPropertyMap(
+                    typeDefinitionRowId: GetTypeDefIndex(lastParent),
+                    propertyList: GetPropertyDefIndex(propertyDef));
             }
         }
 

@@ -14,11 +14,11 @@ namespace Microsoft.Cci
         private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
         private readonly Dictionary<IImportScope, int> _scopeIndex = new Dictionary<IImportScope, int>();
 
-        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int localSignatureRowId)
+        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int localSignatureRowId, ref int lastLocalVariableRid, ref int lastLocalConstantRid)
         {
             if (bodyOpt == null)
             {
-                AddMethodDebugInformation(0, new BlobIdx(0));
+                tables.AddMethodDebugInformation(0, new BlobIdx(0));
                 return;
             }
 
@@ -27,7 +27,7 @@ namespace Microsoft.Cci
 
             if (!emitDebugInfo)
             {
-                AddMethodDebugInformation(0, new BlobIdx(0));
+                tables.AddMethodDebugInformation(0, new BlobIdx(0));
                 return;
             }
 
@@ -37,19 +37,19 @@ namespace Microsoft.Cci
             // documents & sequence points:
             int singleDocumentRowId;
             BlobIdx sequencePointsBlob = SerializeSequencePoints(localSignatureRowId, bodyOpt.GetSequencePoints(), _documentIndex, out singleDocumentRowId);
-            AddMethodDebugInformation(documentRowId: singleDocumentRowId, sequencePoints: sequencePointsBlob);
-            
+            tables.AddMethodDebugInformation(documentRowId: singleDocumentRowId, sequencePoints: sequencePointsBlob);
+
             // Unlike native PDB we don't emit an empty root scope.
             // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
 
             if (bodyOpt.LocalScopes.Length == 0)
             {
                 // TODO: the compiler should produce a scope for each debuggable method 
-                AddLocalScope(
+                tables.AddLocalScope(
                     methodRowId: methodRid,
                     importScopeRowId: importScopeRid,
-                    variableList: _localVariableTable.Count + 1,
-                    constantList: _localConstantTable.Count + 1,
+                    variableList: lastLocalVariableRid + 1,
+                    constantList: lastLocalConstantRid + 1,
                     startOffset: 0,
                     length: bodyOpt.IL.Length);
             }
@@ -57,11 +57,11 @@ namespace Microsoft.Cci
             {
                 foreach (LocalScope scope in bodyOpt.LocalScopes)
                 {
-                    AddLocalScope(
+                    tables.AddLocalScope(
                         methodRowId: methodRid,
                         importScopeRowId: importScopeRid,
-                        variableList: _localVariableTable.Count + 1,
-                        constantList: _localConstantTable.Count + 1,
+                        variableList: lastLocalVariableRid + 1,
+                        constantList: lastLocalConstantRid + 1,
                         startOffset: scope.StartOffset,
                         length: scope.Length);
 
@@ -69,12 +69,12 @@ namespace Microsoft.Cci
                     {
                         Debug.Assert(local.SlotIndex >= 0);
 
-                        AddLocalVariable(
+                        lastLocalVariableRid = tables.AddLocalVariable(
                             attributes: (ushort)local.PdbAttributes,
                             index: local.SlotIndex,
                             name: _debugHeapsOpt.GetStringIndex(local.Name));
 
-                        SerializeDynamicLocalInfo(local, rowId: _localVariableTable.Count, isConstant: false);
+                        SerializeDynamicLocalInfo(local, rowId: lastLocalVariableRid, isConstant: false);
                     }
 
                     foreach (ILocalDefinition constant in scope.Constants)
@@ -82,11 +82,11 @@ namespace Microsoft.Cci
                         var mdConstant = constant.CompileTimeValue;
                         Debug.Assert(mdConstant != null);
 
-                        AddLocalConstant(
+                        lastLocalConstantRid = tables.AddLocalConstant(
                             name: _debugHeapsOpt.GetStringIndex(constant.Name),
                             signature: SerializeLocalConstantSignature(constant));
 
-                        SerializeDynamicLocalInfo(constant, rowId: _localConstantTable.Count, isConstant: true);
+                        SerializeDynamicLocalInfo(constant, rowId: lastLocalConstantRid, isConstant: true);
                     }
                 }
             }
@@ -94,7 +94,7 @@ namespace Microsoft.Cci
             var asyncDebugInfo = bodyOpt.AsyncDebugInfo;
             if (asyncDebugInfo != null)
             {
-                AddStateMachineMethod(
+                tables.AddStateMachineMethod(
                     moveNextMethodRowId: methodRid,
                     kickoffMethodRowId: GetMethodDefIndex(asyncDebugInfo.KickoffMethod));
 
@@ -299,7 +299,7 @@ namespace Microsoft.Cci
                 SerializeImport(writer, import);
             }
 
-            int rid = AddImportScope(
+            int rid = tables.AddImportScope(
                 parentScopeRowId: 0,
                 imports: _debugHeapsOpt.GetBlobIndex(writer));
 
@@ -318,7 +318,7 @@ namespace Microsoft.Cci
             var parent = scope.Parent;
             int parentScopeRid = (parent != null) ? GetImportScopeIndex(scope.Parent, scopeIndex) : ModuleImportScopeRid;
 
-            int rid = AddImportScope(
+            int rid = tables.AddImportScope(
                 parentScopeRowId: parentScopeRid,
                 imports: SerializeImportsBlob(scope));
 
@@ -347,7 +347,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            AddCustomDebugInformation(
+            tables.AddCustomDebugInformation(
                 parent: HasCustomDebugInformation(HasCustomDebugInformationTag.Module, 1),
                 kind: _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.DefaultNamespace),
                 value: _debugHeapsOpt.GetBlobIndexUtf8(module.DefaultNamespace));
@@ -369,7 +369,7 @@ namespace Microsoft.Cci
 
             var tag = isConstant ? HasCustomDebugInformationTag.LocalConstant : HasCustomDebugInformationTag.LocalVariable;
 
-            AddCustomDebugInformation(
+            tables.AddCustomDebugInformation(
                 parent: HasCustomDebugInformation(tag, rowId),
                 kind: _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.DynamicLocalVariables),
                 value: _debugHeapsOpt.GetBlobIndex(value));
@@ -439,7 +439,7 @@ namespace Microsoft.Cci
                 writer.WriteCompressedInteger((uint)moveNextMethodRid);
             }
 
-            AddCustomDebugInformation(
+            tables.AddCustomDebugInformation(
                 parent: HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, moveNextMethodRid),
                 kind: _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.AsyncMethodSteppingInformationBlob),
                 value: _debugHeapsOpt.GetBlobIndex(writer));
@@ -461,7 +461,7 @@ namespace Microsoft.Cci
                 writer.WriteUInt32((uint)scope.Length);
             }
 
-            AddCustomDebugInformation(
+            tables.AddCustomDebugInformation(
                 parent: HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, methodRowId),
                 kind: _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes),
                 value: _debugHeapsOpt.GetBlobIndex(writer));
@@ -593,15 +593,15 @@ namespace Microsoft.Cci
             int documentRowId;
             if (!index.TryGetValue(document, out documentRowId))
             {
-                documentRowId = _documentTable.Count + 1;
-                index.Add(document, documentRowId);
-
                 var checksumAndAlgorithm = document.ChecksumAndAlgorithm;
-                AddDocument(
+
+                documentRowId = tables.AddDocument(
                     name: SerializeDocumentName(document.Location),
                     hashAlgorithm: checksumAndAlgorithm.Item1.IsDefault ? new GuidIdx(0) : _debugHeapsOpt.GetGuidIndex(checksumAndAlgorithm.Item2),
                     hash: (checksumAndAlgorithm.Item1.IsDefault) ? new BlobIdx(0) : _debugHeapsOpt.GetBlobIndex(checksumAndAlgorithm.Item1),
                     language: _debugHeapsOpt.GetGuidIndex(document.Language));
+
+                index.Add(document, documentRowId);
             }
 
             return documentRowId;
@@ -660,7 +660,7 @@ namespace Microsoft.Cci
 
                 encInfo.SerializeLocalSlots(writer);
 
-                AddCustomDebugInformation(
+                tables.AddCustomDebugInformation(
                     parent: HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, methodRowId),
                     kind: _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.EncLocalSlotMap),
                     value: _debugHeapsOpt.GetBlobIndex(writer));
@@ -672,7 +672,7 @@ namespace Microsoft.Cci
 
                 encInfo.SerializeLambdaMap(writer);
 
-                AddCustomDebugInformation(
+                tables.AddCustomDebugInformation(
                     parent: HasCustomDebugInformation(HasCustomDebugInformationTag.MethodDef, methodRowId),
                     kind: _debugHeapsOpt.GetGuidIndex(PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
                     value: _debugHeapsOpt.GetBlobIndex(writer));
