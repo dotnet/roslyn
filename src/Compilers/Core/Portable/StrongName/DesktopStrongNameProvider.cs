@@ -233,11 +233,11 @@ namespace Microsoft.CodeAnalysis
 
         private void ReadKeysFromPath(string fullPath, out ImmutableArray<byte> keyPair, out ImmutableArray<byte> publicKey)
         {
-            byte[] fileContent;
+            ImmutableArray<byte> fileContent;
             try
             {
-                fileContent = ReadAllBytes(fullPath);
-                if (IsPublicKeyBlob(fileContent))
+                fileContent = ImmutableArray.Create(ReadAllBytes(fullPath));
+                if (MetadataHelpers.IsValidPublicKey(fileContent))
                 {
                     publicKey = ImmutableArray.CreateRange(fileContent);
                     keyPair = default(ImmutableArray<byte>);
@@ -278,12 +278,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        //Last seen key file blob and corresponding public key.
-        //In IDE typing scenarios we often need to infer public key from the same 
-        //key file blob repeatedly and it is relatively expensive.
-        //So we will store last seen blob and corresponding key here.
-        private static Tuple<byte[], ImmutableArray<byte>> s_lastSeenKeyPair;
-
         // EDMAURER in the event that the key is supplied as a file,
         // this type could get an instance member that caches the file
         // contents to avoid reading the file twice - once to get the
@@ -312,45 +306,16 @@ namespace Microsoft.CodeAnalysis
             return pubKey.AsImmutableOrNull();
         }
 
-        //The definition of a public key blob from StrongName.h
 
-        //typedef struct {
-        //    unsigned int SigAlgId;
-        //    unsigned int HashAlgId;
-        //    ULONG cbPublicKey;
-        //    BYTE PublicKey[1]
-        //} PublicKeyBlob; 
-
-        //__forceinline bool IsValidPublicKeyBlob(const PublicKeyBlob *p, const size_t len)
-        //{
-        //    return ((VAL32(p->cbPublicKey) + (sizeof(ULONG) * 3)) == len &&         // do the lengths match?
-        //            GET_ALG_CLASS(VAL32(p->SigAlgID)) == ALG_CLASS_SIGNATURE &&     // is it a valid signature alg?
-        //            GET_ALG_CLASS(VAL32(p->HashAlgID)) == ALG_CLASS_HASH);         // is it a valid hash alg?
-        //}
-
-        private static uint GET_ALG_CLASS(uint x) { return x & (7 << 13); }
-
-        internal static unsafe bool IsPublicKeyBlob(byte[] keyFileContents)
-        {
-            const uint ALG_CLASS_SIGNATURE = 1 << 13;
-            const uint ALG_CLASS_HASH = 4 << 13;
-
-            if (keyFileContents.Length < (4 * 3))
-            {
-                return false;
-            }
-
-            fixed (byte* p = keyFileContents)
-            {
-                return (GET_ALG_CLASS((uint)Marshal.ReadInt32((IntPtr)p)) == ALG_CLASS_SIGNATURE) &&
-                    (GET_ALG_CLASS((uint)Marshal.ReadInt32((IntPtr)p, 4)) == ALG_CLASS_HASH) &&
-                    (Marshal.ReadInt32((IntPtr)p, 8) + (4 * 3) == keyFileContents.Length);
-            }
-        }
+        //Last seen key file blob and corresponding public key.
+        //In IDE typing scenarios we often need to infer public key from the same 
+        //key file blob repeatedly and it is relatively expensive.
+        //So we will store last seen blob and corresponding key here.
+        private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>> s_lastSeenKeyPair;
 
         // internal for testing
         /// <exception cref="IOException"/>
-        internal ImmutableArray<byte> GetPublicKey(byte[] keyFileContents)
+        internal ImmutableArray<byte> GetPublicKey(ImmutableArray<byte> keyFileContents)
         {
             try
             {
@@ -368,7 +333,7 @@ namespace Microsoft.CodeAnalysis
                 //EDMAURER use marshal to be safe?
                 unsafe
                 {
-                    fixed (byte* p = keyFileContents)
+                    fixed (byte* p = keyFileContents.DangerousGetUnderlyingArray())
                     {
                         strongName.StrongNameGetPublicKey(null, (IntPtr)p, keyFileContents.Length, out keyBlob, out keyBlobByteCount);
                     }

@@ -915,10 +915,7 @@ namespace Microsoft.CodeAnalysis
                    fullyQualified.EndsWith(typeName, StringComparison.Ordinal);
         }
 
-        internal static bool IsValidPublicKey(ImmutableArray<byte> bytes)
-        {
-            return PublicKeyDecoder.TryDecode(bytes);
-        }
+        internal static bool IsValidPublicKey(ImmutableArray<byte> bytes) => PublicKeyDecoder.IsValid(bytes);
 
         private static class PublicKeyDecoder
         {
@@ -1006,7 +1003,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // From StrongNameInternal.cpp
-            public static bool TryDecode(ImmutableArray<byte> bytes)
+            public static bool IsValid(ImmutableArray<byte> bytes)
             {
                 // The number of public key bytes must be at least large enough for the header and one byte of data.
                 if (bytes.IsDefault || bytes.Length < HeaderSize + 1)

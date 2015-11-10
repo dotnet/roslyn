@@ -3599,6 +3599,29 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.CompilationOptions.DelaySign);
         }
 
+        [Fact]
+        public void PublicSign()
+        {
+            var parsedArgs = DefaultParse(new[] { "/publicsign", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign+", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.True(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/PUBLICsign-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
+
+            parsedArgs = DefaultParse(new[] { "/publicsign:-", "a.cs" }, _baseDirectory);
+            parsedArgs.Errors.Verify(
+    // error CS2007: Unrecognized option: '/publicsign:-'
+    Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/publicsign:-").WithLocation(1, 1));
+
+            Assert.False(parsedArgs.CompilationOptions.PublicSign);
+        }
+
         [WorkItem(546301, "DevDiv")]
         [Fact]
         public void SubsystemVersionTests()

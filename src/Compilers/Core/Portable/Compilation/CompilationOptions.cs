@@ -46,11 +46,11 @@ namespace Microsoft.CodeAnalysis
         // such value is currently not serializable by JSON serializer.
 
         /// <summary>
-        /// Specifies public key used to generate strong name for the compilation assembly, or empty of not specified.
+        /// Specifies public key used to generate strong name for the compilation assembly, or empty if not specified.
         /// </summary>
         /// <remarks>
         /// If specified the values of <see cref="CryptoKeyFile"/> and <see cref="CryptoKeyContainer"/> must be null.
-        /// If <see cref="DelaySign"/> is false the assembly is marked as signed but not actually signed (aka "OSS signing").
+        /// If <see cref="PublicSign"/> is true the assembly is marked as signed but not actually signed (aka "OSS signing").
         /// </remarks>
         public ImmutableArray<byte> CryptoPublicKey { get; protected set; }
 
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
         public string CryptoKeyContainer { get; protected set; }
 
         /// <summary>
-        /// Turn compilation assembly signing on or off.
+        /// Mark the compilation assembly as delay-signed.
         /// </summary>
         /// <remarks>
         /// If true the resulting assembly is marked as delay signed.
@@ -101,6 +101,14 @@ namespace Microsoft.CodeAnalysis
         /// applied to the compilation assembly in source. If the attribute is not present the value defaults to "false".
         /// </remarks>
         public bool? DelaySign { get; protected set; }
+
+        /// <summary>
+        /// Mark the compilation assembly as fully signed, but only sign with the public key.
+        /// </summary>
+        /// <remarks>
+        /// If true, the assembly is marked as signed, but is not actually signed.
+        /// </remarks>
+        public bool PublicSign { get; protected set; }
 
         /// <summary>
         /// Whether bounds checking on integer arithmetic is enforced by default or not.
@@ -238,6 +246,7 @@ namespace Microsoft.CodeAnalysis
             string cryptoKeyFile,
             ImmutableArray<byte> cryptoPublicKey,
             bool? delaySign,
+            bool publicSign,
             OptimizationLevel optimizationLevel,
             bool checkOverflow,
             Platform platform,
@@ -280,6 +289,7 @@ namespace Microsoft.CodeAnalysis
             this.StrongNameProvider = strongNameProvider;
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
+            this.PublicSign = publicSign;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -385,6 +395,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new options instance with the specified public sign setting.
+        /// </summary>
+        public CompilationOptions WithPublicSign(bool publicSign) => CommonWithPublicSign(publicSign);
+
+        /// <summary>
         /// Creates a new options instance with optimizations enabled or disabled.
         /// </summary>
         public CompilationOptions WithOptimizationLevel(OptimizationLevel value)
@@ -420,6 +435,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
         protected abstract CompilationOptions CommonWithPlatform(Platform platform);
+        protected abstract CompilationOptions CommonWithPublicSign(bool publicSign);
         protected abstract CompilationOptions CommonWithOptimizationLevel(OptimizationLevel value);
         protected abstract CompilationOptions CommonWithXmlReferenceResolver(XmlReferenceResolver resolver);
         protected abstract CompilationOptions CommonWithSourceReferenceResolver(SourceReferenceResolver resolver);
@@ -482,7 +498,8 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
-                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer);
+                   object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
+                   this.PublicSign == other.PublicSign;
 
             return equal;
         }
@@ -514,7 +531,8 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.AssemblyIdentityComparer, 0))))))))))))))))))))))));
+                   Hash.Combine(this.AssemblyIdentityComparer, 
+                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

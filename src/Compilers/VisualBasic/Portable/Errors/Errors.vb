@@ -1681,6 +1681,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_DebugEntryPointNotSourceMethodDefinition = 37252
         ERR_InvalidPathMap = 37253
 
+        ERR_InvalidPublicKeyFile = 37254
+
         ERR_LastPlusOne
 
 

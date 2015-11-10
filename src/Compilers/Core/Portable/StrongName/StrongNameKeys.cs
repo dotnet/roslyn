@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -81,6 +82,36 @@ namespace Microsoft.CodeAnalysis
             {
                 return new StrongNameKeys(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue, Location.None,
                     nameof(CompilationOptions.CryptoPublicKey), BitConverter.ToString(publicKey.ToArray())));
+            }
+        }
+
+        internal static StrongNameKeys Create(string keyFilePath, CommonMessageProvider messageProvider)
+        {
+            if (string.IsNullOrEmpty(keyFilePath))
+            {
+                return None;
+            }
+
+            ImmutableArray<byte> content;
+            try
+            {
+                Debug.Assert(PathUtilities.IsAbsolute(keyFilePath));
+                content = ImmutableArray.Create(PortableShim.File.ReadAllBytes(keyFilePath));
+            }
+            catch (IOException ex)
+            {
+                return new StrongNameKeys(GetKeyFileError(messageProvider, keyFilePath, ex.Message));
+            }
+
+            if (MetadataHelpers.IsValidPublicKey(content))
+            {
+                return new StrongNameKeys(default(ImmutableArray<byte>), content, null, keyFilePath);
+            }
+            else
+            {
+                return new StrongNameKeys(
+                    messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidPublicKeyFile,
+                        Location.None, keyFilePath));
             }
         }
 

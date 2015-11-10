@@ -91,7 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional sourceReferenceResolver As SourceReferenceResolver = Nothing,
             Optional metadataReferenceResolver As MetadataReferenceResolver = Nothing,
             Optional assemblyIdentityComparer As AssemblyIdentityComparer = Nothing,
-            Optional strongNameProvider As StrongNameProvider = Nothing)
+            Optional strongNameProvider As StrongNameProvider = Nothing,
+            Optional publicSign As Boolean = False)
 
             MyClass.New(
                 outputKind,
@@ -113,6 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile,
                 cryptoPublicKey,
                 delaySign,
+                publicSign,
                 platform,
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
@@ -150,9 +152,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             cryptoKeyFile As String,
             cryptoPublicKey As ImmutableArray(Of Byte),
             delaySign As Boolean?,
-            platform As Platform,
-            generalDiagnosticOption As ReportDiagnostic,
-            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            publicSign As Boolean,
+            Platform As Platform,
+            GeneralDiagnosticOption As ReportDiagnostic,
+            SpecificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
             concurrentBuild As Boolean,
             deterministic As Boolean,
             suppressEmbeddedDeclarations As Boolean,
@@ -175,12 +178,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile:=cryptoKeyFile,
                 cryptoPublicKey:=cryptoPublicKey,
                 delaySign:=delaySign,
+                publicSign:=publicSign,
                 optimizationLevel:=optimizationLevel,
                 checkOverflow:=checkOverflow,
-                platform:=platform,
-                generalDiagnosticOption:=generalDiagnosticOption,
+                platform:=Platform,
+                generalDiagnosticOption:=GeneralDiagnosticOption,
                 warningLevel:=1,
-                specificDiagnosticOptions:=specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
+                specificDiagnosticOptions:=SpecificDiagnosticOptions.ToImmutableDictionaryOrEmpty(CaseInsensitiveComparison.Comparer), ' Diagnostic ids must be processed in case-insensitive fashion.
                 concurrentBuild:=concurrentBuild,
                 deterministic:=deterministic,
                 extendedCustomDebugInformation:=extendedCustomDebugInformation,
@@ -228,9 +232,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile:=other.CryptoKeyFile,
                 cryptoPublicKey:=other.CryptoPublicKey,
                 delaySign:=other.DelaySign,
-                platform:=other.Platform,
-                generalDiagnosticOption:=other.GeneralDiagnosticOption,
-                specificDiagnosticOptions:=other.SpecificDiagnosticOptions,
+                Platform:=other.Platform,
+                GeneralDiagnosticOption:=other.GeneralDiagnosticOption,
+                SpecificDiagnosticOptions:=other.SpecificDiagnosticOptions,
                 concurrentBuild:=other.ConcurrentBuild,
                 deterministic:=other.Deterministic,
                 extendedCustomDebugInformation:=other.ExtendedCustomDebugInformation,
@@ -240,7 +244,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataReferenceResolver:=other.MetadataReferenceResolver,
                 assemblyIdentityComparer:=other.AssemblyIdentityComparer,
                 strongNameProvider:=other.StrongNameProvider,
-                metadataImportOptions:=other.MetadataImportOptions)
+                metadataImportOptions:=other.MetadataImportOptions,
+                publicSign:=other.PublicSign)
         End Sub
 
         Friend Overrides Function GetImports() As ImmutableArray(Of String)
@@ -664,6 +669,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.Platform = value}
         End Function
 
+        Public Shadows Function WithPublicSign(value As Boolean) As VisualBasicCompilationOptions
+            If value = Me.PublicSign Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.PublicSign = value}
+        End Function
+
         Protected Overrides Function CommonWithDeterministic(deterministic As Boolean) As CompilationOptions
             Return Me.WithDeterministic(deterministic)
         End Function
@@ -824,6 +837,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithPlatform(platform)
         End Function
 
+        Protected Overrides Function CommonWithPublicSign(publicSign As Boolean) As CompilationOptions
+            Return WithPublicSign(publicSign)
+        End Function
+
         Protected Overrides Function CommonWithOptimizationLevel(value As OptimizationLevel) As CompilationOptions
             Return WithOptimizationLevel(value)
         End Function
@@ -964,6 +981,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return VisualBasicDiagnosticFilter.Filter(diagnostic, GeneralDiagnosticOption, SpecificDiagnosticOptions)
         End Function
 
+        '' 1.1 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        Public Sub New(
+            outputKind As OutputKind,
+            moduleName As String,
+            mainTypeName As String,
+            scriptClassName As String,
+            globalImports As IEnumerable(Of GlobalImport),
+            rootNamespace As String,
+            optionStrict As OptionStrict,
+            optionInfer As Boolean,
+            optionExplicit As Boolean,
+            optionCompareText As Boolean,
+            parseOptions As VisualBasicParseOptions,
+            embedVbCoreRuntime As Boolean,
+            optimizationLevel As OptimizationLevel,
+            checkOverflow As Boolean,
+            cryptoKeyContainer As String,
+            cryptoKeyFile As String,
+            cryptoPublicKey As ImmutableArray(Of Byte),
+            delaySign As Boolean?,
+            platform As Platform,
+            generalDiagnosticOption As ReportDiagnostic,
+            specificDiagnosticOptions As IEnumerable(Of KeyValuePair(Of String, ReportDiagnostic)),
+            concurrentBuild As Boolean,
+            deterministic As Boolean,
+            xmlReferenceResolver As XmlReferenceResolver,
+            sourceReferenceResolver As SourceReferenceResolver,
+            metadataReferenceResolver As MetadataReferenceResolver,
+            assemblyIdentityComparer As AssemblyIdentityComparer,
+            strongNameProvider As StrongNameProvider)
+
+            MyClass.New(
+                outputKind,
+                moduleName,
+                mainTypeName,
+                scriptClassName,
+                globalImports,
+                rootNamespace,
+                optionStrict,
+                optionInfer,
+                optionExplicit,
+                optionCompareText,
+                parseOptions,
+                embedVbCoreRuntime,
+                optimizationLevel,
+                checkOverflow,
+                cryptoKeyContainer,
+                cryptoKeyFile,
+                cryptoPublicKey,
+                delaySign,
+                platform,
+                generalDiagnosticOption,
+                specificDiagnosticOptions,
+                concurrentBuild,
+                deterministic:=False,' TODO: fix this
+                xmlReferenceResolver:=xmlReferenceResolver,
+                sourceReferenceResolver:=sourceReferenceResolver,
+                metadataReferenceResolver:=metadataReferenceResolver,
+                assemblyIdentityComparer:=assemblyIdentityComparer,
+                strongNameProvider:=strongNameProvider,
+                publicSign:=False)
+
+        End Sub
+
         ' 1.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         Public Sub New(
             outputKind As OutputKind,
@@ -1079,11 +1160,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 cryptoKeyFile,
                 cryptoPublicKey,
                 delaySign,
-                platform,
-                generalDiagnosticOption,
-                specificDiagnosticOptions,
-                concurrentBuild,
-                deterministic,
+                publicSign:=False,
+                Platform:=platform,
+                GeneralDiagnosticOption:=generalDiagnosticOption,
+                SpecificDiagnosticOptions:=specificDiagnosticOptions,
+                concurrentBuild:=concurrentBuild,
+                deterministic:=deterministic,
                 suppressEmbeddedDeclarations:=False,
                 extendedCustomDebugInformation:=True,
                 debugPlusMode:=False,

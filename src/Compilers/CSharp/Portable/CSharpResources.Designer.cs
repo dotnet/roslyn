@@ -5246,7 +5246,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted.
+        ///   Looks up a localized string similar to The pathmap option was incorrectly formatted..
         /// </summary>
         internal static string ERR_InvalidPathMap {
             get {
@@ -5269,6 +5269,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidPropertyAccessMod {
             get {
                 return ResourceManager.GetString("ERR_InvalidPropertyAccessMod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected only a public key in file &apos;{0}&apos; -- file contains either a keypair or the public key is invalid..
+        /// </summary>
+        internal static string ERR_InvalidPublicKeyFile {
+            get {
+                return ResourceManager.GetString("ERR_InvalidPublicKeyFile", resourceCulture);
             }
         }
         
@@ -7195,6 +7204,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_PublicKeyFileFailure {
             get {
                 return ResourceManager.GetString("ERR_PublicKeyFileFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public signing was specified and requires a public key, but no public key was specified..
+        /// </summary>
+        internal static string ERR_PublicSignButNoKey {
+            get {
+                return ResourceManager.GetString("ERR_PublicSignButNoKey", resourceCulture);
             }
         }
         
@@ -9819,7 +9837,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Literal to create numeric literal tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create numeric literal tokens..
         /// </summary>
         internal static string UseLiteralForNumeric {
             get {
@@ -9828,7 +9846,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Literal to create character literal tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Literal to create character literal tokens..
         /// </summary>
         internal static string UseLiteralForTokens {
             get {
@@ -9837,7 +9855,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Use Roslyn.Compilers.CSharp.Syntax.Identifier or Roslyn.Compilers.CSharp.Syntax.VerbatimIdentifier to create identifier tokens..
+        ///   Looks up a localized string similar to Use Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier or Microsoft.CodeAnalysis.CSharp.SyntaxFactory.VerbatimIdentifier to create identifier tokens..
         /// </summary>
         internal static string UseVerbatimIdentifier {
             get {

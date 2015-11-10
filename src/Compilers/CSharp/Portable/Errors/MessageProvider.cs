@@ -178,6 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // signing:
         public override int ERR_PublicKeyFileFailure { get { return (int)ErrorCode.ERR_PublicKeyFileFailure; } }
         public override int ERR_PublicKeyContainerFailure { get { return (int)ErrorCode.ERR_PublicKeyContainerFailure; } }
+        public override int ERR_InvalidPublicKeyFile => (int)ErrorCode.ERR_InvalidPublicKeyFile;
 
         // resources:
         public override int ERR_CantReadResource { get { return (int)ErrorCode.ERR_CantReadResource; } }

@@ -1317,5 +1317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SourceFileReferencesNotSupported = 8099,
         ERR_BadAwaitInStaticVariableInitializer = 8100,
         ERR_InvalidPathMap = 8101,
+        ERR_PublicSignButNoKey = 8102,
+        ERR_InvalidPublicKeyFile = 8103,
     }
 }
