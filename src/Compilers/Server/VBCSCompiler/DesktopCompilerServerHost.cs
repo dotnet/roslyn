@@ -43,11 +43,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             return AnalyzerConsistencyChecker.Check(baseDirectory, analyzers, s_analyzerLoader);
         }
-
-        public override void Log(string message)
-        {
-            CompilerServerLogger.Log(message);
-        }
-
     }
 }

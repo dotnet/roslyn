@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public int ProcessedCount;
             public DateTime? LastProcessedTime;
             public TimeSpan? KeepAlive;
+            public bool HasDetectedBadConnection;
 
             public void ConnectionProcessed(int count)
             {
@@ -31,6 +32,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void UpdateKeepAlive(TimeSpan timeSpan)
             {
                 KeepAlive = timeSpan;
+            }
+
+            public void DetectedBadConnection()
+            {
+                HasDetectedBadConnection = true;
             }
         }
 
@@ -277,6 +283,42 @@ class Hello
             Assert.Equal(totalCount, listener.ProcessedCount);
             Assert.True(listener.LastProcessedTime.HasValue);
             Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
+        }
+
+        [Fact]
+        public void ClientExceptionShouldBeginShutdown()
+        {
+            var client = new Mock<IClientConnection>();
+            client
+                .Setup(x => x.HandleConnection(It.IsAny<CancellationToken>()))
+                .Throws(new Exception());
+
+            var listenCancellationToken = default(CancellationToken);
+            var first = true;
+
+            var host = new Mock<IClientConnectionHost>();
+            host
+                .Setup(x => x.CreateListenTask(It.IsAny<CancellationToken>()))
+                .Returns((CancellationToken cancellationToken) =>
+                {
+                    if (first)
+                    {
+                        first = false;
+                        return Task.FromResult(client.Object);
+                    }
+                    else
+                    {
+                        listenCancellationToken = cancellationToken;
+                        return Task.Delay(-1, cancellationToken).ContinueWith<IClientConnection>(_ => null, TaskScheduler.Default);
+                    }
+                });
+
+            var listener = new TestableDiagnosticListener();
+            var dispatcher = new ServerDispatcher(host.Object, listener);
+            dispatcher.ListenAndDispatchConnections(TimeSpan.FromSeconds(10));
+
+            Assert.True(listener.HasDetectedBadConnection);
+            Assert.True(listenCancellationToken.IsCancellationRequested);
         }
     }
 }

@@ -12,11 +12,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal interface ICompilerServerHost
     {
-        // BTODO: how many of these are needed anymore? 
         IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
         Func<string, MetadataReferenceProperties, PortableExecutableReference> AssemblyReferenceProvider { get; }
         bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler);
         bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
-        void Log(string message);
     }
 }

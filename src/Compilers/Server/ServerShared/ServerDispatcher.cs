@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // the shutdown process.  We have to assume that the client disconnected via
                     // Ctrl+C and wants the server process to terminate.  It's possible a compilation
                     // is running out of control and the client wants their machine back.  
+                    _diagnosticListener.DetectedBadConnection();
                     listenCancellationTokenSource.Cancel();
                     break;
                 }

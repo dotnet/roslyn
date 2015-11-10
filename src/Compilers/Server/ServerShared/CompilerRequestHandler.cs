@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public abstract bool CheckAnalyzers(string baseDirectory, ImmutableArray<CommandLineAnalyzerReference> analyzers);
 
-        public abstract void Log(string message);
-
         public bool TryCreateCompiler(RunRequest request, out CommonCompiler compiler)
         {
             switch (request.Language)

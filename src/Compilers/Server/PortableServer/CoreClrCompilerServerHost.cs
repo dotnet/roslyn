@@ -33,10 +33,5 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Analyzers not supported in the portable server yet.
             return analyzers.Length == 0;
         }
-
-        public override void Log(string message)
-        {
-            // BTODO: Do we need this anymore? 
-        }
     }
 }

@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         /// <summary>
         /// There was an unhandled exception processing the result.
-        /// BTODO: need to handle this is the server.
         /// </summary>
         ClientException,
     }
@@ -190,15 +189,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             if (!_compilerServerHost.TryCreateCompiler(request, out compiler))
             {
                 // We can't do anything with a request we don't know about. 
-                _compilerServerHost.Log($"Got request with id '{request.Language}'");
+                Log($"Got request with id '{request.Language}'");
                 return new CompletedBuildResponse(-1, false, "", "");
             }
 
-            _compilerServerHost.Log($"CurrentDirectory = '{request.CurrentDirectory}'");
-            _compilerServerHost.Log($"LIB = '{request.LibDirectory}'");
+            Log($"CurrentDirectory = '{request.CurrentDirectory}'");
+            Log($"LIB = '{request.LibDirectory}'");
             for (int i = 0; i < request.Arguments.Length; ++i)
             {
-                _compilerServerHost.Log($"Argument[{i}] = '{request.Arguments[i]}'");
+                Log($"Argument[{i}] = '{request.Arguments[i]}'");
             }
 
             bool utf8output = compiler.Arguments.Utf8Output;
@@ -207,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return new AnalyzerInconsistencyBuildResponse();
             }
 
-            _compilerServerHost.Log($"****Running {request.Language} compiler...");
+            Log($"****Running {request.Language} compiler...");
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             int returnCode = compiler.Run(output, cancellationToken);
-            _compilerServerHost.Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
+            Log($"****{request.Language} Compilation complete.\r\n****Return code: {returnCode}\r\n****Output:\r\n{output.ToString()}\r\n");
             return new CompletedBuildResponse(returnCode, utf8output, output.ToString(), "");
         }
 
