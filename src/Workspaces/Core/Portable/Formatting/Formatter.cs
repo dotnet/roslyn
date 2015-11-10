@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(Format(root, spans, document.Project.Solution.Workspace, options, rules, cancellationToken));
+            return document.WithSyntaxRoot(await FormatAsync(root, spans, document.Project.Solution.Workspace, options, rules, cancellationToken).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -246,6 +246,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
+            return FormatAsync(node, spans, workspace, options, rules, cancellationToken).WaitAndGetResult(cancellationToken);
+        }
+
+        internal static async Task<SyntaxNode> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        {
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
@@ -266,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 options = options ?? workspace.Options;
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
-                return languageFormatter.Format(node, spans, options, rules, cancellationToken).GetFormattedRoot(cancellationToken);
+                return (await languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken).ConfigureAwait(false)).GetFormattedRoot(cancellationToken);
             }
             else
             {
@@ -317,6 +322,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
+            return GetFormattedTextChangesAsync(node, spans, workspace, options, rules, cancellationToken).WaitAndGetResult(cancellationToken);
+        }
+
+        internal static async Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        {
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
@@ -337,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 options = options ?? workspace.Options;
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
-                return languageFormatter.Format(node, spans, options, rules, cancellationToken).GetTextChanges(cancellationToken);
+                return (await languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken).ConfigureAwait(false)).GetTextChanges(cancellationToken);
             }
             else
             {
