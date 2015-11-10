@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ? dynamicFlagsMap.SubstituteDynamicFlags(typeDeclaringMember.GetInterfaceListEntry(member.DeclaringType), originalDynamicFlags: default(DynamicFlagsCustomTypeInfo)).GetCustomTypeInfo()
                 : null;
 
-            typeDeclaringMemberInfo = AddCustomModifiers(member, typeDeclaringMemberInfo);
+            declaredTypeInfo = AddCustomModifiers(member, typeDeclaringMemberInfo);
 
             var formatter = resultProvider.Formatter;
             bool sawInvalidIdentifier;

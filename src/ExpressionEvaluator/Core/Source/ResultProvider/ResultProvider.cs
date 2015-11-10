@@ -351,8 +351,78 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        // Note: Overridden by the MC++ EE.  Do not change the signature of this method.
-        internal virtual EvalResultDataItem CreateDataItem(
+        // Overriden by the managed C++ EE's result provider to optionally modify the value
+        // to do format/expansion on and/or create a whole new evaluation result.  
+        //
+        // A non-null return value indicates that we should suppress all formatting and expansion 
+        // on the Roslyn side and use the evaluation result provided.  This is used chiefly for 
+        // native-style C++ class/struct/union types (e.g. "class", not "ref class"); the result 
+        // will be an intermediate evaluation result that delegates formatting and expansion over 
+        // to the native EE.  
+        //
+        // A null return value indicates that we are dealing with a managed object and Roslyn should
+        // be responsible for implementing the formatting and expansion of it.  Before returning 
+        // null, the hook may optionally decide to modify various properties, such as the value
+        // and declared type.  One scenario where the native EE will do this is when it sees a C++ 
+        // reference-type (e.g. "int&") which is represented on the metadata layer as a pointer
+        // with a modopt.  Roslyn does not understand C++-specific modopts, but the managed C++ EE 
+        // does, and it will react to it by internally dereferencing the pointer so that Roslyn
+        // displays the value being referenced, not the internal pointer of the reference.
+        protected virtual DkmEvaluationResult ResultCreationHook(
+            DkmInspectionContext inspectionContext,
+            string name,
+            string fullName,
+            ref Type declaredType,
+            ref DkmClrCustomTypeInfo declaredTypeCustomInfo,
+            ref DkmClrValue value,
+            ref DkmEvaluationResultCategory category,
+            ref DkmEvaluationResultFlags flags
+            )
+        {
+            return null;
+        }
+
+        private EvalResultDataItem InvokeResultCreationHook(
+            DkmInspectionContext inspectionContext,
+            string name,
+            ref TypeAndCustomInfo declaredTypeAndInfo,
+            ref DkmClrValue value,
+            string fullName,
+            ref DkmEvaluationResultCategory category,
+            ref DkmEvaluationResultFlags flags)
+        {
+            Type declaredType = declaredTypeAndInfo.Type;
+            DkmClrCustomTypeInfo customTypeInfo = declaredTypeAndInfo.Info;
+
+            DkmEvaluationResult hookedResult = ResultCreationHook(
+                inspectionContext,
+                name,
+                fullName,
+                ref declaredType,
+                ref customTypeInfo,
+                ref value,
+                ref category,
+                ref flags
+                );
+
+            if (hookedResult != null)
+            {
+                // The hook provided an explicit evaluation result; use that.
+                return new EvalResultDataItem(hookedResult);
+            }
+
+            // The hook did not provide an explicit DkmEvaluationResult.  However, we still need to create
+            // a new TypeAndCustomInfo object if the hook modified either the declared type or the custom type info.
+            if(declaredType != declaredTypeAndInfo.Type || customTypeInfo != declaredTypeAndInfo.Info)
+            {
+                declaredTypeAndInfo = new TypeAndCustomInfo(declaredType, customTypeInfo);
+            }
+
+            return null;
+        }
+
+
+        internal EvalResultDataItem CreateDataItem(
             DkmInspectionContext inspectionContext,
             string name,
             TypeAndCustomInfo typeDeclaringMemberAndInfo,
@@ -367,6 +437,15 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmEvaluationResultFlags flags,
             DkmEvaluationFlags evalFlags)
         {
+            // Under managed C++, give the managed C++ EE, which overrides ResultCreationHook(), a chance
+            // to modify the value to display and/or create its own evaluation result to override
+            // all of our logic.
+            EvalResultDataItem hookResult = InvokeResultCreationHook(inspectionContext, name, ref declaredTypeAndInfo, ref value, fullName, ref category, ref flags);
+            if(hookResult != null)
+            {
+                return hookResult;
+            }
+
             if ((evalFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, "raw");
