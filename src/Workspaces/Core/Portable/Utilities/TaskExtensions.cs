@@ -38,6 +38,13 @@ namespace Roslyn.Utilities
             }
 #endif
 
+            return WaitAndGetResult_CanCallOnBackground(task, cancellationToken);
+        }
+
+        // Only call this *extremely* special situations.  This will synchronously block a threadpool
+        // thread.  In the future we are going ot be removing this and disallowing its use.
+        public static T WaitAndGetResult_CanCallOnBackground<T>(this Task<T> task, CancellationToken cancellationToken)
+        {
             task.Wait(cancellationToken);
             return task.Result;
         }
