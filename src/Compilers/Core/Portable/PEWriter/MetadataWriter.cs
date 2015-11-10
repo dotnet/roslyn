@@ -2823,9 +2823,9 @@ namespace Microsoft.Cci
             AddModule(
                 generation: this.Generation,
                 moduleName: heaps.GetStringIndex(this.module.ModuleName),
-                mvid: mvid,
-                encId: EncId,
-                encBaseId: EncBaseId);
+                mvid: heaps.AllocateGuid(mvid),
+                encId: heaps.GetGuidIndex(EncId),
+                encBaseId: heaps.GetGuidIndex(EncBaseId));
         }
         
         private void PopulateParamTableRows()
