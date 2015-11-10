@@ -14,6 +14,26 @@ using Roslyn.Utilities;
 namespace Microsoft.Cci
 {
     /// <summary>
+    /// Represents a value on #GUID heap that has not been serialized yet.
+    /// </summary>
+    internal struct GuidIdx : IEquatable<GuidIdx>, IComparable<GuidIdx>
+    {
+        public readonly int Index;
+
+        internal GuidIdx(int index)
+        {
+            Index = index;
+        }
+
+        public bool Equals(GuidIdx other) => Index == other.Index;
+        public override bool Equals(object obj) => obj is GuidIdx && Equals((GuidIdx)obj);
+        public override int GetHashCode() => Index.GetHashCode();
+        public int CompareTo(GuidIdx other) => Index - other.Index;
+        public static bool operator ==(GuidIdx left, GuidIdx right) => left.Equals(right);
+        public static bool operator !=(GuidIdx left, GuidIdx right) => !left.Equals(right);
+    }
+
+    /// <summary>
     /// Represents a value on #String heap that has not been serialized yet.
     /// </summary>
     internal struct StringIdx : IEquatable<StringIdx>
@@ -111,7 +131,7 @@ namespace Microsoft.Cci
         private int _blobHeapSize;
 
         // #GUID heap
-        private readonly Dictionary<Guid, int> _guids = new Dictionary<Guid, int>();
+        private readonly Dictionary<Guid, GuidIdx> _guids = new Dictionary<Guid, GuidIdx>();
         private readonly BlobBuilder _guidWriter = new BlobBuilder(16); // full metadata has just a single guid
 
         private bool _streamsAreComplete;
@@ -196,14 +216,14 @@ namespace Microsoft.Cci
             return GetBlobIndex(ImmutableArray.Create(Encoding.UTF8.GetBytes(str)));
         }
 
-        public int GetGuidIndex(Guid guid)
+        public GuidIdx GetGuidIndex(Guid guid)
         {
             if (guid == Guid.Empty)
             {
-                return 0;
+                return new GuidIdx(0);
             }
 
-            int result;
+            GuidIdx result;
             if (_guids.TryGetValue(guid, out result))
             {
                 return result;
@@ -212,7 +232,7 @@ namespace Microsoft.Cci
             return AllocateGuid(guid);
         }
 
-        public int AllocateGuid(Guid guid)
+        public GuidIdx AllocateGuid(Guid guid)
         {
             Debug.Assert(!_streamsAreComplete);
 
@@ -226,7 +246,7 @@ namespace Microsoft.Cci
             // Metadata Spec: 
             // The Guid heap is an array of GUIDs, each 16 bytes wide. 
             // Its first element is numbered 1, its second 2, and so on.
-            int result = (_guidWriter.Count >> 4) + 1;
+            GuidIdx result = new GuidIdx((_guidWriter.Count >> 4) + 1);
 
             _guids.Add(guid, result);
             _guidWriter.WriteBytes(guid.ToByteArray());
@@ -259,6 +279,11 @@ namespace Microsoft.Cci
         public int ResolveBlobIndex(BlobIdx index)
         {
             return (index.HeapPosition == 0) ? 0 : _blobHeapStartOffset + index.HeapPosition;
+        }
+
+        public int ResolveGuidIndex(GuidIdx index)
+        {
+            return index.Index;
         }
 
         public int GetUserStringToken(string str)

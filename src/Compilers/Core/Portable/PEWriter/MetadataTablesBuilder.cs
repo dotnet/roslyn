@@ -18,7 +18,7 @@ namespace Microsoft.Cci
 
         // type system table rows:
         private struct AssemblyRefTableRow { public Version Version; public BlobIdx PublicKeyToken; public StringIdx Name; public StringIdx Culture; public uint Flags; public BlobIdx HashValue; }
-        private struct ModuleRow { public ushort Generation; public StringIdx Name; public int ModuleVersionId; public int EncId; public int EncBaseId; }
+        private struct ModuleRow { public ushort Generation; public StringIdx Name; public GuidIdx ModuleVersionId; public GuidIdx EncId; public GuidIdx EncBaseId; }
         private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobIdx AssemblyKey; public StringIdx AssemblyName; public StringIdx AssemblyCulture; }
         private struct ClassLayoutRow { public ushort PackingSize; public uint ClassSize; public uint Parent; }
         private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
@@ -55,14 +55,14 @@ namespace Microsoft.Cci
         private struct StandaloneSigRow { public BlobIdx Signature; }
        
         // debug table rows:
-        private struct DocumentRow { public BlobIdx Name; public uint HashAlgorithm; public BlobIdx Hash; public uint Language; }
+        private struct DocumentRow { public BlobIdx Name; public GuidIdx HashAlgorithm; public BlobIdx Hash; public GuidIdx Language; }
         private struct MethodDebugInformationRow { public uint Document; public BlobIdx SequencePoints; }
         private struct LocalScopeRow { public uint Method; public uint ImportScope; public uint VariableList; public uint ConstantList; public uint StartOffset; public uint Length; }
         private struct LocalVariableRow { public ushort Attributes; public ushort Index; public StringIdx Name; } 
         private struct LocalConstantRow { public StringIdx Name; public BlobIdx Signature; }
         private struct ImportScopeRow { public uint Parent; public BlobIdx Imports; }
         private struct StateMachineMethodRow { public uint MoveNextMethod; public uint KickoffMethod; }
-        private struct CustomDebugInformationRow { public uint Parent; public uint Kind; public BlobIdx Value; }
+        private struct CustomDebugInformationRow { public uint Parent; public GuidIdx Kind; public BlobIdx Value; }
 
         // type system tables:
         private readonly List<ModuleRow> _moduleTable = new List<ModuleRow>(1);
@@ -200,17 +200,17 @@ namespace Microsoft.Cci
         public void AddModule(
             int generation,
             StringIdx moduleName,
-            Guid mvid, 
-            Guid encId, 
-            Guid encBaseId)
+            GuidIdx mvid,
+            GuidIdx encId,
+            GuidIdx encBaseId)
         {
             _moduleTable.Add(new ModuleRow
             {
                 Generation = (ushort)generation,
                 Name = moduleName,
-                ModuleVersionId = heaps.AllocateGuid(mvid),
-                EncId = heaps.GetGuidIndex(encId),
-                EncBaseId = heaps.GetGuidIndex(encBaseId),
+                ModuleVersionId = mvid,
+                EncId = encId,
+                EncBaseId = encBaseId,
             });
         }
 
@@ -681,6 +681,89 @@ namespace Microsoft.Cci
             });
         }
 
+        public void AddDocument(BlobIdx name, GuidIdx hashAlgorithm, BlobIdx hash, GuidIdx language)
+        {
+            _documentTable.Add(new DocumentRow
+            {
+                Name = name,
+                HashAlgorithm = hashAlgorithm,
+                Hash = hash,
+                Language = language
+            });
+        }
+
+        public void AddMethodDebugInformation(int documentRowId, BlobIdx sequencePoints)
+        {
+            _methodDebugInformationTable.Add(new MethodDebugInformationRow
+            {
+                Document = (uint)documentRowId,
+                SequencePoints = sequencePoints
+            });
+        }
+
+        public void AddLocalScope(int methodRowId, int importScopeRowId, int variableList, int constantList, int startOffset, int length)
+        {
+            _localScopeTable.Add(new LocalScopeRow
+            {
+                Method = (uint)methodRowId,
+                ImportScope = (uint)importScopeRowId,
+                VariableList = (uint)variableList,
+                ConstantList = (uint)constantList,
+                StartOffset = (uint)startOffset,
+                Length = (uint)length
+            });
+        }
+
+        // TODO: enum LocalVariableAttributes
+        public void AddLocalVariable(ushort attributes, int index, StringIdx name)
+        {
+            _localVariableTable.Add(new LocalVariableRow
+            {
+                Attributes = attributes,
+                Index = (ushort)index,
+                Name = name
+            });
+        }
+        
+        public void AddLocalConstant(StringIdx name, BlobIdx signature)
+        {
+            _localConstantTable.Add(new LocalConstantRow
+            {
+                Name = name,
+                Signature = signature
+            });
+        }
+
+        public int AddImportScope(int parentScopeRowId, BlobIdx imports)
+        {
+            _importScopeTable.Add(new ImportScopeRow
+            {
+                Parent = (uint)parentScopeRowId,
+                Imports = imports
+            });
+
+            return _importScopeTable.Count;
+        }
+
+        public void AddStateMachineMethod(int moveNextMethodRowId, int kickoffMethodRowId)
+        {
+            _stateMachineMethodTable.Add(new StateMachineMethodRow
+            {
+                MoveNextMethod  = (uint)moveNextMethodRowId,
+                KickoffMethod = (uint)kickoffMethodRowId
+            });
+        }
+
+        public void AddCustomDebugInformation(uint parent, GuidIdx kind, BlobIdx value)
+        {
+            _customDebugInformationTable.Add(new CustomDebugInformationRow
+            {
+                Parent = parent,
+                Kind = kind,
+                Value = value
+            });
+        }
+
         #endregion
 
         private ImmutableArray<int> GetRowCounts()
@@ -739,7 +822,7 @@ namespace Microsoft.Cci
         private int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
         {
             // index of module version ID in the guidWriter stream
-            int moduleVersionIdIndex = _moduleTable[0].ModuleVersionId;
+            int moduleVersionIdIndex = heaps.ResolveGuidIndex(_moduleTable[0].ModuleVersionId);
 
             // offset into the guidWriter stream of the module version ID
             int moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
@@ -1051,9 +1134,9 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt16(moduleRow.Generation);
                 writer.WriteReference((uint)heaps.ResolveStringIndex(moduleRow.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)moduleRow.ModuleVersionId, metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)moduleRow.EncId, metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)moduleRow.EncBaseId, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)heaps.ResolveGuidIndex(moduleRow.ModuleVersionId), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)heaps.ResolveGuidIndex(moduleRow.EncId), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)heaps.ResolveGuidIndex(moduleRow.EncBaseId), metadataSizes.GuidIndexSize);
             }
         }
 
@@ -1496,9 +1579,9 @@ namespace Microsoft.Cci
             foreach (var row in _documentTable)
             {
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Name), metadataSizes.BlobIndexSize);
-                writer.WriteReference(row.HashAlgorithm, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveGuidIndex(row.HashAlgorithm), metadataSizes.GuidIndexSize);
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Hash), metadataSizes.BlobIndexSize);
-                writer.WriteReference(row.Language, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveGuidIndex(row.Language), metadataSizes.GuidIndexSize);
             }
         }
 
@@ -1589,11 +1672,11 @@ namespace Microsoft.Cci
             foreach (CustomDebugInformationRow row in _customDebugInformationTable.OrderBy((x, y) =>
             {
                 int result = (int)x.Parent - (int)y.Parent;
-                return (result != 0) ? result : (int)x.Kind - (int)y.Kind;
+                return (result != 0) ? result : x.Kind.CompareTo(y.Kind);
             }))
             {
                 writer.WriteReference(row.Parent, metadataSizes.HasCustomDebugInformationSize);
-                writer.WriteReference(row.Kind, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)_debugHeapsOpt.ResolveGuidIndex(row.Kind), metadataSizes.GuidIndexSize);
                 writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Value), metadataSizes.BlobIndexSize);
             }
         }
