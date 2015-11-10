@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
@@ -149,8 +150,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static DiagnosticData CreateAnalyzerLoadFailureDiagnostic(
             Workspace workspace, ProjectId projectId, string language, string fullPath, AnalyzerLoadFailureEventArgs e)
         {
-            string id, message, messageFormat;
-            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat))
+            string id, message, messageFormat, description;
+            if (!TryGetErrorMessage(language, fullPath, e, out id, out message, out messageFormat, out description))
             {
                 return null;
             }
@@ -162,6 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 messageFormat,
                 severity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
+                description: description,
                 warningLevel: 0,
                 workspace: workspace,
                 projectId: projectId);
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static bool TryGetErrorMessage(
             string language, string fullPath, AnalyzerLoadFailureEventArgs e,
-            out string id, out string message, out string messageFormat)
+            out string id, out string message, out string messageFormat, out string description)
         {
             switch (e.ErrorCode)
             {
@@ -177,26 +179,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     id = Choose(language, WRN_UnableToLoadAnalyzerId, WRN_UnableToLoadAnalyzerIdCS, WRN_UnableToLoadAnalyzerIdVB);
                     messageFormat = FeaturesResources.WRN_UnableToLoadAnalyzer;
                     message = string.Format(FeaturesResources.WRN_UnableToLoadAnalyzer, fullPath, e.Message);
+                    description = CreateDescription(e.Exception);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer:
                     id = Choose(language, WRN_AnalyzerCannotBeCreatedId, WRN_AnalyzerCannotBeCreatedIdCS, WRN_AnalyzerCannotBeCreatedIdVB);
                     messageFormat = FeaturesResources.WRN_AnalyzerCannotBeCreated;
                     message = string.Format(FeaturesResources.WRN_AnalyzerCannotBeCreated, e.TypeName, fullPath, e.Message);
+                    description = CreateDescription(e.Exception);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers:
                     id = Choose(language, WRN_NoAnalyzerInAssemblyId, WRN_NoAnalyzerInAssemblyIdCS, WRN_NoAnalyzerInAssemblyIdVB);
                     messageFormat = FeaturesResources.WRN_NoAnalyzerInAssembly;
                     message = string.Format(FeaturesResources.WRN_NoAnalyzerInAssembly, fullPath);
+                    description = CreateDescription(e.Exception);
                     break;
                 case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                 default:
                     id = string.Empty;
                     message = string.Empty;
                     messageFormat = string.Empty;
+                    description = string.Empty;
                     return false;
             }
 
             return true;
+        }
+
+        private static string CreateDescription(Exception exception)
+        {
+            var separator = Environment.NewLine + "-----" + Environment.NewLine;
+
+            var aggregateException = exception as AggregateException;
+            if (aggregateException != null)
+            {
+                var flattened = aggregateException.Flatten();
+                return string.Join(separator, flattened.InnerExceptions.Select(e => e.Message));
+            }
+
+            if (exception != null)
+            {
+                return string.Join(separator, exception.Message, CreateDescription(exception.InnerException));
+            }
+
+            return string.Empty;
         }
 
         private static string Choose(string language, string noLanguageMessage, string csharpMessage, string vbMessage)
