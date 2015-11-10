@@ -745,12 +745,12 @@ namespace Microsoft.CodeAnalysis.Emit
                     var ok = map.TryGetValue(typeIndex, out mapIndex);
                     Debug.Assert(ok);
 
-                    AddEncLogEntry(
+                    tables.AddEncLogEntry(
                         token: mapTokenType | mapIndex,
                         code: addCode);
                 }
 
-                AddEncLogEntry(
+                tables.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EncFuncCode.Default);
             }
@@ -766,12 +766,12 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 if (index.IsAddedNotChanged(member))
                 {
-                    AddEncLogEntry(
+                    tables.AddEncLogEntry(
                         token: TokenTypeIds.TypeDef | _typeDefs[(INamedTypeDefinition)member.ContainingTypeDefinition],
                         code: addCode);
                 }
 
-                AddEncLogEntry(
+                tables.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EncFuncCode.Default);
             }
@@ -784,11 +784,11 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 var methodDef = _parameterDefList[i].Key;
 
-                AddEncLogEntry(
+                tables.AddEncLogEntry(
                     token: TokenTypeIds.MethodDef | _methodDefs[methodDef],
                     code: EncFuncCode.AddParameter);
 
-                AddEncLogEntry(
+                tables.AddEncLogEntry(
                     token: TokenTypeIds.ParamDef | (parameterFirstId + i),
                     code: EncFuncCode.Default);
             }
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             foreach (var member in index.GetRows())
             {
-                AddEncLogEntry(
+                tables.AddEncLogEntry(
                     token: tokenType | index[member],
                     code: EncFuncCode.Default);
             }
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             for (int i = 0; i < nTokens; i++)
             {
-                AddEncLogEntry(
+                tables.AddEncLogEntry(
                     token: tokenType | (firstRowId + i),
                     code: EncFuncCode.Default);
             }
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var token in tokens)
             {
-                AddEncMapEntry(token);
+                tables.AddEncMapEntry(token);
             }
 
             tokens.Free();
@@ -954,25 +954,23 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected override void PopulateEventMapTableRows(List<EventMapRow> table)
+        protected override void PopulateEventMapTableRows()
         {
             foreach (var typeId in _eventMap.GetRows())
             {
-                var r = new EventMapRow();
-                r.Parent = (uint)typeId;
-                r.EventList = (uint)_eventMap[typeId];
-                table.Add(r);
+                tables.AddEventMap(
+                    typeDefinitionRowId: typeId,
+                    eventList: _eventMap[typeId]);
             }
         }
 
-        protected override void PopulatePropertyMapTableRows(List<PropertyMapRow> table)
+        protected override void PopulatePropertyMapTableRows()
         {
             foreach (var typeId in _propertyMap.GetRows())
             {
-                var r = new PropertyMapRow();
-                r.Parent = (uint)typeId;
-                r.PropertyList = (uint)_propertyMap[typeId];
-                table.Add(r);
+                tables.AddPropertyMap(
+                    typeDefinitionRowId: typeId,
+                    propertyList: _propertyMap[typeId]);
             }
         }
 

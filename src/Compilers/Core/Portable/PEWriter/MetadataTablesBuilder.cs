@@ -11,11 +11,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    partial class MetadataWriter
+    internal sealed class MetadataTablesBuilder
     {
         private const byte MetadataFormatMajorVersion = 2;
         private const byte MetadataFormatMinorVersion = 0;
 
+        private readonly MetadataHeapsBuilder _heaps;
+        private readonly MetadataHeapsBuilder _debugHeapsOpt;
+
+        public MetadataTablesBuilder(MetadataHeapsBuilder heaps, MetadataHeapsBuilder debugHeaps)
+        {
+            if (heaps == null)
+            {
+                throw new ArgumentNullException(nameof(heaps));
+            }
+
+            _heaps = heaps;
+            _debugHeapsOpt = debugHeaps;
+        }
 
         // type system table rows:
         private struct AssemblyRefTableRow { public Version Version; public BlobIdx PublicKeyToken; public StringIdx Name; public StringIdx Culture; public uint Flags; public BlobIdx HashValue; }
@@ -25,10 +38,10 @@ namespace Microsoft.Cci
         private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
         private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; }
         private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobIdx PermissionSet; }
-        protected struct EncLogRow { public uint Token; public byte FuncCode; }
-        protected struct EncMapRow { public uint Token; }
+        private struct EncLogRow { public uint Token; public byte FuncCode; }
+        private struct EncMapRow { public uint Token; }
         private struct EventRow { public ushort EventFlags; public StringIdx Name; public uint EventType; }
-        protected struct EventMapRow { public uint Parent; public uint EventList; }
+        private struct EventMapRow { public uint Parent; public uint EventList; }
         private struct ExportedTypeRow { public uint Flags; public uint TypeDefId; public StringIdx TypeName; public StringIdx TypeNamespace; public uint Implementation; }
 
         private struct FieldLayoutRow { public uint Offset; public uint Field; }
@@ -51,8 +64,7 @@ namespace Microsoft.Cci
         private struct NestedClassRow { public uint NestedClass; public uint EnclosingClass; }
         private struct ParamRow { public ushort Flags; public ushort Sequence; public StringIdx Name; }
 
-        protected struct PropertyMapRow { public uint Parent; public uint PropertyList; }
-
+        private struct PropertyMapRow { public uint Parent; public uint PropertyList; }
         private struct PropertyRow { public ushort PropFlags; public StringIdx Name; public BlobIdx Type; }
         private struct TypeDefRow { public uint Flags; public StringIdx Name; public StringIdx Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
         private struct TypeRefRow { public uint ResolutionScope; public StringIdx Name; public StringIdx Namespace; }
@@ -407,7 +419,7 @@ namespace Microsoft.Cci
             {
                 Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
                 Parent = parent,
-                Value = heaps.GetConstantBlobIndex(value)
+                Value = _heaps.GetConstantBlobIndex(value)
             });
         }
 
@@ -689,7 +701,7 @@ namespace Microsoft.Cci
             });
         }
 
-        public void AddDocument(BlobIdx name, GuidIdx hashAlgorithm, BlobIdx hash, GuidIdx language)
+        public int AddDocument(BlobIdx name, GuidIdx hashAlgorithm, BlobIdx hash, GuidIdx language)
         {
             _documentTable.Add(new DocumentRow
             {
@@ -698,6 +710,8 @@ namespace Microsoft.Cci
                 Hash = hash,
                 Language = language
             });
+
+            return _documentTable.Count;
         }
 
         public void AddMethodDebugInformation(int documentRowId, BlobIdx sequencePoints)
@@ -723,7 +737,7 @@ namespace Microsoft.Cci
         }
 
         // TODO: enum LocalVariableAttributes
-        public void AddLocalVariable(ushort attributes, int index, StringIdx name)
+        public int AddLocalVariable(ushort attributes, int index, StringIdx name)
         {
             _localVariableTable.Add(new LocalVariableRow
             {
@@ -731,15 +745,19 @@ namespace Microsoft.Cci
                 Index = (ushort)index,
                 Name = name
             });
+
+            return _localVariableTable.Count;
         }
         
-        public void AddLocalConstant(StringIdx name, BlobIdx signature)
+        public int AddLocalConstant(StringIdx name, BlobIdx signature)
         {
             _localConstantTable.Add(new LocalConstantRow
             {
                 Name = name,
                 Signature = signature
             });
+
+            return _localConstantTable.Count;
         }
 
         public int AddImportScope(int parentScopeRowId, BlobIdx imports)
@@ -774,7 +792,7 @@ namespace Microsoft.Cci
 
         #endregion
 
-        private ImmutableArray<int> GetRowCounts()
+        public ImmutableArray<int> GetRowCounts()
         {
             var rowCounts = new int[MetadataTokens.TableCount];
 
@@ -827,10 +845,10 @@ namespace Microsoft.Cci
             return ImmutableArray.CreateRange(rowCounts);
         }
 
-        private int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
+        public int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
         {
             // index of module version ID in the guidWriter stream
-            int moduleVersionIdIndex = heaps.ResolveGuidIndex(_moduleTable[0].ModuleVersionId);
+            int moduleVersionIdIndex = _heaps.ResolveGuidIndex(_moduleTable[0].ModuleVersionId);
 
             // offset into the guidWriter stream of the module version ID
             int moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
@@ -840,7 +858,7 @@ namespace Microsoft.Cci
 
         #region Serialization
 
-        private void SerializeMetadataTables(
+        public void SerializeMetadataTables(
             BlobBuilder writer,
             MetadataSizes metadataSizes,
             int methodBodyStreamRva,
@@ -852,7 +870,7 @@ namespace Microsoft.Cci
 
             if (metadataSizes.IsPresent(TableIndex.Module))
             {
-                SerializeModuleTable(writer, metadataSizes, heaps);
+                SerializeModuleTable(writer, metadataSizes, _heaps);
             }
 
             if (metadataSizes.IsPresent(TableIndex.TypeRef))
@@ -1098,7 +1116,7 @@ namespace Microsoft.Cci
                 heapSizes |= HeapSizeFlag.BlobHeapLarge;
             }
 
-            if (!this.IsFullMetadata)
+            if (metadataSizes.IsMinimalDelta)
             {
                 heapSizes |= (HeapSizeFlag.EnCDeltas | HeapSizeFlag.DeletedMarks);
             }
@@ -1115,25 +1133,10 @@ namespace Microsoft.Cci
             writer.WriteByte(1); // reserved
             writer.WriteUInt64(metadataSizes.PresentTablesMask);
             writer.WriteUInt64(sortedTables);
-            SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.PresentTablesMask);
+            MetadataWriterUtilities.SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.PresentTablesMask);
 
             int endPosition = writer.Position;
             Debug.Assert(metadataSizes.CalculateTableStreamHeaderSize() == endPosition - startPosition);
-        }
-
-        private static void SerializeRowCounts(BlobBuilder writer, ImmutableArray<int> rowCounts, ulong includeTables)
-        {
-            for (int i = 0; i < rowCounts.Length; i++)
-            {
-                if (((1UL << i) & includeTables) != 0)
-                {
-                    int rowCount = rowCounts[i];
-                    if (rowCount > 0)
-                    {
-                        writer.WriteInt32(rowCount);
-                    }
-                }
-            }
         }
 
         private void SerializeModuleTable(BlobBuilder writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps)
@@ -1170,8 +1173,8 @@ namespace Microsoft.Cci
             foreach (TypeRefRow typeRef in _typeRefTable)
             {
                 writer.WriteReference(typeRef.ResolutionScope, metadataSizes.ResolutionScopeCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(typeRef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(typeRef.Namespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeRef.Namespace), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1180,8 +1183,8 @@ namespace Microsoft.Cci
             foreach (TypeDefRow typeDef in _typeDefTable)
             {
                 writer.WriteUInt32(typeDef.Flags);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(typeDef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(typeDef.Namespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeDef.Namespace), metadataSizes.StringIndexSize);
                 writer.WriteReference(typeDef.Extends, metadataSizes.TypeDefOrRefCodedIndexSize);
                 writer.WriteReference(typeDef.FieldList, metadataSizes.FieldDefIndexSize);
                 writer.WriteReference(typeDef.MethodList, metadataSizes.MethodDefIndexSize);
@@ -1193,8 +1196,8 @@ namespace Microsoft.Cci
             foreach (FieldDefRow fieldDef in _fieldTable)
             {
                 writer.WriteUInt16(fieldDef.Flags);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(fieldDef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(fieldDef.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(fieldDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(fieldDef.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1213,8 +1216,8 @@ namespace Microsoft.Cci
 
                 writer.WriteUInt16(method.ImplFlags);
                 writer.WriteUInt16(method.Flags);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(method.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(method.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(method.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(method.Signature), metadataSizes.BlobIndexSize);
                 writer.WriteReference(method.ParamList, metadataSizes.ParameterIndexSize);
             }
         }
@@ -1225,7 +1228,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt16(param.Flags);
                 writer.WriteUInt16(param.Sequence);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(param.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(param.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1245,8 +1248,8 @@ namespace Microsoft.Cci
             foreach (MemberRefRow memberRef in _memberRefTable)
             {
                 writer.WriteReference(memberRef.Class, metadataSizes.MemberRefParentCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(memberRef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(memberRef.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(memberRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(memberRef.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1260,7 +1263,7 @@ namespace Microsoft.Cci
                 writer.WriteByte(constant.Type);
                 writer.WriteByte(0);
                 writer.WriteReference(constant.Parent, metadataSizes.HasConstantCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(constant.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(constant.Value), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1274,7 +1277,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteReference(customAttribute.Parent, metadataSizes.HasCustomAttributeCodedIndexSize);
                 writer.WriteReference(customAttribute.Type, metadataSizes.CustomAttributeTypeCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(customAttribute.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(customAttribute.Value), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1286,7 +1289,7 @@ namespace Microsoft.Cci
             foreach (FieldMarshalRow fieldMarshal in ordered)
             {
                 writer.WriteReference(fieldMarshal.Parent, metadataSizes.HasFieldMarshalCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1300,7 +1303,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt16(declSecurity.Action);
                 writer.WriteReference(declSecurity.Parent, metadataSizes.DeclSecurityCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(declSecurity.PermissionSet), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(declSecurity.PermissionSet), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1339,7 +1342,7 @@ namespace Microsoft.Cci
         {
             foreach (StandaloneSigRow row in _standAloneSigTable)
             {
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1357,7 +1360,7 @@ namespace Microsoft.Cci
             foreach (EventRow eventRow in _eventTable)
             {
                 writer.WriteUInt16(eventRow.EventFlags);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(eventRow.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(eventRow.Name), metadataSizes.StringIndexSize);
                 writer.WriteReference(eventRow.EventType, metadataSizes.TypeDefOrRefCodedIndexSize);
             }
         }
@@ -1376,8 +1379,8 @@ namespace Microsoft.Cci
             foreach (PropertyRow property in _propertyTable)
             {
                 writer.WriteUInt16(property.PropFlags);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(property.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(property.Type), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(property.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(property.Type), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1415,7 +1418,7 @@ namespace Microsoft.Cci
         {
             foreach (ModuleRefRow moduleRef in _moduleRefTable)
             {
-                writer.WriteReference((uint)heaps.ResolveStringIndex(moduleRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(moduleRef.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1423,7 +1426,7 @@ namespace Microsoft.Cci
         {
             foreach (TypeSpecRow typeSpec in _typeSpecTable)
             {
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(typeSpec.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(typeSpec.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1439,7 +1442,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt16(implMap.MappingFlags);
                 writer.WriteReference(implMap.MemberForwarded, metadataSizes.MemberForwardedCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(implMap.ImportName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(implMap.ImportName), metadataSizes.StringIndexSize);
                 writer.WriteReference(implMap.ImportScope, metadataSizes.ModuleRefIndexSize);
             }
         }
@@ -1469,9 +1472,9 @@ namespace Microsoft.Cci
                 writer.WriteUInt16((ushort)row.Version.Build);
                 writer.WriteUInt16((ushort)row.Version.Revision);
                 writer.WriteUInt32(row.Flags);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.AssemblyKey), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(row.AssemblyName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(row.AssemblyCulture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.AssemblyKey), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.AssemblyName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.AssemblyCulture), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1484,10 +1487,10 @@ namespace Microsoft.Cci
                 writer.WriteUInt16((ushort)row.Version.Build);
                 writer.WriteUInt16((ushort)row.Version.Revision);
                 writer.WriteUInt32(row.Flags);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.PublicKeyToken), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(row.Culture), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(row.HashValue), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.PublicKeyToken), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.Culture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.HashValue), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1496,8 +1499,8 @@ namespace Microsoft.Cci
             foreach (FileTableRow fileReference in _fileTable)
             {
                 writer.WriteUInt32(fileReference.Flags);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(fileReference.FileName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(fileReference.HashValue), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(fileReference.FileName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(fileReference.HashValue), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1507,8 +1510,8 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt32((uint)exportedType.Flags);
                 writer.WriteUInt32(exportedType.TypeDefId);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(exportedType.TypeName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(exportedType.TypeNamespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(exportedType.TypeName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(exportedType.TypeNamespace), metadataSizes.StringIndexSize);
                 writer.WriteReference(exportedType.Implementation, metadataSizes.ImplementationCodedIndexSize);
             }
         }
@@ -1519,7 +1522,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt32(manifestResource.Offset);
                 writer.WriteUInt32(manifestResource.Flags);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(manifestResource.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(manifestResource.Name), metadataSizes.StringIndexSize);
                 writer.WriteReference(manifestResource.Implementation, metadataSizes.ImplementationCodedIndexSize);
             }
         }
@@ -1554,7 +1557,7 @@ namespace Microsoft.Cci
                 writer.WriteUInt16(genericParam.Number);
                 writer.WriteUInt16(genericParam.Flags);
                 writer.WriteReference(genericParam.Owner, metadataSizes.TypeOrMethodDefCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(genericParam.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveStringIndex(genericParam.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1578,7 +1581,7 @@ namespace Microsoft.Cci
             foreach (MethodSpecRow methodSpec in _methodSpecTable)
             {
                 writer.WriteReference(methodSpec.Method, metadataSizes.MethodDefOrRefCodedIndexSize);
-                writer.WriteReference((uint)heaps.ResolveBlobIndex(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)_heaps.ResolveBlobIndex(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
             }
         }
 
