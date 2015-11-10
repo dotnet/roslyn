@@ -5,17 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
-    internal enum ForegroundThreadDataKind
-    {
-        Wpf,
-        StaUnitTest,
-        Unknown
-    }
-
     internal sealed class ForegroundThreadData
     {
         internal readonly Thread Thread;
@@ -31,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         internal static ForegroundThreadData CreateDefault()
         {
-            ForegroundThreadDataKind kind = SynchronizationContext.Current?.GetType().FullName == "System.Windows.Threading.DispatcherSynchronizationContext"
-                    ? ForegroundThreadDataKind.Wpf
-                    : ForegroundThreadDataKind.Unknown;
+            var kind = ForegroundThreadDataInfo.CreateDefault();
 
             // None of the work posted to the foregroundTaskScheduler should block pending keyboard/mouse input from the user.
             // So instead of using the default priority which is above user input, we use Background priority which is 1 level
@@ -54,15 +46,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         private static ForegroundThreadData s_defaultForegroundThreadData;
         private readonly ForegroundThreadData _foregroundThreadData;
 
-        internal static ForegroundThreadData FallbackForegroundThreadData
-        {
-            get { return s_fallbackForegroundThreadData; }
-        }
-
         internal static ForegroundThreadData DefaultForegroundThreadData
         {
-            get { return s_defaultForegroundThreadData ?? s_fallbackForegroundThreadData; }
-            set { s_defaultForegroundThreadData = value; }
+            get
+            {
+                return s_defaultForegroundThreadData ?? s_fallbackForegroundThreadData;
+            }
+
+            set
+            {
+                s_defaultForegroundThreadData = value;
+                ForegroundThreadDataInfo.SetDefaultForegroundThreadDataKind(s_defaultForegroundThreadData?.Kind);
+            }
         }
 
         internal ForegroundThreadData ForegroundThreadData

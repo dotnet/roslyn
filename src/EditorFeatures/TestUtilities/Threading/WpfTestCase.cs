@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Threading;
 
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -57,7 +58,8 @@ namespace Roslyn.Test.Utilities
                             cancellationTokenSource.Token,
                             TaskCreationOptions.None,
                             sta).ConfigureAwait(false);
-                    } while (true);
+                    }
+                    while (true);
                 }
                 finally
                 {
