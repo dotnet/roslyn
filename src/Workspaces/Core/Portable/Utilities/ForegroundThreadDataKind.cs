@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Utilities
     internal static class ForegroundThreadDataInfo
     {
         private static readonly ForegroundThreadDataKind s_fallbackForegroundThreadDataKind;
-        private static ForegroundThreadDataKind? s_defaultForegroundThreadDataKind;
+        private static ForegroundThreadDataKind? s_currentForegroundThreadDataKind;
 
         static ForegroundThreadDataInfo()
         {
@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.Utilities
             return kind;
         }
 
-        internal static ForegroundThreadDataKind DefaultForegroundThreadDataKind
+        internal static ForegroundThreadDataKind CurrentForegroundThreadDataKind
         {
-            get { return s_defaultForegroundThreadDataKind ?? s_fallbackForegroundThreadDataKind; }
+            get { return s_currentForegroundThreadDataKind ?? s_fallbackForegroundThreadDataKind; }
         }
 
-        internal static void SetDefaultForegroundThreadDataKind(ForegroundThreadDataKind? kind)
+        internal static void SetCurrentForegroundThreadDataKind(ForegroundThreadDataKind? kind)
         {
-            s_defaultForegroundThreadDataKind = kind;
+            s_currentForegroundThreadDataKind = kind;
         }
     }
 }

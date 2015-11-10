@@ -42,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             base.Initialize();
 
-            ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = ForegroundThreadData.CreateDefault();
-            Debug.Assert(ForegroundThreadAffinitizedObject.DefaultForegroundThreadData.Kind == ForegroundThreadDataKind.Wpf);
+            ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = ForegroundThreadData.CreateDefault();
+            Debug.Assert(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Wpf);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;

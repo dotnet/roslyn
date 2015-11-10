@@ -28,7 +28,7 @@ namespace Roslyn.Test.Utilities
                 try
                 {
                     // Sync up FTAO to the context that we are creating here. 
-                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = new ForegroundThreadData(
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = new ForegroundThreadData(
                         Thread.CurrentThread,
                         StaTaskScheduler.DefaultSta,
                         ForegroundThreadDataKind.StaUnitTest);
@@ -63,7 +63,7 @@ namespace Roslyn.Test.Utilities
                 }
                 finally
                 {
-                    ForegroundThreadAffinitizedObject.DefaultForegroundThreadData = null;
+                    ForegroundThreadAffinitizedObject.CurrentForegroundThreadData = null;
 
                     // Cleanup the synchronization context even if the test is failing exceptionally
                     SynchronizationContext.SetSynchronizationContext(null);

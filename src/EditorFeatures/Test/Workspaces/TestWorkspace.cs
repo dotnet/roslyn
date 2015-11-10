@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// </summary>
         internal static void ResetThreadAffinity(ForegroundThreadData foregroundThreadData = null)
         {
-            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.DefaultForegroundThreadData;
+            foregroundThreadData = foregroundThreadData ?? ForegroundThreadAffinitizedObject.CurrentForegroundThreadData;
 
             // HACK: When the platform team took over several of our components they created a copy
             // of ForegroundThreadAffinitizedObject.  This needs to be reset in the same way as our copy

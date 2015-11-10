@@ -43,20 +43,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal class ForegroundThreadAffinitizedObject
     {
         private static readonly ForegroundThreadData s_fallbackForegroundThreadData;
-        private static ForegroundThreadData s_defaultForegroundThreadData;
+        private static ForegroundThreadData s_currentForegroundThreadData;
         private readonly ForegroundThreadData _foregroundThreadData;
 
-        internal static ForegroundThreadData DefaultForegroundThreadData
+        internal static ForegroundThreadData CurrentForegroundThreadData
         {
             get
             {
-                return s_defaultForegroundThreadData ?? s_fallbackForegroundThreadData;
+                return s_currentForegroundThreadData ?? s_fallbackForegroundThreadData;
             }
 
             set
             {
-                s_defaultForegroundThreadData = value;
-                ForegroundThreadDataInfo.SetDefaultForegroundThreadDataKind(s_defaultForegroundThreadData?.Kind);
+                s_currentForegroundThreadData = value;
+                ForegroundThreadDataInfo.SetCurrentForegroundThreadDataKind(s_currentForegroundThreadData?.Kind);
             }
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public ForegroundThreadAffinitizedObject(ForegroundThreadData foregroundThreadData = null, bool assertIsForeground = false)
         {
-            _foregroundThreadData = foregroundThreadData ?? DefaultForegroundThreadData;
+            _foregroundThreadData = foregroundThreadData ?? CurrentForegroundThreadData;
 
             // For sanity's sake, ensure that our idea of "foreground" is the same as WPF's
             Contract.ThrowIfFalse(Application.Current == null || Application.Current.Dispatcher.Thread == ForegroundThread);
