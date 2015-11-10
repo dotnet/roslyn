@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEnumMember
             Return service.GenerateEnumMemberAsync(document, node, cancellationToken)
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
             Return TypeOf node Is MemberAccessExpressionSyntax
         End Function
 

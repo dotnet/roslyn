@@ -22,10 +22,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
         Friend Const BC30455 As String = "BC30455" ' error BC30455: Argument not specified for parameter 'x' of 'Public Sub New(x As Integer)'.
         Friend Const BC30512 As String = "BC30512" ' error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integer'.
         Friend Const BC32006 As String = "BC32006" ' error BC32006: 'Char' values cannot be converted to 'Integer'. 
+        Friend Const BC30387 As String = "BC30387" ' error BC32006: Class 'Derived' must declare a 'Sub New' because its base class 'Base' does not have an accessible 'Sub New' that can be called with no arguments. 
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512)
+                Return ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387)
             End Get
         End Property
 
@@ -53,8 +54,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateConstructor
             Return node
         End Function
 
-        Protected Overrides Function IsCandidate(node As SyntaxNode) As Boolean
-            Return TypeOf node Is SimpleNameSyntax OrElse TypeOf node Is InvocationExpressionSyntax OrElse TypeOf node Is ObjectCreationExpressionSyntax OrElse TypeOf node Is AttributeSyntax
+        Protected Overrides Function IsCandidate(node As SyntaxNode, diagnostic As Diagnostic) As Boolean
+            If TypeOf node Is SimpleNameSyntax OrElse TypeOf node Is InvocationExpressionSyntax OrElse TypeOf node Is ObjectCreationExpressionSyntax OrElse TypeOf node Is AttributeSyntax Then
+                Return True
+            End If
+
+            Return diagnostic.Id = BC30387 AndAlso TypeOf node Is ClassBlockSyntax
         End Function
     End Class
 End Namespace
