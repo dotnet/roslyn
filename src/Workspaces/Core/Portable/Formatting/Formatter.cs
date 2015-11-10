@@ -213,7 +213,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <returns>The formatted tree's root node.</returns>
         public static SyntaxNode Format(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Format(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken: cancellationToken);
+            return FormatAsync(node, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        }
+
+        internal static Task<SyntaxNode> FormatAsync(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return FormatAsync(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken: cancellationToken);
         }
 
         /// <summary>
