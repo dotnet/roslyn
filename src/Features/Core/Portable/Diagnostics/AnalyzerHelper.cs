@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -33,6 +34,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal const string WRN_UnableToLoadAnalyzerId = "AD1002";
 
         private const string AnalyzerExceptionDiagnosticCategory = "Intellisense";
+
+        // Description separator
+        private static readonly string Separator = Environment.NewLine + "-----" + Environment.NewLine;
 
         public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         {
@@ -207,21 +211,53 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static string CreateDescription(Exception exception)
         {
-            var separator = Environment.NewLine + "-----" + Environment.NewLine;
-
             var aggregateException = exception as AggregateException;
             if (aggregateException != null)
             {
                 var flattened = aggregateException.Flatten();
-                return string.Join(separator, flattened.InnerExceptions.Select(e => e.Message));
+                return string.Join(Separator, flattened.InnerExceptions.Select(e => GetExceptionMessage(e)));
             }
 
             if (exception != null)
             {
-                return string.Join(separator, exception.Message, CreateDescription(exception.InnerException));
+                return string.Join(Separator, GetExceptionMessage(exception), CreateDescription(exception.InnerException));
             }
 
             return string.Empty;
+        }
+
+        private static string GetExceptionMessage(Exception exception)
+        {
+            var fileNotFoundException = exception as FileNotFoundException;
+            if (fileNotFoundException == null)
+            {
+                return exception.Message;
+            }
+
+            var fusionLog = GetFusionLogIfPossible(fileNotFoundException);
+            if (fusionLog == null)
+            {
+                return exception.Message;
+            }
+
+            return string.Join(Separator, fileNotFoundException.Message, fusionLog);
+        }
+
+        private static string GetFusionLogIfPossible(FileNotFoundException exception)
+        {
+            try
+            {
+                // since Feature is in portable layer, I am using reflection here. so that we can get
+                // most detail info on desktop when analyzer is failed to load. otherwise, we either
+                // don't put this information or need to do quite complex plumbing for quite simple thing
+                // that is not in hot path.
+                var info = exception.GetType().GetRuntimeProperty("FusionLog");
+                return info.GetValue(exception) as string;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static string Choose(string language, string noLanguageMessage, string csharpMessage, string vbMessage)
